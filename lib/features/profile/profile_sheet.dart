@@ -48,7 +48,7 @@ class ProfileSheet extends ConsumerWidget {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    onPressed: () => context.pop(),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
