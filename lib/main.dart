@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/firebase/firebase_options.dart';
@@ -7,10 +8,12 @@ import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'features/profile/profile_sheet.dart';
 import 'shared/providers/auth_provider.dart';
+import 'shared/providers/notification_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
   runApp(const ProviderScope(child: CalorixApp()));
 }
 
@@ -77,6 +80,9 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
       error: (error, _) => _AuthErrorScreen(onRetry: _ensureSignedIn),
       data: (user) {
         if (user == null) return const _SplashScreen();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          initNotifications(ref);
+        });
         return widget.child;
       },
     );

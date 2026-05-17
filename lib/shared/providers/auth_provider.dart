@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../repositories/food_entry_repository.dart';
 import '../repositories/macro_target_repository.dart';
 
@@ -30,3 +31,28 @@ final signInAnonymouslyProvider = FutureProvider<void>((ref) async {
     await auth.signInAnonymously();
   }
 });
+
+bool _googleSignInInitialized = false;
+
+/// Upgrades the current (anonymous) account to a permanent Google account via
+/// `linkWithCredential`. Requires a configured OAuth client
+/// (`flutterfire configure` / `google-services.json`).
+Future<void> linkWithGoogle(FirebaseAuth auth) async {
+  final user = auth.currentUser;
+  if (user == null) {
+    throw FirebaseAuthException(
+        code: 'no-current-user', message: 'You are not signed in.');
+  }
+
+  final signIn = GoogleSignIn.instance;
+  if (!_googleSignInInitialized) {
+    await signIn.initialize();
+    _googleSignInInitialized = true;
+  }
+
+  final account = await signIn.authenticate();
+  final idToken = account.authentication.idToken;
+  final credential = GoogleAuthProvider.credential(idToken: idToken);
+
+  await user.linkWithCredential(credential);
+}

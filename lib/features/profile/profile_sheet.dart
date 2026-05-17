@@ -109,8 +109,20 @@ class ProfileSheet extends ConsumerWidget {
                               title: const Text('Sign in with Google'),
                               subtitle: const Text('Save your data across devices'),
                               trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                              onTap: () {
-                                // linkWithCredential flow
+                              onTap: () async {
+                                final messenger =
+                                    ScaffoldMessenger.of(context);
+                                try {
+                                  await linkWithGoogle(
+                                      ref.read(firebaseAuthProvider));
+                                  messenger.showSnackBar(const SnackBar(
+                                      content: Text(
+                                          'Account linked with Google.')));
+                                } catch (e) {
+                                  messenger.showSnackBar(SnackBar(
+                                      content: Text(
+                                          'Could not link account: $e')));
+                                }
                               },
                             ),
                           )

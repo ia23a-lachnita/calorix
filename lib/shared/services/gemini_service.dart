@@ -5,7 +5,7 @@ class GeminiService {
   final String _apiKey;
 
   late final GenerativeModel _chatModel = GenerativeModel(
-    model: 'gemini-1.5-pro',
+    model: 'gemini-2.5-pro',
     apiKey: _apiKey,
   );
 
@@ -22,7 +22,7 @@ class GeminiService {
     required String activityLevel,
     required int trainingFrequency,
   }) async {
-    final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
+    final model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: _apiKey);
     final prompt = '''
 Compute TDEE for:
 - Weight: ${weight}kg

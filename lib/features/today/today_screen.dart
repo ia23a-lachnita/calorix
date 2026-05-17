@@ -96,7 +96,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                 entriesAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (e, _) =>
-                      Text('Error loading meals', style: TextStyle(color: AppColors.needsReview)),
+                      const Text('Error loading meals', style: TextStyle(color: AppColors.needsReview)),
                   data: (entries) => entries.isEmpty
                       ? _EmptyMeals(isDark: isDark)
                       : Column(

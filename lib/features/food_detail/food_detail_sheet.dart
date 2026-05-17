@@ -275,19 +275,21 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
   }
 
   Future<void> _save(BuildContext context, WidgetRef ref) async {
+    final router = GoRouter.of(context);
     setState(() => _isSaving = true);
     try {
       final repo = ref.read(foodEntryRepositoryProvider);
       await repo.update(entry.id, _pending.toUpdateMap(), markCorrected: true);
       if (!mounted) return;
       ref.read(foodEditModeProvider(entry.id).notifier).state = false;
-      context.pop();
+      router.pop();
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final router = GoRouter.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -304,13 +306,14 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
     );
     if (confirmed == true && mounted) {
       await ref.read(foodEntryRepositoryProvider).delete(entry.id);
-      if (mounted) context.pop();
+      if (mounted) router.pop();
     }
   }
 
   Future<void> _duplicate(BuildContext context, WidgetRef ref) async {
+    final router = GoRouter.of(context);
     await ref.read(foodEntryRepositoryProvider).duplicate(entry);
-    if (mounted) context.pop();
+    if (mounted) router.pop();
   }
 }
 
@@ -396,8 +399,8 @@ class _BackChip extends StatelessWidget {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.chevron_left, color: AppColors.cameraOverlayText, size: 16),
-              const Text('Back',
+              Icon(Icons.chevron_left, color: AppColors.cameraOverlayText, size: 16),
+              Text('Back',
                   style: TextStyle(
                       color: AppColors.cameraOverlayText,
                       fontFamily: 'Barlow',

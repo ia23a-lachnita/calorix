@@ -171,7 +171,7 @@ class _BodyGoalSegmented extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Body Goal', style: AppTextStyles.labelLarge),
+            const Text('Body Goal', style: AppTextStyles.labelLarge),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
@@ -527,7 +527,7 @@ class _WeightCard extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Log Weight', style: AppTextStyles.heading3),
+              const Text('Log Weight', style: AppTextStyles.heading3),
               const SizedBox(height: 16),
               TextField(
                 controller: controller,

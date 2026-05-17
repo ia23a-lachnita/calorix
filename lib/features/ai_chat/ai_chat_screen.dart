@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/ai_chat_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../shared/models/macro_target_plan.dart';
+import '../../shared/providers/auth_provider.dart';
+import '../today/providers/today_providers.dart';
 
 class AiChatScreen extends ConsumerStatefulWidget {
   final String? preloadedMealId;
@@ -33,22 +38,43 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
     _controller.clear();
-    ref.read(chatMessagesProvider.notifier).addUserMessage(text);
+    final notifier = ref.read(chatMessagesProvider.notifier);
+    notifier.addUserMessage(text);
     ref.read(isChatLoadingProvider.notifier).state = true;
 
-    // Simulate AI response (real impl calls GeminiService)
-    await Future.delayed(const Duration(milliseconds: 1200));
-    ref.read(chatMessagesProvider.notifier).addAiMessage(
-      "I'm analyzing your nutrition data. Based on your current intake, I recommend increasing protein by 20g and reducing carbs slightly.",
-      action: AiAction(
-        title: 'Update Protein Target',
-        field: 'Protein',
-        oldValue: '170g',
-        newValue: '190g',
-        delta: 20,
-      ),
-    );
-    ref.read(isChatLoadingProvider.notifier).state = false;
+    final plan = ref.read(activePlanProvider).valueOrNull ??
+        MacroTargetPlan.defaultPlan();
+    final today = ref.read(todayMacroSummaryProvider);
+
+    if (!ref.read(geminiConfiguredProvider)) {
+      notifier.addAiMessage(
+          'The assistant is not configured yet. Provide a Gemini API key with '
+          '--dart-define=GEMINI_API_KEY=… to enable live answers.');
+      ref.read(isChatLoadingProvider.notifier).state = false;
+      return;
+    }
+
+    final context = '''
+You are Calorix, an in-app nutrition coach. Be concise and practical.
+Current daily targets: ${plan.kcal} kcal, ${plan.protein}g protein, ${plan.carbs}g carbs, ${plan.fat}g fat (plan: ${plan.planName}).
+Consumed so far today: ${today.kcal.round()} kcal, ${today.protein.round()}g protein, ${today.carbs.round()}g carbs, ${today.fat.round()}g fat.
+If you recommend changing a single calorie or macro target, end your reply with exactly one line of JSON:
+{"action":{"field":"Protein","macro":"protein","old":${plan.protein},"new":190}}
+where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.''';
+
+    try {
+      final raw = await ref
+          .read(geminiServiceProvider)
+          .sendMessage(text, context: context);
+      final parsed = _parseReply(raw, plan);
+      notifier.addAiMessage(parsed.text.isEmpty ? 'Done.' : parsed.text,
+          action: parsed.action);
+    } catch (e) {
+      notifier.addAiMessage(
+          "Sorry, I couldn't reach the assistant just now. ($e)");
+    } finally {
+      ref.read(isChatLoadingProvider.notifier).state = false;
+    }
 
     await Future.delayed(const Duration(milliseconds: 100));
     if (_scrollController.hasClients) {
@@ -58,6 +84,46 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         curve: Curves.easeOut,
       );
     }
+  }
+
+  Future<void> _applyAction(int index, AiAction action) async {
+    final notifier = ref.read(chatMessagesProvider.notifier);
+    final update = action.targetUpdate;
+    if (update == null) {
+      notifier.clearActionAt(index);
+      return;
+    }
+    final uid = ref.read(currentUidProvider);
+    final repo = ref.read(macroTargetRepositoryProvider);
+    final plan = ref.read(activePlanProvider).valueOrNull ??
+        MacroTargetPlan.defaultPlan();
+    try {
+      if (uid == null) throw 'You are not signed in.';
+      if (plan.id == 'default') {
+        final newPlan = plan.copyWith(
+          kcal: update['kcal'],
+          protein: update['protein'],
+          carbs: update['carbs'],
+          fat: update['fat'],
+          isActive: true,
+        );
+        final id = await repo.createPlan(uid, newPlan);
+        await repo.setActivePlan(uid, id);
+      } else {
+        await repo.updatePlan(uid, plan.id, update);
+      }
+      notifier.clearActionAt(index);
+      notifier.addAiMessage(
+          'Done — your ${action.field.toLowerCase()} target is now ${action.newValue}.');
+    } catch (e) {
+      notifier.addAiMessage("I couldn't apply that change: $e");
+    }
+  }
+
+  void _rejectAction(int index) {
+    final notifier = ref.read(chatMessagesProvider.notifier);
+    notifier.clearActionAt(index);
+    notifier.addAiMessage("No problem — I'll leave your targets unchanged.");
   }
 
   @override
@@ -120,7 +186,15 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                   return const _TypingIndicator();
                 }
                 final msg = messages[index];
-                return _MessageBubble(message: msg, isDark: isDark);
+                return _MessageBubble(
+                  message: msg,
+                  isDark: isDark,
+                  onApply: msg.action != null
+                      ? () => _applyAction(index, msg.action!)
+                      : null,
+                  onReject:
+                      msg.action != null ? () => _rejectAction(index) : null,
+                );
               },
             ),
           ),
@@ -165,7 +239,14 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isDark;
-  const _MessageBubble({required this.message, required this.isDark});
+  final VoidCallback? onApply;
+  final VoidCallback? onReject;
+  const _MessageBubble({
+    required this.message,
+    required this.isDark,
+    this.onApply,
+    this.onReject,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +287,12 @@ class _MessageBubble extends StatelessWidget {
           ),
           if (message.action != null) ...[
             const SizedBox(height: 8),
-            _ConfirmCard(action: message.action!, isDark: isDark),
+            _ConfirmCard(
+              action: message.action!,
+              isDark: isDark,
+              onApply: onApply,
+              onReject: onReject,
+            ),
           ],
         ],
       ),
@@ -217,7 +303,14 @@ class _MessageBubble extends StatelessWidget {
 class _ConfirmCard extends StatelessWidget {
   final AiAction action;
   final bool isDark;
-  const _ConfirmCard({required this.action, required this.isDark});
+  final VoidCallback? onApply;
+  final VoidCallback? onReject;
+  const _ConfirmCard({
+    required this.action,
+    required this.isDark,
+    this.onApply,
+    this.onReject,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -294,7 +387,7 @@ class _ConfirmCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: onReject,
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.borderLight),
                     padding: const EdgeInsets.symmetric(vertical: 10),
@@ -305,7 +398,7 @@ class _ConfirmCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: onApply,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.blue,
                     padding: const EdgeInsets.symmetric(vertical: 10),
@@ -342,13 +435,13 @@ class _TypingIndicator extends StatelessWidget {
               ),
               border: Border.all(color: AppColors.borderLight),
             ),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _Dot(delay: 0),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 _Dot(delay: 200),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 _Dot(delay: 400),
               ],
             ),
@@ -468,5 +561,52 @@ class _Composer extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+int _currentTarget(MacroTargetPlan p, String macro) => switch (macro) {
+      'kcal' => p.kcal,
+      'protein' => p.protein,
+      'carbs' => p.carbs,
+      'fat' => p.fat,
+      _ => 0,
+    };
+
+/// Splits a Gemini reply into display text and an optional applicable
+/// macro-target action encoded as a trailing JSON object.
+({String text, AiAction? action}) _parseReply(
+    String raw, MacroTargetPlan plan) {
+  final match =
+      RegExp(r'\{[^{}]*"action"[\s\S]*?\}\s*\}').firstMatch(raw) ??
+          RegExp(r'\{[\s\S]*"action"[\s\S]*\}').firstMatch(raw);
+  if (match == null) return (text: raw.trim(), action: null);
+
+  final cleaned = raw.replaceFirst(match.group(0)!, '').trim();
+  try {
+    final json = jsonDecode(match.group(0)!) as Map<String, dynamic>;
+    final a = json['action'] as Map<String, dynamic>;
+    final macro = (a['macro'] as String? ?? '').toLowerCase();
+    final newV = (a['new'] as num?)?.toInt();
+    if (!const ['kcal', 'protein', 'carbs', 'fat'].contains(macro) ||
+        newV == null) {
+      return (text: cleaned.isEmpty ? raw.trim() : cleaned, action: null);
+    }
+    final oldV = (a['old'] as num?)?.toInt() ?? _currentTarget(plan, macro);
+    final field = a['field'] as String? ??
+        '${macro[0].toUpperCase()}${macro.substring(1)}';
+    final unit = macro == 'kcal' ? '' : 'g';
+    return (
+      text: cleaned.isEmpty ? 'Here is a suggested change.' : cleaned,
+      action: AiAction(
+        title: 'Update $field target',
+        field: field,
+        oldValue: '$oldV$unit',
+        newValue: '$newV$unit',
+        delta: newV - oldV,
+        targetUpdate: {macro: newV},
+      ),
+    );
+  } catch (_) {
+    return (text: raw.trim(), action: null);
   }
 }

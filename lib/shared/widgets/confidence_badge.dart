@@ -29,7 +29,7 @@ class _ConfidenceBadgeState extends State<ConfidenceBadge>
     super.initState();
     _pulse = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: AppConstants.confidencePulseDuration),
+      duration: const Duration(milliseconds: AppConstants.confidencePulseDuration),
     )..repeat(reverse: true);
     _opacity = Tween<double>(begin: 0.4, end: 1.0).animate(_pulse);
   }

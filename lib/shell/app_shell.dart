@@ -78,7 +78,7 @@ class _CalorixBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bgColor = isDark ? AppColors.navBarDark : AppColors.navBarLight;
-    final activeColor = AppColors.blue;
+    const activeColor = AppColors.blue;
     final inactiveColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
