@@ -1,0 +1,12 @@
+# Calorix Codex starter config.
+# Keep personal defaults in ~/.codex/config.toml. Keep project defaults here.
+
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+
+# Keep AGENTS.md concise; split detailed workflows into .claude/*.md.
+project_doc_max_bytes = 32768
+
+[features]
+# Enable only if your Codex build supports hierarchical child AGENTS.md behavior.
+child_agents_md = true

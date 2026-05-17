@@ -1,0 +1,407 @@
+<!doctype html>
+<html data-src-ver="a3e2b767" lang="en" data-om-id="a3e2b767:0">
+<head data-om-id="a3e2b767:1">
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{var j=["https://claude.ai","https://preview.claude.ai"];var x=true;var S=30000;var f=3000;document.addEventListener("DOMContentLoaded",()=>{const H=window.Babel;const G="om-src-id";if(H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[G])){H.registerPlugin(G,({types:Y})=>({visitor:{JSXOpeningElement(U,Q){const J=U.node;if(J.name&&J.name.type==="JSXMemberExpression")return;for(let V=0;V<J.attributes.length;V++){const L=J.attributes[V];if(L.type==="JSXAttribute"&&L.name&&L.name.name==="data-om-id")return}const W=Q.file&&Q.file.opts&&Q.file.opts.filename||"?";const Z=J.loc&&J.loc.start;const z=`jsx:${W}:${J.start??0}:${Z?Z.line:0}:${Z?Z.column+1:0}`;J.attributes.push(Y.jsxAttribute(Y.jsxIdentifier("data-om-id"),Y.stringLiteral(z)))}}}))}const k="om-text-extract";let A=false;if(x&&H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[k])){const Y=window.React;if(Y&&Y.useSyncExternalStore&&Y.createElement){A=true;const U={};const Q=new Set;let J=0;window.__omTextO=U;window.__omTextSet=(z)=>{for(const V in z){const L=z[V];if(L==null)delete U[V];else U[V]=L}J++;Q.forEach((V)=>V())};const W=(z)=>{Q.add(z);return()=>Q.delete(z)};const Z=()=>J;window.__OmT=function z(V){Y.useSyncExternalStore(W,Z,Z);return Y.createElement("span",{"data-om-text":V.i,className:"__om-t"},V.i in U?U[V.i]:V.children)};H.registerPlugin(k,({types:z})=>{const V={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const L={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const _=($,C)=>z.logicalExpression("??",z.memberExpression(z.logicalExpression("||",z.memberExpression(z.identifier("window"),z.identifier("__omTextO")),z.objectExpression([])),z.stringLiteral($),true),C);const E=($)=>$.file&&$.file.opts&&$.file.opts.filename||"?";const B=($)=>$.file&&$.file.code||"";const b=($,C)=>{const X=(F)=>F&&F.start!=null&&F.end!=null&&(F.type==="StringLiteral"||F.type==="TemplateLiteral"&&F.expressions.length===0)?[F.start,F.end]:null;const N=X(C);if(N)return N;if(C&&C.type==="Identifier"){const F=$.scope.getBinding(C.name);if(F&&F.constant&&F.path.node.type==="VariableDeclarator"){return X(F.path.node.init)}}return null};const M=($,C,X)=>{const N=$.node;let F=false;const w=(K,q)=>{F=true;return z.jsxElement(z.jsxOpeningElement(z.jsxIdentifier("__OmT"),[z.jsxAttribute(z.jsxIdentifier("i"),z.stringLiteral(K))],false),z.jsxClosingElement(z.jsxIdentifier("__OmT")),[q],false)};const D=N.children.map((K)=>{if(K.type==="JSXText"){if(K.start==null||K.end==null)return K;const q=X.slice(K.start,K.end);const R=q.length-q.trimStart().length;const m=q.length-q.trimEnd().length;if(R+m>=q.length)return K;return w(`txt:${C}:${K.start+R}:${K.end-m}`,K)}if(K.type==="JSXExpressionContainer"){const q=b($,K.expression);if(q)return w(`str:${C}:${q[0]}:${q[1]}`,K)}return K});if(F)N.children=D};return{visitor:{JSXOpeningElement($,C){const X=$.node;const N=E(C);const F={};for(let w=0;w<X.attributes.length;w++){const D=X.attributes[w];if(D.type!=="JSXAttribute"||!D.name)continue;const K=D.name.name;if(!L[K])continue;if(!D.value||D.value.type!=="StringLiteral")continue;if(D.value.start==null||D.value.end==null)continue;const q=`txt:${N}:${D.value.start}:${D.value.end}`;F[K]=q;D.value=z.jsxExpressionContainer(_(q,z.stringLiteral(D.value.value)))}if(Object.keys(F).length){X.attributes.push(z.jsxAttribute(z.jsxIdentifier("data-om-text-attrs"),z.stringLiteral(JSON.stringify(F))))}},JSXElement($,C){const X=$.node.openingElement;const N=X&&X.name&&X.name.name;if(N==="__OmT")return;if(typeof N==="string"&&V[N])return;M($,E(C),B(C))},JSXFragment($,C){M($,E(C),B(C))}}}})}}const u=A?["transform-react-jsx-source",G,k]:["transform-react-jsx-source",G];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((Y,U)=>{const Q=Y.getAttribute("data-plugins")||"";const J=u.filter((W)=>Q.indexOf(W)<0);if(J.length){Y.setAttribute("data-plugins",Q?`${Q},${J.join(",")}`:J.join(","))}if(!Y.hasAttribute("data-filename")){Y.setAttribute("data-filename",Y.getAttribute("src")||`inline-${U}`)}})});var y=window.parent;if(y&&y!==window){const H=(Q,J)=>{try{y.postMessage({__omelette_log:true,type:Q,data:J},"*")}catch{}};["log","warn","error"].forEach((Q)=>{const J=console[Q];console[Q]=(...W)=>{const Z=W.map((z)=>{try{return typeof z==="object"?JSON.stringify(z):String(z)}catch{try{return String(z)}catch{return"[unstringifiable]"}}}).join(" ");H(Q,Z);J.apply(console,W)}});window.addEventListener("error",(Q)=>{const J=Q.target;if(J&&J!==window&&J.tagName){const W=J.src||J.href||"";H("resource_error",`${J.tagName} failed to load: ${W}`)}else{H("error",`${Q.message||"Unknown error"} at ${Q.filename||"?"}:${Q.lineno||0}:${Q.colno||0}`)}},true);window.addEventListener("unhandledrejection",(Q)=>{const J=Q.reason;const W=J instanceof Error?`${J.message} ${J.stack}`:String(J);H("error",`Unhandled rejection: ${W}`)});const G=()=>{try{y.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(document.readyState==="complete")G();else window.addEventListener("load",G);if(window.ResizeObserver)new ResizeObserver(G).observe(document.documentElement);const k={};let A=0;window.claude={complete(Q){return new Promise((J,W)=>{if(!j.length){W(new Error("claude.complete: no parent origin"));return}const Z=`c${++A}`;const z=()=>setTimeout(()=>{delete k[Z];W(new Error(`claude.complete: no data for ${S/1000}s`))},S);const V=z();k[Z]={resolve:J,reject:W,text:"",t:V,arm:z};try{for(const L of j){y.postMessage({__om_api:true,id:Z,body:Q},L)}}catch(L){clearTimeout(V);delete k[Z];W(L)}})}};const u={};let Y=0;window.omelette={writeFile:(Q,J)=>new Promise((W,Z)=>{if(!j.length){W();return}const z=`f${++Y}`;const V=setTimeout(()=>{delete u[z];W()},f);u[z]={resolve:W,reject:Z,t:V};try{for(const L of j){y.postMessage({__om_file:true,id:z,op:"write",path:Q,content:J},L)}}catch{clearTimeout(V);delete u[z];W()}})};const U=(Q)=>{try{return JSON.stringify(Q)}catch{return JSON.stringify(String(Q))}};window.addEventListener("message",(Q)=>{if(j.indexOf(Q.origin)<0)return;if(Q.source!==y)return;const J=Q.data;if(!J)return;if(J.type==="omelette-preview-refresh"){if(typeof J.token!=="string"||!/^[0-9a-f.-]+$/.test(J.token))return;const z=Math.max(1,Math.floor((J.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+J.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+z;return}if(J.__om_file_r){const z=u[J.id];if(!z)return;clearTimeout(z.t);delete u[J.id];if(J.ok)z.resolve();else z.reject(new Error(J.error||"write failed"));return}if(J.__om_api_r){const z=k[J.id];if(!z)return;if(J.error!=null){clearTimeout(z.t);delete k[J.id];z.reject(new Error(J.error));return}if(J.chunk!=null){clearTimeout(z.t);z.t=z.arm();z.text+=J.chunk;return}if(J.done){clearTimeout(z.t);delete k[J.id];z.resolve(J.text!=null?J.text:z.text);return}return}if(!J.__om_eval)return;const W=J;const Z=(z)=>{Q.source.postMessage({...z,__om_eval_r:1,id:W.id},Q.origin)};try{const z=(0,eval)(W.code);if(z&&typeof z.then==="function"){z.then((V)=>Z({ok:1,v:U(V)}),(V)=>Z({ok:0,e:String(V)}))}else{Z({ok:1,v:U(z)})}}catch(z){Z({ok:0,e:String(z)})}})}})();
+</script>
+
+<meta charset="utf-8" data-om-id="a3e2b767:2"/>
+<meta name="viewport" content="width=device-width,initial-scale=1" data-om-id="a3e2b767:3"/>
+<title>Calorix — Mobile App Concept</title>
+
+<!-- Fonts: Geist + Geist Mono via Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" data-om-id="a3e2b767:4"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin data-om-id="a3e2b767:5"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" data-om-id="a3e2b767:6"/>
+
+<style>
+  html, body {
+    margin: 0; padding: 0; min-height: 100%;
+    background: #ECE9E3;
+    font-family: "Geist", "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  * { box-sizing: border-box; }
+</style>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Components & screens -->
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="cx-theme.jsx"></script>
+<script type="text/babel" src="cx-icons.jsx"></script>
+<script type="text/babel" src="cx-shell.jsx"></script>
+<script type="text/babel" src="cx-screen-scan.jsx"></script>
+<script type="text/babel" src="cx-screen-processing.jsx"></script>
+<script type="text/babel" src="cx-screen-today.jsx"></script>
+<script type="text/babel" src="cx-screen-food.jsx"></script>
+<script type="text/babel" src="cx-screen-history.jsx"></script>
+<script type="text/babel" src="cx-screen-goals.jsx"></script>
+<script type="text/babel" src="cx-screen-ai.jsx"></script>
+<script type="text/babel" src="cx-screen-spec.jsx"></script>
+
+</head>
+<body data-om-id="a3e2b767:7">
+<div id="root" data-om-id="a3e2b767:8"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState } = React;
+
+// Lock screen w/ Calorix push — built inline since it's small & one-off.
+function CXLockScreen({ mode = 'dark' }) {
+  const isDark = mode !== 'light';
+  const bg = isDark ? `
+        radial-gradient(70% 60% at 30% 20%, #1a2330 0%, #0a0d12 60%),
+        radial-gradient(60% 50% at 80% 80%, #112024 0%, #0a0d12 60%)
+      ` : `
+        radial-gradient(80% 70% at 30% 18%, #eef2f4 0%, #c8d1d4 54%, #8d979d 100%),
+        radial-gradient(70% 60% at 80% 90%, #d9f5f2 0%, transparent 58%)
+      `;
+  const ink = isDark ? '#F2F3F5' : '#0B0D10';
+  const muted = isDark ? 'rgba(242,243,245,0.65)' : 'rgba(11,13,16,0.52)';
+  const noteBg = isDark ? 'rgba(28,32,38,0.78)' : 'rgba(255,255,255,0.82)';
+  const noteBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(11,13,16,0.10)';
+  const subNoteBg = isDark ? 'rgba(28,32,38,0.55)' : 'rgba(255,255,255,0.58)';
+  const subNoteBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(11,13,16,0.08)';
+  const buttonBg = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.54)';
+  return (
+    <div style={{
+      position: 'relative', width: '100%', height: '100%',
+      background: bg,
+      overflow: 'hidden', color: ink,
+    }}>
+      <div style={{ paddingTop: 96, textAlign: 'center' }}>
+        <div style={{
+          fontFamily: CX_MONO, fontSize: 14, fontWeight: 500,
+          color: muted, letterSpacing: '0.16em', textTransform: 'uppercase',
+        }}>Friday, May 15</div>
+        <div style={{
+          fontFamily: CX_FONT, fontSize: 96, fontWeight: 200,
+          letterSpacing: '-0.04em', lineHeight: 1, marginTop: 4,
+        }}>13:04</div>
+      </div>
+
+      <div style={{
+        position: 'absolute', left: 10, right: 10, top: 360,
+        display: 'flex', flexDirection: 'column', gap: 8,
+      }}>
+        <div style={{
+          borderRadius: 22, padding: '12px 14px',
+          background: noteBg,
+          backdropFilter: 'blur(40px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(40px) saturate(160%)',
+          border: `0.5px solid ${noteBorder}`,
+          boxShadow: isDark ? '0 12px 30px rgba(0,0,0,0.35)' : '0 12px 30px rgba(20,24,30,0.18)',
+          display: 'flex', gap: 10, alignItems: 'flex-start',
+        }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 9,
+            background: CX.gradAI,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.18)',
+            flexShrink: 0,
+          }}>
+            <CXLogo size={22} color="#0B0D10"/>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+              <span style={{ fontFamily: CX_FONT, fontSize: 13, fontWeight: 600, color: ink }}>Calorix</span>
+              <span style={{ fontFamily: CX_MONO, fontSize: 10.5, color: muted, letterSpacing: '0.06em' }}>now</span>
+            </div>
+            <div style={{ fontFamily: CX_FONT, fontSize: 13.5, fontWeight: 600, marginTop: 2 }}>
+              Scan complete — Chicken Rice Bowl
+            </div>
+            <div style={{ fontFamily: CX_FONT, fontSize: 12.5, color: isDark ? 'rgba(242,243,245,0.72)' : 'rgba(11,13,16,0.62)', marginTop: 1 }}>
+              620 kcal · 48P / 72C / 16F · 91% confidence
+            </div>
+            <div style={{ fontFamily: CX_MONO, fontSize: 10, color: CX.cyan, marginTop: 6, letterSpacing: '0.10em' }}>
+              SWIPE TO REVIEW · HOLD TO CONFIRM
+            </div>
+          </div>
+          <div style={{
+            width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+            background: 'radial-gradient(circle at 40% 40%, #d6b487 0%, #8a5d36 70%, #3a2a1c 100%)',
+            border: '0.5px solid rgba(255,255,255,0.10)',
+          }}/>
+        </div>
+
+        <div style={{
+          margin: '0 8px', borderRadius: 18, padding: '10px 14px',
+          background: subNoteBg,
+          backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
+          border: `0.5px solid ${subNoteBorder}`,
+          display: 'flex', gap: 10, alignItems: 'center',
+          opacity: 0.85,
+        }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 7, background: isDark ? '#1F1F1F' : 'rgba(11,13,16,0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: CX_FONT, fontWeight: 700, fontSize: 13, color: ink,
+          }}>SC</div>
+          <div style={{ flex: 1, fontFamily: CX_FONT, fontSize: 12.5, color: isDark ? 'rgba(242,243,245,0.7)' : 'rgba(11,13,16,0.58)' }}>
+            2 more notifications
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        position: 'absolute', bottom: 70, left: 0, right: 0,
+        display: 'flex', justifyContent: 'space-between', padding: '0 36px',
+      }}>
+        <div style={{
+          width: 50, height: 50, borderRadius: 999,
+          background: buttonBg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <CXIcon name="flash" size={20} color={ink}/>
+        </div>
+        <div style={{
+          width: 50, height: 50, borderRadius: 999,
+          background: buttonBg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <CXIcon name="lens" size={20} color={ink}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Frame({ children, dark = false }) {
+  return (
+    <IOSDevice width={402} height={874} dark={dark}>
+      {children}
+    </IOSDevice>
+  );
+}
+
+// One global mode controls light/dark across every theme-aware screen.
+const DEFAULTS = /*EDITMODE-BEGIN*/{
+  "mode": "dark",
+  "scanState": "capturing",
+  "foodEdit": false,
+  "historyView": "week",
+  "goalsPeriod": "idle"
+}/*EDITMODE-END*/;
+
+function App() {
+  const [tw, setTweak] = useTweaks(DEFAULTS);
+  const dark = tw.mode === 'dark';
+
+  return (
+    <>
+      <DesignCanvas>
+        <DCSection id="brand" title="Calorix" subtitle="A faster, free alternative — camera-first calorie tracking. Atelier-athletic system.">
+          <DCArtboard id="brand-card" label="Identity" width={402} height={874}>
+            <BrandCard mode={tw.mode}/>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="capture" title="Camera & capture flow" subtitle="Default landing screen. Open app → frame → tap → cloud → push notification.">
+          <DCArtboard id="scan" label="01 · Scan · idle / capturing" width={402} height={874}>
+            <Frame dark={dark}><CXScanScreen state={tw.scanState} mode={tw.mode}/></Frame>
+          </DCArtboard>
+          <DCArtboard id="processing" label="02 · Processing card" width={402} height={874}>
+            <Frame dark={dark}><CXProcessingScreen mode={tw.mode}/></Frame>
+          </DCArtboard>
+          <DCArtboard id="lock-notif" label="03 · Lock-screen push" width={402} height={874}>
+            <Frame dark={dark}><CXLockScreen mode={tw.mode}/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="today" title="Today dashboard" subtitle="Hero macro ring on top of a card, then macro sub-cards. Entry animation fills + counts up.">
+          <DCArtboard id="today" label="Today" width={402} height={874}>
+            <Frame dark={dark}><CXTodayScreen mode={tw.mode}/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="food" title="Food detail · edit · CRUD" subtitle="Hero, editable nutrition, detected items, AI fix. Toggle original / edit state.">
+          <DCArtboard id="food" label={`Food detail · ${tw.foodEdit ? 'editing' : 'original'}`} width={402} height={874}>
+            <Frame dark={dark}><CXFoodDetailScreen mode={tw.mode} editing={tw.foodEdit}/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="long" title="History & Goals" subtitle="Long-term progress and a motivational, data-driven plan.">
+          <DCArtboard id="history" label={`History · ${tw.historyView}`} width={402} height={874}>
+            <Frame dark={dark}><CXHistoryScreen mode={tw.mode} view={tw.historyView}/></Frame>
+          </DCArtboard>
+          <DCArtboard id="goals" label={`Goals · ${tw.goalsPeriod === 'select' ? 'period select' : 'idle'}`} width={402} height={874}>
+            <Frame dark={dark}><CXGoalsScreen mode={tw.mode} period={tw.goalsPeriod}/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="ai" title="Calorix AI" subtitle="Integrated assistant that can edit your meals and macro plan with confirmation.">
+          <DCArtboard id="ai" label="AI chat" width={402} height={874}>
+            <Frame dark={dark}><CXAIScreen mode={tw.mode}/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="spec" title="Spec · Implementation Notes" subtitle="One annotation card per screen. Each element is named, described, and spec'd for no-ambiguity Flutter implementation.">
+          <DCArtboard id="spec-scan"       label="Spec · Scan"        width={460} height={874}><CXScanSpec       mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-processing" label="Spec · Processing"  width={460} height={874}><CXProcessingSpec mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-today"      label="Spec · Today"       width={460} height={874}><CXTodaySpec      mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-food"       label="Spec · Food detail" width={460} height={874}><CXFoodSpec       mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-history"    label="Spec · History"     width={460} height={874}><CXHistorySpec    mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-goals"      label="Spec · Goals"       width={460} height={874}><CXGoalsSpec      mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-ai"         label="Spec · AI"          width={460} height={874}><CXAISpec         mode={tw.mode}/></DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Theme">
+          <TweakRadio
+            label="App mode"
+            value={tw.mode}
+            onChange={(v) => setTweak('mode', v)}
+            options={[
+              { value: 'light', label: 'Light' },
+              { value: 'dark',  label: 'Dark' },
+            ]}
+          />
+        </TweakSection>
+        <TweakSection label="Camera">
+          <TweakRadio
+            label="Scan state"
+            value={tw.scanState}
+            onChange={(v) => setTweak('scanState', v)}
+            options={[
+              { value: 'idle',      label: 'Idle' },
+              { value: 'capturing', label: 'Capture' },
+            ]}
+          />
+        </TweakSection>
+        <TweakSection label="Food detail">
+          <TweakRadio
+            label="State"
+            value={tw.foodEdit ? 'edit' : 'original'}
+            onChange={(v) => setTweak('foodEdit', v === 'edit')}
+            options={[
+              { value: 'original', label: 'Original' },
+              { value: 'edit',     label: 'Editing' },
+            ]}
+          />
+        </TweakSection>
+        <TweakSection label="History">
+          <TweakRadio
+            label="Calendar view"
+            value={tw.historyView}
+            onChange={(v) => setTweak('historyView', v)}
+            options={[
+              { value: 'week',  label: 'Week' },
+              { value: 'month', label: 'Month' },
+            ]}
+          />
+        </TweakSection>
+        <TweakSection label="Goals">
+          <TweakRadio
+            label="Period selector"
+            value={tw.goalsPeriod}
+            onChange={(v) => setTweak('goalsPeriod', v)}
+            options={[
+              { value: 'idle',   label: 'Idle' },
+              { value: 'select', label: 'Selecting' },
+            ]}
+          />
+        </TweakSection>
+      </TweaksPanel>
+    </>
+  );
+}
+
+// Brand identity card — supports light + dark.
+function BrandCard({ mode = 'dark' }) {
+  const dark = mode === 'dark';
+  const bg   = dark ? '#0B0D10' : '#F4F2EE';
+  const ink  = dark ? '#F2F3F5' : '#0B0D10';
+  const ink2 = dark ? 'rgba(242,243,245,0.65)' : 'rgba(11,13,16,0.55)';
+  const ink3 = dark ? 'rgba(242,243,245,0.45)' : 'rgba(11,13,16,0.40)';
+  const tileBg = dark ? 'rgba(255,255,255,0.04)' : '#FFFFFF';
+  const tileBorder = dark ? 'rgba(255,255,255,0.08)' : 'rgba(11,13,16,0.06)';
+
+  return (
+    <div style={{
+      width: '100%', height: '100%',
+      background: bg, color: ink,
+      fontFamily: CX_FONT,
+      padding: '54px 24px 100px',
+      display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{
+        position: 'absolute', right: -120, top: -120, width: 380, height: 380, borderRadius: 999,
+        background: dark
+          ? 'radial-gradient(closest-side, rgba(25,211,217,0.22), transparent)'
+          : 'radial-gradient(closest-side, rgba(25,211,217,0.32), transparent)',
+        filter: 'blur(20px)',
+      }}/>
+      <div style={{
+        position: 'absolute', left: -120, bottom: 120, width: 320, height: 320, borderRadius: 999,
+        background: dark
+          ? 'radial-gradient(closest-side, rgba(58,91,255,0.18), transparent)'
+          : 'radial-gradient(closest-side, rgba(58,91,255,0.20), transparent)',
+        filter: 'blur(20px)',
+      }}/>
+
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <CXLabel color={ink2}>Mobile · iOS · Flutter-ready</CXLabel>
+        <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 18,
+            background: CX.gradAI,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 12px 30px rgba(25,211,217,0.30), inset 0 0 0 1px rgba(255,255,255,0.18)',
+          }}>
+            <CXLogo size={38} color="#0B0D10"/>
+          </div>
+          <div>
+            <div style={{ fontSize: 44, fontWeight: 600, letterSpacing: '-0.05em', lineHeight: 1 }}>Calorix</div>
+            <div style={{ fontFamily: CX_MONO, fontSize: 11, marginTop: 6, color: ink2, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+              Snap · Track · Stay on target
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 36, fontSize: 18, lineHeight: 1.45, letterSpacing: '-0.01em', maxWidth: 320 }}>
+          Open the app. The camera is already on.<br/>
+          One tap. We process in the cloud. A push tells you when it's logged.
+        </div>
+      </div>
+
+      <div style={{ marginTop: 'auto', position: 'relative', zIndex: 2 }}>
+        <CXLabel color={ink3} style={{ marginBottom: 10 }}>Macro palette</CXLabel>
+        <div style={{ display: 'flex', gap: 10 }}>
+          {[
+            { c: CX.blue,  l: 'PROTEIN' },
+            { c: CX.cyan,  l: 'CARBS'   },
+            { c: CX.green, l: 'FAT'     },
+          ].map((s) => (
+            <div key={s.l} style={{
+              flex: 1, padding: 12, borderRadius: 14,
+              background: tileBg,
+              border: `0.5px solid ${tileBorder}`,
+            }}>
+              <div style={{ width: 24, height: 24, borderRadius: 8, background: s.c }}/>
+              <div style={{
+                fontFamily: CX_MONO, fontSize: 9.5, color: ink2,
+                letterSpacing: '0.14em', marginTop: 8,
+              }}>{s.l}</div>
+              <div style={{ fontFamily: CX_MONO, fontSize: 10, color: ink3, marginTop: 2 }}>
+                {s.c.toUpperCase()}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
+<script type="application/json" id="__om_srcmap">{"gen":"a3e2b767","entries":[{"id":"a3e2b767:0","tag":"html","openStart":16,"attrEnd":31,"openEnd":32,"closeStart":17456,"closeEnd":17463,"textRuns":[[32,33],[2282,2283],[17455,17456]],"parentId":null,"childIds":["a3e2b767:1","a3e2b767:7"]},{"id":"a3e2b767:1","tag":"head","openStart":33,"attrEnd":38,"openEnd":39,"closeStart":2275,"closeEnd":2282,"textRuns":[[39,40],[63,64],[132,133],[178,180],[231,232],[292,293],[362,363],[510,512],[809,811],[833,834],[1021,1022],[1217,1218],[1405,1407],[1436,1437],[1492,1493],[1552,1553],[1611,1612],[1666,1667],[1721,1722],[1776,1777],[1837,1838],[1904,1905],[1966,1967],[2027,2028],[2091,2092],[2153,2154],[2212,2213],[2273,2275]],"parentId":"a3e2b767:0","childIds":["a3e2b767:2","a3e2b767:3","a3e2b767:4","a3e2b767:5","a3e2b767:6"]},{"id":"a3e2b767:2","tag":"meta","openStart":40,"attrEnd":61,"openEnd":63,"closeEnd":63,"textRuns":[],"parentId":"a3e2b767:1","childIds":[]},{"id":"a3e2b767:3","tag":"meta","openStart":64,"attrEnd":130,"openEnd":132,"closeEnd":132,"textRuns":[],"parentId":"a3e2b767:1","childIds":[]},{"id":"a3e2b767:4","tag":"link","openStart":232,"attrEnd":290,"openEnd":292,"closeEnd":292,"textRuns":[],"parentId":"a3e2b767:1","childIds":[]},{"id":"a3e2b767:5","tag":"link","openStart":293,"attrEnd":360,"openEnd":362,"closeEnd":362,"textRuns":[],"parentId":"a3e2b767:1","childIds":[]},{"id":"a3e2b767:6","tag":"link","openStart":363,"attrEnd":508,"openEnd":510,"closeEnd":510,"textRuns":[],"parentId":"a3e2b767:1","childIds":[]},{"id":"a3e2b767:7","tag":"body","openStart":2283,"attrEnd":2288,"openEnd":2289,"closeStart":17448,"closeEnd":17455,"textRuns":[[2289,2290],[2311,2313],[17447,17448]],"parentId":"a3e2b767:0","childIds":["a3e2b767:8"]},{"id":"a3e2b767:8","tag":"div","openStart":2290,"attrEnd":2304,"openEnd":2305,"closeStart":2305,"closeEnd":2311,"textRuns":[],"parentId":"a3e2b767:7","childIds":[]}]}</script>

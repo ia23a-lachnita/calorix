@@ -1,0 +1,342 @@
+
+const { useState } = React;
+
+// Lock screen w/ Calorix push — built inline since it's small & one-off.
+function CXLockScreen() {
+  return (
+    <div style={{
+      position: 'relative', width: '100%', height: '100%',
+      background: `
+        radial-gradient(70% 60% at 30% 20%, #1a2330 0%, #0a0d12 60%),
+        radial-gradient(60% 50% at 80% 80%, #112024 0%, #0a0d12 60%)
+      `,
+      overflow: 'hidden', color: '#F2F3F5',
+    }}>
+      <div style={{ paddingTop: 96, textAlign: 'center' }}>
+        <div style={{
+          fontFamily: CX_MONO, fontSize: 14, fontWeight: 500,
+          color: 'rgba(242,243,245,0.65)', letterSpacing: '0.16em', textTransform: 'uppercase',
+        }}>Friday, May 15</div>
+        <div style={{
+          fontFamily: CX_FONT, fontSize: 96, fontWeight: 200,
+          letterSpacing: '-0.04em', lineHeight: 1, marginTop: 4,
+        }}>13:04</div>
+      </div>
+
+      <div style={{
+        position: 'absolute', left: 10, right: 10, top: 360,
+        display: 'flex', flexDirection: 'column', gap: 8,
+      }}>
+        <div style={{
+          borderRadius: 22, padding: '12px 14px',
+          background: 'rgba(28,32,38,0.78)',
+          backdropFilter: 'blur(40px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(40px) saturate(160%)',
+          border: '0.5px solid rgba(255,255,255,0.12)',
+          boxShadow: '0 12px 30px rgba(0,0,0,0.35)',
+          display: 'flex', gap: 10, alignItems: 'flex-start',
+        }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 9,
+            background: CX.gradAI,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.18)',
+            flexShrink: 0,
+          }}>
+            <CXLogo size={22} color="#0B0D10"/>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+              <span style={{ fontFamily: CX_FONT, fontSize: 13, fontWeight: 600, color: '#F2F3F5' }}>Calorix</span>
+              <span style={{ fontFamily: CX_MONO, fontSize: 10.5, color: 'rgba(242,243,245,0.55)', letterSpacing: '0.06em' }}>now</span>
+            </div>
+            <div style={{ fontFamily: CX_FONT, fontSize: 13.5, fontWeight: 600, marginTop: 2 }}>
+              Scan complete — Chicken Rice Bowl
+            </div>
+            <div style={{ fontFamily: CX_FONT, fontSize: 12.5, color: 'rgba(242,243,245,0.72)', marginTop: 1 }}>
+              620 kcal · 48P / 72C / 16F · 91% confidence
+            </div>
+            <div style={{ fontFamily: CX_MONO, fontSize: 10, color: CX.cyan, marginTop: 6, letterSpacing: '0.10em' }}>
+              SWIPE TO REVIEW · HOLD TO CONFIRM
+            </div>
+          </div>
+          <div style={{
+            width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+            background: 'radial-gradient(circle at 40% 40%, #d6b487 0%, #8a5d36 70%, #3a2a1c 100%)',
+            border: '0.5px solid rgba(255,255,255,0.10)',
+          }}/>
+        </div>
+
+        <div style={{
+          margin: '0 8px', borderRadius: 18, padding: '10px 14px',
+          background: 'rgba(28,32,38,0.55)',
+          backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
+          border: '0.5px solid rgba(255,255,255,0.08)',
+          display: 'flex', gap: 10, alignItems: 'center',
+          opacity: 0.85,
+        }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 7, background: '#1F1F1F',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: CX_FONT, fontWeight: 700, fontSize: 13, color: '#fff',
+          }}>SC</div>
+          <div style={{ flex: 1, fontFamily: CX_FONT, fontSize: 12.5, color: 'rgba(242,243,245,0.7)' }}>
+            2 more notifications
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        position: 'absolute', bottom: 70, left: 0, right: 0,
+        display: 'flex', justifyContent: 'space-between', padding: '0 36px',
+      }}>
+        <div style={{
+          width: 50, height: 50, borderRadius: 999,
+          background: 'rgba(255,255,255,0.10)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <CXIcon name="flash" size={20} color="#F2F3F5"/>
+        </div>
+        <div style={{
+          width: 50, height: 50, borderRadius: 999,
+          background: 'rgba(255,255,255,0.10)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <CXIcon name="lens" size={20} color="#F2F3F5"/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Frame({ children, dark = false }) {
+  return (
+    <IOSDevice width={402} height={874} dark={dark}>
+      {children}
+    </IOSDevice>
+  );
+}
+
+// One global mode controls light/dark across every theme-aware screen.
+// Camera + processing + lock-screen artboards stay dark by design (they are
+// camera/system surfaces); everything else follows `mode`.
+const DEFAULTS = /*EDITMODE-BEGIN*/{
+  "mode": "light",
+  "scanState": "idle",
+  "foodEdit": false,
+  "historyView": "week",
+  "goalsPeriod": "idle"
+}/*EDITMODE-END*/;
+
+function App() {
+  const [tw, setTweak] = useTweaks(DEFAULTS);
+  const dark = tw.mode === 'dark';
+
+  return (
+    <>
+      <DesignCanvas>
+        <DCSection id="brand" title="Calorix" subtitle="A faster, free alternative — camera-first calorie tracking. Atelier-athletic system.">
+          <DCArtboard id="brand-card" label="Identity" width={402} height={874}>
+            <BrandCard mode={tw.mode}/>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="capture" title="Camera & capture flow" subtitle="Default landing screen. Open app → frame → tap → cloud → push notification.">
+          <DCArtboard id="scan" label="01 · Scan · idle / capturing" width={402} height={874}>
+            <Frame dark={dark}><CXScanScreen state={tw.scanState} mode={tw.mode}/></Frame>
+          </DCArtboard>
+          <DCArtboard id="processing" label="02 · Processing card" width={402} height={874}>
+            <Frame dark={dark}><CXProcessingScreen mode={tw.mode}/></Frame>
+          </DCArtboard>
+          <DCArtboard id="lock-notif" label="03 · Lock-screen push" width={402} height={874}>
+            <Frame dark><CXLockScreen/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="today" title="Today dashboard" subtitle="Hero macro ring on top of a card, then macro sub-cards. Entry animation fills + counts up.">
+          <DCArtboard id="today" label="Today" width={402} height={874}>
+            <Frame dark={dark}><CXTodayScreen mode={tw.mode}/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="food" title="Food detail · edit · CRUD" subtitle="Hero, editable nutrition, detected items, AI fix. Toggle original / edit state.">
+          <DCArtboard id="food" label={`Food detail · ${tw.foodEdit ? 'editing' : 'original'}`} width={402} height={874}>
+            <Frame dark={dark}><CXFoodDetailScreen mode={tw.mode} editing={tw.foodEdit}/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="long" title="History & Goals" subtitle="Long-term progress and a motivational, data-driven plan.">
+          <DCArtboard id="history" label={`History · ${tw.historyView}`} width={402} height={874}>
+            <Frame dark={dark}><CXHistoryScreen mode={tw.mode} view={tw.historyView}/></Frame>
+          </DCArtboard>
+          <DCArtboard id="goals" label={`Goals · ${tw.goalsPeriod === 'select' ? 'period select' : 'idle'}`} width={402} height={874}>
+            <Frame dark={dark}><CXGoalsScreen mode={tw.mode} period={tw.goalsPeriod}/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="ai" title="Calorix AI" subtitle="Integrated assistant that can edit your meals and macro plan with confirmation.">
+          <DCArtboard id="ai" label="AI chat" width={402} height={874}>
+            <Frame dark={dark}><CXAIScreen mode={tw.mode}/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="spec" title="Spec · Implementation Notes" subtitle="One annotation card per screen. Each element is named, described, and spec'd for no-ambiguity Flutter implementation.">
+          <DCArtboard id="spec-scan"       label="Spec · Scan"        width={460} height={874}><CXScanSpec       mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-processing" label="Spec · Processing"  width={460} height={874}><CXProcessingSpec mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-today"      label="Spec · Today"       width={460} height={874}><CXTodaySpec      mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-food"       label="Spec · Food detail" width={460} height={874}><CXFoodSpec       mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-history"    label="Spec · History"     width={460} height={874}><CXHistorySpec    mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-goals"      label="Spec · Goals"       width={460} height={874}><CXGoalsSpec      mode={tw.mode}/></DCArtboard>
+          <DCArtboard id="spec-ai"         label="Spec · AI"          width={460} height={874}><CXAISpec         mode={tw.mode}/></DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Theme">
+          <TweakRadio
+            label="App mode"
+            value={tw.mode}
+            onChange={(v) => setTweak('mode', v)}
+            options={[
+              { value: 'light', label: 'Light' },
+              { value: 'dark',  label: 'Dark' },
+            ]}
+          />
+        </TweakSection>
+        <TweakSection label="Camera">
+          <TweakRadio
+            label="Scan state"
+            value={tw.scanState}
+            onChange={(v) => setTweak('scanState', v)}
+            options={[
+              { value: 'idle',      label: 'Idle' },
+              { value: 'capturing', label: 'Capture' },
+            ]}
+          />
+        </TweakSection>
+        <TweakSection label="Food detail">
+          <TweakRadio
+            label="State"
+            value={tw.foodEdit ? 'edit' : 'original'}
+            onChange={(v) => setTweak('foodEdit', v === 'edit')}
+            options={[
+              { value: 'original', label: 'Original' },
+              { value: 'edit',     label: 'Editing' },
+            ]}
+          />
+        </TweakSection>
+        <TweakSection label="History">
+          <TweakRadio
+            label="Calendar view"
+            value={tw.historyView}
+            onChange={(v) => setTweak('historyView', v)}
+            options={[
+              { value: 'week',  label: 'Week' },
+              { value: 'month', label: 'Month' },
+            ]}
+          />
+        </TweakSection>
+        <TweakSection label="Goals">
+          <TweakRadio
+            label="Period selector"
+            value={tw.goalsPeriod}
+            onChange={(v) => setTweak('goalsPeriod', v)}
+            options={[
+              { value: 'idle',   label: 'Idle' },
+              { value: 'select', label: 'Selecting' },
+            ]}
+          />
+        </TweakSection>
+      </TweaksPanel>
+    </>
+  );
+}
+
+// Brand identity card — supports light + dark.
+function BrandCard({ mode = 'dark' }) {
+  const dark = mode === 'dark';
+  const bg   = dark ? '#0B0D10' : '#F4F2EE';
+  const ink  = dark ? '#F2F3F5' : '#0B0D10';
+  const ink2 = dark ? 'rgba(242,243,245,0.65)' : 'rgba(11,13,16,0.55)';
+  const ink3 = dark ? 'rgba(242,243,245,0.45)' : 'rgba(11,13,16,0.40)';
+  const tileBg = dark ? 'rgba(255,255,255,0.04)' : '#FFFFFF';
+  const tileBorder = dark ? 'rgba(255,255,255,0.08)' : 'rgba(11,13,16,0.06)';
+
+  return (
+    <div style={{
+      width: '100%', height: '100%',
+      background: bg, color: ink,
+      fontFamily: CX_FONT,
+      padding: '54px 24px 100px',
+      display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{
+        position: 'absolute', right: -120, top: -120, width: 380, height: 380, borderRadius: 999,
+        background: dark
+          ? 'radial-gradient(closest-side, rgba(25,211,217,0.22), transparent)'
+          : 'radial-gradient(closest-side, rgba(25,211,217,0.32), transparent)',
+        filter: 'blur(20px)',
+      }}/>
+      <div style={{
+        position: 'absolute', left: -120, bottom: 120, width: 320, height: 320, borderRadius: 999,
+        background: dark
+          ? 'radial-gradient(closest-side, rgba(58,91,255,0.18), transparent)'
+          : 'radial-gradient(closest-side, rgba(58,91,255,0.20), transparent)',
+        filter: 'blur(20px)',
+      }}/>
+
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <CXLabel color={ink2}>Mobile · iOS · Flutter-ready</CXLabel>
+        <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 18,
+            background: CX.gradAI,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 12px 30px rgba(25,211,217,0.30), inset 0 0 0 1px rgba(255,255,255,0.18)',
+          }}>
+            <CXLogo size={38} color="#0B0D10"/>
+          </div>
+          <div>
+            <div style={{ fontSize: 44, fontWeight: 600, letterSpacing: '-0.05em', lineHeight: 1 }}>Calorix</div>
+            <div style={{ fontFamily: CX_MONO, fontSize: 11, marginTop: 6, color: ink2, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+              Snap · Track · Stay on target
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 36, fontSize: 18, lineHeight: 1.45, letterSpacing: '-0.01em', maxWidth: 320 }}>
+          Open the app. The camera is already on.<br/>
+          One tap. We process in the cloud. A push tells you when it's logged.
+        </div>
+      </div>
+
+      <div style={{ marginTop: 'auto', position: 'relative', zIndex: 2 }}>
+        <CXLabel color={ink3} style={{ marginBottom: 10 }}>Macro palette</CXLabel>
+        <div style={{ display: 'flex', gap: 10 }}>
+          {[
+            { c: CX.blue,  l: 'PROTEIN' },
+            { c: CX.cyan,  l: 'CARBS'   },
+            { c: CX.green, l: 'FAT'     },
+          ].map((s) => (
+            <div key={s.l} style={{
+              flex: 1, padding: 12, borderRadius: 14,
+              background: tileBg,
+              border: `0.5px solid ${tileBorder}`,
+            }}>
+              <div style={{ width: 24, height: 24, borderRadius: 8, background: s.c }}/>
+              <div style={{
+                fontFamily: CX_MONO, fontSize: 9.5, color: ink2,
+                letterSpacing: '0.14em', marginTop: 8,
+              }}>{s.l}</div>
+              <div style={{ fontFamily: CX_MONO, fontSize: 10, color: ink3, marginTop: 2 }}>
+                {s.c.toUpperCase()}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);

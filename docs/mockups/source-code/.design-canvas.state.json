@@ -1,0 +1,1 @@
+{"sections":{"long":{"title":"History & Goals"},"capture":{"title":"Camera & capture flow","labels":{"scan-idle":"01 · Scan (idle)"},"order":["scan","processing","lock-notif"]},"today":{"title":"Today dashboard"},"food":{"title":"Food detail · edit · CRUD"}}}

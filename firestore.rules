@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // User profile and sub-collections
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /targets/{targetId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      match /weightLogs/{date} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Food entries
+    match /entries/{entryId} {
+      allow read: if request.auth != null &&
+        (resource == null || resource.data.uid == request.auth.uid);
+
+      allow create: if request.auth != null &&
+        request.resource.data.uid == request.auth.uid &&
+        // Nutrition fields only required when status is complete (set by Cloud Function)
+        (request.resource.data.status == 'pending' ||
+          (request.resource.data.kcal is number &&
+           request.resource.data.kcal >= 0 &&
+           request.resource.data.kcal <= 10000 &&
+           request.resource.data.protein is number &&
+           request.resource.data.protein >= 0 &&
+           request.resource.data.foodName is string &&
+           request.resource.data.foodName.size() < 500 &&
+           request.resource.data.confidence is number &&
+           request.resource.data.confidence >= 0.0 &&
+           request.resource.data.confidence <= 1.0));
+
+      allow update: if request.auth != null &&
+        resource.data.uid == request.auth.uid &&
+        request.resource.data.uid == request.auth.uid &&
+        // Validate nutrition fields if present in update
+        (!('kcal' in request.resource.data) || (request.resource.data.kcal is number && request.resource.data.kcal >= 0 && request.resource.data.kcal <= 10000)) &&
+        (!('protein' in request.resource.data) || (request.resource.data.protein is number && request.resource.data.protein >= 0)) &&
+        (!('carbs' in request.resource.data) || (request.resource.data.carbs is number && request.resource.data.carbs >= 0)) &&
+        (!('fat' in request.resource.data) || (request.resource.data.fat is number && request.resource.data.fat >= 0)) &&
+        (!('foodName' in request.resource.data) || (request.resource.data.foodName is string && request.resource.data.foodName.size() < 500));
+
+      allow delete: if request.auth != null &&
+        resource.data.uid == request.auth.uid;
+    }
+
+    // Daily logs (read-only for users; written by Cloud Functions via Admin SDK)
+    match /dailyLogs/{logId} {
+      allow read: if request.auth != null &&
+        logId.matches('^' + request.auth.uid + '_.*');
+      allow write: if false; // Only Admin SDK (Cloud Functions) can write
+    }
+  }
+}

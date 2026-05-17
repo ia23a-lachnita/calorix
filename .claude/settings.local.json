@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Command *)",
+      "PowerShell(git status*)",
+      "PowerShell(git diff*)",
+      "PowerShell(git log*)",
+      "PowerShell(fvm flutter doctor*)",
+      "PowerShell(fvm flutter pub get*)",
+      "PowerShell(fvm flutter analyze*)",
+      "PowerShell(fvm flutter test*)",
+      "PowerShell(fvm flutter run*)",
+      "PowerShell(fvm dart*)",
+      "PowerShell(gemini*)",
+      "PowerShell(codex*)",
+      "PowerShell(claude mcp*)",
+      "PowerShell(flutter-mcp-toolkit*)",
+      "PowerShell(adb devices*)",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "PowerShell(git *)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "claude-context",
+    "dart",
+    "firebase",
+    "gcloud"
+  ]
+}

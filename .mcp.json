@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "firebase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firebase-tools@latest",
+        "mcp"
+      ]
+    },
+    "gcloud": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@google-cloud/gcloud-mcp"
+      ]
+    },
+    "dart": {
+      "type": "stdio",
+      "command": "fvm",
+      "args": [
+        "dart",
+        "mcp-server"
+      ],
+      "env": {}
+    }
+  }
+}

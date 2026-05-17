@@ -1,0 +1,35 @@
+{
+  "context": {
+    "fileName": [
+      "GEMINI.md"
+    ]
+  },
+  "mcpServers": {
+    "dart": {
+      "command": "fvm",
+      "args": [
+        "dart",
+        "mcp-server"
+      ]
+    },
+    "gcloud": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@google-cloud/gcloud-mcp"
+      ]
+    },
+	"claude-context": {
+      "command": "npx",
+      "args": ["-y", "@zilliz/claude-context-mcp@latest"],
+      "trust": true
+    }
+  },
+  "mcp": {
+    "allowed": [
+      "dart",
+      "gcloud",
+      "firebase"
+    ]
+  }
+}
