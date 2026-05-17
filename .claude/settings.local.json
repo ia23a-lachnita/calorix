@@ -18,7 +18,8 @@
       "PowerShell(flutter-mcp-toolkit*)",
       "PowerShell(adb devices*)",
       "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
-      "PowerShell(git *)"
+      "PowerShell(git *)",
+      "PowerShell(cd \"C:\\\\Users\\\\xursc\\\\projects\\\\calorix\"; \"=== Checking ignored sensitive files are NOT staged ===\"; git ls-files | Select-String -Pattern 'firebase_options|google-services|GoogleService-Info|\\\\.env|\\\\.firebaserc|node_modules' ; \"=== \\(empty = good\\) ===\"; \"Total tracked files:\"; \\(git ls-files | Measure-Object\\).Count)"
     ]
   },
   "enabledMcpjsonServers": [

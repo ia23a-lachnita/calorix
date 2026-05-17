@@ -105,7 +105,7 @@ class ProfileSheet extends ConsumerWidget {
                     data: (user) => user?.isAnonymous == true
                         ? Card(
                             child: ListTile(
-                              leading: const Icon(Icons.google),
+                              leading: const Icon(Icons.login),
                               title: const Text('Sign in with Google'),
                               subtitle: const Text('Save your data across devices'),
                               trailing: const Icon(Icons.arrow_forward_ios, size: 14),
@@ -151,7 +151,7 @@ class ProfileSheet extends ConsumerWidget {
                       trailing: Switch(
                         value: true,
                         onChanged: (_) {},
-                        activeColor: AppColors.green,
+                        activeThumbColor: AppColors.green,
                       ),
                     ),
                   ),

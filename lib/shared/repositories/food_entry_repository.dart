@@ -11,8 +11,7 @@ class FoodEntryRepository {
 
   Stream<FoodEntry> watchEntry(String id) =>
       _col.doc(id).snapshots().where((s) => s.exists).map(
-            (s) => FoodEntry.fromFirestore(
-                s as DocumentSnapshot<Map<String, dynamic>>),
+            (s) => FoodEntry.fromFirestore(s),
           );
 
   Stream<List<FoodEntry>> watchTodayEntries(String uid) {

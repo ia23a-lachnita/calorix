@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/food_entry.dart';
 import '../../../shared/providers/auth_provider.dart';
-import '../../../shared/providers/plan_provider.dart';
 
 export '../../../shared/providers/plan_provider.dart' show activePlanProvider;
 
