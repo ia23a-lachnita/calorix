@@ -1,15 +1,15 @@
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
-const { getStorage } = require('firebase-admin/storage');
 const { getMessaging } = require('firebase-admin/messaging');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { VertexAI } = require('@google-cloud/vertexai');
 const fetch = require('node-fetch');
 
 initializeApp();
 
 const db = getFirestore();
-const storage = getStorage();
+const PROJECT_ID = 'calorix-xurschnell';
+const LOCATION = 'us-central1';
 
 exports.processFood = onDocumentCreated(
   {
@@ -25,20 +25,17 @@ exports.processFood = onDocumentCreated(
     if (data.status !== 'pending') return;
 
     const entryRef = db.collection('entries').doc(entryId);
-
-    // Mark as processing
     await entryRef.update({ status: 'processing' });
 
     try {
       // Download image from Storage
-      const imageUrl = data.imageUrl;
-      const response = await fetch(imageUrl);
+      const response = await fetch(data.imageUrl);
       const buffer = await response.buffer();
       const base64Image = buffer.toString('base64');
 
-      // Call Gemini Vision API
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      // Vertex AI — uses Cloud Function service account, no API key needed
+      const vertexAI = new VertexAI({ project: PROJECT_ID, location: LOCATION });
+      const model = vertexAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
       const prompt = `You are a nutrition estimation AI. Analyze this food image and return JSON only:
 {
@@ -53,18 +50,24 @@ exports.processFood = onDocumentCreated(
 }
 Estimate for the portion shown. Use standard nutrition databases. Return ONLY valid JSON.`;
 
-      const result = await model.generateContent([
-        prompt,
-        { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
-      ]);
+      const result = await model.generateContent({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
+            ],
+          },
+        ],
+      });
 
-      const text = result.response.text();
+      const text = result.response.candidates[0].content.parts[0].text;
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error('Invalid Gemini response');
 
       const nutrition = JSON.parse(jsonMatch[0]);
 
-      // Update Firestore
       const date = new Date(data.timestamp?.toDate?.() || Date.now());
       const dateStr = date.toISOString().substring(0, 10);
 
@@ -82,7 +85,6 @@ Estimate for the portion shown. Use standard nutrition databases. Return ONLY va
         boundingBox: nutrition.boundingBox || null,
       });
 
-      // Upsert daily log
       const dailyLogRef = db.collection('dailyLogs').doc(`${data.uid}_${dateStr}`);
       batch.set(
         dailyLogRef,
@@ -99,8 +101,7 @@ Estimate for the portion shown. Use standard nutrition databases. Return ONLY va
       await batch.commit();
 
       // Send FCM push notification
-      const userRef = db.collection('users').doc(data.uid);
-      const userDoc = await userRef.get();
+      const userDoc = await db.collection('users').doc(data.uid).get();
       const fcmToken = userDoc.data()?.fcmToken;
 
       if (fcmToken) {
@@ -110,12 +111,8 @@ Estimate for the portion shown. Use standard nutrition databases. Return ONLY va
             title: 'Calorix finished your meal scan',
             body: `${nutrition.foodName} · ${Math.round(nutrition.kcal)} kcal`,
           },
-          data: {
-            docId: entryId,
-            entryId: entryId,
-          },
+          data: { entryId },
           android: { priority: 'high' },
-          apns: { payload: { aps: { sound: 'default' } } },
         });
       }
     } catch (error) {
