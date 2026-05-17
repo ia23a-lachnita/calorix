@@ -49,6 +49,7 @@ class _AuthGate extends ConsumerStatefulWidget {
 
 class _AuthGateState extends ConsumerState<_AuthGate> {
   bool _signingIn = false;
+  Object? _authError;
 
   @override
   void initState() {
@@ -59,13 +60,15 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
   Future<void> _ensureSignedIn() async {
     if (_signingIn) return;
     _signingIn = true;
+    if (mounted) setState(() => _authError = null);
     try {
       final auth = ref.read(firebaseAuthProvider);
       if (auth.currentUser == null) {
         await auth.signInAnonymously();
       }
-    } catch (_) {
-      // authStateProvider will emit error, handled in build
+    } catch (e) {
+      debugPrint('AUTH ERROR: $e');
+      if (mounted) setState(() => _authError = e);
     } finally {
       _signingIn = false;
     }
@@ -73,11 +76,15 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
 
   @override
   Widget build(BuildContext context) {
+    if (_authError != null) {
+      return _AuthErrorScreen(onRetry: _ensureSignedIn, error: _authError);
+    }
+
     final authState = ref.watch(authStateProvider);
 
     return authState.when(
       loading: () => const _SplashScreen(),
-      error: (error, _) => _AuthErrorScreen(onRetry: _ensureSignedIn),
+      error: (error, _) => _AuthErrorScreen(onRetry: _ensureSignedIn, error: error),
       data: (user) {
         if (user == null) return const _SplashScreen();
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -154,7 +161,8 @@ class _SplashScreen extends StatelessWidget {
 
 class _AuthErrorScreen extends StatelessWidget {
   final VoidCallback onRetry;
-  const _AuthErrorScreen({required this.onRetry});
+  final Object? error;
+  const _AuthErrorScreen({required this.onRetry, this.error});
 
   @override
   Widget build(BuildContext context) {
@@ -178,12 +186,12 @@ class _AuthErrorScreen extends StatelessWidget {
                     color: Color(0xFFF2F1EE)),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Could not connect to Calorix servers. Please check your connection and try again.',
+              Text(
+                error?.toString() ?? 'Could not connect to Calorix servers.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                     fontFamily: 'Barlow',
-                    fontSize: 14,
+                    fontSize: 13,
                     color: Color(0xFF8A8A9A),
                     height: 1.5),
               ),
