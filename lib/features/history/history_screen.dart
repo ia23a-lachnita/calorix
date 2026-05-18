@@ -45,7 +45,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Calendar card
+                // Calendar card — W/M toggle buttons control the view; drag gesture removed
                 Card(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

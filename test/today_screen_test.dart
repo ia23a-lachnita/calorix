@@ -21,12 +21,11 @@ Widget _buildTodayScreen({List<FoodEntry> entries = const []}) {
   );
 }
 
-// Pump enough frames for Riverpod StreamProvider to emit and animations to settle.
+// Pump frames for Riverpod StreamProvider to emit, then let finite animations settle.
 Future<void> _pumpTodayScreen(WidgetTester tester) async {
   await tester.pump(); // initial build
   await tester.pump(const Duration(milliseconds: 50)); // Riverpod stream emit
-  await tester.pump(const Duration(milliseconds: 1450)); // count-up animation
-  await tester.pump(const Duration(milliseconds: 100)); // trailing
+  await tester.pumpAndSettle(const Duration(seconds: 4)); // settle count-up (1.4s)
 }
 
 void main() {
