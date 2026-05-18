@@ -55,11 +55,41 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
         slivers: [
           SliverAppBar(
             floating: true,
-            title: Text('Today', style: AppTextStyles.heading1.copyWith(color: textColor)),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Today', style: AppTextStyles.heading1.copyWith(color: textColor)),
+                Text(
+                  DateFormat('EEEE · MMM d').format(DateTime.now()),
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
+                ),
+              ],
+            ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.person_outline),
-                onPressed: () => context.goNamed(RouteNames.profile),
+                icon: Icon(Icons.notifications_none,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                onPressed: () {},
+              ),
+              GestureDetector(
+                onTap: () => context.goNamed(RouteNames.profile),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 16),
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.blue.withAlpha(30),
+                    border: Border.all(color: AppColors.blue.withAlpha(80), width: 1),
+                  ),
+                  child: Icon(
+                    Icons.person,
+                    size: 16,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  ),
+                ),
               ),
             ],
           ),
@@ -86,9 +116,30 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                 const SizedBox(height: 24),
 
                 // Meals header
-                Text(
-                  "Today's Meals",
-                  style: AppTextStyles.heading3.copyWith(color: textColor),
+                entriesAsync.when(
+                  loading: () => Text('Recent scans',
+                      style: AppTextStyles.heading3.copyWith(color: textColor)),
+                  error: (_, __) => Text('Recent scans',
+                      style: AppTextStyles.heading3.copyWith(color: textColor)),
+                  data: (entries) => Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Recent scans',
+                          style: AppTextStyles.heading3.copyWith(color: textColor)),
+                      if (entries.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.green.withAlpha(30),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${entries.length} TODAY',
+                            style: AppTextStyles.labelSmall.copyWith(color: AppColors.green),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),
 
@@ -160,11 +211,11 @@ class _HeroMacroCard extends StatelessWidget {
                         style: AppTextStyles.labelMono.copyWith(color: AppColors.textSecondaryDark),
                       ),
                       Text(
-                        kcalNow.round().toString(),
+                        NumberFormat('#,###').format(kcalNow.round()),
                         style: AppTextStyles.heroNumber.copyWith(color: textColor),
                       ),
                       Text(
-                        'of ${plan.kcal}',
+                        'of ${NumberFormat('#,###').format(plan.kcal)}',
                         style: AppTextStyles.labelSmall.copyWith(
                             color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
                       ),
@@ -176,7 +227,7 @@ class _HeroMacroCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '${kcalLeft.round()} kcal left',
+                          '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
                           style: AppTextStyles.labelMono.copyWith(color: AppColors.green),
                         ),
                       ),
