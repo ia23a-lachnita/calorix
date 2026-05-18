@@ -111,6 +111,8 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
               ]),
             ),
           ),
+          // Clear bottom nav
+          const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
         ],
       ),
     );
