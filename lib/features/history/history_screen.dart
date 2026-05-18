@@ -19,11 +19,20 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   bool _isMonthView = false;
   DateTime _selectedDate = DateTime.now();
 
+  bool get _canGoNextWeek {
+    final now = DateTime.now();
+    final weekStart = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
+    final thisWeekStart = now.subtract(Duration(days: now.weekday - 1));
+    return weekStart.isBefore(
+        DateTime(thisWeekStart.year, thisWeekStart.month, thisWeekStart.day));
+  }
+
   @override
   Widget build(BuildContext context) {
     final historyAsync = ref.watch(historyProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final logs = historyAsync.valueOrNull ?? [];
 
     return Scaffold(
       body: CustomScrollView(
@@ -36,45 +45,80 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Calendar card with drag
-                GestureDetector(
-                  onVerticalDragEnd: (details) {
-                    if (details.primaryVelocity! < 0) {
-                      setState(() => _isMonthView = false);
-                    } else {
-                      setState(() => _isMonthView = true);
-                    }
-                  },
-                  child: Card(
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 12),
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          child: _isMonthView
-                              ? _MonthGrid(
-                                  selectedDate: _selectedDate,
-                                  onDateSelected: (d) =>
-                                      setState(() => _selectedDate = d),
-                                )
-                              : _WeekStrip(
-                                  selectedDate: _selectedDate,
-                                  onDateSelected: (d) =>
-                                      setState(() => _selectedDate = d),
+                // Calendar card
+                Card(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header: THIS WEEK label + W/M toggle
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 12, 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _isMonthView ? 'THIS MONTH' : 'THIS WEEK',
+                              style: AppTextStyles.labelMono.copyWith(
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                _ViewToggleButton(
+                                  label: 'W',
+                                  isActive: !_isMonthView,
+                                  onTap: () => setState(() => _isMonthView = false),
+                                  isDark: isDark,
                                 ),
+                                const SizedBox(width: 4),
+                                _ViewToggleButton(
+                                  label: 'M',
+                                  isActive: _isMonthView,
+                                  onTap: () => setState(() => _isMonthView = true),
+                                  isDark: isDark,
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        // Drag bar
-                        GestureDetector(
-                          onVerticalDragEnd: (details) {
-                            if (details.primaryVelocity! < 0) {
-                              setState(() => _isMonthView = false);
-                            } else {
-                              setState(() => _isMonthView = true);
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      const SizedBox(height: 8),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: _isMonthView
+                            ? _MonthGrid(
+                                selectedDate: _selectedDate,
+                                onDateSelected: (d) =>
+                                    setState(() => _selectedDate = d),
+                              )
+                            : _WeekStrip(
+                                selectedDate: _selectedDate,
+                                onDateSelected: (d) =>
+                                    setState(() => _selectedDate = d),
+                                onPrevWeek: () => setState(() => _selectedDate =
+                                    _selectedDate.subtract(const Duration(days: 7))),
+                                onNextWeek: _canGoNextWeek
+                                    ? () => setState(() => _selectedDate =
+                                        _selectedDate.add(const Duration(days: 7)))
+                                    : null,
+                                logs: logs,
+                              ),
+                      ),
+                      // Drag bar
+                      GestureDetector(
+                        onVerticalDragEnd: (details) {
+                          if (details.primaryVelocity! < 0) {
+                            setState(() => _isMonthView = false);
+                          } else {
+                            setState(() => _isMonthView = true);
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Center(
                             child: Container(
                               width: 36,
                               height: 4,
@@ -85,8 +129,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -117,6 +161,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         .toList(),
                   ),
                 ),
+                const SizedBox(height: 80),
               ]),
             ),
           ),
@@ -126,10 +171,68 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 }
 
+// ─── Toggle button ────────────────────────────────────────────────────────────
+
+class _ViewToggleButton extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+  final bool isDark;
+
+  const _ViewToggleButton({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 28,
+        height: 24,
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.cyan.withAlpha(30) : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isActive ? AppColors.cyan : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: AppTextStyles.labelSmall.copyWith(
+              color: isActive
+                  ? AppColors.cyan
+                  : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Week strip ───────────────────────────────────────────────────────────────
+
 class _WeekStrip extends StatelessWidget {
   final DateTime selectedDate;
   final ValueChanged<DateTime> onDateSelected;
-  const _WeekStrip({required this.selectedDate, required this.onDateSelected});
+  final VoidCallback onPrevWeek;
+  final VoidCallback? onNextWeek;
+  final List<DailyLog> logs;
+
+  const _WeekStrip({
+    required this.selectedDate,
+    required this.onDateSelected,
+    required this.onPrevWeek,
+    this.onNextWeek,
+    required this.logs,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -137,38 +240,78 @@ class _WeekStrip extends StatelessWidget {
     final days = List.generate(7, (i) => monday.add(Duration(days: i)));
     final today = DateTime.now();
 
+    final logMap = <String, double>{};
+    for (final log in logs) {
+      final key =
+          '${log.date.year}-${log.date.month.toString().padLeft(2, '0')}-${log.date.day.toString().padLeft(2, '0')}';
+      logMap[key] = log.kcal;
+    }
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: days.map((day) {
-          final isToday = DateFormat('yyyy-MM-dd').format(day) ==
-              DateFormat('yyyy-MM-dd').format(today);
-          final isSelected = DateFormat('yyyy-MM-dd').format(day) ==
-              DateFormat('yyyy-MM-dd').format(selectedDate);
-          return _DayPill(
-            day: day,
-            isToday: isToday,
-            isSelected: isSelected,
-            onTap: () => onDateSelected(day),
-          );
-        }).toList(),
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left, size: 18),
+            onPressed: onPrevWeek,
+            color: AppColors.textSecondaryLight,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: days.map((day) {
+                final dateStr = DateFormat('yyyy-MM-dd').format(day);
+                final isToday = dateStr == DateFormat('yyyy-MM-dd').format(today);
+                final isSelected =
+                    dateStr == DateFormat('yyyy-MM-dd').format(selectedDate);
+                final key =
+                    '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+                final kcal = logMap[key] ?? 0.0;
+                const target = AppConstants.defaultKcalTarget;
+                final fraction =
+                    target > 0 ? (kcal / target).clamp(0.0, 1.0) : 0.0;
+                return _DayPill(
+                  day: day,
+                  isToday: isToday,
+                  isSelected: isSelected,
+                  onTap: () => onDateSelected(day),
+                  completionFraction: fraction,
+                );
+              }).toList(),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right, size: 18),
+            onPressed: onNextWeek,
+            color: onNextWeek != null
+                ? AppColors.textSecondaryLight
+                : AppColors.textSecondaryLight.withAlpha(60),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+        ],
       ),
     );
   }
 }
+
+// ─── Day pill ─────────────────────────────────────────────────────────────────
 
 class _DayPill extends StatelessWidget {
   final DateTime day;
   final bool isToday;
   final bool isSelected;
   final VoidCallback onTap;
+  final double completionFraction;
 
   const _DayPill({
     required this.day,
     required this.isToday,
     required this.isSelected,
     required this.onTap,
+    this.completionFraction = 0.0,
   });
 
   @override
@@ -183,24 +326,37 @@ class _DayPill extends StatelessWidget {
                 color: isToday ? AppColors.cyan : AppColors.textSecondaryLight),
           ),
           const SizedBox(height: 4),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isToday ? AppColors.cyan.withAlpha(20) : Colors.transparent,
-              border: Border.all(
-                color: isToday ? AppColors.cyan : Colors.transparent,
-                width: 1.5,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                day.day.toString(),
-                style: AppTextStyles.labelLarge.copyWith(
-                    color: isToday ? AppColors.cyan : AppColors.textPrimaryLight,
-                    fontWeight: isToday ? FontWeight.w700 : FontWeight.w400),
-              ),
+          SizedBox(
+            width: 36,
+            height: 36,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CustomPaint(
+                  size: const Size(36, 36),
+                  painter: _DayRingPainter(
+                    fraction: completionFraction,
+                    isToday: isToday,
+                  ),
+                ),
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isToday ? AppColors.cyan.withAlpha(20) : Colors.transparent,
+                  ),
+                  child: Center(
+                    child: Text(
+                      day.day.toString(),
+                      style: AppTextStyles.labelLarge.copyWith(
+                        color: isToday ? AppColors.cyan : AppColors.textPrimaryLight,
+                        fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -208,6 +364,47 @@ class _DayPill extends StatelessWidget {
     );
   }
 }
+
+class _DayRingPainter extends CustomPainter {
+  final double fraction;
+  final bool isToday;
+  _DayRingPainter({required this.fraction, required this.isToday});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 1;
+
+    final trackPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = AppColors.cyan.withAlpha(20);
+
+    canvas.drawCircle(center, radius, trackPaint);
+
+    if (fraction > 0) {
+      final fillColor = fraction >= 0.85 ? AppColors.green : AppColors.cyan;
+      final fillPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round
+        ..color = fillColor;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -math.pi / 2,
+        2 * math.pi * fraction,
+        false,
+        fillPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DayRingPainter old) =>
+      old.fraction != fraction || old.isToday != isToday;
+}
+
+// ─── Month grid ───────────────────────────────────────────────────────────────
 
 class _MonthGrid extends StatelessWidget {
   final DateTime selectedDate;
@@ -230,8 +427,7 @@ class _MonthGrid extends StatelessWidget {
             children: ['M', 'T', 'W', 'T', 'F', 'S', 'S']
                 .map((d) => SizedBox(
                     width: 36,
-                    child: Center(
-                        child: Text(d, style: AppTextStyles.labelSmall))))
+                    child: Center(child: Text(d, style: AppTextStyles.labelSmall))))
                 .toList(),
           ),
           const SizedBox(height: 8),
@@ -278,6 +474,8 @@ class _MonthGrid extends StatelessWidget {
   }
 }
 
+// ─── Weekly stats ─────────────────────────────────────────────────────────────
+
 class _WeeklyStats extends StatelessWidget {
   final List<DailyLog> logs;
   final bool isDark;
@@ -308,12 +506,13 @@ class _WeeklyStats extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Weekly Average',
-                        style: AppTextStyles.labelSmall.copyWith(
+                    Text(
+                        'WEEKLY AVERAGE',
+                        style: AppTextStyles.labelMono.copyWith(
                             color: isDark
                                 ? AppColors.textSecondaryDark
                                 : AppColors.textSecondaryLight)),
-                    Text('${avgKcal.round()} kcal/day',
+                    Text('${NumberFormat('#,###').format(avgKcal.round())} kcal/day',
                         style: AppTextStyles.heading3.copyWith(
                             color: isDark
                                 ? AppColors.textPrimaryDark
@@ -328,8 +527,9 @@ class _WeeklyStats extends StatelessWidget {
                         color: AppColors.green.withAlpha(30),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text('$targetPct% target',
-                          style: AppTextStyles.labelSmall.copyWith(color: AppColors.green)),
+                      child: Text('↑ $targetPct% target',
+                          style:
+                              AppTextStyles.labelSmall.copyWith(color: AppColors.green)),
                     ),
                     const SizedBox(width: 8),
                     Container(
@@ -338,8 +538,9 @@ class _WeeklyStats extends StatelessWidget {
                         color: AppColors.green.withAlpha(20),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text('🔥 $streak days',
-                          style: AppTextStyles.labelSmall.copyWith(color: AppColors.green)),
+                      child: Text('🔥 $streak DAY STREAK',
+                          style:
+                              AppTextStyles.labelSmall.copyWith(color: AppColors.green)),
                     ),
                   ],
                 ),
@@ -347,6 +548,8 @@ class _WeeklyStats extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _Sparkline(logs: weekLogs),
+            const SizedBox(height: 12),
+            _MacroAverageRow(logs: weekLogs, isDark: isDark),
           ],
         ),
       ),
@@ -362,14 +565,85 @@ class _WeeklyStats extends StatelessWidget {
       if (log == null || !log.hasData) break;
       final logDate = log.date;
       if (DateFormat('yyyy-MM-dd').format(logDate) !=
-          DateFormat('yyyy-MM-dd').format(expected)) {
-        break;
-      }
+          DateFormat('yyyy-MM-dd').format(expected)) break;
       streak++;
     }
     return streak;
   }
 }
+
+// ─── Macro averages ───────────────────────────────────────────────────────────
+
+class _MacroAverageRow extends StatelessWidget {
+  final List<DailyLog> logs;
+  final bool isDark;
+  const _MacroAverageRow({required this.logs, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    if (logs.isEmpty) return const SizedBox.shrink();
+    final avgProtein = logs.fold(0.0, (s, l) => s + l.protein) / logs.length;
+    final avgCarbs = logs.fold(0.0, (s, l) => s + l.carbs) / logs.length;
+    final avgFat = logs.fold(0.0, (s, l) => s + l.fat) / logs.length;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _MacroChip(
+            label: 'PROTEIN', value: avgProtein, color: AppColors.protein, isDark: isDark),
+        _MacroChip(
+            label: 'CARBS', value: avgCarbs, color: AppColors.carbs, isDark: isDark),
+        _MacroChip(label: 'FAT', value: avgFat, color: AppColors.fat, isDark: isDark),
+      ],
+    );
+  }
+}
+
+class _MacroChip extends StatelessWidget {
+  final String label;
+  final double value;
+  final Color color;
+  final bool isDark;
+  const _MacroChip(
+      {required this.label,
+      required this.value,
+      required this.color,
+      required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: AppTextStyles.labelSmall.copyWith(
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                fontSize: 9,
+                letterSpacing: 0.6,
+              ),
+            ),
+            Text(
+              '${value.round()}g/d',
+              style: AppTextStyles.labelLarge.copyWith(color: color),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Sparkline ────────────────────────────────────────────────────────────────
 
 class _Sparkline extends StatelessWidget {
   final List<DailyLog> logs;
@@ -419,18 +693,15 @@ class _SparklinePainter extends CustomPainter {
       points.add(Offset(x, y));
     }
 
-    // Target line
     final targetY = size.height - (size.height * target / maxVal);
     canvas.drawLine(Offset(0, targetY), Offset(size.width, targetY), targetPaint);
 
-    // Sparkline
     final path = Path()..moveTo(points.first.dx, points.first.dy);
     for (int i = 1; i < points.length; i++) {
       path.lineTo(points[i].dx, points[i].dy);
     }
     canvas.drawPath(path, linePaint);
 
-    // Today dot
     if (points.isNotEmpty) {
       canvas.drawCircle(points.last, 4, Paint()..color = AppColors.cyan);
     }
@@ -439,6 +710,8 @@ class _SparklinePainter extends CustomPainter {
   @override
   bool shouldRepaint(_SparklinePainter old) => old.logs != logs;
 }
+
+// ─── Day row ─────────────────────────────────────────────────────────────────
 
 class _DayRow extends StatelessWidget {
   final DailyLog log;
@@ -480,7 +753,6 @@ class _DayRow extends StatelessWidget {
               Text('${log.kcal.round()} kcal',
                   style: AppTextStyles.macroGrams.copyWith(color: textColor)),
               const SizedBox(width: 12),
-              // Completion ring
               SizedBox(
                 width: 28,
                 height: 28,
