@@ -47,7 +47,8 @@ service cloud.firestore {
 
     match /dailyLogs/{logId} {
       allow read: if request.auth != null &&
-        logId.matches('^' + request.auth.uid + '_.*');
+        logId >= request.auth.uid + '_' &&
+        logId < request.auth.uid + 'z';
       allow write: if false;
     }
   }
