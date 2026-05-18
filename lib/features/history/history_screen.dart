@@ -565,7 +565,9 @@ class _WeeklyStats extends StatelessWidget {
       if (log == null || !log.hasData) break;
       final logDate = log.date;
       if (DateFormat('yyyy-MM-dd').format(logDate) !=
-          DateFormat('yyyy-MM-dd').format(expected)) break;
+          DateFormat('yyyy-MM-dd').format(expected)) {
+        break;
+      }
       streak++;
     }
     return streak;

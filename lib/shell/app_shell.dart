@@ -200,9 +200,9 @@ class _ScanFAB extends StatelessWidget {
               child: child,
             ),
             child: Container(
-              width: 52,
-              height: 52,
-              margin: const EdgeInsets.all(3),
+              width: 48,
+              height: 48,
+              margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
                 shape: BoxShape.circle,
