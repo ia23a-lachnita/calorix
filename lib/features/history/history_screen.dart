@@ -27,6 +27,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         DateTime(thisWeekStart.year, thisWeekStart.month, thisWeekStart.day));
   }
 
+  int get _weekNumber {
+    final d = _selectedDate;
+    final dayOfYear = d.difference(DateTime(d.year, 1, 1)).inDays + 1;
+    return ((dayOfYear - d.weekday + 10) / 7).floor();
+  }
+
+  String get _monthName => DateFormat('MMMM').format(_selectedDate).toUpperCase();
+
   @override
   Widget build(BuildContext context) {
     final historyAsync = ref.watch(historyProvider);
@@ -34,12 +42,42 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final logs = historyAsync.valueOrNull ?? [];
 
+    final subtextColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             floating: true,
-            title: Text('History', style: AppTextStyles.heading1.copyWith(color: textColor)),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('History', style: AppTextStyles.heading1.copyWith(color: textColor)),
+                Text(
+                  'WEEK $_weekNumber · $_monthName',
+                  style: AppTextStyles.labelMono.copyWith(color: subtextColor, fontSize: 10),
+                ),
+              ],
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left, size: 20),
+                onPressed: () => setState(() =>
+                    _selectedDate = _selectedDate.subtract(const Duration(days: 7))),
+                color: subtextColor,
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right, size: 20),
+                onPressed: _canGoNextWeek
+                    ? () => setState(() =>
+                        _selectedDate = _selectedDate.add(const Duration(days: 7)))
+                    : null,
+                color: subtextColor,
+              ),
+              const SizedBox(width: 4),
+            ],
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -52,16 +90,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     children: [
                       // Header: THIS WEEK label + W/M toggle
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 14, 12, 0),
+                        padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              _isMonthView ? 'THIS MONTH' : 'THIS WEEK',
-                              style: AppTextStyles.labelMono.copyWith(
-                                color: isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondaryLight,
+                            Flexible(
+                              child: Text(
+                                _isMonthView ? 'THIS MONTH' : 'THIS WEEK',
+                                style: AppTextStyles.labelMono.copyWith(
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                ),
                               ),
                             ),
                             Row(
@@ -98,34 +138,19 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                 selectedDate: _selectedDate,
                                 onDateSelected: (d) =>
                                     setState(() => _selectedDate = d),
-                                onPrevWeek: () => setState(() => _selectedDate =
-                                    _selectedDate.subtract(const Duration(days: 7))),
-                                onNextWeek: _canGoNextWeek
-                                    ? () => setState(() => _selectedDate =
-                                        _selectedDate.add(const Duration(days: 7)))
-                                    : null,
                                 logs: logs,
                               ),
                       ),
                       // Drag bar
-                      GestureDetector(
-                        onVerticalDragEnd: (details) {
-                          if (details.primaryVelocity! < 0) {
-                            setState(() => _isMonthView = false);
-                          } else {
-                            setState(() => _isMonthView = true);
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Center(
-                            child: Container(
-                              width: 36,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: AppColors.borderLight,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Center(
+                          child: Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: AppColors.borderLight,
+                              borderRadius: BorderRadius.circular(2),
                             ),
                           ),
                         ),
@@ -222,15 +247,11 @@ class _ViewToggleButton extends StatelessWidget {
 class _WeekStrip extends StatelessWidget {
   final DateTime selectedDate;
   final ValueChanged<DateTime> onDateSelected;
-  final VoidCallback onPrevWeek;
-  final VoidCallback? onNextWeek;
   final List<DailyLog> logs;
 
   const _WeekStrip({
     required this.selectedDate,
     required this.onDateSelected,
-    required this.onPrevWeek,
-    this.onNextWeek,
     required this.logs,
   });
 
@@ -248,50 +269,28 @@ class _WeekStrip extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left, size: 18),
-            onPressed: onPrevWeek,
-            color: AppColors.textSecondaryLight,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          ),
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: days.map((day) {
-                final dateStr = DateFormat('yyyy-MM-dd').format(day);
-                final isToday = dateStr == DateFormat('yyyy-MM-dd').format(today);
-                final isSelected =
-                    dateStr == DateFormat('yyyy-MM-dd').format(selectedDate);
-                final key =
-                    '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
-                final kcal = logMap[key] ?? 0.0;
-                const target = AppConstants.defaultKcalTarget;
-                final fraction =
-                    target > 0 ? (kcal / target).clamp(0.0, 1.0) : 0.0;
-                return _DayPill(
-                  day: day,
-                  isToday: isToday,
-                  isSelected: isSelected,
-                  onTap: () => onDateSelected(day),
-                  completionFraction: fraction,
-                );
-              }).toList(),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right, size: 18),
-            onPressed: onNextWeek,
-            color: onNextWeek != null
-                ? AppColors.textSecondaryLight
-                : AppColors.textSecondaryLight.withAlpha(60),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          ),
-        ],
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: days.map((day) {
+          final dateStr = DateFormat('yyyy-MM-dd').format(day);
+          final isToday = dateStr == DateFormat('yyyy-MM-dd').format(today);
+          final isSelected =
+              dateStr == DateFormat('yyyy-MM-dd').format(selectedDate);
+          final key =
+              '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+          final kcal = logMap[key] ?? 0.0;
+          const target = AppConstants.defaultKcalTarget;
+          final fraction =
+              target > 0 ? (kcal / target).clamp(0.0, 1.0) : 0.0;
+          return _DayPill(
+            day: day,
+            isToday: isToday,
+            isSelected: isSelected,
+            onTap: () => onDateSelected(day),
+            completionFraction: fraction,
+          );
+        }).toList(),
       ),
     );
   }
@@ -316,14 +315,18 @@ class _DayPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
           Text(
-            DateFormat('E').format(day).substring(0, 1),
+            DateFormat('EEE').format(day).substring(0, 3).toUpperCase(),
             style: AppTextStyles.labelSmall.copyWith(
-                color: isToday ? AppColors.cyan : AppColors.textSecondaryLight),
+                color: isToday
+                    ? AppColors.cyan
+                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                fontSize: 9),
           ),
           const SizedBox(height: 4),
           SizedBox(
@@ -350,7 +353,9 @@ class _DayPill extends StatelessWidget {
                     child: Text(
                       day.day.toString(),
                       style: AppTextStyles.labelLarge.copyWith(
-                        color: isToday ? AppColors.cyan : AppColors.textPrimaryLight,
+                        color: isToday
+                            ? AppColors.cyan
+                            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
                         fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
                       ),
                     ),
@@ -378,7 +383,7 @@ class _DayRingPainter extends CustomPainter {
     final trackPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
-      ..color = AppColors.cyan.withAlpha(20);
+      ..color = AppColors.cyan.withAlpha(40);
 
     canvas.drawCircle(center, radius, trackPaint);
 
@@ -756,10 +761,25 @@ class _DayRow extends StatelessWidget {
                   style: AppTextStyles.macroGrams.copyWith(color: textColor)),
               const SizedBox(width: 12),
               SizedBox(
-                width: 28,
-                height: 28,
-                child: CustomPaint(
-                  painter: _SmallRingPainter(fraction: pct, color: ringColor),
+                width: 36,
+                height: 36,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CustomPaint(
+                      size: const Size(36, 36),
+                      painter: _SmallRingPainter(
+                          fraction: pct.clamp(0.0, 1.0), color: ringColor),
+                    ),
+                    Text(
+                      '${(pct * 100).clamp(0, 100).round()}',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: ringColor,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 8),

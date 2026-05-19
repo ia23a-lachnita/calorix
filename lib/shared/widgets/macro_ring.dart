@@ -102,7 +102,7 @@ class _MacroRingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
-      ..color = color.withAlpha(25);
+      ..color = color.withAlpha(40);
 
     final glowPaint = Paint()
       ..style = PaintingStyle.stroke

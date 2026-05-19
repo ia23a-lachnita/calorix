@@ -311,6 +311,7 @@ class _MacroSubCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: isDark ? AppColors.surfaceDarkOverlay : null,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: MacroProgressBar(

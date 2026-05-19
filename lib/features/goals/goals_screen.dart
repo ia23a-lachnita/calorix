@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/goals_providers.dart';
@@ -22,6 +23,14 @@ class GoalsScreen extends ConsumerWidget {
           SliverAppBar(
             floating: true,
             title: Text('Goals', style: AppTextStyles.heading1.copyWith(color: textColor)),
+            actions: [
+              TextButton.icon(
+                icon: const Icon(Icons.tune, size: 14),
+                label: Text('Adjust', style: AppTextStyles.labelSmall.copyWith(color: AppColors.blue)),
+                onPressed: () {},
+              ),
+              const SizedBox(width: 8),
+            ],
           ),
           SliverPadding(
             padding: const EdgeInsets.all(16),
@@ -137,7 +146,7 @@ class _PeriodSelector extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              'Plan · Cut phase · Week 4',
+              'PLAN · CUT PHASE · Week 4',
               style: AppTextStyles.labelLarge.copyWith(
                   color:
                       isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
@@ -158,11 +167,12 @@ class _BodyGoalSegmented extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final goals = [
-      (BodyGoal.loseFat, 'Lose fat'),
-      (BodyGoal.maintain, 'Maintain'),
-      (BodyGoal.leanPlus, 'Lean+'),
-      (BodyGoal.custom, 'Custom'),
+      (BodyGoal.loseFat, 'Lose fat', '-0.5kg/wk'),
+      (BodyGoal.maintain, 'Maintain', ''),
+      (BodyGoal.leanPlus, 'Lean+', '+0.2kg/wk'),
+      (BodyGoal.custom, 'Custom', ''),
     ];
 
     return Card(
@@ -171,43 +181,73 @@ class _BodyGoalSegmented extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Body Goal', style: AppTextStyles.labelLarge),
+            Text(
+              'BODY GOAL',
+              style: AppTextStyles.labelMono.copyWith(
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              ),
+            ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: goals.map(((BodyGoal, String) g) {
-                final isActive = g.$1 == current;
-                return GestureDetector(
-                  onTap: () => onChanged(g.$1),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isActive ? AppColors.surfaceLight : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: isActive
-                          ? [
-                              BoxShadow(
-                                color: AppColors.textPrimaryLight.withAlpha(20),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              )
-                            ]
-                          : null,
-                      border: Border.all(
-                          color: isActive ? Colors.transparent : AppColors.borderLight),
-                    ),
-                    child: Text(
-                      g.$2,
-                      style: AppTextStyles.labelLarge.copyWith(
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: goals.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final g = entry.value;
+                  final isActive = g.$1 == current;
+                  return Padding(
+                    padding: EdgeInsets.only(right: i < goals.length - 1 ? 8 : 0),
+                    child: GestureDetector(
+                      onTap: () => onChanged(g.$1),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
                           color: isActive
-                              ? AppColors.textPrimaryLight
-                              : AppColors.textSecondaryLight),
+                              ? (isDark ? AppColors.surfaceDark : AppColors.surfaceLight)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: isActive
+                              ? [
+                                  BoxShadow(
+                                    color: AppColors.textPrimaryLight.withAlpha(20),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  )
+                                ]
+                              : null,
+                          border: Border.all(
+                              color: isActive
+                                  ? Colors.transparent
+                                  : (isDark ? AppColors.borderDark : AppColors.borderLight)),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              g.$2,
+                              style: AppTextStyles.labelLarge.copyWith(
+                                  color: isActive
+                                      ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight)
+                                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
+                            ),
+                            if (g.$3.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                g.$3,
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                  fontSize: 9,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              ),
             ),
           ],
         ),
@@ -236,27 +276,28 @@ class _CalorieCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Daily Calories', style: AppTextStyles.labelLarge.copyWith(color: textColor)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.blue.withAlpha(20),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'AI · TDEE − 420',
-                    style: AppTextStyles.labelSmall.copyWith(color: AppColors.blue),
-                  ),
-                ),
-              ],
+            Text(
+              'DAILY CALORIE TARGET',
+              style: AppTextStyles.labelMono.copyWith(
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               '$kcal kcal',
               style: AppTextStyles.heroNumber.copyWith(color: textColor, fontSize: 32),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.blue.withAlpha(20),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '↑ AI · TDEE 2,820 − 420',
+                style: AppTextStyles.labelSmall.copyWith(color: AppColors.blue),
+              ),
             ),
             const SizedBox(height: 12),
             SliderTheme(
@@ -317,7 +358,23 @@ class _MacroSplitCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Macro Split', style: AppTextStyles.labelLarge.copyWith(color: textColor)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'MACRO SPLIT',
+                  style: AppTextStyles.labelMono.copyWith(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
+                ),
+                Text(
+                  '${(proteinPct * 100).round()}% / ${(carbsPct * 100).round()}% / ${(fatPct * 100).round()}%',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             // Stacked bar
             ClipRRect(
@@ -348,6 +405,7 @@ class _MacroSplitCard extends StatelessWidget {
                   grams: split.protein,
                   color: AppColors.protein,
                   onChanged: (v) => notifier.setProtein(v),
+                  gPerKg: split.protein / 80.0,
                 ),
                 const SizedBox(width: 8),
                 _MacroTile(
@@ -355,6 +413,7 @@ class _MacroSplitCard extends StatelessWidget {
                   grams: split.carbs,
                   color: AppColors.carbs,
                   onChanged: (v) => notifier.setCarbs(v),
+                  gPerKg: split.carbs / 80.0,
                 ),
                 const SizedBox(width: 8),
                 _MacroTile(
@@ -362,6 +421,7 @@ class _MacroSplitCard extends StatelessWidget {
                   grams: split.fat,
                   color: AppColors.fat,
                   onChanged: (v) => notifier.setFat(v),
+                  gPerKg: split.fat / 80.0,
                 ),
               ],
             ),
@@ -377,12 +437,14 @@ class _MacroTile extends StatelessWidget {
   final int grams;
   final Color color;
   final ValueChanged<int> onChanged;
+  final double gPerKg;
 
   const _MacroTile({
     required this.label,
     required this.grams,
     required this.color,
     required this.onChanged,
+    this.gPerKg = 0.0,
   });
 
   @override
@@ -414,6 +476,16 @@ class _MacroTile extends StatelessWidget {
               const SizedBox(height: 4),
               Text('${grams}g',
                   style: AppTextStyles.macroGrams.copyWith(color: color)),
+              if (gPerKg > 0) ...[
+                const SizedBox(height: 2),
+                Text(
+                  '${gPerKg.toStringAsFixed(1)}g/kg',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: color.withAlpha(180),
+                    fontSize: 9,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -492,6 +564,14 @@ class _WeightCard extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 52,
+              width: double.infinity,
+              child: CustomPaint(
+                painter: _WeightSparklinePainter(),
+              ),
+            ),
             const SizedBox(height: 8),
             Text('Log your first weight to track progress',
                 style: AppTextStyles.bodySmall.copyWith(
@@ -550,4 +630,45 @@ class _WeightCard extends StatelessWidget {
       },
     );
   }
+}
+
+class _WeightSparklinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    const pointCount = 7;
+    final midY = size.height * 0.55;
+
+    final linePaint = Paint()
+      ..color = AppColors.green.withAlpha(45)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final dotPaint = Paint()
+      ..color = AppColors.green.withAlpha(90)
+      ..style = PaintingStyle.fill;
+
+    final points = List.generate(pointCount, (i) {
+      final x = size.width * i / (pointCount - 1);
+      final wobble = math.sin(i * 0.9) * size.height * 0.08;
+      return Offset(x, midY + wobble);
+    });
+
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (int i = 1; i < points.length; i++) {
+      final cp = Offset(
+        (points[i - 1].dx + points[i].dx) / 2,
+        (points[i - 1].dy + points[i].dy) / 2,
+      );
+      path.quadraticBezierTo(points[i - 1].dx, points[i - 1].dy, cp.dx, cp.dy);
+    }
+    path.lineTo(points.last.dx, points.last.dy);
+    canvas.drawPath(path, linePaint);
+
+    canvas.drawCircle(points.last, 3.5, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(_WeightSparklinePainter old) => false;
 }

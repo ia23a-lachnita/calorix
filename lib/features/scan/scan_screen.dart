@@ -125,7 +125,6 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   Widget build(BuildContext context) {
     final captureState = ref.watch(captureStateProvider);
     final scanMode = ref.watch(scanModeProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isCapturing = captureState == CaptureState.capturing;
 
     return Scaffold(
@@ -153,7 +152,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _FlashChip(controller: _cameraController),
-                  _ProfileChip(isDark: isDark),
+                  const _ProfileChip(),
                 ],
               ),
             ),
@@ -328,10 +327,10 @@ class _FlashChipState extends ConsumerState<_FlashChip> {
   }
 
   String get _label => switch (_mode) {
-        FlashMode.auto => 'Auto',
-        FlashMode.torch => 'On',
-        FlashMode.off => 'Off',
-        _ => 'Auto',
+        FlashMode.auto => 'Flash · Auto',
+        FlashMode.torch => 'Flash · On',
+        FlashMode.off => 'Flash · Off',
+        _ => 'Flash · Auto',
       };
 
   IconData get _icon => switch (_mode) {
@@ -366,32 +365,36 @@ class _FlashChipState extends ConsumerState<_FlashChip> {
   }
 }
 
-class _ProfileChip extends StatelessWidget {
-  final bool isDark;
-  const _ProfileChip({required this.isDark});
+class _ProfileChip extends ConsumerWidget {
+  const _ProfileChip();
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authStateProvider).valueOrNull;
+    final initial = user?.displayName?.isNotEmpty == true
+        ? user!.displayName![0].toUpperCase()
+        : user?.email?.isNotEmpty == true
+            ? user!.email![0].toUpperCase()
+            : '?';
     return GestureDetector(
       onTap: () => context.goNamed(RouteNames.profile),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        width: 36,
+        height: 36,
         decoration: BoxDecoration(
-          color: AppColors.cameraOverlayBg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.cameraOverlayText.withAlpha(50)),
+          color: AppColors.blue.withAlpha(40),
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.blue.withAlpha(100), width: 1.5),
         ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.person_outline, color: AppColors.cameraOverlayText, size: 14),
-            SizedBox(width: 4),
-            Text('Profile',
-                style: TextStyle(
-                    color: AppColors.cameraOverlayText,
-                    fontSize: 11,
-                    fontFamily: 'Barlow',
-                    fontWeight: FontWeight.w500)),
-          ],
+        child: Center(
+          child: Text(
+            initial,
+            style: const TextStyle(
+              color: AppColors.cameraOverlayText,
+              fontSize: 14,
+              fontFamily: 'Barlow',
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
       ),
     );
@@ -458,6 +461,14 @@ class _BottomRow extends StatelessWidget {
     required this.onLibrary,
   });
 
+  static const _labelStyle = TextStyle(
+    color: AppColors.cameraOverlayText,
+    fontSize: 9,
+    fontFamily: 'Barlow',
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.8,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -466,19 +477,27 @@ class _BottomRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Library button
-          GestureDetector(
-            onTap: onLibrary,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.cameraOverlayBg,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.cameraOverlayText.withAlpha(50)),
+          // Library button + label
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: onLibrary,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.cameraOverlayBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.cameraOverlayText.withAlpha(50)),
+                  ),
+                  child: const Icon(Icons.photo_library_outlined,
+                      color: AppColors.cameraOverlayText, size: 22),
+                ),
               ),
-              child: const Icon(Icons.photo_library_outlined, color: AppColors.cameraOverlayText, size: 22),
-            ),
+              const SizedBox(height: 4),
+              const Text('LIBRARY', style: _labelStyle),
+            ],
           ),
           // Capture button
           _CaptureButton(
@@ -486,8 +505,25 @@ class _BottomRow extends StatelessWidget {
             controller: captureController,
             onTap: onCapture,
           ),
-          // Placeholder to balance layout
-          const SizedBox(width: 48),
+          // Recent button + label
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.cameraOverlayBg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.cameraOverlayText.withAlpha(50)),
+                ),
+                child: const Icon(Icons.history_outlined,
+                    color: AppColors.cameraOverlayText, size: 22),
+              ),
+              const SizedBox(height: 4),
+              const Text('RECENT', style: _labelStyle),
+            ],
+          ),
         ],
       ),
     );
@@ -584,7 +620,10 @@ class _CapturePainter extends CustomPainter {
       final paint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3
-        ..color = AppColors.cameraOverlayText.withAlpha(120);
+        ..shader = const SweepGradient(
+          colors: AppColors.sweepGradient,
+          transform: GradientRotation(-math.pi / 2),
+        ).createShader(Rect.fromCircle(center: center, radius: radius));
       canvas.drawCircle(center, radius, paint);
     }
   }
