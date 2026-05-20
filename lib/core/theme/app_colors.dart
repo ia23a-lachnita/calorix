@@ -19,12 +19,17 @@ abstract final class AppColors {
   // Text
   static const Color textPrimaryLight = Color(0xFF0D0D0F);
   static const Color textPrimaryDark = Color(0xFFF2F1EE);
-  static const Color textSecondaryLight = Color(0xFF5A5A6E);
-  static const Color textSecondaryDark = Color(0xFF8A8A9A);
+  static const Color textSecondaryLight = Color(0xFF6B6F77);  // spec: #6B6F77 (was 0xFF5A5A6E)
+  static const Color textSecondaryDark = Color(0xFFA8B0BC);   // spec: #A8B0BC (was 0xFF8A8A9A)
+  static const Color textTertiaryLight = Color(0xFF9A9EA6);   // spec: #9A9EA6
+  static const Color textTertiaryDark = Color(0xFF6F7885);    // spec: #6F7885
 
-  // Skeleton
+  // Skeleton — light mode
   static const Color skeletonBase = Color(0xFFE8E4DC);
   static const Color skeletonShine = Color(0xFFF0EDE6);
+  // Skeleton — dark mode
+  static const Color skeletonBaseDark = Color(0xFF1B212A);
+  static const Color skeletonShineDark = Color(0xFF252D38);
 
   // Macro colors
   static const Color protein = blue;
@@ -46,6 +51,10 @@ abstract final class AppColors {
   // Nav bar
   static const Color navBarLight = Color(0xFFF5F3EE);
   static const Color navBarDark = Color(0xFF14181E);
+
+  // Surface raised
+  static const Color surfaceRaisedLight = Color(0xFFFFFDF7);
+  static const Color surfaceRaisedDark = Color(0xFF171C24);
 
   // Card border
   static const Color borderLight = Color(0xFFE8E4DC);
