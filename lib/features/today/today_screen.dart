@@ -68,26 +68,43 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
               ],
             ),
             actions: [
-              IconButton(
-                icon: Icon(Icons.notifications_none,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
-                onPressed: () {},
+              GestureDetector(
+                onTap: () {},
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDark ? const Color(0x0FFFFFFF) : const Color(0x0F000000),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.notifications_none,
+                    size: 18,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
+                ),
               ),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: () => context.goNamed(RouteNames.profile),
                 child: Container(
                   margin: const EdgeInsets.only(right: 16),
-                  width: 32,
-                  height: 32,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.blue.withAlpha(30),
-                    border: Border.all(color: AppColors.blue.withAlpha(80), width: 1),
+                    color: isDark ? const Color(0x0FFFFFFF) : const Color(0x0F000000),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    ),
                   ),
                   child: Icon(
                     Icons.person,
-                    size: 16,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    size: 18,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                   ),
                 ),
               ),
@@ -97,25 +114,13 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Hero macro card
                 _HeroMacroCard(
                   animation: _animation,
                   summary: summary,
                   plan: plan,
                   isDark: isDark,
                 ),
-                const SizedBox(height: 20),
-
-                // Macro sub-cards
-                _MacroSubCards(
-                  animation: _animation,
-                  summary: summary,
-                  plan: plan,
-                  isDark: isDark,
-                ),
                 const SizedBox(height: 24),
-
-                // Meals header
                 entriesAsync.when(
                   loading: () => Text('Recent scans',
                       style: AppTextStyles.heading3.copyWith(color: textColor)),
@@ -142,12 +147,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // Meal list
                 entriesAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) =>
-                      const Text('Error loading meals', style: TextStyle(color: AppColors.needsReview)),
+                  error: (e, _) => _EmptyMeals(isDark: isDark),
                   data: (entries) => entries.isEmpty
                       ? _EmptyMeals(isDark: isDark)
                       : Column(
@@ -162,7 +164,6 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
               ]),
             ),
           ),
-          // Clear bottom nav
           const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
         ],
       ),
@@ -189,51 +190,65 @@ class _HeroMacroCard extends StatelessWidget {
     final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
     return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14),
         child: AnimatedBuilder(
           animation: animation,
           builder: (context, _) {
             final kcalNow = summary.kcal * animation.value;
+            final pNow = summary.protein * animation.value;
+            final cNow = summary.carbs * animation.value;
+            final fNow = summary.fat * animation.value;
             return Column(
               children: [
-                AnimatedMacroRing(
-                  animation: animation,
-                  proteinFraction: plan.protein > 0 ? summary.protein / plan.protein : 0,
-                  carbsFraction: plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
-                  fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
-                  size: 180,
-                  center: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'KCAL EATEN',
-                        style: AppTextStyles.labelMono.copyWith(color: AppColors.textSecondaryDark),
-                      ),
-                      Text(
-                        NumberFormat('#,###').format(kcalNow.round()),
-                        style: AppTextStyles.heroNumber.copyWith(color: textColor),
-                      ),
-                      Text(
-                        'of ${NumberFormat('#,###').format(plan.kcal)}',
-                        style: AppTextStyles.labelSmall.copyWith(
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.kcalLeftPillBg,
-                          borderRadius: BorderRadius.circular(12),
+                Center(
+                  child: AnimatedMacroRing(
+                    animation: animation,
+                    proteinFraction: plan.protein > 0 ? summary.protein / plan.protein : 0,
+                    carbsFraction: plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
+                    fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
+                    size: 220,
+                    center: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'KCAL EATEN',
+                          style: AppTextStyles.labelMono.copyWith(
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
                         ),
-                        child: Text(
-                          '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
-                          style: AppTextStyles.labelMono.copyWith(color: AppColors.green),
+                        Text(
+                          NumberFormat('#,###').format(kcalNow.round()),
+                          style: AppTextStyles.heroNumber.copyWith(color: textColor),
                         ),
-                      ),
-                    ],
+                        Text(
+                          'of ${NumberFormat('#,###').format(plan.kcal)}',
+                          style: AppTextStyles.labelSmall.copyWith(
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.kcalLeftPillBg,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
+                            style: AppTextStyles.labelMono.copyWith(color: AppColors.green),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
+                const SizedBox(height: 10),
+                _MacroSubCardItem(label: 'Protein', current: pNow, target: plan.protein.toDouble(), color: AppColors.protein, isDark: isDark, animation: animation),
+                const SizedBox(height: 8),
+                _MacroSubCardItem(label: 'Carbs', current: cNow, target: plan.carbs.toDouble(), color: AppColors.carbs, isDark: isDark, animation: animation),
+                const SizedBox(height: 8),
+                _MacroSubCardItem(label: 'Fat', current: fNow, target: plan.fat.toDouble(), color: AppColors.fat, isDark: isDark, animation: animation),
               ],
             );
           },
@@ -243,55 +258,7 @@ class _HeroMacroCard extends StatelessWidget {
   }
 }
 
-class _MacroSubCards extends StatelessWidget {
-  final Animation<double> animation;
-  final ({double kcal, double protein, double carbs, double fat}) summary;
-  final MacroTargetPlan plan;
-  final bool isDark;
-
-  const _MacroSubCards({
-    required this.animation,
-    required this.summary,
-    required this.plan,
-    required this.isDark,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _MacroSubCard(
-          label: 'Protein',
-          current: summary.protein,
-          target: plan.protein.toDouble(),
-          color: AppColors.protein,
-          animation: animation,
-          isDark: isDark,
-        ),
-        const SizedBox(height: 8),
-        _MacroSubCard(
-          label: 'Carbs',
-          current: summary.carbs,
-          target: plan.carbs.toDouble(),
-          color: AppColors.carbs,
-          animation: animation,
-          isDark: isDark,
-        ),
-        const SizedBox(height: 8),
-        _MacroSubCard(
-          label: 'Fat',
-          current: summary.fat,
-          target: plan.fat.toDouble(),
-          color: AppColors.fat,
-          animation: animation,
-          isDark: isDark,
-        ),
-      ],
-    );
-  }
-}
-
-class _MacroSubCard extends StatelessWidget {
+class _MacroSubCardItem extends StatelessWidget {
   final String label;
   final double current;
   final double target;
@@ -299,7 +266,7 @@ class _MacroSubCard extends StatelessWidget {
   final Animation<double> animation;
   final bool isDark;
 
-  const _MacroSubCard({
+  const _MacroSubCardItem({
     required this.label,
     required this.current,
     required this.target,
@@ -310,17 +277,22 @@ class _MacroSubCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: isDark ? AppColors.surfaceDarkOverlay : null,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: MacroProgressBar(
-          label: label,
-          current: current,
-          target: target,
-          color: color,
-          animation: animation,
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0x08FFFFFF) : const Color(0xFFFAF8F3),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? const Color(0x12FFFFFF) : const Color(0x120B0D10),
+          width: 0.5,
         ),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: MacroProgressBar(
+        label: label,
+        current: current,
+        target: target,
+        color: color,
+        animation: animation,
       ),
     );
   }
@@ -349,7 +321,6 @@ class _MealCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // Thumbnail
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: entry.imageUrl != null
@@ -362,7 +333,6 @@ class _MealCard extends StatelessWidget {
                     : _GradientPlaceholder(),
               ),
               const SizedBox(width: 12),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,23 +360,11 @@ class _MealCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        _MacroPip(
-                          value: entry.scaledProtein,
-                          color: AppColors.protein,
-                          label: 'P',
-                        ),
+                        _MacroPip(value: entry.scaledProtein, color: AppColors.protein, label: 'P'),
                         const SizedBox(width: 8),
-                        _MacroPip(
-                          value: entry.scaledCarbs,
-                          color: AppColors.carbs,
-                          label: 'C',
-                        ),
+                        _MacroPip(value: entry.scaledCarbs, color: AppColors.carbs, label: 'C'),
                         const SizedBox(width: 8),
-                        _MacroPip(
-                          value: entry.scaledFat,
-                          color: AppColors.fat,
-                          label: 'F',
-                        ),
+                        _MacroPip(value: entry.scaledFat, color: AppColors.fat, label: 'F'),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -422,7 +380,6 @@ class _MealCard extends StatelessWidget {
                   ],
                 ),
               ),
-
               Icon(Icons.chevron_right, color: subtextColor, size: 18),
             ],
           ),
@@ -499,7 +456,6 @@ class _MealActionMenu extends ConsumerWidget {
             title: const Text('Duplicate'),
             onTap: () {
               Navigator.pop(context);
-              // duplicate via repository
             },
           ),
           ListTile(
@@ -512,7 +468,6 @@ class _MealActionMenu extends ConsumerWidget {
             title: const Text('Delete', style: TextStyle(color: AppColors.error)),
             onTap: () {
               Navigator.pop(context);
-              // delete via repository
             },
           ),
           const SizedBox(height: 8),

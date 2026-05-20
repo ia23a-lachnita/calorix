@@ -78,7 +78,8 @@ class _CalorixBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bgColor = isDark ? AppColors.navBarDark : AppColors.navBarLight;
-    const activeColor = AppColors.blue;
+    final activeColor =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final inactiveColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
@@ -161,11 +162,23 @@ class _NavButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, color: color, size: 22),
-          const SizedBox(height: 3),
+          const SizedBox(height: 2),
           Text(
             label,
             style: AppTextStyles.labelSmall.copyWith(color: color),
           ),
+          const SizedBox(height: 2),
+          if (isActive)
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: activeColor,
+                shape: BoxShape.circle,
+              ),
+            )
+          else
+            const SizedBox(height: 4),
         ],
       ),
     );
@@ -202,7 +215,7 @@ class _ScanFAB extends StatelessWidget {
             child: Container(
               width: 48,
               height: 48,
-              margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
                 shape: BoxShape.circle,
@@ -214,29 +227,27 @@ class _ScanFAB extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 3),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Scan',
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: isActive ? AppColors.blue : AppColors.textSecondaryLight,
-                ),
-              ),
-              if (isActive) ...[
-                const SizedBox(width: 4),
-                Container(
-                  width: 5,
-                  height: 5,
-                  decoration: const BoxDecoration(
-                    color: AppColors.green,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ],
+          const SizedBox(height: 1),
+          Text(
+            'Scan',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: isActive
+                  ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight)
+                  : AppColors.textSecondaryDark,
+            ),
           ),
+          const SizedBox(height: 2),
+          if (isActive)
+            Container(
+              width: 4,
+              height: 4,
+              decoration: const BoxDecoration(
+                color: AppColors.green,
+                shape: BoxShape.circle,
+              ),
+            )
+          else
+            const SizedBox(height: 4),
         ],
       ),
     );
