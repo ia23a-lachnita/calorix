@@ -46,16 +46,23 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   }
 
   Future<void> _initCamera() async {
-    final cameras = await availableCameras();
-    if (cameras.isEmpty) return;
-    final controller = CameraController(
-      cameras.first,
-      ResolutionPreset.high,
-      enableAudio: false,
-    );
-    await controller.initialize();
-    if (!mounted) return;
-    setState(() => _cameraController = controller);
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isEmpty || !mounted) return;
+      final controller = CameraController(
+        cameras.first,
+        ResolutionPreset.high,
+        enableAudio: false,
+      );
+      await controller.initialize();
+      if (!mounted) {
+        controller.dispose();
+        return;
+      }
+      setState(() => _cameraController = controller);
+    } catch (_) {
+      // Camera unavailable (emulator, permission denied, hardware issue)
+    }
   }
 
   void _disposeCamera() {
@@ -144,21 +151,39 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           // Reticle
           const _ReticleOverlay(),
 
-          // Top controls
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _FlashChip(controller: _cameraController),
-                  const _ProfileChip(),
-                ],
+          // Top controls — explicitly anchored to top of screen
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _FlashChip(controller: _cameraController),
+                    const _ProfileChip(),
+                  ],
+                ),
               ),
             ),
           ),
 
-          // Mode selector + hint + capture button
+          // Mode selector — top overlay below flash row
+          Positioned(
+            top: 110,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: _ModeSelector(
+                mode: scanMode,
+                onChanged: (m) => ref.read(scanModeProvider.notifier).state = m,
+              ),
+            ),
+          ),
+
+          // Hint text + capture button
           Positioned(
             bottom: 0,
             left: 0,
@@ -173,18 +198,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
                     style: TextStyle(
                       color: Color(0xCCFFFFFF),
                       fontSize: 13,
-                      fontFamily: 'Barlow',
+                      fontFamily: 'Inter Tight',
                       fontWeight: FontWeight.w400,
                     ),
                   ),
                 const SizedBox(height: 12),
-
-                // Mode selector
-                _ModeSelector(
-                  mode: scanMode,
-                  onChanged: (m) => ref.read(scanModeProvider.notifier).state = m,
-                ),
-                const SizedBox(height: 20),
 
                 // Bottom row: library + capture + recent
                 _BottomRow(
@@ -215,7 +233,7 @@ class _CameraPlaceholder extends StatelessWidget {
               Icon(Icons.camera_alt_outlined, color: AppColors.textSecondaryDark, size: 48),
               SizedBox(height: 12),
               Text('Camera initializing…',
-                  style: TextStyle(color: AppColors.textSecondaryDark, fontFamily: 'Barlow')),
+                  style: TextStyle(color: AppColors.textSecondaryDark, fontFamily: 'Inter Tight')),
             ],
           ),
         ),
@@ -370,31 +388,33 @@ class _ProfileChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateProvider).valueOrNull;
-    final initial = user?.displayName?.isNotEmpty == true
-        ? user!.displayName![0].toUpperCase()
-        : user?.email?.isNotEmpty == true
-            ? user!.email![0].toUpperCase()
-            : '?';
+    final isAnonymous = user == null || (user.isAnonymous == true) ||
+        (user.displayName == null && user.email == null);
+
     return GestureDetector(
       onTap: () => context.goNamed(RouteNames.profile),
       child: Container(
-        width: 36,
-        height: 36,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
-          color: AppColors.blue.withAlpha(40),
+          color: AppColors.cameraOverlayBg,
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.blue.withAlpha(100), width: 1.5),
+          border: Border.all(color: AppColors.cameraOverlayText.withAlpha(60), width: 1.5),
         ),
         child: Center(
-          child: Text(
-            initial,
-            style: const TextStyle(
-              color: AppColors.cameraOverlayText,
-              fontSize: 14,
-              fontFamily: 'Barlow',
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          child: isAnonymous
+              ? const Icon(Icons.person_outline, size: 20, color: AppColors.cameraOverlayText)
+              : Text(
+                  user.displayName?.isNotEmpty == true
+                      ? user.displayName![0].toUpperCase()
+                      : user.email![0].toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColors.cameraOverlayText,
+                    fontSize: 14,
+                    fontFamily: 'Inter Tight',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
         ),
       ),
     );
@@ -434,7 +454,7 @@ class _ModeSelector extends StatelessWidget {
                   ScanMode.label => 'Label',
                 },
                 style: TextStyle(
-                  fontFamily: 'Barlow',
+                  fontFamily: 'Inter Tight',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: isActive ? AppColors.backgroundDark : AppColors.cameraOverlayText,
@@ -464,7 +484,7 @@ class _BottomRow extends StatelessWidget {
   static const _labelStyle = TextStyle(
     color: AppColors.cameraOverlayText,
     fontSize: 9,
-    fontFamily: 'Barlow',
+    fontFamily: 'Inter Tight',
     fontWeight: FontWeight.w500,
     letterSpacing: 0.8,
   );
@@ -488,7 +508,7 @@ class _BottomRow extends StatelessWidget {
                   height: 48,
                   decoration: BoxDecoration(
                     color: AppColors.cameraOverlayBg,
-                    borderRadius: BorderRadius.circular(12),
+                    shape: BoxShape.circle,
                     border: Border.all(color: AppColors.cameraOverlayText.withAlpha(50)),
                   ),
                   child: const Icon(Icons.photo_library_outlined,
@@ -514,7 +534,7 @@ class _BottomRow extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: AppColors.cameraOverlayBg,
-                  borderRadius: BorderRadius.circular(12),
+                  shape: BoxShape.circle,
                   border: Border.all(color: AppColors.cameraOverlayText.withAlpha(50)),
                 ),
                 child: const Icon(Icons.history_outlined,
@@ -543,11 +563,14 @@ class _CaptureButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final innerColor = isDark ? AppColors.backgroundDark : Colors.white;
+
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 76,
-        height: 76,
+        width: 100,
+        height: 100,
         child: AnimatedBuilder(
           animation: controller,
           builder: (context, child) {
@@ -561,25 +584,25 @@ class _CaptureButton extends StatelessWidget {
           },
           child: Center(
             child: Container(
-              width: 62,
-              height: 62,
-              decoration: const BoxDecoration(
-                color: AppColors.cameraOverlayText,
+              width: 84,
+              height: 84,
+              decoration: BoxDecoration(
+                color: innerColor,
                 shape: BoxShape.circle,
               ),
               child: Center(
                 child: isCapturing
                     ? Container(
-                        width: 20,
-                        height: 20,
+                        width: 22,
+                        height: 22,
                         decoration: BoxDecoration(
-                          color: AppColors.backgroundDark,
+                          color: isDark ? AppColors.cameraOverlayText : AppColors.backgroundDark,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       )
                     : Container(
-                        width: 10,
-                        height: 10,
+                        width: 20,
+                        height: 20,
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
                             colors: [AppColors.blue, AppColors.cyan],
@@ -620,10 +643,7 @@ class _CapturePainter extends CustomPainter {
       final paint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3
-        ..shader = const SweepGradient(
-          colors: AppColors.sweepGradient,
-          transform: GradientRotation(-math.pi / 2),
-        ).createShader(Rect.fromCircle(center: center, radius: radius));
+        ..color = Colors.white.withValues(alpha: 0.10);
       canvas.drawCircle(center, radius, paint);
     }
   }
