@@ -95,3 +95,6 @@ GEMINI_API_KEY
 
 # OS
 Thumbs.db
+
+# FVM Version Cache
+.fvm/

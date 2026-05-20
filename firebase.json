@@ -38,11 +38,7 @@
   "auth": {
     "providers": {
       "anonymous": true,
-      "emailPassword": true,
-      "googleSignIn": {
-        "oAuthBrandDisplayName": "Calorix",
-        "supportEmail": "xur.schnell@gmail.com"
-      }
+      "emailPassword": true
     }
   }
 }
