@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'providers/goals_providers.dart';
 import '../../shared/models/macro_target_plan.dart';
 import '../../core/theme/app_colors.dart';
@@ -20,26 +21,51 @@ class GoalsScreen extends ConsumerWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            floating: true,
-            title: Text('Goals', style: AppTextStyles.heading1.copyWith(color: textColor)),
-            actions: [
-              TextButton.icon(
-                icon: const Icon(Icons.tune, size: 14),
-                label: Text('Adjust', style: AppTextStyles.labelSmall.copyWith(color: AppColors.blue)),
-                onPressed: () {},
+          // Header: period pill above title, Adjust chip top-right
+          SliverToBoxAdapter(
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _PeriodSelector(isDark: isDark),
+                        const SizedBox(height: 6),
+                        Text('Goals', style: AppTextStyles.heading1.copyWith(color: textColor)),
+                      ],
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.blue,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.tune_rounded, size: 13, color: Colors.white),
+                            const SizedBox(width: 5),
+                            Text('Adjust', style: AppTextStyles.labelSmall.copyWith(color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(width: 8),
-            ],
+            ),
           ),
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Period selector
-                _PeriodSelector(isDark: isDark),
-                const SizedBox(height: 16),
-
                 // Body goal segmented
                 _BodyGoalSegmented(
                   current: bodyGoal,
@@ -71,16 +97,6 @@ class GoalsScreen extends ConsumerWidget {
 
                 // Weight card (placeholder)
                 _WeightCard(isDark: isDark, textColor: textColor),
-                const SizedBox(height: 24),
-
-                // Save button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _savePlan(context, ref, macroSplit, bodyGoal),
-                    child: const Text('Save Goals'),
-                  ),
-                ),
               ]),
             ),
           ),
@@ -106,17 +122,6 @@ class GoalsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _savePlan(
-    BuildContext context,
-    WidgetRef ref,
-    ({int kcal, int protein, int carbs, int fat}) split,
-    BodyGoal goal,
-  ) async {
-    // Save to Firestore via repository
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Goals saved!')),
-    );
-  }
 }
 
 class _PeriodSelector extends StatelessWidget {
@@ -128,7 +133,7 @@ class _PeriodSelector extends StatelessWidget {
     return GestureDetector(
       onTap: () {},
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(20),
@@ -175,83 +180,80 @@ class _BodyGoalSegmented extends StatelessWidget {
       (BodyGoal.custom, 'Custom', ''),
     ];
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'BODY GOAL',
-              style: AppTextStyles.labelMono.copyWith(
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-              ),
-            ),
-            const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: goals.asMap().entries.map((entry) {
-                  final i = entry.key;
-                  final g = entry.value;
-                  final isActive = g.$1 == current;
-                  return Padding(
-                    padding: EdgeInsets.only(right: i < goals.length - 1 ? 8 : 0),
-                    child: GestureDetector(
-                      onTap: () => onChanged(g.$1),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? (isDark ? AppColors.surfaceDark : AppColors.surfaceLight)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: isActive
-                              ? [
-                                  BoxShadow(
-                                    color: AppColors.textPrimaryLight.withAlpha(20),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  )
-                                ]
-                              : null,
-                          border: Border.all(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'BODY GOAL',
+          style: AppTextStyles.labelMono.copyWith(
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E2530) : const Color(0xFFEDE9E1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: goals.map((g) {
+                final isActive = g.$1 == current;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => onChanged(g.$1),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? (isDark ? const Color(0xFF171C24) : Colors.white)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: isActive
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.textPrimaryLight.withAlpha(15),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                )
+                              ]
+                            : null,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            g.$2,
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.labelLarge.copyWith(
                               color: isActive
-                                  ? Colors.transparent
-                                  : (isDark ? AppColors.borderDark : AppColors.borderLight)),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              g.$2,
-                              style: AppTextStyles.labelLarge.copyWith(
-                                  color: isActive
-                                      ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight)
-                                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
+                                  ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight)
+                                  : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
                             ),
-                            if (g.$3.isNotEmpty) ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                g.$3,
-                                style: AppTextStyles.labelSmall.copyWith(
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                                  fontSize: 9,
-                                ),
+                          ),
+                          if (g.$3.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              g.$3,
+                              style: AppTextStyles.labelSmall.copyWith(
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                fontSize: 9,
                               ),
-                            ],
+                            ),
                           ],
-                        ),
+                        ],
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
+                  ),
+                );
+              }).toList(),
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -270,6 +272,7 @@ class _CalorieCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final subColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -278,14 +281,34 @@ class _CalorieCard extends StatelessWidget {
           children: [
             Text(
               'DAILY CALORIE TARGET',
-              style: AppTextStyles.labelMono.copyWith(
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-              ),
+              style: AppTextStyles.labelMono.copyWith(color: subColor),
             ),
             const SizedBox(height: 8),
-            Text(
-              '$kcal kcal',
-              style: AppTextStyles.heroNumber.copyWith(color: textColor, fontSize: 32),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '${NumberFormat('#,###').format(kcal)} kcal',
+                  style: AppTextStyles.heroNumber.copyWith(color: textColor, fontSize: 32),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    _KcalStepButton(
+                      icon: Icons.remove,
+                      onTap: () => onChanged((kcal - 100).clamp(AppConstants.kcalSliderMin, AppConstants.kcalSliderMax)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text('±100', style: AppTextStyles.labelSmall.copyWith(color: subColor)),
+                    ),
+                    _KcalStepButton(
+                      icon: Icons.add,
+                      onTap: () => onChanged((kcal + 100).clamp(AppConstants.kcalSliderMin, AppConstants.kcalSliderMax)),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 6),
             Container(
@@ -294,9 +317,13 @@ class _CalorieCard extends StatelessWidget {
                 color: AppColors.blue.withAlpha(20),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
-                '↑ AI · TDEE 2,820 − 420',
-                style: AppTextStyles.labelSmall.copyWith(color: AppColors.blue),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.auto_awesome, size: 10, color: AppColors.blue),
+                  const SizedBox(width: 4),
+                  Text('AI · TDEE 2,820 − 420', style: AppTextStyles.labelSmall.copyWith(color: AppColors.blue)),
+                ],
               ),
             ),
             const SizedBox(height: 12),
@@ -306,7 +333,8 @@ class _CalorieCard extends StatelessWidget {
                 thumbColor: AppColors.blue,
                 inactiveTrackColor: AppColors.blue.withAlpha(40),
                 overlayColor: AppColors.blue.withAlpha(30),
-                trackHeight: 4,
+                trackHeight: 6,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
               ),
               child: Slider(
                 value: kcal.toDouble(),
@@ -319,14 +347,39 @@ class _CalorieCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('1500', style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondaryLight)),
-                Text('BMR: ~1800', style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondaryLight)),
-                Text('TDEE: ~2820', style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondaryLight)),
-                Text('3500', style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondaryLight)),
+                Text('1500', style: AppTextStyles.labelSmall.copyWith(color: subColor)),
+                Text('BMR: ~1800', style: AppTextStyles.labelSmall.copyWith(color: subColor)),
+                Text('TDEE: ~2820', style: AppTextStyles.labelSmall.copyWith(color: subColor)),
+                Text('3500', style: AppTextStyles.labelSmall.copyWith(color: subColor)),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _KcalStepButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _KcalStepButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          ),
+        ),
+        child: Icon(icon, size: 14, color: AppColors.blue),
       ),
     );
   }
@@ -378,20 +431,20 @@ class _MacroSplitCard extends StatelessWidget {
             const SizedBox(height: 12),
             // Stacked bar
             ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(6),
               child: Row(
                 children: [
                   Expanded(
                     flex: (proteinPct * 100).round(),
-                    child: Container(height: 12, color: AppColors.protein),
+                    child: Container(height: 8, color: AppColors.protein),
                   ),
                   Expanded(
                     flex: (carbsPct * 100).round(),
-                    child: Container(height: 12, color: AppColors.carbs),
+                    child: Container(height: 8, color: AppColors.carbs),
                   ),
                   Expanded(
                     flex: (fatPct * 100).round(),
-                    child: Container(height: 12, color: AppColors.fat),
+                    child: Container(height: 8, color: AppColors.fat),
                   ),
                 ],
               ),
@@ -449,15 +502,20 @@ class _MacroTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final subColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     return Expanded(
       child: GestureDetector(
         onTap: () => _showInput(context),
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withAlpha(15),
+            color: isDark ? const Color(0xFF1B212A) : const Color(0xFFF8F6F1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withAlpha(60)),
+            border: Border.all(
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            ),
           ),
           child: Column(
             children: [
@@ -470,20 +528,16 @@ class _MacroTile extends StatelessWidget {
                     decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                   ),
                   const SizedBox(width: 4),
-                  Text(label, style: AppTextStyles.labelSmall.copyWith(color: color)),
+                  Text(label, style: AppTextStyles.labelSmall.copyWith(color: subColor)),
                 ],
               ),
               const SizedBox(height: 4),
-              Text('${grams}g',
-                  style: AppTextStyles.macroGrams.copyWith(color: color)),
+              Text('${grams}g', style: AppTextStyles.macroGrams.copyWith(color: textColor)),
               if (gPerKg > 0) ...[
                 const SizedBox(height: 2),
                 Text(
                   '${gPerKg.toStringAsFixed(1)}g/kg',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: color.withAlpha(180),
-                    fontSize: 9,
-                  ),
+                  style: AppTextStyles.labelSmall.copyWith(color: subColor, fontSize: 9),
                 ),
               ],
             ],
@@ -552,15 +606,48 @@ class _WeightCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Weight', style: AppTextStyles.labelLarge.copyWith(color: textColor)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.green.withAlpha(20),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text('On pace',
-                      style: AppTextStyles.labelSmall.copyWith(color: AppColors.green)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'WEIGHT',
+                      style: AppTextStyles.labelMono.copyWith(
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text('Weight', style: AppTextStyles.labelLarge.copyWith(color: textColor)),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Last 30 days',
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            ),
+                          ),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            size: 14,
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -607,7 +694,7 @@ class _WeightCard extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Log Weight', style: AppTextStyles.heading3),
+              Text('Log Weight', style: AppTextStyles.heading3),
               const SizedBox(height: 16),
               TextField(
                 controller: controller,
