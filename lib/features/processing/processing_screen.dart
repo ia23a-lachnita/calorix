@@ -192,7 +192,7 @@ class _ProcessingSkeleton extends StatelessWidget {
                       child: const Text('AI',
                           style: TextStyle(
                               fontSize: 10,
-                              fontFamily: 'BarlowCondensed',
+                              fontFamily: 'Inter Tight',
                               fontWeight: FontWeight.w700,
                               color: AppColors.textSecondaryLight)),
                     ),
@@ -220,7 +220,7 @@ class _ProcessingSkeleton extends StatelessWidget {
                   ),
                   child: const Text('3 / 4',
                       style: TextStyle(
-                          fontFamily: 'Barlow',
+                          fontFamily: 'Inter Tight',
                           fontSize: 12,
                           color: AppColors.textSecondaryLight)),
                 ),
@@ -338,12 +338,12 @@ class _ErrorState extends StatelessWidget {
           const SizedBox(height: 12),
           const Text('Analysis failed',
               style: TextStyle(
-                  fontFamily: 'BarlowCondensed',
+                  fontFamily: 'Inter Tight',
                   fontSize: 20,
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           const Text('Could not process your image',
-              style: TextStyle(fontFamily: 'Barlow', color: AppColors.textSecondaryLight)),
+              style: TextStyle(fontFamily: 'Inter Tight', color: AppColors.textSecondaryLight)),
           const SizedBox(height: 20),
           ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 abstract final class AppTheme {
@@ -19,18 +20,18 @@ abstract final class AppTheme {
         onSurfaceVariant: AppColors.textSecondaryLight,
         outline: AppColors.borderLight,
       ),
-      fontFamily: 'Barlow',
+      fontFamily: GoogleFonts.interTight().fontFamily,
+      textTheme: GoogleFonts.interTightTextTheme(),
       scaffoldBackgroundColor: AppColors.backgroundLight,
     );
 
     return base.copyWith(
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: AppColors.backgroundLight,
         elevation: 0,
         scrolledUnderElevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        titleTextStyle: TextStyle(
-          fontFamily: 'BarlowCondensed',
+        titleTextStyle: GoogleFonts.interTight(
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimaryLight,
@@ -41,8 +42,7 @@ abstract final class AppTheme {
         elevation: 0,
         indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.all(
-          const TextStyle(
-            fontFamily: 'Barlow',
+          GoogleFonts.interTight(
             fontSize: 11,
             fontWeight: FontWeight.w500,
           ),
@@ -81,8 +81,7 @@ abstract final class AppTheme {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: const TextStyle(
-            fontFamily: 'Barlow',
+          textStyle: GoogleFonts.interTight(
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -92,8 +91,7 @@ abstract final class AppTheme {
         backgroundColor: AppColors.surfaceLight,
         side: const BorderSide(color: AppColors.borderLight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        labelStyle: const TextStyle(
-          fontFamily: 'Barlow',
+        labelStyle: GoogleFonts.interTight(
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimaryLight,
@@ -129,18 +127,18 @@ abstract final class AppTheme {
         onSurfaceVariant: AppColors.textSecondaryDark,
         outline: AppColors.borderDark,
       ),
-      fontFamily: 'Barlow',
+      fontFamily: GoogleFonts.interTight().fontFamily,
+      textTheme: GoogleFonts.interTightTextTheme(ThemeData.dark().textTheme),
       scaffoldBackgroundColor: AppColors.backgroundDark,
     );
 
     return base.copyWith(
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: AppColors.backgroundDark,
         elevation: 0,
         scrolledUnderElevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        titleTextStyle: TextStyle(
-          fontFamily: 'BarlowCondensed',
+        titleTextStyle: GoogleFonts.interTight(
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimaryDark,
@@ -151,8 +149,7 @@ abstract final class AppTheme {
         elevation: 0,
         indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.all(
-          const TextStyle(
-            fontFamily: 'Barlow',
+          GoogleFonts.interTight(
             fontSize: 11,
             fontWeight: FontWeight.w500,
           ),
@@ -191,8 +188,7 @@ abstract final class AppTheme {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: const TextStyle(
-            fontFamily: 'Barlow',
+          textStyle: GoogleFonts.interTight(
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -202,8 +198,7 @@ abstract final class AppTheme {
         backgroundColor: AppColors.surfaceDark,
         side: const BorderSide(color: AppColors.borderDark),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        labelStyle: const TextStyle(
-          fontFamily: 'Barlow',
+        labelStyle: GoogleFonts.interTight(
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimaryDark,

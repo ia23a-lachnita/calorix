@@ -403,7 +403,7 @@ class _BackChip extends StatelessWidget {
               Text('Back',
                   style: TextStyle(
                       color: AppColors.cameraOverlayText,
-                      fontFamily: 'Barlow',
+                      fontFamily: 'Inter Tight',
                       fontSize: 13,
                       fontWeight: FontWeight.w500)),
             ],
@@ -448,7 +448,7 @@ class _ChipAction extends StatelessWidget {
               Text(label,
                   style: TextStyle(
                       color: destructive ? AppColors.error : AppColors.cameraOverlayText,
-                      fontFamily: 'Barlow',
+                      fontFamily: 'Inter Tight',
                       fontSize: 13,
                       fontWeight: FontWeight.w500)),
             ],
@@ -486,7 +486,7 @@ class _EditChip extends StatelessWidget {
               const SizedBox(width: 4),
               const Text('Edit',
                   style: TextStyle(
-                      fontFamily: 'Barlow',
+                      fontFamily: 'Inter Tight',
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: AppColors.blue)),
