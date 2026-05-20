@@ -32,8 +32,23 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final dayOfYear = d.difference(DateTime(d.year, 1, 1)).inDays + 1;
     return ((dayOfYear - d.weekday + 10) / 7).floor();
   }
+String get _monthName => DateFormat('MMMM').format(_selectedDate).toUpperCase();
 
-  String get _monthName => DateFormat('MMMM').format(_selectedDate).toUpperCase();
+int _computeStreak(List<DailyLog> logs) {
+  int streak = 0;
+  final today = DateTime.now();
+  for (int i = 0; i < logs.length; i++) {
+    final log = logs[i];
+    if (!log.hasData) break;
+    final expected = today.subtract(Duration(days: i));
+    if (DateFormat('yyyy-MM-dd').format(log.date) !=
+        DateFormat('yyyy-MM-dd').format(expected)) {
+      break;
+    }
+    streak++;
+  }
+  return streak;
+}
 
   @override
   Widget build(BuildContext context) {
@@ -168,23 +183,53 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Day rows
+                // Day log header + rows
                 historyAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Text('Error: $e'),
-                  data: (logs) => Column(
-                    children: logs
-                        .map((log) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: _DayRow(
-                                log: log,
-                                isDark: isDark,
-                                onTap: () => context.go(
-                                    '/history/${DateFormat('yyyy-MM-dd').format(log.date)}'),
+                  error: (e, _) => const SizedBox.shrink(),
+                  data: (logs) {
+                    if (logs.isEmpty) return const SizedBox.shrink();
+                    final streak = _computeStreak(logs);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // "Day log" header with streak badge
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Day log',
+                                style: AppTextStyles.heading3.copyWith(color: textColor),
                               ),
-                            ))
-                        .toList(),
-                  ),
+                              if (streak > 0)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.green.withAlpha(25),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '$streak DAY STREAK',
+                                    style: AppTextStyles.labelSmall.copyWith(color: AppColors.green),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        ...logs.map((log) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _DayRow(
+                            log: log,
+                            isDark: isDark,
+                            onTap: () => context.go(
+                                '/history/${DateFormat('yyyy-MM-dd').format(log.date)}'),
+                          ),
+                        )),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 80),
               ]),
@@ -743,31 +788,15 @@ class _DayRow extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    DateFormat('EEE, MMM d').format(log.date),
-                    style: AppTextStyles.labelLarge.copyWith(color: textColor),
-                  ),
-                  Text(
-                    '${log.entryCount} meals',
-                    style: AppTextStyles.bodySmall.copyWith(color: subtextColor),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Text('${log.kcal.round()} kcal',
-                  style: AppTextStyles.macroGrams.copyWith(color: textColor)),
-              const SizedBox(width: 12),
+              // Score ring — LEFT
               SizedBox(
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     CustomPaint(
-                      size: const Size(36, 36),
+                      size: const Size(40, 40),
                       painter: _SmallRingPainter(
                           fraction: pct.clamp(0.0, 1.0), color: ringColor),
                     ),
@@ -775,14 +804,47 @@ class _DayRow extends StatelessWidget {
                       '${(pct * 100).clamp(0, 100).round()}',
                       style: AppTextStyles.labelSmall.copyWith(
                         color: ringColor,
-                        fontSize: 9,
+                        fontSize: 10,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
+              // Date + meals + macro pips — MIDDLE
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      DateFormat('EEE, MMM d').format(log.date),
+                      style: AppTextStyles.labelLarge.copyWith(color: textColor),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Text(
+                          '${log.entryCount} meals',
+                          style: AppTextStyles.bodySmall.copyWith(color: subtextColor),
+                        ),
+                        const SizedBox(width: 6),
+                        _MacroPip(value: log.protein, color: AppColors.protein),
+                        const SizedBox(width: 4),
+                        _MacroPip(value: log.carbs, color: AppColors.carbs),
+                        const SizedBox(width: 4),
+                        _MacroPip(value: log.fat, color: AppColors.fat),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Kcal — RIGHT
+              Text(
+                '${NumberFormat('#,###').format(log.kcal.round())} kcal',
+                style: AppTextStyles.labelLarge.copyWith(color: textColor),
+              ),
+              const SizedBox(width: 6),
               Icon(Icons.chevron_right, color: subtextColor, size: 16),
             ],
           ),
@@ -826,4 +888,29 @@ class _SmallRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SmallRingPainter old) => old.fraction != fraction;
+}
+
+// ─── Macro pip ────────────────────────────────────────────────────────────────
+
+class _MacroPip extends StatelessWidget {
+  final double value;
+  final Color color;
+  const _MacroPip({required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 2),
+          Text(
+            '${value.round()}g',
+            style: AppTextStyles.bodySmall.copyWith(color: color, fontSize: 10),
+          ),
+        ],
+      );
 }
