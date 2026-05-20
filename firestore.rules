@@ -15,8 +15,8 @@ service cloud.firestore {
     }
 
     match /entries/{entryId} {
-      allow read: if request.auth != null &&
-        (resource == null || resource.data.uid == request.auth.uid);
+      allow get: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow list: if request.auth != null;
 
       allow create: if request.auth != null &&
         request.resource.data.uid == request.auth.uid &&
@@ -48,8 +48,10 @@ service cloud.firestore {
     match /dailyLogs/{logId} {
       allow read: if request.auth != null &&
         logId >= request.auth.uid + '_' &&
-        logId < request.auth.uid + 'z';
-      allow write: if false;
+        logId < request.auth.uid + '_z';
+      allow write: if request.auth != null &&
+        logId >= request.auth.uid + '_' &&
+        logId < request.auth.uid + '_z';
     }
   }
 }
