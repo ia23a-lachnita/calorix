@@ -10,3 +10,15 @@ project_doc_max_bytes = 32768
 [features]
 # Enable only if your Codex build supports hierarchical child AGENTS.md behavior.
 child_agents_md = true
+
+[mcp_servers.dart]
+enabled = true
+command = 'C:\Users\xursc\projects\calorix\.fvm\versions\3.41.9\bin\cache\dart-sdk\bin\dart.exe'
+args = ["mcp-server", "--force-roots-fallback"]
+cwd = 'C:\Users\xursc\projects\calorix'
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+required = false
+
+[projects.'C:\Users\xursc\projects\calorix']
+trust_level = "trusted"

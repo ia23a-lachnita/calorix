@@ -17,10 +17,24 @@
     },
     "dart": {
       "type": "stdio",
-      "command": "fvm",
+      "command": "C:\\Users\\xursc\\projects\\calorix\\.fvm\\versions\\3.41.9\\bin\\cache\\dart-sdk\\bin\\dart.exe",
       "args": [
-        "dart",
-        "mcp-server"
+        "mcp-server",
+        "--force-roots-fallback"
+      ],
+      "env": {}
+    },
+    "flutter-mcp-toolkit": {
+      "type": "stdio",
+      "command": "C:\\Users\\xursc\\tools\\mcp_flutter\\mcp_server_dart\\build\\flutter-mcp-toolkit-server.exe",
+      "args": [
+        "--dart-vm-host",
+        "localhost",
+        "--dart-vm-port",
+        "8181",
+        "--environment",
+        "development",
+        "--save-images"
       ],
       "env": {}
     }

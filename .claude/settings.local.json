@@ -19,7 +19,26 @@
       "PowerShell(adb devices*)",
       "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
       "PowerShell(git *)",
-      "PowerShell(cd \"C:\\\\Users\\\\xursc\\\\projects\\\\calorix\"; \"=== Checking ignored sensitive files are NOT staged ===\"; git ls-files | Select-String -Pattern 'firebase_options|google-services|GoogleService-Info|\\\\.env|\\\\.firebaserc|node_modules' ; \"=== \\(empty = good\\) ===\"; \"Total tracked files:\"; \\(git ls-files | Measure-Object\\).Count)"
+      "PowerShell(cd \"C:\\\\Users\\\\xursc\\\\projects\\\\calorix\"; \"=== Checking ignored sensitive files are NOT staged ===\"; git ls-files | Select-String -Pattern 'firebase_options|google-services|GoogleService-Info|\\\\.env|\\\\.firebaserc|node_modules' ; \"=== \\(empty = good\\) ===\"; \"Total tracked files:\"; \\(git ls-files | Measure-Object\\).Count)",
+      "mcp__firebase__firebase_list_projects",
+      "mcp__firebase__firebase",
+      "mcp__firebase__firebase_create_project",
+      "mcp__dart__*",
+      "mcp__firebase__*",
+      "mcp__gcloud__*",
+      "mcp__gemini-cli__*",
+      "mcp__claude-context__*",
+      "mcp__plugin_context7_context7__*",
+      "mcp__plugin_context-mode_context-mode__*",
+      "mcp__plugin_claude-mem_mcp-search__*",
+      "mcp__dart",
+      "mcp__firebase",
+      "mcp__gcloud",
+      "mcp__gemini-cli",
+      "mcp__claude-context",
+      "mcp__plugin_context7_context7",
+      "mcp__plugin_context-mode_context-mode",
+      "mcp__plugin_claude-mem_mcp-search"
     ]
   },
   "enabledMcpjsonServers": [
