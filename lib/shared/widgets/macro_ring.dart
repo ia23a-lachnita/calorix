@@ -17,7 +17,7 @@ class MacroRing extends StatelessWidget {
     required this.fatFraction,
     this.size = 200,
     this.center,
-    this.strokeWidth = 14,
+    this.strokeWidth = 10,
   });
 
   @override
@@ -102,7 +102,7 @@ class _MacroRingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
-      ..color = color.withAlpha(40);
+      ..color = color.withAlpha(70);
 
     final glowPaint = Paint()
       ..style = PaintingStyle.stroke
