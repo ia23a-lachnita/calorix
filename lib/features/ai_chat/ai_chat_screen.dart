@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/ai_chat_providers.dart';
 import '../../core/theme/app_colors.dart';
@@ -142,34 +144,79 @@ where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('AI', style: AppTextStyles.heading1.copyWith(color: textColor)),
-                  const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.green.withAlpha(20),
+                      gradient: const LinearGradient(
+                        colors: [AppColors.blue, AppColors.cyan],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: AppColors.green,
-                            shape: BoxShape.circle,
+                    child: const Icon(Icons.auto_awesome, size: 20, color: Colors.white),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Calorix AI', style: AppTextStyles.heading2.copyWith(color: textColor)),
+                      const SizedBox(height: 2),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: AppColors.green,
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'CAN EDIT YOUR PLAN',
-                          style: AppTextStyles.labelMono.copyWith(color: AppColors.green),
-                        ),
-                      ],
+                          const SizedBox(width: 5),
+                          Text(
+                            'CAN EDIT YOUR PLAN',
+                            style: AppTextStyles.labelMono.copyWith(color: AppColors.green),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => context.pop(),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark ? const Color(0x14FFFFFF) : const Color(0x0F000000),
+                      ),
+                      child: Icon(
+                        Icons.close,
+                        size: 16,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      ),
                     ),
                   ),
+                ],
+              ),
+            ),
+          ),
+
+          // Header gradient separator
+          Container(
+            height: 1,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0x50172DFF), // blue withAlpha(80)
+                  Color(0x5019D3D9), // cyan withAlpha(80)
+                  Color(0x501FCC74), // green withAlpha(80)
                 ],
               ),
             ),
@@ -186,50 +233,93 @@ where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.
                   return const _TypingIndicator();
                 }
                 final msg = messages[index];
-                return _MessageBubble(
-                  message: msg,
-                  isDark: isDark,
-                  onApply: msg.action != null
-                      ? () => _applyAction(index, msg.action!)
-                      : null,
-                  onReject:
-                      msg.action != null ? () => _rejectAction(index) : null,
+                // Show time separator before this message if gap > 15 min or first message
+                final showSeparator = index == 0 ||
+                    msg.timestamp.difference(messages[index - 1].timestamp).inMinutes.abs() >= 15;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showSeparator) _TimeSeparator(timestamp: msg.timestamp, isDark: isDark),
+                    _MessageBubble(
+                      message: msg,
+                      isDark: isDark,
+                      onApply: msg.action != null
+                          ? () => _applyAction(index, msg.action!)
+                          : null,
+                      onReject: msg.action != null ? () => _rejectAction(index) : null,
+                    ),
+                  ],
                 );
               },
             ),
           ),
 
-          // Suggested prompts
-          SizedBox(
-            height: 44,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              itemCount: _suggestedPrompts.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final prompt = _suggestedPrompts[index];
-                return ActionChip(
-                  label: Text(prompt),
-                  onPressed: () => _sendMessage(prompt),
-                  labelStyle: AppTextStyles.labelSmall,
-                );
-              },
+          // Prompt pills + composer — opaque backing so chat doesn't show through
+          Container(
+            color: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Suggested prompts
+                SizedBox(
+                  height: 44,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _suggestedPrompts.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      final prompt = _suggestedPrompts[index];
+                      return ActionChip(
+                        label: Text(prompt),
+                        onPressed: () => _sendMessage(prompt),
+                        labelStyle: AppTextStyles.labelSmall,
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // Composer
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: _Composer(
+                      controller: _controller,
+                      onSend: () => _sendMessage(_controller.text),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
 
-          // Composer
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: _Composer(
-                controller: _controller,
-                onSend: () => _sendMessage(_controller.text),
-              ),
+class _TimeSeparator extends StatelessWidget {
+  final DateTime timestamp;
+  final bool isDark;
+  const _TimeSeparator({required this.timestamp, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final subColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight, height: 1)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              DateFormat('h:mm a').format(timestamp),
+              style: AppTextStyles.labelMono.copyWith(color: subColor),
             ),
           ),
+          Expanded(child: Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight, height: 1)),
         ],
       ),
     );
@@ -392,7 +482,7 @@ class _ConfirmCard extends StatelessWidget {
                     side: const BorderSide(color: AppColors.borderLight),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  child: const Text('Reject'),
+                  child: const Text('Keep original'),
                 ),
               ),
               const SizedBox(width: 8),
@@ -504,44 +594,57 @@ class _Composer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final subColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? const Color(0xFF14181E) : Colors.white,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+        ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          IconButton(
-            icon: const Icon(Icons.add, size: 20),
-            onPressed: () {},
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          GestureDetector(
+            onTap: () {},
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(Icons.add, size: 20, color: subColor),
+            ),
           ),
           Expanded(
             child: TextField(
               controller: controller,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Ask anything…',
+                hintStyle: AppTextStyles.bodyMedium.copyWith(color: subColor),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                isDense: true,
               ),
-              style: AppTextStyles.bodyMedium,
-              maxLines: 3,
-              minLines: 1,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              ),
+              maxLines: 1,
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => onSend(),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.mic_outlined, size: 20),
-            onPressed: () {},
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: () {},
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(Icons.mic_outlined, size: 20, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+            ),
           ),
+          const SizedBox(width: 4),
           GestureDetector(
             onTap: onSend,
             child: Container(
@@ -555,7 +658,7 @@ class _Composer extends StatelessWidget {
                 ),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_upward, color: AppColors.cameraOverlayText, size: 18),
+              child: const Icon(Icons.arrow_upward, color: Colors.white, size: 18),
             ),
           ),
         ],
