@@ -61,7 +61,6 @@ class MacroProgressBar extends StatelessWidget {
                 const SizedBox(width: 6),
                 _PercentBadge(
                   percent: (target > 0 ? (current / target * 100) : 0).round(),
-                  color: color,
                 ),
               ],
             ),
@@ -117,20 +116,22 @@ class _Bar extends StatelessWidget {
 
 class _PercentBadge extends StatelessWidget {
   final int percent;
-  final Color color;
-  const _PercentBadge({required this.percent, required this.color});
+  const _PercentBadge({required this.percent});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0x14FFFFFF) : const Color(0x0F000000);
+    final textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withAlpha(30),
-        borderRadius: BorderRadius.circular(4),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         '$percent%',
-        style: AppTextStyles.labelSmall.copyWith(color: color),
+        style: AppTextStyles.labelSmall.copyWith(color: textColor),
       ),
     );
   }

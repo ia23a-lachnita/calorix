@@ -9,9 +9,10 @@ class SkeletonShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: AppColors.skeletonBase,
-      highlightColor: AppColors.skeletonShine,
+      baseColor: isDark ? AppColors.skeletonBaseDark : AppColors.skeletonBase,
+      highlightColor: isDark ? AppColors.skeletonShineDark : AppColors.skeletonShine,
       period: const Duration(milliseconds: 1400),
       child: child,
     );
@@ -32,11 +33,12 @@ class SkeletonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.skeletonBase,
+        color: isDark ? AppColors.skeletonBaseDark : AppColors.skeletonBase,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
     );
