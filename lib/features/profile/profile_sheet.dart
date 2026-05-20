@@ -19,21 +19,30 @@ class ProfileSheet extends ConsumerWidget {
     final subtextColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-    return Scaffold(
+    return GestureDetector(
+      onVerticalDragEnd: (details) {
+        if (details.primaryVelocity != null && details.primaryVelocity! > 300) {
+          context.pop();
+        }
+      },
+      child: Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       body: SafeArea(
         child: Column(
           children: [
-            // Handle
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.borderLight,
-                    borderRadius: BorderRadius.circular(2),
+            // Handle — tap to dismiss
+            GestureDetector(
+              onTap: () => context.pop(),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.borderLight,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
               ),
@@ -48,7 +57,7 @@ class ProfileSheet extends ConsumerWidget {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                   ),
                 ],
               ),
@@ -218,6 +227,7 @@ class ProfileSheet extends ConsumerWidget {
           ],
         ),
       ),
+    ),
     );
   }
 
