@@ -110,7 +110,7 @@ class SeedDataService {
         'mealType': e.meal,
         'servingSize': 1.0,
         'quantity': 1.0,
-        'status': 'confirmed',
+        'status': 'complete',
         'timestamp': Timestamp.fromDate(mealTimes[i]),
         'imageUrl': null,
       });

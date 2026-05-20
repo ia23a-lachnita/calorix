@@ -1,5 +1,9 @@
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/firebase/firebase_options.dart';
@@ -9,10 +13,22 @@ import 'core/theme/app_theme.dart';
 import 'features/profile/profile_sheet.dart';
 import 'shared/providers/auth_provider.dart';
 import 'shared/providers/notification_provider.dart';
+import 'shared/services/seed_data_service.dart';
+
+const _useEmulator = bool.fromEnvironment('USE_EMULATOR', defaultValue: false);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  if (_useEmulator) {
+    // Android emulator reaches host via 10.0.2.2; everything else uses localhost
+    final host = Platform.isAndroid ? '10.0.2.2' : 'localhost';
+    FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
+    await FirebaseAuth.instance.useAuthEmulator(host, 9099);
+    await FirebaseStorage.instance.useStorageEmulator(host, 9199);
+  }
+
   FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
   runApp(const ProviderScope(child: CalorixApp()));
 }
@@ -65,6 +81,14 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
       final auth = ref.read(firebaseAuthProvider);
       if (auth.currentUser == null) {
         await auth.signInAnonymously();
+      }
+      final uid = auth.currentUser?.uid;
+      if (uid != null) {
+        try {
+          await SeedDataService(ref.read(firestoreProvider)).seedIfEmpty(uid);
+        } catch (seedError) {
+          debugPrint('SEED ERROR (non-fatal): $seedError');
+        }
       }
     } catch (e) {
       debugPrint('AUTH ERROR: $e');
@@ -137,7 +161,7 @@ class _SplashScreen extends StatelessWidget {
             const Text(
               'Snap. Track. Stay on target.',
               style: TextStyle(
-                fontFamily: 'Barlow',
+                fontFamily: 'Inter Tight',
                 fontSize: 13,
                 color: Color(0xFF8A8A9A),
                 letterSpacing: 0.5,
@@ -190,7 +214,7 @@ class _AuthErrorScreen extends StatelessWidget {
                 error?.toString() ?? 'Could not connect to Calorix servers.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                    fontFamily: 'Barlow',
+                    fontFamily: 'Inter Tight',
                     fontSize: 13,
                     color: Color(0xFF8A8A9A),
                     height: 1.5),
