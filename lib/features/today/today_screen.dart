@@ -209,7 +209,7 @@ class _HeroMacroCard extends StatelessWidget {
                     proteinFraction: plan.protein > 0 ? summary.protein / plan.protein : 0,
                     carbsFraction: plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
                     fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
-                    size: 220,
+                    size: 260,
                     center: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -347,23 +347,19 @@ class _MealCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '${entry.scaledKcal.round()} kcal',
-                          style: AppTextStyles.bodyMedium.copyWith(color: textColor),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          DateFormat('h:mm a').format(entry.timestamp),
+                          DateFormat('h:mm').format(entry.timestamp),
                           style: AppTextStyles.bodySmall.copyWith(color: subtextColor),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
+                        Text(' · ', style: AppTextStyles.bodySmall.copyWith(color: subtextColor)),
+                        Text(
+                          entry.mealType.name[0].toUpperCase() + entry.mealType.name.substring(1),
+                          style: AppTextStyles.bodySmall.copyWith(color: subtextColor),
+                        ),
+                        const SizedBox(width: 6),
                         _MacroPip(value: entry.scaledProtein, color: AppColors.protein, label: 'P'),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         _MacroPip(value: entry.scaledCarbs, color: AppColors.carbs, label: 'C'),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         _MacroPip(value: entry.scaledFat, color: AppColors.fat, label: 'F'),
                       ],
                     ),
@@ -380,7 +376,15 @@ class _MealCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: subtextColor, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                '${entry.scaledKcal.round()}',
+                style: AppTextStyles.macroGrams.copyWith(color: textColor),
+              ),
+              Text(
+                'kcal',
+                style: AppTextStyles.bodySmall.copyWith(color: subtextColor),
+              ),
             ],
           ),
         ),

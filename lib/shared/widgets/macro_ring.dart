@@ -9,6 +9,7 @@ class MacroRing extends StatelessWidget {
   final double size;
   final Widget? center;
   final double strokeWidth;
+  final Color? trackColor;
 
   const MacroRing({
     super.key,
@@ -17,11 +18,15 @@ class MacroRing extends StatelessWidget {
     required this.fatFraction,
     this.size = 200,
     this.center,
-    this.strokeWidth = 10,
+    this.strokeWidth = 18,
+    this.trackColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final resolvedTrack = trackColor ??
+        (isDark ? AppColors.skeletonBaseDark : AppColors.skeletonBase);
     return SizedBox(
       width: size,
       height: size,
@@ -35,6 +40,7 @@ class MacroRing extends StatelessWidget {
               carbsFraction: carbsFraction.clamp(0.0, 1.0),
               fatFraction: fatFraction.clamp(0.0, 1.0),
               strokeWidth: strokeWidth,
+              trackColor: resolvedTrack,
             ),
           ),
           if (center != null) center!,
@@ -49,18 +55,20 @@ class _MacroRingPainter extends CustomPainter {
   final double carbsFraction;
   final double fatFraction;
   final double strokeWidth;
+  final Color trackColor;
 
   _MacroRingPainter({
     required this.proteinFraction,
     required this.carbsFraction,
     required this.fatFraction,
     required this.strokeWidth,
+    required this.trackColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final gap = strokeWidth * 2.2;
+    final gap = strokeWidth * 1.5;
 
     _drawArc(
       canvas: canvas,
@@ -102,14 +110,14 @@ class _MacroRingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
-      ..color = color.withAlpha(70);
+      ..color = trackColor;
 
     final glowPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * 2.0
+      ..strokeWidth = strokeWidth * 1.8
       ..strokeCap = StrokeCap.round
-      ..color = color.withAlpha(55)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+      ..color = color.withAlpha(45)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
 
     final fillPaint = Paint()
       ..style = PaintingStyle.stroke
@@ -132,7 +140,8 @@ class _MacroRingPainter extends CustomPainter {
   bool shouldRepaint(_MacroRingPainter old) =>
       old.proteinFraction != proteinFraction ||
       old.carbsFraction != carbsFraction ||
-      old.fatFraction != fatFraction;
+      old.fatFraction != fatFraction ||
+      old.trackColor != trackColor;
 }
 
 // Animated version driven by animation controller
@@ -143,6 +152,7 @@ class AnimatedMacroRing extends StatelessWidget {
   final double fatFraction;
   final double size;
   final Widget? center;
+  final double strokeWidth;
 
   const AnimatedMacroRing({
     super.key,
@@ -152,6 +162,7 @@ class AnimatedMacroRing extends StatelessWidget {
     required this.fatFraction,
     this.size = 200,
     this.center,
+    this.strokeWidth = 18,
   });
 
   @override
@@ -163,6 +174,7 @@ class AnimatedMacroRing extends StatelessWidget {
         carbsFraction: carbsFraction * animation.value,
         fatFraction: fatFraction * animation.value,
         size: size,
+        strokeWidth: strokeWidth,
         center: center,
       ),
     );

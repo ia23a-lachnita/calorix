@@ -229,7 +229,7 @@ class _ScanFAB extends StatelessWidget {
           ),
           const SizedBox(height: 1),
           Text(
-            'Scan',
+            'SCAN',
             style: AppTextStyles.labelSmall.copyWith(
               color: isActive
                   ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight)

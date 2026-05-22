@@ -37,6 +37,10 @@
         "--save-images"
       ],
       "env": {}
+    },
+	"mobile-ui-diff": {
+      "command": "node",
+      "args": ["C:\Users\xursc\projects\mobile-ui-diff-mcp\dist\index.js"]
     }
   }
 }
