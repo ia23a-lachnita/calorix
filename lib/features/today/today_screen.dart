@@ -60,7 +60,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
               children: [
                 Text('Today', style: AppTextStyles.heading1.copyWith(color: textColor)),
                 Text(
-                  DateFormat('EEEE · MMM d').format(DateTime.now()),
+                  DateFormat('EEEE · MMM d').format(DateTime.now()).toUpperCase(),
                   style: AppTextStyles.labelSmall.copyWith(
                     color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                   ),
