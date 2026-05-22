@@ -8,7 +8,8 @@ abstract final class AppColors {
 
   // Surfaces
   static const Color surfaceLight = Color(0xEBFFFFFF); // rgba(255,255,255,0.92)
-  static const Color surfaceDarkOverlay = Color(0x08FFFFFF); // rgba(255,255,255,0.03)
+  static const Color surfaceDarkOverlay =
+      Color(0x08FFFFFF); // rgba(255,255,255,0.03)
 
   // Accents
   static const Color blue = Color(0xFF3A5BFF);
@@ -19,10 +20,12 @@ abstract final class AppColors {
   // Text
   static const Color textPrimaryLight = Color(0xFF0D0D0F);
   static const Color textPrimaryDark = Color(0xFFF2F1EE);
-  static const Color textSecondaryLight = Color(0xFF6B6F77);  // spec: #6B6F77 (was 0xFF5A5A6E)
-  static const Color textSecondaryDark = Color(0xFFA8B0BC);   // spec: #A8B0BC (was 0xFF8A8A9A)
-  static const Color textTertiaryLight = Color(0xFF9A9EA6);   // spec: #9A9EA6
-  static const Color textTertiaryDark = Color(0xFF6F7885);    // spec: #6F7885
+  static const Color textSecondaryLight =
+      Color(0xFF6B6F77); // spec: #6B6F77 (was 0xFF5A5A6E)
+  static const Color textSecondaryDark =
+      Color(0xFFA8B0BC); // spec: #A8B0BC (was 0xFF8A8A9A)
+  static const Color textTertiaryLight = Color(0xFF9A9EA6); // spec: #9A9EA6
+  static const Color textTertiaryDark = Color(0xFF6F7885); // spec: #6F7885
 
   // Skeleton — light mode
   static const Color skeletonBase = Color(0xFFE8E4DC);
@@ -69,9 +72,11 @@ abstract final class AppColors {
   static const Color cameraOverlayBg = Color(0x640E1117); // dark with alpha
 
   // kcal left pill background
-  static const Color kcalLeftPillBg = Color(0x1A1FCC74); // rgba(31,204,116,0.10)
+  static const Color kcalLeftPillBg =
+      Color(0x331FCC74); // rgba(31,204,116,0.20)
 
   // Blue bubble background
-  static const Color userBubbleLight = Color(0x1A3A5BFF); // rgba(58,91,255,0.10)
+  static const Color userBubbleLight =
+      Color(0x1A3A5BFF); // rgba(58,91,255,0.10)
   static const Color userBubbleDark = Color(0x2E3A5BFF); // rgba(58,91,255,0.18)
 }

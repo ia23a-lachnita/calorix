@@ -68,11 +68,18 @@ class _CalorixBottomNav extends StatelessWidget {
   final bool isDark;
 
   static const _items = [
-    _NavItem(icon: Icons.today_outlined, activeIcon: Icons.today, label: 'Today'),
-    _NavItem(icon: Icons.history_outlined, activeIcon: Icons.history, label: 'History'),
+    _NavItem(
+        icon: Icons.today_outlined, activeIcon: Icons.today, label: 'Today'),
+    _NavItem(
+        icon: Icons.history_outlined,
+        activeIcon: Icons.history,
+        label: 'History'),
     _NavItem(icon: null, activeIcon: null, label: 'Scan'), // FAB
     _NavItem(icon: Icons.flag_outlined, activeIcon: Icons.flag, label: 'Goals'),
-    _NavItem(icon: Icons.auto_awesome_outlined, activeIcon: Icons.auto_awesome, label: 'AI'),
+    _NavItem(
+        icon: Icons.auto_awesome_outlined,
+        activeIcon: Icons.auto_awesome,
+        label: 'AI'),
   ];
 
   @override
@@ -132,7 +139,8 @@ class _NavItem {
   final IconData? icon;
   final IconData? activeIcon;
   final String label;
-  const _NavItem({required this.icon, required this.activeIcon, required this.label});
+  const _NavItem(
+      {required this.icon, required this.activeIcon, required this.label});
 }
 
 class _NavButton extends StatelessWidget {
@@ -172,8 +180,8 @@ class _NavButton extends StatelessWidget {
             Container(
               width: 4,
               height: 4,
-              decoration: BoxDecoration(
-                color: activeColor,
+              decoration: const BoxDecoration(
+                color: AppColors.cyan,
                 shape: BoxShape.circle,
               ),
             )
@@ -222,7 +230,9 @@ class _ScanFAB extends StatelessWidget {
               ),
               child: Icon(
                 Icons.remove_red_eye_outlined,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
                 size: 22,
               ),
             ),
@@ -232,7 +242,9 @@ class _ScanFAB extends StatelessWidget {
             'SCAN',
             style: AppTextStyles.labelSmall.copyWith(
               color: isActive
-                  ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight)
+                  ? (isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight)
                   : AppColors.textSecondaryDark,
             ),
           ),
@@ -265,7 +277,7 @@ class _SweepRingPainter extends CustomPainter {
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
+      ..strokeWidth = 4.5
       ..shader = SweepGradient(
         colors: AppColors.sweepGradient,
         startAngle: 0,

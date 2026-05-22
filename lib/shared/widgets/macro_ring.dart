@@ -18,7 +18,7 @@ class MacroRing extends StatelessWidget {
     required this.fatFraction,
     this.size = 200,
     this.center,
-    this.strokeWidth = 18,
+    this.strokeWidth = 24,
     this.trackColor,
   });
 
@@ -68,7 +68,7 @@ class _MacroRingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final gap = strokeWidth * 1.5;
+    final gap = strokeWidth * 1.2;
 
     _drawArc(
       canvas: canvas,
@@ -153,6 +153,7 @@ class AnimatedMacroRing extends StatelessWidget {
   final double size;
   final Widget? center;
   final double strokeWidth;
+  final Color? trackColor;
 
   const AnimatedMacroRing({
     super.key,
@@ -162,7 +163,8 @@ class AnimatedMacroRing extends StatelessWidget {
     required this.fatFraction,
     this.size = 200,
     this.center,
-    this.strokeWidth = 18,
+    this.strokeWidth = 24,
+    this.trackColor,
   });
 
   @override
@@ -175,6 +177,7 @@ class AnimatedMacroRing extends StatelessWidget {
         fatFraction: fatFraction * animation.value,
         size: size,
         strokeWidth: strokeWidth,
+        trackColor: trackColor,
         center: center,
       ),
     );

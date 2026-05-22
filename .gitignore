@@ -87,6 +87,9 @@ firebase-debug.*.log
 .firebase/
 functions/node_modules/
 
+# UI diff artifacts (screenshots, diffs, region crops)
+.ui-diff/
+
 # Environment secrets
 .env
 .env.*
