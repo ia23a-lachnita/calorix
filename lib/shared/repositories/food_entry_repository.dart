@@ -23,7 +23,7 @@ class FoodEntryRepository {
         .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
         .where('timestamp', isLessThan: Timestamp.fromDate(end))
         .where('status', isEqualTo: 'complete')
-        .orderBy('timestamp')
+        .orderBy('timestamp', descending: true)
         .snapshots()
         .map((q) => q.docs
             .map((d) => FoodEntry.fromFirestore(
