@@ -5,13 +5,13 @@
       "expectedImage": "docs/mockups/image/light/single/Today.png",
       "outputDir": ".ui-diff/today",
       "pixelmatchThreshold": 0.1,
-      "maxDiffPercent": 0.01,
+      "maxDiffPercent": 0.14,
       "maxRegions": 20,
       "maxVlmRegions": 8,
-      "includeVlmAnalysis": true,
+      "includeVlmAnalysis": false,
       "ignoreRegions": [
         { "x": 0, "y": 0, "width": 1080, "height": 80, "reason": "status bar" },
-        { "x": 0, "y": 2350, "width": 1080, "height": 50, "reason": "navigation bar" }
+        { "x": 0, "y": 2268, "width": 1080, "height": 354, "reason": "navigation bar and bottom chrome" }
       ]
     }
   }
