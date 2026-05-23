@@ -2,19 +2,38 @@
   "screens": {
     "today": {
       "platform": "android",
-      "expectedImage": "docs/mockups/image/light/single/Today.png",
+      "expectedImage": "docs/mockups/image/dark/single/Today.png",
       "outputDir": ".ui-diff/today",
       "pixelmatchThreshold": 0.1,
       "maxDiffPercent": 0.14,
       "maxRegions": 20,
-      "maxVlmRegions": 8,
+      "maxVlmRegions": 4,
       "includeVlmAnalysis": true,
       "vlmPolicy": "required",
       "requireVlmAnalysis": true,
       "ignoreRegions": [
-        { "x": 0, "y": 0, "width": 1080, "height": 80, "reason": "status bar" },
-        { "x": 0, "y": 2268, "width": 1080, "height": 354, "reason": "navigation bar and bottom chrome" }
+        {
+          "x": 0, "y": 0, "width": 1080, "height": 80,
+          "reason": "status bar", "type": "system", "coordinateSpace": "actual"
+        },
+        {
+          "x": 0, "y": 2268, "width": 1206, "height": 354,
+          "reason": "navigation bar and bottom chrome", "type": "system", "coordinateSpace": "actual"
+        },
+        {
+          "x": 1080, "y": 0, "width": 126, "height": 2622,
+          "reason": "Samsung Edge Panel strip", "type": "system", "coordinateSpace": "actual"
+        }
       ]
     }
+  },
+  "vlm": {
+    "provider": "ollama",
+    "model": "qwen2.5vl:3b",
+    "fallbackModels": ["moondream"],
+    "keepAlive": "10m",
+    "preflight": true,
+    "require": true,
+    "timeoutMs": 90000
   }
 }

@@ -31,6 +31,27 @@ fvm dart --version
 
 Never use plain `flutter` or `dart` in project work unless diagnosing global SDK setup.
 
+## Emulator / Device Setup
+
+The local system emulator is corrupted and must not be used directly. Always launch via AVD:
+
+```powershell
+fvm flutter emulators --launch Api35_NoPlay
+```
+
+Wait for the device to appear in `adb devices` before running the app. Then:
+
+```powershell
+fvm flutter run --debug
+```
+
+## VLM Model Notes
+
+- `qwen2.5vl:3b` — preferred VLM; takes ~80 s to warm on this machine. Use `timeoutMs: 90000` minimum.
+- `moondream:latest` — fast fallback (~1.7 GB); warms in under 30 s. Use when 3b is unavailable.
+- `qwen2.5vl:7b` — do not use; consistently OOM on this machine.
+- Always pass the model explicitly in `vlm_health` and diff run calls; do not rely on the global default.
+
 ## MCP / Plugin Roles
 
 | Toolset | Role | Use when | Notes |
