@@ -8,7 +8,9 @@
       "maxDiffPercent": 0.14,
       "maxRegions": 20,
       "maxVlmRegions": 8,
-      "includeVlmAnalysis": false,
+      "includeVlmAnalysis": true,
+      "vlmPolicy": "required",
+      "requireVlmAnalysis": true,
       "ignoreRegions": [
         { "x": 0, "y": 0, "width": 1080, "height": 80, "reason": "status bar" },
         { "x": 0, "y": 2268, "width": 1080, "height": 354, "reason": "navigation bar and bottom chrome" }

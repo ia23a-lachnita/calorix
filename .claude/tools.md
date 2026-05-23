@@ -43,11 +43,23 @@ Never use plain `flutter` or `dart` in project work unless diagnosing global SDK
 | gcloud MCP | Google Cloud operations | IAM/logs/buckets/Cloud Run/GCP infra | Least privilege; no destructive ops without explicit approval. |
 | Official Dart/Flutter MCP | Dart/Flutter tooling | Runtime errors, symbols, pub, analyze/test, app introspection | Use FVM-wrapped server. |
 | Arenukvern `mcp_flutter` | Closed-loop Flutter runtime feedback | Screenshots, semantic snapshots, taps, logs, hot reload | Useful for visual QA and interaction testing. |
+| `mobile-ui-diff` | UI/mockup pixel and VLM comparison | UI parity work; comparing live app screenshots against design mockups | See VLM policy below. |
 | Gemini CLI MCP / Gemini CLI | Independent review/offload | Plan review, diff review, architecture critique, large-context code review | Treat as reviewer by default. |
 | Codex CLI | Independent worker/reviewer | Tests, refactors, security review, implementation alternatives | Use sandbox/worktree; inspect output. |
 | Superpowers | Engineering workflow | Brainstorm, plan, debug, TDD, review | Invoke before action when relevant. |
 | token-optimizer | Context health | Before/after long sessions, compaction risk, wasted context | Advisory, not a build dependency. |
 | caveman | Token-minimal internal phrasing | Dense internal notes only | Do not use for user-facing docs. |
+
+## mobile-ui-diff VLM Policy
+
+Use `mobile-ui-diff` for all UI/mockup comparison work. Rules:
+
+1. Always call `vlm_health` before using VLM analysis.
+2. VLM analysis is required in this project when evaluating visual parity (`vlmPolicy: "required"`, `requireVlmAnalysis: true`, `includeVlmAnalysis: true`).
+3. If `vlm_health` fails or no usable VLM model is available, **stop and ask the user to set up/fix VLM**. Do not continue with pixel-only or ROI-only analysis unless the user explicitly approves an exception for that run.
+4. Do not treat global `status: pass` as design parity unless `qualityStatus: pass`.
+5. If `qualityStatus` is `not_evaluated`, configure ROIs/assertions or ask the user before accepting the result.
+6. Use `regionsOfInterest` / `visualAssertions` for important UI components when visual parity matters.
 
 ## Recommended MCP Setup
 
