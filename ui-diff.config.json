@@ -35,5 +35,12 @@
     "preflight": true,
     "require": true,
     "timeoutMs": 90000
+  },
+  "appContentBounds": {
+    "x": 0,
+    "y": 0,
+    "width": 1080,
+    "height": 2400,
+    "coordinateSpace": "actual"
   }
 }

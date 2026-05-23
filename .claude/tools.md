@@ -177,6 +177,30 @@ Before deploy or mutation:
 4. Run security review for auth/rules/user data.
 5. Ask explicit confirmation for destructive operations or deploys.
 
+## Git Commit Hook Rules
+
+The project enforces a pre-commit hook that **rejects commits** containing any of the following. Never use them in commit messages, PR titles, or PR bodies.
+
+### Banned Words
+
+```
+AI  Bot  Claude  Gemini  Generated  Automated  Sonnet  Anthropic
+```
+
+### Banned Patterns
+
+```
+noreply@anthropic.com
+Co-Authored-By: (any variation)
+```
+
+### Guidance for All Agents
+
+- Do **not** add `Co-Authored-By:` trailers to commit messages in this repo.
+- Do **not** use tool/model names (Claude, Gemini, Sonnet, Anthropic, etc.) anywhere in commit text.
+- Write commit messages in plain imperative English: what changed and why.
+- If the hook rejects a commit, strip the offending token and recommit — never use `--no-verify`.
+
 ## External Docs Policy
 
 - Use Context7 for libraries and SDKs.
