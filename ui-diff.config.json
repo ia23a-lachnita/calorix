@@ -2,7 +2,7 @@
   "screens": {
     "today": {
       "platform": "android",
-      "expectedImage": "docs/mockups/image/dark/single/Today.png",
+      "expectedImage": "docs/mockups/image/dark/single/Today_1080.png",
       "outputDir": ".ui-diff/today",
       "pixelmatchThreshold": 0.1,
       "maxDiffPercent": 0.14,
@@ -11,24 +11,26 @@
       "includeVlmAnalysis": true,
       "vlmPolicy": "required",
       "requireVlmAnalysis": true,
-      "preCapture": {
-        "adbShell": [
-          "am start -a android.intent.action.VIEW -d calorix://debug/reseed com.calorix.calorix/.MainActivity",
-          "sleep 5"
-        ]
-      },
+      "preCapture": [
+        {
+          "type": "adbShell",
+          "command": "am start -a android.intent.action.VIEW -d calorix://debug/reseed com.calorix.calorix/.MainActivity",
+          "description": "Trigger debug reseed deep link to seed mockup-matching data"
+        },
+        {
+          "type": "adbShell",
+          "command": "sleep 5",
+          "description": "Wait for Firestore reseed and navigation to Today to complete"
+        }
+      ],
       "ignoreRegions": [
         {
           "x": 0, "y": 0, "width": 1080, "height": 80,
           "reason": "status bar", "type": "system", "coordinateSpace": "actual"
         },
         {
-          "x": 0, "y": 2268, "width": 1206, "height": 354,
+          "x": 0, "y": 2268, "width": 1080, "height": 132,
           "reason": "navigation bar and bottom chrome", "type": "system", "coordinateSpace": "actual"
-        },
-        {
-          "x": 1080, "y": 0, "width": 126, "height": 2622,
-          "reason": "Samsung Edge Panel strip", "type": "system", "coordinateSpace": "actual"
         }
       ]
     }
