@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,8 @@ import '../../features/history/history_day_screen.dart';
 import '../../features/goals/goals_screen.dart';
 import '../../features/ai_chat/ai_chat_screen.dart';
 import '../../features/profile/profile_sheet.dart';
+import '../../shared/providers/auth_provider.dart';
+import '../../shared/services/seed_data_service.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _scanNavKey = GlobalKey<NavigatorState>(debugLabel: 'scan');
@@ -24,6 +27,15 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: RoutePaths.scan,
+    redirect: (context, state) {
+      // GoRouter receives the full custom-scheme URI as the location string.
+      // Normalise calorix:// deep links to plain paths so routes can match.
+      final loc = state.uri.toString();
+      if (loc.startsWith('calorix://debug/reseed')) {
+        return kDebugMode ? '/debug/reseed' : RoutePaths.today;
+      }
+      return null;
+    },
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -152,6 +164,48 @@ final routerProvider = Provider<GoRouter>((ref) {
           transitionDuration: const Duration(milliseconds: 320),
         ),
       ),
+      if (kDebugMode)
+        GoRoute(
+          path: '/debug/reseed',
+          parentNavigatorKey: _rootNavigatorKey,
+          builder: (context, state) => const _DebugReseedScreen(),
+        ),
     ],
   );
 });
+
+class _DebugReseedScreen extends ConsumerStatefulWidget {
+  const _DebugReseedScreen();
+
+  @override
+  ConsumerState<_DebugReseedScreen> createState() => _DebugReseedScreenState();
+}
+
+class _DebugReseedScreenState extends ConsumerState<_DebugReseedScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _reseed();
+  }
+
+  Future<void> _reseed() async {
+    final uid = ref.read(firebaseAuthProvider).currentUser?.uid;
+    if (uid != null) {
+      await SeedDataService(ref.read(firestoreProvider)).forceReseedForUiDiff(uid);
+    }
+    if (mounted) context.go(RoutePaths.today);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Color(0xFF0E1117),
+      body: Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: Color(0xFF19D3D9),
+        ),
+      ),
+    );
+  }
+}

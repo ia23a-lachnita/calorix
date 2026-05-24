@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../../core/constants/app_constants.dart';
 
 class SeedDataService {
@@ -15,7 +16,20 @@ class SeedDataService {
     (kcal: 2200.0, protein: 165.0, carbs: 235.0, fat: 70.0, entries: 4),
   ];
 
-  static const _todayEntries = [
+  // Exact mockup values — sum: 1420 kcal, 96g P, 132g C, 38g F
+  // Chicken Rice Bowl is first in the "Recent scans" list (latest timestamp).
+  static const _mockupTodayEntries = [
+    (
+      name: 'Scrambled Eggs & Toast',
+      kcal: 390.0,
+      protein: 32.0,
+      carbs: 36.0,
+      fat: 12.0,
+      confidence: 0.93,
+      meal: 'breakfast',
+      hour: 8,
+      minute: 0,
+    ),
     (
       name: 'Chicken Rice Bowl',
       kcal: 620.0,
@@ -24,30 +38,103 @@ class SeedDataService {
       fat: 16.0,
       confidence: 0.91,
       meal: 'lunch',
+      hour: 12,
+      minute: 48,
     ),
     (
-      name: 'Greek Yogurt & Berries',
-      kcal: 210.0,
-      protein: 18.0,
-      carbs: 28.0,
-      fat: 4.0,
-      confidence: 0.95,
-      meal: 'breakfast',
-    ),
-    (
-      name: 'Protein Shake',
-      kcal: 180.0,
-      protein: 30.0,
-      carbs: 8.0,
-      fat: 3.0,
-      confidence: 0.97,
-      meal: 'snack',
+      name: 'Salmon & Vegetables',
+      kcal: 410.0,
+      protein: 16.0,
+      carbs: 24.0,
+      fat: 10.0,
+      confidence: 0.88,
+      meal: 'dinner',
+      hour: 16,
+      minute: 0,
     ),
   ];
 
   Future<void> seedIfEmpty(String uid) async {
     await _seedDailyLogs(uid);
     await _seedTodayEntries(uid);
+  }
+
+  /// Wipes today's data and reseeds with exact mockup values.
+  /// Debug builds only — called via the calorix://debug/reseed deep link
+  /// before each ui-diff screenshot run.
+  Future<void> forceReseedForUiDiff(String uid) async {
+    assert(kDebugMode, 'forceReseedForUiDiff is debug-only');
+    final todayStr = _todayDateStr();
+    await _deleteTodayEntries(uid, todayStr);
+    await _deleteTodayLog(uid, todayStr);
+    await _writeMockupEntries(uid, todayStr);
+    await _writeTodayLog(uid, todayStr);
+  }
+
+  Future<void> _deleteTodayEntries(String uid, String todayStr) async {
+    final snap = await _db
+        .collection(AppConstants.entriesCollection)
+        .where('uid', isEqualTo: uid)
+        .where('date', isEqualTo: todayStr)
+        .get();
+    if (snap.docs.isEmpty) return;
+    final batch = _db.batch();
+    for (final doc in snap.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
+  }
+
+  Future<void> _deleteTodayLog(String uid, String todayStr) async {
+    await _db
+        .collection(AppConstants.dailyLogsCollection)
+        .doc('${uid}_$todayStr')
+        .delete();
+  }
+
+  Future<void> _writeMockupEntries(String uid, String todayStr) async {
+    final col = _db.collection(AppConstants.entriesCollection);
+    final now = DateTime.now();
+    final batch = _db.batch();
+    for (final e in _mockupTodayEntries) {
+      batch.set(col.doc(), {
+        'uid': uid,
+        'date': todayStr,
+        'foodName': e.name,
+        'kcal': e.kcal,
+        'protein': e.protein,
+        'carbs': e.carbs,
+        'fat': e.fat,
+        'confidence': e.confidence,
+        'mealType': e.meal,
+        'servingSize': 1.0,
+        'quantity': 1.0,
+        'status': 'complete',
+        'scanMode': 'meal',
+        'servingMultiplier': 1.0,
+        'corrected': false,
+        'detectedItems': <Map<String, dynamic>>[],
+        'imageUrl': null,
+        'timestamp': Timestamp.fromDate(
+          now.copyWith(hour: e.hour, minute: e.minute, second: 0, millisecond: 0),
+        ),
+      });
+    }
+    await batch.commit();
+  }
+
+  Future<void> _writeTodayLog(String uid, String todayStr) async {
+    await _db
+        .collection(AppConstants.dailyLogsCollection)
+        .doc('${uid}_$todayStr')
+        .set({
+      'kcal': 1420.0,
+      'protein': 96.0,
+      'carbs': 132.0,
+      'fat': 38.0,
+      'entryCount': 3,
+      'date': todayStr,
+    });
   }
 
   Future<void> _seedDailyLogs(String uid) async {
@@ -65,8 +152,7 @@ class SeedDataService {
       final day = now.subtract(Duration(days: _seedDays.length - 1 - i));
       final dateStr =
           '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
-      final docId = '${uid}_$dateStr';
-      batch.set(col.doc(docId), {
+      batch.set(col.doc('${uid}_$dateStr'), {
         'kcal': _seedDays[i].kcal,
         'protein': _seedDays[i].protein,
         'carbs': _seedDays[i].carbs,
@@ -90,15 +176,8 @@ class SeedDataService {
 
     final now = DateTime.now();
     final batch = _db.batch();
-    final mealTimes = [
-      now.copyWith(hour: 8, minute: 30),
-      now.copyWith(hour: 12, minute: 48),
-      now.copyWith(hour: 16, minute: 15),
-    ];
-    for (int i = 0; i < _todayEntries.length; i++) {
-      final e = _todayEntries[i];
-      final doc = col.doc();
-      batch.set(doc, {
+    for (final e in _mockupTodayEntries) {
+      batch.set(col.doc(), {
         'uid': uid,
         'date': todayStr,
         'foodName': e.name,
@@ -111,8 +190,14 @@ class SeedDataService {
         'servingSize': 1.0,
         'quantity': 1.0,
         'status': 'complete',
-        'timestamp': Timestamp.fromDate(mealTimes[i]),
+        'scanMode': 'meal',
+        'servingMultiplier': 1.0,
+        'corrected': false,
+        'detectedItems': <Map<String, dynamic>>[],
         'imageUrl': null,
+        'timestamp': Timestamp.fromDate(
+          now.copyWith(hour: e.hour, minute: e.minute, second: 0, millisecond: 0),
+        ),
       });
     }
     await batch.commit();

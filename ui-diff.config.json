@@ -11,6 +11,12 @@
       "includeVlmAnalysis": true,
       "vlmPolicy": "required",
       "requireVlmAnalysis": true,
+      "preCapture": {
+        "adbShell": [
+          "am start -a android.intent.action.VIEW -d calorix://debug/reseed com.calorix.calorix/.MainActivity",
+          "sleep 5"
+        ]
+      },
       "ignoreRegions": [
         {
           "x": 0, "y": 0, "width": 1080, "height": 80,
