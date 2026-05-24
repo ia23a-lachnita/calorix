@@ -232,7 +232,8 @@ class _HeroMacroCard extends StatelessWidget {
                     carbsFraction:
                         plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
                     fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
-                    size: 260,
+                    size: 220,
+                    strokeWidth: 18,
                     trackColor: isDark
                         ? AppColors.skeletonBaseDark
                         : const Color(0xFFF2F0EB),
