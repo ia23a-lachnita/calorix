@@ -48,9 +48,9 @@ class SeedDataService {
       carbs: 24.0,
       fat: 10.0,
       confidence: 0.88,
-      meal: 'dinner',
-      hour: 16,
-      minute: 0,
+      meal: 'lunch',
+      hour: 10,
+      minute: 30,
     ),
   ];
 

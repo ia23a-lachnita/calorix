@@ -23,6 +23,17 @@
           "description": "Wait for Firestore reseed and navigation to Today to complete"
         }
       ],
+      "deviceProfile": {
+        "manufacturer": "Samsung",
+        "model": "SM-G780G",
+        "serial": "R58R61161NA",
+        "screenshotWidth": 1080,
+        "screenshotHeight": 2400,
+        "density": 480,
+        "statusBarHeight": 72,
+        "navigationBarY": 2316,
+        "navigationBarHeight": 84
+      },
       "ignoreRegions": [
         {
           "x": 0, "y": 0, "width": 1080, "height": 80,
@@ -38,26 +49,21 @@
           "id": "macro-ring-hero",
           "label": "Macro Ring Hero Card",
           "type": "component",
-          "box": { "x": 0.01, "y": 0.05, "width": 0.98, "height": 0.34 },
+          "critical": true,
+          "box": { "x": 0.01, "y": 0.14, "width": 0.98, "height": 0.25 },
           "coordinateSpace": "normalized",
-          "maxDiffPercent": 0.15,
+          "maxDiffPercent": 0.12,
           "allowedDynamicSubregions": [
             {
               "id": "kcal-number",
               "label": "Calorie count center text",
-              "box": { "x": 0.33, "y": 0.35, "width": 0.34, "height": 0.15 },
+              "box": { "x": 0.33, "y": 0.35, "width": 0.34, "height": 0.20 },
               "coordinateSpace": "roiNormalized"
             },
             {
               "id": "target-kcal-text",
               "label": "Target kcal label below count",
-              "box": { "x": 0.30, "y": 0.52, "width": 0.40, "height": 0.10 },
-              "coordinateSpace": "roiNormalized"
-            },
-            {
-              "id": "kcal-left-pill",
-              "label": "Calories remaining pill",
-              "box": { "x": 0.25, "y": 0.63, "width": 0.50, "height": 0.10 },
+              "box": { "x": 0.28, "y": 0.58, "width": 0.44, "height": 0.12 },
               "coordinateSpace": "roiNormalized"
             }
           ]
@@ -72,8 +78,8 @@
           "allowedDynamicSubregions": [
             {
               "id": "macro-values",
-              "label": "Macro gram values (right side)",
-              "box": { "x": 0.60, "y": 0.0, "width": 0.40, "height": 1.0 },
+              "label": "Macro gram values (far right numerics only)",
+              "box": { "x": 0.72, "y": 0.0, "width": 0.25, "height": 1.0 },
               "coordinateSpace": "roiNormalized"
             }
           ]
@@ -87,9 +93,9 @@
           "maxDiffPercent": 0.25,
           "allowedDynamicSubregions": [
             {
-              "id": "meal-card-text",
-              "label": "Meal title and calorie text",
-              "box": { "x": 0.10, "y": 0.0, "width": 0.70, "height": 1.0 },
+              "id": "meal-kcal-values",
+              "label": "Calorie numbers on right side of meal cards",
+              "box": { "x": 0.70, "y": 0.0, "width": 0.25, "height": 1.0 },
               "coordinateSpace": "roiNormalized"
             }
           ]

@@ -1,24 +1,43 @@
-# Calorix Codex starter config.
-# Keep personal defaults in ~/.codex/config.toml. Keep project defaults here.
-
-sandbox_mode = "workspace-write"
 approval_policy = "on-request"
-
-# Keep AGENTS.md concise; split detailed workflows into .claude/*.md.
 project_doc_max_bytes = 32768
+sandbox_mode = "workspace-write"
 
 [features]
-# Enable only if your Codex build supports hierarchical child AGENTS.md behavior.
 child_agents_md = true
 
 [mcp_servers.dart]
-enabled = true
+args = [
+    "mcp-server",
+    "--force-roots-fallback",
+]
 command = 'C:\Users\xursc\projects\calorix\.fvm\versions\3.41.9\bin\cache\dart-sdk\bin\dart.exe'
-args = ["mcp-server", "--force-roots-fallback"]
 cwd = 'C:\Users\xursc\projects\calorix'
+enabled = true
+required = false
 startup_timeout_sec = 30
 tool_timeout_sec = 120
-required = false
+
+[mcp_servers.firebase]
+args = [
+    "-y",
+    "firebase-tools@latest",
+    "mcp",
+]
+command = "npx"
+
+[mcp_servers.gcloud]
+args = [
+    "-y",
+    "@google-cloud/gcloud-mcp",
+]
+command = "npx"
+
+[mcp_servers.mobile-ui-diff]
+command = "node"
+args = [
+    'C:\Users\xursc\projects\mobile-ui-diff-mcp\dist\index.js'
+]
+enabled = true
 
 [projects.'C:\Users\xursc\projects\calorix']
 trust_level = "trusted"
