@@ -12,7 +12,6 @@ import '../../shared/widgets/confidence_badge.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/router/route_names.dart';
-import '../../shared/providers/ui_diff_provider.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -28,10 +27,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
   @override
   void initState() {
     super.initState();
-    final isUiDiffMode = ref.read(uiDiffModeProvider);
     _countUp = AnimationController(
       vsync: this,
-      duration: isUiDiffMode ? Duration.zero : const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 1400),
     );
     _animation = CurvedAnimation(parent: _countUp, curve: Curves.easeOutCubic);
     _countUp.forward();
@@ -132,20 +130,13 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _RingHeroCard(
+                _HeroMacroCard(
                   animation: _animation,
                   summary: summary,
                   plan: plan,
                   isDark: isDark,
                 ),
-                const SizedBox(height: 12),
-                _MacroRowsCard(
-                  animation: _animation,
-                  summary: summary,
-                  plan: plan,
-                  isDark: isDark,
-                ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
                 entriesAsync.when(
                   loading: () => Text('Recent scans',
                       style: AppTextStyles.heading3.copyWith(color: textColor)),
@@ -200,13 +191,13 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
   }
 }
 
-class _RingHeroCard extends StatelessWidget {
+class _HeroMacroCard extends StatelessWidget {
   final Animation<double> animation;
   final ({double kcal, double protein, double carbs, double fat}) summary;
   final MacroTargetPlan plan;
   final bool isDark;
 
-  const _RingHeroCard({
+  const _HeroMacroCard({
     required this.animation,
     required this.summary,
     required this.plan,
@@ -220,131 +211,96 @@ class _RingHeroCard extends StatelessWidget {
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
     return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 14),
-        child: AnimatedBuilder(
-          animation: animation,
-          builder: (context, _) {
-            final kcalNow = summary.kcal * animation.value;
-            return Center(
-              child: AnimatedMacroRing(
-                animation: animation,
-                proteinFraction:
-                    plan.protein > 0 ? summary.protein / plan.protein : 0,
-                carbsFraction:
-                    plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
-                fatFraction:
-                    plan.fat > 0 ? summary.fat / plan.fat : 0,
-                size: 220,
-                strokeWidth: 18,
-                trackColor: isDark
-                    ? AppColors.skeletonBaseDark
-                    : const Color(0xFFF2F0EB),
-                center: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'KCAL EATEN',
-                      style: AppTextStyles.labelMono.copyWith(
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                      ),
-                    ),
-                    Text(
-                      NumberFormat('#,###').format(kcalNow.round()),
-                      style: AppTextStyles.heroNumber.copyWith(color: textColor),
-                    ),
-                    Text(
-                      'of ${NumberFormat('#,###').format(plan.kcal)}',
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.kcalLeftPillBg,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
-                        style: AppTextStyles.labelMono
-                            .copyWith(color: AppColors.green),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _MacroRowsCard extends StatelessWidget {
-  final Animation<double> animation;
-  final ({double kcal, double protein, double carbs, double fat}) summary;
-  final MacroTargetPlan plan;
-  final bool isDark;
-
-  const _MacroRowsCard({
-    required this.animation,
-    required this.summary,
-    required this.plan,
-    required this.isDark,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
+      margin: const EdgeInsets.symmetric(horizontal: 0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: AnimatedBuilder(
           animation: animation,
           builder: (context, _) {
+            final kcalNow = summary.kcal * animation.value;
             final pNow = summary.protein * animation.value;
             final cNow = summary.carbs * animation.value;
             final fNow = summary.fat * animation.value;
             return Column(
               children: [
-                _MacroSubCardItem(
-                  label: 'Protein',
-                  current: pNow,
-                  target: plan.protein.toDouble(),
-                  color: AppColors.protein,
-                  isDark: isDark,
-                  animation: animation,
+                Center(
+                  child: AnimatedMacroRing(
+                    animation: animation,
+                    proteinFraction:
+                        plan.protein > 0 ? summary.protein / plan.protein : 0,
+                    carbsFraction:
+                        plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
+                    fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
+                    size: 220,
+                    strokeWidth: 18,
+                    trackColor: isDark
+                        ? AppColors.skeletonBaseDark
+                        : const Color(0xFFF2F0EB),
+                    center: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'KCAL EATEN',
+                          style: AppTextStyles.labelMono.copyWith(
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight),
+                        ),
+                        Text(
+                          NumberFormat('#,###').format(kcalNow.round()),
+                          style: AppTextStyles.heroNumber
+                              .copyWith(color: textColor),
+                        ),
+                        Text(
+                          'of ${NumberFormat('#,###').format(plan.kcal)}',
+                          style: AppTextStyles.labelSmall.copyWith(
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.kcalLeftPillBg,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
+                            style: AppTextStyles.labelMono
+                                .copyWith(color: AppColors.green),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+                const SizedBox(height: 10),
+                _MacroSubCardItem(
+                    label: 'Protein',
+                    current: pNow,
+                    target: plan.protein.toDouble(),
+                    color: AppColors.protein,
+                    isDark: isDark,
+                    animation: animation),
                 const SizedBox(height: 8),
                 _MacroSubCardItem(
-                  label: 'Carbs',
-                  current: cNow,
-                  target: plan.carbs.toDouble(),
-                  color: AppColors.carbs,
-                  isDark: isDark,
-                  animation: animation,
-                ),
+                    label: 'Carbs',
+                    current: cNow,
+                    target: plan.carbs.toDouble(),
+                    color: AppColors.carbs,
+                    isDark: isDark,
+                    animation: animation),
                 const SizedBox(height: 8),
                 _MacroSubCardItem(
-                  label: 'Fat',
-                  current: fNow,
-                  target: plan.fat.toDouble(),
-                  color: AppColors.fat,
-                  isDark: isDark,
-                  animation: animation,
-                ),
+                    label: 'Fat',
+                    current: fNow,
+                    target: plan.fat.toDouble(),
+                    color: AppColors.fat,
+                    isDark: isDark,
+                    animation: animation),
               ],
             );
           },
