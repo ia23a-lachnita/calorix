@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Split `_HeroMacroCard` into a ring-only card (`_RingHeroCard`, 270dp, clipped) and a separate macro rows card (`_MacroRowsCard`), decoupling ring size from macro sub-item layout so the macro-ring-hero UI diff ROI drops from 20.17% to below the 12% threshold.
+**Goal:** Split `_HeroMacroCard` into a ring-only card (`_RingHeroCard`) and a separate macro rows card (`_MacroRowsCard`), decoupling ring size from macro sub-item layout so the `macro-ring-hero` UI diff ROI drops from 20.17% to below the 12% threshold with `qualityStatus: pass`.
 
-**Architecture:** The single `_HeroMacroCard` widget currently contains both the `AnimatedMacroRing` (220dp) and three `_MacroSubCardItem` rows in one `Card`. The ring size cannot be increased to match the mockup (~270dp) without expanding the card height and pushing sub-items outside the macro-rows ROI zone. The fix creates two independent widgets: `_RingHeroCard` (ring-only, 270dp, `clipBehavior: Clip.antiAlias`) and `_MacroRowsCard` (three sub-card items wrapped in their own `Card` to preserve data-cluster grouping as per design spec). Both accept the same `animation` and `summary` data from the parent `TodayScreen`. The old `_HeroMacroCard` class is deleted.
+**Architecture:** The single `_HeroMacroCard` widget currently contains both the `AnimatedMacroRing` (220dp) and three `_MacroSubCardItem` rows in one `Card`. The ring size cannot be increased to match the mockup without expanding the card height and pushing sub-items outside the `macro-rows` ROI zone. The fix creates two independent widgets: `_RingHeroCard` (ring-only card, current ring size/stroke in Phase A; tuned to mockup in Phase B) and `_MacroRowsCard` (three sub-card items wrapped in their own `Card` to preserve data-cluster grouping per design spec). Both accept the same `animation` and `summary` data from the parent `TodayScreen`. The old `_HeroMacroCard` class is deleted.
 
 > **Gemini review note (blocker addressed):** Gemini flagged that removing the outer card from the macro rows breaks the design grouping principle — data clusters must be enclosed in a card. `_MacroRowsCard` wraps the three sub-items in a `Card` (radius 28, matching `_RingHeroCard`) to satisfy this requirement.
 
@@ -22,7 +22,21 @@ This plan addresses a persistent UI diff failure identified across runs 027–03
 - Layout coupling: `_MacroSubCardItem` rows are inside the same `Card` as the ring. Increasing ring size grows the card height and shifts the sub-items below the `macro-rows` ROI zone (35% structural diff regression in run-028).
 - Animation stabilization (commit d19d1ad) confirmed animations are NOT the root cause. The 20.17% structural diff in run-030 is purely a layout/sizing mismatch.
 
-**Definition of done for this plan:** `macro-ring-hero` ROI structural diff < 12% in a `mobile-ui-diff` run with `qualityStatus: pass` or `qualityStatus: not_evaluated` (no critical gate failure).
+**Definition of done for this plan:** `macro-ring-hero` ROI structural diff < 12% in a `run_screen_ui_diff` run with `qualityStatus: pass`. `qualityStatus: not_evaluated` is not acceptable — the run must produce a quality evaluation that passes.
+
+---
+
+## Verification Contract
+
+All verifications use `run_screen_ui_diff` (named screen workflow), not `run_mobile_ui_diff`.
+
+**Expected image:** `docs/mockups/image/dark/single/Today.png`. Do not recreate `Today_1080.png`. Do not loosen thresholds or broaden masks to manufacture a pass. ROIs must continue to measure the intended components — do not narrow or move ROIs just to reduce the score.
+
+**Clipping assumption warning:** `Card.clipBehavior: Clip.antiAlias` applies the card's border radius to its children. It does NOT create a fixed-height viewport that clips a larger child at an arbitrary point the way the mockup shows. After Phase A build, verify in the actual/diff artifacts whether the ring is truly clipped at the card boundary. If the ring bleeds outside the card or the card simply grows to contain it, a fixed-height clipped viewport (e.g. `SizedBox` with `ClipRRect`, or `OverflowBox`/`Transform.translate`) will be required in Phase B.
+
+**ROI calibration rule:** Do not compute ROI `y`/`height` values from estimated app-content height. Tune ROI boundaries from the generated ROI artifacts (`.ui-diff/today/run-NNN/regions-of-interest/`) and the `regionBounds` fields in `report.json`. Read the actual bounds from MCP output before editing `ui-diff.config.json`.
+
+**Commit timing:** Do NOT commit before MCP verification. Commit only after build/install + UI diff pass + artifact inspection confirm the change is correct.
 
 ---
 
@@ -31,20 +45,23 @@ This plan addresses a persistent UI diff failure identified across runs 027–03
 | File | Action | Responsibility |
 |---|---|---|
 | `lib/features/today/today_screen.dart` | Modify | Replace `_HeroMacroCard` with `_RingHeroCard` + `_MacroRowsCard`; delete `_HeroMacroCard` |
-| `ui-diff.config.json` | Modify | Adjust `macro-ring-hero` and `macro-rows` ROI `y`/`height` values to match post-split layout |
+| `ui-diff.config.json` | Modify (Phase B only) | Adjust `macro-ring-hero` and `macro-rows` ROI boundaries based on measured artifacts |
 
 No new files. No new providers. No changes to `app_router.dart`, `ui_diff_provider.dart`, or any other file.
 
 ---
 
-## Task 1: Replace `_HeroMacroCard` with two split widgets
+## Phase A: Split `_HeroMacroCard` keeping current ring size/stroke
 
-**Files:**
-- Modify: `lib/features/today/today_screen.dart`
+Objective: perform the structural split without changing ring size (keep 220dp) or stroke. Confirm macro rows still pass and that the split itself does not introduce regressions before any ring tuning.
 
-### Step 1.1 — Update the call site in `TodayScreen.build()`
+### Task A1 — Replace `_HeroMacroCard` with two split widgets
 
-In `_TodayScreenState.build()`, locate the `SliverChildListDelegate` list (around line 134). Replace:
+**Files:** `lib/features/today/today_screen.dart`
+
+#### Step A1.1 — Update the call site in `TodayScreen.build()`
+
+In `_TodayScreenState.build()`, locate the `SliverChildListDelegate` list. Replace:
 
 ```dart
 _HeroMacroCard(
@@ -75,9 +92,9 @@ _MacroRowsCard(
 const SizedBox(height: 12),
 ```
 
-### Step 1.2 — Add `_RingHeroCard` widget
+#### Step A1.2 — Add `_RingHeroCard` widget
 
-Delete the entire `_HeroMacroCard` class (lines 196–313 in the current file) and replace it with two new classes. Add `_RingHeroCard` first:
+Delete the entire `_HeroMacroCard` class and replace it with two new classes. Add `_RingHeroCard` first, keeping ring size at 220 (current) and stroke at its current value:
 
 ```dart
 class _RingHeroCard extends StatelessWidget {
@@ -118,7 +135,7 @@ class _RingHeroCard extends StatelessWidget {
                     plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
                 fatFraction:
                     plan.fat > 0 ? summary.fat / plan.fat : 0,
-                size: 270,
+                size: 220,
                 strokeWidth: 18,
                 trackColor: isDark
                     ? AppColors.skeletonBaseDark
@@ -172,9 +189,9 @@ class _RingHeroCard extends StatelessWidget {
 }
 ```
 
-### Step 1.3 — Add `_MacroRowsCard` widget
+#### Step A1.3 — Add `_MacroRowsCard` widget
 
-Immediately after `_RingHeroCard`, add. Note the outer `Card` wrapper — this preserves the data-cluster grouping identified by Gemini review:
+Immediately after `_RingHeroCard`, add. The outer `Card` wrapper preserves data-cluster grouping:
 
 ```dart
 class _MacroRowsCard extends StatelessWidget {
@@ -241,192 +258,227 @@ class _MacroRowsCard extends StatelessWidget {
 }
 ```
 
-### Step 1.4 — Run analyze
+#### Step A1.4 — Run analyze
 
 ```powershell
 fvm flutter analyze lib/features/today/today_screen.dart
 ```
 
-Expected: no errors, no warnings about unused imports or undefined identifiers. If `_HeroMacroCard` references remain, they will show as "unused class" — delete them.
+Expected: no errors. If any `_HeroMacroCard` references remain, delete them.
 
-### Step 1.5 — Build debug APK
+#### Step A1.5 — Build debug APK
 
 ```powershell
 fvm flutter build apk --debug
 ```
 
-Expected: `BUILD SUCCESSFUL` with APK at `build/app/outputs/flutter-apk/app-debug.apk`. Build time ~20–40s.
+Expected: `BUILD SUCCESSFUL`. APK at `build/app/outputs/flutter-apk/app-debug.apk`.
 
-### Step 1.6 — Install on device
+#### Step A1.6 — Install on device
 
 ```powershell
 adb -s R58R61161NA install -r build/app/outputs/flutter-apk/app-debug.apk
 ```
 
-Expected: `Success` with no install errors. Device serial is `R58R61161NA` (Samsung SM-G780G).
+Expected: `Success`.
 
-### Step 1.7 — Commit
+### Task A2 — Verify Phase A: confirm split doesn't break macro rows
 
-```powershell
-git add lib/features/today/today_screen.dart
-git commit -m "Split HeroMacroCard into ring-only card and macro rows section"
-```
-
-Note: Do NOT include "AI", "Claude", "Generated", "Co-Authored-By", or any model name in the commit message. The pre-commit hook rejects these.
-
----
-
-## Task 2: Verify macro-ring-hero diff drops below 12%
-
-**Files:** None modified in this task — read-only MCP calls.
-
-### Step 2.1 — VLM health check
-
-Before running UI diff, confirm VLM is available:
+#### Step A2.1 — VLM health check
 
 ```
 vlm_health(model: "moondream:latest", timeoutMs: 90000)
 ```
 
-Expected: `status: ok`, `imageInputVerified: true`. If this fails, stop and resolve VLM before continuing — do not run diff without VLM (policy: `vlmPolicy: "required"`).
+Expected: `status: ok`, `imageInputVerified: true`. If this fails, stop — do not run diff without VLM.
 
-### Step 2.2 — Run UI diff
+#### Step A2.2 — Run UI diff
 
 ```
-run_mobile_ui_diff(screen: "today", configPath: "ui-diff.config.json")
+run_screen_ui_diff(screen: "today", configPath: "ui-diff.config.json")
 ```
 
-This will:
-1. Trigger the debug reseed deep link via ADB.
-2. Wait 5 seconds for Firestore seed + navigation.
-3. Capture a screenshot from the device.
-4. Compare against `docs/mockups/image/dark/single/Today.png`.
-5. Evaluate ROIs including `macro-ring-hero` (critical, threshold 12%).
+#### Step A2.3 — Inspect artifacts and evaluate
 
-### Step 2.3 — Evaluate result
+Read `report.json` from the latest run. Inspect the following artifacts manually before concluding:
+- `.ui-diff/today/run-NNN/actual.png` — confirm screen renders as expected (no blank, no crash)
+- `.ui-diff/today/run-NNN/regions-of-interest/macro-ring-hero-diff.png`
+- `.ui-diff/today/run-NNN/regions-of-interest/macro-rows-diff.png`
+- `.ui-diff/today/run-NNN/report.json` — check `regionBounds` for each ROI
 
-Read `.ui-diff/today/run-NNN/report.json` (where NNN is the latest run number).
+**Phase A pass criteria:**
+- `qualityStatus: pass` (not `not_evaluated`, not `fail`)
+- `macro-rows` ROI structural diff does not regress vs run-030 baseline
+- No new critical gate failures introduced by the split
 
-**Pass criteria:**
-- `macro-ring-hero` ROI `structuralDiff` < 0.12 (12%).
-- `qualityStatus: pass` or no critical gate failure.
+**If macro rows regressed:** The row layout changed due to the Card re-wrapping. Inspect padding/margin changes and adjust `_MacroRowsCard` padding before Phase B.
 
-**If pass:** Proceed to Task 3 (ROI boundary adjustment and final commit).
-
-**If fail (diff still ≥ 12%):** The split reduced coupling but the geometry still mismatches. Read the diff image at `.ui-diff/today/run-NNN/regions-of-interest/macro-ring-hero-diff.png` to identify what is still different. Common follow-up fixes:
-  - Adjust ring padding: try `vertical: 16` or `vertical: 24` inside `_RingHeroCard`.
-  - Adjust ring size: try 260 or 280 if 270 still clips wrong.
-  - Confirm `clipBehavior: Clip.antiAlias` is actually on the `Card` (not the `Padding`).
-  
-  Re-build → re-install → re-run diff. Iterate until pass.
+**Do NOT commit yet.** Phase A commit happens only after Phase B verification or explicitly if the user approves a Phase A-only commit.
 
 ---
 
-## Task 3: Adjust ROI boundaries to match post-split layout
+## Phase B: Tune ring size/position/clipping toward the mockup
 
-**Files:**
-- Modify: `ui-diff.config.json`
+Objective: increase ring size toward the mockup target (~270dp at the mockup's 402dp width, which scales to ~242dp at 360dp width) and verify clipping behavior. Run diff again.
 
-After the split, the ring card is taller (270dp ring + ~40dp vertical padding ≈ 310dp vs original 220dp ring + ~28dp ≈ 248dp). The macro rows section now starts ~62dp lower. The normalized ROI `y` and `height` values must be updated to keep each ROI focused on its target component.
+### Task B1 — Adjust ring size and verify clipping
 
-### Step 3.1 — Compute new ROI boundaries
+#### Step B1.1 — Read Phase A artifacts first
 
-Device app content height: 2400px − 72px (status bar) − 84px (nav bar) = 2244px active height.
+Before editing any code, read the Phase A artifacts:
+- Confirm whether `clipBehavior: Clip.antiAlias` actually clips the ring at the card boundary, or whether the card expands to contain the ring.
+- If the card simply grows (no overflow clipping): a fixed-height viewport is needed. Use a `SizedBox(height: N)` wrapping a `ClipRRect` or `Stack` + `Align` + `OverflowBox` pattern. Do not proceed with a larger `size:` value without the correct clipping mechanism.
+- If clipping works correctly: increase `size:` toward 242–270 and adjust `padding` to match the mockup proportions.
 
-**Current values:**
-- `macro-ring-hero`: y=0.14, height=0.25 → rows 314–875 in app content space
-- `macro-rows`: y=0.39, height=0.12 → rows 875–1144
+#### Step B1.2 — Implement ring size/clipping adjustment
 
-**After split (estimated):**
-The SliverAppBar takes ~110dp (~110×3=330px). Ring card: ~310dp (~930px). Gap: 12dp (~36px). Macro rows: ~3×(14+~32+14)+2×8 ≈ ~172dp (~516px).
+Based on artifact inspection, apply one of these approaches:
 
-Using 3× density:
-- Ring card starts at ~330px, ends at ~330+930=1260px → normalized: start 330/2244=0.147, end 1260/2244=0.561.
-- Macro rows start at ~1296px → normalized: 1296/2244=0.578.
-
-These are estimates. Use the actual diff run output or a screenshot to calibrate. The exact pixel positions can be read from `.ui-diff/today/run-NNN/report.json` in the `regionBounds` fields.
-
-### Step 3.2 — Update `ui-diff.config.json`
-
-Replace the `regionsOfInterest` values for `macro-ring-hero` and `macro-rows` based on measurements from Step 3.1. Keep `macro-ring-hero.critical: true` and `maxDiffPercent: 0.12`.
-
-Approximate updated values (adjust based on actual run data):
-
-```json
-{
-  "id": "macro-ring-hero",
-  "label": "Macro Ring Hero Card",
-  "type": "component",
-  "critical": true,
-  "box": { "x": 0.01, "y": 0.14, "width": 0.98, "height": 0.34 },
-  "coordinateSpace": "normalized",
-  "maxDiffPercent": 0.12,
-  "allowedDynamicSubregions": [
-    {
-      "id": "kcal-number",
-      "label": "Calorie count center text",
-      "box": { "x": 0.33, "y": 0.30, "width": 0.34, "height": 0.16 },
-      "coordinateSpace": "roiNormalized"
-    },
-    {
-      "id": "target-kcal-text",
-      "label": "Target kcal label below count",
-      "box": { "x": 0.28, "y": 0.50, "width": 0.44, "height": 0.10 },
-      "coordinateSpace": "roiNormalized"
-    }
-  ]
-}
+**Option A — Card clips correctly (simple case):**
+Update `size:` in `_RingHeroCard` to the calibrated value (start at 242, verify, then 260/270 if mockup parity improves):
+```dart
+size: 242,  // adjust based on diff artifacts
 ```
 
-```json
-{
-  "id": "macro-rows",
-  "label": "Macro Progress Rows",
-  "type": "component",
-  "box": { "x": 0.01, "y": 0.49, "width": 0.98, "height": 0.14 },
-  "coordinateSpace": "normalized",
-  "maxDiffPercent": 0.15,
-  "allowedDynamicSubregions": [
-    {
-      "id": "macro-values",
-      "label": "Macro gram values (far right numerics only)",
-      "box": { "x": 0.72, "y": 0.0, "width": 0.25, "height": 1.0 },
-      "coordinateSpace": "roiNormalized"
-    }
-  ]
-}
+**Option B — Card does not clip (requires fixed-height viewport):**
+Replace the `Padding` + `Center` + `AnimatedMacroRing` section inside `_RingHeroCard.build()` with a fixed-height clipped container. Example pattern:
+```dart
+SizedBox(
+  height: 220,  // fixed height matching desired visible ring area
+  child: ClipRRect(
+    borderRadius: BorderRadius.circular(28),
+    child: OverflowBox(
+      maxHeight: 270,
+      child: AnimatedMacroRing(
+        size: 270,
+        // ... other params unchanged
+      ),
+    ),
+  ),
+)
+```
+Adjust the `height` and `maxHeight` values from artifact measurements, not from estimates.
+
+#### Step B1.3 — Run analyze, build, install
+
+```powershell
+fvm flutter analyze lib/features/today/today_screen.dart
+fvm flutter build apk --debug
+adb -s R58R61161NA install -r build/app/outputs/flutter-apk/app-debug.apk
 ```
 
-### Step 3.3 — Re-run UI diff to confirm ROI calibration
+### Task B2 — Verify Phase B: confirm macro-ring-hero diff drops below 12%
+
+#### Step B2.1 — VLM health check
 
 ```
-run_mobile_ui_diff(screen: "today", configPath: "ui-diff.config.json")
+vlm_health(model: "moondream:latest", timeoutMs: 90000)
 ```
 
-Confirm both `macro-ring-hero` and `macro-rows` ROIs are evaluating the correct screen region (not overlapping AppBar or meal cards). If a ROI still includes an unexpected area, adjust `y` or `height` accordingly and re-run.
+#### Step B2.2 — Run UI diff
 
-### Step 3.4 — Commit config update
+```
+run_screen_ui_diff(screen: "today", configPath: "ui-diff.config.json")
+```
+
+#### Step B2.3 — Inspect artifacts and evaluate
+
+Report the following from `report.json` and visual artifacts:
+- Run ID
+- Global diff %
+- `qualityStatus`
+- `macro-ring-hero` ROI structural diff %
+- `macro-rows` ROI structural diff %
+- `meal-cards` ROI structural diff %
+
+Inspect:
+- `actual.png` — does the ring match the mockup proportions?
+- `macro-ring-hero-diff.png` — what remains different?
+
+**Phase B pass criteria:**
+- `qualityStatus: pass`
+- `macro-ring-hero` structural diff < 12%
+- `macro-rows` structural diff not regressed from Phase A
+- No new critical gate failures
+
+**If still ≥ 12%:** Read the diff artifact to identify what remains different. Iterate on ring size or padding (not ROI boundaries) until parity improves. Document each iteration's run ID and diff % before continuing.
+
+**If ROI recalibration is needed:** See Task B3.
+
+### Task B3 — Recalibrate ROI boundaries if post-split layout shifted them (conditional)
+
+Run this task only if the Phase B run shows ROIs evaluating incorrect screen regions (e.g. `macro-rows` ROI overlaps with `meal-cards`). Do not run this task to manufacture a pass — ROIs must still measure the intended components.
+
+#### Step B3.1 — Read actual bounds from MCP artifacts
+
+From the Phase B `report.json`, read the `regionBounds` fields for each ROI. Verify visually from the generated ROI artifact images which screen area each ROI currently captures.
+
+If a ROI is misaligned, tune `y`/`height` values based on the measured bounds. Do not narrow an ROI to exclude part of the target component — only shift it to correctly center on the component.
+
+#### Step B3.2 — Update `ui-diff.config.json`
+
+Edit only the misaligned ROI(s). Preserve:
+- `macro-ring-hero.critical: true`
+- `macro-ring-hero.maxDiffPercent: 0.12`
+- All `allowedDynamicSubregions` definitions
+- `Today.png` as the expected image path — do not change this
+
+Do not loosen `maxDiffPercent` thresholds to make a failing ROI pass.
+
+#### Step B3.3 — Re-run UI diff to confirm calibration
+
+```
+run_screen_ui_diff(screen: "today", configPath: "ui-diff.config.json")
+```
+
+Confirm both `macro-ring-hero` and `macro-rows` ROIs are evaluating the correct screen region in the new run's ROI artifacts.
+
+---
+
+## Task C — Commit and push validated changes
+
+Run this task only after Phase B (and optionally B3) verification passes with `qualityStatus: pass`.
+
+#### Step C1 — Commit today_screen.dart
+
+```powershell
+git add lib/features/today/today_screen.dart
+git commit -m "Split hero macro card into ring-only card and macro rows card"
+```
+
+#### Step C2 — Commit config if changed
+
+Only if `ui-diff.config.json` was modified in Task B3:
 
 ```powershell
 git add ui-diff.config.json
 git commit -m "Recalibrate Today screen ROI boundaries for split hero card layout"
 ```
 
+#### Step C3 — Push to remote
+
+```powershell
+git push
+```
+
+Note: Do NOT include "AI", "Claude", "Generated", "Co-Authored-By", or any model name in commit messages. The pre-commit hook rejects these.
+
 ---
 
 ## Self-Review
 
 ### Spec coverage
-- Mockup spec (README.md line 59–61): ring = three concentric arcs, overflow-clipped card. ✅ Covered by `_RingHeroCard` with `clipBehavior: Clip.antiAlias` and size 270.
-- Mockup spec: sub-cards full-width. ✅ `_MacroRowsSection` stretches to full parent width.
-- Design.md motion spec: count-up ~1.4s easeOutCubic. ✅ Both new widgets receive `animation` from the parent `AnimationController` — no motion change.
-- UI-diff policy: VLM required, do not accept qualityStatus: fail. ✅ Task 2 enforces vlm_health gate.
-- Commit hook: no banned words. ✅ Commit messages use plain imperative English only.
+- Mockup spec (README.md): ring = three concentric arcs, overflow-clipped card. Phase B targets this with verified clipping, not assumed clipping.
+- Mockup spec: sub-cards full-width. `_MacroRowsCard` stretches to full parent width.
+- Design.md motion spec: count-up ~1.4s easeOutCubic. Both new widgets receive `animation` from the parent `AnimationController` — no motion change.
+- UI-diff policy: VLM required, `qualityStatus: pass` required. Tasks A2 and B2 enforce both gates.
+- Commit hook: no banned words. Commit messages use plain imperative English only.
+- Expected image: `Today.png` unchanged. No threshold loosening. No mask broadening.
 
 ### Placeholder scan
-No TBD, TODO, or placeholder content. All code blocks contain complete, runnable Dart.
+No TBD, TODO, or placeholder content in the Phase A code blocks. Phase B code blocks intentionally show options because the correct choice depends on artifact inspection.
 
 ### Type consistency
 - `_RingHeroCard` and `_MacroRowsCard` share identical constructor signature to the deleted `_HeroMacroCard` (same four named params: `animation`, `summary`, `plan`, `isDark`).
-- `_MacroSubCardItem` signature is unchanged — `_MacroRowsSection` passes `label`, `current`, `target`, `color`, `isDark`, `animation` matching the existing constructor on lines 323–332 of the original file.
-- `AnimatedMacroRing` call uses `size: 270` (was 220), `strokeWidth: 18` (unchanged), all other named params identical.
+- `_MacroSubCardItem` signature is unchanged — `_MacroRowsCard` passes `label`, `current`, `target`, `color`, `isDark`, `animation` matching the existing constructor.
+- Phase A `AnimatedMacroRing` call keeps `size: 220` and `strokeWidth: 18` unchanged. Phase B adjusts `size:` only after artifact verification.

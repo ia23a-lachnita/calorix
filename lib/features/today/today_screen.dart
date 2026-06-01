@@ -12,6 +12,7 @@ import '../../shared/widgets/confidence_badge.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/router/route_names.dart';
+import '../../shared/providers/ui_diff_provider.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -27,9 +28,10 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
   @override
   void initState() {
     super.initState();
+    final isUiDiffMode = ref.read(uiDiffModeProvider);
     _countUp = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: isUiDiffMode ? Duration.zero : const Duration(milliseconds: 1400),
     );
     _animation = CurvedAnimation(parent: _countUp, curve: Curves.easeOutCubic);
     _countUp.forward();

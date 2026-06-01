@@ -14,6 +14,7 @@ import '../../features/goals/goals_screen.dart';
 import '../../features/ai_chat/ai_chat_screen.dart';
 import '../../features/profile/profile_sheet.dart';
 import '../../shared/providers/auth_provider.dart';
+import '../../shared/providers/ui_diff_provider.dart';
 import '../../shared/services/seed_data_service.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -193,7 +194,10 @@ class _DebugReseedScreenState extends ConsumerState<_DebugReseedScreen> {
     if (uid != null) {
       await SeedDataService(ref.read(firestoreProvider)).forceReseedForUiDiff(uid);
     }
-    if (mounted) context.go(RoutePaths.today);
+    if (mounted) {
+      ref.read(uiDiffModeProvider.notifier).state = true;
+      context.go(RoutePaths.today);
+    }
   }
 
   @override

@@ -1,7 +1,22 @@
 {
+  "deviceProfiles": {
+    "SM-G780G": {
+      "id": "SM-G780G",
+      "manufacturer": "Samsung",
+      "model": "SM-G780G",
+      "serial": "R58R61161NA",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 2400,
+      "density": 480,
+      "statusBarHeight": 72,
+      "navigationBarY": 2316,
+      "navigationBarHeight": 84
+    }
+  },
   "screens": {
     "today": {
       "platform": "android",
+      "deviceProfile": "SM-G780G",
       "expectedImage": "docs/mockups/image/dark/single/Today.png",
       "outputDir": ".ui-diff/today",
       "pixelmatchThreshold": 0.1,
@@ -23,17 +38,6 @@
           "description": "Wait for Firestore reseed and navigation to Today to complete"
         }
       ],
-      "deviceProfile": {
-        "manufacturer": "Samsung",
-        "model": "SM-G780G",
-        "serial": "R58R61161NA",
-        "screenshotWidth": 1080,
-        "screenshotHeight": 2400,
-        "density": 480,
-        "statusBarHeight": 72,
-        "navigationBarY": 2316,
-        "navigationBarHeight": 84
-      },
       "ignoreRegions": [
         {
           "x": 0, "y": 0, "width": 1080, "height": 80,
