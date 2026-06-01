@@ -416,7 +416,11 @@ class _MealCard extends StatelessWidget {
                           style: AppTextStyles.bodySmall
                               .copyWith(color: subtextColor),
                         ),
-                        const SizedBox(width: 6),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
                         _MacroPip(
                             value: entry.scaledProtein,
                             color: AppColors.protein,
