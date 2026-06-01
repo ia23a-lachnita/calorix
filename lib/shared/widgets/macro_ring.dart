@@ -114,10 +114,10 @@ class _MacroRingPainter extends CustomPainter {
 
     final glowPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * 1.8
+      ..strokeWidth = strokeWidth * 1.4
       ..strokeCap = StrokeCap.round
-      ..color = color.withAlpha(45)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+      ..color = color.withAlpha(28)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
 
     final fillPaint = Paint()
       ..style = PaintingStyle.stroke
