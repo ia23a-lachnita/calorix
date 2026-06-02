@@ -22,7 +22,7 @@
 
 | Metric | Value | Pass/Fail |
 |---|---|---|
-| Global diff percent | **0.0962%** | ✅ pass |
+| Global diff | **9.62%** | ✅ pass |
 | Global status | **pass** | ✅ pass |
 | **Quality status** | **PASS** | ✅ PASS |
 
@@ -46,7 +46,7 @@
 - **Raw ROI Diff Percent**: 8.57%
 - **Dynamic Masked Percent of ROI**: 12.15%
 - **Status**: **PASS** (critical)
-- **Finding**: Hero macro ring card now meets design parity spec. Remaining 7.13% diff is attributed to dynamic sub-region masking (kcal count center text differs from fixture, expected).
+- **Finding**: Hero macro ring card passes the configured UI diff gate. Remaining 7.13% diff is attributed to dynamic sub-region masking (kcal count center text differs from fixture, expected).
 
 **Improvement vs Baseline**:
 - vs run-039 (12.36% global, 18.55% macro-ring-hero): **−11.42pp reduction** in macro-ring-hero structural diff
@@ -158,7 +158,7 @@ Location: `.ui-diff/today/run-045/`
 
 | Metric | run-039 | run-045 | Delta | Status |
 |---|---|---|---|---|
-| Global diff | 12.36% | 0.0962% | −12.26pp | 🟢 98.2% improvement |
+| Global diff | 12.36% | 9.62% | −2.74pp | 🟢 22.2% improvement |
 | macro-ring-hero structural | 18.55% | 7.13% | −11.42pp | 🟢 61.5% improvement |
 | macro-rows structural | 8.82% | 10.58% | +1.76pp | 🟡 slight increase |
 | meal-cards structural | 15.71% | 15.46% | −0.25pp | 🟢 stable |
@@ -171,9 +171,9 @@ Location: `.ui-diff/today/run-045/`
 |---|---|---|---|
 | Quality status | **fail** | **PASS** | ✅ Fixed |
 | macro-ring-hero structural | 19.02% | 7.13% | −11.89pp |
-| Global diff | 12.58% | 0.0962% | −12.48pp |
+| Global diff | 12.58% | 9.62% | −2.96pp |
 
-**Interpretation**: Geometry diagnostics identified +62° sweep mismatch (data-driven, not code-addressable). Code-only fixes (stroke width, ring size, centering) achieved 11.89pp reduction on macro-ring-hero, bringing it below the 12% critical threshold for the first time since baseline run-039.
+**Interpretation**: Geometry diagnostics provided useful localization of the ring misalignment, but the root cause was Flutter geometry constants not matching the JSX source spec (strokeWidth, ring size, centering). Aligning these constants to the source spec achieved 11.89pp reduction on macro-ring-hero, bringing it below the 12% critical threshold for the first time since baseline run-039.
 
 ---
 
@@ -182,22 +182,14 @@ Location: `.ui-diff/today/run-045/`
 ### 1. Carbs Arc Sweep Angle (Minor, Non-Blocking)
 
 - **Issue**: Carbs (#19D3D9) arc sweep angle approximately −17.6° from mockup spec
-- **Root Cause**: Data-driven (seed `macros.carbs / plan.carbs` fraction differs from mockup fixture)
-- **Severity**: **Low** — structurally within tolerance, visually imperceptible
-- **Fix Feasibility**: Would require adjusting plan (daily macro targets) or seed data, not Flutter code
-- **Status**: Documented in run-042 diagnostics; not pursued per root-cause analysis (data, not rendering)
-- **Path**: Documented in `.claude/ui-diff-session-2026-06-02.md`, Option A (seed/plan alignment)
+- **Status**: Documented in run-042 geometry diagnostics but not addressed in this pass
+- **Note**: Earlier diagnostics suggested data/plan misalignment, but JSX source confirms seed values (96g protein, 132g carbs, 38g fat) match the mockup design. The remaining visual variance is within the 15% structural threshold and does not require intervention at this time.
 
-### 2. Protein Arc Sweep Mismatch (Data-Driven)
+### 2. Protein Arc Sweep Mismatch (Documented)
 
 - **Issue**: Blue arc measured at +62° vs expected in run-042 diagnostics
-- **Root Cause**: Actual protein intake (1,420 kcal seed) generates higher `summary.protein / plan.protein` fraction than mockup
-- **Status**: Now mitigated by geometry fixes (smaller ring + adjusted spacing reduces visual prominence of the overfill)
-- **Remaining visual artifact**: Minimal; structural diff now 7.13% (well below 12% threshold)
-- **Fix path**: Would require either:
-  - Adjust seed data protein values, OR
-  - Adjust default plan.protein (daily target), OR
-  - Accept as data variance and rely on structural diff threshold (currently passing)
+- **Status**: Mitigated by source-aligned geometry fixes (reduced ring size and centering adjustment). Structural diff now 7.13%, well below the 12% threshold.
+- **Note**: Run-042 diagnostics inferred a data/plan mismatch, but the JSX source confirms seed/plan macro values were already correctly aligned with the design. The sweep variance in run-042 was primarily due to Flutter geometry constants not matching the JSX source spec. The successful fix came from aligning those constants, not from changing seed/plan data.
 
 ### 3. Minor Center Shift in Macro Rows
 
@@ -219,7 +211,7 @@ Location: `.ui-diff/today/run-045/`
 
 ✅ **All critical quality gates passed:**
 
-- [x] Global diff **0.0962%** < limit (0.14%)
+- [x] Global diff **9.62%** < limit (14%)
 - [x] macro-ring-hero structural **7.13%** < threshold (12%) — **CRITICAL ROI**
 - [x] macro-rows structural **10.58%** < threshold (15%)
 - [x] meal-cards structural **15.46%** < threshold (25%)
@@ -231,13 +223,27 @@ Location: `.ui-diff/today/run-045/`
 
 ## Conclusion
 
-**Status**: ✅ **WORK COMPLETE AND VALIDATED**
+**Status**: ✅ **ACCEPTED — Source-Aligned Geometry Fixes Complete**
 
-The geometry alignment fixes have successfully brought the Today screen macro-ring-hero ROI and all dependent cards into design parity with the JSX mockup specification. The structural diff for the critical macro-ring-hero ROI has improved from a failing 18.55% (run-039 baseline) to a passing 7.13%, with global screen diff now at 0.0962%.
+Commit `05b895d` successfully aligns Flutter Today screen macro ring constants to the JSX source specification. The structural diff for the critical macro-ring-hero ROI has improved from a failing 18.55% (run-039 baseline) to a passing 7.13%. All configured quality gates now pass: macro-ring-hero (7.13% < 12%), macro-rows (10.58% < 15%), meal-cards (15.46% < 25%), and global diff (9.62% < 14%).
 
-All code changes have been applied, tested, validated via UI diff comparison, and committed to the main branch. The app is ready for production release pending any remaining integration or acceptance testing.
+**Today iteration is paused here.** The implementation passes the current configured UI diff baseline and is accepted for the Today screen. Next work moves to improving the mobile-ui-diff MCP architecture to strengthen local legibility and overlap detection.
 
-**Remaining known deviations** are minor, data-driven artifacts (carbs/protein sweep angles) that do not impact threshold compliance or user experience. No further geometry or rendering changes are recommended at this time.
+### Manual Visual Caveat
+
+Manual review notes that the center "980 kcal left" pill visually sits close to the green fat arc. This is not being fixed in this pass to avoid destabilizing the accepted source-aligned baseline. Future MCP work should improve local legibility checks and overlap detection so that dynamic masking does not hide this class of issue.
+
+**Remaining known deviations** are minor local visual concerns (carbs/protein arc sweep angles, center pill/ring proximity) that do not block threshold compliance. No further geometry or rendering changes to Today are recommended at this time.
+
+---
+
+## Lesson Learned
+
+**Design source must be treated as authoritative.** Pixel diff and geometry diagnostics are useful localization tools for identifying where visual mismatches occur, but their inferred causes (data vs code vs layout) must be validated against the source/design context before recommending changes.
+
+In this case, run-042 geometry diagnostics suggested the sweep angles indicated data/plan misalignment. However, checking the JSX source revealed that the seed/plan macro values were already correctly aligned with the design. The actual root cause was Flutter geometry constants (strokeWidth, ring size) not matching the JSX spec. The fix was source alignment, not data adjustment.
+
+**Recommendation for future work**: Before acting on geometry diagnostic findings, cross-reference against the authoritative design source to confirm the inferred root cause.
 
 ---
 
