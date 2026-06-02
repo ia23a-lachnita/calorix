@@ -1,0 +1,112 @@
+{
+  "expected": {
+    "confidence": 0.95,
+    "warnings": [],
+    "pointCount": 65619,
+    "metrics": {
+      "centerPx": {
+        "x": 646.9,
+        "y": 386.1
+      },
+      "centerNorm": {
+        "x": 0.547,
+        "y": 0.589
+      },
+      "outerRadiusPx": 285.5,
+      "outerRadiusNorm": 0.242,
+      "innerRadiusPx": 173,
+      "innerRadiusNorm": 0.146,
+      "strokeWidthPx": 112.5,
+      "strokeWidthNorm": 0.095,
+      "ringGapPx": 0,
+      "ringGapNorm": 0,
+      "arcs": [
+        {
+          "color": "#3A5BFF",
+          "startAngleDeg": -104,
+          "endAngleDeg": 71.5,
+          "sweepDeg": 175.4,
+          "meanRadiusPx": 262.7,
+          "meanRadiusNorm": 0.222,
+          "strokeWidthPx": 55.4,
+          "strokeWidthNorm": 0.047
+        },
+        {
+          "color": "#19D3D9",
+          "startAngleDeg": -106.2,
+          "endAngleDeg": 113.1,
+          "sweepDeg": 219.3,
+          "meanRadiusPx": 226.7,
+          "meanRadiusNorm": 0.192,
+          "strokeWidthPx": 66.9,
+          "strokeWidthNorm": 0.057
+        },
+        {
+          "color": "#1FCC74",
+          "startAngleDeg": -109.4,
+          "endAngleDeg": 144.6,
+          "sweepDeg": 254,
+          "meanRadiusPx": 200.6,
+          "meanRadiusNorm": 0.17,
+          "strokeWidthPx": 103.3,
+          "strokeWidthNorm": 0.087
+        }
+      ]
+    }
+  },
+  "actual": {
+    "confidence": 0.95,
+    "warnings": [],
+    "pointCount": 136317,
+    "metrics": {
+      "centerPx": {
+        "x": 670.4,
+        "y": 353.8
+      },
+      "centerNorm": {
+        "x": 0.567,
+        "y": 0.539
+      },
+      "outerRadiusPx": 315,
+      "outerRadiusNorm": 0.266,
+      "innerRadiusPx": 152,
+      "innerRadiusNorm": 0.129,
+      "strokeWidthPx": 163,
+      "strokeWidthNorm": 0.138,
+      "ringGapPx": 0,
+      "ringGapNorm": 0,
+      "arcs": [
+        {
+          "color": "#3A5BFF",
+          "startAngleDeg": -109.5,
+          "endAngleDeg": 127.9,
+          "sweepDeg": 237.4,
+          "meanRadiusPx": 280.9,
+          "meanRadiusNorm": 0.238,
+          "strokeWidthPx": 88.1,
+          "strokeWidthNorm": 0.075
+        },
+        {
+          "color": "#19D3D9",
+          "startAngleDeg": -114.8,
+          "endAngleDeg": 120.3,
+          "sweepDeg": 235.1,
+          "meanRadiusPx": 223.6,
+          "meanRadiusNorm": 0.189,
+          "strokeWidthPx": 125.7,
+          "strokeWidthNorm": 0.106
+        },
+        {
+          "color": "#1FCC74",
+          "startAngleDeg": -123.9,
+          "endAngleDeg": 148.3,
+          "sweepDeg": 272.2,
+          "meanRadiusPx": 181.3,
+          "meanRadiusNorm": 0.153,
+          "strokeWidthPx": 120.1,
+          "strokeWidthNorm": 0.102
+        }
+      ]
+    }
+  }
+}

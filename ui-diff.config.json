@@ -70,7 +70,13 @@
               "box": { "x": 0.28, "y": 0.58, "width": 0.44, "height": 0.12 },
               "coordinateSpace": "roiNormalized"
             }
-          ]
+          ],
+          "geometryDiagnostics": {
+            "type": "radialChart",
+            "enabled": true,
+            "maskDynamicSubregions": true,
+            "colorHints": ["#3A5BFF", "#19D3D9", "#1FCC74"]
+          }
         },
         {
           "id": "macro-rows",
