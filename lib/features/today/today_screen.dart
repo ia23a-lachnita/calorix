@@ -151,17 +151,12 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                           style: AppTextStyles.heading3
                               .copyWith(color: textColor)),
                       if (entries.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.green.withAlpha(30),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '${entries.length} TODAY',
-                            style: AppTextStyles.labelSmall
-                                .copyWith(color: AppColors.green),
+                        Text(
+                          '${entries.length} today',
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
                           ),
                         ),
                     ],
@@ -226,6 +221,7 @@ class _HeroMacroCard extends StatelessWidget {
             final fNow = summary.fat * animation.value;
             return Column(
               children: [
+                const SizedBox(height: 22),
                 Center(
                   child: AnimatedMacroRing(
                     animation: animation,
@@ -234,10 +230,10 @@ class _HeroMacroCard extends StatelessWidget {
                     carbsFraction:
                         plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
                     fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
-                    size: 220,
-                    strokeWidth: 18,
+                    size: 200,
+                    strokeWidth: 10,
                     trackColor: isDark
-                        ? AppColors.skeletonBaseDark
+                        ? const Color(0x0FFFFFFF)
                         : const Color(0xFFF2F0EB),
                     center: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -481,7 +477,9 @@ class _GradientPlaceholder extends StatelessWidget {
         height: 60,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.blue, AppColors.cyan],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFD6B487), Color(0xFF8A5D36)],
           ),
         ),
       );

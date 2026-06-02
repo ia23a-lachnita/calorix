@@ -68,7 +68,7 @@ class _MacroRingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final gap = strokeWidth * 1.2;
+    final gap = strokeWidth + 4.0;
 
     _drawArc(
       canvas: canvas,
