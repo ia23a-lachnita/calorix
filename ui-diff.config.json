@@ -48,6 +48,62 @@
           "reason": "navigation bar and bottom chrome", "type": "system", "coordinateSpace": "actual"
         }
       ],
+      "referenceContext": {
+        "enabled": true,
+        "sources": [
+          {
+            "id": "today-jsx",
+            "type": "source",
+            "path": "docs/mockups/source-code/cx-screen-today.jsx",
+            "authority": "high",
+            "description": "Today mockup JSX source"
+          }
+        ],
+        "facts": [
+          {
+            "id": "today-ring-stroke",
+            "subject": "roi:macro-ring-hero",
+            "claim": "BigMacroRing stroke is 10",
+            "authority": "high"
+          },
+          {
+            "id": "today-ring-gap",
+            "subject": "roi:macro-ring-hero",
+            "claim": "BigMacroRing gap is 4",
+            "authority": "high"
+          },
+          {
+            "id": "today-macro-protein",
+            "subject": "roi:macro-ring-hero",
+            "claim": "Protein is 96 / 170",
+            "authority": "high"
+          },
+          {
+            "id": "today-macro-carbs",
+            "subject": "roi:macro-ring-hero",
+            "claim": "Carbs are 132 / 250",
+            "authority": "high"
+          },
+          {
+            "id": "today-macro-fat",
+            "subject": "roi:macro-ring-hero",
+            "claim": "Fat is 38 / 70",
+            "authority": "high"
+          },
+          {
+            "id": "today-thumbnail-colors",
+            "subject": "roi:meal-cards",
+            "claim": "Chicken Rice Bowl thumbnail uses colorA #d6b487 and colorB #8a5d36",
+            "authority": "high"
+          },
+          {
+            "id": "today-recent-scans-badge",
+            "subject": "global",
+            "claim": "Recent scans count is muted label text, not a green filled pill",
+            "authority": "high"
+          }
+        ]
+      },
       "regionsOfInterest": [
         {
           "id": "macro-ring-hero",
