@@ -48,6 +48,22 @@
           "reason": "navigation bar and bottom chrome", "type": "system", "coordinateSpace": "actual"
         }
       ],
+      "visualAuditMode": "visual_parity",
+      "modelJudges": {
+        "enabled": true,
+        "required": true,
+        "policy": "always_audit",
+        "primary": {
+          "provider": "openrouter",
+          "model": "google/gemini-2.5-flash"
+        },
+        "reviewer": {
+          "provider": "nvidia",
+          "model": "google/gemma-3-27b-it"
+        }
+      },
+      "allowEditSuggestionsOnPass": false,
+      "requireConsensusForCodeHints": true,
       "referenceContext": {
         "enabled": true,
         "sources": [
