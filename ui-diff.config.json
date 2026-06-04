@@ -55,15 +55,31 @@
         "policy": "always_audit",
         "primary": {
           "provider": "openrouter",
-          "model": "google/gemini-2.5-flash"
+          "model": "qwen/qwen3-vl-235b-a22b-instruct"
         },
         "reviewer": {
           "provider": "nvidia",
-          "model": "google/gemma-3-27b-it"
+          "model": "nvidia/nemotron-nano-12b-v2-vl"
         }
       },
       "allowEditSuggestionsOnPass": false,
       "requireConsensusForCodeHints": true,
+      "overlapLegibility": {
+        "enabled": true,
+        "regions": [
+          {
+            "id": "kcal-left-pill",
+            "label": "Kcal-left pill",
+            "roiId": "macro-ring-hero",
+            "coordinateSpace": "roiNormalized",
+            "box": { "x": 0.36, "y": 0.58, "width": 0.28, "height": 0.11 },
+            "avoidColors": ["#1FCC74"],
+            "minClearancePx": 4,
+            "maxOverlapPercent": 1.0,
+            "severity": "warning"
+          }
+        ]
+      },
       "referenceContext": {
         "enabled": true,
         "sources": [
