@@ -60,10 +60,13 @@
         "reviewer": {
           "provider": "nvidia",
           "model": "nvidia/nemotron-nano-12b-v2-vl"
-        }
+        },
+        "requireConsensusForCodeHints": true,
+        "allowEditSuggestionsOnPass": false,
+        "timeoutMs": 45000,
+        "maxRetries": 1,
+        "retryOnParseError": true
       },
-      "allowEditSuggestionsOnPass": false,
-      "requireConsensusForCodeHints": true,
       "overlapLegibility": {
         "enabled": true,
         "regions": [
