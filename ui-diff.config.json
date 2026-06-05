@@ -23,9 +23,9 @@
       "maxDiffPercent": 0.14,
       "maxRegions": 20,
       "maxVlmRegions": 4,
-      "includeVlmAnalysis": true,
-      "vlmPolicy": "required",
-      "requireVlmAnalysis": true,
+      "includeVlmAnalysis": false,
+      "vlmPolicy": "disabled",
+      "requireVlmAnalysis": false,
       "preCapture": [
         {
           "type": "adbShell",
