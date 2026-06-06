@@ -40,55 +40,50 @@ File: `ui-diff.config.json`
 
 Note on `blocksClaimsMatching`: The `today-recent-scans-badge` fact does not include a `blocksClaimsMatching` filter field. The referenceContext inversion fix (run-052 bug #1) may be MCP-internal and not require this config field. To be confirmed when API keys are available and a run can proceed.
 
-## Judge Health Check
+## Judge Health Check — Attempt 1 (API keys missing)
 
 Tool: `mcp__mobile-ui-diff__model_judges_health`
 Parameters: `{ screen: "today", configPath: "ui-diff.config.json", mode: "deep" }`
 
-**Result: UNAVAILABLE — both API keys missing**
+**Result: UNAVAILABLE — both API keys missing (OPENROUTER_API_KEY, NVIDIA_API_KEY)**
+`willFailHard: true` — UI diff not run. User restored keys in environment.
 
-```json
-{
-  "status": "unavailable",
-  "primary": {
-    "provider": "openrouter",
-    "model": "qwen/qwen3-vl-235b-a22b-instruct",
-    "apiKeyPresent": false,
-    "envVar": "OPENROUTER_API_KEY",
-    "status": "missing_key"
-  },
-  "reviewer": {
-    "provider": "nvidia",
-    "model": "nvidia/nemotron-nano-12b-v2-vl",
-    "apiKeyPresent": false,
-    "envVar": "NVIDIA_API_KEY",
-    "status": "missing_key"
-  },
-  "effectivePolicy": {
-    "visualAuditMode": "visual_parity",
-    "enabled": true,
-    "required": true,
-    "policy": "always_audit",
-    "allowEditSuggestionsOnPass": false,
-    "willFailHard": true,
-    "missingKeys": ["OPENROUTER_API_KEY", "NVIDIA_API_KEY"]
-  },
-  "message": "2 of 2 provider(s) failed (missing API keys)."
-}
-```
+## Judge Health Check — Attempt 2 (keys restored)
 
-## Run Outcome
+**Result: OK — both providers live-verified**
 
-**STOPPED — health check failed. UI diff was not run.**
+- primary: openrouter / qwen/qwen3-vl-235b-a22b-instruct → `call_ok`, `structuredOutputSupported: true`
+- reviewer: nvidia / nvidia/nemotron-nano-12b-v2-vl → `call_ok`, `structuredOutputSupported: true`
+- `willFailHard: false`, no missing keys, no warnings
 
-Per validation protocol: if health is not ok, stop. Do not run UI diff.
+## Run-053 Outcome
 
-- Run ID: N/A (not executed)
-- reportJsonPath: N/A
-- qualityStatus: N/A
-- visualAuditStatus: N/A
-- acceptanceStatus: **incomplete — precondition failure**
-- actionRequired: Restore `OPENROUTER_API_KEY` and `NVIDIA_API_KEY` environment variables, then re-run validation
+**STOPPED — invalid capture (device asleep / screen off)**
+
+Run ID: `run-053`
+reportJsonPath: `.ui-diff/today/run-053/report.json`
+
+| Field | Value |
+|---|---|
+| qualityStatus | fail |
+| visualAuditStatus | not_run |
+| acceptanceStatus | **rejected** |
+| actionRequired.type | `invalid_capture` (blocking) |
+| actionRequired.message | "Actual screenshot appears invalid or asleep." |
+| globalDiffPercent | 30.46% (threshold 14%) |
+| modelJudges | **not executed** — run aborted at capture validation |
+| visualCaveats | none (judges never ran) |
+| overlapLegibilitySummary | not produced (judges never ran) |
+| OverlapLegibilityAnalyzer timing | 33ms (ran structurally, no output) |
+
+**Delta vs run-052:** diffPercent 9.85% → 30.46% (+20.61%), `statusChanged: true`, trend: worsened. Root cause is black/asleep screenshot, not a Flutter regression.
+
+ROI results (all invalid due to black capture):
+- macro-ring-hero: 22.49% diff (threshold 12%) — fail
+- macro-rows: 55.22% diff (threshold 15%) — fail
+- meal-cards: 45.72% diff (threshold 25%) — fail
+
+**Neither required judge ran. MCP fix verification is still pending.**
 
 ## What Changed Since run-052
 
@@ -97,23 +92,24 @@ The MCP was reportedly rebuilt to fix:
 - Data-as-caveat emission (NVIDIA judge emitting 1420/980 kcal as blocking visual caveats)
 - referenceContext filtering inversion
 
-These fixes cannot be verified until API keys are present in the environment.
+These fixes cannot be verified until a valid (awake device) capture is obtained.
 
 ## Files Saved
 
 - `.claude/ui-diff-session-2026-06-06.md` (this file)
 
-No screenshot or overlap artifact saved (run did not execute).
+No screenshot or overlap artifact saved (capture invalid).
 
 ## Conclusion
 
-**Incomplete — API key precondition failure.**
+**Incomplete — device asleep, invalid capture.**
 
-Both `OPENROUTER_API_KEY` and `NVIDIA_API_KEY` are absent from the process environment. The rebuilt MCP and config are otherwise correctly configured. No Flutter code, seed data, ROI thresholds, or masks were changed. Re-run validation after setting both keys in the shell or `.env` for this session.
+Health check passed on second attempt (keys restored). Run-053 was launched but aborted immediately: the actual screenshot is near-black, indicating the device screen was off or locked. No judges ran and no visual audit was performed. The run-052 MCP fix verification remains unconfirmed. No Flutter code, seed data, ROI thresholds, or masks were changed.
 
 ### Required Steps to Unblock
 
-1. Set `OPENROUTER_API_KEY` in the environment (or `.env` / PowerShell session)
-2. Set `NVIDIA_API_KEY` in the environment
-3. Re-run: `mcp__mobile-ui-diff__model_judges_health` with `mode: deep`
-4. If health passes, run `mcp__mobile-ui-diff__run_screen_ui_diff` with compact output mode
+1. Wake and unlock the Android device (`adb shell input keyevent 82` or physically)
+2. Verify app is foregrounded on the Today screen
+3. Re-run `mcp__mobile-ui-diff__run_screen_ui_diff` (same parameters)
+4. Confirm both judges execute (`visualAuditStatus: completed`, primary/reviewer `hadSuccess: true`)
+5. Inspect overlapLegibilitySummary for kcal-left-pill coordinate resolution
