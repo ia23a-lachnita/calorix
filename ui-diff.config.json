@@ -75,11 +75,17 @@
             "label": "Kcal-left pill",
             "roiId": "macro-ring-hero",
             "coordinateSpace": "roiNormalized",
-            "box": { "x": 0.36, "y": 0.58, "width": 0.28, "height": 0.11 },
+            "box": { "x": 0.28, "y": 0.74, "width": 0.44, "height": 0.09 },
             "avoidColors": ["#1FCC74"],
             "minClearancePx": 4,
             "maxOverlapPercent": 1.0,
-            "severity": "warning"
+            "severity": "warning",
+            "target": {
+              "expectedText": "980 kcal left",
+              "anchorDescription": "rounded kcal-left pill below the central calorie value, near the lower part of the macro ring",
+              "mustContainText": ["980 kcal left"],
+              "mustNotMatch": ["1,420", "of 2,400", "central calorie value", "center calorie text"]
+            }
           }
         ]
       },
@@ -133,9 +139,18 @@
           },
           {
             "id": "today-recent-scans-badge",
-            "subject": "global",
+            "subject": "recent-scans-count",
             "claim": "Recent scans count is muted label text, not a green filled pill",
-            "authority": "high"
+            "authority": "high",
+            "blocksClaimsMatching": [
+              "green filled pill",
+              "green pill",
+              "filled pill",
+              "recent scans label appears as a green",
+              "recent scans should be green",
+              "not muted"
+            ],
+            "blocksChangeVectors": ["badge_style"]
           }
         ]
       },
