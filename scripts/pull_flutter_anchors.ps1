@@ -7,7 +7,7 @@
 # Prerequisites: adb is on PATH and exactly one device/emulator is connected.
 
 param(
-    [string]$PackageId = 'com.example.calorix',
+    [string]$PackageId = 'com.calorix.calorix',
     [string]$Screen    = 'today',
     [string]$OutDir    = ".ui-diff\$Screen\current"
 )

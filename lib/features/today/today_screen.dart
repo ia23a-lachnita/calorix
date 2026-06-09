@@ -15,7 +15,6 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/router/route_names.dart';
 import '../../shared/providers/ui_diff_provider.dart';
 import '../../debug/ui_diff/ui_diff_anchor.dart';
-import '../../debug/ui_diff/ui_diff_anchor_writer.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -41,17 +40,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     );
     _animation = CurvedAnimation(parent: _countUp, curve: Curves.easeOutCubic);
     _countUp.forward();
-    // In ui-diff mode dump anchors after two frames: first frame builds the
-    // widget tree (anchors register), second frame measures all rects.
-    if (kDebugMode && isUiDiffMode) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (!mounted) return;
-          final dto = UiDiffAnchorRegistry.instance.export(context);
-          await dumpUiDiffAnchors(dto);
-        });
-      });
-    }
+    // Auto-dump removed: anchor export is driven by the integration test
+    // (integration_test/today_anchor_dump_test.dart) after pumpAndSettle,
+    // ensuring a stable fully-rendered layout before writing the artifact.
   }
 
   @override

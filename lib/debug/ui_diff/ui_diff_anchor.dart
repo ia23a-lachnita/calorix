@@ -86,6 +86,7 @@ class UiDiffDeviceDto {
     required this.screenshotWidthPx,
     required this.screenshotHeightPx,
     required this.devicePixelRatio,
+    required this.screenshotDimensionsSource,
     required this.mediaQuerySizeLogical,
     required this.paddingLogical,
     required this.viewPaddingLogical,
@@ -95,6 +96,12 @@ class UiDiffDeviceDto {
   final double screenshotWidthPx;
   final double screenshotHeightPx;
   final double devicePixelRatio;
+  /// Describes how screenshotWidthPx/HeightPx were derived.
+  /// "mediaQueryDerived" means size × devicePixelRatio from MediaQuery.
+  /// These values match what the device's display reports to Flutter but are
+  /// NOT guaranteed to be identical to the physical pixel count of an ADB
+  /// screenshot (which may differ on devices with non-standard scaling).
+  final String screenshotDimensionsSource;
   final Map<String, double> mediaQuerySizeLogical;
   final Map<String, double> paddingLogical;
   final Map<String, double> viewPaddingLogical;
@@ -104,6 +111,7 @@ class UiDiffDeviceDto {
         'screenshotWidthPx': screenshotWidthPx,
         'screenshotHeightPx': screenshotHeightPx,
         'devicePixelRatio': devicePixelRatio,
+        'screenshotDimensionsSource': screenshotDimensionsSource,
         'mediaQuerySizeLogical': mediaQuerySizeLogical,
         'paddingLogical': paddingLogical,
         'viewPaddingLogical': viewPaddingLogical,
@@ -266,6 +274,7 @@ class UiDiffAnchorRegistry {
       screenshotWidthPx: size.width * dpr,
       screenshotHeightPx: size.height * dpr,
       devicePixelRatio: dpr,
+      screenshotDimensionsSource: 'mediaQueryDerived',
       mediaQuerySizeLogical: {'width': size.width, 'height': size.height},
       paddingLogical: {
         'top': pad.top,

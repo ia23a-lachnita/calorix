@@ -116,7 +116,7 @@ to app documents storage on the device.  Pull it with:
 
 Or manually:
 ```powershell
-adb shell "run-as com.example.calorix cat files/ui-diff/today/current/flutter-anchors.json"
+adb shell "run-as com.calorix.calorix cat files/ui-diff/today/current/flutter-anchors.json"
 ```
 
 ## Artifact Protocol
