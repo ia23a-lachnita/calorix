@@ -53,7 +53,7 @@ void main() {
 
     expect(find.text('Today'), findsWidgets); // tab label + page body
     expect(find.text('History'), findsOneWidget);
-    expect(find.text('Scan'), findsOneWidget);
+    expect(find.text('SCAN'), findsOneWidget); // _ScanFAB renders uppercase 'SCAN'
     expect(find.text('Goals'), findsOneWidget);
     expect(find.text('AI'), findsOneWidget);
   });

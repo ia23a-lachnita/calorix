@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/router/route_names.dart';
 import '../../shared/providers/ui_diff_provider.dart';
+import '../../debug/ui_diff/ui_diff_anchor.dart';
+import '../../debug/ui_diff/ui_diff_anchor_writer.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -28,6 +31,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
   @override
   void initState() {
     super.initState();
+    if (kDebugMode) {
+      UiDiffAnchorRegistry.instance.setScreen('today');
+    }
     final isUiDiffMode = ref.read(uiDiffModeProvider);
     _countUp = AnimationController(
       vsync: this,
@@ -35,6 +41,17 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     );
     _animation = CurvedAnimation(parent: _countUp, curve: Curves.easeOutCubic);
     _countUp.forward();
+    // In ui-diff mode dump anchors after two frames: first frame builds the
+    // widget tree (anchors register), second frame measures all rects.
+    if (kDebugMode && isUiDiffMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) return;
+          final dto = UiDiffAnchorRegistry.instance.export(context);
+          await dumpUiDiffAnchors(dto);
+        });
+      });
+    }
   }
 
   @override
@@ -132,11 +149,15 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _HeroMacroCard(
-                  animation: _animation,
-                  summary: summary,
-                  plan: plan,
-                  isDark: isDark,
+                UiDiffAnchor(
+                  id: 'today.macroRingHero',
+                  label: 'Hero macro ring card',
+                  child: _HeroMacroCard(
+                    animation: _animation,
+                    summary: summary,
+                    plan: plan,
+                    isDark: isDark,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 entriesAsync.when(
@@ -144,22 +165,30 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                       style: AppTextStyles.heading3.copyWith(color: textColor)),
                   error: (_, __) => Text('Recent scans',
                       style: AppTextStyles.heading3.copyWith(color: textColor)),
-                  data: (entries) => Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Recent scans',
-                          style: AppTextStyles.heading3
-                              .copyWith(color: textColor)),
-                      if (entries.isNotEmpty)
-                        Text(
-                          '${entries.length} today',
-                          style: AppTextStyles.labelSmall.copyWith(
-                            color: isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondaryLight,
+                  data: (entries) => UiDiffAnchor(
+                    id: 'today.recentScansSection',
+                    label: 'Recent scans section header',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Recent scans',
+                            style: AppTextStyles.heading3
+                                .copyWith(color: textColor)),
+                        if (entries.isNotEmpty)
+                          UiDiffAnchor(
+                            id: 'today.recentScansCount',
+                            label: '${entries.length} today',
+                            child: Text(
+                              '${entries.length} today',
+                              style: AppTextStyles.labelSmall.copyWith(
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -169,13 +198,19 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                   error: (e, _) => _EmptyMeals(isDark: isDark),
                   data: (entries) => entries.isEmpty
                       ? _EmptyMeals(isDark: isDark)
-                      : Column(
-                          children: entries
-                              .map((e) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: _MealCard(entry: e, isDark: isDark),
-                                  ))
-                              .toList(),
+                      : UiDiffAnchor(
+                          id: 'today.mealCardsSection',
+                          label: 'Meal cards section',
+                          child: Column(
+                            children: entries
+                                .map((e) => Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12),
+                                      child:
+                                          _MealCard(entry: e, isDark: isDark),
+                                    ))
+                                .toList(),
+                          ),
                         ),
                 ),
               ]),
@@ -258,17 +293,22 @@ class _HeroMacroCard extends StatelessWidget {
                                   : AppColors.textSecondaryLight),
                         ),
                         const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.kcalLeftPillBg,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
-                            style: AppTextStyles.labelMono
-                                .copyWith(color: AppColors.green),
+                        UiDiffAnchor(
+                          id: 'today.kcalLeftPill',
+                          label:
+                              '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.kcalLeftPillBg,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
+                              style: AppTextStyles.labelMono
+                                  .copyWith(color: AppColors.green),
+                            ),
                           ),
                         ),
                       ],
@@ -276,29 +316,41 @@ class _HeroMacroCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                _MacroSubCardItem(
-                    label: 'Protein',
-                    current: pNow,
-                    target: plan.protein.toDouble(),
-                    color: AppColors.protein,
-                    isDark: isDark,
-                    animation: animation),
+                UiDiffAnchor(
+                  id: 'today.proteinRow',
+                  label: 'Protein macro row',
+                  child: _MacroSubCardItem(
+                      label: 'Protein',
+                      current: pNow,
+                      target: plan.protein.toDouble(),
+                      color: AppColors.protein,
+                      isDark: isDark,
+                      animation: animation),
+                ),
                 const SizedBox(height: 8),
-                _MacroSubCardItem(
-                    label: 'Carbs',
-                    current: cNow,
-                    target: plan.carbs.toDouble(),
-                    color: AppColors.carbs,
-                    isDark: isDark,
-                    animation: animation),
+                UiDiffAnchor(
+                  id: 'today.carbsRow',
+                  label: 'Carbs macro row',
+                  child: _MacroSubCardItem(
+                      label: 'Carbs',
+                      current: cNow,
+                      target: plan.carbs.toDouble(),
+                      color: AppColors.carbs,
+                      isDark: isDark,
+                      animation: animation),
+                ),
                 const SizedBox(height: 8),
-                _MacroSubCardItem(
-                    label: 'Fat',
-                    current: fNow,
-                    target: plan.fat.toDouble(),
-                    color: AppColors.fat,
-                    isDark: isDark,
-                    animation: animation),
+                UiDiffAnchor(
+                  id: 'today.fatRow',
+                  label: 'Fat macro row',
+                  child: _MacroSubCardItem(
+                      label: 'Fat',
+                      current: fNow,
+                      target: plan.fat.toDouble(),
+                      color: AppColors.fat,
+                      isDark: isDark,
+                      animation: animation),
+                ),
               ],
             );
           },

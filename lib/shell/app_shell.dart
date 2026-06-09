@@ -1,8 +1,10 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
+import '../debug/ui_diff/ui_diff_anchor.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.navigationShell});
@@ -44,11 +46,15 @@ class _AppShellState extends State<AppShell> with TickerProviderStateMixin {
 
     return Scaffold(
       body: widget.navigationShell,
-      bottomNavigationBar: _CalorixBottomNav(
-        currentIndex: currentIndex,
-        onTap: _onTap,
-        fabRingController: _fabRingController,
-        isDark: isDark,
+      bottomNavigationBar: UiDiffAnchor(
+        id: 'today.bottomNav',
+        label: 'Bottom navigation bar',
+        child: _CalorixBottomNav(
+          currentIndex: currentIndex,
+          onTap: _onTap,
+          fabRingController: _fabRingController,
+          isDark: isDark,
+        ),
       ),
     );
   }
@@ -108,11 +114,15 @@ class _CalorixBottomNav extends StatelessWidget {
           children: List.generate(_items.length, (index) {
             if (index == 2) {
               return Expanded(
-                child: _ScanFAB(
-                  isActive: currentIndex == 2,
-                  controller: fabRingController,
-                  isDark: isDark,
-                  onTap: () => onTap(2),
+                child: UiDiffAnchor(
+                  id: 'today.scanButton',
+                  label: 'Scan FAB',
+                  child: _ScanFAB(
+                    isActive: currentIndex == 2,
+                    controller: fabRingController,
+                    isDark: isDark,
+                    onTap: () => onTap(2),
+                  ),
                 ),
               );
             }
