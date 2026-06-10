@@ -1,0 +1,28 @@
+{
+  "version": "1",
+  "screen": "today",
+  "targets": [
+    {
+      "id": "today.kcalLeftPill",
+      "locator": {
+        "type": "flutter_anchor",
+        "anchorId": "today.kcalLeftPill",
+        "required": true
+      },
+      "expectedText": "980 kcal left",
+      "criteria": [
+        {
+          "id": "today.kcalLeftPill.legibility",
+          "domain": "legibility.overlap",
+          "anchorDescription": "rounded kcal-left pill below the central calorie value, near the lower part of the macro ring",
+          "mustContainText": ["980 kcal left"],
+          "mustNotMatch": ["1,420", "of 2,400", "central calorie value", "center calorie text"],
+          "avoidColors": ["#1FCC74"],
+          "minClearancePx": 4,
+          "maxOverlapPercent": 1.0,
+          "severity": "warning"
+        }
+      ]
+    }
+  ]
+}

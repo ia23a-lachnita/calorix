@@ -68,7 +68,7 @@
         "retryOnParseError": true
       },
       "flutterAnchorsPath": ".ui-diff/today/current/flutter-anchors.json",
-      "targetMapPath": ".ui-diff/today/current/today-anchor-target-map.json",
+      "targetMapPath": "docs/ui-diff/target-maps/today-anchor-target-map.json",
       "overlapLegibility": {
         "enabled": true,
         "regions": [
