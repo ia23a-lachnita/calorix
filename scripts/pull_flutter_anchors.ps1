@@ -23,9 +23,11 @@ Write-Host "[anchor-pull] Out dir : $OutDir"
 Write-Host ""
 
 # Wait for the done flag (max 30 s).
+# Flutter writes to app_flutter/ (getApplicationDocumentsDirectory); use run-as
+# because the directory is app-private on non-rooted devices.
 $waited = 0
 while ($waited -lt 30) {
-    $exists = adb shell "[ -f '$doneFlag' ] && echo yes || echo no" 2>$null
+    $exists = adb shell "run-as $PackageId ls app_flutter/ui-diff/$Screen/current/flutter-anchors.done 2>/dev/null && echo yes || echo no" 2>$null
     if ($exists -match 'yes') { break }
     Write-Host "[anchor-pull] waiting for done flag… ($waited s)"
     Start-Sleep -Seconds 2
@@ -40,9 +42,9 @@ if ($waited -ge 30) {
 # Ensure destination directory exists.
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
-# Pull JSON using run-as for app-private storage.
+# Pull JSON using run-as for app-private storage (app_flutter/ on Android).
 $tmpLocal = "$OutDir\flutter-anchors.tmp.json"
-adb shell "run-as $PackageId cat files/ui-diff/$Screen/current/flutter-anchors.json" > $tmpLocal
+adb shell "run-as $PackageId cat app_flutter/ui-diff/$Screen/current/flutter-anchors.json" > $tmpLocal
 
 if (-not (Test-Path $tmpLocal) -or (Get-Item $tmpLocal).Length -eq 0) {
     # Fallback: direct adb pull (works on rooted devices or emulators).

@@ -123,8 +123,12 @@ void main() {
     await tester.pump();
     // Frame 2: Riverpod stream delivers fixture entries; anchor callbacks fire.
     await tester.pump(const Duration(milliseconds: 50));
-    // Settle: all layouts stabilise (count-up is Duration.zero in ui-diff mode).
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    // Advance past all one-shot animation durations.
+    // Cannot use pumpAndSettle: ConfidenceBadge has a repeating pulse
+    // AnimationController that never settles.  2 s skips past the longest
+    // implicit animation (AnimatedContainer, 1200 ms) while keeping the
+    // anchor-rect geometry stable.
+    await tester.pump(const Duration(seconds: 2));
 
     final ctx = tester.element(find.byType(TodayScreen));
     final dto = UiDiffAnchorRegistry.instance.export(ctx);
@@ -190,6 +194,10 @@ void main() {
 
     // Round-trip decode to prove the JSON is valid.
     final raw = dto.toJsonString();
+    // Print full JSON so the host can capture it without run-as device access.
+    print('[anchor-json-start]');
+    print(raw);
+    print('[anchor-json-end]');
     final decoded = jsonDecode(raw) as Map<String, dynamic>;
     expect(decoded['framework'], 'flutter');
     expect(decoded['screen'], 'today');
