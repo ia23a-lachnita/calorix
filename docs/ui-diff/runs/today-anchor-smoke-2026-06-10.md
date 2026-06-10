@@ -32,7 +32,7 @@ This was an infrastructure smoke test only — not a visual parity acceptance ru
 ## Visual Parity: NOT EVALUATED
 
 - `finalJudgeAuditStatus: "fail"` — expected. Device showed "2,400 kcal left" (no data seeded); criterion expects "980 kcal left". The criterion judges correctly flagged the mismatch.
-- `visualAuditStatus: "error"` — OpenRouter primary judge failed for global/ROI model judges. Criterion-level judges ran independently and both passed.
+- `visualAuditStatus: "error"` — OpenRouter primary judge failed for global/ROI model judges. Criterion-level judges ran without infrastructure errors; they correctly flagged the expected text mismatch ("2,400 kcal left" ≠ "980 kcal left") — that is the expected behavior given no seeded data, not a judge failure.
 - `acceptanceStatus` was not reached. This is not a regression; it reflects the absence of seeded data.
 
 **Visual parity is not confirmed by this run.**
@@ -40,6 +40,8 @@ This was an infrastructure smoke test only — not a visual parity acceptance ru
 ---
 
 ## Next-Run TODO
+
+> **This commit is pre-validation cleanup only.** No reseeded acceptance run has been executed. The steps below must be completed before any acceptance result is meaningful.
 
 Before a visual acceptance run is valid:
 

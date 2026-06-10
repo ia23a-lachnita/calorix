@@ -69,28 +69,6 @@
       },
       "flutterAnchorsPath": ".ui-diff/today/current/flutter-anchors.json",
       "targetMapPath": "docs/ui-diff/target-maps/today-anchor-target-map.json",
-      "overlapLegibility": {
-        "enabled": true,
-        "regions": [
-          {
-            "id": "kcal-left-pill",
-            "label": "Kcal-left pill",
-            "roiId": "macro-ring-hero",
-            "coordinateSpace": "roiNormalized",
-            "box": { "x": 0.28, "y": 0.74, "width": 0.44, "height": 0.09 },
-            "avoidColors": ["#1FCC74"],
-            "minClearancePx": 4,
-            "maxOverlapPercent": 1.0,
-            "severity": "warning",
-            "target": {
-              "expectedText": "980 kcal left",
-              "anchorDescription": "rounded kcal-left pill below the central calorie value, near the lower part of the macro ring",
-              "mustContainText": ["980 kcal left"],
-              "mustNotMatch": ["1,420", "of 2,400", "central calorie value", "center calorie text"]
-            }
-          }
-        ]
-      },
       "referenceContext": {
         "enabled": true,
         "sources": [

@@ -104,20 +104,28 @@ fvm flutter test integration_test/today_anchor_dump_test.dart --device-id <id>
 
 The file lands at `.ui-diff/today/current/flutter-anchors.json`.
 
-### Option B — In-app auto-dump (UI-diff mode)
+### Option B — Stdout sentinel extraction (Samsung Knox workaround)
 
-When `uiDiffModeProvider` is `true` (set by the debug/reseed route), the Today
-screen automatically dumps anchors after the second frame.  The file is written
-to app documents storage on the device.  Pull it with:
+Samsung Knox blocks `run-as` on physical debug builds, so direct `adb pull`
+from app-private storage is unavailable.  The integration test prints the full
+anchor JSON to stdout between sentinel markers instead:
 
-```powershell
-.\scripts\pull_flutter_anchors.ps1
+```
+[anchor-json-start]
+{ ...json... }
+[anchor-json-end]
 ```
 
-Or manually:
+Extract on the host with:
+
 ```powershell
-adb shell "run-as com.calorix.calorix cat files/ui-diff/today/current/flutter-anchors.json"
+$output = fvm flutter test integration_test/today_anchor_dump_test.dart --device-id <device> 2>&1
+$json = ($output -join "`n") -replace '(?s).*\[anchor-json-start\]\r?\n(.*?)\r?\n\[anchor-json-end\].*', '$1'
+$json | Set-Content .ui-diff\today\current\flutter-anchors.json
 ```
+
+`pull_flutter_anchors.ps1` still attempts `run-as` as a secondary path — this
+works on rooted devices and emulators but silently fails on Knox-locked hardware.
 
 ## Artifact Protocol
 
