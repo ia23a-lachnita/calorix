@@ -63,7 +63,7 @@
         },
         "requireConsensusForCodeHints": true,
         "allowEditSuggestionsOnPass": false,
-        "timeoutMs": 45000,
+        "timeoutMs": 120000,
         "maxRetries": 1,
         "retryOnParseError": true
       },
