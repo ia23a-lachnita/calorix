@@ -32,10 +32,10 @@ args = [
 ]
 command = "npx"
 
-[mcp_servers.mobile-ui-diff]
+[mcp_servers.ui-diff]
 command = "node"
 args = [
-    'C:\Users\xursc\projects\mobile-ui-diff-mcp\dist\index.js'
+    'C:\Users\xursc\projects\ui-diff-mcp\dist\src\index.js'
 ]
 enabled = true
 

@@ -45,6 +45,8 @@
     "claude-context",
     "dart",
     "firebase",
-    "gcloud"
+    "gcloud",
+    "flutter-mcp-toolkit",
+    "ui-diff"
   ]
 }
