@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
+
+const _geist = 'Geist';
 
 abstract final class AppTheme {
   static ThemeData light() {
@@ -20,18 +21,18 @@ abstract final class AppTheme {
         onSurfaceVariant: AppColors.textSecondaryLight,
         outline: AppColors.borderLight,
       ),
-      fontFamily: GoogleFonts.interTight().fontFamily,
-      textTheme: GoogleFonts.interTightTextTheme(),
+      fontFamily: _geist,
       scaffoldBackgroundColor: AppColors.backgroundLight,
     );
 
     return base.copyWith(
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.backgroundLight,
         elevation: 0,
         scrolledUnderElevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        titleTextStyle: GoogleFonts.interTight(
+        titleTextStyle: TextStyle(
+          fontFamily: _geist,
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimaryLight,
@@ -42,7 +43,8 @@ abstract final class AppTheme {
         elevation: 0,
         indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.all(
-          GoogleFonts.interTight(
+          const TextStyle(
+            fontFamily: _geist,
             fontSize: 11,
             fontWeight: FontWeight.w500,
           ),
@@ -81,7 +83,8 @@ abstract final class AppTheme {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: GoogleFonts.interTight(
+          textStyle: const TextStyle(
+            fontFamily: _geist,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -91,7 +94,8 @@ abstract final class AppTheme {
         backgroundColor: AppColors.surfaceLight,
         side: const BorderSide(color: AppColors.borderLight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        labelStyle: GoogleFonts.interTight(
+        labelStyle: const TextStyle(
+          fontFamily: _geist,
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimaryLight,
@@ -127,18 +131,18 @@ abstract final class AppTheme {
         onSurfaceVariant: AppColors.textSecondaryDark,
         outline: AppColors.borderDark,
       ),
-      fontFamily: GoogleFonts.interTight().fontFamily,
-      textTheme: GoogleFonts.interTightTextTheme(ThemeData.dark().textTheme),
+      fontFamily: _geist,
       scaffoldBackgroundColor: AppColors.backgroundDark,
     );
 
     return base.copyWith(
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.backgroundDark,
         elevation: 0,
         scrolledUnderElevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        titleTextStyle: GoogleFonts.interTight(
+        titleTextStyle: TextStyle(
+          fontFamily: _geist,
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimaryDark,
@@ -149,7 +153,8 @@ abstract final class AppTheme {
         elevation: 0,
         indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.all(
-          GoogleFonts.interTight(
+          const TextStyle(
+            fontFamily: _geist,
             fontSize: 11,
             fontWeight: FontWeight.w500,
           ),
@@ -188,7 +193,8 @@ abstract final class AppTheme {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: GoogleFonts.interTight(
+          textStyle: const TextStyle(
+            fontFamily: _geist,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -198,7 +204,8 @@ abstract final class AppTheme {
         backgroundColor: AppColors.surfaceDark,
         side: const BorderSide(color: AppColors.borderDark),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        labelStyle: GoogleFonts.interTight(
+        labelStyle: const TextStyle(
+          fontFamily: _geist,
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimaryDark,
