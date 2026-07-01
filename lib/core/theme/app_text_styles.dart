@@ -13,6 +13,68 @@ abstract final class AppTextStyles {
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
+  static const TextStyle todayHeroNumber = TextStyle(
+    fontFamily: _geistMono,
+    fontSize: 36,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.72,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
+  static const TextStyle todayTitle = TextStyle(
+    fontFamily: _geist,
+    fontSize: 30,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -1.2,
+    height: 1,
+  );
+
+  static const TextStyle todaySectionHeading = TextStyle(
+    fontFamily: _geist,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.14,
+  );
+
+  static const TextStyle todayMealTitle = TextStyle(
+    fontFamily: _geist,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.15,
+  );
+
+  static const TextStyle todayMonoValue = TextStyle(
+    fontFamily: _geistMono,
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.24,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
+  static const TextStyle todayMonoTarget = TextStyle(
+    fontFamily: _geistMono,
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    letterSpacing: -0.24,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
+  static const TextStyle todayPercentBadge = TextStyle(
+    fontFamily: _geistMono,
+    fontSize: 10.5,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.1,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
+  static const TextStyle todayMealMeta = TextStyle(
+    fontFamily: _geistMono,
+    fontSize: 11,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.22,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
   // Section headings
   static const TextStyle heading1 = TextStyle(
     fontFamily: _geist,
