@@ -79,18 +79,21 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Today',
-                    style: AppTextStyles.heading1.copyWith(color: textColor)),
                 Text(
                   DateFormat('EEEE · MMMM d')
                       .format(DateTime.now())
                       .toUpperCase(),
-                  style: AppTextStyles.labelSmall.copyWith(
+                  style: AppTextStyles.labelMono.copyWith(
+                    fontSize: 10,
+                    letterSpacing: 1.6,
                     color: isDark
                         ? AppColors.textSecondaryDark
                         : AppColors.textSecondaryLight,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text('Today',
+                    style: AppTextStyles.heading1.copyWith(color: textColor)),
               ],
             ),
             actions: [
@@ -191,7 +194,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                             label: '${entries.length} TODAY',
                             child: Text(
                               '${entries.length} TODAY',
-                              style: AppTextStyles.labelSmall.copyWith(
+                              style: AppTextStyles.labelMono.copyWith(
+                                fontSize: 10,
+                                letterSpacing: 1.6,
                                 color: isDark
                                     ? AppColors.textSecondaryDark
                                     : AppColors.textSecondaryLight,
@@ -276,7 +281,7 @@ class _HeroMacroCard extends StatelessWidget {
                     carbsFraction:
                         plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
                     fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
-                    size: 200,
+                    size: 222,
                     strokeWidth: 10,
                     trackColor: isDark
                         ? const Color(0x0FFFFFFF)
@@ -309,16 +314,26 @@ class _HeroMacroCard extends StatelessWidget {
                           label:
                               '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
                           child: Container(
+                            key: const ValueKey('today.kcalLeftPillContainer'),
+                            constraints: const BoxConstraints(maxWidth: 122),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 3),
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: AppColors.kcalLeftPillBg,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(99),
                             ),
-                            child: Text(
-                              '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
-                              style: AppTextStyles.labelMono
-                                  .copyWith(color: AppColors.green),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
+                                maxLines: 1,
+                                style: AppTextStyles.labelMono.copyWith(
+                                  color: AppColors.green,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
                             ),
                           ),
                         ),

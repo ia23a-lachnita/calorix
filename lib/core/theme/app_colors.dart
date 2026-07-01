@@ -73,7 +73,7 @@ abstract final class AppColors {
 
   // kcal left pill background
   static const Color kcalLeftPillBg =
-      Color(0x331FCC74); // rgba(31,204,116,0.20)
+      Color(0x1A1FCC74); // rgba(31,204,116,0.10)
 
   // Blue bubble background
   static const Color userBubbleLight =
