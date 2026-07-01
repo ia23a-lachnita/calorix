@@ -51,7 +51,7 @@ class MacroProgressBar extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  '${current.round()}g',
+                  '${current.round()}',
                   style: AppTextStyles.macroGrams.copyWith(color: textColor),
                 ),
                 Text(

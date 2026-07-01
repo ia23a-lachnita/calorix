@@ -13,6 +13,7 @@ import '../../shared/widgets/confidence_badge.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/router/route_names.dart';
+import '../../shared/providers/auth_provider.dart';
 import '../../shared/providers/ui_diff_provider.dart';
 import '../../debug/ui_diff/ui_diff_anchor.dart';
 
@@ -51,6 +52,13 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     super.dispose();
   }
 
+  String? _userInitials(String? displayName) {
+    if (displayName == null || displayName.trim().isEmpty) return null;
+    final parts = displayName.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    return parts[0][0].toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final entriesAsync = ref.watch(todayEntriesProvider);
@@ -60,6 +68,8 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final user = ref.watch(authStateProvider).valueOrNull;
+    final initials = _userInitials(user?.displayName);
 
     return Scaffold(
       body: CustomScrollView(
@@ -72,7 +82,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                 Text('Today',
                     style: AppTextStyles.heading1.copyWith(color: textColor)),
                 Text(
-                  DateFormat('EEEE · MMM d')
+                  DateFormat('EEEE · MMMM d')
                       .format(DateTime.now())
                       .toUpperCase(),
                   style: AppTextStyles.labelSmall.copyWith(
@@ -125,13 +135,23 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                           isDark ? AppColors.borderDark : AppColors.borderLight,
                     ),
                   ),
-                  child: Icon(
-                    Icons.person,
-                    size: 18,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
-                  ),
+                  child: initials != null
+                      ? Text(
+                          initials,
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
+                      : Icon(
+                          Icons.person,
+                          size: 18,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
                 ),
               ),
             ],
@@ -168,9 +188,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                         if (entries.isNotEmpty)
                           UiDiffAnchor(
                             id: 'today.recentScansCount',
-                            label: '${entries.length} today',
+                            label: '${entries.length} TODAY',
                             child: Text(
-                              '${entries.length} today',
+                              '${entries.length} TODAY',
                               style: AppTextStyles.labelSmall.copyWith(
                                 color: isDark
                                     ? AppColors.textSecondaryDark
