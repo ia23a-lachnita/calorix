@@ -270,10 +270,6 @@ class _HeroMacroCard extends StatelessWidget {
     final kcalLeft = (plan.kcal - summary.kcal).clamp(0, double.infinity);
     final textColor =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final viewportWidth = MediaQuery.sizeOf(context).width;
-    final compactScale = (viewportWidth / 393).clamp(0.91, 1.0);
-    final ringSize = 222.0 * compactScale;
-    final ringStroke = 10.0 * compactScale;
 
     return DecoratedBox(
       key: const ValueKey('today.heroCardSurface'),
@@ -324,15 +320,14 @@ class _HeroMacroCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Center(
                     child: AnimatedMacroRing(
-                      key: const ValueKey('today.macroRing'),
                       animation: animation,
                       proteinFraction:
                           plan.protein > 0 ? summary.protein / plan.protein : 0,
                       carbsFraction:
                           plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
                       fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
-                      size: ringSize,
-                      strokeWidth: ringStroke,
+                      size: 222,
+                      strokeWidth: 10,
                       trackColor: isDark
                           ? const Color(0x0FFFFFFF)
                           : const Color(0xFFF2F0EB),

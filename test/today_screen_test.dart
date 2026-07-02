@@ -19,15 +19,7 @@ Widget _buildTodayScreen({
   ),
   ThemeMode themeMode = ThemeMode.light,
   bool uiDiffMode = false,
-  Size? mediaSize,
 }) {
-  final home = mediaSize == null
-      ? const TodayScreen()
-      : MediaQuery(
-          data: MediaQueryData(size: mediaSize),
-          child: const TodayScreen(),
-        );
-
   return ProviderScope(
     overrides: [
       uiDiffModeProvider.overrideWith((_) => uiDiffMode),
@@ -41,7 +33,7 @@ Widget _buildTodayScreen({
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
-      home: home,
+      home: const TodayScreen(),
     ),
   );
 }
@@ -169,40 +161,6 @@ void main() {
     expect(decoration.color, AppColors.surfaceDark);
     expect(border.top.color, AppColors.borderDarkStrong);
     expect(border.top.width, 0.5);
-  });
-
-  testWidgets('Today macro ring scales only on compact viewports',
-      (tester) async {
-    await tester.pumpWidget(
-      _buildTodayScreen(
-        themeMode: ThemeMode.dark,
-        mediaSize: const Size(360, 800),
-        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
-      ),
-    );
-    await _pumpTodayScreen(tester);
-
-    final compactRingSize =
-        tester.getSize(find.byKey(const ValueKey('today.macroRing')));
-    expect(compactRingSize.width, lessThanOrEqualTo(206));
-    expect(compactRingSize.height, lessThanOrEqualTo(206));
-
-    await tester.pumpWidget(
-      _buildTodayScreen(
-        themeMode: ThemeMode.dark,
-        mediaSize: const Size(393, 852),
-        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
-      ),
-    );
-    await _pumpTodayScreen(tester);
-
-    final mockupRingSize =
-        tester.getSize(find.byKey(const ValueKey('today.macroRing')));
-    expect(mockupRingSize.width, 222);
-    expect(mockupRingSize.height, 222);
-    expect(find.text('Protein'), findsOneWidget);
-    expect(find.text('Carbs'), findsOneWidget);
-    expect(find.text('Fat'), findsOneWidget);
   });
 
   testWidgets('Today typography uses mockup font roles', (tester) async {
