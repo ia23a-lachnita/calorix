@@ -72,6 +72,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     final isUiDiffMode = ref.watch(uiDiffModeProvider);
     final initials =
         _userInitials(user?.displayName) ?? (isUiDiffMode ? 'EK' : null);
+    final headerDate = isUiDiffMode
+        ? 'FRIDAY · MAY 15'
+        : DateFormat('EEEE · MMMM d').format(DateTime.now()).toUpperCase();
 
     return Scaffold(
       body: CustomScrollView(
@@ -82,9 +85,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  DateFormat('EEEE · MMMM d')
-                      .format(DateTime.now())
-                      .toUpperCase(),
+                  headerDate,
                   style: AppTextStyles.labelMono.copyWith(
                     fontSize: 10,
                     letterSpacing: 1.6,

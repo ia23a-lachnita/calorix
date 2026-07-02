@@ -7,6 +7,7 @@ import 'package:calorix/core/theme/app_colors.dart';
 import 'package:calorix/core/theme/app_theme.dart';
 import 'package:calorix/shared/models/food_entry.dart';
 import 'package:calorix/shared/models/macro_target_plan.dart';
+import 'package:calorix/shared/providers/ui_diff_provider.dart';
 
 Widget _buildTodayScreen({
   List<FoodEntry> entries = const [],
@@ -17,9 +18,11 @@ Widget _buildTodayScreen({
     fat: 0.0,
   ),
   ThemeMode themeMode = ThemeMode.light,
+  bool uiDiffMode = false,
 }) {
   return ProviderScope(
     overrides: [
+      uiDiffModeProvider.overrideWith((_) => uiDiffMode),
       todayEntriesProvider.overrideWith((_) => Stream.value(entries)),
       todayMacroSummaryProvider.overrideWith((_) => summary),
       activePlanProvider.overrideWith(
@@ -128,6 +131,15 @@ void main() {
 
     expect(dateFinder, findsOneWidget);
     expect(tester.getTopLeft(dateFinder).dy, lessThan(titleTop));
+  });
+
+  testWidgets('Today UI-diff mode uses fixed mockup date', (tester) async {
+    await tester.pumpWidget(
+      _buildTodayScreen(themeMode: ThemeMode.dark, uiDiffMode: true),
+    );
+    await _pumpTodayScreen(tester);
+
+    expect(find.text('FRIDAY · MAY 15'), findsOneWidget);
   });
 
   testWidgets('Today typography uses mockup font roles', (tester) async {
