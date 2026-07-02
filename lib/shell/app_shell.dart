@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -14,24 +13,7 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> with TickerProviderStateMixin {
-  late final AnimationController _fabRingController;
-
-  @override
-  void initState() {
-    super.initState();
-    _fabRingController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _fabRingController.dispose();
-    super.dispose();
-  }
-
+class _AppShellState extends State<AppShell> {
   void _onTap(int index) {
     widget.navigationShell.goBranch(
       index,
@@ -52,7 +34,6 @@ class _AppShellState extends State<AppShell> with TickerProviderStateMixin {
         child: _CalorixBottomNav(
           currentIndex: currentIndex,
           onTap: _onTap,
-          fabRingController: _fabRingController,
           isDark: isDark,
         ),
       ),
@@ -64,13 +45,11 @@ class _CalorixBottomNav extends StatelessWidget {
   const _CalorixBottomNav({
     required this.currentIndex,
     required this.onTap,
-    required this.fabRingController,
     required this.isDark,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
-  final AnimationController fabRingController;
   final bool isDark;
 
   static const _items = [
@@ -93,6 +72,7 @@ class _CalorixBottomNav extends StatelessWidget {
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 28, sigmaY: 28),
         child: Container(
+          key: const Key('today-bottom-nav'),
           height: 92 + MediaQuery.of(context).padding.bottom,
           decoration: BoxDecoration(
             color: bgColor.withValues(alpha: 0.92),
@@ -118,7 +98,6 @@ class _CalorixBottomNav extends StatelessWidget {
                       label: 'Scan FAB',
                       child: _ScanFAB(
                         isActive: currentIndex == 2,
-                        controller: fabRingController,
                         isDark: isDark,
                         onTap: () => onTap(2),
                       ),
@@ -212,13 +191,11 @@ class _NavButton extends StatelessWidget {
 class _ScanFAB extends StatelessWidget {
   const _ScanFAB({
     required this.isActive,
-    required this.controller,
     required this.isDark,
     required this.onTap,
   });
 
   final bool isActive;
-  final AnimationController controller;
   final bool isDark;
   final VoidCallback onTap;
 
@@ -228,6 +205,7 @@ class _ScanFAB extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Column(
+        key: const Key('scan-fab-column'),
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
@@ -256,54 +234,47 @@ class _ScanFAB extends StatelessWidget {
                     ),
                   ),
                 ),
-                AnimatedBuilder(
-                  animation: controller,
-                  builder: (context, child) => Transform.rotate(
-                    angle: controller.value * 2 * math.pi,
-                    child: child,
-                  ),
-                  child: Container(
-                    key: const Key('scan-fab-outer'),
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const SweepGradient(
-                        colors: AppColors.sweepGradient,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.cyan.withValues(alpha: 0.35),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                        BoxShadow(
-                          color: AppColors.blue.withValues(alpha: 0.30),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                Container(
+                  key: const Key('scan-fab-outer'),
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const SweepGradient(
+                      colors: AppColors.sweepGradient,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: Container(
-                        key: const Key('scan-fab-inner'),
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.backgroundDark.withValues(alpha: 0.85)
-                              : AppColors.surfaceLight,
-                          shape: BoxShape.circle,
-                        ),
-                        child: _CalorixNavIcon(
-                          key: const Key('scan-icon-eye'),
-                          type: _NavIconType.scan,
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
-                          size: 24,
-                        ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.cyan.withValues(alpha: 0.35),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                      BoxShadow(
+                        color: AppColors.blue.withValues(alpha: 0.30),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Container(
+                      key: const Key('scan-fab-inner'),
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.backgroundDark.withValues(alpha: 0.85)
+                            : AppColors.surfaceLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: _CalorixNavIcon(
+                        key: const Key('scan-icon-eye'),
+                        type: _NavIconType.scan,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
+                        size: 24,
                       ),
                     ),
                   ),

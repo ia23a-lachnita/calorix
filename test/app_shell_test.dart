@@ -87,6 +87,8 @@ void main() {
 
     expect(find.byIcon(Icons.today_outlined), findsNothing);
     expect(find.byIcon(Icons.flag_outlined), findsNothing);
+    expect(find.byIcon(Icons.remove_red_eye_outlined), findsNothing);
+    expect(find.byIcon(Icons.remove_red_eye), findsNothing);
   });
 
   testWidgets('Scan FAB matches mockup ring proportions', (tester) async {
@@ -109,6 +111,62 @@ void main() {
     expect(scanLabel.style?.fontFamily, 'GeistMono');
     expect(scanLabel.style?.fontSize, 9.5);
     expect(scanLabel.style?.letterSpacing, 1.6);
+  });
+
+  testWidgets('Scan FAB is static and does not keep the shell animating',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp.router(routerConfig: _buildRouter()),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final outerFab = find.byKey(const Key('scan-fab-outer'));
+    expect(outerFab, findsOneWidget);
+
+    final nonIdentityTransforms = tester
+        .widgetList<Transform>(
+      find.ancestor(of: outerFab, matching: find.byType(Transform)),
+    )
+        .where((transform) {
+      final values = transform.transform.storage;
+      final identity = Matrix4.identity().storage;
+      for (var i = 0; i < values.length; i += 1) {
+        if ((values[i] - identity[i]).abs() > 0.0001) {
+          return true;
+        }
+      }
+      return false;
+    });
+
+    expect(nonIdentityTransforms, isEmpty);
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 50),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 1),
+    );
+  });
+
+  testWidgets('Scan FAB layout remains bounded with large text scale',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.4)),
+          child: MaterialApp.router(routerConfig: _buildRouter()),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final navRect = tester.getRect(find.byKey(const Key('today-bottom-nav')));
+    final scanRect = tester.getRect(find.byKey(const Key('scan-fab-column')));
+
+    expect(scanRect.left >= navRect.left, isTrue);
+    expect(scanRect.right <= navRect.right, isTrue);
+    expect(scanRect.top >= navRect.top, isTrue);
+    expect(scanRect.bottom <= navRect.bottom, isTrue);
   });
 
   testWidgets('Tapping History tab navigates', (tester) async {
