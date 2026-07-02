@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 abstract final class AppColors {
   // Backgrounds
   static const Color backgroundLight = Color(0xFFFAF8F3);
-  static const Color backgroundDark = Color(0xFF0C0F13);
+  static const Color backgroundDark = Color(0xFF0E1117);
   static const Color surfaceDark = Color(0xFF14181E);
 
   // Surfaces
@@ -19,10 +19,11 @@ abstract final class AppColors {
 
   // Text
   static const Color textPrimaryLight = Color(0xFF0D0D0F);
-  static const Color textPrimaryDark = Color(0xFFF2F3F5);
+  static const Color textPrimaryDark = Color(0xFFF2F1EE);
   static const Color textSecondaryLight =
       Color(0xFF6B6F77); // spec: #6B6F77 (was 0xFF5A5A6E)
-  static const Color textSecondaryDark = Color(0x80F2F3F5);
+  static const Color textSecondaryDark =
+      Color(0xFFA8B0BC); // spec: #A8B0BC (was 0xFF8A8A9A)
   static const Color textTertiaryLight = Color(0xFF9A9EA6); // spec: #9A9EA6
   static const Color textTertiaryDark = Color(0xFF6F7885); // spec: #6F7885
 

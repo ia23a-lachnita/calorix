@@ -77,202 +77,175 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
         : DateFormat('EEEE · MMMM d').format(DateTime.now()).toUpperCase();
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 54, 20, 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        headerDate,
-                        style: AppTextStyles.labelMono.copyWith(
-                          fontSize: 10,
-                          letterSpacing: 1.6,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Today',
-                        style:
-                            AppTextStyles.todayTitle.copyWith(color: textColor),
-                      ),
-                    ],
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            floating: true,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  headerDate,
+                  style: AppTextStyles.labelMono.copyWith(
+                    fontSize: 10,
+                    letterSpacing: 1.6,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
-                  Row(
-                    children: [
-                      _HeaderCircleButton(
-                        isDark: isDark,
-                        onTap: () {},
-                        child: Icon(
-                          Icons.notifications_none,
+                ),
+                const SizedBox(height: 4),
+                Text('Today',
+                    style: AppTextStyles.todayTitle.copyWith(color: textColor)),
+              ],
+            ),
+            actions: [
+              GestureDetector(
+                onTap: () {},
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDark
+                        ? const Color(0x0FFFFFFF)
+                        : const Color(0x0F000000),
+                    border: Border.all(
+                      color:
+                          isDark ? AppColors.borderDark : AppColors.borderLight,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.notifications_none,
+                    size: 18,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => context.goNamed(RouteNames.profile),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 16),
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDark
+                        ? const Color(0x0FFFFFFF)
+                        : const Color(0x0F000000),
+                    border: Border.all(
+                      color:
+                          isDark ? AppColors.borderDark : AppColors.borderLight,
+                    ),
+                  ),
+                  child: initials != null
+                      ? Center(
+                          child: Text(
+                            initials,
+                            style: AppTextStyles.labelLarge.copyWith(
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimaryLight,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          Icons.person,
                           size: 18,
                           color: isDark
                               ? AppColors.textSecondaryDark
                               : AppColors.textSecondaryLight,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      _HeaderCircleButton(
-                        isDark: isDark,
-                        onTap: () => context.goNamed(RouteNames.profile),
-                        child: initials != null
-                            ? Center(
-                                child: Text(
-                                  initials,
-                                  style: AppTextStyles.labelLarge.copyWith(
-                                    color: isDark
-                                        ? AppColors.textPrimaryDark
-                                        : AppColors.textPrimaryLight,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13.3,
-                                  ),
-                                ),
-                              )
-                            : Icon(
-                                Icons.person,
-                                size: 18,
+                ),
+              ),
+            ],
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                UiDiffAnchor(
+                  id: 'today.macroRingHero',
+                  label: 'Hero macro ring card',
+                  child: _HeroMacroCard(
+                    animation: _animation,
+                    summary: summary,
+                    plan: plan,
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                entriesAsync.when(
+                  loading: () => Text('Recent scans',
+                      style: AppTextStyles.heading3.copyWith(color: textColor)),
+                  error: (_, __) => Text('Recent scans',
+                      style: AppTextStyles.heading3.copyWith(color: textColor)),
+                  data: (entries) => UiDiffAnchor(
+                    id: 'today.recentScansSection',
+                    label: 'Recent scans section header',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Recent scans',
+                            style: AppTextStyles.todaySectionHeading
+                                .copyWith(color: textColor)),
+                        if (entries.isNotEmpty)
+                          UiDiffAnchor(
+                            id: 'today.recentScansCount',
+                            label: '${entries.length} TODAY',
+                            child: Text(
+                              '${entries.length} TODAY',
+                              style: AppTextStyles.labelMono.copyWith(
+                                fontSize: 10,
+                                letterSpacing: 1.6,
                                 color: isDark
                                     ? AppColors.textSecondaryDark
                                     : AppColors.textSecondaryLight,
                               ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 14),
-              child: UiDiffAnchor(
-                id: 'today.macroRingHero',
-                label: 'Hero macro ring card',
-                child: _HeroMacroCard(
-                  animation: _animation,
-                  summary: summary,
-                  plan: plan,
-                  isDark: isDark,
-                  disableImplicitAnimation: isUiDiffMode,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-              child: entriesAsync.when(
-                loading: () => Text(
-                  'Recent scans',
-                  style: AppTextStyles.todaySectionHeading
-                      .copyWith(color: textColor),
-                ),
-                error: (_, __) => Text(
-                  'Recent scans',
-                  style: AppTextStyles.todaySectionHeading
-                      .copyWith(color: textColor),
-                ),
-                data: (entries) => UiDiffAnchor(
-                  id: 'today.recentScansSection',
-                  label: 'Recent scans section header',
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        'Recent scans',
-                        style: AppTextStyles.todaySectionHeading
-                            .copyWith(color: textColor),
-                      ),
-                      if (entries.isNotEmpty)
-                        UiDiffAnchor(
-                          id: 'today.recentScansCount',
-                          label: '${entries.length} TODAY',
-                          child: Text(
-                            '${entries.length} TODAY',
-                            style: AppTextStyles.labelMono.copyWith(
-                              fontSize: 10,
-                              letterSpacing: 1.6,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight,
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              child: entriesAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => _EmptyMeals(isDark: isDark),
-                data: (entries) => entries.isEmpty
-                    ? _EmptyMeals(isDark: isDark)
-                    : UiDiffAnchor(
-                        id: 'today.mealCardsSection',
-                        label: 'Meal cards section',
-                        child: Column(
-                          children: entries
-                              .map(
-                                (e) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: _MealCard(entry: e, isDark: isDark),
-                                ),
-                              )
-                              .toList(),
+                const SizedBox(height: 12),
+                entriesAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => _EmptyMeals(isDark: isDark),
+                  data: (entries) => entries.isEmpty
+                      ? _EmptyMeals(isDark: isDark)
+                      : UiDiffAnchor(
+                          id: 'today.mealCardsSection',
+                          label: 'Meal cards section',
+                          child: Column(
+                            children: entries
+                                .map((e) => Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12),
+                                      child:
+                                          _MealCard(entry: e, isDark: isDark),
+                                    ))
+                                .toList(),
+                          ),
                         ),
-                      ),
-              ),
+                ),
+              ]),
             ),
-            const Padding(
-              key: ValueKey('today.bottomContentSpacer'),
-              padding: EdgeInsets.only(bottom: 132),
-            ),
-          ],
-        ),
+          ),
+          const SliverPadding(
+            key: ValueKey('today.bottomContentSpacer'),
+            padding: EdgeInsets.only(bottom: 132),
+          ),
+        ],
       ),
     );
   }
-}
-
-class _HeaderCircleButton extends StatelessWidget {
-  const _HeaderCircleButton({
-    required this.isDark,
-    required this.onTap,
-    required this.child,
-  });
-
-  final bool isDark;
-  final VoidCallback onTap;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDark ? const Color(0x08FFFFFF) : AppColors.surfaceLight,
-            border: Border.all(
-              color: isDark ? const Color(0x21FFFFFF) : AppColors.borderLight,
-              width: 0.5,
-            ),
-          ),
-          child: child,
-        ),
-      );
 }
 
 class _HeroMacroCard extends StatelessWidget {
@@ -280,14 +253,12 @@ class _HeroMacroCard extends StatelessWidget {
   final ({double kcal, double protein, double carbs, double fat}) summary;
   final MacroTargetPlan plan;
   final bool isDark;
-  final bool disableImplicitAnimation;
 
   const _HeroMacroCard({
     required this.animation,
     required this.summary,
     required this.plan,
     required this.isDark,
-    required this.disableImplicitAnimation,
   });
 
   @override
@@ -406,8 +377,7 @@ class _HeroMacroCard extends StatelessWidget {
                       target: plan.protein.toDouble(),
                       color: AppColors.protein,
                       isDark: isDark,
-                      animation: animation,
-                      disableImplicitAnimation: disableImplicitAnimation),
+                      animation: animation),
                 ),
                 const SizedBox(height: 8),
                 UiDiffAnchor(
@@ -419,8 +389,7 @@ class _HeroMacroCard extends StatelessWidget {
                       target: plan.carbs.toDouble(),
                       color: AppColors.carbs,
                       isDark: isDark,
-                      animation: animation,
-                      disableImplicitAnimation: disableImplicitAnimation),
+                      animation: animation),
                 ),
                 const SizedBox(height: 8),
                 UiDiffAnchor(
@@ -432,8 +401,7 @@ class _HeroMacroCard extends StatelessWidget {
                       target: plan.fat.toDouble(),
                       color: AppColors.fat,
                       isDark: isDark,
-                      animation: animation,
-                      disableImplicitAnimation: disableImplicitAnimation),
+                      animation: animation),
                 ),
               ],
             );
@@ -451,7 +419,6 @@ class _MacroSubCardItem extends StatelessWidget {
   final Color color;
   final Animation<double> animation;
   final bool isDark;
-  final bool disableImplicitAnimation;
 
   const _MacroSubCardItem({
     required this.label,
@@ -460,7 +427,6 @@ class _MacroSubCardItem extends StatelessWidget {
     required this.color,
     required this.animation,
     required this.isDark,
-    required this.disableImplicitAnimation,
   });
 
   @override
@@ -482,7 +448,6 @@ class _MacroSubCardItem extends StatelessWidget {
         color: color,
         animation: animation,
         denseTodayStyle: true,
-        disableImplicitAnimation: disableImplicitAnimation,
       ),
     );
   }
@@ -565,32 +530,30 @@ class _MealCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Row(
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 3,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Flexible(
-                          child: Text(
-                            '${DateFormat('HH:mm').format(entry.timestamp)} · ${entry.mealType.name[0].toUpperCase()}${entry.mealType.name.substring(1)}',
-                            style: AppTextStyles.todayMealMeta
-                                .copyWith(color: subtextColor),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        Text(
+                          '${DateFormat('HH:mm').format(entry.timestamp)} · ${entry.mealType.name[0].toUpperCase()}${entry.mealType.name.substring(1)}',
+                          style: AppTextStyles.todayMealMeta
+                              .copyWith(color: subtextColor),
                         ),
-                        _MealMetaDivider(color: subtextColor),
                         _MacroPip(
-                          value: entry.scaledProtein,
-                          color: AppColors.protein,
-                        ),
-                        const SizedBox(width: 8),
+                            value: entry.scaledProtein,
+                            color: AppColors.protein,
+                            label: 'P'),
+                        const SizedBox(width: 6),
                         _MacroPip(
-                          value: entry.scaledCarbs,
-                          color: AppColors.carbs,
-                        ),
-                        const SizedBox(width: 8),
+                            value: entry.scaledCarbs,
+                            color: AppColors.carbs,
+                            label: 'C'),
+                        const SizedBox(width: 6),
                         _MacroPip(
-                          value: entry.scaledFat,
-                          color: AppColors.fat,
-                        ),
+                            value: entry.scaledFat,
+                            color: AppColors.fat,
+                            label: 'F'),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -676,7 +639,9 @@ class _GradientPlaceholder extends StatelessWidget {
 class _MacroPip extends StatelessWidget {
   final double value;
   final Color color;
-  const _MacroPip({required this.value, required this.color});
+  final String label;
+  const _MacroPip(
+      {required this.value, required this.color, required this.label});
 
   @override
   Widget build(BuildContext context) => Row(
@@ -691,25 +656,6 @@ class _MacroPip extends StatelessWidget {
           Text('${value.round()}g',
               style: AppTextStyles.todayMealMeta.copyWith(color: color)),
         ],
-      );
-}
-
-class _MealMetaDivider extends StatelessWidget {
-  const _MealMetaDivider({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Container(
-          width: 3,
-          height: 3,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.5),
-            shape: BoxShape.circle,
-          ),
-        ),
       );
 }
 

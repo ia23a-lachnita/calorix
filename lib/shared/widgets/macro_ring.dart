@@ -112,6 +112,13 @@ class _MacroRingPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..color = trackColor;
 
+    final glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * 1.4
+      ..strokeCap = StrokeCap.round
+      ..color = color.withAlpha(28)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+
     final fillPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
@@ -124,6 +131,7 @@ class _MacroRingPainter extends CustomPainter {
 
     canvas.drawArc(rect, startAngle, fullSweep, false, trackPaint);
     if (fraction > 0) {
+      canvas.drawArc(rect, startAngle, fullSweep * fraction, false, glowPaint);
       canvas.drawArc(rect, startAngle, fullSweep * fraction, false, fillPaint);
     }
   }
