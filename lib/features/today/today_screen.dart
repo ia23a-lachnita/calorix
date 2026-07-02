@@ -75,203 +75,170 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     final headerDate = isUiDiffMode
         ? 'FRIDAY · MAY 15'
         : DateFormat('EEEE · MMMM d').format(DateTime.now()).toUpperCase();
-    final media = MediaQuery.of(context);
-    final mockupScale = (media.size.width / 393.0).clamp(0.86, 1.0);
 
     return Scaffold(
-      body: MediaQuery(
-        data: media.copyWith(textScaler: TextScaler.linear(mockupScale)),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  20 * mockupScale,
-                  54 * mockupScale,
-                  20 * mockupScale,
-                  8 * mockupScale,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          headerDate,
-                          style: AppTextStyles.labelMono.copyWith(
-                            fontSize: 10,
-                            letterSpacing: 1.6,
-                            color: isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondaryLight,
-                          ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 54, 20, 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        headerDate,
+                        style: AppTextStyles.labelMono.copyWith(
+                          fontSize: 10,
+                          letterSpacing: 1.6,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
-                        SizedBox(height: 4 * mockupScale),
-                        Text(
-                          'Today',
-                          style: AppTextStyles.todayTitle
-                              .copyWith(color: textColor),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Today',
+                        style:
+                            AppTextStyles.todayTitle.copyWith(color: textColor),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      _HeaderCircleButton(
+                        isDark: isDark,
+                        onTap: () {},
+                        child: Icon(
+                          Icons.notifications_none,
+                          size: 18,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        _HeaderCircleButton(
-                          isDark: isDark,
-                          scale: mockupScale,
-                          onTap: () {},
-                          child: Icon(
-                            Icons.notifications_none,
-                            size: 18 * mockupScale,
-                            color: isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondaryLight,
-                          ),
-                        ),
-                        SizedBox(width: 8 * mockupScale),
-                        _HeaderCircleButton(
-                          isDark: isDark,
-                          scale: mockupScale,
-                          onTap: () => context.goNamed(RouteNames.profile),
-                          child: initials != null
-                              ? Center(
-                                  child: Text(
-                                    initials,
-                                    style: AppTextStyles.labelLarge.copyWith(
-                                      color: isDark
-                                          ? AppColors.textPrimaryDark
-                                          : AppColors.textPrimaryLight,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13.3,
-                                    ),
+                      ),
+                      const SizedBox(width: 8),
+                      _HeaderCircleButton(
+                        isDark: isDark,
+                        onTap: () => context.goNamed(RouteNames.profile),
+                        child: initials != null
+                            ? Center(
+                                child: Text(
+                                  initials,
+                                  style: AppTextStyles.labelLarge.copyWith(
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimaryLight,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13.3,
                                   ),
-                                )
-                              : Icon(
-                                  Icons.person,
-                                  size: 18 * mockupScale,
-                                  color: isDark
-                                      ? AppColors.textSecondaryDark
-                                      : AppColors.textSecondaryLight,
                                 ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(
-                  left: 16 * mockupScale,
-                  right: 16 * mockupScale,
-                  top: 14 * mockupScale,
-                ),
-                child: UiDiffAnchor(
-                  id: 'today.macroRingHero',
-                  label: 'Hero macro ring card',
-                  child: _HeroMacroCard(
-                    animation: _animation,
-                    summary: summary,
-                    plan: plan,
-                    isDark: isDark,
-                    disableImplicitAnimation: isUiDiffMode,
-                    scale: mockupScale,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  20 * mockupScale,
-                  20 * mockupScale,
-                  20 * mockupScale,
-                  8 * mockupScale,
-                ),
-                child: entriesAsync.when(
-                  loading: () => Text(
-                    'Recent scans',
-                    style: AppTextStyles.todaySectionHeading
-                        .copyWith(color: textColor),
-                  ),
-                  error: (_, __) => Text(
-                    'Recent scans',
-                    style: AppTextStyles.todaySectionHeading
-                        .copyWith(color: textColor),
-                  ),
-                  data: (entries) => UiDiffAnchor(
-                    id: 'today.recentScansSection',
-                    label: 'Recent scans section header',
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          'Recent scans',
-                          style: AppTextStyles.todaySectionHeading
-                              .copyWith(color: textColor),
-                        ),
-                        if (entries.isNotEmpty)
-                          UiDiffAnchor(
-                            id: 'today.recentScansCount',
-                            label: '${entries.length} TODAY',
-                            child: Text(
-                              '${entries.length} TODAY',
-                              style: AppTextStyles.labelMono.copyWith(
-                                fontSize: 10,
-                                letterSpacing: 1.6,
+                              )
+                            : Icon(
+                                Icons.person,
+                                size: 18,
                                 color: isDark
                                     ? AppColors.textSecondaryDark
                                     : AppColors.textSecondaryLight,
                               ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 14),
+              child: UiDiffAnchor(
+                id: 'today.macroRingHero',
+                label: 'Hero macro ring card',
+                child: _HeroMacroCard(
+                  animation: _animation,
+                  summary: summary,
+                  plan: plan,
+                  isDark: isDark,
+                  disableImplicitAnimation: isUiDiffMode,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              child: entriesAsync.when(
+                loading: () => Text(
+                  'Recent scans',
+                  style: AppTextStyles.todaySectionHeading
+                      .copyWith(color: textColor),
+                ),
+                error: (_, __) => Text(
+                  'Recent scans',
+                  style: AppTextStyles.todaySectionHeading
+                      .copyWith(color: textColor),
+                ),
+                data: (entries) => UiDiffAnchor(
+                  id: 'today.recentScansSection',
+                  label: 'Recent scans section header',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        'Recent scans',
+                        style: AppTextStyles.todaySectionHeading
+                            .copyWith(color: textColor),
+                      ),
+                      if (entries.isNotEmpty)
+                        UiDiffAnchor(
+                          id: 'today.recentScansCount',
+                          label: '${entries.length} TODAY',
+                          child: Text(
+                            '${entries.length} TODAY',
+                            style: AppTextStyles.labelMono.copyWith(
+                              fontSize: 10,
+                              letterSpacing: 1.6,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  16 * mockupScale,
-                  0,
-                  16 * mockupScale,
-                  20 * mockupScale,
-                ),
-                child: entriesAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => _EmptyMeals(isDark: isDark),
-                  data: (entries) => entries.isEmpty
-                      ? _EmptyMeals(isDark: isDark)
-                      : UiDiffAnchor(
-                          id: 'today.mealCardsSection',
-                          label: 'Meal cards section',
-                          child: Column(
-                            children: entries
-                                .map(
-                                  (e) => Padding(
-                                    padding: EdgeInsets.only(
-                                        bottom: 10 * mockupScale),
-                                    child: _MealCard(
-                                      entry: e,
-                                      isDark: isDark,
-                                      scale: mockupScale,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              child: entriesAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => _EmptyMeals(isDark: isDark),
+                data: (entries) => entries.isEmpty
+                    ? _EmptyMeals(isDark: isDark)
+                    : UiDiffAnchor(
+                        id: 'today.mealCardsSection',
+                        label: 'Meal cards section',
+                        child: Column(
+                          children: entries
+                              .map(
+                                (e) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _MealCard(entry: e, isDark: isDark),
+                                ),
+                              )
+                              .toList(),
                         ),
-                ),
+                      ),
               ),
-              Padding(
-                key: const ValueKey('today.bottomContentSpacer'),
-                padding: EdgeInsets.only(bottom: 132 * mockupScale),
-              ),
-            ],
-          ),
+            ),
+            const Padding(
+              key: ValueKey('today.bottomContentSpacer'),
+              padding: EdgeInsets.only(bottom: 132),
+            ),
+          ],
         ),
       ),
     );
@@ -281,13 +248,11 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
 class _HeaderCircleButton extends StatelessWidget {
   const _HeaderCircleButton({
     required this.isDark,
-    required this.scale,
     required this.onTap,
     required this.child,
   });
 
   final bool isDark;
-  final double scale;
   final VoidCallback onTap;
   final Widget child;
 
@@ -295,8 +260,8 @@ class _HeaderCircleButton extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 38 * scale,
-          height: 38 * scale,
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isDark ? const Color(0x08FFFFFF) : AppColors.surfaceLight,
@@ -316,7 +281,6 @@ class _HeroMacroCard extends StatelessWidget {
   final MacroTargetPlan plan;
   final bool isDark;
   final bool disableImplicitAnimation;
-  final double scale;
 
   const _HeroMacroCard({
     required this.animation,
@@ -324,7 +288,6 @@ class _HeroMacroCard extends StatelessWidget {
     required this.plan,
     required this.isDark,
     required this.disableImplicitAnimation,
-    required this.scale,
   });
 
   @override
@@ -335,10 +298,9 @@ class _HeroMacroCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 0),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28 * scale)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       child: Padding(
-        padding: EdgeInsets.all(14 * scale),
+        padding: const EdgeInsets.all(14),
         child: AnimatedBuilder(
           animation: animation,
           builder: (context, _) {
@@ -348,7 +310,7 @@ class _HeroMacroCard extends StatelessWidget {
             final fNow = summary.fat * animation.value;
             return Column(
               children: [
-                SizedBox(height: 8 * scale),
+                const SizedBox(height: 8),
                 Center(
                   child: AnimatedMacroRing(
                     animation: animation,
@@ -357,8 +319,8 @@ class _HeroMacroCard extends StatelessWidget {
                     carbsFraction:
                         plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
                     fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
-                    size: 222 * scale,
-                    strokeWidth: 10 * scale,
+                    size: 222,
+                    strokeWidth: 10,
                     trackColor: isDark
                         ? const Color(0x0FFFFFFF)
                         : const Color(0xFFF2F0EB),
@@ -401,18 +363,16 @@ class _HeroMacroCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                        SizedBox(height: 4 * scale),
+                        const SizedBox(height: 4),
                         UiDiffAnchor(
                           id: 'today.kcalLeftPill',
                           label:
                               '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
                           child: Container(
                             key: const ValueKey('today.kcalLeftPillContainer'),
-                            constraints: BoxConstraints(maxWidth: 122 * scale),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8 * scale,
-                              vertical: 3 * scale,
-                            ),
+                            constraints: const BoxConstraints(maxWidth: 122),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: AppColors.kcalLeftPillBg,
                               borderRadius: BorderRadius.circular(99),
@@ -436,7 +396,7 @@ class _HeroMacroCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 10 * scale),
+                const SizedBox(height: 10),
                 UiDiffAnchor(
                   id: 'today.proteinRow',
                   label: 'Protein macro row',
@@ -447,10 +407,9 @@ class _HeroMacroCard extends StatelessWidget {
                       color: AppColors.protein,
                       isDark: isDark,
                       animation: animation,
-                      disableImplicitAnimation: disableImplicitAnimation,
-                      scale: scale),
+                      disableImplicitAnimation: disableImplicitAnimation),
                 ),
-                SizedBox(height: 8 * scale),
+                const SizedBox(height: 8),
                 UiDiffAnchor(
                   id: 'today.carbsRow',
                   label: 'Carbs macro row',
@@ -461,10 +420,9 @@ class _HeroMacroCard extends StatelessWidget {
                       color: AppColors.carbs,
                       isDark: isDark,
                       animation: animation,
-                      disableImplicitAnimation: disableImplicitAnimation,
-                      scale: scale),
+                      disableImplicitAnimation: disableImplicitAnimation),
                 ),
-                SizedBox(height: 8 * scale),
+                const SizedBox(height: 8),
                 UiDiffAnchor(
                   id: 'today.fatRow',
                   label: 'Fat macro row',
@@ -475,8 +433,7 @@ class _HeroMacroCard extends StatelessWidget {
                       color: AppColors.fat,
                       isDark: isDark,
                       animation: animation,
-                      disableImplicitAnimation: disableImplicitAnimation,
-                      scale: scale),
+                      disableImplicitAnimation: disableImplicitAnimation),
                 ),
               ],
             );
@@ -495,7 +452,6 @@ class _MacroSubCardItem extends StatelessWidget {
   final Animation<double> animation;
   final bool isDark;
   final bool disableImplicitAnimation;
-  final double scale;
 
   const _MacroSubCardItem({
     required this.label,
@@ -505,7 +461,6 @@ class _MacroSubCardItem extends StatelessWidget {
     required this.animation,
     required this.isDark,
     required this.disableImplicitAnimation,
-    required this.scale,
   });
 
   @override
@@ -513,14 +468,13 @@ class _MacroSubCardItem extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0x08FFFFFF) : const Color(0xFFFAF8F3),
-        borderRadius: BorderRadius.circular(18 * scale),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDark ? const Color(0x12FFFFFF) : const Color(0x120B0D10),
           width: 0.5,
         ),
       ),
-      padding:
-          EdgeInsets.symmetric(horizontal: 14 * scale, vertical: 12 * scale),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: MacroProgressBar(
         label: label,
         current: current,
@@ -537,13 +491,8 @@ class _MacroSubCardItem extends StatelessWidget {
 class _MealCard extends StatelessWidget {
   final FoodEntry entry;
   final bool isDark;
-  final double scale;
 
-  const _MealCard({
-    required this.entry,
-    required this.isDark,
-    required this.scale,
-  });
+  const _MealCard({required this.entry, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -560,27 +509,27 @@ class _MealCard extends StatelessWidget {
       onLongPress: () => _showActionMenu(context),
       child: Card(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22 * scale),
+          borderRadius: BorderRadius.circular(22),
           side: BorderSide(
             color: isDark ? AppColors.borderDark : AppColors.borderLight,
           ),
         ),
         child: Padding(
-          padding: EdgeInsets.all(12 * scale),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(16 * scale),
+                borderRadius: BorderRadius.circular(16),
                 child: entry.imageUrl != null
                     ? CachedNetworkImage(
                         imageUrl: entry.imageUrl!,
-                        width: 60 * scale,
-                        height: 60 * scale,
+                        width: 60,
+                        height: 60,
                         fit: BoxFit.cover,
                       )
-                    : _GradientPlaceholder(scale: scale),
+                    : _GradientPlaceholder(),
               ),
-              SizedBox(width: 12 * scale),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -598,7 +547,7 @@ class _MealCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        SizedBox(width: 8 * scale),
+                        const SizedBox(width: 8),
                         Text(
                           '${entry.scaledKcal.round()}',
                           style: AppTextStyles.todayMonoValue.copyWith(
@@ -615,7 +564,7 @@ class _MealCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(height: 2 * scale),
+                    const SizedBox(height: 2),
                     Row(
                       children: [
                         Flexible(
@@ -627,30 +576,24 @@ class _MealCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        _MealMetaDivider(
-                          color: subtextColor,
-                          scale: scale,
-                        ),
+                        _MealMetaDivider(color: subtextColor),
                         _MacroPip(
                           value: entry.scaledProtein,
                           color: AppColors.protein,
-                          scale: scale,
                         ),
-                        SizedBox(width: 8 * scale),
+                        const SizedBox(width: 8),
                         _MacroPip(
                           value: entry.scaledCarbs,
                           color: AppColors.carbs,
-                          scale: scale,
                         ),
-                        SizedBox(width: 8 * scale),
+                        const SizedBox(width: 8),
                         _MacroPip(
                           value: entry.scaledFat,
                           color: AppColors.fat,
-                          scale: scale,
                         ),
                       ],
                     ),
-                    SizedBox(height: 4 * scale),
+                    const SizedBox(height: 4),
                     if (entry.confidence != null)
                       Wrap(
                         spacing: 6,
@@ -660,7 +603,6 @@ class _MealCard extends StatelessWidget {
                           _TodayConfidenceBadge(
                             confidence: entry.confidence!,
                             isDark: isDark,
-                            scale: scale,
                           ),
                           if (entry.confidence! < 0.75)
                             GestureDetector(
@@ -698,16 +640,12 @@ class _MealCard extends StatelessWidget {
 }
 
 class _GradientPlaceholder extends StatelessWidget {
-  const _GradientPlaceholder({required this.scale});
-
-  final double scale;
-
   @override
   Widget build(BuildContext context) => Stack(
         children: [
           Container(
-            width: 60 * scale,
-            height: 60 * scale,
+            width: 60,
+            height: 60,
             decoration: const BoxDecoration(
               gradient: RadialGradient(
                 center: Alignment(-0.2, -0.2),
@@ -717,13 +655,13 @@ class _GradientPlaceholder extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 12 * scale,
-            left: 14 * scale,
+            top: 12,
+            left: 14,
             child: Transform.rotate(
               angle: -0.35,
               child: Container(
-                width: 18 * scale,
-                height: 8 * scale,
+                width: 18,
+                height: 8,
                 decoration: BoxDecoration(
                   color: const Color(0x73FFFFFF),
                   borderRadius: BorderRadius.circular(99),
@@ -738,23 +676,18 @@ class _GradientPlaceholder extends StatelessWidget {
 class _MacroPip extends StatelessWidget {
   final double value;
   final Color color;
-  final double scale;
-  const _MacroPip({
-    required this.value,
-    required this.color,
-    required this.scale,
-  });
+  const _MacroPip({required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 5 * scale,
-            height: 5 * scale,
+            width: 5,
+            height: 5,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-          SizedBox(width: 3 * scale),
+          const SizedBox(width: 3),
           Text('${value.round()}g',
               style: AppTextStyles.todayMealMeta.copyWith(color: color)),
         ],
@@ -762,17 +695,16 @@ class _MacroPip extends StatelessWidget {
 }
 
 class _MealMetaDivider extends StatelessWidget {
-  const _MealMetaDivider({required this.color, required this.scale});
+  const _MealMetaDivider({required this.color});
 
   final Color color;
-  final double scale;
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8 * scale),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Container(
-          width: 3 * scale,
-          height: 3 * scale,
+          width: 3,
+          height: 3,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.5),
             shape: BoxShape.circle,
@@ -784,12 +716,10 @@ class _MealMetaDivider extends StatelessWidget {
 class _TodayConfidenceBadge extends StatelessWidget {
   final double confidence;
   final bool isDark;
-  final double scale;
 
   const _TodayConfidenceBadge({
     required this.confidence,
     required this.isDark,
-    required this.scale,
   });
 
   @override
@@ -801,8 +731,8 @@ class _TodayConfidenceBadge extends StatelessWidget {
         : AppColors.textPrimaryLight.withValues(alpha: 0.78);
 
     return Container(
-      constraints: BoxConstraints(maxWidth: 156 * scale),
-      padding: EdgeInsets.fromLTRB(6 * scale, 3 * scale, 8 * scale, 3 * scale),
+      constraints: const BoxConstraints(maxWidth: 156),
+      padding: const EdgeInsets.fromLTRB(6, 3, 8, 3),
       decoration: BoxDecoration(
         color: isDark ? const Color(0x0AFFFFFF) : const Color(0xFFF4F2EE),
         borderRadius: BorderRadius.circular(99),
@@ -817,14 +747,14 @@ class _TodayConfidenceBadge extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 5 * scale,
-              height: 5 * scale,
+              width: 5,
+              height: 5,
               decoration: BoxDecoration(
                 color: dotColor,
                 shape: BoxShape.circle,
               ),
             ),
-            SizedBox(width: 5 * scale),
+            const SizedBox(width: 5),
             Text(
               '${(confidence * 100).round()}% · ${good ? 'Confirmed' : 'Review'}',
               style: AppTextStyles.labelMono.copyWith(
