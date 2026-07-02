@@ -148,7 +148,7 @@ void main() {
     );
   });
 
-  testWidgets('Scan FAB layout remains bounded with large text scale',
+  testWidgets('Scan FAB protrudes from glass but remains tappable',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -161,12 +161,21 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     final navRect = tester.getRect(find.byKey(const Key('today-bottom-nav')));
+    final glassRect =
+        tester.getRect(find.byKey(const Key('today-bottom-nav-glass')));
     final scanRect = tester.getRect(find.byKey(const Key('scan-fab-column')));
 
     expect(scanRect.left >= navRect.left, isTrue);
     expect(scanRect.right <= navRect.right, isTrue);
     expect(scanRect.top >= navRect.top, isTrue);
     expect(scanRect.bottom <= navRect.bottom, isTrue);
+    expect(glassRect.top - scanRect.top, greaterThan(0));
+    expect(glassRect.top - scanRect.top, lessThanOrEqualTo(20));
+
+    await tester.tapAt(Offset(scanRect.center.dx, scanRect.top + 12));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('ScanPage'), findsOneWidget);
   });
 
   testWidgets('Tapping History tab navigates', (tester) async {

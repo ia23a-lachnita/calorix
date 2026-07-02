@@ -142,6 +142,27 @@ void main() {
     expect(find.text('FRIDAY · MAY 15'), findsOneWidget);
   });
 
+  testWidgets('Today hero card uses mockup hairline surface in dark mode',
+      (tester) async {
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        themeMode: ThemeMode.dark,
+        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+      ),
+    );
+    await _pumpTodayScreen(tester);
+
+    final heroSurface = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('today.heroCardSurface')),
+    );
+    final decoration = heroSurface.decoration as BoxDecoration;
+    final border = decoration.border as Border;
+
+    expect(decoration.color, AppColors.surfaceDark);
+    expect(border.top.color, AppColors.borderDarkStrong);
+    expect(border.top.width, 0.5);
+  });
+
   testWidgets('Today typography uses mockup font roles', (tester) async {
     await tester.pumpWidget(
       _buildTodayScreen(

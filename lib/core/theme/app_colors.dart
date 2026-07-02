@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 abstract final class AppColors {
   // Backgrounds
-  static const Color backgroundLight = Color(0xFFFAF8F3);
-  static const Color backgroundDark = Color(0xFF0E1117);
+  static const Color backgroundLight = Color(0xFFF4F2EE);
+  static const Color backgroundDark = Color(0xFF0C0F13);
   static const Color surfaceDark = Color(0xFF14181E);
 
   // Surfaces
-  static const Color surfaceLight = Color(0xEBFFFFFF); // rgba(255,255,255,0.92)
+  static const Color surfaceLight = Color(0xEBFFFDF7); // tonal near-white
   static const Color surfaceDarkOverlay =
       Color(0x08FFFFFF); // rgba(255,255,255,0.03)
 
@@ -18,8 +18,8 @@ abstract final class AppColors {
   static const Color amber = Color(0xFFFFAA00);
 
   // Text
-  static const Color textPrimaryLight = Color(0xFF0D0D0F);
-  static const Color textPrimaryDark = Color(0xFFF2F1EE);
+  static const Color textPrimaryLight = Color(0xFF0B0D10);
+  static const Color textPrimaryDark = Color(0xFFF2F3F5);
   static const Color textSecondaryLight =
       Color(0xFF6B6F77); // spec: #6B6F77 (was 0xFF5A5A6E)
   static const Color textSecondaryDark =
@@ -52,16 +52,19 @@ abstract final class AppColors {
   static const Color activeDot = green;
 
   // Nav bar
-  static const Color navBarLight = Color(0xFFF5F3EE);
+  static const Color navBarLight = Color(0xFFF4F2EE);
   static const Color navBarDark = Color(0xFF14181E);
 
   // Surface raised
-  static const Color surfaceRaisedLight = Color(0xFFFFFDF7);
+  static const Color surfaceRaisedLight = Color(0xFFFBFAF6);
   static const Color surfaceRaisedDark = Color(0xFF171C24);
 
   // Card border
-  static const Color borderLight = Color(0xFFE8E4DC);
-  static const Color borderDark = Color(0xFF2A2E35);
+  static const Color borderLight = Color(0x12110D0B);
+  static const Color borderLightStrong = Color(0x1F110D0B);
+  static const Color borderDark = Color(0x12FFFFFF);
+  static const Color borderDarkStrong = Color(0x21FFFFFF);
+  static const Color topHighlightDark = Color(0x0AFFFFFF);
 
   // Error / destructive (not pure red, warm red)
   static const Color error = Color(0xFFDC2626);

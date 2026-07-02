@@ -68,58 +68,104 @@ class _CalorixBottomNav extends StatelessWidget {
     final inactiveColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-        child: Container(
-          key: const Key('today-bottom-nav'),
-          height: 92 + MediaQuery.of(context).padding.bottom,
-          decoration: BoxDecoration(
-            color: bgColor.withValues(alpha: 0.92),
-            border: Border(
-              top: BorderSide(
-                color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                width: 0.5,
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    const glassTop = 20.0;
+    const glassHeight = 84.0;
+    const fabTop = 8.0;
+    final totalHeight = glassTop + glassHeight + bottomInset;
+
+    return SizedBox(
+      key: const Key('today-bottom-nav'),
+      height: totalHeight,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            key: const Key('today-bottom-nav-glass'),
+            left: 0,
+            right: 0,
+            top: glassTop,
+            bottom: 0,
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: bgColor.withValues(alpha: 0.92),
+                    border: Border(
+                      top: BorderSide(
+                        color: isDark
+                            ? AppColors.borderDarkStrong
+                            : AppColors.borderLightStrong,
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: 16,
+                      bottom: bottomInset,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: List.generate(_items.length, (index) {
+                        if (index == 2) {
+                          return const Expanded(child: SizedBox.shrink());
+                        }
+                        final item = _items[index];
+                        final isActive = currentIndex == index;
+                        return Expanded(
+                          child: _NavButton(
+                            icon: item.icon,
+                            label: item.label,
+                            isActive: isActive,
+                            activeColor: activeColor,
+                            inactiveColor: inactiveColor,
+                            onTap: () => onTap(index),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-          child: Padding(
-            padding: EdgeInsets.only(
-              top: 6,
-              bottom: MediaQuery.of(context).padding.bottom,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: List.generate(_items.length, (index) {
-                if (index == 2) {
-                  return Expanded(
-                    child: UiDiffAnchor(
-                      id: 'today.scanButton',
-                      label: 'Scan FAB',
-                      child: _ScanFAB(
-                        isActive: currentIndex == 2,
-                        isDark: isDark,
-                        onTap: () => onTap(2),
-                      ),
-                    ),
-                  );
-                }
-                final item = _items[index];
-                final isActive = currentIndex == index;
-                return Expanded(
-                  child: _NavButton(
-                    icon: item.icon,
-                    label: item.label,
-                    isActive: isActive,
-                    activeColor: activeColor,
-                    inactiveColor: inactiveColor,
-                    onTap: () => onTap(index),
-                  ),
-                );
-              }),
+          Positioned(
+            top: glassTop,
+            left: 0,
+            right: 0,
+            height: 1,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color:
+                    isDark ? AppColors.topHighlightDark : AppColors.borderLight,
+              ),
             ),
           ),
-        ),
+          Positioned(
+            top: fabTop,
+            left: 0,
+            right: 0,
+            child: Row(
+              children: [
+                const Spacer(flex: 2),
+                Expanded(
+                  child: UiDiffAnchor(
+                    id: 'today.scanButton',
+                    label: 'Scan FAB',
+                    child: _ScanFAB(
+                      isActive: currentIndex == 2,
+                      isDark: isDark,
+                      onTap: () => onTap(2),
+                    ),
+                  ),
+                ),
+                const Spacer(flex: 2),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -206,7 +252,7 @@ class _ScanFAB extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Column(
         key: const Key('scan-fab-column'),
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           SizedBox(
             width: 76,
@@ -283,7 +329,7 @@ class _ScanFAB extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           Text(
             'SCAN',
             style: AppTextStyles.labelMono.copyWith(
@@ -299,7 +345,7 @@ class _ScanFAB extends StatelessWidget {
               height: 1,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           if (isActive)
             Container(
               width: 4,
@@ -454,14 +500,14 @@ class _CalorixNavIconPainter extends CustomPainter {
           ..lineTo(4.5, 11)
           ..lineTo(10.7, 9.5)
           ..close()
-          ..moveTo(19, 18)
-          ..lineTo(19.5, 19.8)
-          ..lineTo(21.5, 20)
-          ..lineTo(19.5, 20.5)
-          ..lineTo(19, 22.5)
-          ..lineTo(18.5, 20.5)
-          ..lineTo(16.5, 20)
-          ..lineTo(18.5, 19.8)
+          ..moveTo(19, 17.4)
+          ..lineTo(19.7, 19.4)
+          ..lineTo(22, 20)
+          ..lineTo(19.7, 20.6)
+          ..lineTo(19, 22.7)
+          ..lineTo(18.3, 20.6)
+          ..lineTo(16, 20)
+          ..lineTo(18.3, 19.4)
           ..close();
         canvas.drawPath(path, fill);
         break;

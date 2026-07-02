@@ -111,8 +111,10 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                         ? const Color(0x0FFFFFFF)
                         : const Color(0x0F000000),
                     border: Border.all(
-                      color:
-                          isDark ? AppColors.borderDark : AppColors.borderLight,
+                      color: isDark
+                          ? AppColors.borderDarkStrong
+                          : AppColors.borderLightStrong,
+                      width: 0.5,
                     ),
                   ),
                   child: Icon(
@@ -137,8 +139,10 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                         ? const Color(0x0FFFFFFF)
                         : const Color(0x0F000000),
                     border: Border.all(
-                      color:
-                          isDark ? AppColors.borderDark : AppColors.borderLight,
+                      color: isDark
+                          ? AppColors.borderDarkStrong
+                          : AppColors.borderLightStrong,
+                      width: 0.5,
                     ),
                   ),
                   child: initials != null
@@ -267,145 +271,179 @@ class _HeroMacroCard extends StatelessWidget {
     final textColor =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: AnimatedBuilder(
-          animation: animation,
-          builder: (context, _) {
-            final kcalNow = summary.kcal * animation.value;
-            final pNow = summary.protein * animation.value;
-            final cNow = summary.carbs * animation.value;
-            final fNow = summary.fat * animation.value;
-            return Column(
-              children: [
-                const SizedBox(height: 8),
-                Center(
-                  child: AnimatedMacroRing(
-                    animation: animation,
-                    proteinFraction:
-                        plan.protein > 0 ? summary.protein / plan.protein : 0,
-                    carbsFraction:
-                        plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
-                    fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
-                    size: 222,
-                    strokeWidth: 10,
-                    trackColor: isDark
-                        ? const Color(0x0FFFFFFF)
-                        : const Color(0xFFF2F0EB),
-                    center: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'KCAL EATEN',
-                          style: AppTextStyles.labelMono.copyWith(
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight),
-                        ),
-                        Text(
-                          NumberFormat('#,###').format(kcalNow.round()),
-                          style: AppTextStyles.todayHeroNumber
-                              .copyWith(color: textColor),
-                        ),
-                        Text.rich(
-                          TextSpan(
-                            text: 'of ',
-                            style: AppTextStyles.labelSmall.copyWith(
-                              fontSize: 11,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: NumberFormat('#,###').format(plan.kcal),
-                                style: AppTextStyles.todayMonoTarget.copyWith(
-                                  fontSize: 11,
-                                  color: isDark
-                                      ? AppColors.textPrimaryDark
-                                          .withValues(alpha: 0.78)
-                                      : AppColors.textPrimaryLight
-                                          .withValues(alpha: 0.78),
-                                ),
-                              ),
-                            ],
+    return DecoratedBox(
+      key: const ValueKey('today.heroCardSurface'),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? AppColors.borderDarkStrong : AppColors.borderLight,
+          width: 0.5,
+        ),
+        boxShadow: [
+          if (isDark)
+            BoxShadow(
+              color: const Color(0x66080A0D),
+              blurRadius: 28,
+              offset: const Offset(0, 12),
+            )
+          else
+            BoxShadow(
+              color: const Color(0x0A0B0D10),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+        ],
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          border: Border(
+            top: BorderSide(
+              color:
+                  isDark ? AppColors.topHighlightDark : AppColors.borderLight,
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: AnimatedBuilder(
+            animation: animation,
+            builder: (context, _) {
+              final kcalNow = summary.kcal * animation.value;
+              final pNow = summary.protein * animation.value;
+              final cNow = summary.carbs * animation.value;
+              final fNow = summary.fat * animation.value;
+              return Column(
+                children: [
+                  const SizedBox(height: 8),
+                  Center(
+                    child: AnimatedMacroRing(
+                      animation: animation,
+                      proteinFraction:
+                          plan.protein > 0 ? summary.protein / plan.protein : 0,
+                      carbsFraction:
+                          plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
+                      fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
+                      size: 222,
+                      strokeWidth: 10,
+                      trackColor: isDark
+                          ? const Color(0x0FFFFFFF)
+                          : const Color(0xFFF2F0EB),
+                      center: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'KCAL EATEN',
+                            style: AppTextStyles.labelMono.copyWith(
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        UiDiffAnchor(
-                          id: 'today.kcalLeftPill',
-                          label:
-                              '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
-                          child: Container(
-                            key: const ValueKey('today.kcalLeftPillContainer'),
-                            constraints: const BoxConstraints(maxWidth: 122),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppColors.kcalLeftPillBg,
-                              borderRadius: BorderRadius.circular(99),
+                          Text(
+                            NumberFormat('#,###').format(kcalNow.round()),
+                            style: AppTextStyles.todayHeroNumber
+                                .copyWith(color: textColor),
+                          ),
+                          Text.rich(
+                            TextSpan(
+                              text: 'of ',
+                              style: AppTextStyles.labelSmall.copyWith(
+                                fontSize: 11,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: NumberFormat('#,###').format(plan.kcal),
+                                  style: AppTextStyles.todayMonoTarget.copyWith(
+                                    fontSize: 11,
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                            .withValues(alpha: 0.78)
+                                        : AppColors.textPrimaryLight
+                                            .withValues(alpha: 0.78),
+                                  ),
+                                ),
+                              ],
                             ),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
+                          ),
+                          const SizedBox(height: 4),
+                          UiDiffAnchor(
+                            id: 'today.kcalLeftPill',
+                            label:
                                 '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
-                                maxLines: 1,
-                                style: AppTextStyles.labelMono.copyWith(
-                                  color: AppColors.green,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.4,
+                            child: Container(
+                              key:
+                                  const ValueKey('today.kcalLeftPillContainer'),
+                              constraints: const BoxConstraints(maxWidth: 122),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.kcalLeftPillBg,
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
+                                  maxLines: 1,
+                                  style: AppTextStyles.labelMono.copyWith(
+                                    color: AppColors.green,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.4,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                UiDiffAnchor(
-                  id: 'today.proteinRow',
-                  label: 'Protein macro row',
-                  child: _MacroSubCardItem(
-                      label: 'Protein',
-                      current: pNow,
-                      target: plan.protein.toDouble(),
-                      color: AppColors.protein,
-                      isDark: isDark,
-                      animation: animation),
-                ),
-                const SizedBox(height: 8),
-                UiDiffAnchor(
-                  id: 'today.carbsRow',
-                  label: 'Carbs macro row',
-                  child: _MacroSubCardItem(
-                      label: 'Carbs',
-                      current: cNow,
-                      target: plan.carbs.toDouble(),
-                      color: AppColors.carbs,
-                      isDark: isDark,
-                      animation: animation),
-                ),
-                const SizedBox(height: 8),
-                UiDiffAnchor(
-                  id: 'today.fatRow',
-                  label: 'Fat macro row',
-                  child: _MacroSubCardItem(
-                      label: 'Fat',
-                      current: fNow,
-                      target: plan.fat.toDouble(),
-                      color: AppColors.fat,
-                      isDark: isDark,
-                      animation: animation),
-                ),
-              ],
-            );
-          },
+                  const SizedBox(height: 10),
+                  UiDiffAnchor(
+                    id: 'today.proteinRow',
+                    label: 'Protein macro row',
+                    child: _MacroSubCardItem(
+                        label: 'Protein',
+                        current: pNow,
+                        target: plan.protein.toDouble(),
+                        color: AppColors.protein,
+                        isDark: isDark,
+                        animation: animation),
+                  ),
+                  const SizedBox(height: 8),
+                  UiDiffAnchor(
+                    id: 'today.carbsRow',
+                    label: 'Carbs macro row',
+                    child: _MacroSubCardItem(
+                        label: 'Carbs',
+                        current: cNow,
+                        target: plan.carbs.toDouble(),
+                        color: AppColors.carbs,
+                        isDark: isDark,
+                        animation: animation),
+                  ),
+                  const SizedBox(height: 8),
+                  UiDiffAnchor(
+                    id: 'today.fatRow',
+                    label: 'Fat macro row',
+                    child: _MacroSubCardItem(
+                        label: 'Fat',
+                        current: fNow,
+                        target: plan.fat.toDouble(),
+                        color: AppColors.fat,
+                        isDark: isDark,
+                        animation: animation),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -436,7 +474,7 @@ class _MacroSubCardItem extends StatelessWidget {
         color: isDark ? const Color(0x08FFFFFF) : const Color(0xFFFAF8F3),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? const Color(0x12FFFFFF) : const Color(0x120B0D10),
+          color: isDark ? AppColors.borderDarkStrong : AppColors.borderLight,
           width: 0.5,
         ),
       ),
@@ -476,7 +514,8 @@ class _MealCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
           side: BorderSide(
-            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            color: isDark ? AppColors.borderDarkStrong : AppColors.borderLight,
+            width: 0.5,
           ),
         ),
         child: Padding(
@@ -683,7 +722,7 @@ class _TodayConfidenceBadge extends StatelessWidget {
         color: isDark ? const Color(0x0AFFFFFF) : const Color(0xFFF4F2EE),
         borderRadius: BorderRadius.circular(99),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          color: isDark ? AppColors.borderDarkStrong : AppColors.borderLight,
           width: 0.5,
         ),
       ),
