@@ -397,13 +397,16 @@ class _CalorixNavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
+    return SizedBox.square(
       key: Key('nav-icon-${type.name}'),
-      size: Size.square(size),
-      painter: _CalorixNavIconPainter(
-        type: type,
-        color: color,
-        strokeWidth: strokeWidth,
+      dimension: size,
+      child: CustomPaint(
+        size: Size.square(size),
+        painter: _CalorixNavIconPainter(
+          type: type,
+          color: color,
+          strokeWidth: strokeWidth,
+        ),
       ),
     );
   }
