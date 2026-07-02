@@ -268,6 +268,7 @@ class _ScanFAB extends StatelessWidget {
                             : AppColors.surfaceLight,
                         shape: BoxShape.circle,
                       ),
+                      alignment: Alignment.center,
                       child: _CalorixNavIcon(
                         key: const Key('scan-icon-eye'),
                         type: _NavIconType.scan,
