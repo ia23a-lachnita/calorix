@@ -9,6 +9,7 @@ class MacroProgressBar extends StatelessWidget {
   final Color color;
   final Animation<double>? animation;
   final bool denseTodayStyle;
+  final bool disableImplicitAnimation;
 
   const MacroProgressBar({
     super.key,
@@ -18,6 +19,7 @@ class MacroProgressBar extends StatelessWidget {
     required this.color,
     this.animation,
     this.denseTodayStyle = false,
+    this.disableImplicitAnimation = false,
   });
 
   double get _fraction => target > 0 ? (current / target).clamp(0.0, 1.0) : 0;
@@ -102,12 +104,14 @@ class MacroProgressBar extends StatelessWidget {
                   fraction: _fraction * animation!.value,
                   color: color,
                   height: denseTodayStyle ? 6 : 4,
+                  disableImplicitAnimation: disableImplicitAnimation,
                 ),
               )
             : _Bar(
                 fraction: _fraction,
                 color: color,
                 height: denseTodayStyle ? 6 : 4,
+                disableImplicitAnimation: disableImplicitAnimation,
               ),
       ],
     );
@@ -118,10 +122,12 @@ class _Bar extends StatelessWidget {
   final double fraction;
   final Color color;
   final double height;
+  final bool disableImplicitAnimation;
   const _Bar({
     required this.fraction,
     required this.color,
     required this.height,
+    required this.disableImplicitAnimation,
   });
 
   @override
@@ -138,7 +144,9 @@ class _Bar extends StatelessWidget {
             ),
           ),
           AnimatedContainer(
-            duration: const Duration(milliseconds: 1200),
+            duration: disableImplicitAnimation
+                ? Duration.zero
+                : const Duration(milliseconds: 1200),
             height: height,
             width: constraints.maxWidth * fraction,
             decoration: BoxDecoration(

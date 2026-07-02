@@ -229,11 +229,31 @@ void main() {
         tester.widget<ClipRRect>(find.byType(ClipRRect).first);
     expect(thumbnailClip.borderRadius, BorderRadius.circular(16));
 
-    final spacer = tester.widget<SliverPadding>(
+    final spacer = tester.widget<Padding>(
       find.byKey(const ValueKey('today.bottomContentSpacer')),
     );
     final padding = spacer.padding as EdgeInsets;
     expect(padding.bottom, greaterThanOrEqualTo(132));
+  });
+
+  testWidgets('Today UI-diff mode reaches stable macro state immediately',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(393, 852));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        themeMode: ThemeMode.dark,
+        uiDiffMode: true,
+        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1));
+
+    expect(find.text('1,420'), findsOneWidget);
+    expect(find.text('96'), findsOneWidget);
+    expect(tester.binding.transientCallbackCount, 0);
   });
 
   testWidgets('kcal left pill fits inside macro ring center', (tester) async {
