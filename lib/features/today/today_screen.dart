@@ -282,16 +282,16 @@ class _HeroMacroCard extends StatelessWidget {
         ),
         boxShadow: [
           if (isDark)
-            BoxShadow(
-              color: const Color(0x66080A0D),
+            const BoxShadow(
+              color: Color(0x66080A0D),
               blurRadius: 28,
-              offset: const Offset(0, 12),
+              offset: Offset(0, 12),
             )
           else
-            BoxShadow(
-              color: const Color(0x0A0B0D10),
+            const BoxShadow(
+              color: Color(0x0A0B0D10),
               blurRadius: 24,
-              offset: const Offset(0, 8),
+              offset: Offset(0, 8),
             ),
         ],
       ),
