@@ -53,7 +53,8 @@ void main() {
 
     expect(find.text('Today'), findsWidgets); // tab label + page body
     expect(find.text('History'), findsOneWidget);
-    expect(find.text('SCAN'), findsOneWidget); // _ScanFAB renders uppercase 'SCAN'
+    expect(
+        find.text('SCAN'), findsOneWidget); // _ScanFAB renders uppercase 'SCAN'
     expect(find.text('Goals'), findsOneWidget);
     expect(find.text('AI'), findsOneWidget);
   });
@@ -66,8 +67,48 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 300));
 
-    // Scan eye icon is present
-    expect(find.byIcon(Icons.remove_red_eye_outlined), findsOneWidget);
+    // Scan eye icon is rendered by the Calorix custom painter.
+    expect(find.byKey(const Key('scan-icon-eye')), findsOneWidget);
+  });
+
+  testWidgets('Bottom nav uses mockup-specific custom tab icons',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp.router(routerConfig: _buildRouter()),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byKey(const Key('nav-icon-today')), findsOneWidget);
+    expect(find.byKey(const Key('nav-icon-history')), findsOneWidget);
+    expect(find.byKey(const Key('nav-icon-goals')), findsOneWidget);
+    expect(find.byKey(const Key('nav-icon-ai')), findsOneWidget);
+
+    expect(find.byIcon(Icons.today_outlined), findsNothing);
+    expect(find.byIcon(Icons.flag_outlined), findsNothing);
+  });
+
+  testWidgets('Scan FAB matches mockup ring proportions', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp.router(routerConfig: _buildRouter()),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+        tester.getSize(find.byKey(const Key('scan-glow'))), const Size(76, 76));
+    expect(tester.getSize(find.byKey(const Key('scan-fab-outer'))),
+        const Size(60, 60));
+    expect(tester.getSize(find.byKey(const Key('scan-fab-inner'))),
+        const Size(48, 48));
+    expect(find.byKey(const Key('scan-icon-eye')), findsOneWidget);
+
+    final scanLabel = tester.widget<Text>(find.text('SCAN'));
+    expect(scanLabel.style?.fontFamily, 'GeistMono');
+    expect(scanLabel.style?.fontSize, 9.5);
+    expect(scanLabel.style?.letterSpacing, 1.6);
   });
 
   testWidgets('Tapping History tab navigates', (tester) async {

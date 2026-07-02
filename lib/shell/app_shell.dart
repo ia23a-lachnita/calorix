@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_colors.dart';
@@ -74,18 +74,11 @@ class _CalorixBottomNav extends StatelessWidget {
   final bool isDark;
 
   static const _items = [
-    _NavItem(
-        icon: Icons.today_outlined, activeIcon: Icons.today, label: 'Today'),
-    _NavItem(
-        icon: Icons.history_outlined,
-        activeIcon: Icons.history,
-        label: 'History'),
-    _NavItem(icon: null, activeIcon: null, label: 'Scan'), // FAB
-    _NavItem(icon: Icons.flag_outlined, activeIcon: Icons.flag, label: 'Goals'),
-    _NavItem(
-        icon: Icons.auto_awesome_outlined,
-        activeIcon: Icons.auto_awesome,
-        label: 'AI'),
+    _NavItem(icon: _NavIconType.today, label: 'Today'),
+    _NavItem(icon: _NavIconType.history, label: 'History'),
+    _NavItem(icon: _NavIconType.scan, label: 'Scan'), // FAB
+    _NavItem(icon: _NavIconType.goals, label: 'Goals'),
+    _NavItem(icon: _NavIconType.ai, label: 'AI'),
   ];
 
   @override
@@ -96,49 +89,57 @@ class _CalorixBottomNav extends StatelessWidget {
     final inactiveColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-    return Container(
-      height: 72 + MediaQuery.of(context).padding.bottom,
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.borderDark : AppColors.borderLight,
-            width: 0.5,
-          ),
-        ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(_items.length, (index) {
-            if (index == 2) {
-              return Expanded(
-                child: UiDiffAnchor(
-                  id: 'today.scanButton',
-                  label: 'Scan FAB',
-                  child: _ScanFAB(
-                    isActive: currentIndex == 2,
-                    controller: fabRingController,
-                    isDark: isDark,
-                    onTap: () => onTap(2),
-                  ),
-                ),
-              );
-            }
-            final item = _items[index];
-            final isActive = currentIndex == index;
-            return Expanded(
-              child: _NavButton(
-                icon: isActive ? item.activeIcon! : item.icon!,
-                label: item.label,
-                isActive: isActive,
-                activeColor: activeColor,
-                inactiveColor: inactiveColor,
-                onTap: () => onTap(index),
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+        child: Container(
+          height: 92 + MediaQuery.of(context).padding.bottom,
+          decoration: BoxDecoration(
+            color: bgColor.withValues(alpha: 0.92),
+            border: Border(
+              top: BorderSide(
+                color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                width: 0.5,
               ),
-            );
-          }),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: 6,
+              bottom: MediaQuery.of(context).padding.bottom,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: List.generate(_items.length, (index) {
+                if (index == 2) {
+                  return Expanded(
+                    child: UiDiffAnchor(
+                      id: 'today.scanButton',
+                      label: 'Scan FAB',
+                      child: _ScanFAB(
+                        isActive: currentIndex == 2,
+                        controller: fabRingController,
+                        isDark: isDark,
+                        onTap: () => onTap(2),
+                      ),
+                    ),
+                  );
+                }
+                final item = _items[index];
+                final isActive = currentIndex == index;
+                return Expanded(
+                  child: _NavButton(
+                    icon: item.icon,
+                    label: item.label,
+                    isActive: isActive,
+                    activeColor: activeColor,
+                    inactiveColor: inactiveColor,
+                    onTap: () => onTap(index),
+                  ),
+                );
+              }),
+            ),
+          ),
         ),
       ),
     );
@@ -146,11 +147,9 @@ class _CalorixBottomNav extends StatelessWidget {
 }
 
 class _NavItem {
-  final IconData? icon;
-  final IconData? activeIcon;
+  final _NavIconType icon;
   final String label;
-  const _NavItem(
-      {required this.icon, required this.activeIcon, required this.label});
+  const _NavItem({required this.icon, required this.label});
 }
 
 class _NavButton extends StatelessWidget {
@@ -163,7 +162,7 @@ class _NavButton extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData icon;
+  final _NavIconType icon;
   final String label;
   final bool isActive;
   final Color activeColor;
@@ -179,24 +178,31 @@ class _NavButton extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(height: 2),
+          _CalorixNavIcon(
+            type: icon,
+            color: color,
+            strokeWidth: isActive ? 2 : 1.6,
+          ),
+          const SizedBox(height: 4),
           Text(
             label,
-            style: AppTextStyles.labelSmall.copyWith(color: color),
+            style: AppTextStyles.labelSmall.copyWith(
+              color: color,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 2),
-          if (isActive)
-            Container(
+          Opacity(
+            opacity: isActive ? 1.0 : 0.0,
+            child: Container(
               width: 4,
               height: 4,
               decoration: const BoxDecoration(
                 color: AppColors.cyan,
                 shape: BoxShape.circle,
               ),
-            )
-          else
-            const SizedBox(height: 4),
+            ),
+          ),
         ],
       ),
     );
@@ -224,48 +230,118 @@ class _ScanFAB extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          AnimatedBuilder(
-            animation: controller,
-            builder: (context, child) => CustomPaint(
-              painter: _SweepRingPainter(progress: controller.value),
-              child: child,
-            ),
-            child: Container(
-              width: 48,
-              height: 48,
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.remove_red_eye_outlined,
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight,
-                size: 22,
-              ),
+          SizedBox(
+            width: 76,
+            height: 60,
+            child: Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  top: -8,
+                  child: Container(
+                    key: const Key('scan-glow'),
+                    width: 76,
+                    height: 76,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Color(0x5919D3D9),
+                          Color(0x0D3A5BFF),
+                          Color(0x00000000),
+                        ],
+                        stops: [0.0, 0.6, 0.75],
+                      ),
+                    ),
+                  ),
+                ),
+                AnimatedBuilder(
+                  animation: controller,
+                  builder: (context, child) => Transform.rotate(
+                    angle: controller.value * 2 * math.pi,
+                    child: child,
+                  ),
+                  child: Container(
+                    key: const Key('scan-fab-outer'),
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const SweepGradient(
+                        colors: AppColors.sweepGradient,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.cyan.withValues(alpha: 0.35),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                        BoxShadow(
+                          color: AppColors.blue.withValues(alpha: 0.30),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Container(
+                        key: const Key('scan-fab-inner'),
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.backgroundDark.withValues(alpha: 0.85)
+                              : AppColors.surfaceLight,
+                          shape: BoxShape.circle,
+                        ),
+                        child: _CalorixNavIcon(
+                          key: const Key('scan-icon-eye'),
+                          type: _NavIconType.scan,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 1),
+          const SizedBox(height: 4),
           Text(
             'SCAN',
-            style: AppTextStyles.labelSmall.copyWith(
+            style: AppTextStyles.labelMono.copyWith(
               color: isActive
                   ? (isDark
                       ? AppColors.textPrimaryDark
                       : AppColors.textPrimaryLight)
-                  : AppColors.textSecondaryDark,
+                  : (isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight),
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              letterSpacing: 1.6,
+              height: 1,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           if (isActive)
             Container(
               width: 4,
               height: 4,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.green,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.green.withValues(alpha: 0.2),
+                    spreadRadius: 3,
+                    blurRadius: 0,
+                  ),
+                ],
               ),
             )
           else
@@ -276,28 +352,149 @@ class _ScanFAB extends StatelessWidget {
   }
 }
 
-class _SweepRingPainter extends CustomPainter {
-  final double progress;
-  _SweepRingPainter({required this.progress});
+enum _NavIconType { today, history, scan, goals, ai }
+
+class _CalorixNavIcon extends StatelessWidget {
+  const _CalorixNavIcon({
+    super.key,
+    required this.type,
+    required this.color,
+    this.size = 22,
+    this.strokeWidth = 1.6,
+  });
+
+  final _NavIconType type;
+  final Color color;
+  final double size;
+  final double strokeWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      key: Key('nav-icon-${type.name}'),
+      size: Size.square(size),
+      painter: _CalorixNavIconPainter(
+        type: type,
+        color: color,
+        strokeWidth: strokeWidth,
+      ),
+    );
+  }
+}
+
+class _CalorixNavIconPainter extends CustomPainter {
+  _CalorixNavIconPainter({
+    required this.type,
+    required this.color,
+    required this.strokeWidth,
+  });
+
+  final _NavIconType type;
+  final Color color;
+  final double strokeWidth;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
+    final scale = size.width / 24;
+    canvas.save();
+    canvas.scale(scale, scale);
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.5
-      ..shader = SweepGradient(
-        colors: AppColors.sweepGradient,
-        startAngle: 0,
-        endAngle: 2 * math.pi,
-        transform: GradientRotation(progress * 2 * math.pi),
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final fill = Paint()
+      ..style = PaintingStyle.fill
+      ..color = color;
 
-    canvas.drawCircle(center, radius - 1.5, paint);
+    switch (type) {
+      case _NavIconType.today:
+        final path = Path()
+          ..moveTo(3, 17)
+          ..lineTo(21, 17)
+          ..moveTo(6, 14)
+          ..arcToPoint(
+            const Offset(18, 14),
+            radius: const Radius.circular(6),
+            clockwise: true,
+          )
+          ..moveTo(12, 5)
+          ..lineTo(12, 7)
+          ..moveTo(5.6, 7.6)
+          ..lineTo(7, 9)
+          ..moveTo(18.4, 7.6)
+          ..lineTo(17, 9);
+        canvas.drawPath(path, paint);
+        break;
+      case _NavIconType.history:
+        final path = Path()
+          ..moveTo(4, 12)
+          ..arcToPoint(
+            const Offset(6.5, 6.2),
+            radius: const Radius.circular(8),
+            largeArc: true,
+            clockwise: false,
+          )
+          ..moveTo(4, 4)
+          ..lineTo(4, 7.5)
+          ..lineTo(7.5, 7.5)
+          ..moveTo(12, 8)
+          ..lineTo(12, 12)
+          ..lineTo(15, 14);
+        canvas.drawPath(path, paint);
+        break;
+      case _NavIconType.scan:
+        final path = Path()
+          ..moveTo(2.5, 12)
+          ..cubicTo(2.5, 12, 6.1, 6, 12, 6)
+          ..cubicTo(17.9, 6, 21.5, 12, 21.5, 12)
+          ..cubicTo(21.5, 12, 17.9, 18, 12, 18)
+          ..cubicTo(6.1, 18, 2.5, 12, 2.5, 12);
+        canvas.drawPath(path, paint);
+        canvas.drawCircle(const Offset(12, 12), 3.2, paint);
+        canvas.drawCircle(const Offset(13, 11), 0.9, fill);
+        break;
+      case _NavIconType.goals:
+        canvas.drawCircle(const Offset(11, 13), 8, paint);
+        canvas.drawCircle(const Offset(11, 13), 4, paint);
+        final path = Path()
+          ..moveTo(11, 13)
+          ..lineTo(20.5, 3.5)
+          ..moveTo(16.5, 3.5)
+          ..lineTo(20.5, 3.5)
+          ..lineTo(20.5, 7.5);
+        canvas.drawPath(path, paint);
+        canvas.drawCircle(const Offset(11, 13), 1.1, fill);
+        break;
+      case _NavIconType.ai:
+        final path = Path()
+          ..moveTo(12, 3.5)
+          ..lineTo(13.3, 9.5)
+          ..lineTo(19.5, 11)
+          ..lineTo(13.3, 12.5)
+          ..lineTo(12, 18.5)
+          ..lineTo(10.7, 12.5)
+          ..lineTo(4.5, 11)
+          ..lineTo(10.7, 9.5)
+          ..close()
+          ..moveTo(19, 18)
+          ..lineTo(19.5, 19.8)
+          ..lineTo(21.5, 20)
+          ..lineTo(19.5, 20.5)
+          ..lineTo(19, 22.5)
+          ..lineTo(18.5, 20.5)
+          ..lineTo(16.5, 20)
+          ..lineTo(18.5, 19.8)
+          ..close();
+        canvas.drawPath(path, fill);
+        break;
+    }
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_SweepRingPainter old) => old.progress != progress;
+  bool shouldRepaint(_CalorixNavIconPainter old) =>
+      old.type != type || old.color != color || old.strokeWidth != strokeWidth;
 }
