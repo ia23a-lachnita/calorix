@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'route_names.dart';
@@ -195,8 +196,13 @@ class _DebugReseedScreenState extends ConsumerState<_DebugReseedScreen> {
       await SeedDataService(ref.read(firestoreProvider)).forceReseedForUiDiff(uid);
     }
     if (mounted) {
-      ref.read(uiDiffModeProvider.notifier).state = true;
-      context.go(RoutePaths.today);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(uiDiffModeProvider.notifier).state = true;
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+          context.go(RoutePaths.today);
+        }
+      });
     }
   }
 

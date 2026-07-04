@@ -1,0 +1,55 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:calorix/core/router/app_router.dart';
+import 'package:calorix/shared/providers/auth_provider.dart';
+import 'package:calorix/shared/providers/ui_diff_provider.dart';
+
+class FakeFirebaseAuth extends Fake implements FirebaseAuth {
+  @override
+  User? get currentUser => null;
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('Debug reseed screen sets ui-diff mode and immersiveSticky', (tester) async {
+    final log = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (methodCall) async {
+      log.add(methodCall);
+      return null;
+    });
+
+    final container = ProviderContainer(
+      overrides: [
+        firebaseAuthProvider.overrideWithValue(FakeFirebaseAuth()),
+      ],
+    );
+
+    final router = container.read(routerProvider);
+    router.go('/debug/reseed');
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(container.read(uiDiffModeProvider), isTrue);
+
+    final hasAnyFullscreenCall = log.any((call) =>
+        call.method == 'SystemChrome.setEnabledSystemUIMode' ||
+        call.method == 'SystemChrome.setEnabledSystemUIOverlays');
+
+    expect(hasAnyFullscreenCall, isTrue, reason: 'Expected SystemChrome.setEnabledSystemUIMode call');
+  });
+}
