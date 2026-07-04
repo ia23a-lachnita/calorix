@@ -27,6 +27,7 @@ class _AppShellState extends State<AppShell> {
     final currentIndex = widget.navigationShell.currentIndex;
 
     return Scaffold(
+      extendBody: currentIndex == 0,
       body: widget.navigationShell,
       bottomNavigationBar: UiDiffAnchor(
         id: 'today.bottomNav',

@@ -43,6 +43,10 @@ GoRouter _buildRouter() => GoRouter(
     );
 
 void main() {
+  Scaffold shellScaffold(WidgetTester tester) => tester
+      .widgetList<Scaffold>(find.byType(Scaffold))
+      .firstWhere((scaffold) => scaffold.bottomNavigationBar != null);
+
   testWidgets('Bottom nav shows all 5 tab labels', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -57,6 +61,30 @@ void main() {
         find.text('SCAN'), findsOneWidget); // _ScanFAB renders uppercase 'SCAN'
     expect(find.text('Goals'), findsOneWidget);
     expect(find.text('AI'), findsOneWidget);
+  });
+
+  testWidgets('Today extends behind nav but fixed-control tabs do not',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp.router(routerConfig: _buildRouter()),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(shellScaffold(tester).extendBody, isTrue);
+
+    await tester.tap(find.text('SCAN'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('ScanPage'), findsOneWidget);
+    expect(shellScaffold(tester).extendBody, isFalse);
+
+    await tester.tap(find.text('Goals'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('GoalsPage'), findsOneWidget);
+    expect(shellScaffold(tester).extendBody, isFalse);
   });
 
   testWidgets('Scan FAB is rendered at center position', (tester) async {

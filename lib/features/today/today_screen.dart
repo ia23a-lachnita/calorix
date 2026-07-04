@@ -103,8 +103,8 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
               GestureDetector(
                 onTap: () {},
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isDark
@@ -131,8 +131,8 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                 onTap: () => context.goNamed(RouteNames.profile),
                 child: Container(
                   margin: const EdgeInsets.only(right: 16),
-                  width: 40,
-                  height: 40,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isDark
@@ -154,7 +154,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                                   ? AppColors.textPrimaryDark
                                   : AppColors.textPrimaryLight,
                               fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                              fontSize: 13,
                             ),
                           ),
                         )
@@ -183,7 +183,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                     isDark: isDark,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 entriesAsync.when(
                   loading: () => Text('Recent scans',
                       style: AppTextStyles.heading3.copyWith(color: textColor)),
@@ -217,7 +217,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 entriesAsync.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
@@ -231,7 +231,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                             children: entries
                                 .map((e) => Padding(
                                       padding:
-                                          const EdgeInsets.only(bottom: 12),
+                                          const EdgeInsets.only(bottom: 10),
                                       child:
                                           _MealCard(entry: e, isDark: isDark),
                                     ))
