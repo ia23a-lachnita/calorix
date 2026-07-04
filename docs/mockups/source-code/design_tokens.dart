@@ -1,7 +1,6 @@
 // Calorix design tokens — Flutter translation of tokens/*.css and src/cx-theme.jsx.
 // Values are exact; do not round.
 
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 // ── Brand accents (mode-independent) ────────────────────────────
