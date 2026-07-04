@@ -16,20 +16,10 @@ class SeedDataService {
     (kcal: 2200.0, protein: 165.0, carbs: 235.0, fat: 70.0, entries: 4),
   ];
 
-  // Exact mockup values — sum: 1420 kcal, 96g P, 132g C, 38g F
-  // Chicken Rice Bowl is first in the "Recent scans" list (latest timestamp).
+  // Exact visible handoff meal-card values. The hero summary is intentionally
+  // fixed separately in ui-diff mode because the static design shows 1,420 kcal
+  // while these three visible cards sum to 845 kcal.
   static const _mockupTodayEntries = [
-    (
-      name: 'Scrambled Eggs & Toast',
-      kcal: 390.0,
-      protein: 32.0,
-      carbs: 36.0,
-      fat: 12.0,
-      confidence: 0.93,
-      meal: 'breakfast',
-      hour: 8,
-      minute: 0,
-    ),
     (
       name: 'Chicken Rice Bowl',
       kcal: 620.0,
@@ -40,17 +30,31 @@ class SeedDataService {
       meal: 'lunch',
       hour: 12,
       minute: 48,
+      imageUrl: 'assets/images/chicken_rice_bowl_square.jpg',
     ),
     (
-      name: 'Salmon & Vegetables',
-      kcal: 410.0,
-      protein: 16.0,
-      carbs: 24.0,
-      fat: 10.0,
+      name: 'Protein Yogurt',
+      kcal: 180.0,
+      protein: 25.0,
+      carbs: 12.0,
+      fat: 3.0,
       confidence: 0.88,
-      meal: 'lunch',
-      hour: 10,
-      minute: 30,
+      meal: 'breakfast',
+      hour: 9,
+      minute: 12,
+      imageUrl: 'assets/images/protein_joghurt.jpg',
+    ),
+    (
+      name: 'Espresso · Oat',
+      kcal: 45.0,
+      protein: 1.0,
+      carbs: 8.0,
+      fat: 1.0,
+      confidence: 0.62,
+      meal: 'drink',
+      hour: 8,
+      minute: 5,
+      imageUrl: 'assets/images/coffee-oatmeal.jpg',
     ),
   ];
 
@@ -114,7 +118,7 @@ class SeedDataService {
         'servingMultiplier': 1.0,
         'corrected': false,
         'detectedItems': <Map<String, dynamic>>[],
-        'imageUrl': null,
+        'imageUrl': e.imageUrl,
         'timestamp': Timestamp.fromDate(
           now.copyWith(hour: e.hour, minute: e.minute, second: 0, millisecond: 0),
         ),
@@ -194,7 +198,7 @@ class SeedDataService {
         'servingMultiplier': 1.0,
         'corrected': false,
         'detectedItems': <Map<String, dynamic>>[],
-        'imageUrl': null,
+        'imageUrl': e.imageUrl,
         'timestamp': Timestamp.fromDate(
           now.copyWith(hour: e.hour, minute: e.minute, second: 0, millisecond: 0),
         ),

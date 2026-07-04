@@ -5,6 +5,14 @@ Source assets:
 - Mockup spec cards: `docs/mockups/source-code/README.md`
 - Visual references: `docs/mockups/images/all_dark.jpg`, `docs/mockups/images/all_light.jpg`
 
+Current handoff note:
+- The active Claude-design handoff is integrated under `docs/mockups/source-code/`.
+- The app name and logo remain placeholders. Do not hard-code a final product name or logo until the brand decision lands; `Ravlo` is a likely candidate but not final.
+- Today screen UI-diff target images are raw app viewports, not iPhone-frame composites:
+  - `docs/mockups/image/dark/single/Today.png`
+  - `docs/mockups/image/light/single/Today.png`
+- The Today handoff intentionally shows a static hero summary of `1,420 kcal / 96g protein / 132g carbs / 38g fat` even though the three visible meal cards sum to `845 kcal / 74g protein / 92g carbs / 20g fat`. Keep that discrepancy isolated to debug/ui-diff visual parity fixtures; production summary logic must keep summing real entries.
+
 ## Product Feel
 
 Calorix must feel premium, serious, smooth, modern, fitness-focused, and minimal. It should feel like a polished AI fitness tool, not a childish diet app. Use Apple-like clarity, strong but soft contrast, gym/fitness restraint, and purposeful AI motion.

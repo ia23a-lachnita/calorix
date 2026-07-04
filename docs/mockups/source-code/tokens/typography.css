@@ -1,0 +1,19 @@
+/* Calorix — typography tokens. Geist (UI) + Geist Mono (labels, numerals). */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@200;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap");
+
+:root {
+  --cx-font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --cx-font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Scale */
+  --cx-type-display: 600 30px/1.05 var(--cx-font-sans);   /* screen titles, ls -0.04em */
+  --cx-type-title:   600 21px/1.15 var(--cx-font-sans);   /* sheet titles, ls -0.03em */
+  --cx-type-body:    500 13.5px/1.45 var(--cx-font-sans); /* body, ls -0.005em */
+  --cx-type-caption: 500 12px/1.4 var(--cx-font-sans);    /* secondary rows */
+  --cx-type-label:   500 10px/1 var(--cx-font-mono);      /* eyebrow: uppercase, ls 0.16em */
+  --cx-type-num:     600 15px/1 var(--cx-font-mono);      /* values: tabular-nums, ls -0.02em */
+
+  --cx-ls-display: -0.04em;
+  --cx-ls-title:   -0.03em;
+  --cx-ls-label:    0.16em;
+}

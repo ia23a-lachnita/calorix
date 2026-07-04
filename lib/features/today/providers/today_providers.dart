@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/food_entry.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/providers/ui_diff_provider.dart';
 
 export '../../../shared/providers/plan_provider.dart' show activePlanProvider;
 
@@ -11,6 +12,13 @@ final todayEntriesProvider = StreamProvider<List<FoodEntry>>((ref) {
 });
 
 final todayMacroSummaryProvider = Provider<({double kcal, double protein, double carbs, double fat})>((ref) {
+  if (ref.watch(uiDiffModeProvider)) {
+    // The static handoff screenshot intentionally shows 1,420 kcal in the
+    // hero while the visible meal cards sum to 845 kcal. Keep that mismatch
+    // isolated to ui-diff mode so visual parity does not change production math.
+    return (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0);
+  }
+
   final entries = ref.watch(todayEntriesProvider).valueOrNull ?? [];
   double kcal = 0, protein = 0, carbs = 0, fat = 0;
   for (final e in entries) {

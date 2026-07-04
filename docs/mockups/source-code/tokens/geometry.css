@@ -1,0 +1,21 @@
+/* Calorix — spacing, radius, borders. */
+:root {
+  /* Spacing (px) */
+  --cx-space-1: 4px;
+  --cx-space-2: 8px;
+  --cx-space-3: 12px;
+  --cx-space-4: 16px;
+  --cx-space-5: 20px;
+  --cx-space-6: 24px;
+
+  /* Radii */
+  --cx-radius-pill:    999px;  /* chips, capture ring, nav dot */
+  --cx-radius-field:   14px;   /* inputs, small buttons */
+  --cx-radius-cta:     16px;   /* primary buttons */
+  --cx-radius-card:    22px;   /* meal cards, forms */
+  --cx-radius-card-lg: 28px;   /* hero cards, bottom sheets */
+
+  /* Hairline borders: 0.5px on cards, 1px dashed on placeholders */
+  --cx-border-hairline: 0.5px solid var(--cx-hairline);
+  --cx-border-strong:   1px solid var(--cx-hairline-2);
+}

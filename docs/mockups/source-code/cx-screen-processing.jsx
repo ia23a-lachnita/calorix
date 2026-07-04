@@ -157,7 +157,7 @@ function CXProcessingScreen({ mode = 'dark' }) {
         @keyframes cxSpinP { to { transform: rotate(360deg); } }
       `}</style>
 
-      <CXBottomNav active="scan" theme={isDark ? CX_DARK : CX_LIGHT} floating={!isDark} />
+      <CXBottomNav active="scan" theme={isDark ? CX_DARK : CX_LIGHT} floating={true} />
     </div>);
 
 }

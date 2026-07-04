@@ -26,7 +26,7 @@ function CXAIScreen({ mode = 'light' }) {
             </div>
             <div>
               <div style={{ fontFamily: CX_FONT, fontSize: 16, fontWeight: 600, color: t.ink, letterSpacing: '-0.02em' }}>
-                Calorix AI
+                {CX_APPNAME} AI
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <span style={{ width: 6, height: 6, borderRadius: 99, background: CX.green }}/>

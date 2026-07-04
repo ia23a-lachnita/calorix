@@ -52,6 +52,10 @@ const cxTheme = (mode) => (mode === 'dark' ? CX_DARK : CX_LIGHT);
 const CX_FONT = '"Geist", "Inter Tight", ui-sans-serif, system-ui, sans-serif';
 const CX_MONO = '"Geist Mono", ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace';
 
+// App-name placeholder — final brand name TBD. Swap this one constant
+// (and CXLogo/CXWordmark) when the real name/mark lands.
+const CX_APPNAME = 'AppName';
+
 // Tabular numeric run — use this for kcal/g values.
 function CXNum({ children, weight = 600, size, color, mono = true, style = {} }) {
   return (
@@ -81,4 +85,4 @@ function CXLabel({ children, color, style = {} }) {
   );
 }
 
-Object.assign(window, { CX, CX_LIGHT, CX_DARK, cxTheme, CX_FONT, CX_MONO, CXNum, CXLabel });
+Object.assign(window, { CX, CX_LIGHT, CX_DARK, cxTheme, CX_FONT, CX_MONO, CX_APPNAME, CXNum, CXLabel });

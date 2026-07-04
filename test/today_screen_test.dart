@@ -48,6 +48,7 @@ FoodEntry _foodEntry({
   required double fat,
   required double confidence,
   MealType mealType = MealType.lunch,
+  String? imageUrl,
 }) =>
     FoodEntry(
       id: id,
@@ -62,6 +63,7 @@ FoodEntry _foodEntry({
       fat: fat,
       confidence: confidence,
       mealType: mealType,
+      imageUrl: imageUrl,
     );
 
 // Pump frames for Riverpod StreamProvider to emit, then let finite animations settle.
@@ -273,5 +275,37 @@ void main() {
       find.byKey(const ValueKey('today.kcalLeftPillContainer')),
     );
     expect(pillBox.size.width, lessThanOrEqualTo(122));
+  });
+
+  testWidgets('Today meal card renders bundled food photo assets',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(393, 852));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        themeMode: ThemeMode.dark,
+        entries: [
+          _foodEntry(
+            id: 'chicken',
+            name: 'Chicken Rice Bowl',
+            timestamp: DateTime(2026, 7, 1, 12, 48),
+            kcal: 620,
+            protein: 48,
+            carbs: 72,
+            fat: 16,
+            confidence: 0.91,
+            imageUrl: 'assets/images/chicken_rice_bowl_square.jpg',
+          ),
+        ],
+        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+      ),
+    );
+    await _pumpTodayScreen(tester);
+
+    expect(
+      find.byKey(const ValueKey('today.mealThumbnailAsset.chicken')),
+      findsOneWidget,
+    );
   });
 }

@@ -1,0 +1,47 @@
+/* Calorix — color tokens. Light is default; dark scope via [data-theme="dark"]. */
+:root {
+  /* Brand accents — shared chroma/lightness, hue varies */
+  --cx-blue:  #3A5BFF;   /* protein */
+  --cx-cyan:  #19D3D9;   /* carbs · AI · scan glow */
+  --cx-green: #1FCC74;   /* fat · confirmed */
+  --cx-amber: #F2A93B;   /* gentle warning · low confidence */
+
+  --cx-grad-ai:   linear-gradient(135deg, #3A5BFF 0%, #19D3D9 55%, #1FCC74 100%);
+  --cx-grad-cool: linear-gradient(135deg, #3A5BFF 0%, #19D3D9 100%);
+  --cx-grad-warm: linear-gradient(135deg, #19D3D9 0%, #1FCC74 100%);
+
+  /* Light surfaces (default) */
+  --cx-bg:         #F4F2EE;
+  --cx-card:       #FFFFFF;
+  --cx-card-alt:   #FBFAF6;
+  --cx-ink:        #0B0D10;
+  --cx-ink-2:      #3A4048;
+  --cx-muted:      #7B8088;
+  --cx-hairline:   rgba(11,13,16,0.07);
+  --cx-hairline-2: rgba(11,13,16,0.12);
+  --cx-chip:       #EEEBE5;
+  --cx-shadow:     0 1px 2px rgba(11,13,16,0.04), 0 8px 24px rgba(11,13,16,0.04);
+  --cx-shadow-lg:  0 2px 4px rgba(11,13,16,0.04), 0 18px 40px rgba(11,13,16,0.06);
+
+  /* Semantic aliases */
+  --cx-macro-protein:    var(--cx-blue);
+  --cx-macro-carbs:      var(--cx-cyan);
+  --cx-macro-fat:        var(--cx-green);
+  --cx-status-confirmed: var(--cx-green);
+  --cx-status-review:    var(--cx-amber);
+  --cx-cta-ink:          #0B0D10;   /* ink on gradient CTAs, both modes */
+}
+
+[data-theme="dark"] {
+  --cx-bg:         #0C0F13;
+  --cx-card:       #14181E;
+  --cx-card-alt:   #181D24;
+  --cx-ink:        #F2F3F5;
+  --cx-ink-2:      rgba(242,243,245,0.78);
+  --cx-muted:      rgba(242,243,245,0.50);
+  --cx-hairline:   rgba(255,255,255,0.07);
+  --cx-hairline-2: rgba(255,255,255,0.13);
+  --cx-chip:       rgba(255,255,255,0.06);
+  --cx-shadow:     0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 28px rgba(0,0,0,0.4);
+  --cx-shadow-lg:  0 1px 0 rgba(255,255,255,0.04) inset, 0 30px 60px rgba(0,0,0,0.5);
+}

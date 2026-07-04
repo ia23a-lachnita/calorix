@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Handoff capture harness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@200;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; background: #101010; height: 100%; overflow: hidden; }
+  * { box-sizing: border-box; }
+  /* iOS-style: no persistent scrollbars inside app screens */
+  #stage * { scrollbar-width: none; }
+  #stage *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  /* capture mode (?capture=1): hide scrollbars, freeze motion, disable blur */
+  body.capture * { scrollbar-width: none !important; }
+  body.capture *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+  body.capture #stage, body.capture #stage * {
+    animation: none !important; transition: none !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  }
+  #fit { position: absolute; left: 50%; top: 0; width: 402px; height: 874px; }
+  #stage {
+    width: 402px; height: 874px; position: relative; overflow: hidden;
+    font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+    box-shadow: 0 0 0 1px #2a2d33;
+  }
+  /* live browsing chrome */
+  #bar {
+    position: fixed; left: 12px; top: 12px; z-index: 99;
+    display: flex; gap: 8px; align-items: center;
+    font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: #ddd;
+  }
+  #bar select, #bar button {
+    background: #1c1f24; color: #eee; border: 1px solid #333; border-radius: 8px;
+    font: inherit; padding: 6px 10px; cursor: pointer;
+  }
+  body.capture #bar { display: none !important; }
+  body:not(.capture) #fit { top: 50%; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../cx-theme.jsx"></script>
+<script type="text/babel" src="../cx-icons.jsx"></script>
+<script type="text/babel" src="../cx-shell.jsx"></script>
+<script type="text/babel" src="../cx-screen-scan.jsx"></script>
+<script type="text/babel" src="../cx-screen-states.jsx"></script>
+<script type="text/babel" src="../cx-screen-processing.jsx"></script>
+<script type="text/babel" src="../cx-screen-today.jsx"></script>
+<script type="text/babel" src="../cx-screen-food.jsx"></script>
+<script type="text/babel" src="../cx-screen-history.jsx"></script>
+<script type="text/babel" src="../cx-screen-goals.jsx"></script>
+<script type="text/babel" src="../cx-screen-ai.jsx"></script>
+<script type="text/babel" src="../cx-screen-ai-history.jsx"></script>
+<script type="text/babel" src="../cx-screen-loading.jsx"></script>
+<script type="text/babel" src="../cx-screen-login.jsx"></script>
+<script type="text/babel" src="../cx-screen-profile.jsx"></script>
+</head>
+<body>
+<div id="bar">
+  <button id="prevBtn" title="previous (←)">←</button>
+  <select id="pick"></select>
+  <button id="nextBtn" title="next (→)">→</button>
+  <button id="modeBtn" title="toggle mode (m)">dark · light</button>
+</div>
+<div id="fit"><div id="stage"></div></div>
+<script>
+  var CAPTURE = new URLSearchParams(location.search).has('capture');
+  if (CAPTURE) document.body.classList.add('capture');
+  window.CX_STATIC = CAPTURE; // capture: render tween end-states (RAF is throttled offscreen)
+  // Capture mode: show top (0) or bottom (1) half of the 402×874 stage at scale 1.
+  window.setHalf = function (n) {
+    document.getElementById('fit').style.transform =
+      'translateX(-50%) translateY(' + (n === 1 ? '-437px' : '0px') + ')';
+  };
+  if (CAPTURE) {
+    window.setHalf(0);
+  } else {
+    // Live browsing: scale stage to fit, centered.
+    var fitLive = function () {
+      var s = Math.min(window.innerWidth / 402, window.innerHeight / 874) * 0.96;
+      document.getElementById('fit').style.transform =
+        'translate(-50%,-50%) scale(' + s + ')';
+    };
+    window.addEventListener('resize', fitLive);
+    fitLive();
+  }
+
+  // ── Gradient → SVG replacement ─────────────────────────────────
+  // The DOM-to-image capture engine rasterizes CSS gradients with coarse
+  // banding. SVG gradients (embedded as background data-URIs) render smoothly.
+  // Called after each showScreen() render, before capture.
+  function splitTop(s) {
+    const out = []; let d = 0, cur = '';
+    for (const ch of s) {
+      if (ch === '(') d++;
+      if (ch === ')') d--;
+      if (ch === ',' && d === 0) { out.push(cur.trim()); cur = ''; continue; }
+      cur += ch;
+    }
+    if (cur.trim()) out.push(cur.trim());
+    return out;
+  }
+  function parseStops(parts) {
+    // parts: ["rgb(58, 91, 255) 0%", "rgba(...) 55%", ...] — may lack positions
+    const stops = parts.map(p => {
+      const m = p.match(/^(.*?)\s+([\d.]+)%$/);
+      return m ? { c: m[1].trim(), at: parseFloat(m[2]) / 100 } : { c: p.trim(), at: null };
+    });
+    if (stops.length && stops[0].at === null) stops[0].at = 0;
+    if (stops.length && stops[stops.length - 1].at === null) stops[stops.length - 1].at = 1;
+    // interpolate missing
+    for (let i = 0; i < stops.length; i++) {
+      if (stops[i].at !== null) continue;
+      let j = i; while (stops[j].at === null) j++;
+      const prev = stops[i - 1].at, next = stops[j].at, n = j - i + 1;
+      for (let k = i; k < j; k++) stops[k].at = prev + (next - prev) * (k - i + 1) / n;
+    }
+    return stops;
+  }
+  function svgFor(grad) {
+    let m = grad.match(/^linear-gradient\((.*)\)$/);
+    if (m) {
+      const parts = splitTop(m[1]);
+      let angle = 180; // CSS default: to bottom
+      if (/deg$/.test(parts[0])) angle = parseFloat(parts.shift());
+      else if (/^to /.test(parts[0])) {
+        const dirs = { 'to top': 0, 'to right': 90, 'to bottom': 180, 'to left': 270,
+          'to top right': 45, 'to right top': 45, 'to bottom right': 135, 'to right bottom': 135,
+          'to bottom left': 225, 'to left bottom': 225, 'to top left': 315, 'to left top': 315 };
+        angle = dirs[parts.shift()] ?? 180;
+      }
+      const stops = parseStops(parts);
+      const rad = (angle - 90) * Math.PI / 180; // CSS 0deg = up; SVG x-axis
+      const dx = Math.cos(rad) / 2, dy = Math.sin(rad) / 2;
+      const x1 = 0.5 - dx, y1 = 0.5 - dy, x2 = 0.5 + dx, y2 = 0.5 + dy;
+      const stopsSvg = stops.map(s =>
+        `<stop offset="${s.at}" stop-color="${s.c.replace(/"/g, "'")}"/>`).join('');
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 1 1"><defs><linearGradient id="g" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stopsSvg}</linearGradient></defs><rect width="1" height="1" fill="url(#g)"/></svg>`;
+      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+    }
+    m = grad.match(/^radial-gradient\((.*)\)$/);
+    if (m) {
+      const parts = splitTop(m[1]);
+      let cx = 0.5, cy = 0.5;
+      if (!/^(rgb|#|hsl|transparent|[a-z]+$)/.test(parts[0]) || /at /.test(parts[0])) {
+        const shape = parts.shift();
+        const pm = shape.match(/at\s+([\d.]+)%\s+([\d.]+)%/);
+        if (pm) { cx = parseFloat(pm[1]) / 100; cy = parseFloat(pm[2]) / 100; }
+      }
+      const stops = parseStops(parts);
+      const stopsSvg = stops.map(s =>
+        `<stop offset="${s.at}" stop-color="${s.c.replace(/"/g, "'")}"/>`).join('');
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 1 1"><defs><radialGradient id="g" cx="${cx}" cy="${cy}" r="0.5">${stopsSvg}</radialGradient></defs><rect width="1" height="1" fill="url(#g)"/></svg>`;
+      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+    }
+    return null; // conic etc — leave as-is
+  }
+  window.svgizeGradients = function () {
+    const els = document.querySelectorAll('#stage, #stage *');
+    els.forEach(el => {
+      const bi = getComputedStyle(el).backgroundImage;
+      if (!bi || bi === 'none' || !bi.includes('gradient')) return;
+      const layers = splitTop(bi);
+      let changed = false;
+      const out = layers.map(l => {
+        if (/^(linear|radial)-gradient\(/.test(l)) {
+          const r = svgFor(l);
+          if (r) { changed = true; return r; }
+        }
+        return l;
+      });
+      if (changed) el.style.backgroundImage = out.join(', ');
+    });
+  };
+</script>
+<script type="text/babel" data-presets="react">
+const SCREENS = {
+  loading:        (m) => <CXLoadingScreen mode={m}/>,
+  login:          (m) => <CXLoginScreen mode={m}/>,
+  profile:        (m) => <CXProfileScreen mode={m}/>,
+  permission:     (m) => <CXPermissionScreen mode={m}/>,
+  scan_idle:      (m) => <CXScanScreen state="idle" mode={m}/>,
+  scan_capturing: (m) => <CXScanScreen state="capturing" mode={m}/>,
+  processing:     (m) => <CXProcessingScreen mode={m}/>,
+  review:         (m) => <CXScanReviewScreen mode={m}/>,
+  manual:         (m) => <CXManualAddScreen mode={m}/>,
+  today:          (m) => <CXTodayScreen mode={m}/>,
+  today_empty:    (m) => <CXTodayScreen mode={m} empty={true}/>,
+  food:           (m) => <CXFoodDetailScreen mode={m} editing={false}/>,
+  food_edit:      (m) => <CXFoodDetailScreen mode={m} editing={true}/>,
+  history_week:   (m) => <CXHistoryScreen mode={m} view="week"/>,
+  history_month:  (m) => <CXHistoryScreen mode={m} view="month"/>,
+  goals:          (m) => <CXGoalsScreen mode={m} period="idle"/>,
+  goals_select:   (m) => <CXGoalsScreen mode={m} period="select"/>,
+  ai_history:     (m) => <CXAIHistoryScreen mode={m}/>,
+  ai:             (m) => <CXAIScreen mode={m}/>,
+};
+const root = ReactDOM.createRoot(document.getElementById('stage'));
+window.SCREEN_IDS = Object.keys(SCREENS);
+let CUR = { id: 'today', mode: 'dark' };
+try {
+  const saved = JSON.parse(localStorage.getItem('cx-harness') || 'null');
+  if (saved && SCREENS[saved.id]) CUR = saved;
+} catch (e) {}
+
+window.showScreen = (id, mode = 'dark') => {
+  CUR = { id, mode };
+  try { localStorage.setItem('cx-harness', JSON.stringify(CUR)); } catch (e) {}
+  document.body.style.background = mode === 'dark' ? '#101010' : '#DDDAD4';
+  const pick = document.getElementById('pick');
+  if (pick) pick.value = id;
+  root.render(SCREENS[id](mode));
+};
+
+// live-browsing controls
+const pick = document.getElementById('pick');
+window.SCREEN_IDS.forEach((id) => {
+  const o = document.createElement('option');
+  o.value = id; o.textContent = id.replace(/_/g, ' ');
+  pick.appendChild(o);
+});
+pick.addEventListener('change', () => showScreen(pick.value, CUR.mode));
+const step = (d) => {
+  const i = (window.SCREEN_IDS.indexOf(CUR.id) + d + window.SCREEN_IDS.length) % window.SCREEN_IDS.length;
+  showScreen(window.SCREEN_IDS[i], CUR.mode);
+};
+document.getElementById('prevBtn').addEventListener('click', () => step(-1));
+document.getElementById('nextBtn').addEventListener('click', () => step(1));
+document.getElementById('modeBtn').addEventListener('click', () =>
+  showScreen(CUR.id, CUR.mode === 'dark' ? 'light' : 'dark'));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowRight') step(1);
+  if (e.key === 'm') showScreen(CUR.id, CUR.mode === 'dark' ? 'light' : 'dark');
+});
+
+window.showScreen(CUR.id, CUR.mode);
+</script>
+</body>
+</html>

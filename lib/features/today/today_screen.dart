@@ -525,12 +525,7 @@ class _MealCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: entry.imageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: entry.imageUrl!,
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                      )
+                    ? _MealThumbnailImage(entry: entry)
                     : _GradientPlaceholder(),
               ),
               const SizedBox(width: 12),
@@ -637,6 +632,33 @@ class _MealCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => _MealActionMenu(entry: entry),
+    );
+  }
+}
+
+class _MealThumbnailImage extends StatelessWidget {
+  final FoodEntry entry;
+
+  const _MealThumbnailImage({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = entry.imageUrl!;
+    if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        key: ValueKey('today.mealThumbnailAsset.${entry.id}'),
+        width: 60,
+        height: 60,
+        fit: BoxFit.cover,
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      width: 60,
+      height: 60,
+      fit: BoxFit.cover,
     );
   }
 }

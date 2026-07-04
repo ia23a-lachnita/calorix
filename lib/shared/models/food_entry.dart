@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum FoodEntryStatus { pending, processing, complete, error }
 
-enum MealType { breakfast, lunch, dinner, snack }
+enum MealType { breakfast, lunch, dinner, snack, drink }
 
 class DetectedItem {
   final String name;

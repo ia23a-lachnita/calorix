@@ -25,15 +25,15 @@ function useCount(to, dur = 1200, from = 0) {
   return v;
 }
 
-function CXTodayScreen({ mode = 'light' }) {
+function CXTodayScreen({ mode = 'light', empty = false }) {
   const t = cxTheme(mode);
 
-  // Targets / current values
-  const KCAL = { current: 1420, target: 2400 };
+  // Targets / current values — `empty` shows the first-run zero state.
+  const KCAL = { current: empty ? 0 : 1420, target: 2400 };
   const MACROS = {
-    protein: { c: 96,  t: 170, color: CX.blue,  label: 'Protein' },
-    carbs:   { c: 132, t: 250, color: CX.cyan,  label: 'Carbs'   },
-    fat:     { c: 38,  t: 70,  color: CX.green, label: 'Fat'     },
+    protein: { c: empty ? 0 : 96,  t: 170, color: CX.blue,  label: 'Protein' },
+    carbs:   { c: empty ? 0 : 132, t: 250, color: CX.cyan,  label: 'Carbs'   },
+    fat:     { c: empty ? 0 : 38,  t: 70,  color: CX.green, label: 'Fat'     },
   };
 
   // Tween everything together
@@ -102,7 +102,10 @@ function CXTodayScreen({ mode = 'light' }) {
           <MacroSubCard theme={t} info={MACROS.fat}     current={f}/>
         </div>
 
-        {/* Recent meals */}
+        {/* Recent meals — or first-run empty state */}
+        {empty ? (
+          <TodayEmptyState theme={t}/>
+        ) : (<React.Fragment>
         <div style={{
           margin: '20px 20px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
         }}>
@@ -118,18 +121,19 @@ function CXTodayScreen({ mode = 'light' }) {
             name="Chicken Rice Bowl" time="12:48 · Lunch"
             kcal={620} p={48} c={72} f={16}
             confidence={91} status="confirmed"
-            colorA="#d6b487" colorB="#8a5d36"/>
+            image="assets/chicken_rice_bowl_square.jpg"/>
           <MealCard theme={t}
             name="Protein Yogurt"   time="09:12 · Breakfast"
             kcal={180} p={25} c={12} f={3}
             confidence={88} status="confirmed"
-            colorA="#f4ecd8" colorB="#cbb88c"/>
+            image="assets/protein_joghurt.jpg"/>
           <MealCard theme={t}
             name="Espresso · Oat"   time="08:05 · Drink"
             kcal={45} p={1} c={8} f={1}
             confidence={62} status="review"
-            colorA="#3a2a1c" colorB="#1a0f06"/>
+            image="assets/coffee-oatmeal.jpg"/>
         </div>
+        </React.Fragment>)}
       </div>
 
       <style>{`
@@ -244,23 +248,29 @@ function MacroSubCard({ theme, info, current }) {
   );
 }
 
-function FoodThumb({ size = 60, colorA = '#d6b487', colorB = '#8a5d36', radius = 16 }) {
+function FoodThumb({ size = 60, colorA = '#d6b487', colorB = '#8a5d36', radius = 16, image }) {
   return (
     <div style={{
       width: size, height: size, borderRadius: radius, flexShrink: 0,
-      background: `radial-gradient(circle at 40% 40%, ${colorA} 0%, ${colorB} 70%, #2a221d 110%)`,
+      background: image ? '#1a1510' : `radial-gradient(circle at 40% 40%, ${colorA} 0%, ${colorB} 70%, #2a221d 110%)`,
       position: 'relative', overflow: 'hidden',
       boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.08), inset 0 -8px 16px rgba(0,0,0,0.18)',
     }}>
-      <div style={{
-        position: 'absolute', top: '20%', left: '24%', width: '24%', height: '12%',
-        background: 'rgba(255,255,255,0.45)', borderRadius: 999, transform: 'rotate(-20deg)',
-      }}/>
+      {image ? (
+        <img src={image} alt="" style={{
+          width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+        }}/>
+      ) : (
+        <div style={{
+          position: 'absolute', top: '20%', left: '24%', width: '24%', height: '12%',
+          background: 'rgba(255,255,255,0.45)', borderRadius: 999, transform: 'rotate(-20deg)',
+        }}></div>
+      )}
     </div>
   );
 }
 
-function MealCard({ theme, name, time, kcal, p, c, f, confidence, status, colorA, colorB }) {
+function MealCard({ theme, name, time, kcal, p, c, f, confidence, status, colorA, colorB, image }) {
   const low = confidence < 75;
   return (
     <div style={{
@@ -269,7 +279,7 @@ function MealCard({ theme, name, time, kcal, p, c, f, confidence, status, colorA
       border: `0.5px solid ${theme.hairline}`,
       alignItems: 'center',
     }}>
-      <FoodThumb colorA={colorA} colorB={colorB}/>
+      <FoodThumb colorA={colorA} colorB={colorB} image={image}/>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
           <div style={{ fontFamily: CX_FONT, fontSize: 15, fontWeight: 600, color: theme.ink, letterSpacing: '-0.01em' }}>
@@ -326,4 +336,53 @@ function ConfidenceBadge({ confidence, status, theme }) {
   );
 }
 
-Object.assign(window, { CXTodayScreen, MealCard, FoodThumb, ConfidenceBadge });
+// First-run empty state — friendly nudge toward the camera, manual fallback.
+function TodayEmptyState({ theme }) {
+  const t = theme;
+  return (
+    <div style={{
+      margin: '20px 16px 24px', padding: '30px 22px 24px',
+      borderRadius: 24, textAlign: 'center',
+      border: `1px dashed ${t.hairline2}`,
+      background: t.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.65)',
+    }}>
+      <div style={{
+        width: 56, height: 56, borderRadius: 999, margin: '0 auto',
+        background: CX.gradAI, padding: 2,
+        boxShadow: '0 8px 22px rgba(25,211,217,0.30)',
+      }}>
+        <div style={{
+          width: '100%', height: '100%', borderRadius: 999,
+          background: t.mode === 'dark' ? '#10141a' : '#FFFFFF',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxSizing: 'border-box',
+        }}>
+          <CXIcon name="eye" size={24} color={t.ink}/>
+        </div>
+      </div>
+      <div style={{
+        marginTop: 16, fontFamily: CX_FONT, fontSize: 17, fontWeight: 600,
+        letterSpacing: '-0.02em', color: t.ink,
+      }}>Nothing logged yet</div>
+      <div style={{
+        marginTop: 6, fontFamily: CX_FONT, fontSize: 13, color: t.muted,
+        lineHeight: 1.5, maxWidth: 260, marginLeft: 'auto', marginRight: 'auto',
+      }}>
+        Point the camera at your first meal — one tap and it's tracked.
+      </div>
+      <button style={{
+        marginTop: 18, height: 46, padding: '0 22px', borderRadius: 14, border: 'none',
+        background: CX.gradAI, color: '#0B0D10',
+        fontFamily: CX_FONT, fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em',
+        boxShadow: '0 10px 26px rgba(25,211,217,0.30), inset 0 0 0 1px rgba(255,255,255,0.18)',
+        cursor: 'pointer',
+      }}>Scan your first meal</button>
+      <div style={{
+        marginTop: 12, fontFamily: CX_MONO, fontSize: 10, color: t.muted,
+        letterSpacing: '0.16em', textTransform: 'uppercase', cursor: 'pointer',
+      }}>or add manually →</div>
+    </div>
+  );
+}
+
+Object.assign(window, { CXTodayScreen, MealCard, FoodThumb, ConfidenceBadge, TodayEmptyState });

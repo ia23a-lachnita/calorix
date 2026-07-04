@@ -74,23 +74,32 @@ function CXIcon({ name, size = 22, color = 'currentColor', stroke = 1.6, style =
   }
 }
 
-// Calorix mark — abstract "C" combining aperture + ring.
-function CXLogo({ size = 28, color = '#0B0D10', glow = false }) {
+// Logo placeholder — final mark TBD. Subtly-striped slot, no drawn logo.
+function CXLogo({ size = 28 }) {
   return (
-    <svg viewBox="0 0 32 32" width={size} height={size} style={{ display: 'block' }}>
-      <defs>
-        <linearGradient id="cxg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#3A5BFF"/>
-          <stop offset="55%" stopColor="#19D3D9"/>
-          <stop offset="100%" stopColor="#1FCC74"/>
-        </linearGradient>
-      </defs>
-      <circle cx="16" cy="16" r="13.5" fill="none" stroke={color} strokeWidth="1.5" strokeOpacity="0.18"/>
-      <path d="M27 11a12 12 0 1 0 0 10" fill="none"
-        stroke={glow ? 'url(#cxg)' : color} strokeWidth="3" strokeLinecap="round"/>
-      <circle cx="22" cy="10" r="1.6" fill={glow ? '#1FCC74' : color}/>
-    </svg>
+    <div title="logo placeholder" style={{
+      width: size, height: size, flexShrink: 0, boxSizing: 'border-box',
+      borderRadius: Math.max(4, size * 0.26),
+      background: 'repeating-linear-gradient(45deg, rgba(127,131,136,0.20) 0 3px, rgba(127,131,136,0.06) 3px 7px)',
+      border: '1px dashed rgba(127,131,136,0.55)',
+    }}></div>
   );
 }
 
-Object.assign(window, { CXIcon, CXLogo });
+// Wordmark placeholder — striped logo slot + dashed "wordmark" tag.
+function CXWordmark({ height = 28, mode = 'dark' }) {
+  const ink = mode === 'dark' ? 'rgba(242,243,245,' : 'rgba(11,13,16,';
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, height }}>
+      <CXLogo size={height}/>
+      <span style={{
+        fontFamily: CX_MONO, fontSize: Math.max(9, Math.round(height * 0.32)),
+        letterSpacing: '0.22em', textTransform: 'uppercase',
+        color: `${ink}0.45)`, border: `1px dashed ${ink}0.30)`,
+        borderRadius: 6, padding: '3px 10px', lineHeight: 1.4, whiteSpace: 'nowrap',
+      }}>wordmark</span>
+    </div>
+  );
+}
+
+Object.assign(window, { CXIcon, CXLogo, CXWordmark });

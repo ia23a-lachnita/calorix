@@ -11,9 +11,10 @@ function CXBottomNav({ active = 'today', theme, floating = false, onSelect = () 
   { id: 'ai', label: 'AI', icon: 'ai' }];
 
 
-  // If floating over camera, keep the glass treatment but still respect theme.
+  // Floating glass over the food: more translucent + lighter blur so the
+  // meal stays visible behind the bar.
   const barBg = floating
-    ? (t.mode === 'dark' ? 'rgba(12,15,19,0.55)' : 'rgba(255,255,255,0.64)')
+    ? (t.mode === 'dark' ? 'rgba(12,15,19,0.28)' : 'rgba(255,255,255,0.38)')
     : (t.mode === 'dark' ? 'rgba(20,24,30,0.92)' : 'rgba(255,255,255,0.92)');
   const inkOn = t.mode === 'dark' ? '#F2F3F5' : '#0B0D10';
   const inkOff = floating
@@ -29,8 +30,8 @@ function CXBottomNav({ active = 'today', theme, floating = false, onSelect = () 
       paddingBottom: 36, // accommodate home indicator + scan label
       paddingTop: 14,
       background: barBg,
-      backdropFilter: 'blur(28px) saturate(160%)',
-      WebkitBackdropFilter: 'blur(28px) saturate(160%)',
+      backdropFilter: 'blur(8px) saturate(140%)',
+      WebkitBackdropFilter: 'blur(8px) saturate(140%)',
       borderTop: `0.5px solid ${hair}`,
       zIndex: 30
     }}>

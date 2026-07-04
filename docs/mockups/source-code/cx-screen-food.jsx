@@ -12,21 +12,13 @@ function CXFoodDetailScreen({ mode = 'light', editing = true }) {
       {/* Hero image */}
       <div style={{
         position: 'relative', height: 320,
-        background: 'radial-gradient(110% 90% at 50% 60%, #c89970 0%, #8a5d36 50%, #2a221d 100%)',
+        background: '#2a221d',
         overflow: 'hidden',
       }}>
-        {/* simulated plate */}
-        <div style={{
-          position: 'absolute', left: '50%', top: '54%', transform: 'translate(-50%,-50%)',
-          width: 260, height: 260, borderRadius: 999,
-          background: 'radial-gradient(closest-side, #efe6d8 0%, #d6c8b2 70%, #aa8e6d 100%)',
-          boxShadow: '0 30px 60px rgba(0,0,0,0.35), inset 0 0 30px rgba(0,0,0,0.15)',
-        }}>
-          <div style={{
-            position: 'absolute', inset: 22, borderRadius: 999,
-            background: 'radial-gradient(closest-side, #c89970 20%, #8a5d36 70%)',
-          }}/>
-        </div>
+        <img src="assets/chicken_rice_bowl_square.jpg" alt="Chicken Rice Bowl" style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%', objectFit: 'cover',
+        }}/>
         {/* top chrome */}
         <div style={{
           position: 'absolute', top: 56, left: 18, right: 18,
