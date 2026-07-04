@@ -76,175 +76,205 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
         ? 'FRIDAY · MAY 15'
         : DateFormat('EEEE · MMMM d').format(DateTime.now()).toUpperCase();
 
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            floating: true,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final bgColor =
+        isDark ? AppColors.backgroundDark : AppColors.backgroundLight;
+    final actionBorder =
+        isDark ? AppColors.borderDarkStrong : AppColors.borderLightStrong;
+
+    return ColoredBox(
+      color: bgColor,
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  headerDate,
-                  style: AppTextStyles.labelMono.copyWith(
-                    fontSize: 10,
-                    letterSpacing: 1.6,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text('Today',
-                    style: AppTextStyles.todayTitle.copyWith(color: textColor)),
-              ],
-            ),
-            actions: [
-              GestureDetector(
-                onTap: () {},
-                child: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isDark
-                        ? const Color(0x0FFFFFFF)
-                        : const Color(0x0F000000),
-                    border: Border.all(
-                      color: isDark
-                          ? AppColors.borderDarkStrong
-                          : AppColors.borderLightStrong,
-                      width: 0.5,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.notifications_none,
-                    size: 18,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => context.goNamed(RouteNames.profile),
-                child: Container(
-                  margin: const EdgeInsets.only(right: 16),
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isDark
-                        ? const Color(0x0FFFFFFF)
-                        : const Color(0x0F000000),
-                    border: Border.all(
-                      color: isDark
-                          ? AppColors.borderDarkStrong
-                          : AppColors.borderLightStrong,
-                      width: 0.5,
-                    ),
-                  ),
-                  child: initials != null
-                      ? Center(
-                          child: Text(
-                            initials,
-                            style: AppTextStyles.labelLarge.copyWith(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 54, 20, 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            headerDate,
+                            style: AppTextStyles.labelMono.copyWith(
+                              fontSize: 10,
+                              letterSpacing: 1.6,
                               color: isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.textPrimaryLight,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
-                        )
-                      : Icon(
-                          Icons.person,
-                          size: 18,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
-                        ),
-                ),
-              ),
-            ],
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                UiDiffAnchor(
-                  id: 'today.macroRingHero',
-                  label: 'Hero macro ring card',
-                  child: _HeroMacroCard(
-                    animation: _animation,
-                    summary: summary,
-                    plan: plan,
-                    isDark: isDark,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                entriesAsync.when(
-                  loading: () => Text('Recent scans',
-                      style: AppTextStyles.heading3.copyWith(color: textColor)),
-                  error: (_, __) => Text('Recent scans',
-                      style: AppTextStyles.heading3.copyWith(color: textColor)),
-                  data: (entries) => UiDiffAnchor(
-                    id: 'today.recentScansSection',
-                    label: 'Recent scans section header',
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Recent scans',
-                            style: AppTextStyles.todaySectionHeading
-                                .copyWith(color: textColor)),
-                        if (entries.isNotEmpty)
-                          UiDiffAnchor(
-                            id: 'today.recentScansCount',
-                            label: '${entries.length} TODAY',
-                            child: Text(
-                              '${entries.length} TODAY',
-                              style: AppTextStyles.labelMono.copyWith(
-                                fontSize: 10,
-                                letterSpacing: 1.6,
+                          const SizedBox(height: 4),
+                          Text(
+                            'Today',
+                            style: AppTextStyles.todayTitle
+                                .copyWith(color: textColor),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {},
+                            child: Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isDark
+                                    ? AppColors.surfaceDark
+                                    : AppColors.surfaceLight,
+                                border: Border.all(
+                                  color: actionBorder,
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.notifications_none,
+                                size: 18,
                                 color: isDark
                                     ? AppColors.textSecondaryDark
                                     : AppColors.textSecondaryLight,
                               ),
                             ),
                           ),
-                      ],
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => context.goNamed(RouteNames.profile),
+                            child: Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isDark
+                                    ? const Color(0xFF1E242C)
+                                    : const Color(0xFFEFEDE7),
+                                border: Border.all(
+                                  color: actionBorder,
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: initials != null
+                                  ? Center(
+                                      child: Text(
+                                        initials,
+                                        style:
+                                            AppTextStyles.labelLarge.copyWith(
+                                          color: isDark
+                                              ? AppColors.textPrimaryDark
+                                              : AppColors.textPrimaryLight,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.person,
+                                      size: 18,
+                                      color: isDark
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondaryLight,
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 14, right: 16),
+                  child: UiDiffAnchor(
+                    id: 'today.macroRingHero',
+                    label: 'Hero macro ring card',
+                    child: _HeroMacroCard(
+                      animation: _animation,
+                      summary: summary,
+                      plan: plan,
+                      isDark: isDark,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: entriesAsync.when(
+                    loading: () => Text(
+                      'Recent scans',
+                      style: AppTextStyles.heading3.copyWith(color: textColor),
+                    ),
+                    error: (_, __) => Text(
+                      'Recent scans',
+                      style: AppTextStyles.heading3.copyWith(color: textColor),
+                    ),
+                    data: (entries) => UiDiffAnchor(
+                      id: 'today.recentScansSection',
+                      label: 'Recent scans section header',
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Recent scans',
+                            style: AppTextStyles.todaySectionHeading
+                                .copyWith(color: textColor),
+                          ),
+                          if (entries.isNotEmpty)
+                            UiDiffAnchor(
+                              id: 'today.recentScansCount',
+                              label: '${entries.length} TODAY',
+                              child: Text(
+                                '${entries.length} TODAY',
+                                style: AppTextStyles.labelMono.copyWith(
+                                  fontSize: 10,
+                                  letterSpacing: 1.6,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                entriesAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => _EmptyMeals(isDark: isDark),
-                  data: (entries) => entries.isEmpty
-                      ? _EmptyMeals(isDark: isDark)
-                      : UiDiffAnchor(
-                          id: 'today.mealCardsSection',
-                          label: 'Meal cards section',
-                          child: Column(
-                            children: entries
-                                .map((e) => Padding(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  child: entriesAsync.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => _EmptyMeals(isDark: isDark),
+                    data: (entries) => entries.isEmpty
+                        ? _EmptyMeals(isDark: isDark)
+                        : UiDiffAnchor(
+                            id: 'today.mealCardsSection',
+                            label: 'Meal cards section',
+                            child: Column(
+                              children: entries
+                                  .map(
+                                    (e) => Padding(
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child:
                                           _MealCard(entry: e, isDark: isDark),
-                                    ))
-                                .toList(),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
                           ),
-                        ),
+                  ),
                 ),
-              ]),
+                const SizedBox(
+                  key: ValueKey('today.bottomContentSpacer'),
+                  height: 132,
+                ),
+              ],
             ),
-          ),
-          const SliverPadding(
-            key: ValueKey('today.bottomContentSpacer'),
-            padding: EdgeInsets.only(bottom: 132),
           ),
         ],
       ),
@@ -277,7 +307,7 @@ class _HeroMacroCard extends StatelessWidget {
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: isDark ? AppColors.borderDarkStrong : AppColors.borderLight,
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
           width: 0.5,
         ),
         boxShadow: [
@@ -331,6 +361,8 @@ class _HeroMacroCard extends StatelessWidget {
                       trackColor: isDark
                           ? const Color(0x0FFFFFFF)
                           : const Color(0xFFF2F0EB),
+                      radiusInset: 4,
+                      showGlow: false,
                       center: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -474,7 +506,7 @@ class _MacroSubCardItem extends StatelessWidget {
         color: isDark ? const Color(0x08FFFFFF) : const Color(0xFFFAF8F3),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppColors.borderDarkStrong : AppColors.borderLight,
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
           width: 0.5,
         ),
       ),
@@ -514,7 +546,7 @@ class _MealCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
           side: BorderSide(
-            color: isDark ? AppColors.borderDarkStrong : AppColors.borderLight,
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
             width: 0.5,
           ),
         ),
@@ -744,7 +776,7 @@ class _TodayConfidenceBadge extends StatelessWidget {
         color: isDark ? const Color(0x0AFFFFFF) : const Color(0xFFF4F2EE),
         borderRadius: BorderRadius.circular(99),
         border: Border.all(
-          color: isDark ? AppColors.borderDarkStrong : AppColors.borderLight,
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
           width: 0.5,
         ),
       ),

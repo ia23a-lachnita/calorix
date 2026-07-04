@@ -8,6 +8,7 @@ import 'package:calorix/core/theme/app_theme.dart';
 import 'package:calorix/shared/models/food_entry.dart';
 import 'package:calorix/shared/models/macro_target_plan.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
+import 'package:calorix/shared/widgets/macro_ring.dart';
 
 Widget _buildTodayScreen({
   List<FoodEntry> entries = const [],
@@ -133,6 +134,7 @@ void main() {
 
     expect(dateFinder, findsOneWidget);
     expect(tester.getTopLeft(dateFinder).dy, lessThan(titleTop));
+    expect(find.byType(SliverAppBar), findsNothing);
   });
 
   testWidgets('Today UI-diff mode uses fixed mockup date', (tester) async {
@@ -161,8 +163,26 @@ void main() {
     final border = decoration.border as Border;
 
     expect(decoration.color, AppColors.surfaceDark);
-    expect(border.top.color, AppColors.borderDarkStrong);
+    expect(border.top.color, AppColors.borderDark);
     expect(border.top.width, 0.5);
+  });
+
+  testWidgets('Today macro ring opts into handoff radius and no glow',
+      (tester) async {
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        themeMode: ThemeMode.dark,
+        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+      ),
+    );
+    await _pumpTodayScreen(tester);
+
+    final ring = tester.widget<AnimatedMacroRing>(
+      find.byType(AnimatedMacroRing),
+    );
+
+    expect(ring.radiusInset, 4);
+    expect(ring.showGlow, isFalse);
   });
 
   testWidgets('Today typography uses mockup font roles', (tester) async {
@@ -252,11 +272,10 @@ void main() {
         tester.widget<ClipRRect>(find.byType(ClipRRect).first);
     expect(thumbnailClip.borderRadius, BorderRadius.circular(16));
 
-    final spacer = tester.widget<SliverPadding>(
+    final spacer = tester.widget<SizedBox>(
       find.byKey(const ValueKey('today.bottomContentSpacer')),
     );
-    final padding = spacer.padding as EdgeInsets;
-    expect(padding.bottom, greaterThanOrEqualTo(132));
+    expect(spacer.height, greaterThanOrEqualTo(132));
   });
 
   testWidgets('kcal left pill fits inside macro ring center', (tester) async {

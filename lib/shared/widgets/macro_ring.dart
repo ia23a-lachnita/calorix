@@ -10,6 +10,8 @@ class MacroRing extends StatelessWidget {
   final Widget? center;
   final double strokeWidth;
   final Color? trackColor;
+  final double radiusInset;
+  final bool showGlow;
 
   const MacroRing({
     super.key,
@@ -20,6 +22,8 @@ class MacroRing extends StatelessWidget {
     this.center,
     this.strokeWidth = 24,
     this.trackColor,
+    this.radiusInset = 0,
+    this.showGlow = true,
   });
 
   @override
@@ -41,6 +45,8 @@ class MacroRing extends StatelessWidget {
               fatFraction: fatFraction.clamp(0.0, 1.0),
               strokeWidth: strokeWidth,
               trackColor: resolvedTrack,
+              radiusInset: radiusInset,
+              showGlow: showGlow,
             ),
           ),
           if (center != null) center!,
@@ -56,6 +62,8 @@ class _MacroRingPainter extends CustomPainter {
   final double fatFraction;
   final double strokeWidth;
   final Color trackColor;
+  final double radiusInset;
+  final bool showGlow;
 
   _MacroRingPainter({
     required this.proteinFraction,
@@ -63,6 +71,8 @@ class _MacroRingPainter extends CustomPainter {
     required this.fatFraction,
     required this.strokeWidth,
     required this.trackColor,
+    required this.radiusInset,
+    required this.showGlow,
   });
 
   @override
@@ -73,7 +83,7 @@ class _MacroRingPainter extends CustomPainter {
     _drawArc(
       canvas: canvas,
       center: center,
-      radius: size.width / 2 - strokeWidth / 2,
+      radius: size.width / 2 - strokeWidth / 2 - radiusInset,
       fraction: proteinFraction,
       color: AppColors.protein,
       strokeWidth: strokeWidth,
@@ -82,7 +92,7 @@ class _MacroRingPainter extends CustomPainter {
     _drawArc(
       canvas: canvas,
       center: center,
-      radius: size.width / 2 - strokeWidth / 2 - gap,
+      radius: size.width / 2 - strokeWidth / 2 - radiusInset - gap,
       fraction: carbsFraction,
       color: AppColors.carbs,
       strokeWidth: strokeWidth,
@@ -91,7 +101,7 @@ class _MacroRingPainter extends CustomPainter {
     _drawArc(
       canvas: canvas,
       center: center,
-      radius: size.width / 2 - strokeWidth / 2 - gap * 2,
+      radius: size.width / 2 - strokeWidth / 2 - radiusInset - gap * 2,
       fraction: fatFraction,
       color: AppColors.fat,
       strokeWidth: strokeWidth,
@@ -131,7 +141,10 @@ class _MacroRingPainter extends CustomPainter {
 
     canvas.drawArc(rect, startAngle, fullSweep, false, trackPaint);
     if (fraction > 0) {
-      canvas.drawArc(rect, startAngle, fullSweep * fraction, false, glowPaint);
+      if (showGlow) {
+        canvas.drawArc(
+            rect, startAngle, fullSweep * fraction, false, glowPaint);
+      }
       canvas.drawArc(rect, startAngle, fullSweep * fraction, false, fillPaint);
     }
   }
@@ -141,7 +154,9 @@ class _MacroRingPainter extends CustomPainter {
       old.proteinFraction != proteinFraction ||
       old.carbsFraction != carbsFraction ||
       old.fatFraction != fatFraction ||
-      old.trackColor != trackColor;
+      old.trackColor != trackColor ||
+      old.radiusInset != radiusInset ||
+      old.showGlow != showGlow;
 }
 
 // Animated version driven by animation controller
@@ -154,6 +169,8 @@ class AnimatedMacroRing extends StatelessWidget {
   final Widget? center;
   final double strokeWidth;
   final Color? trackColor;
+  final double radiusInset;
+  final bool showGlow;
 
   const AnimatedMacroRing({
     super.key,
@@ -165,6 +182,8 @@ class AnimatedMacroRing extends StatelessWidget {
     this.center,
     this.strokeWidth = 24,
     this.trackColor,
+    this.radiusInset = 0,
+    this.showGlow = true,
   });
 
   @override
@@ -179,6 +198,8 @@ class AnimatedMacroRing extends StatelessWidget {
         strokeWidth: strokeWidth,
         trackColor: trackColor,
         center: center,
+        radiusInset: radiusInset,
+        showGlow: showGlow,
       ),
     );
   }
