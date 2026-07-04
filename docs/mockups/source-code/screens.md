@@ -26,7 +26,7 @@ today: meal row → food → edit (food_edit)      ·   ai ⇄ ai_history
 | permission | cx-screen-states.jsx | iOS camera alert over blurred viewfinder + "add manually" fallback card (theme-aware) |
 | scan_idle / scan_capturing | cx-screen-scan.jsx | camera home. glass chips, Meal/Barcode/Label segments, reticle; capturing = conic spinner + scan-line shimmer |
 | processing | cx-screen-processing.jsx | cloud-processing card; user can leave the app |
-| (lock notification) | src/Calorix.html (CXLockScreen) | OS surface — mock only, not a Flutter screen; implement as a rich push |
+| (lock notification) | handoff.html (CXLockScreen) | OS surface — mock only, not a Flutter screen; implement as a rich push |
 | review | cx-screen-states.jsx | <80% confidence branch: photo hero + bottom sheet, candidate radio list, None-of-these / Confirm, "Ask AI" |
 | manual | cx-screen-states.jsx | search fallback: field, filter chips, result rows with +, dashed "create custom food" |
 | today / today_empty | cx-screen-today.jsx | hero card (triple macro ring + 3 macro rows w/ fill bars, ~1.4s count-up) + recent scans; empty = zeroed ring + first-run CTA |

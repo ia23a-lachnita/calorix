@@ -1,6 +1,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../core/constants/app_constants.dart';
+
 /// Wraps Firebase Cloud Messaging and local notification display.
 ///
 /// Firebase must be initialized before this is used. On Android the
@@ -70,7 +72,8 @@ class NotificationService {
     final docId = docIdOf(message);
     await _local.show(
       (docId ?? message.messageId ?? '').hashCode,
-      notification?.title ?? 'Calorix finished your meal scan',
+      notification?.title ??
+          '${AppConstants.appDisplayName} finished your meal scan',
       notification?.body ?? 'Your scan is ready',
       NotificationDetails(
         android: AndroidNotificationDetails(

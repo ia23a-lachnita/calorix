@@ -1,4 +1,4 @@
-/* Calorix — color tokens. Light is default; dark scope via [data-theme="dark"]. */
+/* Placeholder app — color tokens. Light is default; dark scope via [data-theme="dark"]. */
 :root {
   /* Brand accents — shared chroma/lightness, hue varies */
   --cx-blue:  #3A5BFF;   /* protein */

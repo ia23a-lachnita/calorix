@@ -1,10 +1,10 @@
-Design for a modern mobile app UI concept for an AI-powered calorie and macro tracking app called “Calorix”.
+Design for a modern mobile app UI concept for an AI-powered calorie and macro tracking app. The product name and logo are placeholders for now (`AppName` in the design handoff); `Ravlo` is a likely candidate but not final.
 
 Product idea:
-Calorix is a free, faster, better alternative to apps like Cal AI. The core experience is camera-first and extremely efficient: the user opens the app, instantly sees a camera screen, takes a photo of food, closes the app, and the photo is processed in the cloud. When the analysis is complete, the user receives a push notification. Opening the notification or navigating to the Today screen shows the estimated calories, macros, and detected food items.
+The app is a free, faster, better alternative to apps like Cal AI. The core experience is camera-first and extremely efficient: the user opens the app, instantly sees a camera screen, takes a photo of food, closes the app, and the photo is processed in the cloud. When the analysis is complete, the user receives a push notification. Opening the notification or navigating to the Today screen shows the estimated calories, macros, and detected food items.
 
 Core positioning:
-Calorix should feel premium, serious, smooth, modern, fitness-focused, and minimal. It should not feel playful, childish, or like a generic diet app. It should feel like a polished AI fitness tool that someone would enjoy opening because of the design and animations.
+The app should feel premium, serious, smooth, modern, fitness-focused, and minimal. It should not feel playful, childish, or like a generic diet app. It should feel like a polished AI fitness tool that someone would enjoy opening because of the design and animations.
 
 Target user:
 Fitness-focused users who want to build a lean body, track calories/macros, and avoid slow manual food logging. The user wants to log food in under 5 seconds.
@@ -38,7 +38,7 @@ Use gradients carefully, for example blue → cyan or cyan → green.
 Use accents for macro progress, scan states, AI highlights, buttons, and charts.
 
 Brand:
-App name: Calorix
+App name: placeholder (`AppName` in the handoff)
 Possible tagline: “Snap. Track. Stay on target.”
 Logo idea: modern abstract C, lens shape, macro ring, or calorie flame/lens hybrid. Avoid childish food icons.
 
@@ -78,7 +78,7 @@ Screens to design:
 
 2. Processing State / Notification
 - Show a realistic push notification:
-  “Calorix finished your meal scan”
+  “AppName finished your meal scan”
   “Chicken rice bowl · 620 kcal”
 - Include a small food thumbnail.
 - Also design an in-app processing card with skeleton loading:

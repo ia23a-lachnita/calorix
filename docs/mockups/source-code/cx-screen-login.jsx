@@ -1,4 +1,4 @@
-// Calorix login / sign-in screen — first-run / signed-out state.
+// Placeholder app login / sign-in screen — first-run / signed-out state.
 // Premium, minimal, theme-aware. Email + password with social options,
 // and an "explore as guest" affordance.
 

@@ -1,4 +1,4 @@
-// Calorix custom iconography — hairline strokes, 24px grid.
+// Placeholder app custom iconography — hairline strokes, 24px grid.
 
 function CXIcon({ name, size = 22, color = 'currentColor', stroke = 1.6, style = {} }) {
   const s = { width: size, height: size, display: 'block', ...style };

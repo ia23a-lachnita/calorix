@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/ai_chat_providers.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/models/macro_target_plan.dart';
@@ -57,7 +58,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     }
 
     final context = '''
-You are Calorix, an in-app nutrition coach. Be concise and practical.
+You are ${AppConstants.appDisplayName}, an in-app nutrition coach. Be concise and practical.
 Current daily targets: ${plan.kcal} kcal, ${plan.protein}g protein, ${plan.carbs}g carbs, ${plan.fat}g fat (plan: ${plan.planName}).
 Consumed so far today: ${today.kcal.round()} kcal, ${today.protein.round()}g protein, ${today.carbs.round()}g carbs, ${today.fat.round()}g fat.
 If you recommend changing a single calorie or macro target, end your reply with exactly one line of JSON:
@@ -72,8 +73,8 @@ where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.
       notifier.addAiMessage(parsed.text.isEmpty ? 'Done.' : parsed.text,
           action: parsed.action);
     } catch (e) {
-      notifier.addAiMessage(
-          "Sorry, I couldn't reach the assistant just now. ($e)");
+      notifier
+          .addAiMessage("Sorry, I couldn't reach the assistant just now. ($e)");
     } finally {
       ref.read(isChatLoadingProvider.notifier).state = false;
     }
@@ -133,7 +134,8 @@ where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.
     final messages = ref.watch(chatMessagesProvider);
     final isLoading = ref.watch(isChatLoadingProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final textColor =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
     return Scaffold(
       body: Column(
@@ -157,14 +159,17 @@ where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.auto_awesome, size: 20, color: Colors.white),
+                    child: const Icon(Icons.auto_awesome,
+                        size: 20, color: Colors.white),
                   ),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Calorix AI', style: AppTextStyles.heading2.copyWith(color: textColor)),
+                      Text('${AppConstants.appDisplayName} AI',
+                          style: AppTextStyles.heading2
+                              .copyWith(color: textColor)),
                       const SizedBox(height: 2),
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -180,7 +185,8 @@ where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.
                           const SizedBox(width: 5),
                           Text(
                             'CAN EDIT YOUR PLAN',
-                            style: AppTextStyles.labelMono.copyWith(color: AppColors.green),
+                            style: AppTextStyles.labelMono
+                                .copyWith(color: AppColors.green),
                           ),
                         ],
                       ),
@@ -194,12 +200,16 @@ where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.
                       height: 32,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isDark ? const Color(0x14FFFFFF) : const Color(0x0F000000),
+                        color: isDark
+                            ? const Color(0x14FFFFFF)
+                            : const Color(0x0F000000),
                       ),
                       child: Icon(
                         Icons.close,
                         size: 16,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                   ),
@@ -235,18 +245,25 @@ where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.
                 final msg = messages[index];
                 // Show time separator before this message if gap > 15 min or first message
                 final showSeparator = index == 0 ||
-                    msg.timestamp.difference(messages[index - 1].timestamp).inMinutes.abs() >= 15;
+                    msg.timestamp
+                            .difference(messages[index - 1].timestamp)
+                            .inMinutes
+                            .abs() >=
+                        15;
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (showSeparator) _TimeSeparator(timestamp: msg.timestamp, isDark: isDark),
+                    if (showSeparator)
+                      _TimeSeparator(timestamp: msg.timestamp, isDark: isDark),
                     _MessageBubble(
                       message: msg,
                       isDark: isDark,
                       onApply: msg.action != null
                           ? () => _applyAction(index, msg.action!)
                           : null,
-                      onReject: msg.action != null ? () => _rejectAction(index) : null,
+                      onReject: msg.action != null
+                          ? () => _rejectAction(index)
+                          : null,
                     ),
                   ],
                 );
@@ -256,7 +273,8 @@ where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.
 
           // Prompt pills + composer — opaque backing so chat doesn't show through
           Container(
-            color: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+            color:
+                isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -306,12 +324,16 @@ class _TimeSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final subColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          Expanded(child: Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight, height: 1)),
+          Expanded(
+              child: Divider(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  height: 1)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
@@ -319,7 +341,10 @@ class _TimeSeparator extends StatelessWidget {
               style: AppTextStyles.labelMono.copyWith(color: subColor),
             ),
           ),
-          Expanded(child: Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight, height: 1)),
+          Expanded(
+              child: Divider(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  height: 1)),
         ],
       ),
     );
@@ -355,7 +380,9 @@ class _MessageBubble extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: isUser
-                  ? (isDark ? AppColors.userBubbleDark : AppColors.userBubbleLight)
+                  ? (isDark
+                      ? AppColors.userBubbleDark
+                      : AppColors.userBubbleLight)
                   : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(18),
@@ -366,12 +393,16 @@ class _MessageBubble extends StatelessWidget {
               border: isUser
                   ? null
                   : Border.all(
-                      color: isDark ? AppColors.borderDark : AppColors.borderLight),
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.borderLight),
             ),
             child: Text(
               message.content,
               style: AppTextStyles.bodyMedium.copyWith(
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
           ),
@@ -425,7 +456,9 @@ class _ConfirmCard extends StatelessWidget {
             children: [
               Text(action.title,
                   style: AppTextStyles.labelLarge.copyWith(
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight)),
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
@@ -433,7 +466,8 @@ class _ConfirmCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text('AI ACTION',
-                    style: AppTextStyles.labelMono.copyWith(color: AppColors.blue)),
+                    style: AppTextStyles.labelMono
+                        .copyWith(color: AppColors.blue)),
               ),
             ],
           ),
@@ -441,12 +475,17 @@ class _ConfirmCard extends StatelessWidget {
           // Old → new table row
           Row(
             children: [
-              Container(width: 8, height: 8,
-                  decoration: const BoxDecoration(color: AppColors.protein, shape: BoxShape.circle)),
+              Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                      color: AppColors.protein, shape: BoxShape.circle)),
               const SizedBox(width: 8),
               Text(action.field,
                   style: AppTextStyles.labelLarge.copyWith(
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight)),
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight)),
               const Spacer(),
               Text(action.oldValue,
                   style: AppTextStyles.bodySmall.copyWith(
@@ -457,7 +496,9 @@ class _ConfirmCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(action.newValue,
                   style: AppTextStyles.labelLarge.copyWith(
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight)),
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight)),
               const SizedBox(width: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
@@ -595,7 +636,8 @@ class _Composer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final subColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final subColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -625,11 +667,14 @@ class _Composer extends StatelessWidget {
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                 isDense: true,
               ),
               style: AppTextStyles.bodyMedium.copyWith(
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
               maxLines: 1,
               textInputAction: TextInputAction.send,
@@ -641,7 +686,11 @@ class _Composer extends StatelessWidget {
             onTap: () {},
             child: Padding(
               padding: const EdgeInsets.all(6),
-              child: Icon(Icons.mic_outlined, size: 20, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+              child: Icon(Icons.mic_outlined,
+                  size: 20,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight),
             ),
           ),
           const SizedBox(width: 4),
@@ -658,7 +707,8 @@ class _Composer extends StatelessWidget {
                 ),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_upward, color: Colors.white, size: 18),
+              child:
+                  const Icon(Icons.arrow_upward, color: Colors.white, size: 18),
             ),
           ),
         ],
@@ -679,9 +729,8 @@ int _currentTarget(MacroTargetPlan p, String macro) => switch (macro) {
 /// macro-target action encoded as a trailing JSON object.
 ({String text, AiAction? action}) _parseReply(
     String raw, MacroTargetPlan plan) {
-  final match =
-      RegExp(r'\{[^{}]*"action"[\s\S]*?\}\s*\}').firstMatch(raw) ??
-          RegExp(r'\{[\s\S]*"action"[\s\S]*\}').firstMatch(raw);
+  final match = RegExp(r'\{[^{}]*"action"[\s\S]*?\}\s*\}').firstMatch(raw) ??
+      RegExp(r'\{[\s\S]*"action"[\s\S]*\}').firstMatch(raw);
   if (match == null) return (text: raw.trim(), action: null);
 
   final cleaned = raw.replaceFirst(match.group(0)!, '').trim();

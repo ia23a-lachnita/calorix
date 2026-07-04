@@ -3,7 +3,7 @@
 | File | Purpose |
 |---|---|
 | `CLAUDE.md` | Root Claude Code operating instructions and trigger table. |
-| `.claude/design.md` | Calorix design system, product motion, and screen contracts. |
+| `.claude/design.md` | Placeholder app design system, product motion, and screen contracts. |
 | `.claude/tools.md` | Tool/MCP catalog, FVM setup, and safety gates. |
 | `.claude/skills.md` | Skill invocation policy. |
 | `.claude/gemini.md` | Gemini CLI review/offload policy with updated model guidance. |
@@ -17,5 +17,5 @@
 | `.codex/config.toml` | Codex starter config. |
 | `.mcp.json` | Project MCP starter for Claude-compatible clients. |
 | `docs/mockups/source-code/README.md` | Preserved mockup source README/spec cards. |
-| `docs/mockups/images/*.jpg` | Dark/light visual references. |
+| `docs/mockups/source-code/screenshots/*.png` | Active dark/light visual references from the current handoff. |
 | `RESEARCH_NOTES.md` | Summary of research decisions. |

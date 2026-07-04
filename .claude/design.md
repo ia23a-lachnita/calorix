@@ -1,21 +1,23 @@
-# Calorix Design System and Interaction Spec
+# Placeholder App Design System and Interaction Spec
 
 Source assets:
 - Requirements: `requirements.md`
 - Mockup spec cards: `docs/mockups/source-code/README.md`
-- Visual references: `docs/mockups/images/all_dark.jpg`, `docs/mockups/images/all_light.jpg`
+- Visual references: `docs/mockups/source-code/screenshots/`
 
 Current handoff note:
 - The active Claude-design handoff is integrated under `docs/mockups/source-code/`.
 - The app name and logo remain placeholders. Do not hard-code a final product name or logo until the brand decision lands; `Ravlo` is a likely candidate but not final.
+- The handoff source uses `CX_APPNAME = 'AppName'`; Flutter should use the same placeholder through one swappable app-display-name constant.
 - Today screen UI-diff target images are raw app viewports, not iPhone-frame composites:
   - `docs/mockups/image/dark/single/Today.png`
   - `docs/mockups/image/light/single/Today.png`
+- All other current screen screenshots live in `docs/mockups/source-code/screenshots/`. The old May mockup composites and old single-screen PNGs are intentionally removed.
 - The Today handoff intentionally shows a static hero summary of `1,420 kcal / 96g protein / 132g carbs / 38g fat` even though the three visible meal cards sum to `845 kcal / 74g protein / 92g carbs / 20g fat`. Keep that discrepancy isolated to debug/ui-diff visual parity fixtures; production summary logic must keep summing real entries.
 
 ## Product Feel
 
-Calorix must feel premium, serious, smooth, modern, fitness-focused, and minimal. It should feel like a polished AI fitness tool, not a childish diet app. Use Apple-like clarity, strong but soft contrast, gym/fitness restraint, and purposeful AI motion.
+The app must feel premium, serious, smooth, modern, fitness-focused, and minimal. It should feel like a polished AI fitness tool, not a childish diet app. Use Apple-like clarity, strong but soft contrast, gym/fitness restraint, and purposeful AI motion.
 
 The existing mockups are the visual target: glassy dark mode, warm off-white light mode, dense but legible data cards, cyan/blue/green energy, and compact iOS-native feeling.
 
@@ -103,7 +105,7 @@ Motion must be quiet, purposeful, and premium. Avoid gimmicks, bounce-heavy effe
 
 - Show top banner: `You can close the app` with small spinner.
 - Show skeleton card with image shimmer, title skeleton, macro bar skeletons, and step counter.
-- Notification copy: `Calorix finished your meal scan` and meal summary such as `Chicken rice bowl · 620 kcal`.
+- Notification copy: `AppName finished your meal scan` and meal summary such as `Chicken rice bowl · 620 kcal`.
 - Notification tap opens Today or the new Food Detail, depending on state.
 
 ### Today Dashboard

@@ -1,4 +1,7 @@
 abstract final class AppConstants {
+  // Branding is intentionally placeholder-only until the final name/logo lands.
+  static const String appDisplayName = 'AppName';
+
   // Sample data
   static const int defaultKcalTarget = 2400;
   static const int defaultProteinTarget = 170;

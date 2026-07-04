@@ -1,4 +1,4 @@
-// Calorix profile / account screen. Lives behind the avatar in the top-right
+// Placeholder app profile / account screen. Lives behind the avatar in the top-right
 // of Today / camera screens. Data-driven, premium, theme-aware.
 
 function CXProfileScreen({ mode = 'light' }) {

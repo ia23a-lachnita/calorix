@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/constants/app_constants.dart';
 import 'core/firebase/firebase_options.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_colors.dart';
@@ -42,7 +43,7 @@ class CalorixApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
-      title: 'Calorix',
+      title: AppConstants.appDisplayName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
@@ -108,7 +109,8 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
 
     return authState.when(
       loading: () => const _SplashScreen(),
-      error: (error, _) => _AuthErrorScreen(onRetry: _ensureSignedIn, error: error),
+      error: (error, _) =>
+          _AuthErrorScreen(onRetry: _ensureSignedIn, error: error),
       data: (user) {
         if (user == null) return const _SplashScreen();
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -137,7 +139,11 @@ class _SplashScreen extends StatelessWidget {
               height: 72,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF3A5BFF), Color(0xFF19D3D9), Color(0xFF1FCC74)],
+                  colors: [
+                    Color(0xFF3A5BFF),
+                    Color(0xFF19D3D9),
+                    Color(0xFF1FCC74)
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -148,7 +154,7 @@ class _SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             const Text(
-              'CALORIX',
+              AppConstants.appDisplayName,
               style: TextStyle(
                 fontFamily: 'BarlowCondensed',
                 fontSize: 28,
@@ -211,7 +217,8 @@ class _AuthErrorScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                error?.toString() ?? 'Could not connect to Calorix servers.',
+                error?.toString() ??
+                    'Could not connect to ${AppConstants.appDisplayName} servers.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     fontFamily: 'Inter Tight',

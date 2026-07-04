@@ -1,6 +1,6 @@
 {
   "name": "calorix-functions",
-  "description": "Calorix Cloud Functions",
+  "description": "Placeholder app Cloud Functions",
   "scripts": {
     "lint": "eslint .",
     "build": "echo 'No build needed for JS'",

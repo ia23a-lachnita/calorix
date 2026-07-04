@@ -1,19 +1,20 @@
-# Calorix UI — Flutter implementation handoff
+# Placeholder App UI — Flutter implementation handoff
 
 Goal: implement this mobile UI **1:1** in Flutter. The ground truth is the JSX source in `src/` — every dimension, color, radius and font size is written explicitly inline there. Screenshots in `screenshots/` are visual reference only; when a screenshot and the code disagree, **the code wins**.
 
-## Calorix repo integration
-- In this repository, the `src/` files from the design handoff live directly in `docs/mockups/source-code/`.
-- The active Today UI-diff target images are raw 402×874 app viewports at `docs/mockups/image/dark/single/Today.png` and `docs/mockups/image/light/single/Today.png`; they are not iPhone-frame composites.
-- App name and logo remain placeholders. Do not replace the placeholder with a final brand name or mark until the brand decision is explicit.
+## Placeholder app repo integration
+- This folder is the active Claude-design handoff. The repo keeps the JSX files flattened in this directory for existing tooling compatibility; treat them as the handoff's `src/` files.
+- The active visual references are the PNGs in `screenshots/`. The old May mockup composites and old single-screen PNGs under `docs/mockups/image/` were removed to avoid stale comparisons.
+- `docs/mockups/image/dark/single/Today.png` and `docs/mockups/image/light/single/Today.png` remain only as Today UI-diff compatibility mirrors of `screenshots/today--dark.png` and `screenshots/today--light.png`.
+- The app name and logo remain placeholders. Do not replace `AppName`/`CX_APPNAME` with a final brand name or mark until the brand decision is explicit; `Ravlo` is a candidate, not a decision.
 - The populated Today handoff intentionally shows `1,420 kcal` in the hero while the visible cards sum to `845 kcal`. Flutter keeps that as a debug/ui-diff fixture override only.
 
 ## What's in this folder
-- `src/` — the full mock source. `cx-theme.jsx` (tokens), `cx-icons.jsx` (icon set + logo placeholder), `cx-shell.jsx` (bottom nav, top bar, avatar, macro ring), one `cx-screen-*.jsx` per screen, and `Calorix.html` (composition + lock-screen mock).
+- `cx-theme.jsx` (tokens), `cx-icons.jsx` (icon set + logo placeholder), `cx-shell.jsx` (bottom nav, top bar, avatar, macro ring), one `cx-screen-*.jsx` per screen, and `handoff.html` (composition + lock-screen mock).
 - `tokens/` — the same tokens as CSS custom properties.
 - `design_tokens.dart` — tokens pre-translated to Flutter constants. Start here.
 - `screens.md` — screen inventory, states, and flow map.
-- `screenshots/` — every screen in dark + light (402×874 logical px). **Known limitation:** these PNGs are color-quantized by the export pipeline, so smooth gradients/glows show slight banding. The live design does not band — treat gradients in `src/` as ground truth, or open `screens.html` in a browser and take a native screenshot for pixel-perfect reference.
+- `screenshots/` — every screen in dark + light (402×874 logical px). **Known limitation:** these PNGs are color-quantized by the export pipeline, so smooth gradients/glows show slight banding. The live design does not band — treat gradients in the JSX source as ground truth, or open `screens.html` in a browser and take a native screenshot for pixel-perfect reference.
 - `assets/` — food photography used in the mocks.
 - `screens.html` — interactive screen browser: pick any screen from the dropdown (←/→ to step, `m` to toggle dark/light). Use it for pixel-perfect visual reference.
 

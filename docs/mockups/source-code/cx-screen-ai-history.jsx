@@ -1,4 +1,4 @@
-// Calorix AI — chat history screen.
+// Placeholder app AI — chat history screen.
 // Mirrors the History screen patterns: card list, mono eyebrow labels,
 // small status pip + tag chip per row. Tap a row to open that thread.
 

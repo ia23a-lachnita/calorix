@@ -10,6 +10,7 @@ initializeApp();
 const db = getFirestore();
 const PROJECT_ID = 'calorix-xurschnell';
 const LOCATION = 'us-central1';
+const APP_DISPLAY_NAME = 'AppName';
 
 exports.processFood = onDocumentCreated(
   {
@@ -108,7 +109,7 @@ Estimate for the portion shown. Use standard nutrition databases. Return ONLY va
         await getMessaging().send({
           token: fcmToken,
           notification: {
-            title: 'Calorix finished your meal scan',
+            title: `${APP_DISPLAY_NAME} finished your meal scan`,
             body: `${nutrition.foodName} · ${Math.round(nutrition.kcal)} kcal`,
           },
           data: { entryId },

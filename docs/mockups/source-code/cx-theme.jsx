@@ -1,4 +1,4 @@
-// Calorix design tokens + tiny helpers.
+// Placeholder app design tokens + tiny helpers.
 // One shared theme object, switched by mode ('light' | 'dark').
 
 const CX = {

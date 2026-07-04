@@ -1,4 +1,4 @@
-// Calorix bottom navigation — 5 tabs with a centered Scan FAB.
+// Placeholder app bottom navigation — 5 tabs with a centered Scan FAB.
 // Used across all main screens.
 
 function CXBottomNav({ active = 'today', theme, floating = false, onSelect = () => {} }) {

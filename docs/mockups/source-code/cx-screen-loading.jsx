@@ -1,4 +1,4 @@
-// Calorix loading / splash screen — shown when the app first opens
+// Placeholder app loading / splash screen — shown when the app first opens
 // while the camera + cloud session warm up. Premium AI-fitness feel:
 // soft theme-aware backdrop, halo + ring around the brand mark,
 // determinate progress with status copy, no spinners-only.
