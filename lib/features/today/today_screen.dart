@@ -90,7 +90,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 54, 20, 8),
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
