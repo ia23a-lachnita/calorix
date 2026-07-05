@@ -24,7 +24,7 @@
 
 ### 2. UI does not fully match mockups
 
-**Symptom:** Screens render and are functional but visual fidelity vs the active references in `docs/mockups/source-code/screenshots/` is approximate, not pixel-matched.
+**Symptom:** Screens render and are functional but visual fidelity vs the active references in `docs/design-handoff/placeholder-app/reference-images/` is approximate, not pixel-matched.
 
 **Observed gaps (from live screenshots, 2026-05-18):**
 - Today screen macro ring: correct layout but ring gradient, glow, and card elevation differ from mockup.
