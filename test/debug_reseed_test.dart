@@ -16,7 +16,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-      'Debug reseed screen sets ui-diff mode and immersiveSticky system UI',
+      'Debug reseed screen sets ui-diff mode and edge-to-edge system UI',
       (tester) async {
     final log = <MethodCall>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -54,7 +54,6 @@ void main() {
 
     expect(systemUiModeCall, isNotNull,
         reason: 'Expected SystemChrome.setEnabledSystemUIMode call');
-    expect(
-        systemUiModeCall!.arguments, contains('SystemUiMode.immersiveSticky'));
+    expect(systemUiModeCall!.arguments, contains('SystemUiMode.edgeToEdge'));
   });
 }
