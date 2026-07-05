@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/constants/app_constants.dart';
 import 'core/firebase/firebase_options.dart';
 import 'core/router/app_router.dart';
+import 'core/system/system_ui.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'features/profile/profile_sheet.dart';
@@ -20,6 +21,7 @@ const _useEmulator = bool.fromEnvironment('USE_EMULATOR', defaultValue: false);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await applyCalorixEdgeToEdgeSystemUi();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   if (_useEmulator) {

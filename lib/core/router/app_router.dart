@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'route_names.dart';
+import '../system/system_ui.dart';
 import '../../shell/app_shell.dart';
 import '../../features/scan/scan_screen.dart';
 import '../../features/processing/processing_screen.dart';
@@ -59,7 +59,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                       return CustomTransitionPage(
                         key: state.pageKey,
                         child: FoodDetailSheet(entryId: id),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
                           return SlideTransition(
                             position: Tween<Offset>(
                               begin: const Offset(0, 1),
@@ -193,13 +194,14 @@ class _DebugReseedScreenState extends ConsumerState<_DebugReseedScreen> {
   Future<void> _reseed() async {
     final uid = ref.read(firebaseAuthProvider).currentUser?.uid;
     if (uid != null) {
-      await SeedDataService(ref.read(firestoreProvider)).forceReseedForUiDiff(uid);
+      await SeedDataService(ref.read(firestoreProvider))
+          .forceReseedForUiDiff(uid);
     }
     if (mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           ref.read(uiDiffModeProvider.notifier).state = true;
-          SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+          applyCalorixEdgeToEdgeSystemUi();
           context.go(RoutePaths.today);
         }
       });

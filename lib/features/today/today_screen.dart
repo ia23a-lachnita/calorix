@@ -90,10 +90,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  // The JSX handoff uses 54px from the full device top.
-                  // Flutter content starts below the native status bar in
-                  // captures, so 14px lands the header at the same visual y.
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+                  // Edge-to-edge mode paints the full viewport, so this
+                  // matches the JSX handoff's 54px top padding directly.
+                  padding: const EdgeInsets.fromLTRB(20, 54, 20, 8),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

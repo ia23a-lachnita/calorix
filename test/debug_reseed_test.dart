@@ -15,7 +15,9 @@ class FakeFirebaseAuth extends Fake implements FirebaseAuth {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Debug reseed screen sets ui-diff mode and immersiveSticky', (tester) async {
+  testWidgets(
+      'Debug reseed screen sets ui-diff mode and edge-to-edge system UI',
+      (tester) async {
     final log = <MethodCall>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (methodCall) async {
@@ -46,10 +48,12 @@ void main() {
 
     expect(container.read(uiDiffModeProvider), isTrue);
 
-    final hasAnyFullscreenCall = log.any((call) =>
-        call.method == 'SystemChrome.setEnabledSystemUIMode' ||
-        call.method == 'SystemChrome.setEnabledSystemUIOverlays');
+    final systemUiModeCall = log
+        .where((call) => call.method == 'SystemChrome.setEnabledSystemUIMode')
+        .lastOrNull;
 
-    expect(hasAnyFullscreenCall, isTrue, reason: 'Expected SystemChrome.setEnabledSystemUIMode call');
+    expect(systemUiModeCall, isNotNull,
+        reason: 'Expected SystemChrome.setEnabledSystemUIMode call');
+    expect(systemUiModeCall!.arguments, contains('SystemUiMode.edgeToEdge'));
   });
 }
