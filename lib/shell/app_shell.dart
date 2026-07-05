@@ -63,17 +63,13 @@ class _CalorixBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = isDark ? AppColors.navBarDark : AppColors.navBarLight;
     final activeColor =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final inactiveColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-    final bottomInset = MediaQuery.of(context).padding.bottom;
-    const glassTop = 20.0;
-    const glassHeight = 84.0;
-    const fabTop = 8.0;
-    final totalHeight = glassTop + glassHeight + bottomInset;
+    const totalHeight = 100.0;
+    const fabTop = -5.0;
 
     return SizedBox(
       key: const Key('today-bottom-nav'),
@@ -85,27 +81,29 @@ class _CalorixBottomNav extends StatelessWidget {
             key: const Key('today-bottom-nav-glass'),
             left: 0,
             right: 0,
-            top: glassTop,
+            top: 0,
             bottom: 0,
             child: ClipRect(
               child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+                filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: bgColor.withValues(alpha: 0.92),
+                    color: isDark
+                        ? AppColors.navBarDark.withValues(alpha: 0.92)
+                        : Colors.white.withValues(alpha: 0.92),
                     border: Border(
                       top: BorderSide(
                         color: isDark
-                            ? AppColors.borderDarkStrong
-                            : AppColors.borderLightStrong,
+                            ? AppColors.borderDark
+                            : AppColors.borderLight,
                         width: 0.5,
                       ),
                     ),
                   ),
                   child: Padding(
-                    padding: EdgeInsets.only(
-                      top: 16,
-                      bottom: bottomInset,
+                    padding: const EdgeInsets.only(
+                      top: 36,
+                      bottom: 8,
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,7 +131,7 @@ class _CalorixBottomNav extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: glassTop,
+            top: 0,
             left: 0,
             right: 0,
             height: 1,

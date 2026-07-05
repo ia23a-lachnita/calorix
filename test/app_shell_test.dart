@@ -128,6 +128,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(
+        tester.getSize(find.byKey(const Key('today-bottom-nav'))).height, 100);
+    expect(tester.getSize(find.byKey(const Key('today-bottom-nav-glass'))),
+        const Size(800, 100));
+    expect(
         tester.getSize(find.byKey(const Key('scan-glow'))), const Size(76, 76));
     expect(tester.getSize(find.byKey(const Key('scan-fab-outer'))),
         const Size(60, 60));
@@ -139,6 +143,24 @@ void main() {
     expect(scanLabel.style?.fontFamily, 'GeistMono');
     expect(scanLabel.style?.fontSize, 9.5);
     expect(scanLabel.style?.letterSpacing, 1.6);
+  });
+
+  testWidgets('Bottom nav visual height does not grow with safe area',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MediaQuery(
+          data: const MediaQueryData(padding: EdgeInsets.only(bottom: 34)),
+          child: MaterialApp.router(routerConfig: _buildRouter()),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+        tester.getSize(find.byKey(const Key('today-bottom-nav'))).height, 100);
+    expect(tester.getSize(find.byKey(const Key('today-bottom-nav-glass'))),
+        const Size(800, 100));
   });
 
   testWidgets('Scan FAB is static and does not keep the shell animating',
@@ -195,10 +217,9 @@ void main() {
 
     expect(scanRect.left >= navRect.left, isTrue);
     expect(scanRect.right <= navRect.right, isTrue);
-    expect(scanRect.top >= navRect.top, isTrue);
+    expect(navRect.top - scanRect.top, closeTo(5, 1));
     expect(scanRect.bottom <= navRect.bottom, isTrue);
-    expect(glassRect.top - scanRect.top, greaterThan(0));
-    expect(glassRect.top - scanRect.top, lessThanOrEqualTo(20));
+    expect(glassRect.top - scanRect.top, closeTo(5, 1));
 
     await tester.tapAt(Offset(scanRect.center.dx, scanRect.top + 12));
     await tester.pump(const Duration(milliseconds: 300));

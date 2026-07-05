@@ -94,7 +94,7 @@ class MacroProgressBar extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: denseTodayStyle ? 10 : 6),
         animation != null
             ? AnimatedBuilder(
                 animation: animation!,
@@ -102,12 +102,16 @@ class MacroProgressBar extends StatelessWidget {
                   fraction: _fraction * animation!.value,
                   color: color,
                   height: denseTodayStyle ? 6 : 4,
+                  denseTodayStyle: denseTodayStyle,
+                  label: label,
                 ),
               )
             : _Bar(
                 fraction: _fraction,
                 color: color,
                 height: denseTodayStyle ? 6 : 4,
+                denseTodayStyle: denseTodayStyle,
+                label: label,
               ),
       ],
     );
@@ -118,22 +122,32 @@ class _Bar extends StatelessWidget {
   final double fraction;
   final Color color;
   final double height;
+  final bool denseTodayStyle;
+  final String label;
   const _Bar({
     required this.fraction,
     required this.color,
     required this.height,
+    required this.denseTodayStyle,
+    required this.label,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final trackColor = denseTodayStyle
+        ? (isDark ? const Color(0x0FFFFFFF) : const Color(0x0D0B0D10))
+        : color.withAlpha(30);
+
     return LayoutBuilder(
       builder: (context, constraints) => Stack(
         children: [
           Container(
+            key: ValueKey('macroProgressBar.track.$label'),
             height: height,
             width: constraints.maxWidth,
             decoration: BoxDecoration(
-              color: color.withAlpha(30),
+              color: trackColor,
               borderRadius: BorderRadius.circular(999),
             ),
           ),

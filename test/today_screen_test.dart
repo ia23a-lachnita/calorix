@@ -185,6 +185,30 @@ void main() {
     expect(ring.showGlow, isFalse);
   });
 
+  testWidgets('Today macro rows use handoff neutral track and spacing',
+      (tester) async {
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        themeMode: ThemeMode.dark,
+        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+      ),
+    );
+    await _pumpTodayScreen(tester);
+
+    final proteinLabel = find.text('Protein');
+    final proteinTrack =
+        find.byKey(const ValueKey('macroProgressBar.track.Protein'));
+    expect(proteinTrack, findsOneWidget);
+
+    final track = tester.widget<Container>(proteinTrack);
+    final decoration = track.decoration as BoxDecoration;
+    expect(decoration.color, const Color(0x0FFFFFFF));
+
+    final labelBottom = tester.getBottomLeft(proteinLabel).dy;
+    final trackTop = tester.getTopLeft(proteinTrack).dy;
+    expect(trackTop - labelBottom, closeTo(10, 1));
+  });
+
   testWidgets('Today typography uses mockup font roles', (tester) async {
     await tester.pumpWidget(
       _buildTodayScreen(
@@ -275,7 +299,7 @@ void main() {
     final spacer = tester.widget<SizedBox>(
       find.byKey(const ValueKey('today.bottomContentSpacer')),
     );
-    expect(spacer.height, greaterThanOrEqualTo(132));
+    expect(spacer.height, 100);
   });
 
   testWidgets('kcal left pill fits inside macro ring center', (tester) async {
