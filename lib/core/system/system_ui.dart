@@ -16,3 +16,8 @@ Future<void> applyCalorixEdgeToEdgeSystemUi() async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(calorixEdgeToEdgeOverlayStyle);
 }
+
+Future<void> applyCalorixUiDiffSystemUi() async {
+  SystemChrome.setSystemUIOverlayStyle(calorixEdgeToEdgeOverlayStyle);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+}

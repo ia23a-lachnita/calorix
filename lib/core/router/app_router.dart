@@ -201,7 +201,7 @@ class _DebugReseedScreenState extends ConsumerState<_DebugReseedScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           ref.read(uiDiffModeProvider.notifier).state = true;
-          applyCalorixEdgeToEdgeSystemUi();
+          applyCalorixUiDiffSystemUi();
           context.go(RoutePaths.today);
         }
       });
