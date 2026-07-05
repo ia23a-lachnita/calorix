@@ -15,10 +15,10 @@
 </template>
 
 <!-- Resources referenced from JSX strings — listed so the bundler can find them -->
-<meta name="ext-resource-dependency" content="assets/chicken_rice_bowl_highformat.jpg"/>
-<meta name="ext-resource-dependency" content="assets/chicken_rice_bowl_square.jpg"/>
-<meta name="ext-resource-dependency" content="assets/protein_joghurt.jpg"/>
-<meta name="ext-resource-dependency" content="assets/coffee-oatmeal.jpg"/>
+<meta name="ext-resource-dependency" content="../assets/food/chicken_rice_bowl_highformat.jpg"/>
+<meta name="ext-resource-dependency" content="../assets/food/chicken_rice_bowl_square.jpg"/>
+<meta name="ext-resource-dependency" content="../assets/food/protein_joghurt.jpg"/>
+<meta name="ext-resource-dependency" content="../assets/food/coffee-oatmeal.jpg"/>
 
 <!-- Fonts: Geist + Geist Mono via Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -42,24 +42,22 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- Components & screens -->
-<script type="text/babel" src="ios-frame.jsx"></script>
-<script type="text/babel" src="design-canvas.jsx"></script>
-<script type="text/babel" src="tweaks-panel.jsx"></script>
-<script type="text/babel" src="cx-theme.jsx"></script>
-<script type="text/babel" src="cx-icons.jsx"></script>
-<script type="text/babel" src="cx-shell.jsx"></script>
-<script type="text/babel" src="cx-screen-scan.jsx"></script>
-<script type="text/babel" src="cx-screen-states.jsx"></script>
-<script type="text/babel" src="cx-screen-processing.jsx"></script>
-<script type="text/babel" src="cx-screen-today.jsx"></script>
-<script type="text/babel" src="cx-screen-food.jsx"></script>
-<script type="text/babel" src="cx-screen-history.jsx"></script>
-<script type="text/babel" src="cx-screen-goals.jsx"></script>
-<script type="text/babel" src="cx-screen-ai.jsx"></script>
-<script type="text/babel" src="cx-screen-ai-history.jsx"></script>
-<script type="text/babel" src="cx-screen-loading.jsx"></script>
-<script type="text/babel" src="cx-screen-login.jsx"></script>
-<script type="text/babel" src="cx-screen-profile.jsx"></script>
+<script type="text/babel" src="handoff-support.jsx"></script>
+<script type="text/babel" src="../src/cx-theme.jsx"></script>
+<script type="text/babel" src="../src/cx-icons.jsx"></script>
+<script type="text/babel" src="../src/cx-shell.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-scan.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-states.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-processing.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-today.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-food.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-history.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-goals.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-ai.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-ai-history.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-loading.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-login.jsx"></script>
+<script type="text/babel" src="../src/cx-screen-profile.jsx"></script>
 
 </head>
 <body>
@@ -150,7 +148,7 @@ function CXLockScreen({ mode = 'dark' }) {
             overflow: 'hidden',
             border: '0.5px solid rgba(255,255,255,0.10)',
           }}>
-            <img src="assets/chicken_rice_bowl_square.jpg" alt="" style={{
+            <img src="../assets/food/chicken_rice_bowl_square.jpg" alt="" style={{
               width: '100%', height: '100%', objectFit: 'cover', display: 'block',
             }}/>
           </div>

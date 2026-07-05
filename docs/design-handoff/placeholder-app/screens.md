@@ -1,6 +1,6 @@
 # Screen inventory & flow map
 
-All screens are 402×874 logical px (iPhone-class), theme-aware (dark/light) unless noted. Source file given per screen; screenshots as `screenshots/<id>--<mode>.png`.
+All screens are 402×874 logical px (iPhone-class), theme-aware (dark/light) unless noted. Source file given per screen; screenshots as `reference-images/<id>--<mode>.png`.
 
 ## Flow map
 ```

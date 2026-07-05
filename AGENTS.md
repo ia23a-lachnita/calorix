@@ -11,7 +11,7 @@ Core flow: open app → Scan screen is ready → capture food in under 5 seconds
 ## Source of Truth
 
 1. `requirements.md`
-2. `docs/mockups/source-code/README.md`
+2. `docs/design-handoff/placeholder-app/README.md`
 3. `.claude/design.md`
 4. `.claude/tools.md`, `.claude/gemini.md`, `.claude/codex.md`
 

@@ -10,7 +10,7 @@ function CXCameraPlaceholder({ label = 'CAMERA PREVIEW' }) {
       background: '#0a0d12',
     }}>
       <img
-        src="assets/chicken_rice_bowl_highformat.jpg"
+        src="../assets/food/chicken_rice_bowl_highformat.jpg"
         alt=""
         style={{
           position: 'absolute', inset: 0,

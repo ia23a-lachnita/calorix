@@ -1,4 +1,4 @@
-Design for a modern mobile app UI concept for an AI-powered calorie and macro tracking app. The product name and logo are placeholders for now (`AppName` in the design handoff); `Ravlo` is a likely candidate but not final.
+Design for a modern mobile app UI concept for an AI-powered calorie and macro tracking app. The product name and logo are placeholders for now (`AppName` in the active design handoff at `docs/design-handoff/placeholder-app/`); `Ravlo` is a likely candidate but not final.
 
 Product idea:
 The app is a free, faster, better alternative to apps like Cal AI. The core experience is camera-first and extremely efficient: the user opens the app, instantly sees a camera screen, takes a photo of food, closes the app, and the photo is processed in the cloud. When the analysis is complete, the user receives a push notification. Opening the notification or navigating to the Today screen shows the estimated calories, macros, and detected food items.

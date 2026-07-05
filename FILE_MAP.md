@@ -16,6 +16,7 @@
 | `.gemini/settings.json` | Gemini CLI project MCP starter. |
 | `.codex/config.toml` | Codex starter config. |
 | `.mcp.json` | Project MCP starter for Claude-compatible clients. |
-| `docs/mockups/source-code/README.md` | Preserved mockup source README/spec cards. |
-| `docs/mockups/source-code/screenshots/*.png` | Active dark/light visual references from the current handoff. |
+| `docs/design-handoff/placeholder-app/README.md` | Active placeholder-app design handoff README/spec cards. |
+| `docs/design-handoff/placeholder-app/src/*.jsx` | Active JSX source of truth for the handoff. |
+| `docs/design-handoff/placeholder-app/reference-images/*.png` | Active dark/light visual references from the current handoff. |
 | `RESEARCH_NOTES.md` | Summary of research decisions. |

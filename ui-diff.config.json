@@ -17,7 +17,7 @@
     "today": {
       "platform": "android",
       "deviceProfile": "SM-G780G",
-      "expectedImage": "docs/mockups/image/dark/single/Today.png",
+      "expectedImage": "docs/design-handoff/placeholder-app/reference-images/today--dark.png",
       "outputDir": ".ui-diff/today",
       "pixelmatchThreshold": 0.1,
       "maxDiffPercent": 0.14,
@@ -75,7 +75,7 @@
           {
             "id": "today-jsx",
             "type": "source",
-            "path": "docs/mockups/source-code/cx-screen-today.jsx",
+            "path": "docs/design-handoff/placeholder-app/src/cx-screen-today.jsx",
             "authority": "high",
             "description": "Today mockup JSX source"
           }

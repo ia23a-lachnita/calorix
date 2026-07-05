@@ -10,7 +10,7 @@ GEMINI.md
 .claude/
 .gemini/
 .codex/
-docs/mockups/
+docs/design-handoff/
 ```
 
 Then from the project root:

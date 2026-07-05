@@ -1,22 +1,23 @@
 # Placeholder App UI — Flutter implementation handoff
 
-Goal: implement this mobile UI **1:1** in Flutter. The ground truth is the JSX source in `src/` — every dimension, color, radius and font size is written explicitly inline there. Screenshots in `screenshots/` are visual reference only; when a screenshot and the code disagree, **the code wins**.
+Goal: implement this mobile UI **1:1** in Flutter. The ground truth is the JSX source in `src/` — every dimension, color, radius and font size is written explicitly inline there. Screenshots in `reference-images/` are visual reference only; when a screenshot and the code disagree, **the code wins**.
 
 ## Placeholder app repo integration
-- This folder is the active Claude-design handoff. The repo keeps the JSX files flattened in this directory for existing tooling compatibility; treat them as the handoff's `src/` files.
-- The active visual references are the PNGs in `screenshots/`. The old May mockup composites and old single-screen PNGs under `docs/mockups/image/` were removed to avoid stale comparisons.
-- `docs/mockups/image/dark/single/Today.png` and `docs/mockups/image/light/single/Today.png` remain only as Today UI-diff compatibility mirrors of `screenshots/today--dark.png` and `screenshots/today--light.png`.
+- This folder is the active Claude-design handoff. JSX source, reference images, food assets, preview HTML, and generated Flutter tokens are separated so the handoff can be used without stale path ambiguity.
+- The active visual references are the PNGs in `reference-images/`. The old May mockup composites and old single-screen PNG mirrors under `docs/mockups/` were removed to avoid stale comparisons.
+- UI-diff should point directly at `reference-images/today--dark.png` or `reference-images/today--light.png`; there is no separate `docs/mockups/image/` compatibility mirror.
 - The app name and logo remain placeholders. Do not replace `AppName`/`CX_APPNAME` with a final brand name or mark until the brand decision is explicit; `Ravlo` is a candidate, not a decision.
 - The populated Today handoff intentionally shows `1,420 kcal` in the hero while the visible cards sum to `845 kcal`. Flutter keeps that as a debug/ui-diff fixture override only.
 
 ## What's in this folder
-- `cx-theme.jsx` (tokens), `cx-icons.jsx` (icon set + logo placeholder), `cx-shell.jsx` (bottom nav, top bar, avatar, macro ring), one `cx-screen-*.jsx` per screen, and `handoff.html` (composition + lock-screen mock).
+- `src/` — `cx-theme.jsx` (tokens), `cx-icons.jsx` (icon set + logo placeholder), `cx-shell.jsx` (bottom nav, top bar, avatar, macro ring), and one `cx-screen-*.jsx` per screen.
 - `tokens/` — the same tokens as CSS custom properties.
-- `design_tokens.dart` — tokens pre-translated to Flutter constants. Start here.
+- `flutter/design_tokens.dart` — tokens pre-translated to Flutter constants. Start here.
 - `screens.md` — screen inventory, states, and flow map.
-- `screenshots/` — every screen in dark + light (402×874 logical px). **Known limitation:** these PNGs are color-quantized by the export pipeline, so smooth gradients/glows show slight banding. The live design does not band — treat gradients in the JSX source as ground truth, or open `screens.html` in a browser and take a native screenshot for pixel-perfect reference.
-- `assets/` — food photography used in the mocks.
-- `screens.html` — interactive screen browser: pick any screen from the dropdown (←/→ to step, `m` to toggle dark/light). Use it for pixel-perfect visual reference.
+- `reference-images/` — every screen in dark + light (402×874 logical px). **Known limitation:** these PNGs are color-quantized by the export pipeline, so smooth gradients/glows show slight banding. The live design does not band — treat gradients in the JSX source as ground truth, or open `preview/screens.html` in a browser and take a native screenshot for pixel-perfect reference.
+- `assets/food/` — food photography used in the mocks.
+- `preview/screens.html` — interactive screen browser: pick any screen from the dropdown (←/→ to step, `m` to toggle dark/light). Use it for pixel-perfect visual reference.
+- `preview/handoff.html` — composition and lock-screen mock.
 
 ## Hard rules for 1:1 fidelity
 1. **Copy exact values.** Paddings like 13px, font sizes like 13.5px, radii like 22px are intentional. Do NOT snap to 4/8 grids or Material defaults.

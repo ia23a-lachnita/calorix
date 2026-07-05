@@ -15,7 +15,7 @@ function CXFoodDetailScreen({ mode = 'light', editing = true }) {
         background: '#2a221d',
         overflow: 'hidden',
       }}>
-        <img src="assets/chicken_rice_bowl_square.jpg" alt="Chicken Rice Bowl" style={{
+        <img src="../assets/food/chicken_rice_bowl_square.jpg" alt="Chicken Rice Bowl" style={{
           position: 'absolute', inset: 0,
           width: '100%', height: '100%', objectFit: 'cover',
         }}/>

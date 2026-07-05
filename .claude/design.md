@@ -2,17 +2,17 @@
 
 Source assets:
 - Requirements: `requirements.md`
-- Mockup spec cards: `docs/mockups/source-code/README.md`
-- Visual references: `docs/mockups/source-code/screenshots/`
+- Design handoff: `docs/design-handoff/placeholder-app/README.md`
+- Visual references: `docs/design-handoff/placeholder-app/reference-images/`
 
 Current handoff note:
-- The active Claude-design handoff is integrated under `docs/mockups/source-code/`.
+- The active Claude-design handoff is integrated under `docs/design-handoff/placeholder-app/`.
 - The app name and logo remain placeholders. Do not hard-code a final product name or logo until the brand decision lands; `Ravlo` is a likely candidate but not final.
 - The handoff source uses `CX_APPNAME = 'AppName'`; Flutter should use the same placeholder through one swappable app-display-name constant.
 - Today screen UI-diff target images are raw app viewports, not iPhone-frame composites:
-  - `docs/mockups/image/dark/single/Today.png`
-  - `docs/mockups/image/light/single/Today.png`
-- All other current screen screenshots live in `docs/mockups/source-code/screenshots/`. The old May mockup composites and old single-screen PNGs are intentionally removed.
+  - `docs/design-handoff/placeholder-app/reference-images/today--dark.png`
+  - `docs/design-handoff/placeholder-app/reference-images/today--light.png`
+- All current screen screenshots live in `docs/design-handoff/placeholder-app/reference-images/`. The old May mockup composites and old single-screen PNG mirrors are intentionally removed.
 - The Today handoff intentionally shows a static hero summary of `1,420 kcal / 96g protein / 132g carbs / 38g fat` even though the three visible meal cards sum to `845 kcal / 74g protein / 92g carbs / 20g fat`. Keep that discrepancy isolated to debug/ui-diff visual parity fixtures; production summary logic must keep summing real entries.
 
 ## Product Feel

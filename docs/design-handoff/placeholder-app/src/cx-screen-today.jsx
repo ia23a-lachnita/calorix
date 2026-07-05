@@ -121,17 +121,17 @@ function CXTodayScreen({ mode = 'light', empty = false }) {
             name="Chicken Rice Bowl" time="12:48 · Lunch"
             kcal={620} p={48} c={72} f={16}
             confidence={91} status="confirmed"
-            image="assets/chicken_rice_bowl_square.jpg"/>
+            image="../assets/food/chicken_rice_bowl_square.jpg"/>
           <MealCard theme={t}
             name="Protein Yogurt"   time="09:12 · Breakfast"
             kcal={180} p={25} c={12} f={3}
             confidence={88} status="confirmed"
-            image="assets/protein_joghurt.jpg"/>
+            image="../assets/food/protein_joghurt.jpg"/>
           <MealCard theme={t}
             name="Espresso · Oat"   time="08:05 · Drink"
             kcal={45} p={1} c={8} f={1}
             confidence={62} status="review"
-            image="assets/coffee-oatmeal.jpg"/>
+            image="../assets/food/coffee-oatmeal.jpg"/>
         </div>
         </React.Fragment>)}
       </div>
