@@ -24,6 +24,7 @@ args = [
     "mcp",
 ]
 command = "npx"
+enabled = false
 
 [mcp_servers.gcloud]
 args = [
@@ -31,6 +32,7 @@ args = [
     "@google-cloud/gcloud-mcp",
 ]
 command = "npx"
+enabled = false
 
 [mcp_servers.ui-diff]
 command = "node"

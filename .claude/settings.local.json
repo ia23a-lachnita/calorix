@@ -44,9 +44,11 @@
   "enabledMcpjsonServers": [
     "claude-context",
     "dart",
-    "firebase",
-    "gcloud",
     "flutter-mcp-toolkit",
     "ui-diff"
+  ],
+  "disabledMcpjsonServers": [
+    "firebase",
+    "gcloud"
   ]
 }

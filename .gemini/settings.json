@@ -34,11 +34,13 @@
     "mcp": {
         "allowed": [
             "dart",
-            "gcloud",
-            "firebase",
             "claude-context",
             "context7",
             "context-mode"
+        ],
+        "excluded": [
+            "gcloud",
+            "firebase"
         ]
     }
 }

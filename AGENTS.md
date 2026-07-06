@@ -1,62 +1,84 @@
-# AGENTS.md — Calorix
+# Calorix — Agent Contract
 
-This file is for Codex and other coding agents. Claude Code should read `CLAUDE.md`; Gemini CLI should read `GEMINI.md`.
+This file is the single operating contract for every coding agent in this repository (Codex, Claude Code, Gemini, or others). `CLAUDE.md` and `GEMINI.md` point here and only add host-specific notes; do not duplicate rules across files. If another instruction conflicts with this contract, this contract wins unless the user overrides it in conversation.
 
-## Project
+## 1. Project
 
-Calorix is a Flutter/Dart/Firebase app for fast camera-first AI calorie and macro tracking.
+Calorix is a Flutter/Dart/Firebase app for camera-first AI calorie and macro tracking.
 
 Core flow: open app → Scan screen is ready → capture food in under 5 seconds → cloud processing → push notification → Today/detail shows estimated calories, macros, detected foods, and confidence.
 
-## Source of Truth
+Source-of-truth order (read the relevant one before changing behavior, UI, data, cloud logic, or tooling):
 
 1. `requirements.md`
 2. `docs/design-handoff/placeholder-app/README.md`
 3. `.claude/design.md`
-4. `.claude/tools.md`, `.claude/gemini.md`, `.claude/codex.md`
+4. `.claude/tools.md`
 
-Read relevant docs before changing behavior, UI, data, cloud logic, or tooling.
+## 2. Non-Negotiables
 
-## Commands
+- Use FVM for all Flutter/Dart commands (`fvm flutter …`, `fvm dart …`). Plain `flutter`/`dart` only to diagnose global SDK setup.
+- Never deploy, delete cloud resources, or mutate production data without explicit user confirmation.
+- Do not commit secrets, service-account files, or generated dependency folders.
+- Commit messages: plain imperative English. A pre-commit hook **rejects** commits containing `AI`, `Bot`, `Claude`, `Gemini`, `Generated`, `Automated`, `Sonnet`, `Anthropic`, `noreply@anthropic.com`, or any `Co-Authored-By:` trailer. Never bypass the hook with `--no-verify`; strip the offending token and recommit.
+- Work fully autonomously within this contract: pick and use tools without asking permission for reversible, in-scope actions. Ask only before destructive/irreversible actions (deploys, data mutation, cloud deletes) or genuine scope changes.
 
-Use FVM for project Flutter/Dart commands:
+## 3. Agent Toolset Scope
 
-```bash
-fvm flutter pub get
-fvm flutter analyze
-fvm flutter test
-fvm flutter run
-fvm dart --version
-```
+Use the host agent's native tools; do not shell out to another CLI for what a native tool already does.
 
-Do not use plain `flutter` or `dart` except to diagnose global setup.
+| Capability | Claude Code | Codex CLI |
+|---|---|---|
+| Read/edit files | `Read`, `Edit`, `Write` | `apply_patch`, shell reads |
+| Search | `Grep`, `Glob`, semantic `claude-context` search | `shell_command` (rg), MCP search |
+| Shell | `Bash` / `PowerShell` | `shell_command` (PowerShell) |
+| Subagents | `Agent` tool + `.claude/agents/*` | `.codex/agents/*` |
+| External review | `mcp__antigravity-mcp__ask-ai` | `mcp__antigravity_mcp__ask_ai` |
+| UI parity | `ui-diff` MCP server tools | `ui-diff` MCP server tools |
 
-## Product Rules
+- Google MCP connectors (`firebase`, `gcloud`) are **disabled by default** in this repo's Claude, Codex, and Gemini configs. Do not silently re-enable them. If a task genuinely needs Firebase/GCP tooling, state that and let the user enable the connector for the session; CLI fallbacks (`firebase`, `gcloud` commands) still require the safety gates in section 6.
+- Detailed tool/MCP policy, emulator setup, and the ui-diff workflow live in `.claude/tools.md`.
+
+## 4. External Review Contract (Antigravity MCP)
+
+- Do not use the deprecated Gemini CLI or the `agy` CLI for reviews. Use the Antigravity MCP `ask-ai` tool with `model: "gemini-3.1-pro-preview"`, `approvalMode: "yolo"`, and a persistent `conversationId` per work stream.
+- Every review prompt must explicitly say: **Do not edit files, do not run write commands, and do not mutate the repository; only inspect, reason, review, and propose changes for the main agent to apply.**
+- A review is green only when the response explicitly reports `AGREEMENT_STATUS: agree` and `MUST_FIX: none`. Apply must-fix feedback and continue the same conversation until green.
+- Required review gates:
+  - Before implementation: multi-file features, architecture changes, Firebase/security/rules changes, data-model changes.
+  - After implementation: any non-trivial diff (multi-file, behavior-changing, security-touching, or UI-parity-affecting).
+  - Trivial single-file edits may skip the pre-review but record why.
+- If the MCP tool or model is unavailable, record the exact error; do not substitute a CLI review or count an empty/noisy response as green. Check `git status` after review calls; reviewer responses have previously contained wrapper noise and unexpected mutations.
+
+## 5. Product Rules
 
 - Default landing screen is Scan.
 - Bottom nav order is Today · History · Scan · Goals · AI.
 - Scan is centered, larger, FAB-style, with blue→cyan→green gradient ring.
 - No pure `#FFFFFF` or `#000000` UI tokens.
 - Protein is blue `#3A5BFF`; carbs cyan `#19D3D9`; fat green `#1FCC74`.
+- Food logging must be possible in under 5 seconds on the happy path.
+- Processing happens in the cloud; the user can close the app; a push notification returns them to results.
 - Low-confidence scans are amber and easy to correct.
-- All food entries, meals, daily logs, goals, macro targets, and weight logs support CRUD.
+- All food entries, meals, daily logs, goals, macro targets, and weight logs support CRUD; manual editing must not dominate the scan-first flow.
 - Firebase Auth only; no custom auth.
-- Read current Firestore/Storage rules before changing them.
 
-## Work Style
+## 6. Work Contract
 
-- Plan before multi-file or architecture changes.
-- Keep diffs small and focused.
-- Inspect existing files before editing.
-- Add or update tests for logic changes.
-- For UI changes, compare against the dark/light mockup images and `.claude/design.md`.
-- Never deploy, delete cloud resources, or mutate production data without explicit confirmation.
-- Do not commit secrets.
+- Plan before multi-file or architecture changes; keep diffs small and focused; inspect files before editing.
+- Test-first for logic changes and bug fixes; add or update tests with the change.
+- For UI changes, compare against the dark/light mockups and `.claude/design.md`, and verify with the `ui-diff` MCP pipeline or runtime screenshots (see `.claude/tools.md`).
+- Firebase/GCP safety gates before any write/deploy: confirm active project/environment, read current Firestore/Storage rules first, run emulator/local tests where applicable, run a security review for auth/rules/user-data changes, and get explicit confirmation for destructive operations or deploys.
+- Keep large logs, search results, and command output out of the main conversation; summarize instead.
 
-## Done When
+## 7. Definition of Done
 
-- Implementation matches requirements and design docs.
-- `fvm flutter analyze` passes or failures are documented.
-- Relevant tests pass or missing tests are explained.
-- UI changes have a visual/runtime verification path.
-- Firebase/security changes include rules/environment review.
+A task is done only when:
+
+1. The implementation matches `requirements.md`, the design-handoff README, and `.claude/design.md`.
+2. `fvm flutter analyze` passes, or failures are documented with a specific reason.
+3. Relevant unit/widget/integration tests pass, or missing tests are explained.
+4. UI changes have at least one runtime/visual verification path (ui-diff run or runtime screenshot).
+5. Firebase/security changes include environment/rules verification and no leaked secrets.
+6. The Antigravity MCP review gate (section 4) is green for non-trivial diffs.
+7. Externally generated code (Codex/Gemini) has been inspected before acceptance, never merged blindly.
