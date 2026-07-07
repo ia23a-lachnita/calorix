@@ -18,7 +18,9 @@ final historyProvider = StreamProvider<List<DailyLog>>((ref) {
       .collection(AppConstants.usersCollection)
       .doc(uid)
       .collection(AppConstants.dailyLogsSubCollection)
-      .orderBy(FieldPath.documentId, descending: true)
+      // Order by the server-written date field: descending __name__ ordering
+      // would require a composite index, while single-field date is automatic.
+      .orderBy('date', descending: true)
       .limit(30)
       .snapshots()
       .map((q) => q.docs

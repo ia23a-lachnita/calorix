@@ -364,26 +364,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ],
                     ),
                     const SizedBox(height: 32),
-                    // Trust chips + footer.
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _TrustChip(
-                          icon: Icons.cloud_outlined,
-                          label: 'NO FOOD PHOTOS SOLD',
-                          dark: dark,
-                          hairline: hairline,
-                          ink2: ink2,
+                    // Trust chips + footer. FittedBox keeps the pair on one
+                    // line on devices narrower than the 402px design width.
+                    Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          children: [
+                            _TrustChip(
+                              icon: Icons.cloud_outlined,
+                              label: 'NO FOOD PHOTOS SOLD',
+                              dark: dark,
+                              hairline: hairline,
+                              ink2: ink2,
+                            ),
+                            const SizedBox(width: 12),
+                            _TrustChip(
+                              icon: Icons.check,
+                              label: 'GDPR · CLOUD SYNC',
+                              dark: dark,
+                              hairline: hairline,
+                              ink2: ink2,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        _TrustChip(
-                          icon: Icons.check,
-                          label: 'GDPR · CLOUD SYNC',
-                          dark: dark,
-                          hairline: hairline,
-                          ink2: ink2,
-                        ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 14),
                     Center(

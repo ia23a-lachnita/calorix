@@ -569,30 +569,38 @@ class _WeeklyStats extends StatelessWidget {
                                 : AppColors.textPrimaryLight)),
                   ],
                 ),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.green.withAlpha(30),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text('↑ $targetPct% target',
-                          style:
-                              AppTextStyles.labelSmall.copyWith(color: AppColors.green)),
+                // Shrink the chip pair on narrow widths instead of overflowing.
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      children: [
+                        Container(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.green.withAlpha(30),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text('↑ $targetPct% target',
+                              style: AppTextStyles.labelSmall
+                                  .copyWith(color: AppColors.green)),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.green.withAlpha(20),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text('🔥 $streak DAY STREAK',
+                              style: AppTextStyles.labelSmall
+                                  .copyWith(color: AppColors.green)),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.green.withAlpha(20),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text('🔥 $streak DAY STREAK',
-                          style:
-                              AppTextStyles.labelSmall.copyWith(color: AppColors.green)),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
