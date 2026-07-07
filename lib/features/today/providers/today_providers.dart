@@ -22,6 +22,9 @@ final todayMacroSummaryProvider = Provider<({double kcal, double protein, double
   final entries = ref.watch(todayEntriesProvider).valueOrNull ?? [];
   double kcal = 0, protein = 0, carbs = 0, fat = 0;
   for (final e in entries) {
+    // Low-confidence scans awaiting review stay visible in the list but never
+    // count toward totals until the user confirms them.
+    if (e.needsReview) continue;
     kcal += e.scaledKcal;
     protein += e.scaledProtein;
     carbs += e.scaledCarbs;

@@ -279,7 +279,8 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
     setState(() => _isSaving = true);
     try {
       final repo = ref.read(foodEntryRepositoryProvider);
-      await repo.update(entry.id, _pending.toUpdateMap(), markCorrected: true);
+      await repo.update(entry.uid, entry.id, _pending.toUpdateMap(),
+          markCorrected: true);
       if (!mounted) return;
       ref.read(foodEditModeProvider(entry.id).notifier).state = false;
       router.pop();
@@ -305,7 +306,7 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
       ),
     );
     if (confirmed == true && mounted) {
-      await ref.read(foodEntryRepositoryProvider).delete(entry.id);
+      await ref.read(foodEntryRepositoryProvider).delete(entry.uid, entry.id);
       if (mounted) router.pop();
     }
   }

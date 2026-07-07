@@ -4,7 +4,9 @@ import '../../../shared/providers/auth_provider.dart';
 
 final foodEntryProvider =
     StreamProvider.autoDispose.family<FoodEntry, String>((ref, id) {
-  return ref.watch(foodEntryRepositoryProvider).watchEntry(id);
+  final uid = ref.watch(currentUidProvider);
+  if (uid == null) return const Stream.empty();
+  return ref.watch(foodEntryRepositoryProvider).watchEntry(uid, id);
 });
 
 final foodEditModeProvider =

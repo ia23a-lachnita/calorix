@@ -1,6 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum FoodEntryStatus { pending, processing, complete, error }
+enum FoodEntryStatus { pending, processing, complete, needsReview, error }
+
+extension FoodEntryStatusWire on FoodEntryStatus {
+  /// Firestore wire value (snake_case where the enum is camelCase).
+  String get wireName =>
+      this == FoodEntryStatus.needsReview ? 'needs_review' : name;
+
+  static FoodEntryStatus fromWire(String? value) {
+    if (value == 'needs_review') return FoodEntryStatus.needsReview;
+    return FoodEntryStatus.values.firstWhere(
+      (s) => s.name == (value ?? 'pending'),
+      orElse: () => FoodEntryStatus.pending,
+    );
+  }
+}
 
 enum MealType { breakfast, lunch, dinner, snack, drink }
 
@@ -41,7 +55,11 @@ class FoodEntry {
   final String id;
   final String uid;
   final DateTime timestamp;
+
+  /// Device-local calendar day (`YYYY-MM-DD`) that owns this entry.
+  final String date;
   final String? imageUrl;
+  final String? storagePath;
   final String scanMode;
   final FoodEntryStatus status;
   final String? foodName;
@@ -60,7 +78,9 @@ class FoodEntry {
     required this.id,
     required this.uid,
     required this.timestamp,
+    required this.date,
     this.imageUrl,
+    this.storagePath,
     required this.scanMode,
     required this.status,
     this.foodName,
@@ -83,18 +103,22 @@ class FoodEntry {
 
   bool get isConfirmed => (confidence ?? 0) >= 0.80;
 
+  /// Server-gated low-confidence scans awaiting user confirmation. They are
+  /// listed with the amber review badge but excluded from daily totals.
+  bool get needsReview => status == FoodEntryStatus.needsReview;
+
   factory FoodEntry.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
+    final timestamp = (data['timestamp'] as Timestamp).toDate();
     return FoodEntry(
       id: doc.id,
       uid: data['uid'] as String,
-      timestamp: (data['timestamp'] as Timestamp).toDate(),
+      timestamp: timestamp,
+      date: data['date'] as String? ?? _fallbackDateKey(timestamp),
       imageUrl: data['imageUrl'] as String?,
+      storagePath: data['storagePath'] as String?,
       scanMode: data['scanMode'] as String? ?? 'meal',
-      status: FoodEntryStatus.values.firstWhere(
-        (s) => s.name == (data['status'] as String? ?? 'pending'),
-        orElse: () => FoodEntryStatus.pending,
-      ),
+      status: FoodEntryStatusWire.fromWire(data['status'] as String?),
       foodName: data['foodName'] as String?,
       kcal: (data['kcal'] as num?)?.toDouble(),
       protein: (data['protein'] as num?)?.toDouble(),
@@ -116,12 +140,21 @@ class FoodEntry {
     );
   }
 
+  static String _fallbackDateKey(DateTime timestamp) {
+    final local = timestamp.toLocal();
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+    return '${local.year}-$month-$day';
+  }
+
   Map<String, dynamic> toMap() => {
         'uid': uid,
         'timestamp': Timestamp.fromDate(timestamp),
+        'date': date,
         'imageUrl': imageUrl,
+        if (storagePath != null) 'storagePath': storagePath,
         'scanMode': scanMode,
-        'status': status.name,
+        'status': status.wireName,
         'foodName': foodName,
         'kcal': kcal,
         'protein': protein,
@@ -150,7 +183,9 @@ class FoodEntry {
         id: id,
         uid: uid,
         timestamp: timestamp,
+        date: date,
         imageUrl: imageUrl,
+        storagePath: storagePath,
         scanMode: scanMode,
         status: status ?? this.status,
         foodName: foodName ?? this.foodName,

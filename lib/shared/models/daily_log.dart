@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DailyLog {
-  final String id; // {uid}_{date}
+  final String id; // {date} (users/{uid}/dailyLogs/{date})
   final double kcal;
   final double protein;
   final double carbs;
@@ -21,8 +21,7 @@ class DailyLog {
 
   factory DailyLog.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
-    final parts = doc.id.split('_');
-    final dateStr = parts.length >= 2 ? parts.sublist(1).join('_') : DateTime.now().toIso8601String().substring(0, 10);
+    final dateStr = data['date'] as String? ?? doc.id;
     return DailyLog(
       id: doc.id,
       kcal: (data['kcal'] as num?)?.toDouble() ?? 0,

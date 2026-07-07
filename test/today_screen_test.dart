@@ -5,6 +5,7 @@ import 'package:calorix/features/today/today_screen.dart';
 import 'package:calorix/features/today/providers/today_providers.dart';
 import 'package:calorix/core/theme/app_colors.dart';
 import 'package:calorix/core/theme/app_theme.dart';
+import 'package:calorix/shared/utils/date_key.dart';
 import 'package:calorix/shared/models/food_entry.dart';
 import 'package:calorix/shared/models/macro_target_plan.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
@@ -55,6 +56,7 @@ FoodEntry _foodEntry({
       id: id,
       uid: 'test-user',
       timestamp: timestamp,
+      date: localDateKey(timestamp),
       scanMode: 'meal',
       status: FoodEntryStatus.complete,
       foodName: name,

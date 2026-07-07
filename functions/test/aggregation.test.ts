@@ -1,32 +1,63 @@
 import { describe, expect, it } from 'vitest';
-import { buildDailyLogDelta, utcDateKey } from '../src/aggregation';
+import {
+  affectedDateKeys,
+  isValidDateKey,
+  summarizeCompleteEntries,
+} from '../src/aggregation';
 
-describe('utcDateKey', () => {
-  it('formats the UTC calendar day', () => {
-    expect(utcDateKey(new Date('2026-07-07T10:00:00Z'))).toBe('2026-07-07');
-  });
-
-  it('documents the historical UTC-vs-local behavior preserved by the port', () => {
-    // 23:30 local in UTC+2 is 21:30Z the same day, but 01:30 local next day
-    // in UTC+2 is 23:30Z the previous day: the UTC key misfiles it. Stage 4
-    // replaces this with the client-owned dateKey.
-    expect(utcDateKey(new Date('2026-07-07T23:30:00Z'))).toBe('2026-07-07');
+describe('isValidDateKey', () => {
+  it('accepts YYYY-MM-DD and rejects everything else', () => {
+    expect(isValidDateKey('2026-07-07')).toBe(true);
+    expect(isValidDateKey('2026-7-7')).toBe(false);
+    expect(isValidDateKey('20260707')).toBe(false);
+    expect(isValidDateKey(undefined)).toBe(false);
+    expect(isValidDateKey(20260707)).toBe(false);
   });
 });
 
-describe('buildDailyLogDelta', () => {
-  it('maps nutrition onto the daily-log increment fields', () => {
-    expect(
-      buildDailyLogDelta({
-        foodName: 'Oatmeal',
-        kcal: 350,
-        protein: 12,
-        carbs: 60,
-        fat: 7,
-        confidence: 0.9,
-        detectedItems: [],
-        boundingBox: null,
-      }),
-    ).toEqual({ kcal: 350, protein: 12, carbs: 60, fat: 7, entryCount: 1 });
+describe('affectedDateKeys', () => {
+  it('returns one key for create and delete', () => {
+    expect(affectedDateKeys(undefined, '2026-07-07')).toEqual(['2026-07-07']);
+    expect(affectedDateKeys('2026-07-07', undefined)).toEqual(['2026-07-07']);
+  });
+
+  it('returns both days when an edit moves the entry to another day', () => {
+    expect(affectedDateKeys('2026-07-06', '2026-07-07')).toEqual([
+      '2026-07-06',
+      '2026-07-07',
+    ]);
+  });
+
+  it('deduplicates unchanged days', () => {
+    expect(affectedDateKeys('2026-07-07', '2026-07-07')).toEqual(['2026-07-07']);
+  });
+});
+
+describe('summarizeCompleteEntries', () => {
+  it('sums only complete entries, scaled by servingMultiplier', () => {
+    const totals = summarizeCompleteEntries([
+      { status: 'complete', kcal: 620, protein: 48, carbs: 72, fat: 16 },
+      { status: 'complete', kcal: 100, protein: 10, carbs: 5, fat: 2, servingMultiplier: 2 },
+      { status: 'needs_review', kcal: 400, protein: 30, carbs: 40, fat: 12 },
+      { status: 'pending', kcal: 999 },
+    ]);
+    expect(totals).toEqual({ kcal: 820, protein: 68, carbs: 82, fat: 20, entryCount: 2 });
+  });
+
+  it('returns zero totals for an empty day so the daily log can be deleted', () => {
+    expect(summarizeCompleteEntries([])).toEqual({
+      kcal: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      entryCount: 0,
+    });
+  });
+
+  it('is idempotent: recomputing the same state yields the same totals', () => {
+    const entries = [
+      { status: 'complete', kcal: 620, protein: 48, carbs: 72, fat: 16 },
+    ];
+    expect(summarizeCompleteEntries(entries)).toEqual(summarizeCompleteEntries(entries));
   });
 });

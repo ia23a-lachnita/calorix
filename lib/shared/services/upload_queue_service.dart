@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
+import '../utils/date_key.dart';
 import '../../core/constants/app_constants.dart';
 
 class UploadQueueService {
@@ -14,7 +15,11 @@ class UploadQueueService {
     required String uid,
     required String scanMode,
   }) async {
-    final docRef = _firestore.collection(AppConstants.entriesCollection).doc();
+    final docRef = _firestore
+        .collection(AppConstants.usersCollection)
+        .doc(uid)
+        .collection(AppConstants.entriesSubCollection)
+        .doc();
     final docId = docRef.id;
 
     // Compress image
@@ -29,17 +34,21 @@ class UploadQueueService {
     );
 
     final uploadFile = compressed ?? XFile(localPath);
-    final storageRef = _storage.ref('scans/$uid/$docId.jpg');
+    final storagePath = 'scans/$uid/$docId.jpg';
+    final storageRef = _storage.ref(storagePath);
 
     // Upload
     await storageRef.putFile(File(uploadFile.path));
     final imageUrl = await storageRef.getDownloadURL();
 
-    // Write Firestore doc
+    // Write Firestore doc; the analysis function reads storagePath via the
+    // Admin SDK, imageUrl stays for in-app display.
     await docRef.set({
       'uid': uid,
       'timestamp': FieldValue.serverTimestamp(),
+      'date': localDateKey(DateTime.now()),
       'imageUrl': imageUrl,
+      'storagePath': storagePath,
       'scanMode': scanMode,
       'status': 'pending',
     });

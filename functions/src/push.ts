@@ -25,3 +25,24 @@ export function buildScanCompletePush(args: {
     android: { priority: 'high' },
   };
 }
+
+/**
+ * Low-confidence results never claim to be logged: the notification opens the
+ * review flow instead of implying the food was already counted.
+ */
+export function buildScanReviewPush(args: {
+  appDisplayName: string;
+  foodName: string;
+  entryId: string;
+  token: string;
+}): ScanPushMessage {
+  return {
+    token: args.token,
+    notification: {
+      title: `${args.appDisplayName} scan ready to review`,
+      body: `Is this ${args.foodName}? Confirm or correct it.`,
+    },
+    data: { entryId: args.entryId },
+    android: { priority: 'high' },
+  };
+}

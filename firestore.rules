@@ -2,56 +2,91 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function validDateKey(value) {
+      return value is string && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function validMacros(data) {
+      return (!('kcal' in data) || (data.kcal is number && data.kcal >= 0 && data.kcal <= 10000))
+        && (!('protein' in data) || (data.protein is number && data.protein >= 0))
+        && (!('carbs' in data) || (data.carbs is number && data.carbs >= 0))
+        && (!('fat' in data) || (data.fat is number && data.fat >= 0))
+        && (!('foodName' in data) || (data.foodName is string && data.foodName.size() < 500))
+        && (!('confidence' in data) || (data.confidence is number && data.confidence >= 0.0 && data.confidence <= 1.0));
+    }
+
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if isOwner(uid);
+
+      match /entries/{entryId} {
+        allow read: if isOwner(uid);
+
+        // Clients create scans as 'pending' (server analyzes them) or manual
+        // entries directly as 'complete' with full nutrition fields.
+        allow create: if isOwner(uid)
+          && validDateKey(request.resource.data.date)
+          && request.resource.data.status in ['pending', 'complete']
+          && validMacros(request.resource.data)
+          && (request.resource.data.status != 'complete' || (
+                request.resource.data.foodName is string
+                && request.resource.data.kcal is number
+                && request.resource.data.protein is number
+                && request.resource.data.carbs is number
+                && request.resource.data.fat is number));
+
+        // 'processing', 'needs_review', and 'error' are server-assigned.
+        // Clients may confirm a review (needs_review -> complete) or retry a
+        // failed scan (error -> pending); everything else keeps its status.
+        allow update: if isOwner(uid)
+          && validDateKey(request.resource.data.date)
+          && validMacros(request.resource.data)
+          && (
+            resource.data.status == request.resource.data.status
+            || (resource.data.status == 'needs_review' && request.resource.data.status == 'complete')
+            || (resource.data.status == 'error' && request.resource.data.status == 'pending')
+          );
+
+        allow delete: if isOwner(uid);
+      }
+
+      // Server-maintained aggregates: owners read, only Cloud Functions write.
+      match /dailyLogs/{dateKey} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
 
       match /targets/{targetId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, write: if isOwner(uid);
       }
 
       match /weightLogs/{date} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, write: if isOwner(uid);
+      }
+
+      match /aiThreads/{threadId} {
+        allow read, write: if isOwner(uid);
+
+        match /messages/{messageId} {
+          allow read, write: if isOwner(uid);
+        }
       }
     }
 
-    match /entries/{entryId} {
-      allow get: if request.auth != null && resource.data.uid == request.auth.uid;
-      allow list: if request.auth != null;
-
-      allow create: if request.auth != null &&
-        request.resource.data.uid == request.auth.uid &&
-        (request.resource.data.status == 'pending' ||
-          (request.resource.data.kcal is number &&
-           request.resource.data.kcal >= 0 &&
-           request.resource.data.kcal <= 10000 &&
-           request.resource.data.protein is number &&
-           request.resource.data.protein >= 0 &&
-           request.resource.data.foodName is string &&
-           request.resource.data.foodName.size() < 500 &&
-           request.resource.data.confidence is number &&
-           request.resource.data.confidence >= 0.0 &&
-           request.resource.data.confidence <= 1.0));
-
-      allow update: if request.auth != null &&
-        resource.data.uid == request.auth.uid &&
-        request.resource.data.uid == request.auth.uid &&
-        (!('kcal' in request.resource.data) || (request.resource.data.kcal is number && request.resource.data.kcal >= 0 && request.resource.data.kcal <= 10000)) &&
-        (!('protein' in request.resource.data) || (request.resource.data.protein is number && request.resource.data.protein >= 0)) &&
-        (!('carbs' in request.resource.data) || (request.resource.data.carbs is number && request.resource.data.carbs >= 0)) &&
-        (!('fat' in request.resource.data) || (request.resource.data.fat is number && request.resource.data.fat >= 0)) &&
-        (!('foodName' in request.resource.data) || (request.resource.data.foodName is string && request.resource.data.foodName.size() < 500));
-
-      allow delete: if request.auth != null &&
-        resource.data.uid == request.auth.uid;
+    // Server-owned data: populated exclusively via the Admin SDK.
+    match /catalog_products/{productId} {
+      allow read, write: if false;
     }
 
-    match /dailyLogs/{logId} {
-      allow read: if request.auth != null &&
-        logId >= request.auth.uid + '_' &&
-        logId < request.auth.uid + '_z';
-      allow write: if request.auth != null &&
-        logId >= request.auth.uid + '_' &&
-        logId < request.auth.uid + '_z';
+    match /barcode_index/{barcode} {
+      allow read, write: if false;
+    }
+
+    match /model_configs/{configId} {
+      allow read, write: if false;
     }
   }
 }

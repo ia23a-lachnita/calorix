@@ -296,7 +296,7 @@ class UiDiffAnchorRegistry {
       },
     );
 
-    const _notYetMeasured = UiDiffAnchorVisibilityDto(
+    const notYetMeasured = UiDiffAnchorVisibilityDto(
       visibleFraction: 0.0,
       offscreen: true,
       clippedByViewport: false,
@@ -306,7 +306,7 @@ class UiDiffAnchorRegistry {
 
     final anchorDtos = _anchors.values.map((entry) {
       final rect = entry.rectLogical ?? Rect.zero;
-      final vis = entry.visibility ?? _notYetMeasured;
+      final vis = entry.visibility ?? notYetMeasured;
       final isVisible =
           !vis.offscreen && !vis.clippedByViewport && vis.visibleFraction > 0;
       return UiDiffAnchorDto(

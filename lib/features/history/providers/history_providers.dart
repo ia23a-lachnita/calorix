@@ -15,9 +15,9 @@ final historyProvider = StreamProvider<List<DailyLog>>((ref) {
   if (uid == null) return Stream.value([]);
   final firestore = ref.watch(firestoreProvider);
   return firestore
-      .collection(AppConstants.dailyLogsCollection)
-      .where(FieldPath.documentId, isGreaterThanOrEqualTo: '${uid}_')
-      .where(FieldPath.documentId, isLessThan: '${uid}_z')
+      .collection(AppConstants.usersCollection)
+      .doc(uid)
+      .collection(AppConstants.dailyLogsSubCollection)
       .orderBy(FieldPath.documentId, descending: true)
       .limit(30)
       .snapshots()

@@ -15,6 +15,7 @@ FoodEntry _entry({
       id: id,
       uid: 'test-user',
       timestamp: DateTime(2026, 7, 4, 12),
+      date: '2026-07-04',
       scanMode: 'meal',
       status: FoodEntryStatus.complete,
       kcal: kcal,

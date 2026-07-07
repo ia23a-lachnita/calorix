@@ -1,6 +1,13 @@
-import type { NutritionResult } from './nutrition';
+export interface AggregatableEntry {
+  status: string;
+  kcal?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  servingMultiplier?: number;
+}
 
-export interface DailyLogDelta {
+export interface DailyTotals {
   kcal: number;
   protein: number;
   carbs: number;
@@ -8,22 +15,40 @@ export interface DailyLogDelta {
   entryCount: number;
 }
 
-/**
- * UTC-based day key. This preserves the historical behavior for the Stage 2
- * port; Stage 4 replaces timestamp-derived keys with the client-owned
- * `dateKey` field (device-local calendar day), which fixes the documented
- * misfiling bug for entries logged when local date != UTC date.
- */
-export function utcDateKey(date: Date): string {
-  return date.toISOString().substring(0, 10);
+const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+export function isValidDateKey(value: unknown): value is string {
+  return typeof value === 'string' && DATE_KEY_PATTERN.test(value);
 }
 
-export function buildDailyLogDelta(nutrition: NutritionResult): DailyLogDelta {
-  return {
-    kcal: nutrition.kcal,
-    protein: nutrition.protein,
-    carbs: nutrition.carbs,
-    fat: nutrition.fat,
-    entryCount: 1,
-  };
+/**
+ * The date keys whose daily logs must be recomputed for one entry write.
+ * Covers create (no before), delete (no after), and edits that move an entry
+ * to a different calendar day (both days recomputed).
+ */
+export function affectedDateKeys(beforeDate: unknown, afterDate: unknown): string[] {
+  const keys = new Set<string>();
+  if (isValidDateKey(beforeDate)) keys.add(beforeDate);
+  if (isValidDateKey(afterDate)) keys.add(afterDate);
+  return [...keys];
+}
+
+/**
+ * Absolute daily totals from every `complete` entry of one calendar day.
+ * Values are scaled by servingMultiplier so aggregates always match what the
+ * app displays. Idempotent by construction: recomputing from current state
+ * can never double-count, regardless of trigger retries or event order.
+ */
+export function summarizeCompleteEntries(entries: AggregatableEntry[]): DailyTotals {
+  const totals: DailyTotals = { kcal: 0, protein: 0, carbs: 0, fat: 0, entryCount: 0 };
+  for (const entry of entries) {
+    if (entry.status !== 'complete') continue;
+    const multiplier = entry.servingMultiplier ?? 1;
+    totals.kcal += (entry.kcal ?? 0) * multiplier;
+    totals.protein += (entry.protein ?? 0) * multiplier;
+    totals.carbs += (entry.carbs ?? 0) * multiplier;
+    totals.fat += (entry.fat ?? 0) * multiplier;
+    totals.entryCount += 1;
+  }
+  return totals;
 }

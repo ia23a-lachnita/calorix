@@ -18,6 +18,7 @@
 /// NOTE: today.bottomNav and today.scanButton are anchored in AppShell, not
 /// TodayScreen.  They are absent from this standalone test by design.
 /// To verify shell anchors, run the full app via the debug/reseed route.
+library;
 
 // ignore_for_file: avoid_print
 
@@ -36,6 +37,7 @@ import 'package:calorix/features/today/providers/today_providers.dart';
 import 'package:calorix/shared/models/food_entry.dart';
 import 'package:calorix/shared/models/macro_target_plan.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
+import 'package:calorix/shared/utils/date_key.dart';
 
 // ---------------------------------------------------------------------------
 // Fixture data aligned with Today mockup source
@@ -60,6 +62,7 @@ final _fixtureEntry = FoodEntry(
   id: 'fixture-001',
   uid: 'test-uid',
   timestamp: DateTime.now(),
+  date: localDateKey(DateTime.now()),
   scanMode: 'meal',
   status: FoodEntryStatus.complete,
   foodName: 'Chicken Rice Bowl',

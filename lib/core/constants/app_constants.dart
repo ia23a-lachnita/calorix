@@ -33,10 +33,11 @@ abstract final class AppConstants {
   static const String fcmPermissionKey = 'fcmPermissionGranted';
   static const String themeModeKey = 'themeMode';
 
-  // Firestore
-  static const String entriesCollection = 'entries';
+  // Firestore — diary data lives in owner-scoped subcollections under
+  // users/{uid}; dailyLogs are server-maintained aggregates (client read-only).
   static const String usersCollection = 'users';
-  static const String dailyLogsCollection = 'dailyLogs';
+  static const String entriesSubCollection = 'entries';
+  static const String dailyLogsSubCollection = 'dailyLogs';
   static const String targetsSubCollection = 'targets';
   static const String weightLogsSubCollection = 'weightLogs';
 }

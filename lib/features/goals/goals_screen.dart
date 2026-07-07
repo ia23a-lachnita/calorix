@@ -694,7 +694,7 @@ class _WeightCard extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Log Weight', style: AppTextStyles.heading3),
+              const Text('Log Weight', style: AppTextStyles.heading3),
               const SizedBox(height: 16),
               TextField(
                 controller: controller,

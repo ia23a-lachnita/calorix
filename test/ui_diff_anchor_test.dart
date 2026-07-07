@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:calorix/debug/ui_diff/ui_diff_anchor.dart';
@@ -78,13 +77,13 @@ void main() {
 
   group('UiDiffAnchorDto', () {
     test('toJson contains all required fields', () {
-      final dto = UiDiffAnchorDto(
+      const dto = UiDiffAnchorDto(
         id: 'today.kcalLeftPill',
         label: '980 kcal left',
-        rectLogical: const UiDiffAnchorRectDto(
+        rectLogical: UiDiffAnchorRectDto(
             x: 104.0, y: 510.0, width: 90.0, height: 24.0),
         visible: true,
-        visibility: const UiDiffAnchorVisibilityDto(
+        visibility: UiDiffAnchorVisibilityDto(
           visibleFraction: 1.0,
           offscreen: false,
           clippedByViewport: false,
@@ -157,13 +156,13 @@ void main() {
         screen: 'today',
         device: _makeDevice(dpr: 3.0),
         anchors: [
-          UiDiffAnchorDto(
+          const UiDiffAnchorDto(
             id: 'today.macroRingHero',
             label: 'Hero macro ring card',
-            rectLogical: const UiDiffAnchorRectDto(
+            rectLogical: UiDiffAnchorRectDto(
                 x: 16.0, y: 100.0, width: 328.0, height: 300.0),
             visible: true,
-            visibility: const UiDiffAnchorVisibilityDto(
+            visibility: UiDiffAnchorVisibilityDto(
               visibleFraction: 1.0,
               offscreen: false,
               clippedByViewport: false,
@@ -247,12 +246,12 @@ void main() {
 
     testWidgets('registered and measured anchor is visible', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: UiDiffAnchor(
               id: 'test.visible',
               label: 'Visible widget',
-              child: const SizedBox(width: 100, height: 50),
+              child: SizedBox(width: 100, height: 50),
             ),
           ),
         ),
@@ -273,7 +272,7 @@ void main() {
         (tester) async {
       // Position a widget far below the visible area (y = 10000 logical px).
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Stack(
               clipBehavior: Clip.none,
@@ -284,7 +283,7 @@ void main() {
                   child: UiDiffAnchor(
                     id: 'test.offscreen',
                     label: 'Far below viewport',
-                    child: const SizedBox(width: 100, height: 50),
+                    child: SizedBox(width: 100, height: 50),
                   ),
                 ),
               ],
@@ -307,12 +306,12 @@ void main() {
 
     testWidgets('anchor is unregistered on dispose', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: UiDiffAnchor(
               id: 'test.dispose',
               label: 'Will be disposed',
-              child: const SizedBox(),
+              child: SizedBox(),
             ),
           ),
         ),
