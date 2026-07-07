@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'route_names.dart';
 import '../system/system_ui.dart';
 import '../../shell/app_shell.dart';
+import '../../features/onboarding/loading_screen.dart';
+import '../../features/onboarding/login_screen.dart';
 import '../../features/scan/scan_screen.dart';
 import '../../features/processing/processing_screen.dart';
 import '../../features/today/today_screen.dart';
@@ -18,6 +22,20 @@ import '../../shared/providers/auth_provider.dart';
 import '../../shared/providers/ui_diff_provider.dart';
 import '../../shared/services/seed_data_service.dart';
 
+/// Re-runs router redirects whenever the Firebase auth state changes.
+class _AuthRefresh extends ChangeNotifier {
+  late final StreamSubscription<dynamic> _sub;
+  _AuthRefresh(Stream<dynamic> stream) {
+    _sub = stream.listen((_) => notifyListeners());
+  }
+
+  @override
+  void dispose() {
+    _sub.cancel();
+    super.dispose();
+  }
+}
+
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _scanNavKey = GlobalKey<NavigatorState>(debugLabel: 'scan');
 final _todayNavKey = GlobalKey<NavigatorState>(debugLabel: 'today');
@@ -26,9 +44,14 @@ final _goalsNavKey = GlobalKey<NavigatorState>(debugLabel: 'goals');
 final _aiNavKey = GlobalKey<NavigatorState>(debugLabel: 'ai');
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final auth = ref.watch(firebaseAuthProvider);
+  final refresh = _AuthRefresh(auth.authStateChanges());
+  ref.onDispose(refresh.dispose);
+
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: RoutePaths.scan,
+    initialLocation: RoutePaths.loading,
+    refreshListenable: refresh,
     redirect: (context, state) {
       // GoRouter receives the full custom-scheme URI as the location string.
       // Normalise calorix:// deep links to plain paths so routes can match.
@@ -36,9 +59,31 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (loc.startsWith('calorix://debug/reseed')) {
         return kDebugMode ? '/debug/reseed' : RoutePaths.today;
       }
+
+      final signedIn = auth.currentUser != null;
+      final onOnboarding =
+          loc.startsWith(RoutePaths.loading) || loc.startsWith(RoutePaths.login);
+
+      // The debug reseed route manages its own auth for automation.
+      if (loc.startsWith('/debug/reseed')) return null;
+
+      if (!signedIn && !onOnboarding) return RoutePaths.login;
+      if (signedIn && loc.startsWith(RoutePaths.login)) return RoutePaths.scan;
       return null;
     },
     routes: [
+      GoRoute(
+        path: RoutePaths.loading,
+        name: RouteNames.loading,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LoadingScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.login,
+        name: RouteNames.login,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LoginScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppShell(navigationShell: navigationShell),
@@ -192,7 +237,14 @@ class _DebugReseedScreenState extends ConsumerState<_DebugReseedScreen> {
   }
 
   Future<void> _reseed() async {
-    final uid = ref.read(firebaseAuthProvider).currentUser?.uid;
+    final auth = ref.read(firebaseAuthProvider);
+    // Keep the ui-diff pipeline headless: a fresh install has no session, so
+    // the debug reseed route signs in anonymously instead of stalling on the
+    // login screen.
+    if (auth.currentUser == null) {
+      await auth.signInAnonymously();
+    }
+    final uid = auth.currentUser?.uid;
     if (uid != null) {
       await SeedDataService(ref.read(firestoreProvider))
           .forceReseedForUiDiff(uid);

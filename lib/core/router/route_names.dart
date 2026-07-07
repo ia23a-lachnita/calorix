@@ -1,4 +1,6 @@
 abstract final class RouteNames {
+  static const String loading = 'loading';
+  static const String login = 'login';
   static const String scan = 'scan';
   static const String processing = 'processing';
   static const String today = 'today';
@@ -11,6 +13,8 @@ abstract final class RouteNames {
 }
 
 abstract final class RoutePaths {
+  static const String loading = '/loading';
+  static const String login = '/login';
   static const String scan = '/scan';
   static const String processing = '/processing/:id';
   static const String today = '/today';

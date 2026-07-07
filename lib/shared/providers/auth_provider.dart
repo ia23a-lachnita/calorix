@@ -34,6 +34,18 @@ final signInAnonymouslyProvider = FutureProvider<void>((ref) async {
 
 bool _googleSignInInitialized = false;
 
+Future<OAuthCredential> _googleCredential() async {
+  final signIn = GoogleSignIn.instance;
+  if (!_googleSignInInitialized) {
+    await signIn.initialize();
+    _googleSignInInitialized = true;
+  }
+
+  final account = await signIn.authenticate();
+  final idToken = account.authentication.idToken;
+  return GoogleAuthProvider.credential(idToken: idToken);
+}
+
 /// Upgrades the current (anonymous) account to a permanent Google account via
 /// `linkWithCredential`. Requires a configured OAuth client
 /// (`flutterfire configure` / `google-services.json`).
@@ -43,16 +55,27 @@ Future<void> linkWithGoogle(FirebaseAuth auth) async {
     throw FirebaseAuthException(
         code: 'no-current-user', message: 'You are not signed in.');
   }
-
-  final signIn = GoogleSignIn.instance;
-  if (!_googleSignInInitialized) {
-    await signIn.initialize();
-    _googleSignInInitialized = true;
-  }
-
-  final account = await signIn.authenticate();
-  final idToken = account.authentication.idToken;
-  final credential = GoogleAuthProvider.credential(idToken: idToken);
-
-  await user.linkWithCredential(credential);
+  await user.linkWithCredential(await _googleCredential());
 }
+
+/// Fresh Google session from the login screen.
+Future<void> signInWithGoogle(FirebaseAuth auth) async {
+  await auth.signInWithCredential(await _googleCredential());
+}
+
+Future<void> signInWithEmail(
+  FirebaseAuth auth, {
+  required String email,
+  required String password,
+}) =>
+    auth.signInWithEmailAndPassword(email: email, password: password);
+
+Future<void> signUpWithEmail(
+  FirebaseAuth auth, {
+  required String email,
+  required String password,
+}) =>
+    auth.createUserWithEmailAndPassword(email: email, password: password);
+
+Future<void> sendPasswordReset(FirebaseAuth auth, String email) =>
+    auth.sendPasswordResetEmail(email: email);

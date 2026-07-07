@@ -7,9 +7,19 @@ import 'package:calorix/core/router/app_router.dart';
 import 'package:calorix/shared/providers/auth_provider.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
 
+class FakeUserCredential extends Fake implements UserCredential {}
+
+/// Signed-out fake: signInAnonymously resolves but leaves currentUser null so
+/// the reseed screen skips Firestore seeding (not under test here).
 class FakeFirebaseAuth extends Fake implements FirebaseAuth {
   @override
   User? get currentUser => null;
+
+  @override
+  Stream<User?> authStateChanges() => const Stream.empty();
+
+  @override
+  Future<UserCredential> signInAnonymously() async => FakeUserCredential();
 }
 
 void main() {
