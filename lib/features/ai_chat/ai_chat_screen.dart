@@ -10,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/models/macro_target_plan.dart';
 import '../../shared/providers/auth_provider.dart';
+import '../../shared/services/ai_chat_service.dart';
 import '../today/providers/today_providers.dart';
 
 class AiChatScreen extends ConsumerStatefulWidget {
@@ -42,6 +43,15 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     if (text.trim().isEmpty) return;
     _controller.clear();
     final notifier = ref.read(chatMessagesProvider.notifier);
+
+    // Prior turns only — the new message travels separately.
+    final prior = ref.read(chatMessagesProvider);
+    final recent = prior.length > 12 ? prior.sublist(prior.length - 12) : prior;
+    final history = <AiChatTurn>[
+      for (final m in recent)
+        (role: m.role == MessageRole.user ? 'user' : 'model', text: m.content),
+    ];
+
     notifier.addUserMessage(text);
     ref.read(isChatLoadingProvider.notifier).state = true;
 
@@ -49,32 +59,32 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         MacroTargetPlan.defaultPlan();
     final today = ref.read(todayMacroSummaryProvider);
 
-    if (!ref.read(geminiConfiguredProvider)) {
-      notifier.addAiMessage(
-          'The assistant is not configured yet. Provide a Gemini API key with '
-          '--dart-define=GEMINI_API_KEY=… to enable live answers.');
-      ref.read(isChatLoadingProvider.notifier).state = false;
-      return;
-    }
-
-    final context = '''
-You are ${AppConstants.appDisplayName}, an in-app nutrition coach. Be concise and practical.
-Current daily targets: ${plan.kcal} kcal, ${plan.protein}g protein, ${plan.carbs}g carbs, ${plan.fat}g fat (plan: ${plan.planName}).
-Consumed so far today: ${today.kcal.round()} kcal, ${today.protein.round()}g protein, ${today.carbs.round()}g carbs, ${today.fat.round()}g fat.
-If you recommend changing a single calorie or macro target, end your reply with exactly one line of JSON:
-{"action":{"field":"Protein","macro":"protein","old":${plan.protein},"new":190}}
-where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.''';
-
     try {
-      final raw = await ref
-          .read(geminiServiceProvider)
-          .sendMessage(text, context: context);
+      final raw = await ref.read(aiChatServiceProvider).sendMessage(
+        message: text,
+        history: history,
+        plan: {
+          'kcal': plan.kcal,
+          'protein': plan.protein,
+          'carbs': plan.carbs,
+          'fat': plan.fat,
+          'planName': plan.planName,
+        },
+        consumed: {
+          'kcal': today.kcal,
+          'protein': today.protein,
+          'carbs': today.carbs,
+          'fat': today.fat,
+        },
+      );
       final parsed = _parseReply(raw, plan);
       notifier.addAiMessage(parsed.text.isEmpty ? 'Done.' : parsed.text,
           action: parsed.action);
-    } catch (e) {
-      notifier
-          .addAiMessage("Sorry, I couldn't reach the assistant just now. ($e)");
+    } catch (e, stackTrace) {
+      // Never surface raw errors in the conversation; keep them in the log.
+      debugPrint('aiChat failed: $e\n$stackTrace');
+      notifier.addAiMessage(
+          "I couldn't reach the assistant just now — please try again in a moment.");
     } finally {
       ref.read(isChatLoadingProvider.notifier).state = false;
     }
@@ -288,10 +298,36 @@ where "macro" is one of kcal, protein, carbs, fat. Otherwise do not output JSON.
                     separatorBuilder: (_, __) => const SizedBox(width: 8),
                     itemBuilder: (context, index) {
                       final prompt = _suggestedPrompts[index];
-                      return ActionChip(
-                        label: Text(prompt),
-                        onPressed: () => _sendMessage(prompt),
-                        labelStyle: AppTextStyles.labelSmall,
+                      return Center(
+                        child: GestureDetector(
+                          onTap: () => _sendMessage(prompt),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.surfaceDark
+                                  : AppColors.surfaceLight,
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                width: 0.5,
+                                color: isDark
+                                    ? AppColors.borderDark
+                                    : AppColors.borderLight,
+                              ),
+                            ),
+                            child: Text(
+                              prompt,
+                              style: AppTextStyles.labelSmall.copyWith(
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                        .withValues(alpha: 0.78)
+                                    : const Color(0xFF3A4048),
+                              ),
+                            ),
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -366,6 +402,12 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.role == MessageRole.user;
+    final baseStyle = AppTextStyles.bodyMedium.copyWith(
+      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+      fontSize: 13.5,
+      height: 1.45,
+    );
+    final text = isUser ? message.content : _sanitizeAssistantText(message.content);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -375,14 +417,14 @@ class _MessageBubble extends StatelessWidget {
         children: [
           Container(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.78,
+              maxWidth: MediaQuery.of(context).size.width * 0.82,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
+              // Per cx-screen-ai.jsx: user bubbles are blue-tinted with a
+              // blue hairline; assistant bubbles sit on the card surface.
               color: isUser
-                  ? (isDark
-                      ? AppColors.userBubbleDark
-                      : AppColors.userBubbleLight)
+                  ? AppColors.blue.withValues(alpha: isDark ? 0.18 : 0.10)
                   : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(18),
@@ -390,19 +432,17 @@ class _MessageBubble extends StatelessWidget {
                 bottomLeft: Radius.circular(isUser ? 18 : 6),
                 bottomRight: Radius.circular(isUser ? 6 : 18),
               ),
-              border: isUser
-                  ? null
-                  : Border.all(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight),
+              border: Border.all(
+                width: 0.5,
+                color: isUser
+                    ? AppColors.blue.withValues(alpha: isDark ? 0.35 : 0.22)
+                    : (isDark ? AppColors.borderDark : AppColors.borderLight),
+              ),
             ),
-            child: Text(
-              message.content,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight,
+            child: Text.rich(
+              TextSpan(
+                style: baseStyle,
+                children: _inlineBoldSpans(text, baseStyle),
               ),
             ),
           ),
@@ -462,12 +502,12 @@ class _ConfirmCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.blue.withAlpha(20),
+                  color: AppColors.cyan.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text('AI ACTION',
                     style: AppTextStyles.labelMono
-                        .copyWith(color: AppColors.blue)),
+                        .copyWith(color: AppColors.cyan)),
               ),
             ],
           ),
@@ -478,8 +518,8 @@ class _ConfirmCard extends StatelessWidget {
               Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
-                      color: AppColors.protein, shape: BoxShape.circle)),
+                  decoration: BoxDecoration(
+                      color: _macroDotColor(action), shape: BoxShape.circle)),
               const SizedBox(width: 8),
               Text(action.field,
                   style: AppTextStyles.labelLarge.copyWith(
@@ -517,10 +557,19 @@ class _ConfirmCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
+                flex: 5,
                 child: OutlinedButton(
                   onPressed: onReject,
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.borderLight),
+                    foregroundColor: isDark
+                        ? AppColors.textPrimaryDark.withValues(alpha: 0.78)
+                        : const Color(0xFF3A4048),
+                    side: BorderSide(
+                      width: 0.5,
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.borderLight,
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   child: const Text('Keep original'),
@@ -528,13 +577,22 @@ class _ConfirmCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: ElevatedButton(
+                flex: 7,
+                child: ElevatedButton.icon(
                   onPressed: onApply,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.blue,
+                    // Per cx-screen-ai.jsx the primary action is ink-on-bg,
+                    // not brand blue.
+                    backgroundColor: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
+                    foregroundColor: isDark
+                        ? AppColors.backgroundDark
+                        : AppColors.backgroundLight,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  child: const Text('Apply'),
+                  icon: const Icon(Icons.check, size: 14),
+                  label: const Text('Apply'),
                 ),
               ),
             ],
@@ -550,6 +608,7 @@ class _TypingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -557,14 +616,17 @@ class _TypingIndicator extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.surfaceLight,
+              color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(18),
                 topRight: Radius.circular(18),
                 bottomRight: Radius.circular(18),
                 bottomLeft: Radius.circular(6),
               ),
-              border: Border.all(color: AppColors.borderLight),
+              border: Border.all(
+                width: 0.5,
+                color: isDark ? AppColors.borderDark : AppColors.borderLight,
+              ),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
@@ -615,17 +677,22 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) => FadeTransition(
-        opacity: _opacity,
-        child: Container(
-          width: 7,
-          height: 7,
-          decoration: const BoxDecoration(
-            color: AppColors.textSecondaryLight,
-            shape: BoxShape.circle,
-          ),
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return FadeTransition(
+      opacity: _opacity,
+      child: Container(
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(
+          color: isDark
+              ? AppColors.textSecondaryDark
+              : AppColors.textSecondaryLight,
+          shape: BoxShape.circle,
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _Composer extends StatelessWidget {
@@ -699,22 +766,70 @@ class _Composer extends StatelessWidget {
             child: Container(
               width: 36,
               height: 36,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.blue, AppColors.cyan],
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: AppColors.brandGradient,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.cyan.withValues(alpha: 0.30),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child:
-                  const Icon(Icons.arrow_upward, color: Colors.white, size: 18),
+              child: const Icon(Icons.arrow_upward,
+                  color: Color(0xFF0B0D10), size: 18),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+Color _macroDotColor(AiAction action) {
+  final macro = action.targetUpdate?.keys.firstOrNull;
+  return switch (macro) {
+    'protein' => AppColors.protein,
+    'carbs' => AppColors.carbs,
+    'fat' => AppColors.fat,
+    _ => AppColors.cyan,
+  };
+}
+
+/// Light markdown hygiene for assistant replies: normalize bullets, drop
+/// heading/code markers. Bold segments are rendered by [_inlineBoldSpans].
+String _sanitizeAssistantText(String raw) {
+  var text = raw.replaceAll('\r\n', '\n');
+  text = text.replaceAll(RegExp(r'^#{1,6}\s*', multiLine: true), '');
+  text = text.replaceAll(RegExp(r'^\s*[*\-]\s+', multiLine: true), '• ');
+  text = text.replaceAll('`', '');
+  return text.trim();
+}
+
+/// Splits `**bold**` markers into styled spans so emphasis renders instead
+/// of leaking asterisks into the bubble.
+List<TextSpan> _inlineBoldSpans(String text, TextStyle base) {
+  final spans = <TextSpan>[];
+  var index = 0;
+  for (final match in RegExp(r'\*\*(.+?)\*\*').allMatches(text)) {
+    if (match.start > index) {
+      spans.add(TextSpan(text: text.substring(index, match.start)));
+    }
+    spans.add(TextSpan(
+      text: match.group(1),
+      style: base.copyWith(fontWeight: FontWeight.w700),
+    ));
+    index = match.end;
+  }
+  if (index < text.length) {
+    spans.add(TextSpan(text: text.substring(index)));
+  }
+  return spans;
 }
 
 int _currentTarget(MacroTargetPlan p, String macro) => switch (macro) {

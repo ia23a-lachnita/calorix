@@ -33,6 +33,9 @@ abstract final class AppConstants {
   static const String fcmPermissionKey = 'fcmPermissionGranted';
   static const String themeModeKey = 'themeMode';
 
+  // Cloud Functions deployment region (mirrors functions/src/config.ts).
+  static const String functionsRegion = 'us-central1';
+
   // Firestore — diary data lives in owner-scoped subcollections under
   // users/{uid}; dailyLogs are server-maintained aggregates (client read-only).
   static const String usersCollection = 'users';

@@ -1,4 +1,5 @@
 import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
@@ -9,6 +10,7 @@ import { MEAL_ANALYSIS_PROMPT } from './prompts';
 import { affectedDateKeys, summarizeCompleteEntries, type AggregatableEntry } from './aggregation';
 import { createModelConfigLoader } from './model-config';
 import { handleEntryCreated, type AnalyzeEntryDeps, type EntryData } from './analyze-entry';
+import { AiChatInputError, handleAiChat, type ChatContent } from './ai-chat';
 
 initializeApp();
 
@@ -102,6 +104,41 @@ export const processEntry = onDocumentCreated(
     };
 
     await handleEntryCreated(entryId, entry, deps);
+  },
+);
+
+/**
+ * Server-side assistant chat: the client never holds a model credential.
+ * Model selection stays in model_configs/default (same TTL-cached loader as
+ * analysis); auth is required so usage is always attributable to a user.
+ */
+export const aiChat = onCall(
+  {
+    region: LOCATION,
+    timeoutSeconds: 60,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Sign in to use the assistant.');
+    }
+    try {
+      return await handleAiChat(request.data, {
+        getModelConfig,
+        appDisplayName: APP_DISPLAY_NAME,
+        generateChat: async (model: string, contents: ChatContent[]) => {
+          const generativeModel = vertexAI.getGenerativeModel({ model });
+          const result = await generativeModel.generateContent({ contents });
+          const parts = result.response.candidates?.[0]?.content?.parts ?? [];
+          return parts.map((part) => part.text ?? '').join('');
+        },
+      });
+    } catch (error) {
+      if (error instanceof AiChatInputError) {
+        throw new HttpsError('invalid-argument', error.message);
+      }
+      console.error('aiChat error:', error);
+      throw new HttpsError('unavailable', 'The assistant is temporarily unavailable.');
+    }
   },
 );
 

@@ -1,6 +1,8 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../shared/services/gemini_service.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../shared/services/ai_chat_service.dart';
 
 enum MessageRole { user, ai }
 
@@ -95,12 +97,8 @@ final chatMessagesProvider =
 
 final isChatLoadingProvider = StateProvider<bool>((ref) => false);
 
-/// Gemini API key is injected at build time and never committed:
-/// `flutter run --dart-define=GEMINI_API_KEY=...`
-const _geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
-
-final geminiServiceProvider = Provider<GeminiService>((ref) {
-  return GeminiService(_geminiApiKey);
+final aiChatServiceProvider = Provider<AiChatService>((ref) {
+  return AiChatService(
+    FirebaseFunctions.instanceFor(region: AppConstants.functionsRegion),
+  );
 });
-
-final geminiConfiguredProvider = Provider<bool>((ref) => _geminiApiKey.isNotEmpty);
