@@ -1,7 +1,9 @@
 # V1 Usable App Plan — UI parity, backend hardening, testing architecture
 
 Date: 2026-07-07
-Status: draft for external review, then execution
+Status: stages 1–5 executed and verified (2026-07-08); stages 6–10 pending
+
+Progress (2026-07-08): plan reviewed green and committed (911971f); functions ported to tested TypeScript (a09dca4); data model migrated to owner subcollections with client-owned `date` keys, idempotent re-summation aggregation, review gating, rules+indexes rewrite with emulator rules tests (d17574f); loading/login onboarding with auth-driven routing (6b85b0e); history ordering + overflow fixes (9255936). Deployed to `calorix-xurschnell` (rules, indexes, `processEntry`, `aggregateDailyLogs`; old `processFood` deleted; `model_configs/default` seeded with verified-live `gemini-2.5-flash`). Live device verification: fresh-install loading→login→guest→scan flow, camera+notification permissions, reseed deep link, real photo scan end-to-end (Vertex analysis, FCM push, exact dailyLog recompute 845+590=1435), History rendering from server aggregates. Post-implementation review green. Suites: 61 Flutter tests, 25 functions unit tests, 12 rules tests, analyze clean. Follow-ups noted: `@google-cloud/vertexai` SDK is past its announced removal date — migrate functions to `@google/genai`; orphaned legacy top-level `entries`/`dailyLogs` docs remain in Firestore (dev data, safe to purge later); `.firebaserc` stays local-only (repo gitignores it).
 Scope: make the app feel and work like an almost-done first version: every design-handoff screen implemented, backend correct and trustworthy, testing architecture in place.
 
 ## 1. Inputs and precedence
