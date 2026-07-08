@@ -888,10 +888,15 @@ class _MacroSplitCard extends StatelessWidget {
             child: SizedBox(
               height: 10,
               child: Row(
+                // Stretch, or the childless ColoredBoxes collapse to zero
+                // height and the bar disappears.
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(
                     flex: (proteinPct * 1000).round(),
-                    child: const ColoredBox(color: AppColors.protein),
+                    child: const ColoredBox(
+                        key: Key('macro-split-protein'),
+                        color: AppColors.protein),
                   ),
                   Expanded(
                     flex: (carbsPct * 1000).round(),

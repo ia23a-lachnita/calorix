@@ -42,6 +42,12 @@ void main() {
     expect(find.text('WEIGHT · 30 DAYS'), findsOneWidget);
     expect(find.textContaining('PLAN · CUT PHASE ·'), findsOneWidget);
     expect(find.byKey(const Key('goals-kcal-slider')), findsOneWidget);
+
+    // Regression: the stacked macro bar collapsed to zero height because
+    // its childless ColoredBox segments were not stretched.
+    final bar = tester.getSize(find.byKey(const Key('macro-split-protein')));
+    expect(bar.height, 10);
+    expect(bar.width, greaterThan(0));
   });
 
   testWidgets('period pill opens the weeks/months dropdown and selects',

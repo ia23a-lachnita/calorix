@@ -87,6 +87,12 @@ void main() {
     expect(find.text('AI · 91% CONFIDENCE'), findsOneWidget);
     expect(find.textContaining('% of protein target'), findsOneWidget);
 
+    // Regression: progress fill collapsed to zero height in the loose Stack.
+    final fill = tester
+        .getSize(find.byKey(const Key('macro-progress-fill-Protein')));
+    expect(fill.height, 4);
+    expect(fill.width, greaterThan(0));
+
     // Lower content builds lazily; scroll it into view.
     await tester.drag(find.byType(ListView), const Offset(0, -400));
     await _pump(tester);

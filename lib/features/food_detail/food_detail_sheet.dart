@@ -1000,8 +1000,14 @@ class _MacroEditRow extends StatelessWidget {
                     ),
                   ),
                   FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
                     widthFactor: fraction,
-                    child: ColoredBox(color: color),
+                    // Must expand or the childless ColoredBox collapses to
+                    // zero height inside the loose Stack.
+                    child: SizedBox.expand(
+                      key: Key('macro-progress-fill-$label'),
+                      child: ColoredBox(color: color),
+                    ),
                   ),
                 ],
               ),
