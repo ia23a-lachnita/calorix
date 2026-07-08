@@ -1,6 +1,14 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/food_entry.dart';
 import '../../../shared/providers/auth_provider.dart';
+
+/// Resolves a Cloud Storage path (the field real scans carry) to a fetchable
+/// URL, so the detail hero shows the user's actual photo.
+final storageImageUrlProvider =
+    FutureProvider.autoDispose.family<String, String>((ref, path) {
+  return FirebaseStorage.instance.ref(path).getDownloadURL();
+});
 
 final foodEntryProvider =
     StreamProvider.autoDispose.family<FoodEntry, String>((ref, id) {
