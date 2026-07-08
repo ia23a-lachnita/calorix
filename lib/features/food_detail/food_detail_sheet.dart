@@ -506,7 +506,7 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
 }
 
 String _fmtMultiplier(double m) =>
-    m == m.roundToDouble() ? '${m.round()}×' : '${m}×';
+    m == m.roundToDouble() ? '${m.round()}×' : '$m×';
 
 Widget _rowDivider(bool isDark) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
