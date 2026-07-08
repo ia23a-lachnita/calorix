@@ -1,9 +1,51 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../shared/models/daily_log.dart';
 import '../../../shared/models/macro_target_plan.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/plan_provider.dart';
 
 export '../../../shared/providers/plan_provider.dart' show activePlanProvider;
+
+/// Last 30 weight entries in chronological order. Document ids are
+/// YYYY-MM-DD, so lexicographic ordering is date ordering.
+final weightLogsProvider = StreamProvider<List<WeightLog>>((ref) {
+  final uid = ref.watch(currentUidProvider);
+  if (uid == null) return Stream.value([]);
+  return ref
+      .watch(firestoreProvider)
+      .collection(AppConstants.usersCollection)
+      .doc(uid)
+      .collection(AppConstants.weightLogsSubCollection)
+      .orderBy(FieldPath.documentId, descending: true)
+      .limit(30)
+      .snapshots()
+      .map((q) => q.docs
+          .map(WeightLog.fromFirestore)
+          .toList()
+          .reversed
+          .toList());
+});
+
+/// Writes today's weight (one entry per calendar day, latest value wins).
+Future<void> logWeight(Ref ref, double kg) async {
+  final uid = ref.read(currentUidProvider);
+  if (uid == null) return;
+  final dateKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  await ref
+      .read(firestoreProvider)
+      .collection(AppConstants.usersCollection)
+      .doc(uid)
+      .collection(AppConstants.weightLogsSubCollection)
+      .doc(dateKey)
+      .set(WeightLog(date: dateKey, weight: kg).toMap());
+}
+
+final logWeightProvider = Provider<Future<void> Function(double kg)>((ref) {
+  return (kg) => logWeight(ref, kg);
+});
 
 final allPlansProvider = StreamProvider<List<MacroTargetPlan>>((ref) {
   final uid = ref.watch(currentUidProvider);
