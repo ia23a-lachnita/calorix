@@ -128,9 +128,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(
-        tester.getSize(find.byKey(const Key('today-bottom-nav'))).height, 100);
+        tester.getSize(find.byKey(const Key('today-bottom-nav'))).height, 96);
     expect(tester.getSize(find.byKey(const Key('today-bottom-nav-glass'))),
-        const Size(800, 100));
+        const Size(800, 96));
     expect(
         tester.getSize(find.byKey(const Key('scan-glow'))), const Size(76, 76));
     expect(tester.getSize(find.byKey(const Key('scan-fab-outer'))),
@@ -145,22 +145,32 @@ void main() {
     expect(scanLabel.style?.letterSpacing, 1.6);
   });
 
-  testWidgets('Bottom nav visual height does not grow with safe area',
+  testWidgets('Bottom nav grows with the system inset so content clears it',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         child: MediaQuery(
-          data: const MediaQueryData(padding: EdgeInsets.only(bottom: 34)),
+          data: const MediaQueryData(
+            padding: EdgeInsets.only(bottom: 34),
+            viewPadding: EdgeInsets.only(bottom: 34),
+          ),
           child: MaterialApp.router(routerConfig: _buildRouter()),
         ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
 
+    // 14 top pad + 46 tab row + max(36, inset 34 + 26) bottom zone = 120.
     expect(
-        tester.getSize(find.byKey(const Key('today-bottom-nav'))).height, 100);
+        tester.getSize(find.byKey(const Key('today-bottom-nav'))).height, 120);
     expect(tester.getSize(find.byKey(const Key('today-bottom-nav-glass'))),
-        const Size(800, 100));
+        const Size(800, 120));
+
+    // The SCAN label block must sit fully above the gesture inset.
+    final navRect = tester.getRect(find.byKey(const Key('today-bottom-nav')));
+    final labelRect =
+        tester.getRect(find.byKey(const Key('scan-label-block')));
+    expect(navRect.bottom - labelRect.bottom, greaterThanOrEqualTo(34));
   });
 
   testWidgets('Scan FAB is static and does not keep the shell animating',
@@ -217,11 +227,14 @@ void main() {
 
     expect(scanRect.left >= navRect.left, isTrue);
     expect(scanRect.right <= navRect.right, isTrue);
-    expect(navRect.top - scanRect.top, closeTo(5, 1));
+    // Per cx-shell.jsx the FAB protrudes above the bar's top edge.
+    expect(navRect.top - scanRect.top, closeTo(14, 1));
     expect(scanRect.bottom <= navRect.bottom, isTrue);
-    expect(glassRect.top - scanRect.top, closeTo(5, 1));
+    expect(glassRect.top - scanRect.top, closeTo(14, 1));
 
-    await tester.tapAt(Offset(scanRect.center.dx, scanRect.top + 12));
+    // The protruding sliver above the bar cannot receive hits (Stacks do
+    // not hit-test outside their bounds); the FAB body remains tappable.
+    await tester.tapAt(scanRect.center);
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('ScanPage'), findsOneWidget);

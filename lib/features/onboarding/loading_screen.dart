@@ -48,8 +48,12 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
   @override
   void initState() {
     super.initState();
-    _stageTimer = Timer.periodic(const Duration(milliseconds: 1100), (_) {
-      if (mounted) setState(() => _stage = (_stage + 1) % _stages.length);
+    _stageTimer = Timer.periodic(const Duration(milliseconds: 1100), (timer) {
+      if (!mounted || _stage >= _stages.length - 1) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _stage += 1);
     });
     Future.delayed(const Duration(milliseconds: 1800), () {
       _minBeatDone = true;
@@ -362,18 +366,24 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
                           curve: Curves.easeOutCubic,
                           alignment: Alignment.centerLeft,
                           widthFactor: cur.pct / 100,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(999),
-                              gradient: const LinearGradient(
-                                colors: AppColors.brandGradient,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.cyan.withValues(alpha: 0.45),
-                                  blurRadius: 12,
+                          // Must expand: a bare DecoratedBox has no child and
+                          // collapses to zero height, leaving the bar empty.
+                          child: SizedBox.expand(
+                            child: DecoratedBox(
+                              key: const Key('loading-progress-fill'),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(999),
+                                gradient: const LinearGradient(
+                                  colors: AppColors.brandGradient,
                                 ),
-                              ],
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        AppColors.cyan.withValues(alpha: 0.45),
+                                    blurRadius: 12,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

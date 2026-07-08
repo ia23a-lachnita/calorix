@@ -12,6 +12,19 @@ const SystemUiOverlayStyle calorixEdgeToEdgeOverlayStyle = SystemUiOverlayStyle(
   systemNavigationBarContrastEnforced: false,
 );
 
+/// Light-theme variant: same fully transparent bars, dark icons.
+const SystemUiOverlayStyle calorixEdgeToEdgeOverlayStyleLight =
+    SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  systemNavigationBarColor: Colors.transparent,
+  systemNavigationBarDividerColor: Colors.transparent,
+  statusBarIconBrightness: Brightness.dark,
+  statusBarBrightness: Brightness.light,
+  systemNavigationBarIconBrightness: Brightness.dark,
+  systemStatusBarContrastEnforced: false,
+  systemNavigationBarContrastEnforced: false,
+);
+
 Future<void> applyCalorixEdgeToEdgeSystemUi() async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(calorixEdgeToEdgeOverlayStyle);

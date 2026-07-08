@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../system/system_ui.dart';
 import 'app_colors.dart';
 
 const _geist = 'Geist';
@@ -30,7 +30,9 @@ abstract final class AppTheme {
         backgroundColor: AppColors.backgroundLight,
         elevation: 0,
         scrolledUnderElevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        // SystemUiOverlayStyle.dark paints the system nav bar opaque black;
+        // keep the edge-to-edge transparent style on every AppBar screen.
+        systemOverlayStyle: calorixEdgeToEdgeOverlayStyleLight,
         titleTextStyle: TextStyle(
           fontFamily: _geist,
           fontSize: 22,
@@ -142,7 +144,9 @@ abstract final class AppTheme {
         backgroundColor: AppColors.backgroundDark,
         elevation: 0,
         scrolledUnderElevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        // SystemUiOverlayStyle.light paints the system nav bar opaque black;
+        // keep the edge-to-edge transparent style on every AppBar screen.
+        systemOverlayStyle: calorixEdgeToEdgeOverlayStyle,
         titleTextStyle: TextStyle(
           fontFamily: _geist,
           fontSize: 22,

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -68,103 +69,123 @@ class _CalorixBottomNav extends StatelessWidget {
     final inactiveColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-    const totalHeight = 100.0;
-    const fabTop = -5.0;
+    // Geometry per cx-shell.jsx: 14px top padding, 46px tab row, then a
+    // bottom zone (36px in the mockup) hosting the low-hanging SCAN label
+    // and the home-indicator/gesture area. On device the zone grows with
+    // the system inset so labels and active dots stay clear of it.
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    final bottomZone = math.max(36.0, bottomInset + 26.0);
+    final totalHeight = 14.0 + 46.0 + bottomZone;
 
-    return SizedBox(
-      key: const Key('today-bottom-nav'),
-      height: totalHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            key: const Key('today-bottom-nav-glass'),
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.navBarDark.withValues(alpha: 0.92)
-                        : Colors.white.withValues(alpha: 0.92),
-                    border: Border(
-                      top: BorderSide(
-                        color: isDark
-                            ? AppColors.borderDark
-                            : AppColors.borderLight,
-                        width: 0.5,
+    // The bar is fixed-geometry chrome (mockup uses fixed px); scaled text
+    // would overflow the 46px tab row.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.0,
+      child: SizedBox(
+        key: const Key('today-bottom-nav'),
+        height: totalHeight,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              key: const Key('today-bottom-nav-glass'),
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.navBarDark.withValues(alpha: 0.92)
+                          : Colors.white.withValues(alpha: 0.92),
+                      border: Border(
+                        top: BorderSide(
+                          color: isDark
+                              ? AppColors.borderDark
+                              : AppColors.borderLight,
+                          width: 0.5,
+                        ),
                       ),
                     ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 36,
-                      bottom: 8,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: List.generate(_items.length, (index) {
-                        if (index == 2) {
-                          return const Expanded(child: SizedBox.shrink());
-                        }
-                        final item = _items[index];
-                        final isActive = currentIndex == index;
-                        return Expanded(
-                          child: _NavButton(
-                            icon: item.icon,
-                            label: item.label,
-                            isActive: isActive,
-                            activeColor: activeColor,
-                            inactiveColor: inactiveColor,
-                            onTap: () => onTap(index),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 1,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color:
-                    isDark ? AppColors.topHighlightDark : AppColors.borderLight,
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 1,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.topHighlightDark
+                      : AppColors.borderLight,
+                ),
               ),
             ),
-          ),
-          Positioned(
-            top: fabTop,
-            left: 0,
-            right: 0,
-            child: Row(
-              children: [
-                const Spacer(flex: 2),
-                Expanded(
-                  child: UiDiffAnchor(
-                    id: 'today.scanButton',
-                    label: 'Scan FAB',
-                    child: _ScanFAB(
-                      isActive: currentIndex == 2,
-                      isDark: isDark,
-                      onTap: () => onTap(2),
+            Positioned(
+              top: 14,
+              left: 6,
+              right: 6,
+              height: 46,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: List.generate(_items.length, (index) {
+                  if (index == 2) {
+                    return const Expanded(child: SizedBox.shrink());
+                  }
+                  final item = _items[index];
+                  final isActive = currentIndex == index;
+                  return Expanded(
+                    child: _NavButton(
+                      icon: item.icon,
+                      label: item.label,
+                      isActive: isActive,
+                      activeColor: activeColor,
+                      inactiveColor: inactiveColor,
+                      onTap: () => onTap(index),
+                    ),
+                  );
+                }),
+              ),
+            ),
+            // SCAN label + active dot hang low beneath the FAB, kept above
+            // the gesture inset.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: bottomInset + 8,
+              child: Center(
+                child: _ScanLabel(
+                  isActive: currentIndex == 2,
+                  isDark: isDark,
+                  onTap: () => onTap(2),
+                ),
+              ),
+            ),
+            Positioned(
+              top: -14,
+              left: 0,
+              right: 0,
+              child: Row(
+                children: [
+                  const Spacer(flex: 2),
+                  Expanded(
+                    child: UiDiffAnchor(
+                      id: 'today.scanButton',
+                      label: 'Scan FAB',
+                      child: _ScanFAB(
+                        isDark: isDark,
+                        onTap: () => onTap(2),
+                      ),
                     ),
                   ),
-                ),
-                const Spacer(flex: 2),
-              ],
+                  const Spacer(flex: 2),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -213,6 +234,7 @@ class _NavButton extends StatelessWidget {
             style: AppTextStyles.labelSmall.copyWith(
               color: color,
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              height: 1.2,
             ),
           ),
           const SizedBox(height: 2),
@@ -235,6 +257,102 @@ class _NavButton extends StatelessWidget {
 
 class _ScanFAB extends StatelessWidget {
   const _ScanFAB({
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Center(
+        child: SizedBox(
+          key: const Key('scan-fab-column'),
+          width: 76,
+          height: 60,
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                top: -8,
+                child: Container(
+                  key: const Key('scan-glow'),
+                  width: 76,
+                  height: 76,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Color(0x5919D3D9),
+                        Color(0x0D3A5BFF),
+                        Color(0x00000000),
+                      ],
+                      stops: [0.0, 0.6, 0.75],
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                key: const Key('scan-fab-outer'),
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const SweepGradient(
+                    colors: AppColors.sweepGradient,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.cyan.withValues(alpha: 0.35),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                    BoxShadow(
+                      color: AppColors.blue.withValues(alpha: 0.30),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Container(
+                    key: const Key('scan-fab-inner'),
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.backgroundDark.withValues(alpha: 0.85)
+                          : AppColors.surfaceLight,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: _CalorixNavIcon(
+                      key: const Key('scan-icon-eye'),
+                      type: _NavIconType.scan,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScanLabel extends StatelessWidget {
+  const _ScanLabel({
     required this.isActive,
     required this.isDark,
     required this.onTap,
@@ -250,85 +368,9 @@ class _ScanFAB extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Column(
-        key: const Key('scan-fab-column'),
-        mainAxisAlignment: MainAxisAlignment.start,
+        key: const Key('scan-label-block'),
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 76,
-            height: 60,
-            child: Stack(
-              alignment: Alignment.center,
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  top: -8,
-                  child: Container(
-                    key: const Key('scan-glow'),
-                    width: 76,
-                    height: 76,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Color(0x5919D3D9),
-                          Color(0x0D3A5BFF),
-                          Color(0x00000000),
-                        ],
-                        stops: [0.0, 0.6, 0.75],
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  key: const Key('scan-fab-outer'),
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const SweepGradient(
-                      colors: AppColors.sweepGradient,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.cyan.withValues(alpha: 0.35),
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
-                      ),
-                      BoxShadow(
-                        color: AppColors.blue.withValues(alpha: 0.30),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Container(
-                      key: const Key('scan-fab-inner'),
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.backgroundDark.withValues(alpha: 0.85)
-                            : AppColors.surfaceLight,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: _CalorixNavIcon(
-                        key: const Key('scan-icon-eye'),
-                        type: _NavIconType.scan,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 3),
           Text(
             'SCAN',
             style: AppTextStyles.labelMono.copyWith(
@@ -344,7 +386,7 @@ class _ScanFAB extends StatelessWidget {
               height: 1,
             ),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 4),
           if (isActive)
             Container(
               width: 4,

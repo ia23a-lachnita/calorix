@@ -101,6 +101,49 @@ void main() {
   });
 
   group('LoadingScreen', () {
+    testWidgets('progress bar fill renders and stages clamp at READY',
+        (tester) async {
+      // Pin auth in the loading state so the splash never navigates away.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            firebaseAuthProvider.overrideWithValue(FakeFirebaseAuth()),
+            authStateProvider.overrideWith(
+              (ref) => const Stream<User?>.empty(),
+            ),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: ThemeMode.dark,
+            home: const LoadingScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Regression: the gradient fill was a childless DecoratedBox inside
+      // AnimatedFractionallySizedBox and collapsed to zero height, so the
+      // bar stayed empty while the percentage kept changing.
+      final fill = find.byKey(const Key('loading-progress-fill'));
+      expect(fill, findsOneWidget);
+      expect(tester.getSize(fill).height, 4);
+      expect(tester.getSize(fill).width, greaterThan(0));
+      expect(find.text('18%'), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 1150));
+      expect(find.text('46%'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 1100));
+      expect(find.text('74%'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 1100));
+      expect(find.text('96%'), findsOneWidget);
+
+      // Regression: stages wrapped around modulo back to 18%.
+      await tester.pump(const Duration(milliseconds: 2500));
+      expect(find.text('96%'), findsOneWidget);
+      expect(find.text('READY'), findsOneWidget);
+    });
+
     testWidgets('shows staged splash and routes signed-out users to login',
         (tester) async {
       final auth = FakeFirebaseAuth();
