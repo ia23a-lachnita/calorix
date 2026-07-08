@@ -2,10 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../shared/providers/auth_provider.dart';
+import '../../core/router/route_names.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+
+/// The sheet may sit on a replaced stack (deep link, stale navigation);
+/// closing must never strand the user, so fall back to the Scan home.
+void _closeSheet(BuildContext context) {
+  if (context.canPop()) {
+    context.pop();
+  } else {
+    context.goNamed(RouteNames.scan);
+  }
+}
 
 class ProfileSheet extends ConsumerWidget {
   const ProfileSheet({super.key});
@@ -22,7 +33,7 @@ class ProfileSheet extends ConsumerWidget {
     return GestureDetector(
       onVerticalDragEnd: (details) {
         if (details.primaryVelocity != null && details.primaryVelocity! > 300) {
-          context.pop();
+          _closeSheet(context);
         }
       },
       child: Scaffold(
@@ -32,7 +43,7 @@ class ProfileSheet extends ConsumerWidget {
           children: [
             // Handle — tap to dismiss
             GestureDetector(
-              onTap: () => context.pop(),
+              onTap: () => _closeSheet(context),
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -57,7 +68,7 @@ class ProfileSheet extends ConsumerWidget {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    onPressed: () => context.pop(),
+                    onPressed: () => _closeSheet(context),
                   ),
                 ],
               ),
@@ -248,7 +259,7 @@ class ProfileSheet extends ConsumerWidget {
     );
     if (confirmed == true) {
       await ref.read(firebaseAuthProvider).signOut();
-      if (context.mounted) context.pop();
+      if (context.mounted) _closeSheet(context);
     }
   }
 }

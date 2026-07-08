@@ -26,9 +26,11 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentIndex = widget.navigationShell.currentIndex;
+    // Scan floats the glass nav over the live camera per cx-screen-scan.jsx.
+    final floating = currentIndex == 2;
 
     return Scaffold(
-      extendBody: currentIndex == 0,
+      extendBody: currentIndex == 0 || floating,
       body: widget.navigationShell,
       bottomNavigationBar: UiDiffAnchor(
         id: 'today.bottomNav',
@@ -37,6 +39,7 @@ class _AppShellState extends State<AppShell> {
           currentIndex: currentIndex,
           onTap: _onTap,
           isDark: isDark,
+          floating: floating,
         ),
       ),
     );
@@ -48,11 +51,15 @@ class _CalorixBottomNav extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
     required this.isDark,
+    this.floating = false,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
   final bool isDark;
+
+  /// Translucent variant used over the camera so the meal stays visible.
+  final bool floating;
 
   static const _items = [
     _NavItem(icon: _NavIconType.today, label: 'Today'),
@@ -66,8 +73,11 @@ class _CalorixBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final activeColor =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final inactiveColor =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final inactiveColor = floating
+        ? (isDark
+            ? const Color(0xFFF2F3F5).withValues(alpha: 0.55)
+            : const Color(0xFF0B0D10).withValues(alpha: 0.52))
+        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight);
 
     // Geometry per cx-shell.jsx: 14px top padding, 46px tab row, then a
     // bottom zone (36px in the mockup) hosting the low-hanging SCAN label
@@ -94,14 +104,23 @@ class _CalorixBottomNav extends StatelessWidget {
                   filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.navBarDark.withValues(alpha: 0.92)
-                          : Colors.white.withValues(alpha: 0.92),
+                      color: floating
+                          ? (isDark
+                              ? const Color(0xFF0C0F13).withValues(alpha: 0.28)
+                              : Colors.white.withValues(alpha: 0.38))
+                          : (isDark
+                              ? AppColors.navBarDark.withValues(alpha: 0.92)
+                              : Colors.white.withValues(alpha: 0.92)),
                       border: Border(
                         top: BorderSide(
-                          color: isDark
-                              ? AppColors.borderDark
-                              : AppColors.borderLight,
+                          color: floating
+                              ? (isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : const Color(0xFF0B0D10)
+                                      .withValues(alpha: 0.08))
+                              : (isDark
+                                  ? AppColors.borderDark
+                                  : AppColors.borderLight),
                           width: 0.5,
                         ),
                       ),

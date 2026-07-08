@@ -63,7 +63,7 @@ void main() {
     expect(find.text('AI'), findsOneWidget);
   });
 
-  testWidgets('Today extends behind nav but fixed-control tabs do not',
+  testWidgets('Today and Scan extend behind the nav; fixed tabs do not',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -74,11 +74,12 @@ void main() {
 
     expect(shellScaffold(tester).extendBody, isTrue);
 
+    // Scan floats the glass nav over the camera per cx-screen-scan.jsx.
     await tester.tap(find.text('SCAN'));
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('ScanPage'), findsOneWidget);
-    expect(shellScaffold(tester).extendBody, isFalse);
+    expect(shellScaffold(tester).extendBody, isTrue);
 
     await tester.tap(find.text('Goals'));
     await tester.pump(const Duration(milliseconds: 300));

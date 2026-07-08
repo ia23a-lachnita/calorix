@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/ai_chat_providers.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/router/route_names.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/models/macro_target_plan.dart';
@@ -204,7 +205,11 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () => context.pop(),
+                    // The AI tab is a branch root: with nothing to pop, close
+                    // returns to the Scan home instead of throwing.
+                    onTap: () => context.canPop()
+                        ? context.pop()
+                        : context.goNamed(RouteNames.scan),
                     child: Container(
                       width: 32,
                       height: 32,

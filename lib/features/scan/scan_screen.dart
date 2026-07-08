@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,11 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/router/route_names.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/services/upload_queue_service.dart';
+
+/// Camera chrome tint per cx-screen-scan.jsx (dark liquid-glass).
+const _chipBg = Color(0x8C14181E); // rgba(20,24,30,0.55)
+const _chipBorder = Color(0x1FFFFFFF); // rgba(255,255,255,0.12)
+const _chipInk = Color(0xFFF2F3F5);
 
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key});
@@ -30,7 +36,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     WidgetsBinding.instance.addObserver(this);
     _captureRingController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 1),
     );
     _shimmerController = AnimationController(
       vsync: this,
@@ -80,7 +86,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   }
 
   Future<void> _capture() async {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      return;
+    }
     final captureState = ref.read(captureStateProvider);
     if (captureState == CaptureState.capturing) {
       ref.read(captureStateProvider.notifier).state = CaptureState.idle;
@@ -105,7 +113,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
 
   Future<void> _pickFromLibrary() async {
     final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 90);
+    final file =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 90);
     if (file == null) return;
     ref.read(captureStateProvider.notifier).state = CaptureState.capturing;
     await _processImage(file.path);
@@ -133,89 +142,124 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     final captureState = ref.watch(captureStateProvider);
     final scanMode = ref.watch(scanModeProvider);
     final isCapturing = captureState == CaptureState.capturing;
+    // With extendBody the scaffold reports the nav height as bottom padding.
+    final navHeight = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Camera preview
-          if (_cameraController != null && _cameraController!.value.isInitialized)
-            CameraPreview(_cameraController!)
-          else
-            const _CameraPlaceholder(),
+      body: LayoutBuilder(
+        builder: (context, constraints) => Stack(
+          fit: StackFit.expand,
+          children: [
+            if (_cameraController != null &&
+                _cameraController!.value.isInitialized)
+              CameraPreview(_cameraController!)
+            else
+              const _CameraPlaceholder(),
 
-          // Scan shimmer overlay
-          if (isCapturing) _ScanShimmer(controller: _shimmerController),
-
-          // Reticle
-          const _ReticleOverlay(),
-
-          // Top controls — explicitly anchored to top of screen
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _FlashChip(controller: _cameraController),
-                    const _ProfileChip(),
-                  ],
+            // Analyzing sweep, confined to the reticle box per the handoff.
+            if (isCapturing)
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    width: 280,
+                    height: 280,
+                    child: _ScanShimmer(controller: _shimmerController),
+                  ),
                 ),
               ),
-            ),
-          ),
 
-          // Mode selector — top overlay below flash row
-          Positioned(
-            top: 110,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: _ModeSelector(
-                mode: scanMode,
-                onChanged: (m) => ref.read(scanModeProvider.notifier).state = m,
-              ),
-            ),
-          ),
+            _ReticleOverlay(glow: isCapturing),
 
-          // Hint text + capture button
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Hint text
-                if (!isCapturing)
-                  const Text(
-                    'Center your meal',
-                    style: TextStyle(
-                      color: Color(0xCCFFFFFF),
-                      fontSize: 13,
-                      fontFamily: 'Inter Tight',
-                      fontWeight: FontWeight.w400,
+            // Hint pill below the reticle.
+            Positioned(
+              left: 0,
+              right: 0,
+              top: constraints.maxHeight / 2 + 160,
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.28),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    isCapturing
+                        ? 'ANALYZING…'
+                        : 'FRAME YOUR MEAL · TAP ONCE',
+                    style: AppTextStyles.labelMono.copyWith(
+                      fontSize: 10,
+                      letterSpacing: 10 * 0.20,
+                      color: Colors.white.withValues(alpha: 0.80),
                     ),
                   ),
-                const SizedBox(height: 12),
-
-                // Bottom row: library + capture + recent
-                _BottomRow(
-                  isCapturing: isCapturing,
-                  captureController: _captureRingController,
-                  onCapture: _capture,
-                  onLibrary: _pickFromLibrary,
                 ),
-                const SizedBox(height: 16),
-              ],
+              ),
             ),
-          ),
-        ],
+
+            // Top chrome: flash pill + profile chip, then the mode selector.
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _FlashChip(controller: _cameraController),
+                          const _ProfileChip(),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      _ModeSelector(
+                        mode: scanMode,
+                        onChanged: (m) =>
+                            ref.read(scanModeProvider.notifier).state = m,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Capture controls above the floating nav.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: navHeight + 40,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _RoundChipWithLabel(
+                    label: 'LIBRARY',
+                    icon: Icons.photo_library_outlined,
+                    onTap: _pickFromLibrary,
+                  ),
+                  const SizedBox(width: 48),
+                  _CaptureButton(
+                    isCapturing: isCapturing,
+                    controller: _captureRingController,
+                    onTap: _capture,
+                  ),
+                  const SizedBox(width: 48),
+                  _RoundChipWithLabel(
+                    label: 'RECENT',
+                    icon: Icons.history_outlined,
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -230,101 +274,55 @@ class _CameraPlaceholder extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.camera_alt_outlined, color: AppColors.textSecondaryDark, size: 48),
+              Icon(Icons.camera_alt_outlined,
+                  color: AppColors.textSecondaryDark, size: 48),
               SizedBox(height: 12),
               Text('Camera initializing…',
-                  style: TextStyle(color: AppColors.textSecondaryDark, fontFamily: 'Inter Tight')),
+                  style: TextStyle(
+                      color: AppColors.textSecondaryDark, fontFamily: 'Geist')),
             ],
           ),
         ),
       );
 }
 
-class _ScanShimmer extends StatelessWidget {
-  final AnimationController controller;
-  const _ScanShimmer({required this.controller});
+// ─── Glass chrome ─────────────────────────────────────────────────────────────
+
+class _GlassChip extends StatelessWidget {
+  const _GlassChip({required this.child, this.width, this.height = 36});
+
+  final Widget child;
+  final double? width;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        return CustomPaint(
-          painter: _ShimmerPainter(progress: controller.value),
-        );
-      },
-    );
-  }
-}
-
-class _ShimmerPainter extends CustomPainter {
-  final double progress;
-  _ShimmerPainter({required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final y = size.height * progress;
-    final rect = Rect.fromLTWH(0, y - 40, size.width, 80);
-    final paint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.transparent,
-          AppColors.cyan.withAlpha(80),
-          Colors.transparent,
-        ],
-      ).createShader(rect);
-    canvas.drawRect(rect, paint);
-  }
-
-  @override
-  bool shouldRepaint(_ShimmerPainter old) => old.progress != progress;
-}
-
-class _ReticleOverlay extends StatelessWidget {
-  const _ReticleOverlay();
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: CustomPaint(
-        size: const Size(240, 240),
-        painter: _ReticlePainter(),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          width: width,
+          height: height,
+          padding: width == null
+              ? const EdgeInsets.symmetric(horizontal: 12)
+              : EdgeInsets.zero,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: _chipBg,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(width: 0.5, color: _chipBorder),
+          ),
+          child: child,
+        ),
       ),
     );
   }
 }
 
-class _ReticlePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.cameraOverlayText.withAlpha(200)
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    const len = 28.0;
-    final corners = [
-      Offset.zero,
-      Offset(size.width, 0),
-      Offset(size.width, size.height),
-      Offset(0, size.height),
-    ];
-    for (final corner in corners) {
-      final dx = corner.dx == 0 ? len : -len;
-      final dy = corner.dy == 0 ? len : -len;
-      canvas.drawLine(corner, Offset(corner.dx + dx, corner.dy), paint);
-      canvas.drawLine(corner, Offset(corner.dx, corner.dy + dy), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_ReticlePainter old) => false;
-}
-
 class _FlashChip extends ConsumerStatefulWidget {
-  final CameraController? controller;
   const _FlashChip({this.controller});
+  final CameraController? controller;
   @override
   ConsumerState<_FlashChip> createState() => _FlashChipState();
 }
@@ -362,20 +360,17 @@ class _FlashChipState extends ConsumerState<_FlashChip> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _cycle,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: AppColors.cameraOverlayBg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.cameraOverlayText.withAlpha(50)),
-        ),
+      child: _GlassChip(
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_icon, color: AppColors.cameraOverlayText, size: 14),
-            const SizedBox(width: 4),
-            Text(_label,
-                style: AppTextStyles.labelSmall.copyWith(color: AppColors.cameraOverlayText)),
+            Icon(_icon, color: _chipInk, size: 14),
+            const SizedBox(width: 6),
+            Text(
+              _label,
+              style: AppTextStyles.labelSmall
+                  .copyWith(fontSize: 12, color: _chipInk),
+            ),
           ],
         ),
       ),
@@ -388,161 +383,127 @@ class _ProfileChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateProvider).valueOrNull;
-    final isAnonymous = user == null || (user.isAnonymous == true) ||
+    final isAnonymous = user == null ||
+        (user.isAnonymous == true) ||
         (user.displayName == null && user.email == null);
 
     return GestureDetector(
-      onTap: () => context.goNamed(RouteNames.profile),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.cameraOverlayBg,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.cameraOverlayText.withAlpha(60), width: 1.5),
-        ),
-        child: Center(
-          child: isAnonymous
-              ? const Icon(Icons.person_outline, size: 20, color: AppColors.cameraOverlayText)
-              : Text(
-                  user.displayName?.isNotEmpty == true
-                      ? user.displayName![0].toUpperCase()
-                      : user.email![0].toUpperCase(),
-                  style: const TextStyle(
-                    color: AppColors.cameraOverlayText,
-                    fontSize: 14,
-                    fontFamily: 'Inter Tight',
-                    fontWeight: FontWeight.w700,
-                  ),
+      // Push (not go) so the sheet keeps a back stack and can be closed.
+      onTap: () => context.pushNamed(RouteNames.profile),
+      child: _GlassChip(
+        width: 36,
+        child: isAnonymous
+            ? const Icon(Icons.person_outline, size: 16, color: _chipInk)
+            : Text(
+                user.displayName?.isNotEmpty == true
+                    ? user.displayName![0].toUpperCase()
+                    : user.email![0].toUpperCase(),
+                style: const TextStyle(
+                  color: _chipInk,
+                  fontSize: 13,
+                  fontFamily: 'Geist',
+                  fontWeight: FontWeight.w700,
                 ),
-        ),
+              ),
       ),
     );
   }
 }
 
 class _ModeSelector extends StatelessWidget {
+  const _ModeSelector({required this.mode, required this.onChanged});
+
   final ScanMode mode;
   final ValueChanged<ScanMode> onChanged;
-  const _ModeSelector({required this.mode, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: AppColors.cameraOverlayBg,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: ScanMode.values.map((m) {
-          final isActive = m == mode;
-          return GestureDetector(
-            onTap: () => onChanged(m),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isActive ? AppColors.cameraOverlayText : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                switch (m) {
-                  ScanMode.meal => 'Meal',
-                  ScanMode.barcode => 'Barcode',
-                  ScanMode.label => 'Label',
-                },
-                style: TextStyle(
-                  fontFamily: 'Inter Tight',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isActive ? AppColors.backgroundDark : AppColors.cameraOverlayText,
-                ),
-              ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: _chipBg,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              width: 0.5,
+              color: Colors.white.withValues(alpha: 0.10),
             ),
-          );
-        }).toList(),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: ScanMode.values.map((m) {
+              final isActive = m == mode;
+              return GestureDetector(
+                onTap: () => onChanged(m),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? Colors.white.withValues(alpha: 0.95)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    switch (m) {
+                      ScanMode.meal => 'Meal',
+                      ScanMode.barcode => 'Barcode',
+                      ScanMode.label => 'Label',
+                    },
+                    style: TextStyle(
+                      fontFamily: 'Geist',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isActive
+                          ? const Color(0xFF0B0D10)
+                          : Colors.white.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _BottomRow extends StatelessWidget {
-  final bool isCapturing;
-  final AnimationController captureController;
-  final VoidCallback onCapture;
-  final VoidCallback onLibrary;
-
-  const _BottomRow({
-    required this.isCapturing,
-    required this.captureController,
-    required this.onCapture,
-    required this.onLibrary,
+class _RoundChipWithLabel extends StatelessWidget {
+  const _RoundChipWithLabel({
+    required this.label,
+    required this.icon,
+    required this.onTap,
   });
 
-  static const _labelStyle = TextStyle(
-    color: AppColors.cameraOverlayText,
-    fontSize: 9,
-    fontFamily: 'Inter Tight',
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0.8,
-  );
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Library button + label
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                onTap: onLibrary,
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppColors.cameraOverlayBg,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.cameraOverlayText.withAlpha(50)),
-                  ),
-                  child: const Icon(Icons.photo_library_outlined,
-                      color: AppColors.cameraOverlayText, size: 22),
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text('LIBRARY', style: _labelStyle),
-            ],
+          _GlassChip(
+            width: 48,
+            height: 48,
+            child: Icon(icon, color: _chipInk, size: 20),
           ),
-          // Capture button
-          _CaptureButton(
-            isCapturing: isCapturing,
-            controller: captureController,
-            onTap: onCapture,
-          ),
-          // Recent button + label
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.cameraOverlayBg,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.cameraOverlayText.withAlpha(50)),
-                ),
-                child: const Icon(Icons.history_outlined,
-                    color: AppColors.cameraOverlayText, size: 22),
-              ),
-              const SizedBox(height: 4),
-              const Text('RECENT', style: _labelStyle),
-            ],
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: AppTextStyles.labelMono.copyWith(
+              fontSize: 10,
+              letterSpacing: 10 * 0.14,
+              color: const Color(0xFFF2F3F5).withValues(alpha: 0.55),
+            ),
           ),
         ],
       ),
@@ -550,68 +511,189 @@ class _BottomRow extends StatelessWidget {
   }
 }
 
-class _CaptureButton extends StatelessWidget {
-  final bool isCapturing;
-  final AnimationController controller;
-  final VoidCallback onTap;
+// ─── Reticle + shimmer ────────────────────────────────────────────────────────
 
+class _ReticleOverlay extends StatelessWidget {
+  const _ReticleOverlay({required this.glow});
+
+  final bool glow;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: CustomPaint(
+        size: const Size(280, 280),
+        painter: _ReticlePainter(glow: glow),
+      ),
+    );
+  }
+}
+
+class _ReticlePainter extends CustomPainter {
+  _ReticlePainter({required this.glow});
+
+  final bool glow;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFFF2F3F5).withValues(alpha: 0.95)
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    if (glow) {
+      paint.maskFilter = const MaskFilter.blur(BlurStyle.solid, 3);
+    }
+
+    const arm = 32.0;
+    const r = 6.0;
+    final w = size.width;
+    final h = size.height;
+
+    // Four rounded corner brackets per cx-screen-scan.jsx.
+    Path corner(Offset origin, double sx, double sy) {
+      // Draw in a local frame where the corner is top-left, then mirror.
+      final path = Path()
+        ..moveTo(0, arm)
+        ..lineTo(0, r)
+        ..arcToPoint(const Offset(r, 0), radius: const Radius.circular(r))
+        ..lineTo(arm, 0);
+      final m = Matrix4.identity()
+        ..translateByDouble(origin.dx, origin.dy, 0, 1)
+        ..scaleByDouble(sx, sy, 1, 1);
+      return path.transform(m.storage);
+    }
+
+    canvas.drawPath(corner(Offset.zero, 1, 1), paint);
+    canvas.drawPath(corner(Offset(w, 0), -1, 1), paint);
+    canvas.drawPath(corner(Offset(0, h), 1, -1), paint);
+    canvas.drawPath(corner(Offset(w, h), -1, -1), paint);
+  }
+
+  @override
+  bool shouldRepaint(_ReticlePainter old) => old.glow != glow;
+}
+
+class _ScanShimmer extends StatelessWidget {
+  const _ScanShimmer({required this.controller});
+
+  final AnimationController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) => CustomPaint(
+        painter: _ShimmerPainter(progress: controller.value),
+      ),
+    );
+  }
+}
+
+class _ShimmerPainter extends CustomPainter {
+  _ShimmerPainter({required this.progress});
+
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final y = size.height * progress;
+    final band = Rect.fromLTWH(0, y - 60, size.width, 120);
+    canvas.drawRect(
+      band,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            AppColors.cyan.withValues(alpha: 0.55),
+            Colors.transparent,
+          ],
+        ).createShader(band),
+    );
+    // Leading glow line.
+    canvas.drawLine(
+      Offset(0, y),
+      Offset(size.width, y),
+      Paint()
+        ..color = AppColors.cyan.withValues(alpha: 0.95)
+        ..strokeWidth = 2
+        ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 6),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ShimmerPainter old) => old.progress != progress;
+}
+
+// ─── Capture button ───────────────────────────────────────────────────────────
+
+class _CaptureButton extends StatelessWidget {
   const _CaptureButton({
     required this.isCapturing,
     required this.controller,
     required this.onTap,
   });
 
+  final bool isCapturing;
+  final AnimationController controller;
+  final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final innerColor = isDark ? AppColors.backgroundDark : Colors.white;
-
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 100,
-        height: 100,
+        width: 80,
+        height: 80,
         child: AnimatedBuilder(
           animation: controller,
-          builder: (context, child) {
-            return CustomPaint(
-              painter: _CapturePainter(
-                isCapturing: isCapturing,
-                progress: controller.value,
-              ),
-              child: child,
-            );
-          },
-          child: Center(
-            child: Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(
-                color: innerColor,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: isCapturing
-                    ? Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.cameraOverlayText : AppColors.backgroundDark,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      )
-                    : Container(
-                        width: 20,
-                        height: 20,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [AppColors.blue, AppColors.cyan],
-                          ),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-              ),
+          builder: (context, child) => CustomPaint(
+            painter: _CapturePainter(
+              isCapturing: isCapturing,
+              progress: controller.value,
             ),
+            child: child,
+          ),
+          child: Center(
+            child: isCapturing
+                ? Container(
+                    key: const Key('capture-core-stop'),
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: const Color(0xEB0B0D10),
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.cyan.withValues(alpha: 0.30),
+                          blurRadius: 14,
+                        ),
+                      ],
+                    ),
+                  )
+                : Container(
+                    key: const Key('capture-core-idle'),
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      gradient:
+                          const LinearGradient(colors: AppColors.brandGradient),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        width: 1,
+                        color: Colors.white.withValues(alpha: 0.20),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.cyan.withValues(alpha: 0.50),
+                          blurRadius: 18,
+                        ),
+                      ],
+                    ),
+                  ),
           ),
         ),
       ),
@@ -620,31 +702,44 @@ class _CaptureButton extends StatelessWidget {
 }
 
 class _CapturePainter extends CustomPainter {
+  _CapturePainter({required this.isCapturing, required this.progress});
+
   final bool isCapturing;
   final double progress;
-
-  _CapturePainter({required this.isCapturing, required this.progress});
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 2;
 
+    // Outer ring: 6px, near-black glass in both states.
+    final outer = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6
+      ..color = const Color(0xEB0B0D10);
+    canvas.drawCircle(center, size.width / 2 - 3, outer);
+
+    // Animation ring hugging the outer ring's inner edge.
+    final animRadius = size.width / 2 - 6 - 1.25;
     if (isCapturing) {
-      final paint = Paint()
+      final sweep = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 3
+        ..strokeWidth = 2.5
         ..shader = SweepGradient(
-          colors: AppColors.sweepGradient,
+          colors: const [
+            AppColors.blue,
+            AppColors.cyan,
+            AppColors.green,
+            AppColors.blue,
+          ],
           transform: GradientRotation(progress * 2 * math.pi),
-        ).createShader(Rect.fromCircle(center: center, radius: radius));
-      canvas.drawCircle(center, radius, paint);
+        ).createShader(Rect.fromCircle(center: center, radius: animRadius));
+      canvas.drawCircle(center, animRadius, sweep);
     } else {
-      final paint = Paint()
+      final idle = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 3
-        ..color = Colors.white.withValues(alpha: 0.10);
-      canvas.drawCircle(center, radius, paint);
+        ..strokeWidth = 2.5
+        ..color = const Color(0xFF8C8C8C).withValues(alpha: 0.06);
+      canvas.drawCircle(center, animRadius, idle);
     }
   }
 
