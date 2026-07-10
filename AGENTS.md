@@ -25,6 +25,10 @@ Source-of-truth order (read the relevant one before changing behavior, UI, data,
 
 ## 3. Agent Toolset Scope
 
+### Delegation Policy
+
+Only GPT-5.6 Luna or GPT-5.6 Terra subagents may directly edit repository files or perform token-heavy, low-reasoning work. Other subagents and external reviewers are read-only advisory. The main agent retains requirements interpretation, architecture and tradeoffs, synthesis, verification judgment, production-readiness decisions, and final reporting. Subagents never commit or push; the main agent reviews, verifies, commits, and pushes.
+
 Use the host agent's native tools; do not shell out to another CLI for what a native tool already does.
 
 | Capability | Claude Code | Codex CLI |
