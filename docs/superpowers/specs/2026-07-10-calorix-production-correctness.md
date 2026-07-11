@@ -125,7 +125,9 @@ Flutter providers are `family` providers keyed by uid and thread id, and invalid
 
 ## Reference And Secondary UX Correctness
 
-The canonical design image directory is `docs/design-handoff/placeholder-app/reference-images/`, as documented by the handoff. Restore its complete image set from the pre-rename Git tree identified by commit `86b4858` while retaining `reference-images-buggy/` as historical evidence. Add a small manifest with source commit, expected filenames, dimensions, and SHA-256 values; update the handoff README and ui-diff instructions to point at the restored directory. Do not substitute the six `good-screenshots` files for the full handoff reference set. This restoration and manifest validation is an early independent evidence stage: it may run in parallel with the security work, but it must finish before any cross-repository visual capture or ui-diff gate.
+The canonical screenshot evidence is the 38-file new placeholder-app handoff in `docs/design-handoff/placeholder-app/reference-images/`, not legacy docs/mockups. Restore the exact Git tree from `307dfc04ee23bee022f85059cc09dc363b2e80f6^` (the pre-rename `86b4858^` tree), retaining the byte-identical `reference-images-buggy/` directory untouched as historical evidence. Do not substitute the six incomplete 1206×2622 `good-screenshots` files for the full 402×874 handoff set.
+
+`docs/design-handoff/placeholder-app/reference-images-manifest.json` is the checked-in contract. It records `source_commit` (`307dfc04ee23bee022f85059cc09dc363b2e80f6`), `source_tree` (`97339699422bcec8d92f2ec8e47c4179c184e034`), and an exactly 38-item `reference_images` list. Every item contains `filename`, `sha256`, `width`, `height`, and `size_bytes`; the validator reads PNG signatures/IHDR dimensions and verifies every byte hash. Update the handoff README and ui-diff instructions to use this restored directory. This restoration and manifest validation is an early independent evidence stage: it may run in parallel with the security work, but it must finish before any cross-repository visual capture or ui-diff gate.
 
 The secondary fixes are intentionally bounded:
 

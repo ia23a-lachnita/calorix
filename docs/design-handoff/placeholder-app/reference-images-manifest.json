@@ -1,0 +1,272 @@
+{
+  "source_commit": "307dfc04ee23bee022f85059cc09dc363b2e80f6",
+  "source_tree": "97339699422bcec8d92f2ec8e47c4179c184e034",
+  "reference_images": [
+    {
+      "filename": "ai_history--dark.png",
+      "sha256": "3ec9001334bc9da9a272863d6ceb1a89c0d56a863635d2d7bda42132e4b6e628",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 91677
+    },
+    {
+      "filename": "ai_history--light.png",
+      "sha256": "211095ff56f3206a69bd415228eec68dd75d13586791ee2f24fc901f26988fbd",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 97221
+    },
+    {
+      "filename": "ai--dark.png",
+      "sha256": "d36b3b03a3b9b7f2a5dc3bd4d775c584b14baa19535487fc29209c65991ba5a5",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 85773
+    },
+    {
+      "filename": "ai--light.png",
+      "sha256": "9025d11149d07a930a2571e37eeec37215af4b355366d203ac4f479455d50a56",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 88826
+    },
+    {
+      "filename": "food_edit--dark.png",
+      "sha256": "d670edf5db783032a10b6c92d62db464e15a2fcd52e2e90f9dad183510a0f3cf",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 196606
+    },
+    {
+      "filename": "food_edit--light.png",
+      "sha256": "925d4248264f6018a1ce5aae09004f33688f446acc0c640c10b914dec9a4f02f",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 205750
+    },
+    {
+      "filename": "food--dark.png",
+      "sha256": "ee149844801f8e3b80f704bd965b231112fb3ab665777fc2add58d793c962bf6",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 196172
+    },
+    {
+      "filename": "food--light.png",
+      "sha256": "7e9cabfa8c15b808a839aff137cb5fb58bddc82473a54b0d92bb1809f19a8773",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 201054
+    },
+    {
+      "filename": "goals_select--dark.png",
+      "sha256": "9c449311ff8a503809219b7ddcf98e43453b12666bdd78f54866e783385466b9",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 74454
+    },
+    {
+      "filename": "goals_select--light.png",
+      "sha256": "748bca649efbeb846a5e496ef21343dc1a4ce89c6527d5aacadcc857a52123cd",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 77701
+    },
+    {
+      "filename": "goals--dark.png",
+      "sha256": "4545f6d3bcc4069bf8aa610e1b43e76424278b0630b9a52d70ae8e7e8589566e",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 66602
+    },
+    {
+      "filename": "goals--light.png",
+      "sha256": "ae2034178ba4a1f0dbd4bddfab5beafd549b2d780dda4feb235815c708c98299",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 70000
+    },
+    {
+      "filename": "history_month--dark.png",
+      "sha256": "85603bf835231f878267794f34d13c59378f8e7e30558b8764d72388f2888c0f",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 61641
+    },
+    {
+      "filename": "history_month--light.png",
+      "sha256": "0467e3bf5f5160c07822e6f0a76ad3771b6ee98bcab93c779162607ccaa9af70",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 63797
+    },
+    {
+      "filename": "history_week--dark.png",
+      "sha256": "3010e52dff80dee5f1c8b49c799a05b0d5379e3454b760efb35a0ee241e54d67",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 71999
+    },
+    {
+      "filename": "history_week--light.png",
+      "sha256": "63b48c12fc792473f5d5d4dae6383076d0a87c1c2edfba74a4e528307f10d993",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 74914
+    },
+    {
+      "filename": "loading--dark.png",
+      "sha256": "7763920a1437352b88fbebb8c235fd0eb7a0235c188643aad591bdb00fd08304",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 264725
+    },
+    {
+      "filename": "loading--light.png",
+      "sha256": "3fa1a7a89cfda94f6ba3def16e704d58ac61406cdcc4becfe3692abe7af13c48",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 256727
+    },
+    {
+      "filename": "login--dark.png",
+      "sha256": "39d7884a26f303485a4962717b3a6d9686bc1341fd12a7ae8cd3ec801e5d0790",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 64665
+    },
+    {
+      "filename": "login--light.png",
+      "sha256": "ec479a3d08e8d3edcef152349490147b3878fae25404802db1762768b21e32e4",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 69352
+    },
+    {
+      "filename": "manual--dark.png",
+      "sha256": "04f69c28d6efd61a50b9cc0df1ff8a365914291eddaf5d778597345a5d48a2f0",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 79845
+    },
+    {
+      "filename": "manual--light.png",
+      "sha256": "4d29a4db5606c0fc2e95483de6eee0f466c9c3e9c5baca719fe43f10e16a6303",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 82388
+    },
+    {
+      "filename": "permission--dark.png",
+      "sha256": "9d0d6798611483d56766590de8f9f025cb6519350e46d4617c9054dbede7aa86",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 311450
+    },
+    {
+      "filename": "permission--light.png",
+      "sha256": "98f8d329325fad9ca40472739fcad30cfa73d129379776c9c9b4d849763e992c",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 295414
+    },
+    {
+      "filename": "processing--dark.png",
+      "sha256": "067a41f3226216b014adfbcf0d702e27f14a4a5064b8a78bdea813028ef30736",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 197306
+    },
+    {
+      "filename": "processing--light.png",
+      "sha256": "c5f2bb4474390c1eba4eccc52e564c390c59f6d9bac8bcc61a2ebcd29b266709",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 193760
+    },
+    {
+      "filename": "profile--dark.png",
+      "sha256": "755f3a5d4fcc8733df4ba0a8a8b595651ea00814857ac2f9244c73364006544e",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 79900
+    },
+    {
+      "filename": "profile--light.png",
+      "sha256": "31453ece1d631170dfb8d635f7b50e5723dc7b3aa61c71ea2b38e2c5112b0c51",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 83779
+    },
+    {
+      "filename": "review--dark.png",
+      "sha256": "c828ead039f096c8ff6d4598074c5b210d753fecd629b7e4e3771ed5d9b35219",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 246955
+    },
+    {
+      "filename": "review--light.png",
+      "sha256": "3e2a58ef4e74dcab29923f61f67026a1b508efa3a1ce4b46cb5df7a678836f59",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 242806
+    },
+    {
+      "filename": "scan_capturing--dark.png",
+      "sha256": "90b9e32308b78b246e03944d84bb9de57b1855f0d5a35f2e866daf252d089f4f",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 308667
+    },
+    {
+      "filename": "scan_capturing--light.png",
+      "sha256": "d13090223bf981e13055536e1af61b4c52bb7631a93f2f5ca96a15d8f641b3b2",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 310024
+    },
+    {
+      "filename": "scan_idle--dark.png",
+      "sha256": "34e049409acfdd122fdeb8efe318baaad75974be2984571a371f1f1e666943f0",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 335117
+    },
+    {
+      "filename": "scan_idle--light.png",
+      "sha256": "a891471bd799b27b5129bddebbd2a2806f978c804faf2bc1f3833d3a002d70f1",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 337492
+    },
+    {
+      "filename": "today_empty--dark.png",
+      "sha256": "0cdd4f04ed4f2075690b59e7fc6f180115616a4382e358c7a4f9fb72f0de3f53",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 70803
+    },
+    {
+      "filename": "today_empty--light.png",
+      "sha256": "42fd610be52d7ab257a138dd609329dd507a9a690d4c42e1bd82b378aa8c0120",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 70727
+    },
+    {
+      "filename": "today--dark.png",
+      "sha256": "73ba85f25489c8d45beab57dd1b317138870ce8360fe0f4399ab0737a5e505f1",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 78594
+    },
+    {
+      "filename": "today--light.png",
+      "sha256": "088be4c96e6f2fd37c5f89e4cf1cfceaf15494dfbeb37529375e36fa6419b595",
+      "width": 402,
+      "height": 874,
+      "size_bytes": 81939
+    }
+  ]
+}

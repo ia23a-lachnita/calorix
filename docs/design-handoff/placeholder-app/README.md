@@ -4,8 +4,8 @@ Goal: implement this mobile UI **1:1** in Flutter. The ground truth is the JSX s
 
 ## Placeholder app repo integration
 - This folder is the active Claude-design handoff. JSX source, reference images, food assets, preview HTML, and generated Flutter tokens are separated so the handoff can be used without stale path ambiguity.
-- The active visual references are the PNGs in `reference-images/`. The old May mockup composites and old single-screen PNG mirrors under `docs/mockups/` were removed to avoid stale comparisons.
-- UI-diff should point directly at `reference-images/today--dark.png` or `reference-images/today--light.png`; there is no separate `docs/mockups/image/` compatibility mirror.
+- The canonical visual reference set is the 38 PNG handoff in `reference-images/`, restored from the Git tree recorded in `reference-images-manifest.json`. The old May mockup composites and old single-screen PNG mirrors under `docs/mockups/` are not visual-gate inputs.
+- Validate `reference-images-manifest.json` with `fvm flutter test test/reference_images_manifest_test.dart` before a visual gate. UI-diff should then point directly at `reference-images/today--dark.png` or `reference-images/today--light.png`; there is no separate `docs/mockups/image/` compatibility mirror.
 - The app name and logo remain placeholders. Do not replace `AppName`/`CX_APPNAME` with a final brand name or mark until the brand decision is explicit; `Ravlo` is a candidate, not a decision.
 - The populated Today handoff intentionally shows `1,420 kcal` in the hero while the visible cards sum to `845 kcal`. Flutter keeps that as a debug/ui-diff fixture override only.
 
@@ -14,7 +14,7 @@ Goal: implement this mobile UI **1:1** in Flutter. The ground truth is the JSX s
 - `tokens/` — the same tokens as CSS custom properties.
 - `flutter/design_tokens.dart` — tokens pre-translated to Flutter constants. Start here.
 - `screens.md` — screen inventory, states, and flow map.
-- `reference-images/` — every screen in dark + light (402×874 logical px). **Known limitation:** these PNGs are color-quantized by the export pipeline, so smooth gradients/glows show slight banding. The live design does not band — treat gradients in the JSX source as ground truth, or open `preview/screens.html` in a browser and take a native screenshot for pixel-perfect reference.
+- `reference-images/` — the canonical 38-file screen/theme set (402×874 logical px). Its exact source commit, Git tree, dimensions, byte counts, and SHA-256 values are checked into `reference-images-manifest.json`. `reference-images-buggy/` is retained as historical evidence and is byte-identical; do not use it as an input. `good-screenshots/` is an incomplete 1206×2622 collection and must not substitute for this set. **Known limitation:** these PNGs are color-quantized by the export pipeline, so smooth gradients/glows show slight banding. The live design does not band — treat gradients in the JSX source as ground truth, or open `preview/screens.html` in a browser and take a native screenshot for pixel-perfect reference.
 - `assets/food/` — food photography used in the mocks.
 - `preview/screens.html` — interactive screen browser: pick any screen from the dropdown (←/→ to step, `m` to toggle dark/light). Use it for pixel-perfect visual reference.
 - `preview/handoff.html` — composition and lock-screen mock.

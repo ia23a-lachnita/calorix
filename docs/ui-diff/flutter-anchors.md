@@ -10,6 +10,17 @@ coordinates.
 **Zero visual impact** — `build()` returns `widget.child` unchanged in both
 debug and release builds.  No layout, padding, semantics, or painting changes.
 
+## Canonical Reference Evidence
+
+Before a Calorix visual gate, run `fvm flutter test
+test/reference_images_manifest_test.dart`. The only screenshot inputs are the
+38 verified 402×874 PNGs in
+`docs/design-handoff/placeholder-app/reference-images/`; their provenance and
+SHA-256 values are recorded in `reference-images-manifest.json`. Use
+`reference-images/today--dark.png` or `reference-images/today--light.png` for
+Today. Do not substitute `good-screenshots/` (an incomplete 1206×2622 set) or
+the preserved historical `reference-images-buggy/` directory.
+
 ## How to Add a New Anchor
 
 Wrap the target widget:

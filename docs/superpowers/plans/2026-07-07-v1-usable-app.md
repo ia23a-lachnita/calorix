@@ -168,6 +168,10 @@ Command surface: `fvm flutter analyze && fvm flutter test`; `cd functions && npm
 | 9 | goals_select + alignment passes (scan/processing/food/history/goals/profile) | vision checks, no Today regression |
 | 10 | Deploy, device end-to-end pass, full test suite, final report | all suites green, manual flow walkthrough, optional single ui-diff Today gate |
 
+### Active Stage 1A Evidence Progress
+
+- [x] Stage 1A / Task 1A restored the canonical 38-file `reference-images/` handoff tree and recorded a manifest validator; no cross-repository visual gate or later production-correctness stage is claimed by this evidence-only task.
+
 Stages 2–4 are backend-first on purpose: UI screens in 5–8 need the new semantics (needs_review, product lookup, threads) to be *usable*, not mocked — per the no-shortcut rule.
 
 ## 8. Risks and user callouts

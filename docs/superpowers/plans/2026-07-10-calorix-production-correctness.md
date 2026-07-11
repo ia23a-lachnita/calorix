@@ -58,30 +58,30 @@
 
 This evidence stage starts after the baseline and may run in parallel with Stage 1 security work. It is a prerequisite only for cross-repository visual gates; it must not delay the entry trust-boundary implementation.
 
-### Task 0: Restore the canonical reference image set reproducibly
+### Task 1A: Restore the canonical reference image set reproducibly
 
 **Files:**
 - Restore: `docs/design-handoff/placeholder-app/reference-images/*` from the pre-rename tree before `86b4858`
 - Create: `docs/design-handoff/placeholder-app/reference-images-manifest.json`
 - Create: `test/reference_images_manifest_test.dart` or a small checked-in validation script appropriate to the existing toolchain
+- Modify: `docs/design-handoff/placeholder-app/README.md`, `docs/ui-diff/flutter-anchors.md`, `docs/superpowers/specs/2026-07-10-calorix-production-correctness.md`, and `docs/superpowers/plans/2026-07-07-v1-usable-app.md`
 
-- [ ] **Step 1: Write a failing manifest validator.**
-  Require every handoff screen/theme filename, 402x874 dimensions, the recorded source commit, and SHA-256 matching the manifest. The validator must fail when the canonical directory is absent or a `good-screenshots` file is substituted.
+- [x] **Step 1: Write a failing manifest validator.**
+  Require exactly 38 handoff screen/theme filenames, 402x874 PNG IHDR dimensions, byte count, the recorded source commit/tree, and SHA-256 matching the manifest. The validator must fail when the canonical directory/manifest is absent or a `good-screenshots` file is substituted.
 
-- [ ] **Step 2: Run red.**
-  Run: `fvm flutter test test/reference_images_manifest_test.dart` or the documented manifest command.
-  Expected: FAIL because `reference-images/` is missing.
+- [x] **Step 2: Run red.**
+  Ran: `fvm flutter test test/reference_images_manifest_test.dart`.
+  Result: failed as expected because `reference-images-manifest.json` was absent before restoration.
 
-- [ ] **Step 3: Restore without destroying evidence.**
-  Recover the complete original directory from Git history, retain `reference-images-buggy/`, and generate the manifest from the restored files. This task does not run a cross-repository visual gate.
+- [x] **Step 3: Restore without destroying evidence.**
+  Recovered the complete original directory from `307dfc04ee23bee022f85059cc09dc363b2e80f6^`, retained `reference-images-buggy/`, and generated the manifest from the restored bytes. This task does not run a cross-repository visual gate.
 
-- [ ] **Step 4: Verify the reference contract.**
-  Run: manifest validator; `git diff --check`
-  Expected: PASS, with no binary replacement of historical buggy assets.
+- [x] **Step 4: Verify the reference contract.**
+  Ran: manifest validator; `git diff --check`.
+  Result: passed, with no binary replacement of historical buggy assets.
 
-- [ ] **Step 5: Commit the independent evidence stage during execution.**
-  Commit: `git commit -m "Restore canonical reference evidence"`
-  Push only after verification and status tracking are updated.
+- [x] **Step 5: Record the independent evidence stage.**
+  Commit and push are intentionally deferred by the user request; no commit or push was performed.
 
 ## Stage 1: Define And Enforce The Entry Trust Boundary
 
