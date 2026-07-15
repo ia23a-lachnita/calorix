@@ -20,7 +20,7 @@ const _useEmulator = bool.fromEnvironment('USE_EMULATOR', defaultValue: false);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await applyCalorixEdgeToEdgeSystemUi();
+  await applyCalorixFullscreenSystemUi();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   if (_useEmulator) {

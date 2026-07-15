@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:calorix/core/router/app_router.dart';
+import 'package:calorix/core/system/system_ui.dart';
 import 'package:calorix/shared/providers/auth_provider.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
 
@@ -26,12 +27,27 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-      'Debug reseed screen sets ui-diff mode and edge-to-edge system UI',
+      'Debug reseed screen sets ui-diff mode and hides system bars via custom channel',
       (tester) async {
-    final log = <MethodCall>[];
+    final platformLog = <MethodCall>[];
+    final systemUiLog = <MethodCall>[];
+
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(calorixSystemUiChannel, null);
+    });
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (methodCall) async {
-      log.add(methodCall);
+      platformLog.add(methodCall);
+      return null;
+    });
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(calorixSystemUiChannel, (methodCall) async {
+      systemUiLog.add(methodCall);
       return null;
     });
 
@@ -58,12 +74,17 @@ void main() {
 
     expect(container.read(uiDiffModeProvider), isTrue);
 
-    final systemUiModeCall = log
+    final edgeToEdgeCall = platformLog
         .where((call) => call.method == 'SystemChrome.setEnabledSystemUIMode')
         .lastOrNull;
+    expect(edgeToEdgeCall, isNull,
+        reason:
+            'Should not call SystemChrome.setEnabledSystemUIMode edgeToEdge');
 
-    expect(systemUiModeCall, isNotNull,
-        reason: 'Expected SystemChrome.setEnabledSystemUIMode call');
-    expect(systemUiModeCall!.arguments, contains('SystemUiMode.edgeToEdge'));
+    final hideCall = systemUiLog
+        .where((call) => call.method == 'hideSystemBars')
+        .lastOrNull;
+    expect(hideCall, isNotNull,
+        reason: 'Expected hideSystemBars on com.calorix.calorix/system_ui');
   });
 }

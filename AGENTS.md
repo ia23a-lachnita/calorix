@@ -27,17 +27,25 @@ Source-of-truth order (read the relevant one before changing behavior, UI, data,
 
 ### Delegation Policy
 
-Only GPT-5.6 Luna or GPT-5.6 Terra subagents may directly edit repository files or perform token-heavy, low-reasoning work. Other subagents and external reviewers are read-only advisory. The main agent retains requirements interpretation, architecture and tradeoffs, synthesis, verification judgment, production-readiness decisions, and final reporting. Subagents never commit or push; the main agent reviews, verifies, commits, and pushes.
+All repository file edits and token-heavy implementation work are performed through OpenCode headless mode using model `opencode/mimo-v2.5-free` while its quota is available. Canonical invocation:
 
-Use the host agent's native tools; do not shell out to another CLI for what a native tool already does.
+```
+opencode run --model opencode/mimo-v2.5-free --auto --dir <repo> "<prompt>"
+```
 
-| Capability | Claude Code | Codex CLI |
+OpenCode workers never commit or push; the main host reviews, verifies, commits, and pushes. If OpenCode explicitly reports quota exhaustion, is unavailable, or repeatedly stalls, record the exact failure; only then may the main host edit as fallback. This route is an explicit exception to the general do-not-shell-out rule.
+
+Codex host/child agents and other subagents remain allowed for read-only research, investigation, review, planning, and sub-orchestration.
+
+The main agent retains requirements interpretation, architecture and tradeoffs, synthesis, verification judgment, production-readiness decisions, and final reporting. Subagents never commit or push; the main agent reviews, verifies, commits, and pushes.
+
+| Capability | OpenCode (mimo-v2.5-free) | Claude Code / Codex CLI |
 |---|---|---|
-| Read/edit files | `Read`, `Edit`, `Write` | `apply_patch`, shell reads |
-| Search | `Grep`, `Glob`, semantic `claude-context` search | `shell_command` (rg), MCP search |
-| Shell | `Bash` / `PowerShell` | `shell_command` (PowerShell) |
-| Subagents | `Agent` tool + `.claude/agents/*` | `.codex/agents/*` |
-| External review | `mcp__antigravity-mcp__ask-ai` | `mcp__antigravity_mcp__ask_ai` |
+| File edits | `opencode run --auto` (token-heavy work) | Read-only under normal operation |
+| Search | Read-only agents may search | `Grep`, `Glob`, `shell_command` (rg), MCP search |
+| Shell | `opencode run` invocation only | `Bash` / `PowerShell` / `shell_command` |
+| Subagents | N/A | `Agent` tool + agent dirs |
+| External review | `mcp__antigravity-mcp__ask-ai` | `mcp__antigravity-mcp__ask-ai` |
 | UI parity | `ui-diff` MCP server tools | `ui-diff` MCP server tools |
 
 - Google MCP connectors (`firebase`, `gcloud`) are **disabled by default** in this repo's Claude, Codex, and Gemini configs. Do not silently re-enable them. If a task genuinely needs Firebase/GCP tooling, state that and let the user enable the connector for the session; CLI fallbacks (`firebase`, `gcloud` commands) still require the safety gates in section 6.
