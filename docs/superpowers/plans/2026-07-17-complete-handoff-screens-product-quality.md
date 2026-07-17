@@ -124,7 +124,7 @@ Host-only bookkeeping task (no product code). The host performs it directly; thi
 - Consumes: nothing (first task).
 - Produces: `docs/implementation-status.md` — the persistent tracker every later task updates at HANDOFF; the recorded working Flutter/functions command set; the recorded baseline commit hash.
 
-- [ ] **Step 1: Record baseline facts**
+- [x] **Step 1: Record baseline facts**
 
 Run each and note outputs for the status doc:
 
@@ -136,7 +136,7 @@ fvm flutter --version
 
 Expected: current commit hash; untracked list containing exactly the artifacts named in Global Constraints (verify none are missing/renamed); Flutter version string. If `fvm flutter` fails (FVM pin broken in this checkout — a previously observed condition), record the exact error and the working global `flutter` invocation; all later `fvm flutter` commands in this plan then substitute the recorded invocation.
 
-- [ ] **Step 2: Record toolchain health**
+- [x] **Step 2: Record toolchain health**
 
 ```powershell
 fvm flutter pub get
@@ -148,7 +148,7 @@ npm --prefix functions run build
 
 Expected: `pub get` succeeds; `analyze` reports `No issues found!` or the failures are recorded verbatim; `test` pass/fail counts recorded (do not fix failures in this task); `npm run` lists the functions scripts — record the exact build/test/rules-test script names for Tasks 9/14/19; functions build succeeds or its exact error is recorded.
 
-- [ ] **Step 3: Create `docs/implementation-status.md`**
+- [x] **Step 3: Create `docs/implementation-status.md`**
 
 ```markdown
 # Implementation Status — Complete Handoff Screens and Product Quality
@@ -183,7 +183,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 (gates recorded as blocked — e.g. real cloud processing without authorization — are listed here, never marked passed)
 ```
 
-- [ ] **Step 4: Verify tracker committed cleanly (HANDOFF Task 0)**
+- [x] **Step 4: Verify tracker committed cleanly (HANDOFF Task 0)**
 
 ```powershell
 git add docs/implementation-status.md
@@ -2064,5 +2064,3 @@ Maps every user requirement, all 19 canonical screen IDs, and both themes/38 sta
 | Release manifest | `docs/release-manifest-2026-07-17.md` | 19 | User review |
 | External review gate | `docs/implementation-status.md` §Review log | 19 | 19 |
 | Blocked gates | `docs/implementation-status.md` §Blocked gates | 19 | 19 |
-
-
