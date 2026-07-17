@@ -20,11 +20,26 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 | Task | Status | Worker used | Review gate | Commit | Evidence |
 |---|---|---|---|---|---|
-| 0 | done | host (bookkeeping) | n/a (bookkeeping) | pending (this handoff commit) | toolchain health above |
-| 1 | pending | — | — | — | — |
+| 0 | done | host (bookkeeping) | n/a (bookkeeping) | cacca80 | toolchain health above |
+| 1 | verified; ready for commit | OpenCode (bounded edits); host orchestration | pre-implementation review (green) | — | Pre-cleanup comparison 12/12 total (A 6/6, B 6/6); analyzer clean from comparison stage; decision A; rationale A ~43 lines/native PageView vs B 186 custom recognizer lines; Antigravity conversation calorix-navigation-spike-20260717 green: AGREEMENT_STATUS agree, MUST_FIX none; first review's 3 must-fix applied; post-cleanup A-only focused test 6/6 passed; fvm flutter analyze clean; spike_shell_b.dart deleted; device/emulator safety restriction applies — see Task 1 note |
 | 2–19 | pending | — | — | — | — |
 
-**Task 0 commit:** this is the pending handoff commit (commit SHA not yet assigned; will be recorded after commit).
+**Task 0 commit:** cacca80
+
+**Task 1 note:** OpenCode first implementation call stalled 12+ minutes with no edits; Claude headless fallback was unavailable because its session limit resets at midnight Europe/Zurich. Runtime check attempted but blocked/aborted: Pixel_8_API35_GoogleAPIs was unavailable under plan's old ID, direct software and host-GPU boots left emulator-5554 offline with hanging QEMU CPU/main-loop threads, then the user's phone shut down and had to be rebooted; all emulator/QEMU processes terminated and emulator-5554 removed. The physical phone had shut down/rebooted after the emulator attempts. DO NOT launch emulators or interact with/install/run on the physical device without explicit user confirmation. Aborted `flutter run` terminated before evidence — not counted. No runtime result counts as evidence. Architecture review explicitly accepted automated test evidence in lieu of runtime. Focused command: `fvm flutter test test/spike_nav/spike_conflict_test.dart`
+
+**Task 1 RED evidence (2026-07-17):**
+```
+test/spike_nav/spike_conflict_test.dart:3:8: Error: Error when reading 'lib/debug/spike_nav/spike_shell_a.dart': The system cannot find the path specified
+import 'package:calorix/debug/spike_nav/spike_shell_a.dart';
+test/spike_nav/spike_conflict_test.dart:4:8: Error: Error when reading 'lib/debug/spike_nav/spike_shell_b.dart': The system cannot find the path specified
+import 'package:calorix/debug/spike_nav/spike_shell_b.dart';
+test/spike_nav/spike_conflict_test.dart:5:8: Error: Error when reading 'lib/debug/spike_nav/spike_harness.dart': The system cannot find the path specified
+import 'package:calorix/debug/spike_nav/spike_harness.dart';
+test/spike_nav/spike_conflict_test.dart:13:19: Error: Couldn't find constructor 'SpikeShellA'.
+test/spike_nav/spike_conflict_test.dart:15:19: Error: Couldn't find constructor 'SpikeShellB'.
+```
+Expected FAIL — compilation errors (`SpikeShellA`/`SpikeShellB` not defined). Step 1 (test written) and Step 2 (RED) confirmed.
 
 ## Worker routing log
 
@@ -56,6 +71,10 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 
 (one row per REVIEW-GATE call: task, conversationId, AGREEMENT_STATUS, MUST_FIX, git-status-after)
 
+| Task | conversationId | AGREEMENT_STATUS | MUST_FIX | git-status-after |
+|---|---|---|---|---|
+| 1 | calorix-navigation-spike-20260717 | agree | none | clean (no mutation/noise beyond normal wrapper/model label handling) |
+
 ## Visual evidence log
 
 (one row per ui-diff run: run ID, screens, status, auditLimited, unresolved count, verdict)
@@ -66,6 +85,10 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 
 ## Current Task
 
-**Task 1: Navigation Architecture Spike** — pending.
+**Task 1 verified; ready for commit.**
 
-Intended focused command: `fvm flutter test test/navigation/spike_conflict_test.dart`
+Verification:
+- `fvm flutter test test/spike_nav/spike_conflict_test.dart` → 6/6 passed
+- `fvm flutter analyze` → No issues found
+
+Next: review intended diff, commit, and push.

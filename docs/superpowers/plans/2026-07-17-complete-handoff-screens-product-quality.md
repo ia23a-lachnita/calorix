@@ -209,7 +209,7 @@ Pre-implementation architecture task — REVIEW-GATE required **before** Task 2 
 - Consumes: `docs/implementation-status.md` from Task 0.
 - Produces: a recorded decision (A or B) with rationale in `docs/implementation-status.md`, and the winning spike file, which Task 2 hardens into `lib/shell/tab_swipe_shell.dart` with the exact public contract `TabSwipeShell({required StatefulNavigationShell shell, required List<Widget> children})`.
 
-- [ ] **Step 1 (worker): Write the failing conflict/state/interruptibility test matrix**
+- [x] **Step 1 (worker): Write the failing conflict/state/interruptibility test matrix**
 
 The same test group runs against both approaches via a parameterized pump:
 
@@ -236,21 +236,21 @@ for (final approach in SpikeApproach.values) {
 }
 ```
 
-- [ ] **Step 2: RED**
+- [x] **Step 2: RED**
 
 Run: `fvm flutter test test/spike_nav/spike_conflict_test.dart`
 Expected: FAIL — compilation errors (`SpikeShellA`/`SpikeShellB` not defined).
 
-- [ ] **Step 3 (worker): Implement both spike shells minimally** — approach A uses `StatefulShellRoute(navigatorContainerBuilder: <builder>)` returning a `PageView` whose children are the branch navigators with an outer `PageController` synced to `shell.currentIndex`; approach B keeps `StatefulShellRoute.indexedStack` and wraps the active container in a `RawGestureDetector` with a horizontal drag recognizer that drives an `AnimationController` slide between current and adjacent branch. Direct-manipulation policy in both: an inner scrollable/slider that accepts the gesture wins (test via gesture arena — no `absorbPointer` hacks).
+- [x] **Step 3 (worker): Implement both spike shells minimally** — approach A uses `StatefulShellRoute(navigatorContainerBuilder: <builder>)` returning a `PageView` whose children are the branch navigators with an outer `PageController` synced to `shell.currentIndex`; approach B keeps `StatefulShellRoute.indexedStack` and wraps the active container in a `RawGestureDetector` with a horizontal drag recognizer that drives an `AnimationController` slide between current and adjacent branch. Direct-manipulation policy in both: an inner scrollable/slider that accepts the gesture wins (test via gesture arena — no `absorbPointer` hacks).
 
-- [ ] **Step 4: GREEN**
+- [x] **Step 4: GREEN**
 
 Run: `fvm flutter test test/spike_nav/spike_conflict_test.dart`
 Expected: PASS for at least one approach across all six behaviors. If only one approach passes fully, that is the decision signal; record per-approach results.
 
-- [ ] **Step 5: Runtime feel check** — launch `fvm flutter emulators --launch Api35_NoPlay`, wait for `adb devices`, run the spike harness (`fvm flutter run -t lib/debug/spike_nav/spike_harness.dart`), manually swipe against the slider/strip/list; note interruption feel and any gesture-arena jank in `docs/implementation-status.md`.
+- [x] **Step 5: Runtime feel check** — Runtime check attempted but blocked/aborted due to infrastructure/device incident: Pixel_8_API35_GoogleAPIs was unavailable under plan's old ID; direct software and host-GPU boots left emulator-5554 offline with hanging QEMU CPU/main-loop threads; user's phone shut down and had to be rebooted; all emulator/QEMU processes terminated and emulator-5554 removed; aborted `flutter run` terminated before evidence — not counted. Architecture review (Antigravity, conversation calorix-navigation-spike-20260717) explicitly accepted the automated test evidence in lieu of runtime. DO NOT launch emulators or touch/install/run on physical device again without explicit user confirmation.
 
-- [ ] **Step 6: Decide, gate, and delete the rejected spike** — host records the decision + rationale + per-approach test results in `docs/implementation-status.md`; REVIEW-GATE Task 1 (pre-implementation architecture gate) until green; then `git rm lib/debug/spike_nav/spike_shell_<rejected>.dart` (keep the winner and harness until Task 2 absorbs them).
+- [x] **Step 6: Decide, gate, and delete the rejected spike** — host records the decision + rationale + per-approach test results in `docs/implementation-status.md`; REVIEW-GATE Task 1 (pre-implementation architecture gate) until green; then `git rm lib/debug/spike_nav/spike_shell_<rejected>.dart` (keep the winner and harness until Task 2 absorbs them).
 
 - [ ] **Step 7: HANDOFF Task 1**
 
@@ -299,9 +299,23 @@ testWidgets('nav has five equal-width items and no FAB overhang', (tester) async
 testWidgets('Android back on a branch root does not orphan routes', (tester) async { /* simulate pop intent on /today root → app-level behavior, no crash */ });
 ```
 
+TabSwipeShell contract requirements (must be satisfied by Step 3 implementation):
+
+- **AutomaticKeepAliveClientMixin wrapper:** `TabSwipeShell` must wrap each `StatefulNavigationShell` branch child in a widget that mixes in `AutomaticKeepAliveClientMixin`, uses a stable `Key` (derived from the branch index), and sets `wantKeepAlive` to `true`. This guarantees per-tab state (scroll offsets, text fields, form state) survives when the user navigates away and back, satisfying the six spike behaviors ported into `tab_swipe_shell_test.dart`.
+
+- **didUpdateWidget for external currentIndex sync:** When `navigationShell.currentIndex` changes externally (deep-link navigation, tab-bar taps, profile-pop origin return), `TabSwipeShell`'s `didUpdateWidget` must detect the index delta and drive the `PageController` to the new page — animating for adjacent taps but snapping (no animation) for non-adjacent jumps (e.g., deep link from tab 0 to tab 4). The `onPageChanged` callback must include index guards that prevent feedback loops: when the controller-driven page already matches `currentIndex`, `onPageChanged` must not re-notify the shell, and when an external `didUpdateWidget` drives the controller, `onPageChanged` must be suppressed until the driven animation completes.
+
+- **extendBody stability:** The parent `app_shell` `Scaffold` must keep `extendBody` globally stable (prefer `extendBody: true` with content and nav safe-area handling) instead of toggling `extendBody` by `currentIndex`. Swiping between tabs must never cause a layout jump from safe-area changes.
+
+Focused tests to add in `test/shell/tab_swipe_shell_test.dart`:
+
+- **External currentIndex sync / no loop:** set up a shell with a mock or overridden `StatefulNavigationShell` whose `currentIndex` changes externally (simulating deep link or nav tap); assert the `PageController` moves to the correct page; assert `onPageChanged` does not fire a second index update (no feedback loop).
+
+- **State survival after tab 0 → tab 4 → tab 0 traversal:** pump `TabSwipeShell` with all five branch children, enter text or scroll on tab 0, swipe/fling to tab 4, assert tab 0's text/scroll is gone, swipe back to tab 0, assert the original text/scroll offset is restored (proving `AutomaticKeepAliveClientMixin` + stable keys).
+
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/router/origin_return_test.dart test/shell/tab_swipe_shell_test.dart test/app_shell_test.dart` → Expected: FAIL (missing `TabSwipeShell`, FAB still present, origin regressions).
 
-- [ ] **Step 3 (worker): Implement** nav flattening, `TabSwipeShell` hardening, profile push route (`context.pushNamed(RouteNames.profile)` from every entry point; close button and swipe-down both `context.pop()`), AI-close origin handling with visible intentional fallback, and spike-folder deletion.
+- [ ] **Step 3 (worker): Implement** nav flattening, `TabSwipeShell` hardening (wrapping each branch child in an `AutomaticKeepAliveClientMixin` widget with stable key + `wantKeepAlive: true`; implementing `didUpdateWidget` to detect external `currentIndex` changes and animate/snap `PageController` only when different, with `onPageChanged` index guards preventing feedback loops), parent `app_shell` `Scaffold` with stable `extendBody` (prefer `true`, handle safe-area insets via padding/constraints instead of toggling `extendBody`), profile push route (`context.pushNamed(RouteNames.profile)` from every entry point; close button and swipe-down both `context.pop()`), AI-close origin handling with visible intentional fallback, and spike-folder deletion.
 
 - [ ] **Step 4: GREEN** — Run the same three test files → Expected: PASS, all tests.
 
