@@ -1,0 +1,2068 @@
+# Complete Handoff Screens and Product Quality Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Bring all 19 canonical handoff screen IDs to product quality in both themes — flat five-tab navigation with horizontal swipes, still-photo scan pipeline, complete CRUD, persisted assistant chat, injectable product clock — and prove it with a 38-state visual program, connected-device E2E matrix, performance/accessibility gates, and external review evidence.
+
+**Architecture:** The app is a Flutter (FVM) + Riverpod + go_router `StatefulShellRoute` client over Firebase (Auth/Firestore/Storage/Messaging) with TypeScript Cloud Functions doing cloud analysis. Cross-cutting seams land first (navigation architecture from a spike, injectable clock, motion/accessibility policy, deterministic fixture + deep-link capture harness), then screen groups are completed in dependency order, and everything funnels into E2E, ui-diff visual gates, and final release evidence.
+
+**Tech Stack:** Flutter/Dart via FVM, Riverpod, go_router, google_fonts (Geist + Geist Mono), camera, image_picker, shared_preferences, firebase_auth / cloud_firestore / firebase_storage / firebase_messaging, Cloud Functions (TypeScript), Firebase emulators, ui-diff MCP pipeline, adb, Antigravity MCP review.
+
+**Spec:** `docs/superpowers/specs/2026-07-17-complete-handoff-screens-and-product-quality-design.md` (approved). Source-of-truth order: `requirements.md` → `docs/design-handoff/placeholder-app/README.md` → `.claude/design.md` → the spec. JSX in `docs/design-handoff/placeholder-app/src/` is exact visual truth; reference PNGs in `reference-images/` are visual gates; when they disagree, JSX wins (PNGs band on gradients).
+
+## Global Constraints
+
+- All Flutter/Dart commands use FVM: `fvm flutter <args>`, `fvm dart <args>` (Task 0 records the exact working invocation if the FVM pin is broken in this checkout; every later command substitutes the recorded invocation).
+- Workers (OpenCode / Claude Code headless) **never commit or push**. Only the host reviews, verifies, updates checkboxes, commits, and pushes.
+- Commit messages: plain imperative English. The pre-commit hook rejects `AI`, `Bot`, `Claude`, `Gemini`, `Generated`, `Automated`, `Sonnet`, `Anthropic`, and any `Co-Authored-By:` trailer. Write "assistant" instead of "AI". Never use `--no-verify`.
+- No production deployment, cloud deletes, or production data mutation — ever, in any task. Cloud writes happen only against Firebase emulators. Live network calls are read-only contract checks (Open Food Facts).
+- Preserve existing untracked artifacts; do not delete or overwrite: `.claude/ui-diff-runs/`, `.gemini/settings.json.bak-20260517-220447`, `assets/calorix_icons/`, `docs/screenshots/*.png`.
+- Flat five-tab navigation (equal-width, no Scan FAB) and still-photo-only capture (no video, no stop square) are **settled, pre-approved deviations** from the handoff pixels/JSX (spec §17). Document them wherever they surface a diff; never "fix" them back.
+- Tab order: Today · History · Scan · Goals · AI. Scan index 2. Cold start always lands on Scan; tab state preserved only within a session.
+- No pure `#FFFFFF` / `#000000` tokens. Protein blue `#3A5BFF`, carbs cyan `#19D3D9`, fat green `#1FCC74`, amber review `#F6A63A`.
+- Typography: Geist (UI) + Geist Mono (eyebrow labels + all numerals), tabular figures. Hairlines 0.5px. Exact JSX values — no snapping to 4/8 grids.
+- Confidence threshold: ≥80% confirmed, <80% review branch. Serving multiplier: 0.25× steps, range 0.25–5.0×, macros scale proportionally.
+- Motion per spec §7 catalog; reduced motion via `MediaQuery.disableAnimationsOf(context)` snaps to final frame; profile mode measures real animations, never disables them.
+- Minimum tap target 44×44 logical px; semantic labels; no color-only status indicators.
+- The Today fixture hero override (1,420 kcal / 96g P / 132g C / 38g F vs the real 845 kcal / 74g P / 92g C / 20g F card sum) exists **only** inside the ui-diff fixture harness. Production aggregation always sums real entries.
+- Emulator device: launch via `fvm flutter emulators --launch Api35_NoPlay`; wait for `adb devices` before running. Never use the corrupted local system emulator directly.
+- Keep large logs out of the conversation; evidence goes to `docs/implementation-status.md` and `.ui-diff/runs/` run IDs.
+
+## Execution and Delegation Contract
+
+The user has chosen delegated execution. Do not re-ask.
+
+### Worker ladder
+
+1. **Primary — OpenCode** (all repository file edits and token-heavy implementation):
+
+   ```
+   opencode run --model opencode/mimo-v2.5-free --auto --dir C:\Users\xursc\projects\calorix "<task prompt>"
+   ```
+
+2. **Fallback — Claude Code headless**, only after OpenCode reports exact quota exhaustion, is unavailable, or repeatedly stalls (record the exact error/stall evidence in `docs/implementation-status.md` first):
+
+   ```
+   claude -p --dangerously-skip-permissions --model <model> "<task prompt>"
+   ```
+
+   Model routing: `fable` for architecture and hard-correctness tasks (Tasks 1, 2, 3, 7, 9, 14); `sonnet` for bounded UI/tests tasks (Tasks 4, 5, 6, 8, 10, 11, 12, 13, 15, 16); `opus` only for exceptional cross-system debugging/review no other route resolves.
+
+3. **Codex** orchestrates, researches, reviews, and verifies. Codex never implements code. The host (main agent) commits and pushes.
+
+### WORKER-RUN protocol (referenced by tasks as "WORKER-RUN Task N")
+
+Invoke the current worker (ladder above) with this prompt template, filling in the task number and step range:
+
+> Read docs/superpowers/plans/2026-07-17-complete-handoff-screens-product-quality.md, section "Task N". Implement exactly the worker steps listed there (tests first, then implementation). Obey the plan's Global Constraints. Do not commit, push, or modify docs/implementation-status.md or the plan file. Stop after the listed steps and report what you changed.
+
+### HANDOFF protocol (referenced by tasks as "HANDOFF Task N")
+
+1. Worker stops; host runs `git status` and `git diff` and inspects every changed file (never merge blindly).
+2. Host runs the task's verification commands and confirms the expected output verbatim.
+3. Host updates `docs/implementation-status.md` (task row → done, evidence links) and checks off this plan's boxes for the task.
+4. Host commits with the task's commit message and pushes to `origin/main`.
+
+### REVIEW-GATE protocol (referenced by tasks as "REVIEW-GATE Task N")
+
+Required for every substantive (multi-file / behavior-changing / security-touching / parity-affecting) diff, both as pre-review for architecture/data-model/rules changes and post-review after implementation. Trivial single-file edits may skip pre-review; record why in `docs/implementation-status.md`.
+
+1. Host calls `mcp__antigravity-mcp__ask-ai` with `model: "gemini-3.1-pro-preview"`, `approvalMode: "yolo"`, and the persistent `conversationId: "calorix-handoff-2026-07-17"`.
+2. The prompt summarizes the task diff and always includes verbatim: **"Do not edit files, do not run write commands, and do not mutate the repository; only inspect, reason, review, and propose changes for the main agent to apply. Reply with AGREEMENT_STATUS and MUST_FIX."**
+3. Green only when the response explicitly reports `AGREEMENT_STATUS: agree` **and** `MUST_FIX: none`. Apply must-fix feedback via WORKER-RUN and continue the same conversation until green. An empty/noisy response is not green.
+4. After every review call, run `git status`; revert any unexpected mutation (reviewer wrapper noise has mutated the repo before).
+5. If the MCP tool/model is unavailable, record the exact error in `docs/implementation-status.md`; do not substitute a CLI review.
+
+## Planning Notes — Execution-Routing Evidence (2026-07-17)
+
+Recorded strictly as routing evidence for the worker ladder; it has no bearing on task content:
+
+- Two OpenCode long-spec-document calls stalled on 2026-07-17.
+- Small OpenCode edits succeeded on the same day (OpenCode remains primary for code-sized edits).
+- A later OpenCode plan-writing call failed after 474s with `Streaming response failed` before creating the file.
+- Claude Fable rewrote the spec successfully, but its shell wrapper process lingered after process exit (check for and kill orphaned wrappers after headless runs).
+- One small Claude call hit the session usage limit before 19:00 and the limit later reset (headless fallback capacity is time-windowed; retry after reset rather than escalating models).
+
+Consequence baked into this plan: long single-shot document generation is not delegated to OpenCode; implementation prompts stay code-sized and task-scoped. This plan file itself was written by the fallback writer under that recorded failure.
+
+## Canonical Coverage Map (19 IDs × 2 themes)
+
+Every canonical ID maps to an owning implementation task; all 38 visual states (each ID × dark + light) are captured and gated in Task 17 and re-verified in the final gate (Task 19). Behavior-only cases (denial/regrant, stale notification, offline, rapid taps, keyboard, repeated visits, empty/error/loading) are owned by Tasks 6, 7, 16, and 18 inside their parent screens and do not inflate the 38.
+
+| # | ID | Owning task(s) | Visual gate | Final gate |
+|---|---|---|---|---|
+| 1 | `loading` | 15 | 17 | 19 |
+| 2 | `login` | 15 | 17 | 19 |
+| 3 | `permission` | 6 (flow + screen), 15 (parity polish) | 17 | 19 |
+| 4 | `scan_idle` | 2 (nav), 6 | 17 | 19 |
+| 5 | `scan_capturing` | 6 | 17 | 19 |
+| 6 | `processing` | 7 | 17 | 19 |
+| 7 | `review` | 8 | 17 | 19 |
+| 8 | `manual` | 8 | 17 | 19 |
+| 9 | `today` | 11 | 17 | 19 |
+| 10 | `today_empty` | 11 | 17 | 19 |
+| 11 | `food` | 10 | 17 | 19 |
+| 12 | `food_edit` | 10 | 17 | 19 |
+| 13 | `history_week` | 12 | 17 | 19 |
+| 14 | `history_month` | 12 | 17 | 19 |
+| 15 | `goals` | 13 | 17 | 19 |
+| 16 | `goals_select` | 13 | 17 | 19 |
+| 17 | `ai` | 14 | 17 | 19 |
+| 18 | `ai_history` | 14 | 17 | 19 |
+| 19 | `profile` | 15 | 17 | 19 |
+
+---
+
+### Task 0: Baseline, Inventory, and Persistent Status Tracker
+
+Host-only bookkeeping task (no product code). The host performs it directly; this is the recorded exception to worker delegation because it produces the tracking document the delegation itself depends on.
+
+**Files:**
+- Create: `docs/implementation-status.md`
+
+**Interfaces:**
+- Consumes: nothing (first task).
+- Produces: `docs/implementation-status.md` — the persistent tracker every later task updates at HANDOFF; the recorded working Flutter/functions command set; the recorded baseline commit hash.
+
+- [ ] **Step 1: Record baseline facts**
+
+Run each and note outputs for the status doc:
+
+```powershell
+git rev-parse HEAD
+git status --porcelain
+fvm flutter --version
+```
+
+Expected: current commit hash; untracked list containing exactly the artifacts named in Global Constraints (verify none are missing/renamed); Flutter version string. If `fvm flutter` fails (FVM pin broken in this checkout — a previously observed condition), record the exact error and the working global `flutter` invocation; all later `fvm flutter` commands in this plan then substitute the recorded invocation.
+
+- [ ] **Step 2: Record toolchain health**
+
+```powershell
+fvm flutter pub get
+fvm flutter analyze
+fvm flutter test
+npm --prefix functions run
+npm --prefix functions run build
+```
+
+Expected: `pub get` succeeds; `analyze` reports `No issues found!` or the failures are recorded verbatim; `test` pass/fail counts recorded (do not fix failures in this task); `npm run` lists the functions scripts — record the exact build/test/rules-test script names for Tasks 9/14/19; functions build succeeds or its exact error is recorded.
+
+- [ ] **Step 3: Create `docs/implementation-status.md`**
+
+```markdown
+# Implementation Status — Complete Handoff Screens and Product Quality
+
+Plan: docs/superpowers/plans/2026-07-17-complete-handoff-screens-product-quality.md
+Baseline commit: <hash from Step 1>
+Flutter command: <recorded invocation>   Functions scripts: <recorded names>
+Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-runs/, .gemini/settings.json.bak-20260517-220447, assets/calorix_icons/, docs/screenshots/*.png
+
+## Task ledger
+| Task | Status | Worker used | Review gate | Commit | Evidence |
+|---|---|---|---|---|---|
+| 0 | in progress | host | n/a (bookkeeping) | — | — |
+| 1–19 | pending | — | — | — | — |
+
+## Worker routing log
+| Date | Call | Result (exact error if failed) |
+|---|---|---|
+| 2026-07-17 | OpenCode long spec call ×2 | stalled |
+| 2026-07-17 | OpenCode small edits | succeeded |
+| 2026-07-17 | OpenCode plan call | failed after 474s: "Streaming response failed", no file created |
+| 2026-07-17 | Claude Fable spec rewrite | succeeded; shell wrapper lingered after process exit |
+| 2026-07-17 | Claude small call | session limit before 19:00; later reset |
+
+## Review-gate log
+(one row per REVIEW-GATE call: task, conversationId, AGREEMENT_STATUS, MUST_FIX, git-status-after)
+
+## Visual evidence log
+(one row per ui-diff run: run ID, screens, status, auditLimited, unresolved count, verdict)
+
+## Blocked gates
+(gates recorded as blocked — e.g. real cloud processing without authorization — are listed here, never marked passed)
+```
+
+- [ ] **Step 4: Verify tracker committed cleanly (HANDOFF Task 0)**
+
+```powershell
+git add docs/implementation-status.md
+git commit -m "Add implementation status tracker with baseline inventory"
+git push
+```
+
+Expected: pre-commit hook passes; push succeeds; `git status` afterwards shows only the preserved untracked artifacts.
+
+---
+
+### Task 1: Navigation Architecture Spike (Swipe Between Tabs)
+
+Pre-implementation architecture task — REVIEW-GATE required **before** Task 2 builds on the outcome. Compares (A) custom `navigatorContainerBuilder` on `StatefulShellRoute` with `PageView`-hosted branch navigators vs (B) shell-level swipe recognition with an animated branch transition over the existing `IndexedStack`. The spike proves direct-manipulation conflict resolution, per-tab state preservation, and interruptibility before anything is adopted.
+
+**Files:**
+- Create: `lib/debug/spike_nav/spike_shell_a.dart` (approach A: `navigatorContainerBuilder` + `PageView` branch navigators)
+- Create: `lib/debug/spike_nav/spike_shell_b.dart` (approach B: shell-level `HorizontalDragGestureRecognizer` + animated slide between branch containers)
+- Create: `lib/debug/spike_nav/spike_harness.dart` (five stub tabs embedding the real conflict widgets: a `Slider`, a horizontal `ListView`, a week-strip-like horizontal gesture area, a `TextField`, and a vertical scroll list)
+- Test: `test/spike_nav/spike_conflict_test.dart`
+
+**Interfaces:**
+- Consumes: `docs/implementation-status.md` from Task 0.
+- Produces: a recorded decision (A or B) with rationale in `docs/implementation-status.md`, and the winning spike file, which Task 2 hardens into `lib/shell/tab_swipe_shell.dart` with the exact public contract `TabSwipeShell({required StatefulNavigationShell shell, required List<Widget> children})`.
+
+- [ ] **Step 1 (worker): Write the failing conflict/state/interruptibility test matrix**
+
+The same test group runs against both approaches via a parameterized pump:
+
+```dart
+// test/spike_nav/spike_conflict_test.dart
+enum SpikeApproach { branchPageView, shellRecognizer }
+
+Future<void> pumpSpike(WidgetTester tester, SpikeApproach approach) async { /* pumps spike_harness with the chosen shell */ }
+
+for (final approach in SpikeApproach.values) {
+  group('$approach', () {
+    testWidgets('slider drag does not change tab', (tester) async {
+      await pumpSpike(tester, approach);
+      await tester.drag(find.byType(Slider), const Offset(-140, 0));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('tab-body-0')), findsOneWidget);
+    });
+    testWidgets('horizontal list drag inside its bounds does not change tab', (tester) async { /* drag find.byKey(ValueKey('h-list')) */ });
+    testWidgets('swipe on non-interactive content moves to adjacent tab', (tester) async { /* fling body, expect tab-body-1 */ });
+    testWidgets('released mid-swipe below threshold settles back (interruptible)', (tester) async { /* drag 40px, release, expect tab-body-0 */ });
+    testWidgets('scroll offset and TextField content survive tab away and back', (tester) async { /* scroll 300px, type "abc", swipe away, swipe back, assert both */ });
+    testWidgets('reverse fling mid-transition lands on origin tab', (tester) async { /* start fling, pump 80ms, fling opposite, settle, assert tab-body-0 */ });
+  });
+}
+```
+
+- [ ] **Step 2: RED**
+
+Run: `fvm flutter test test/spike_nav/spike_conflict_test.dart`
+Expected: FAIL — compilation errors (`SpikeShellA`/`SpikeShellB` not defined).
+
+- [ ] **Step 3 (worker): Implement both spike shells minimally** — approach A uses `StatefulShellRoute(navigatorContainerBuilder: <builder>)` returning a `PageView` whose children are the branch navigators with an outer `PageController` synced to `shell.currentIndex`; approach B keeps `StatefulShellRoute.indexedStack` and wraps the active container in a `RawGestureDetector` with a horizontal drag recognizer that drives an `AnimationController` slide between current and adjacent branch. Direct-manipulation policy in both: an inner scrollable/slider that accepts the gesture wins (test via gesture arena — no `absorbPointer` hacks).
+
+- [ ] **Step 4: GREEN**
+
+Run: `fvm flutter test test/spike_nav/spike_conflict_test.dart`
+Expected: PASS for at least one approach across all six behaviors. If only one approach passes fully, that is the decision signal; record per-approach results.
+
+- [ ] **Step 5: Runtime feel check** — launch `fvm flutter emulators --launch Api35_NoPlay`, wait for `adb devices`, run the spike harness (`fvm flutter run -t lib/debug/spike_nav/spike_harness.dart`), manually swipe against the slider/strip/list; note interruption feel and any gesture-arena jank in `docs/implementation-status.md`.
+
+- [ ] **Step 6: Decide, gate, and delete the rejected spike** — host records the decision + rationale + per-approach test results in `docs/implementation-status.md`; REVIEW-GATE Task 1 (pre-implementation architecture gate) until green; then `git rm lib/debug/spike_nav/spike_shell_<rejected>.dart` (keep the winner and harness until Task 2 absorbs them).
+
+- [ ] **Step 7: HANDOFF Task 1**
+
+```powershell
+fvm flutter analyze
+git add -A
+git commit -m "Record tab swipe navigation spike decision"
+git push
+```
+
+Expected: analyze clean; hook passes; push succeeds.
+
+---
+
+### Task 2: Flat Five-Tab Navigation, Swipes, and Origin-Preserving Routes
+
+**Files:**
+- Create: `lib/shell/tab_swipe_shell.dart` (hardened winner from Task 1)
+- Modify: `lib/shell/app_shell.dart` (remove Scan FAB widget and gradient ring; five equal-width `Expanded` items; accent dot + bolder stroke for active; consistent nav material/height/safe areas everywhere; keep the translucent "floating" variant over camera but with equal-width items)
+- Modify: `lib/core/router/app_router.dart` (initial location `/scan`; profile as root-level push route; AI-close origin logic with tested `canPop()` fallback to Scan; wire `TabSwipeShell`)
+- Modify: `lib/core/router/route_names.dart` (ensure `profile` route name; others land in their own tasks)
+- Delete: `lib/debug/spike_nav/` (absorbed)
+- Test: modify `test/app_shell_test.dart`; create `test/shell/tab_swipe_shell_test.dart` (port the six spike behaviors against the real shell); create `test/router/origin_return_test.dart`
+
+**Interfaces:**
+- Consumes: spike decision (Task 1).
+- Produces: `TabSwipeShell({super.key, required StatefulNavigationShell shell, required List<Widget> children})` — later tasks assume swipes exist and tab state is preserved; `RouteNames.profile`; router invariant "cold start → `/scan`".
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/router/origin_return_test.dart
+testWidgets('closing profile opened from Today returns to Today, not Scan', (tester) async {
+  await pumpApp(tester, initialLocation: '/today');
+  await tester.tap(find.byKey(const ValueKey('today-avatar')));
+  await tester.pumpAndSettle();
+  expect(find.byType(ProfileSheet), findsOneWidget);
+  await tester.tap(find.byKey(const ValueKey('profile-close')));
+  await tester.pumpAndSettle();
+  expect(find.byType(TodayScreen), findsOneWidget); // reported Profile→Scan regression
+});
+testWidgets('closing profile opened from Scan returns to Scan', (tester) async { /* same from /scan */ });
+testWidgets('assistant close returns to origin; stale deep link falls back to Scan', (tester) async { /* push /ai from food detail → pop returns; cold deep-link /ai → close lands /scan and asserts the fallback branch key ValueKey('ai-close-fallback') */ });
+testWidgets('cold start lands on Scan', (tester) async { /* pumpApp default → ScanScreen visible */ });
+testWidgets('nav has five equal-width items and no FAB overhang', (tester) async { /* widths of 5 items equal within 1px; no widget with key ValueKey('scan-fab') */ });
+testWidgets('Android back on a branch root does not orphan routes', (tester) async { /* simulate pop intent on /today root → app-level behavior, no crash */ });
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/router/origin_return_test.dart test/shell/tab_swipe_shell_test.dart test/app_shell_test.dart` → Expected: FAIL (missing `TabSwipeShell`, FAB still present, origin regressions).
+
+- [ ] **Step 3 (worker): Implement** nav flattening, `TabSwipeShell` hardening, profile push route (`context.pushNamed(RouteNames.profile)` from every entry point; close button and swipe-down both `context.pop()`), AI-close origin handling with visible intentional fallback, and spike-folder deletion.
+
+- [ ] **Step 4: GREEN** — Run the same three test files → Expected: PASS, all tests.
+
+- [ ] **Step 5: Stage verification** — Run: `fvm flutter analyze` → `No issues found!`; then `fvm flutter test` → no regressions vs the Task 0 baseline counts.
+
+- [ ] **Step 6: REVIEW-GATE Task 2** (multi-file, behavior-changing) until green.
+
+- [ ] **Step 7: HANDOFF Task 2**
+
+```powershell
+git add -A
+git commit -m "Adopt flat five-tab navigation with swipe and origin-preserving routes"
+git push
+```
+
+---
+
+### Task 3: Injectable Product Clock, Timezone Handling, and Draft/Preference Policies
+
+**Files:**
+- Create: `lib/core/time/clock.dart`
+- Create: `lib/core/time/clock_provider.dart`
+- Create: `lib/core/time/timezone_init.dart` (loads IANA tz data, fetches the native platform identifier via `FlutterTimezone.getLocalTimezone()`, calls `tz.setLocalLocation(tz.getLocation(identifier))`, and exposes a `TimezoneSynchronizer` `WidgetsBindingObserver` that re-fetches on `AppLifecycleState.resumed` and updates Riverpod clock/location state only if the identifier changed)
+- Create: `lib/core/time/timezone_utils.dart` (IANA tz database wrappers: `tz.TZDateTime`-based day/week/month boundary calculations using the synchronized `tz.local`)
+- Create: `lib/core/policy/draft_policy.dart`
+- Modify: `pubspec.yaml` — add `timezone: ^0.11.1` dependency (IANA tz database) and `flutter_timezone: ^5.1.0` (native platform timezone identifier)
+- Modify: `lib/shared/utils/date_key.dart` (pure function keeps its signature; all call sites now pass `clock.now()` as a `tz.TZDateTime` via `timezone_utils`)
+- Modify: `lib/main.dart` — call `initializeTimeZones()` before `runApp()` to ensure IANA tz data is loaded before any boundary calculation
+- Modify: `lib/features/today/providers/today_providers.dart`, `lib/features/history/providers/history_providers.dart`, `lib/features/goals/providers/goals_providers.dart`, `lib/shared/services/notification_service.dart` (business-logic `DateTime.now()` → injected clock via `timezone_utils` for daily/weekly/monthly boundaries; operational log/analytics timestamps stay on wall clock, verified per call site during review)
+- Test: `test/core/clock_test.dart`, `test/core/time_shift_test.dart`, `test/core/timezone_boundary_test.dart`, `test/core/draft_policy_test.dart`
+
+**Interfaces:**
+- Consumes: `timezone` package (IANA tz database for DST-aware boundary math).
+- Produces (used by Tasks 5, 11, 12, 13, 16):
+
+```dart
+// lib/core/time/clock.dart
+abstract class Clock {
+  tz.TZDateTime nowTZ();       // DST-aware current time
+  DateTime now();               // wall-clock fallback for operational timestamps
+}
+
+class RealClock implements Clock {
+  @override
+  tz.TZDateTime nowTZ() => tz.TZDateTime.now(tz.local);
+  @override
+  DateTime now() => DateTime.now();
+}
+
+class FakeClock implements Clock {
+  FakeClock(this._fake);
+  tz.TZDateTime _fake;
+  @override
+  tz.TZDateTime nowTZ() => _fake;
+  @override
+  DateTime now() => _fake;
+  void advance(Duration d) => _fake = _fake.add(d);
+  void setTo(tz.TZDateTime d) => _fake = d;
+}
+
+// lib/core/time/clock_provider.dart
+final clockProvider = Provider<Clock>((_) => RealClock());
+
+// lib/core/time/timezone_init.dart
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+
+abstract class NativeTimezoneSource {
+  Future<String> getLocalTimezone();
+}
+
+class FlutterTimezoneSource implements NativeTimezoneSource {
+  @override
+  Future<String> getLocalTimezone() async {
+    final info = await FlutterTimezone.getLocalTimezone();
+    return info.identifier;
+  }
+}
+
+class TimezoneSynchronizer with WidgetsBindingObserver {
+  TimezoneSynchronizer({required this.clockProviderRef, NativeTimezoneSource? source})
+      : _source = source ?? FlutterTimezoneSource();
+  final ProviderRef<Clock> clockProviderRef;
+  final NativeTimezoneSource _source;
+  String? _lastIdentifier;
+
+  Future<void> syncOnce() async {
+    tz.initializeTimeZones();
+    final identifier = await _source.getLocalTimezone();
+    if (identifier != _lastIdentifier) {
+      tz.setLocalLocation(tz.getLocation(identifier));
+      _lastIdentifier = identifier;
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      syncOnce();
+    }
+  }
+}
+
+// lib/core/time/timezone_utils.dart
+import 'package:timezone/timezone.dart' as tz;
+/// Returns the start of the local day for the given TZDateTime.
+tz.TZDateTime startOfDay(tz.TZDateTime dt) => tz.TZDateTime(dt.location, dt.year, dt.month, dt.day);
+/// Returns the start of the ISO week (Monday) for the given TZDateTime.
+/// Uses calendar construction (not Duration subtraction) to avoid DST-shift bugs.
+tz.TZDateTime startOfWeek(tz.TZDateTime dt) {
+  final weekday = dt.weekday; // 1=Monday..7=Sunday
+  final loc = dt.location;
+  if (weekday == 1) return startOfDay(dt);
+  final year = dt.year;
+  final month = dt.month;
+  final day = dt.day - (weekday - 1);
+  return tz.TZDateTime(loc, year, month, day);
+}
+/// Returns the start of the month for the given TZDateTime.
+tz.TZDateTime startOfMonth(tz.TZDateTime dt) => tz.TZDateTime(dt.location, dt.year, dt.month);
+
+// lib/core/policy/draft_policy.dart
+enum DraftType { foodEdit, manualEntry, goalsEdit, chatComposition, searchFilters }
+enum DraftPolicy { confirmDestructiveExit, discardWithNotice }
+DraftPolicy draftPolicyFor(DraftType type) => switch (type) {
+      DraftType.foodEdit || DraftType.manualEntry || DraftType.goalsEdit => DraftPolicy.confirmDestructiveExit,
+      DraftType.chatComposition || DraftType.searchFilters => DraftPolicy.discardWithNotice,
+    };
+```
+
+Timezone-change behavior: The `timezone` package uses the IANA tz database, which encodes all historical and future DST transitions. `tz.TZDateTime.now(tz.local)` automatically resolves the correct UTC offset for any instant, including DST spring-forward/fall-back gaps and ambiguous hours. The `TimezoneSynchronizer` (a `WidgetsBindingObserver`) calls `FlutterTimezone.getLocalTimezone()` which returns the native platform timezone identifier via `info.identifier`. On startup and on every `AppLifecycleState.resumed`, `syncOnce()` calls `tz.setLocalLocation(tz.getLocation(identifier))` if the identifier changed. Do not assume `tz.local` auto-detects; always call `setLocalLocation` explicitly. Daily/weekly/monthly boundaries computed via `timezone_utils` are therefore correct regardless of timezone changes. When the device timezone changes at runtime (e.g., user manually switches timezone or airplane-mode carrier update), the next resume event triggers `syncOnce()` which re-fetches the native identifier and updates `tz.local` if it changed. Boundary calculations for already-persisted data (Firestore day keys) are stable because they were computed at write time with the correct offset. Unit tests use `FakeClock` with explicit `tz.TZDateTime` values constructed in a known IANA zone (e.g., `tz.getLocation('Europe/Berlin')`) to pin DST transitions deterministically without depending on the host machine's timezone. Tests use an injectable `NativeTimezoneSource` stub for startup, resume-change, unchanged-zone no-op, and invalid-identifier fallback+diagnostic scenarios.
+
+- [ ] **Step 1 (worker): Write failing time-shift tests** covering the spec §9.2 matrix with `FakeClock` + `ProviderContainer(overrides: [clockProvider.overrideWithValue(fake)])`. All DST tests use `tz.TZDateTime` constructed in `tz.getLocation('Europe/Berlin')` to pin transitions deterministically:
+
+```dart
+// test/core/time_shift_test.dart — one test per scenario
+test('one minute before midnight then +2min starts a new day key', () {
+  final berlin = tz.getLocation('Europe/Berlin');
+  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 7, 17, 23, 59));
+  final dk = dateKeyFor(fake.nowTZ());
+  fake.advance(const Duration(minutes: 2));
+  expect(dateKeyFor(fake.nowTZ()), isNot(equals(dk)));
+});
+test('crossing midnight (+25h) creates a new daily log boundary', () {
+  final berlin = tz.getLocation('Europe/Berlin');
+  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 7, 17, 12, 0));
+  final dkBefore = dateKeyFor(fake.nowTZ());
+  fake.advance(const Duration(hours: 25));
+  expect(dateKeyFor(fake.nowTZ()), isNot(equals(dkBefore)));
+});
+test('backward 1 day resolves yesterday consistently in history and today', () {
+  final berlin = tz.getLocation('Europe/Berlin');
+  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 7, 17, 10, 0));
+  final todayKey = dateKeyFor(fake.nowTZ());
+  fake.advance(const Duration(days: -1));
+  expect(dateKeyFor(fake.nowTZ()), equals('2026-07-16'));
+  expect(dateKeyFor(fake.nowTZ()), isNot(equals(todayKey)));
+});
+test('+7 days increments the goals week counter', () {
+  final berlin = tz.getLocation('Europe/Berlin');
+  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 7, 17, 10, 0));
+  final weekBefore = weekKeyFor(fake.nowTZ());
+  fake.advance(const Duration(days: 7));
+  expect(weekKeyFor(fake.nowTZ()), isNot(equals(weekBefore)));
+});
+test('+30 days advances history month view and weight range', () {
+  final berlin = tz.getLocation('Europe/Berlin');
+  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 7, 17, 10, 0));
+  final monthBefore = monthKeyFor(fake.nowTZ());
+  fake.advance(const Duration(days: 30));
+  expect(monthKeyFor(fake.nowTZ()), isNot(equals(monthBefore)));
+});
+test('EU DST spring-forward 2026-03-29 keeps day boundaries stable', () {
+  final berlin = tz.getLocation('Europe/Berlin');
+  final beforeGap = tz.TZDateTime(berlin, 2026, 3, 29, 1, 30);
+  final fake = FakeClock(beforeGap);
+  expect(startOfDay(fake.nowTZ()).hour, 0);
+  fake.advance(const Duration(hours: 3)); // jumps over the gap to 04:30 CEST
+  expect(startOfDay(fake.nowTZ()).day, 29);
+});
+test('EU DST fall-back 2026-10-25 does not double-count the repeated hour', () {
+  final berlin = tz.getLocation('Europe/Berlin');
+  final firstPass = tz.TZDateTime(berlin, 2026, 10, 25, 2, 30, 0, 0, tz.isDaylightSavings ? 1 : 0);
+  final fake = FakeClock(firstPass);
+  final dkFirst = dateKeyFor(fake.nowTZ());
+  fake.advance(const Duration(hours: 1));
+  expect(dateKeyFor(fake.nowTZ()), equals(dkFirst));
+});
+test('leap day 2028-02-29 produces a valid day key and month rollover', () {
+  final berlin = tz.getLocation('Europe/Berlin');
+  final fake = FakeClock(tz.TZDateTime(berlin, 2028, 2, 29, 12, 0));
+  expect(dateKeyFor(fake.nowTZ()), equals('2028-02-29'));
+  fake.advance(const Duration(days: 1));
+  expect(dateKeyFor(fake.nowTZ()), equals('2028-03-01'));
+});
+test('month-end Jan 31 → Feb 1 rollover', () {
+  final berlin = tz.getLocation('Europe/Berlin');
+  final fake = FakeClock(tz.TZDateTime(berlin, 2027, 1, 31, 23, 0));
+  expect(monthKeyFor(fake.nowTZ()), equals('2027-01'));
+  fake.advance(const Duration(hours: 2));
+  expect(monthKeyFor(fake.nowTZ()), equals('2027-02'));
+});
+test('year boundary Dec 31 → Jan 1 rollover', () {
+  final berlin = tz.getLocation('Europe/Berlin');
+  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 12, 31, 23, 0));
+  expect(yearKeyFor(fake.nowTZ()), equals('2026'));
+  fake.advance(const Duration(hours: 2));
+  expect(yearKeyFor(fake.nowTZ()), equals('2027'));
+});
+```
+
+Restart-shaped scenarios (cold restart with shifted clock; theme/notification/draft persistence across restart) cannot run in unit tests — they are explicitly owned by Task 16's integration suite; this task's tests pin the pure time logic via the IANA tz database.
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/core` → Expected: FAIL (`Clock` not defined).
+
+- [ ] **Step 3 (worker): Implement** `clock.dart`, `clock_provider.dart`, `timezone_init.dart`, `timezone_utils.dart`, and `draft_policy.dart` exactly as the Produces block; wire `TimezoneSynchronizer` in `main.dart` (call `syncOnce()` before `runApp()`, register the observer via `WidgetsBinding.instance.addObserver`); add `timezone: ^0.11.1` and `flutter_timezone: ^5.1.0` to `pubspec.yaml`; then thread `clockProvider` through the listed providers/services. Do not touch operational timestamps (debug logs, analytics, crash reports). Do not claim `tz.local` auto-detects; always call `setLocalLocation` explicitly.
+
+- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/core` → Expected: PASS. Then `fvm flutter test` → no regressions.
+
+- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test test/core` → all tests pass including `timezone_boundary_test.dart` (verifies `startOfDay`, `startOfWeek` via calendar construction, `startOfMonth` produce correct `tz.TZDateTime` values in a pinned IANA zone; verifies injectable `NativeTimezoneSource` for startup sync, resume-change sync, unchanged-zone no-op, invalid identifier fallback+diagnostic, and DST calendar boundaries). Host spot-greps `DateTime.now()` remaining call sites and confirms each is operational, listing them in `docs/implementation-status.md`.
+
+- [ ] **Step 6: REVIEW-GATE Task 3** until green.
+
+- [ ] **Step 7: HANDOFF Task 3**
+
+```powershell
+git add -A
+git commit -m "Add injectable product clock with IANA timezone support and draft policies"
+git push
+```
+
+---
+
+### Task 4: Motion/Accessibility Policy, Reduced Motion, and Measured Repaint Boundaries
+
+**Files:**
+- Create: `lib/core/motion/app_motion.dart`
+- Modify: `lib/shared/widgets/macro_ring.dart`, `lib/shared/widgets/skeleton_shimmer.dart`, `lib/shared/widgets/macro_progress_bar.dart` (honor `AppMotion`; `RepaintBoundary` only where Step 5 measurement shows benefit)
+- Modify: `lib/shared/widgets/confidence_badge.dart` (text + icon, never color-only)
+- Test: `test/core/app_motion_test.dart`, `test/a11y/accessibility_guidelines_test.dart`
+
+**Interfaces:**
+- Consumes: nothing new.
+- Produces (used by every screen task 6–15):
+
+```dart
+// lib/core/motion/app_motion.dart
+class AppMotion {
+  static bool reducedOf(BuildContext context) => MediaQuery.disableAnimationsOf(context);
+  /// Duration.zero under reduced motion => animations snap to final frame.
+  static Duration durationOf(BuildContext context, Duration full) =>
+      reducedOf(context) ? Duration.zero : full;
+}
+
+class MotionDurations {
+  static const countUp = Duration(milliseconds: 1400);      // easeOutCubic
+  static const macroBarFill = Duration(milliseconds: 1200); // ease-out
+  static const scanShimmer = Duration(milliseconds: 1600);  // linear infinite
+  static const skeletonShimmer = Duration(milliseconds: 1400);
+  static const reticleSnap = Duration(milliseconds: 200);
+  static const cardEntrance = Duration(milliseconds: 240);
+  static const sheetSlideUp = Duration(milliseconds: 320);
+  static const cardExpansion = Duration(milliseconds: 320);
+  static const captureRingSpin = Duration(milliseconds: 1000);
+  static const historyViewToggle = Duration(milliseconds: 300);
+  static const goalsDropdown = Duration(milliseconds: 200);
+  static const typingDots = Duration(milliseconds: 600);
+}
+```
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/core/app_motion_test.dart
+testWidgets('durationOf returns zero when disableAnimations is set', (tester) async {
+  await tester.pumpWidget(MediaQuery(
+    data: const MediaQueryData(disableAnimations: true),
+    child: Builder(builder: (c) { expect(AppMotion.durationOf(c, MotionDurations.countUp), Duration.zero); return const SizedBox(); }),
+  ));
+});
+testWidgets('macro ring snaps to final value under reduced motion', (tester) async { /* pump ring with disableAnimations, pump 1 frame, expect final sweep */ });
+testWidgets('skeleton shimmer is static under reduced motion', (tester) async { /* two frames identical */ });
+
+// test/a11y/accessibility_guidelines_test.dart — run per main screen as they land; start with shell + Today
+testWidgets('shell meets tap-target and label guidelines', (tester) async {
+  await pumpApp(tester, initialLocation: '/today');
+  await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+  await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+  await expectLater(tester, meetsGuideline(textContrastGuideline));
+});
+testWidgets('confidence badge is not color-only', (tester) async { /* badge exposes text like "Review 65%" via Semantics */ });
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/core/app_motion_test.dart test/a11y` → Expected: FAIL (`AppMotion` not defined; guideline violations reported by name).
+
+- [ ] **Step 3 (worker): Implement** `app_motion.dart` and convert the three shared widgets to `AppMotion.durationOf` with `AnimationController` + `TickerProviderStateMixin` (no `Timer`-based animation anywhere; grep and convert offenders).
+
+- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/core/app_motion_test.dart test/a11y` → Expected: PASS.
+
+- [ ] **Step 5: Measured repaint boundaries (host + device)** — launch the emulator, run `fvm flutter run --profile`, open DevTools timeline, exercise Today ring count-up and skeleton shimmer; add `RepaintBoundary` only around widgets the timeline shows repainting in isolation (candidates: macro ring, sparkline, capture ring, shimmer); re-measure and record before/after raster times and 60/120Hz frame-budget compliance (16.67ms / 8.33ms) in `docs/implementation-status.md`. No blanket boundaries.
+
+- [ ] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+
+- [ ] **Step 7: REVIEW-GATE Task 4**, then **HANDOFF Task 4**
+
+```powershell
+git add -A
+git commit -m "Add motion policy, reduced motion support, and accessibility guards"
+git push
+```
+
+---
+
+### Task 5: Deterministic Fixture, Deep-Link Harness, and Stale-Build Capture Pipeline
+
+**Files:**
+- Modify: `lib/shared/services/seed_data_service.dart` (idempotent `forceReseedForUiDiff`: fixed doc IDs, `set()` semantics, fixture timestamps from an injected `FakeClock` instant — reseeding twice yields byte-identical state)
+- Create: `lib/debug/debug_deep_links.dart` (route `/debug/reseed?screen=<id>&theme=<dark|light>`, `kDebugMode`-guarded; reseeds, applies theme, then `context.go()` to the target route for any of the 19 IDs)
+- Modify: `lib/core/router/app_router.dart` (mount debug route), `lib/shared/providers/ui_diff_provider.dart` (Today hero override 1,420/96/132/38 lives only behind `uiDiffFixtureEnabledProvider`)
+- Create: `tool/ui_capture/capture_states.ps1`
+- Test: modify `test/debug_reseed_test.dart`; create `test/debug/deep_link_matrix_test.dart`, `test/debug/fixture_isolation_test.dart`
+
+**Interfaces:**
+- Consumes: `clockProvider` (Task 3); router (Task 2).
+- Produces: deep-link map `kDebugScreenRoutes: Map<String, String>` with exactly the 19 canonical IDs as keys (used by Tasks 16/17); `tool/ui_capture/capture_states.ps1 -Screens <ids|all> -Themes dark,light` producing `<id>--<theme>.png` + `<id>--<theme>.meta.json` (buildHash, route, theme, fixtureHash, deviceModel, pixelSize) under `.ui-diff/captures/<date>/`; fixture contents per spec §10.2 (3 food entries: high-conf, low-conf, editing; 7 days history; 2 weight logs; 1 active plan; 1 chat thread).
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/debug/deep_link_matrix_test.dart
+test('debug route map covers all 19 canonical IDs exactly', () {
+  expect(kDebugScreenRoutes.keys.toSet(), {
+    'loading','login','permission','scan_idle','scan_capturing','processing','review','manual',
+    'today','today_empty','food','food_edit','history_week','history_month',
+    'goals','goals_select','ai','ai_history','profile',
+  });
+});
+
+// test/debug/fixture_isolation_test.dart
+test('production aggregation ignores the fixture hero override', () {
+  // seed the three fixture entries; real sum must be 845 kcal / 74 P / 92 C / 20 F
+  expect(aggregate(fixtureEntries).kcal, 845);
+});
+testWidgets('hero shows 1420 only when uiDiffFixtureEnabledProvider is true', (tester) async { /* override on → 1,420; off → 845 */ });
+
+// test/debug_reseed_test.dart (extend)
+test('forceReseedForUiDiff is idempotent', () async { /* reseed twice against fake firestore, deep-equal snapshots */ });
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/debug test/debug_reseed_test.dart` → Expected: FAIL (`kDebugScreenRoutes` not defined; idempotency unproven).
+
+- [ ] **Step 3 (worker): Implement** the deep-link module, idempotent reseed, and fixture isolation. Then write `capture_states.ps1`: for each requested id×theme — check stale build (`git rev-parse HEAD` + APK `Get-FileHash` vs recorded meta; rebuild/install only when stale), `adb shell am start -a android.intent.action.VIEW -d "calorix://debug/reseed?screen=<id>&theme=<t>"`, wait for settle, `adb exec-out screencap -p` at device-native resolution (no resizing — comparison-space projection normalizes later), write PNG + meta JSON.
+
+- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/debug test/debug_reseed_test.dart` → Expected: PASS.
+
+- [ ] **Step 5: Harness smoke (host, device)** — emulator up; run `tool/ui_capture/capture_states.ps1 -Screens today,scan_idle -Themes dark` → two PNGs + two meta JSONs exist; re-run without source change → script reports "build fresh, skipped rebuild".
+
+- [ ] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`.
+
+- [ ] **Step 7: REVIEW-GATE Task 5**, then **HANDOFF Task 5**
+
+```powershell
+git add -A
+git commit -m "Add deterministic fixture reseed and screen capture harness"
+git push
+```
+
+---
+
+### Task 6: Scan and Permission Still-Photo Flow
+
+Covers `scan_idle`, `scan_capturing`, and creates the `permission` screen (flow behavior here; final visual polish in Task 15). Still photo only — no video, no stop square, no cancel-during-capture.
+
+**Files:**
+- Modify: `lib/features/scan/scan_screen.dart`, `lib/features/scan/providers/scan_providers.dart`, `lib/shared/services/camera_service.dart`
+- Create: `lib/features/scan/permission_screen.dart`, `lib/features/scan/widgets/scan_mode_selector.dart`, `lib/features/scan/widgets/capture_button.dart`
+- Modify: `lib/core/router/route_names.dart` + `lib/core/router/app_router.dart` (add `RouteNames.permission`)
+- Test: extend `test/scan_screen_test.dart`; create `test/scan/permission_screen_test.dart`, `test/scan/capture_guard_test.dart`, `test/scan/scan_mode_selector_test.dart`
+
+**Interfaces:**
+- Consumes: `AppMotion`/`MotionDurations` (Task 4), router (Task 2), `DraftPolicy` (Task 3).
+- Produces (used by Tasks 7, 8, 16):
+
+```dart
+// lib/features/scan/providers/scan_providers.dart
+enum ScanMode { meal, barcode, label }
+enum CaptureState { idle, capturing, denied }
+
+// lib/shared/services/camera_service.dart
+abstract class CameraService {
+  Future<bool> hasPermission();
+  Future<bool> requestPermission();
+  Future<XFile?> captureStill();   // still photo — the only capture primitive
+  Future<XFile?> pickFromLibrary(); // image_picker gallery
+}
+```
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/scan/capture_guard_test.dart
+testWidgets('rapid triple tap performs exactly one capture', (tester) async {
+  final fake = FakeCameraService();
+  await pumpScan(tester, camera: fake);
+  final button = find.byKey(const ValueKey('capture-button'));
+  await tester.tap(button); await tester.tap(button); await tester.tap(button);
+  await tester.pumpAndSettle();
+  expect(fake.captureCount, 1);
+});
+testWidgets('capturing state shows conic spinner, shimmer, and ANALYZING hint — and no stop/cancel control', (tester) async { /* assert spinner+shimmer keys present; find.byKey(ValueKey('stop-button')) findsNothing */ });
+
+// test/scan/permission_screen_test.dart
+testWidgets('denied permission routes to permission screen with blurred viewfinder and add-manually card', (tester) async { /* implement */ });
+testWidgets('regrant transitions to scan_idle', (tester) async { /* fake grants → ScanScreen idle */ });
+testWidgets('add manually navigates to manual route', (tester) async { /* asserts RouteNames.manual push (route exists from Task 8; until then assert the navigation intent via router redirect stub) */ });
+
+// test/scan/scan_mode_selector_test.dart
+testWidgets('Meal/Barcode/Label segments animate smoothly and update ScanMode', (tester) async { /* tap each; provider value changes; thumb animates with MotionDurations.reticleSnap */ });
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/scan test/scan_screen_test.dart` → Expected: FAIL (new widgets/providers undefined).
+
+- [ ] **Step 3 (worker): Implement** — permission screen per spec §5.3 (platform-appropriate rationale; iOS-style overlay reserved for fixture capture mode), capture button with shutter flash + ring pulse then duplicate-tap guard during `capturing`, LIBRARY chip → `pickFromLibrary()` into the same processing path, RECENT chip → recent entries, glass mode selector, reticle glow + scan-line shimmer via `MotionDurations`.
+
+- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/scan test/scan_screen_test.dart` → Expected: PASS.
+
+- [ ] **Step 5: Runtime verification (host, device)** — on the emulator: deny camera → permission screen; grant → live preview; triple-tap capture → one processing navigation; Library picker opens. Record observations in `docs/implementation-status.md`.
+
+- [ ] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+
+- [ ] **Step 7: REVIEW-GATE Task 6**, then **HANDOFF Task 6**
+
+```powershell
+git add -A
+git commit -m "Complete still-photo scan and permission flows"
+git push
+```
+
+---
+
+### Task 7: Processing, Notification, Deep-Link, Offline, and Interrupted-Upload Lifecycle
+
+**Files:**
+- Modify: `lib/features/processing/processing_screen.dart`, `lib/features/processing/providers/processing_providers.dart`, `lib/shared/services/upload_queue_service.dart`, `lib/shared/services/notification_service.dart`, `lib/shared/providers/notification_provider.dart`
+- Test: create `test/processing/processing_lifecycle_test.dart`, `test/processing/upload_queue_test.dart`, `test/processing/notification_routing_test.dart`
+
+**Interfaces:**
+- Consumes: `CameraService` capture output (Task 6), router (Task 2), `clockProvider` (Task 3).
+- Produces (used by Tasks 8, 11, 16):
+
+```dart
+enum ProcessingStatus { uploading, processing, complete, error }
+
+// notification payload contract (Cloud Function push.ts already emits data payloads;
+// the client resolver is the owned contract here):
+/// Resolves a notification tap to a route: fresh result → /today/food/:id,
+/// summary → /today, stale (already viewed) → /today/food/:id without error.
+String routeForNotification(Map<String, String> data, {required bool alreadyViewed});
+```
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/processing/processing_lifecycle_test.dart
+testWidgets('shows close-app banner with spinner and skeleton card while processing', (tester) async { /* implement */ });
+testWidgets('banner tap navigates to today', (tester) async { /* implement */ });
+testWidgets('complete state shows image, name, kcal, macro bars, View in Today', (tester) async { /* implement */ });
+testWidgets('error state shows amber icon, Analysis failed, and retry', (tester) async { /* implement */ });
+
+// test/processing/upload_queue_test.dart
+test('upload interrupted by kill is re-enqueued and retried on next start', () async { /* persist queue entry, recreate service, expect retry */ });
+test('offline enqueue does not lose the capture; retry fires on connectivity resume', () async { /* implement */ });
+
+// test/processing/notification_routing_test.dart
+test('fresh result routes to food detail; stale tap routes without error', () {
+  expect(routeForNotification({'entryId': 'e1'}, alreadyViewed: false), '/today/food/e1');
+  expect(routeForNotification({'entryId': 'e1'}, alreadyViewed: true), '/today/food/e1');
+  expect(routeForNotification({}, alreadyViewed: false), '/today');
+});
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/processing` → Expected: FAIL (`routeForNotification` undefined; lifecycle branches missing).
+
+- [ ] **Step 3 (worker): Implement** the four-state processing screen (skeleton shimmer via `MotionDurations.skeletonShimmer`, entrance `cardEntrance`), persistent upload queue with retry on app start and connectivity resume, and the notification route resolver wired into `notification_provider.dart` cold-start and warm-tap paths.
+
+- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/processing` → Expected: PASS.
+
+- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. (Real background-kill and push delivery are device-level; owned by Task 16's `interrupted_upload` and `notification_return` suites.)
+
+- [ ] **Step 6: REVIEW-GATE Task 7**, then **HANDOFF Task 7**
+
+```powershell
+git add -A
+git commit -m "Harden processing, upload queue, and notification lifecycle"
+git push
+```
+
+---
+
+### Task 8: Review and Manual Canonical Screens
+
+Creates the two missing scan-outcome screens and their data contracts.
+
+**Files:**
+- Create: `lib/features/review/review_screen.dart`, `lib/features/review/providers/review_providers.dart`
+- Create: `lib/features/manual/manual_entry_screen.dart`, `lib/features/manual/providers/manual_providers.dart`
+- Modify: `lib/core/router/route_names.dart` + `lib/core/router/app_router.dart` (add `RouteNames.review`, `RouteNames.manual`; confidence <80% routes processing → review)
+- Modify: `lib/shared/models/food_entry.dart` (only if candidate fields are missing — inspect first)
+- Test: create `test/review/review_screen_test.dart`, `test/manual/manual_entry_screen_test.dart`
+
+**Interfaces:**
+- Consumes: `ProcessingStatus` flow (Task 7), `DraftPolicy` (Task 3), router (Task 2).
+- Produces (used by Tasks 9, 16):
+
+```dart
+// lib/features/review/providers/review_providers.dart
+class ReviewCandidate {
+  const ReviewCandidate({required this.name, required this.confidence, required this.kcal,
+      required this.proteinG, required this.carbsG, required this.fatG});
+  final String name; final double confidence; // 0..1
+  final int kcal; final double proteinG; final double carbsG; final double fatG;
+}
+/// Review branch is entered iff entry.confidence < 0.80 (spec threshold).
+
+// lib/features/manual/providers/manual_providers.dart
+class ManualFoodDraft {
+  const ManualFoodDraft({required this.name, required this.kcal, required this.proteinG,
+      required this.carbsG, required this.fatG, required this.servingSize, required this.quantity,
+      required this.mealType});
+  // all fields required and validated non-negative before save
+}
+```
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/review/review_screen_test.dart
+testWidgets('renders photo hero, amber confidence badge, candidate radios, none-of-these, confirm, ask assistant, retake', (tester) async { /* implement */ });
+testWidgets('confirm with selected candidate navigates to food detail with that candidate applied', (tester) async { /* implement */ });
+testWidgets('none of these navigates to manual', (tester) async { /* implement */ });
+testWidgets('retake returns to scan', (tester) async { /* implement */ });
+testWidgets('ask assistant opens chat with linked meal context', (tester) async { /* asserts linkedMealId passed */ });
+
+// test/manual/manual_entry_screen_test.dart
+testWidgets('search field, filter chips, result rows with plus, dashed create-custom-food row render', (tester) async { /* implement */ });
+testWidgets('create custom food with valid draft saves and appears in Today providers', (tester) async { /* implement */ });
+testWidgets('invalid draft (negative kcal, empty name) blocks save with field errors', (tester) async { /* implement */ });
+testWidgets('destructive exit with unsaved draft prompts confirmation (DraftPolicy.confirmDestructiveExit)', (tester) async { /* implement */ });
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/review test/manual` → Expected: FAIL (screens undefined).
+
+- [ ] **Step 3 (worker): Implement** both screens per spec §5.7/§5.8 (bottom sheet slide-up `MotionDurations.sheetSlideUp`; manual reachable from permission fallback, review none-of-these, explicit manual action, custom-food creation) and the <80% routing in the router/processing completion path.
+
+- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/review test/manual` → Expected: PASS. Then `fvm flutter test test/scan/permission_screen_test.dart` → the Task 6 add-manually stub assertion now exercises the real route.
+
+- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+
+- [ ] **Step 6: REVIEW-GATE Task 8**, then **HANDOFF Task 8**
+
+```powershell
+git add -A
+git commit -m "Add review and manual entry screens"
+git push
+```
+
+---
+
+### Task 9: Real Product Analysis Contracts (Barcode, Label, Meal, Open Food Facts)
+
+Cloud Functions + client contracts for the three scan modes. All Firestore writes go through emulators; the only live network call is a read-only Open Food Facts contract check.
+
+**Files:**
+- Modify: `functions/src/analyze-entry.ts`, `functions/src/nutrition.ts`, `functions/src/prompts.ts`, `functions/src/config.ts`
+- Create: `functions/src/off-client.ts` (read-only Open Food Facts v2 product lookup)
+- Test: create `functions/src/nutrition.test.ts`, `functions/src/off-client.test.ts` (unit, mocked HTTP); create `test/contracts/off_live_contract_test.dart` tagged `live`; create `test/contracts/analysis_result_contract_test.dart` (client-side shape of the function result)
+- (Exact functions test script name: as recorded in `docs/implementation-status.md` §Baseline from Task 0; add a `test` script mirroring the recorded runner if none exists.)
+
+**Interfaces:**
+- Consumes: `ScanMode` (Task 6), `ReviewCandidate` (Task 8).
+- Produces (used by Tasks 10, 11, 16):
+
+```ts
+// functions/src/nutrition.ts
+export interface AnalysisResult {
+  name: string;
+  kcal: number;
+  proteinG: number; carbsG: number; fatG: number;
+  confidence: number;            // 0..1; < 0.8 => client review branch
+  atwaterKcal: number;           // 4*proteinG + 4*carbsG + 9*fatG, recorded for plausibility
+  candidates: Array<{ name: string; confidence: number; kcal: number; proteinG: number; carbsG: number; fatG: number }>;
+  source: 'meal' | 'barcode' | 'label';
+}
+export function atwaterKcal(p: number, c: number, f: number): number;
+
+// functions/src/off-client.ts
+export interface OffProduct { name: string; kcalPer100g: number; proteinPer100g: number; carbsPer100g: number; fatPer100g: number; }
+export async function fetchOffProduct(barcode: string): Promise<OffProduct | null>; // GET only, never writes
+```
+
+Plausibility is recorded data, not an invented gate: `atwaterKcal` is stored alongside reported kcal so review UI and evidence can show the mismatch; the only branch threshold remains the spec's 80% confidence.
+
+- [ ] **Step 1 (worker): Write failing unit tests**
+
+```ts
+// functions/src/nutrition.test.ts
+test('atwaterKcal computes 4/4/9', () => { expect(atwaterKcal(10, 20, 5)).toBe(165); });
+test('meal fixture analysis yields AnalysisResult with candidates and confidence in [0,1]', async () => { /* mocked model response fixture */ });
+test('barcode source fills nutrition from OFF product and sets confidence 1.0 for known product', async () => { /* mocked off-client */ });
+test('label source parses nutrition-label fixture into per-serving values', async () => { /* mocked OCR/model fixture */ });
+
+// functions/src/off-client.test.ts
+test('parses OFF v2 payload shape', async () => { /* canned JSON → OffProduct */ });
+test('returns null on 404/malformed payload', async () => { /* implement */ });
+```
+
+```dart
+// test/contracts/off_live_contract_test.dart
+@Tags(['live'])
+test('live OFF lookup for barcode 3017624010701 returns the contract fields', () async {
+  // read-only GET https://world.openfoodfacts.org/api/v2/product/3017624010701.json
+  // asserts nutriments energy-kcal_100g / proteins_100g / carbohydrates_100g / fat_100g exist and are numeric
+});
+```
+
+- [ ] **Step 2: RED** — Run: `npm --prefix functions test` (recorded script) → Expected: FAIL (`off-client` missing, contract fields absent). And `fvm flutter test test/contracts --tags live` → FAIL (contract test not yet passing) — live test is excluded from default runs.
+
+- [ ] **Step 3 (worker): Implement** `off-client.ts`, extend `analyze-entry.ts`/`nutrition.ts` to emit `AnalysisResult` for all three sources, keep model/prompt config in `config.ts`/`model-config.ts`.
+
+- [ ] **Step 4: GREEN** — Run: `npm --prefix functions run build` → compiles; `npm --prefix functions test` → PASS; `fvm flutter test test/contracts --tags live` → PASS (host runs this once, records the response snapshot date); `fvm flutter test test/contracts` → PASS (live excluded by tag by default).
+
+- [ ] **Step 5: Emulator round-trip (host)** — `firebase emulators:exec --only auth,firestore,storage,functions "npm --prefix functions test"` → PASS; confirms all writes stayed in the emulator (check `firebase use` shows the expected project but nothing deployed — no `firebase deploy` anywhere in this plan).
+
+- [ ] **Step 6: REVIEW-GATE Task 9** (pre-review required — data-model change; then post-review) until green.
+
+- [ ] **Step 7: HANDOFF Task 9**
+
+```powershell
+git add -A
+git commit -m "Add product analysis contracts for barcode, label, and meal flows"
+git push
+```
+
+---
+
+### Task 10: Food Detail and Food Edit CRUD
+
+Covers `food` and `food_edit` (one route, edit branch).
+
+**Files:**
+- Modify: `lib/features/food_detail/food_detail_sheet.dart`, `lib/features/food_detail/providers/food_detail_providers.dart`, `lib/shared/repositories/food_entry_repository.dart`, `lib/shared/models/food_entry.dart` (add `correctedAt`/serving fields only if missing — inspect first)
+- Test: extend `test/food_detail_sheet_test.dart`; create `test/food_detail/serving_multiplier_test.dart`, `test/food_detail/food_crud_test.dart`
+
+**Interfaces:**
+- Consumes: `AnalysisResult` fields on `FoodEntry` (Task 9), `DraftPolicy.confirmDestructiveExit` (Task 3), `MotionDurations.cardExpansion` (Task 4).
+- Produces (used by Tasks 11, 16):
+
+```dart
+// lib/features/food_detail/providers/food_detail_providers.dart
+/// Serving multiplier: 0.25× steps, clamped to [0.25, 5.0]; macros and kcal scale linearly.
+double clampServing(double raw) => (raw * 4).roundToDouble().clamp(1, 20) / 4;
+FoodEntry scaledBy(FoodEntry base, double multiplier);
+
+// lib/shared/repositories/food_entry_repository.dart — CRUD surface later tasks rely on:
+Future<void> create(FoodEntry entry);
+Stream<FoodEntry?> watch(String id);
+Future<void> update(FoodEntry entry);          // sets correctedAt when user-edited
+Future<void> delete(String id);
+Future<FoodEntry> duplicate(String id);        // new id, same values, now() via clockProvider
+```
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/food_detail/serving_multiplier_test.dart
+test('clampServing snaps to 0.25 steps within 0.25..5.0', () {
+  expect(clampServing(0.1), 0.25);
+  expect(clampServing(1.13), 1.25);
+  expect(clampServing(7.0), 5.0);
+});
+test('scaledBy scales kcal and macros proportionally', () { /* 2.0× doubles all four values */ });
+
+// test/food_detail/food_crud_test.dart (fake Firestore)
+test('update marks entry corrected and persists edited macros', () async { /* implement */ });
+test('delete removes entry; duplicate creates a distinct id with same values', () async { /* implement */ });
+
+// test/food_detail_sheet_test.dart (extend)
+testWidgets('hero photo, back, duplicate/delete chips, confidence pill, detected chips, ask-assistant card render', (tester) async { /* implement */ });
+testWidgets('edit chip toggles action bar with Undo and Save to Today; save pops back', (tester) async { /* implement */ });
+testWidgets('macro value tap opens numeric input sheet in edit mode', (tester) async { /* implement */ });
+testWidgets('unsaved edit exit prompts confirmation', (tester) async { /* DraftPolicy.confirmDestructiveExit */ });
+testWidgets('card-to-detail uses shared transition of ~320ms and dark/light themes both render', (tester) async { /* implement */ });
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/food_detail test/food_detail_sheet_test.dart` → Expected: FAIL (`clampServing`/CRUD surface undefined; UI branches missing).
+
+- [ ] **Step 3 (worker): Implement** per spec §5.11/§5.12 — draggable sheet, kcal banner stepper, editable macro rows, add-item chip, Undo/Save bar, `correctedAt` on save, delete confirmation dialog, duplicate action.
+
+- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/food_detail test/food_detail_sheet_test.dart` → Expected: PASS.
+
+- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+
+- [ ] **Step 6: REVIEW-GATE Task 10**, then **HANDOFF Task 10**
+
+```powershell
+git add -A
+git commit -m "Complete food detail and edit with serving scaling and corrections"
+git push
+```
+
+---
+
+### Task 11: Today, Today Empty, and Production Aggregation Truth
+
+**Files:**
+- Modify: `lib/features/today/today_screen.dart`, `lib/features/today/providers/today_providers.dart`, `lib/shared/widgets/macro_ring.dart`, `lib/shared/widgets/macro_progress_bar.dart`
+- Test: extend `test/today_screen_test.dart`, `test/today_providers_test.dart`; create `test/today/aggregation_truth_test.dart`
+
+**Interfaces:**
+- Consumes: `FoodEntry` CRUD (Task 10), `clockProvider` (Task 3), `AppMotion` (Task 4), fixture isolation (Task 5).
+- Produces: `todaySummaryProvider` emitting `({int kcal, double proteinG, double carbsG, double fatG, int targetKcal, int kcalLeft})` — always summed from real entries; Task 16/17 depend on this name.
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/today/aggregation_truth_test.dart
+test('summary sums real entries — never the fixture hero override', () async {
+  // three fixture entries → 845 kcal / 74 P / 92 C / 20 F even when ui-diff fixture flag is on,
+  // because the override applies only in the fixture presentation layer, not the provider
+  final s = await container.read(todaySummaryProvider.future);
+  expect(s.kcal, 845);
+});
+test('kcalLeft = targetKcal - eaten, floored at provider level per current behavior', () async { /* implement */ });
+
+// test/today_screen_test.dart (extend)
+testWidgets('hero ring count-up runs ~1.4s easeOutCubic and snaps under reduced motion', (tester) async { /* implement */ });
+testWidgets('macro rows show grams, target, percentage in spec colors', (tester) async { /* implement */ });
+testWidgets('empty state shows zeroed ring, no-meals copy, camera CTA', (tester) async { /* implement */ });
+testWidgets('meal card shows thumbnail, name, kcal, time, macro pips, confidence badge; amber for <80%', (tester) async { /* implement */ });
+testWidgets('avatar tap pushes profile; bell is a placeholder; both themes render', (tester) async { /* implement */ });
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/today test/today_screen_test.dart test/today_providers_test.dart` → Expected: FAIL on the new assertions.
+
+- [ ] **Step 3 (worker): Implement** parity details per spec §5.9/§5.10 against `cx-screen-today.jsx` values (paddings/radii/font sizes copied exactly), count-up via `AppMotion`, aggregation strictly from repository entries.
+
+- [ ] **Step 4: GREEN** — Run: same test files → Expected: PASS.
+
+- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+
+- [ ] **Step 6: REVIEW-GATE Task 11**, then **HANDOFF Task 11**
+
+```powershell
+git add -A
+git commit -m "Bring Today screens to parity with production aggregation checks"
+git push
+```
+
+---
+
+### Task 12: History Week/Month Time Travel, Fills, and Drilldown
+
+**Files:**
+- Modify: `lib/features/history/history_screen.dart`, `lib/features/history/history_day_screen.dart`, `lib/features/history/providers/history_providers.dart`
+- Test: extend `test/history_screen_test.dart`; create `test/history/history_time_travel_test.dart`
+
+**Interfaces:**
+- Consumes: `clockProvider` (Task 3), `todaySummaryProvider` shape (Task 11), day-key util (`lib/shared/utils/date_key.dart`).
+- Produces: `historyRangeProvider(DateRange)` used by Task 16's time-travel integration suite; week↔month toggle state preserved across tab swipes (Task 2 shell).
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/history/history_time_travel_test.dart (FakeClock overrides)
+test('advancing 3 days shows 3 new empty day rows with previous data intact', () async { /* implement */ });
+test('week strip navigates back/forward with chevrons and clamps at account creation', () async { /* implement */ });
+test('month grid marks green (target met) and amber (review/miss) dots from real data, today gets cyan border, future days dimmed', () async { /* implement */ });
+
+// test/history_screen_test.dart (extend)
+testWidgets('week↔month animated size transition ~300ms ease-in-out; instant under reduced motion', (tester) async { /* implement */ });
+testWidgets('weekly stats card shows avg kcal/day, target badge, sparkline, macro mini-stats, streak pill', (tester) async { /* implement */ });
+testWidgets('day row tap opens history day screen listing that day\'s foods', (tester) async { /* implement */ });
+testWidgets('horizontal strip gestures do not trigger tab swipe; both themes render', (tester) async { /* implement */ });
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/history test/history_screen_test.dart` → Expected: FAIL on new assertions.
+
+- [ ] **Step 3 (worker): Implement** per spec §5.13/§5.14 against `cx-screen-history.jsx`; all date math through the injected clock.
+
+- [ ] **Step 4: GREEN** — Run: same → Expected: PASS.
+
+- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+
+- [ ] **Step 6: REVIEW-GATE Task 12**, then **HANDOFF Task 12**
+
+```powershell
+git add -A
+git commit -m "Complete history time travel, fills, and drilldown"
+git push
+```
+
+---
+
+### Task 13: Goals and Goals Select
+
+**Files:**
+- Modify: `lib/features/goals/goals_screen.dart`, `lib/features/goals/providers/goals_providers.dart`, `lib/shared/repositories/macro_target_repository.dart`, `lib/shared/models/macro_target_plan.dart` (weight-log fields only if missing — inspect first)
+- Test: extend `test/goals_screen_test.dart`; create `test/goals/goals_persistence_test.dart`
+
+**Interfaces:**
+- Consumes: `clockProvider` (Task 3 — week/month period math), `DraftPolicy.confirmDestructiveExit` for goal edits (Task 3).
+- Produces: `activePlanProvider` (plan persists across restart via repository), `weightLogProvider`; assistant confirmation flow (Task 14) mutates plans only through `macro_target_repository.dart`.
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/goals/goals_persistence_test.dart (fake Firestore + FakeClock)
+test('plan edits persist and survive provider container recreation (restart shape)', () async { /* implement */ });
+test('body goal change adjusts kcal target and macro split per plan rules', () async { /* implement */ });
+test('weight log appends and the 30-day series extends with clock advance', () async { /* implement */ });
+test('validation rejects non-positive targets and out-of-range slider values', () async { /* implement */ });
+test('period week counter increments after +7 days', () async { /* implement */ });
+
+// test/goals_screen_test.dart (extend)
+testWidgets('period dropdown opens under the pill with barrier dismiss, cyan active row, checkmark, ~200ms entrance', (tester) async { /* implement */ });
+testWidgets('gradient kcal slider drag changes target and does not trigger tab swipe', (tester) async { /* implement */ });
+testWidgets('segmented body-goal control, calorie card with TDEE badge and stepper, macro split tiles, weight card render in both themes', (tester) async { /* implement */ });
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/goals test/goals_screen_test.dart` → Expected: FAIL on new assertions.
+
+- [ ] **Step 3 (worker): Implement** per spec §5.15/§5.16 against `cx-screen-goals.jsx`; dropdown via `MotionDurations.goalsDropdown`.
+
+- [ ] **Step 4: GREEN** — Run: same → Expected: PASS.
+
+- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+
+- [ ] **Step 6: REVIEW-GATE Task 13**, then **HANDOFF Task 13**
+
+```powershell
+git add -A
+git commit -m "Complete goals selector, persistence, and validation"
+git push
+```
+
+---
+
+### Task 14: Assistant Chat, Chat History, Confirmation Actions, Functions, and Rules
+
+Covers `ai` and `ai_history`. Security-touching (Firestore rules) — pre-review REQUIRED before rules change, plus emulator rules tests.
+
+**Files:**
+- Modify: `lib/features/ai_chat/ai_chat_screen.dart`, `lib/features/ai_chat/providers/ai_chat_providers.dart`, `lib/shared/services/ai_chat_service.dart`
+- Create: `lib/features/ai_chat/ai_history_screen.dart`, `lib/shared/models/ai_chat_thread.dart`
+- Modify: `lib/core/router/route_names.dart` + `lib/core/router/app_router.dart` (add `RouteNames.aiHistory` at `/ai/history`)
+- Modify: `functions/src/ai-chat.ts` (server-derived context: profile, current plan, recent meals attached server-side; client sends only message text), `firestore.rules` (thread + message subcollections, owner-only)
+- Test: extend `test/ai_chat_screen_test.dart`; create `test/ai_chat/ai_history_screen_test.dart`, `test/ai_chat/thread_repository_test.dart`; create `functions/src/ai-chat.test.ts`, `functions/src/ai-threads-rules.test.ts` (`@firebase/rules-unit-testing`)
+
+**Interfaces:**
+- Consumes: `activePlanProvider`/`macro_target_repository` (Task 13), `linkedMealId` from review "Ask AI" (Task 8), origin-return routing (Task 2).
+- Produces (used by Task 16):
+
+```dart
+// lib/shared/models/ai_chat_thread.dart (spec §8.1)
+class AiChatThread {
+  const AiChatThread({required this.id, required this.uid, required this.createdAt,
+      required this.updatedAt, this.linkedMealId, this.title});
+  final String id; final String uid;
+  final DateTime createdAt; final DateTime updatedAt;
+  final String? linkedMealId;
+  final String? title; // auto-generated from first user message, truncated to 60 chars
+  // messages live in the subcollection users/{uid}/ai_threads/{id}/messages — never an embedded array
+}
+```
+
+```text
+firestore.rules addition (owner-only):
+match /users/{uid}/ai_threads/{threadId} {
+  allow read, write: if request.auth != null && request.auth.uid == uid;
+  match /messages/{messageId} {
+    allow read, write: if request.auth != null && request.auth.uid == uid;
+  }
+}
+```
+
+- [ ] **Step 1: Pre-implementation REVIEW-GATE Task 14** — host submits the thread model, rules diff, and server-context design for review **before** implementation; proceed only when green.
+
+- [ ] **Step 2 (worker): Write failing tests**
+
+```dart
+// test/ai_chat/thread_repository_test.dart (fake Firestore)
+test('send auto-creates thread with title from first message (60-char truncation)', () async { /* implement */ });
+test('messages page 20 at a time, older loaded on upward scroll', () async { /* implement */ });
+test('thread caps at 200 messages; older messages move to the archive collection', () async { /* implement */ });
+test('thread list sorts by updatedAt descending; linkedMealId stored from food-detail entry', () async { /* implement */ });
+
+// test/ai_chat_screen_test.dart (extend)
+testWidgets('user bubbles are right-aligned blue-tinted with bottom-left tail; assistant left-aligned', (tester) async { /* the reported placement bug — assert alignment explicitly */ });
+testWidgets('typing indicator pulses three dots staggered 200ms; static under reduced motion', (tester) async { /* implement */ });
+testWidgets('confirmation card shows old→new with delta chip; Apply mutates plan via repository; Keep original does not', (tester) async { /* implement */ });
+testWidgets('double Apply on the same confirmation is a no-op the second time (concurrency guard)', (tester) async { /* implement */ });
+testWidgets('send failure surfaces a retryable error state, message not lost', (tester) async { /* implement */ });
+testWidgets('close returns to origin; history icon opens ai_history', (tester) async { /* implement */ });
+
+// test/ai_chat/ai_history_screen_test.dart
+testWidgets('thread list shows preview, timestamp, linked meal badge; tap loads that thread into chat', (tester) async { /* implement */ });
+testWidgets('empty state shows no-conversations CTA; swipe-to-delete asks confirmation', (tester) async { /* implement */ });
+```
+
+```ts
+// functions/src/ai-chat.test.ts
+test('request context is server-derived: profile, plan, recent meals attached; client text only', async () => { /* implement */ });
+// functions/src/ai-threads-rules.test.ts
+test('owner can read/write own thread + messages; other uid and unauthenticated are denied', async () => { /* implement */ });
+```
+
+- [ ] **Step 3: RED** — Run: `fvm flutter test test/ai_chat test/ai_chat_screen_test.dart` → FAIL; `firebase emulators:exec --only firestore "npm --prefix functions test"` → FAIL (rules/tests missing).
+
+- [ ] **Step 4 (worker): Implement** per spec §5.17/§5.18/§8 — persistence, pagination, archive cap, history screen, bubble alignment, animated waiting states, confirmation apply/reject with idempotency guard, origin-close, rules block, server-context in `ai-chat.ts`.
+
+- [ ] **Step 5: GREEN** — Run: `fvm flutter test test/ai_chat test/ai_chat_screen_test.dart` → PASS; `npm --prefix functions run build` → compiles; `firebase emulators:exec --only firestore "npm --prefix functions test"` → PASS (all writes emulator-only).
+
+- [ ] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions; host re-reads `firestore.rules` diff against the current deployed rules file in-repo (no deploy happens — rules deploy needs explicit user confirmation and is out of scope).
+
+- [ ] **Step 7: Post-implementation REVIEW-GATE Task 14** (security-touching — include the rules diff) until green, then **HANDOFF Task 14**
+
+```powershell
+git add -A
+git commit -m "Persist assistant chat threads with history screen and owner-only rules"
+git push
+```
+
+---
+
+### Task 15: Profile, Loading, Login, and Permission Secondary Parity
+
+**Files:**
+- Modify: `lib/features/profile/profile_sheet.dart` (complete to spec §5.19: user card, link-account card for anonymous, System/Light/Dark selector, notifications toggle, units metric/imperial, camera settings, legal section, sign-out with confirmation, drag/tap dismiss)
+- Modify: `lib/features/onboarding/loading_screen.dart` (halo pulse ~2.6s, 60-mark tick ring with ~28% gradient arc at 1.8s, staged labels WAKING SENSORS → CONNECTING · AI CLOUD → SYNCING TODAY → READY, determinate gradient bar, dot mesh, version pill, ≥1.8s splash beat)
+- Modify: `lib/features/onboarding/login_screen.dart` (email+password, Apple/Google, guest, trust chips, keyboard avoidance, auth redirect signed-in→scan)
+- Modify: `lib/features/scan/permission_screen.dart` (visual parity polish vs `cx-screen-states.jsx` permission branch; fixture-mode iOS-style overlay per spec §5.3)
+- Test: extend `test/onboarding_test.dart`; create `test/profile/profile_sheet_test.dart`
+
+**Interfaces:**
+- Consumes: theme/units/notification preferences via `shared_preferences`; router push semantics (Task 2); `AppMotion` (Task 4).
+- Produces: `settingsProvider` (`themeMode`, `units`, `notificationsEnabled`, `cameraResolution`, `autoCapture`) persisted across restart — Task 16 asserts persistence; Task 17 captures `loading`/`login`/`permission`/`profile` states.
+
+- [ ] **Step 1 (worker): Write failing tests**
+
+```dart
+// test/profile/profile_sheet_test.dart
+testWidgets('renders user card, theme selector, notifications toggle, units, camera settings, legal, sign out', (tester) async { /* implement */ });
+testWidgets('theme selection persists via shared_preferences and applies immediately', (tester) async { /* implement */ });
+testWidgets('sign out asks confirmation; close and swipe-down both pop to origin', (tester) async { /* implement */ });
+testWidgets('keyboard over login fields does not overflow; back from profile restores origin route', (tester) async { /* implement */ });
+
+// test/onboarding_test.dart (extend)
+testWidgets('loading shows staged labels in order with ≥1.8s beat before navigation (FakeAsync)', (tester) async { /* implement */ });
+testWidgets('signed-in redirect lands on scan; signed-out lands on login', (tester) async { /* implement */ });
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/profile test/onboarding_test.dart` → Expected: FAIL on new assertions.
+
+- [ ] **Step 3 (worker): Implement** against `cx-screen-profile.jsx`, `cx-screen-loading.jsx`, `cx-screen-login.jsx`, `cx-screen-states.jsx` exact values.
+
+- [ ] **Step 4: GREEN** — Run: same → Expected: PASS.
+
+- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions; a11y guideline test (Task 4 file) extended to profile/login and passing.
+
+- [ ] **Step 6: REVIEW-GATE Task 15**, then **HANDOFF Task 15**
+
+```powershell
+git add -A
+git commit -m "Polish profile, loading, login, and permission screens"
+git push
+```
+
+---
+
+### Task 16: Connected-Device E2E Matrix
+
+All scripted suites run against emulators/fakes (Firebase emulator suite + mock processing backend + device camera). Environments are strictly separated: **(a) emulator/fake** — scripted pass/fail; **(b) read-only live** — OFF contract test only (Task 9's tagged test, re-run here); **(c) authorization-blocked cloud** — real cloud processing/push delivery through production infrastructure is NOT exercised; each such gate is recorded as **blocked** in `docs/implementation-status.md`, never as passed.
+
+**Files:**
+- Create: `integration_test/e2e/meal_flow_test.dart`, `barcode_flow_test.dart`, `label_flow_test.dart`, `manual_flow_test.dart`, `review_flow_test.dart`, `crud_test.dart`, `goals_flow_test.dart`, `assistant_flow_test.dart`, `notification_return_test.dart`, `interrupted_upload_test.dart`, `profile_return_test.dart`, `swipe_nav_test.dart`, `device_state_test.dart`
+- Create: `integration_test/e2e/support/e2e_harness.dart` (boots app against emulator Firebase + `FakeClock` + mock processing backend; exposes `pumpAppE2E()`, reseed, notification-tap simulation)
+- Test: the files above are the tests.
+
+**Interfaces:**
+- Consumes: every Produces block from Tasks 2–15 plus the deep-link harness (Task 5).
+- Produces: the release E2E evidence rows in `docs/implementation-status.md` (suite → pass/fail/blocked, device, build hash).
+
+- [ ] **Step 1 (worker): Write the core flow suites** (each maps 1:1 to spec §11 scenarios; skeleton shape):
+
+```dart
+// integration_test/e2e/support/e2e_harness.dart
+Future<void> pumpAppE2E(WidgetTester tester, {FakeClock? clock, bool seed = true}) async { /* implement */ }
+
+// meal_flow_test.dart — spec §11.1: scan ready → capture → processing → simulated completion
+// → notification tap → Today shows card → detail shows image/name/macros/confidence.
+// barcode_flow_test.dart — §11.2 with known-barcode fixture through the mock backend.
+// label_flow_test.dart — §11.3 label fixture; <80% branch lands on review.
+// manual_flow_test.dart — §11.4 all four manual entry paths; created food appears in Today.
+// review_flow_test.dart — §11.5 candidate select/none-of-these/ask-assistant branches.
+// crud_test.dart — §11.6 create/read/update/delete/duplicate round trip.
+```
+
+- [ ] **Step 2: RED — core flows** — Run: `fvm flutter test integration_test/e2e/meal_flow_test.dart integration_test/e2e/barcode_flow_test.dart integration_test/e2e/label_flow_test.dart integration_test/e2e/manual_flow_test.dart integration_test/e2e/review_flow_test.dart integration_test/e2e/crud_test.dart -d emulator-5554` (emulator launched via `fvm flutter emulators --launch Api35_NoPlay`; Firebase emulators running via `firebase emulators:start --only auth,firestore,storage,functions` in a second shell) → Expected: initial failures where flows are still loosely wired; fix product code via WORKER-RUN until green — every fix lands with its own RED→GREEN note in `docs/implementation-status.md`.
+
+- [ ] **Step 3: GREEN — core flows** — Run: same command → Expected: all 6 core suites PASS on the connected emulator.
+
+- [ ] **Step 4: CHECKPOINT 1 — core flows verified** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Host updates `docs/implementation-status.md` with exact red/green evidence (test output counts, suite names) and the next step for stateful suites. Host commits checkpoint: `git add -A && git commit -m "E2E core flows passing (meal, barcode, label, manual, review, crud)"`. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 5. The local commit remains intact; do not revert it.
+
+- [ ] **Step 5 (worker): Write the stateful/weird-state suites**:
+
+```dart
+// goals_flow_test.dart — §11.7 body-goal switch, protein 180g, slider 2200, weight 82.5 → chart.
+// assistant_flow_test.dart — §11.8 confirmation card apply updates plan; Today ring reflects it.
+// notification_return_test.dart — §11.9 fresh + stale notification taps (stale shows detail, no error).
+// interrupted_upload_test.dart — §11.10 kill mid-upload (restart harness), queue retries, entry lands.
+// profile_return_test.dart — §11.11 origin return from Today/Scan/AI.
+// swipe_nav_test.dart — §11.12 full left/right traversal; scroll, calendar, chat positions preserved.
+// device_state_test.dart — §11.13 scripted subset: rapid capture taps, keyboard open/close on search/
+//   composer/manual, camera denial→manual→regrant, empty/error/loading variants render, each main
+//   screen visited 10× without state corruption. Plus restart-shaped Task 3 scenarios: cold restart
+//   with shifted FakeClock → Scan landing, theme persists, history/goals/weight advance correctly.
+```
+
+- [ ] **Step 6: RED — stateful/weird-state flows** — Run: `fvm flutter test integration_test/e2e/goals_flow_test.dart integration_test/e2e/assistant_flow_test.dart integration_test/e2e/notification_return_test.dart integration_test/e2e/interrupted_upload_test.dart integration_test/e2e/profile_return_test.dart integration_test/e2e/swipe_nav_test.dart integration_test/e2e/device_state_test.dart -d emulator-5554` → Expected: initial failures; fix via WORKER-RUN until green.
+
+- [ ] **Step 7: GREEN — stateful/weird-state flows** — Run: same command → Expected: all 7 suites PASS.
+
+- [ ] **Step 8: CHECKPOINT 2 — stateful/weird-state flows verified** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Host updates `docs/implementation-status.md` with exact red/green evidence (test output counts, suite names) and the next step for full matrix run. Host commits checkpoint: `git add -A && git commit -m "E2E stateful and weird-state flows passing (goals, assistant, notification, upload, profile, nav, device-state)"`. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 9. The local commit remains intact; do not revert it.
+
+- [ ] **Step 9: Full matrix run** — Run: `fvm flutter test integration_test/e2e -d emulator-5554` → Expected: all 13 suites PASS. Re-run the read-only live contract: `fvm flutter test test/contracts --tags live` → PASS (environment b). Record environment-c gates (real push delivery, real cloud model processing) as **blocked** with the exact reason "requires explicit user authorization and isolated test project".
+
+- [ ] **Step 10: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → full unit/widget suite passes.
+
+- [ ] **Step 11: REVIEW-GATE Task 16**, then **HANDOFF Task 16**
+
+```powershell
+git add -A
+git commit -m "Add connected-device end-to-end scenario matrix"
+git push
+```
+
+### Task 17: Exhaustive 38-State Two-Theme UI-Diff Visual Program
+
+Owns every visual parity gate. Builds the release build once, captures all 38 canonical states (19 IDs × 2 themes) at device-native pixels, fingerprints staleness per capture, runs the three-tier ui-diff hierarchy (broad → region → target), and iteratively repairs until every state passes with status complete, `auditLimited` false, and zero unresolved findings.
+
+**Files:**
+- Modify: `tool/ui_capture/capture_states.ps1` (Task 5 scaffold — now complete the full 38-state driver)
+- Create: `tool/ui_capture/validate_artifacts.ps1` (post-capture artifact integrity checker)
+- Create: `tool/ui_capture/ui_diff_loop.ps1` (broad→region→target iteration driver)
+- Modify: `docs/implementation-status.md` (visual evidence log rows)
+- Evidence output: `.ui-diff/captures/<date>/` — per-state `<id>--<theme>.png` + `<id>--<theme>.meta.json`; `.ui-diff/runs/<run-id>/` — broad/region/target reports
+
+**Interfaces:**
+- Consumes: `kDebugScreenRoutes` deep-link map (Task 5), `forceReseedForUiDiff` (Task 5), installed release APK on emulator, reference PNGs from `docs/design-handoff/placeholder-app/reference-images/`
+- Produces: 38 meta JSONs with `{buildHash, route, theme, fixtureProfile, fixtureHash, deviceModel, viewportWidth, viewportHeight, captureTimestamp, staleBuildFingerprint}`, 38 ui-diff report artifacts, run IDs recorded in `docs/implementation-status.md`
+
+#### Fixture Profiles (per canonical state)
+
+Each canonical state maps to a **fixture profile** that defines the expected Firestore seed contents. The `fixtureHash` in each meta JSON must match the hash of the profile's actual seed data for that state; distinct profiles may have distinct hashes. The `fixtureProfile` field records which profile was used.
+
+| Fixture profile | States | Seed contents |
+|---|---|---|
+| `empty` | `today_empty` | No food entries, no history, no weight logs, no active plan, empty chat |
+| `populated` | `today`, `food`, `food_edit`, `history_week`, `history_month`, `goals`, `goals_select`, `ai`, `ai_history`, `profile` | 3 food entries (high-conf, low-conf, editing), 7 days history, 2 weight logs, 1 active plan, 1 chat thread |
+| `flow_permission` | `permission` | Camera permission denied state; no food entries |
+| `flow_scan` | `scan_idle`, `scan_capturing` | Camera ready; no food entries; scan_capturing shows mid-shutter state |
+| `flow_processing` | `processing` | Upload in progress; skeleton shimmer visible; no completed entries |
+| `flow_review` | `review` | Low-confidence scan result; candidate list populated; no confirmed entry |
+| `flow_manual` | `manual` | Manual entry form; search results seeded; no saved entries |
+| `flow_loading` | `loading` | App initialization; no user data; staged label sequence |
+| `flow_login` | `login` | Pre-auth state; no user data |
+
+#### State Matrix (38 states)
+
+| # | State key | ID | Theme | Deep-link |
+|---|---|---|---|---|
+| 1 | `loading--dark` | loading | dark | `calorix://debug/reseed?screen=loading&theme=dark` |
+| 2 | `loading--light` | loading | light | `calorix://debug/reseed?screen=loading&theme=light` |
+| 3 | `login--dark` | login | dark | `calorix://debug/reseed?screen=login&theme=dark` |
+| 4 | `login--light` | login | light | `calorix://debug/reseed?screen=login&theme=light` |
+| 5 | `permission--dark` | permission | dark | `calorix://debug/reseed?screen=permission&theme=dark` |
+| 6 | `permission--light` | permission | light | `calorix://debug/reseed?screen=permission&theme=light` |
+| 7 | `scan_idle--dark` | scan_idle | dark | `calorix://debug/reseed?screen=scan_idle&theme=dark` |
+| 8 | `scan_idle--light` | scan_idle | light | `calorix://debug/reseed?screen=scan_idle&theme=light` |
+| 9 | `scan_capturing--dark` | scan_capturing | dark | `calorix://debug/reseed?screen=scan_capturing&theme=dark` |
+| 10 | `scan_capturing--light` | scan_capturing | light | `calorix://debug/reseed?screen=scan_capturing&theme=light` |
+| 11 | `processing--dark` | processing | dark | `calorix://debug/reseed?screen=processing&theme=dark` |
+| 12 | `processing--light` | processing | light | `calorix://debug/reseed?screen=processing&theme=light` |
+| 13 | `review--dark` | review | dark | `calorix://debug/reseed?screen=review&theme=dark` |
+| 14 | `review--light` | review | light | `calorix://debug/reseed?screen=review&theme=light` |
+| 15 | `manual--dark` | manual | dark | `calorix://debug/reseed?screen=manual&theme=dark` |
+| 16 | `manual--light` | manual | light | `calorix://debug/reseed?screen=manual&theme=light` |
+| 17 | `today--dark` | today | dark | `calorix://debug/reseed?screen=today&theme=dark` |
+| 18 | `today--light` | today | light | `calorix://debug/reseed?screen=today&theme=light` |
+| 19 | `today_empty--dark` | today_empty | dark | `calorix://debug/reseed?screen=today_empty&theme=dark` |
+| 20 | `today_empty--light` | today_empty | light | `calorix://debug/reseed?screen=today_empty&theme=light` |
+| 21 | `food--dark` | food | dark | `calorix://debug/reseed?screen=food&theme=dark` |
+| 22 | `food--light` | food | light | `calorix://debug/reseed?screen=food&theme=light` |
+| 23 | `food_edit--dark` | food_edit | dark | `calorix://debug/reseed?screen=food_edit&theme=dark` |
+| 24 | `food_edit--light` | food_edit | light | `calorix://debug/reseed?screen=food_edit&theme=light` |
+| 25 | `history_week--dark` | history_week | dark | `calorix://debug/reseed?screen=history_week&theme=dark` |
+| 26 | `history_week--light` | history_week | light | `calorix://debug/reseed?screen=history_week&theme=light` |
+| 27 | `history_month--dark` | history_month | dark | `calorix://debug/reseed?screen=history_month&theme=dark` |
+| 28 | `history_month--light` | history_month | light | `calorix://debug/reseed?screen=history_month&theme=light` |
+| 29 | `goals--dark` | goals | dark | `calorix://debug/reseed?screen=goals&theme=dark` |
+| 30 | `goals--light` | goals | light | `calorix://debug/reseed?screen=goals&theme=light` |
+| 31 | `goals_select--dark` | goals_select | dark | `calorix://debug/reseed?screen=goals_select&theme=dark` |
+| 32 | `goals_select--light` | goals_select | light | `calorix://debug/reseed?screen=goals_select&theme=light` |
+| 33 | `ai--dark` | ai | dark | `calorix://debug/reseed?screen=ai&theme=dark` |
+| 34 | `ai--light` | ai | light | `calorix://debug/reseed?screen=ai&theme=light` |
+| 35 | `ai_history--dark` | ai_history | dark | `calorix://debug/reseed?screen=ai_history&theme=dark` |
+| 36 | `ai_history--light` | ai_history | light | `calorix://debug/reseed?screen=ai_history&theme=light` |
+| 37 | `profile--dark` | profile | dark | `calorix://debug/reseed?screen=profile&theme=dark` |
+| 38 | `profile--light` | profile | light | `calorix://debug/reseed?screen=profile&theme=light` |
+
+- [ ] **Step 1: Inventory canonical handoff references** — host catalogs every JSX source in `docs/design-handoff/placeholder-app/src/` that maps to one of the 19 canonical IDs. For each: record the JSX file path, the exported component name, and whether a corresponding reference PNG exists in `docs/design-handoff/placeholder-app/reference-images/`. For any state where the JSX exists but no PNG was exported, render the missing expected image deterministically at the same viewport size (1080×2400 logical) and theme as the capture target using the JSX build pipeline; save as `.ui-diff/expected/<id>--<theme>.png`. Fingerprint each expected image (file hash) and record it in `.ui-diff/expected/<id>--<theme>.meta.json` alongside the JSX source commit hash and component export name. Block the visual gate if any expected artifact is missing or stale (JSX source changed since the expected image was rendered).
+
+- [ ] **Step 2: Fresh-build fingerprinting** — host records `git rev-parse HEAD` as `buildHash`; builds release APK (`fvm flutter build apk --release`); records APK `Get-FileHash` as `apkHash`; stores both in `.ui-diff/captures/<date>/build-manifest.json`. On every later capture, the script compares current `buildHash` against the manifest; if stale, it rebuilds and re-installs before capturing. If fresh, it skips the rebuild and logs `"build fresh, skipped rebuild"`.
+
+- [ ] **Step 3: Per-state capture loop** — host runs `tool/ui_capture/capture_states.ps1 -Screens all -Themes dark,light`. For each of the 38 states: (a) verify build fingerprint is fresh (Step 2); (b) reseed deterministically via `adb shell am start -a android.intent.action.VIEW -d "calorix://debug/reseed?screen=<id>&theme=<theme>"`; (c) wait for settle (300ms post-navigation); (d) capture at device-native resolution via `adb exec-out screencap -p` — no resize, no cropping; (e) write `<id>--<theme>.png` and `<id>--<theme>.meta.json` containing `{buildHash, apkHash, route, theme, fixtureProfile, fixtureHash, deviceModel, viewportWidth, viewportHeight, captureTimestamp, deepLink}`; (f) generate per-state `runId` = `<buildHash>-<id>-<theme>-<timestamp>`.
+
+- [ ] **Step 4: Artifact integrity validation** — host runs `tool/ui_capture/validate_artifacts.ps1`. Asserts: exactly 38 PNGs exist; each is valid PNG with IHDR dimensions matching device viewport; each meta JSON has all required fields including `fixtureProfile` and `fixtureHash`; all `buildHash` values match the manifest; each `fixtureHash` matches the expected hash for its `fixtureProfile` (not identical across all 38 — distinct profiles have distinct hashes); no duplicate filenames; file count = 38. Fail-fast on any violation.
+
+- [ ] **Step 5: CHECKPOINT 1 — capture infrastructure verified** — Host updates `docs/implementation-status.md` with exact evidence (38 PNGs exist, all meta JSONs parse, all fixtureProfile/fixtureHash pairs consistent, all expected images present and fingerprinted) and the next step for the three-tier ui-diff loop. Host commits: `git add -A && git commit -m "Add 38-state capture infrastructure with fixture profiles and expected images"`. Then RECORD-GATE: verify all 38 PNGs exist, all meta JSONs parse, all fixtureProfile/fixtureHash pairs are consistent, all expected images are present and fingerprinted. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 6. The local commit remains intact; do not revert it.
+
+- [ ] **Step 6: Exhaustive artifact inspection** — host visually inspects every PNG against its corresponding expected image in `.ui-diff/expected/` (or reference PNG in `docs/design-handoff/placeholder-app/reference-images/`). Checks: (a) layout matches JSX structural intent; (b) no pure `#FFFFFF` or `#000000` tokens; (c) gradient direction correct (blue→cyan→green); (d) Geist/Geist Mono typography present; (e) hairlines at 0.5px scale; (f) paddings/radii/font sizes match JSX values. Records per-state pass/fail in `docs/implementation-status.md` visual evidence log.
+
+- [ ] **Step 7: Three-tier ui-diff loop with structural evidence** — host runs `tool/ui_capture/ui_diff_loop.ps1`. For each state:
+
+  a. **Broad diff**: full-screen capture vs expected image — structural layout comparison using the ui-diff MCP pipeline's **structural analysis** (element presence, bounding-box hierarchy, parent/child relationships) and **geometry analysis** (position, size, alignment within tolerances). No arbitrary global pixel threshold. Record `broadStatus: pass|fail` with structural evidence.
+
+  b. **Region diff**: crop capture to spec-defined anchor regions per screen (e.g., `today.macroRingHero`, `today.recentScansSection`, `scan.captureButton`, `food.sheetHeader`, `goals.sliderTrack`). Compare each region using **color/OKLab** analysis (perceptual color distance, not raw RGB), **text** analysis (OCR-based text presence and approximate position), and **shape** analysis (element contour matching). Record per-region `regionStatus` with evidence.
+
+  c. **Target diff**: individual UI elements (buttons, badges, typography, icons) compared using **model-reviewed evidence** — the ui-diff MCP's vision model assesses whether the target element matches the expected design intent. Pixel masks are evidence inputs to the model, not a universal pass threshold. Record per-target `targetStatus` with model verdict and confidence.
+
+  Loop continues until broad, region, and target all pass for the state. If any tier fails: (i) record the failing region/element with evidence; (ii) file the fix via WORKER-RUN; (iii) rebuild only if code changed (re-check build fingerprint); (iv) re-capture the affected state(s); (v) re-run the tier.
+
+- [ ] **Step 8: Diff-group quality checks** — after the three-tier loop passes, host runs the diff-group analyzer and verifies:
+  - **Parent/child root-cause hierarchy**: for each failing state, the broad diff identifies the parent region containing the root cause; region and target diffs within that parent are children. A child failure that is already explained by a parent failure is suppressed (not double-counted).
+  - **Overlap/containment**: no region in the region diff overlaps another region's bounding box; containment relationships are explicit in the report.
+  - **No disconnected union boxes**: every flagged region maps to a real UI element (verified by cross-referencing the widget tree); no phantom bounding boxes from stale references.
+  - **Inspectable group overlay/report**: the diff-group report includes an overlay image per state showing all flagged regions with parent→child arrows, pass/fail colors, and evidence snippets. Host inspects each overlay and records the group verdict in `docs/implementation-status.md`.
+
+- [ ] **Step 9: CHECKPOINT 2 — diff hierarchy verified** — Host updates `docs/implementation-status.md` with exact red/green evidence (per-state pass/fail counts, group verdicts) and the next step for strict release semantics. Host commits: `git add -A && git commit -m "Complete ui-diff structural hierarchy and diff-group quality checks for 38 states"`. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 10. The local commit remains intact; do not revert it.
+
+- [ ] **Step 10: Strict release semantics** — after all 38 states pass all three tiers and diff-group quality, host records in `docs/implementation-status.md`:
+  - `runId` per state (38 entries)
+  - Artifact paths: `.ui-diff/captures/<date>/<id>--<theme>.png`
+  - Expected image paths: `.ui-diff/expected/<id>--<theme>.png` with fingerprints
+  - Report paths: `.ui-diff/runs/<run-id>/broad.json`, `regions.json`, `targets.json`
+  - Diff-group overlay paths: `.ui-diff/runs/<run-id>/groups/`
+  - `auditLimited: false` for every state
+  - `unresolved: 0` across all groups
+  - `verdict: pass` for every state (actual result, not predeclared)
+  - Exact `buildHash`, `apkHash`, `fixtureProfile`, `fixtureHash`, `deviceModel`, `viewportWidth × viewportHeight`
+
+- [ ] **Step 11: Known deviation documentation** — host records the two pre-approved deviations wherever they surface a diff: (a) flat five-tab navigation (no FAB Scan button) vs handoff JSX FAB shape; (b) still-photo-only capture (no video/stop square) vs any video-related handoff pixels. These are settled decisions, not bugs.
+
+- [ ] **Step 12: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+
+- [ ] **Step 13: REVIEW-GATE Task 17** (UI-parity-affecting — include the visual evidence summary and diff-group overlays) until green, then **HANDOFF Task 17**
+
+```powershell
+git add -A
+git commit -m "Capture and gate all 38 visual states across both themes"
+git push
+```
+
+---
+
+### Task 18: Profile-Mode Performance Evidence, Animation/Jank Measurement, Accessibility, and Exploratory Device Testing
+
+Owns spec §14.5 performance gates and exploratory weird-state coverage. Verifies animation durations via fast widget tests, measures real frame timing on a connected device in profile mode using `IntegrationTestWidgetsFlutterBinding` traceAction, verifies reduced-motion snaps, runs accessibility guideline checks on every screen, and exercises exploratory device-state edge cases that automated suites do not cover.
+
+**Files:**
+- Create: `test/performance/animation_duration_test.dart` (fast widget tests verifying duration/reduced-motion contracts against `MotionDurations` values)
+- Create: `test/performance/reduced_motion_snap_test.dart` (reduced-motion verification across all animated widgets)
+- Create: `integration_test/performance/frame_timing_test.dart` (real frame timing on device using `IntegrationTestWidgetsFlutterBinding` traceAction in profile mode)
+- Modify: `test/a11y/accessibility_guidelines_test.dart` (extend to all 19 screen IDs)
+- Create: `integration_test/exploratory/device_state_exploration.dart` (weird-state device testing)
+- Create: `tool/performance/measure_frame_budget.ps1` (DevTools timeline parser)
+- Modify: `docs/implementation-status.md` (performance and accessibility evidence rows)
+
+**Interfaces:**
+- Consumes: `AppMotion`/`MotionDurations` (Task 4), deep-link harness (Task 5), all screen implementations (Tasks 6–15)
+- Produces: duration contract test results, real device frame-timing evidence (p50/p95/max build+raster, janky frame counts), reduced-motion snap verification, a11y guideline results for all screens, exploratory test pass/fail matrix — all recorded in `docs/implementation-status.md`
+
+**Critical constraint**: Widget tests (`testWidgets`) cannot measure real frame budgets — they simulate time via `pump()` and do not exercise the raster thread. Real frame timing MUST run in `integration_test/` on a real device or emulator in profile mode. The 60Hz budget (16.67ms) applies everywhere; the 120Hz budget (8.33ms) applies only on devices verified to run at 120Hz — record whether 120Hz was actually active during the test. Do not promise impossible zero-over-budget guarantees; record observed p50/p95/max build+raster times and janky frame counts (frames exceeding the budget).
+
+#### 18.1 Duration Contract Tests (Fast Widget Tests)
+
+- [ ] **Step 1 (worker): Write duration contract tests**
+
+```dart
+// test/performance/animation_duration_test.dart
+// Fast widget tests — verify that animations use the correct MotionDurations values.
+// These do NOT measure real frame timing; they assert duration contracts.
+
+testWidgets('Today ring count-up duration matches MotionDurations.countUp (1400ms)', (tester) async {
+  await pumpApp(tester, initialLocation: '/today');
+  final ring = tester.widget<MacroRing>(find.byType(MacroRing));
+  expect(ring.animationDuration, equals(MotionDurations.countUp));
+});
+
+testWidgets('skeleton shimmer duration matches MotionDurations.skeletonShimmer (1400ms)', (tester) async {
+  await pumpApp(tester, initialLocation: '/today');
+  final shimmer = tester.widget<SkeletonShimmer>(find.byType(SkeletonShimmer));
+  expect(shimmer.duration, equals(MotionDurations.skeletonShimmer));
+});
+
+testWidgets('card entrance duration matches MotionDurations.cardEntrance (240ms)', (tester) async {
+  // Verify the animation controller is created with MotionDurations.cardEntrance
+});
+
+testWidgets('sheet slide-up duration matches MotionDurations.sheetSlideUp (320ms)', (tester) async {
+  // Verify the animation controller is created with MotionDurations.sheetSlideUp
+});
+
+testWidgets('capture ring spin duration matches MotionDurations.captureRingSpin (1000ms)', (tester) async {
+  // Verify the animation controller is created with MotionDurations.captureRingSpin
+});
+
+testWidgets('history view toggle duration matches MotionDurations.historyViewToggle (300ms)', (tester) async {
+  // Verify the animation controller is created with MotionDurations.historyViewToggle
+});
+
+testWidgets('goals dropdown duration matches MotionDurations.goalsDropdown (200ms)', (tester) async {
+  // Verify the animation controller is created with MotionDurations.goalsDropdown
+});
+```
+
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/performance/animation_duration_test.dart` → Expected: FAIL (duration fields not yet exposed on widgets).
+
+- [ ] **Step 3 (worker): Implement** duration contract tests. If widgets do not yet expose their animation duration as a testable field, add a `duration` parameter or read it from the `AnimationController` via the widget's state. Do not change animation behavior.
+
+- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/performance/animation_duration_test.dart` → Expected: PASS.
+
+- [ ] **Step 5: Device frame timing via integration test** — real frame timing MUST run on a real device or emulator in profile mode. Host launches emulator (`fvm flutter emulators --launch Api35_NoPlay`), runs `fvm flutter test integration_test/performance/frame_timing_test.dart -d emulator-5554 --profile`. The integration test uses `IntegrationTestWidgetsFlutterBinding` to exercise each animated widget (Today ring count-up, skeleton shimmer, capture ring spin, card entrance, sheet slide-up, history toggle, goals dropdown) and collects frame timings via the binding's `traceAction` with a unique `reportKey` per widget. An `integration_test` driver response callback writes each timeline trace to a file. To detect 120Hz support: use `View.of(context).display.refreshRate` where a BuildContext is available (widget test context), or `WidgetsBinding.instance.platformDispatcher.displays` with the matching `FlutterView.display` in the integration test. Do not use `MediaQuery` for refresh rate. For each widget, record: p50 frame duration, p95 frame duration, max frame duration, total janky frames (frames exceeding 16.67ms at 60Hz), total frames measured. If the device supports 120Hz (verified by `View.of(context).display.refreshRate >= 120` or device specs), also record p50/p95/max at 120Hz and janky frames exceeding 8.33ms. If 120Hz is not available on the test device, record "120Hz not applicable — device runs at 60Hz" and skip the 120Hz column. Do not promise zero-over-budget; record observed values. Runs `tool/performance/measure_frame_budget.ps1` which parses the timeline output and produces the frame budget table. `RepaintBoundary` placement is verified by grepping the widget tree for `RepaintBoundary` near the candidates (macro ring, sparkline, capture ring, shimmer) — confirmed only where timeline showed isolated repainting. Records evidence in `docs/implementation-status.md`. Telemetry (raw frame timings, janky frame counts) and acceptance rules (budget thresholds, pass/fail criteria) are recorded as separate tables in `docs/implementation-status.md`.
+
+#### 18.2 Reduced-Motion Snap Verification
+
+- [ ] **Step 6 (worker): Write failing reduced-motion tests**
+
+```dart
+// test/performance/reduced_motion_snap_test.dart
+testWidgets('Today ring snaps to final value in 1 frame under reduced motion', (tester) async {
+  await tester.pumpWidget(MediaQuery(
+    data: const MediaQueryData(disableAnimations: true),
+    child: const MyApp(),
+  ));
+  await tester.pumpApp(initialLocation: '/today');
+  await tester.pump(); // one frame with duration zero
+  final ring = tester.widget<MacroRing>(find.byType(MacroRing));
+  // Under reduced motion, the sweep animation should be at its final value (1.0)
+  // after a single pump — no intermediate frames.
+  final state = tester.state<MacroRingState>(find.byType(MacroRing));
+  expect(state.animationController.value, 1.0);
+});
+
+testWidgets('skeleton shimmer is static (two identical frames) under reduced motion', (tester) async {
+  await tester.pumpWidget(MediaQuery(
+    data: const MediaQueryData(disableAnimations: true),
+    child: const MyApp(),
+  ));
+  await tester.pumpApp(initialLocation: '/today');
+  await tester.pump();
+  final frame1 = await tester.binding.defaultBinaryMessenger;
+  await tester.pump(const Duration(milliseconds: 100));
+  // Under reduced motion, Duration.zero is used — shimmer should not animate.
+  // Two frames at t=0 and t=100ms should produce identical render objects.
+  final shimmer1 = tester.renderObject<RenderBox>(find.byType(SkeletonShimmer));
+  await tester.pump(const Duration(milliseconds: 100));
+  final shimmer2 = tester.renderObject<RenderBox>(find.byType(SkeletonShimmer));
+  expect(shimmer1.size, equals(shimmer2.size));
+});
+
+testWidgets('card entrance renders instantly under reduced motion', (tester) async {
+  await tester.pumpWidget(MediaQuery(
+    data: const MediaQueryData(disableAnimations: true),
+    child: const MyApp(),
+  ));
+  await tester.pumpApp(initialLocation: '/today');
+  await tester.pump(); // first frame
+  // Card should be fully visible — opacity at 1.0, no transition
+  final card = tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity).first);
+  expect(card.opacity, 1.0);
+});
+
+testWidgets('sheet slide-up renders at final position on frame 1 under reduced motion', (tester) async {
+  await tester.pumpWidget(MediaQuery(
+    data: const MediaQueryData(disableAnimations: true),
+    child: const MyApp(),
+  ));
+  await tester.pumpApp(initialLocation: '/food');
+  await tester.pump();
+  // Bottom sheet offset should be at its final target position
+  final sheet = tester.widget<DraggableScrollableSheet>(find.byType(DraggableScrollableSheet));
+  expect(sheet.initialChildSize, greaterThan(0));
+  // After one pump, the sheet should be at its target size (no animation)
+  final state = tester.state<DraggableScrollableSheetState>(find.byType(DraggableScrollableSheet));
+  expect(state.pixels, equals(state.maxScrollExtent));
+});
+
+testWidgets('capture ring spin is static under reduced motion', (tester) async {
+  await tester.pumpWidget(MediaQuery(
+    data: const MediaQueryData(disableAnimations: true),
+    child: const MyApp(),
+  ));
+  await tester.pumpApp(initialLocation: '/scan');
+  await tester.pump();
+  final angle1 = tester.widget<RotationTransition>(find.byType(RotationTransition)).turns.value;
+  await tester.pump(const Duration(milliseconds: 200));
+  final angle2 = tester.widget<RotationTransition>(find.byType(RotationTransition)).turns.value;
+  expect(angle1, equals(angle2)); // no rotation under reduced motion
+});
+
+testWidgets('history view toggle is instant under reduced motion', (tester) async {
+  await tester.pumpWidget(MediaQuery(
+    data: const MediaQueryData(disableAnimations: true),
+    child: const MyApp(),
+  ));
+  await tester.pumpApp(initialLocation: '/history');
+  await tester.pump();
+  // Week view should be visible on frame 1 — no AnimatedSize transition
+  expect(find.byKey(const ValueKey('history-week-view')), findsOneWidget);
+});
+
+testWidgets('goals dropdown opens at final position under reduced motion', (tester) async {
+  await tester.pumpWidget(MediaQuery(
+    data: const MediaQueryData(disableAnimations: true),
+    child: const MyApp(),
+  ));
+  await tester.pumpApp(initialLocation: '/goals');
+  await tester.tap(find.byKey(const ValueKey('goals-period-pill')));
+  await tester.pump();
+  // Dropdown should be at full height on frame 1
+  final dropdown = tester.widget<AnimatedSize>(find.byType(AnimatedSize).last);
+  expect(dropdown.duration, Duration.zero);
+});
+```
+
+- [ ] **Step 7: RED** — Run: `fvm flutter test test/performance/reduced_motion_snap_test.dart` → Expected: FAIL.
+
+- [ ] **Step 8 (worker): Implement** reduced-motion tests; ensure `AppMotion.durationOf` returns `Duration.zero` under `disableAnimations` and all `AnimationController` instances use this.
+
+- [ ] **Step 9: GREEN** — Run: `fvm flutter test test/performance/reduced_motion_snap_test.dart` → Expected: PASS.
+
+#### 18.3 Accessibility Guideline Checks (All Screens)
+
+- [ ] **Step 10: Extend a11y tests to all 19 screen IDs**
+
+```dart
+// test/a11y/accessibility_guidelines_test.dart — extend existing file
+for (final screen in [
+  ('/today', 'today'), ('/history', 'history'), ('/scan', 'scan'),
+  ('/goals', 'goals'), ('/ai', 'ai'), ('/profile', 'profile'),
+  ('/loading', 'loading'), ('/login', 'login'), ('/permission', 'permission'),
+  ('/processing', 'processing'), ('/review', 'review'), ('/manual', 'manual'),
+  ('/food', 'food'), ('/food_edit', 'food_edit'),
+  ('/history_week', 'history_week'), ('/history_month', 'history_month'),
+  ('/goals_select', 'goals_select'), ('/ai_history', 'ai_history'),
+  ('/today_empty', 'today_empty'),
+]) {
+  testWidgets('${screen.$2} meets tap-target, label, and contrast guidelines', (tester) async {
+    await pumpApp(tester, initialLocation: screen.$1);
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+  });
+}
+
+testWidgets('confidence badges expose text via Semantics (never color-only)', (tester) async {
+  // Scan review badge → Semantics contains "Review 65%" or similar
+});
+
+testWidgets('all interactive elements have minimum 44x44 logical px tap target', (tester) async {
+  // Already covered by androidTapTargetGuideline, but explicit check on
+  // capture button, macro value taps, nav items, chips, buttons
+});
+```
+
+- [ ] **Step 11: RED** — Run: `fvm flutter test test/a11y/accessibility_guidelines_test.dart` → Expected: FAIL on new screen IDs.
+
+- [ ] **Step 12: GREEN** — Run: `fvm flutter test test/a11y/accessibility_guidelines_test.dart` → Expected: PASS for all 19 screens.
+
+#### 18.4 Exploratory Weird-State/Device Testing
+
+- [ ] **Step 13 (worker): Write exploratory device-state tests**
+
+```dart
+// integration_test/exploratory/device_state_exploration.dart
+// Run on connected emulator: fvm flutter test integration_test/exploratory -d emulator-5554
+
+testWidgets('rapid triple-tap on capture button triggers exactly one processing navigation', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/scan');
+  final button = find.byKey(const ValueKey('capture-button'));
+  await tester.tap(button);
+  await tester.tap(button);
+  await tester.tap(button);
+  await tester.pumpAndSettle();
+  // Should navigate to processing exactly once — not three times
+  expect(find.byType(ProcessingScreen), findsOneWidget);
+  expect(find.byType(ScanScreen), findsNothing);
+});
+testWidgets('keyboard open/close on search field does not overflow or crash', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/manual');
+  await tester.tap(find.byKey(const ValueKey('manual-search-field')));
+  await tester.pump();
+  // Keyboard should appear without RenderFlex overflow
+  expect(tester.takeException(), isNull);
+  await tester.testTextInput.receiveAction(TextInputAction.done);
+  await tester.pump();
+  expect(tester.takeException(), isNull);
+});
+testWidgets('keyboard open/close on AI chat composer does not overflow', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/ai');
+  await tester.tap(find.byKey(const ValueKey('ai-composer-field')));
+  await tester.pump();
+  expect(tester.takeException(), isNull);
+  await tester.testTextInput.receiveAction(TextInputAction.done);
+  await tester.pump();
+  expect(tester.takeException(), isNull);
+});
+testWidgets('keyboard open/close on manual entry fields does not overflow', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/manual');
+  await tester.tap(find.byKey(const ValueKey('manual-name-field')));
+  await tester.pump();
+  expect(tester.takeException(), isNull);
+  await tester.testTextInput.receiveAction(TextInputAction.done);
+  await tester.pump();
+  expect(tester.takeException(), isNull);
+});
+testWidgets('camera denial → manual fallback → regrant → back to scan idle renders correctly', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/scan');
+  // Simulate camera permission denial
+  final fakeCamera = FakeCameraService(permissionsDenied: true);
+  // deny -> permission screen -> manual -> regrant -> back to scan_idle
+  expect(find.byType(PermissionScreen), findsOneWidget);
+  // After regrant
+  expect(find.byType(ScanScreen), findsOneWidget);
+  expect(find.byKey(const ValueKey('scan-idle-preview')), findsOneWidget);
+});
+testWidgets('empty state renders on today_empty with no crash', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/today_empty', seed: false);
+  expect(find.byType(TodayScreen), findsOneWidget);
+  expect(find.byKey(const ValueKey('today-empty-copy')), findsOneWidget);
+  expect(tester.takeException(), isNull);
+});
+testWidgets('error state renders on processing with no crash', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/processing');
+  // Simulate processing error
+  expect(find.byKey(const ValueKey('processing-error-icon')), findsOneWidget);
+  expect(find.byKey(const ValueKey('processing-retry-button')), findsOneWidget);
+  expect(tester.takeException(), isNull);
+});
+testWidgets('loading state renders on loading with no crash', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/loading');
+  expect(find.byType(LoadingScreen), findsOneWidget);
+  expect(find.byKey(const ValueKey('loading-staged-label')), findsOneWidget);
+  expect(tester.takeException(), isNull);
+});
+testWidgets('each main screen visited 10× in rapid succession does not corrupt state', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/today');
+  for (var i = 0; i < 10; i++) {
+    await tester.tap(find.byKey(const ValueKey('nav-history')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-scan')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-goals')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-ai')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-today')));
+    await tester.pumpAndSettle();
+  }
+  // No crash, no state leak — Today still shows correct data
+  expect(find.byType(TodayScreen), findsOneWidget);
+  expect(tester.takeException(), isNull);
+});
+testWidgets('cold restart with shifted FakeClock lands on Scan, theme persists, history advances', (tester) async {
+  final fake = FakeClock(tz.TZDateTime(tz.local, 2026, 7, 17, 12, 0));
+  await pumpAppE2E(tester, clock: fake);
+  // Verify Scan is the initial screen
+  expect(find.byType(ScanScreen), findsOneWidget);
+  // Advance 3 days
+  fake.advance(const Duration(days: 3));
+  await tester.pumpAndSettle();
+  // History should show 3 new day rows
+  await tester.tap(find.byKey(const ValueKey('nav-history')));
+  await tester.pumpAndSettle();
+  expect(find.byType(HistoryScreen), findsOneWidget);
+});
+testWidgets('profile opened from Today, Scan, and AI; close returns to each origin respectively', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/today');
+  await tester.tap(find.byKey(const ValueKey('today-avatar')));
+  await tester.pumpAndSettle();
+  expect(find.byType(ProfileSheet), findsOneWidget);
+  await tester.tap(find.byKey(const ValueKey('profile-close')));
+  await tester.pumpAndSettle();
+  expect(find.byType(TodayScreen), findsOneWidget); // returns to Today
+});
+testWidgets('notification tap with stale data does not crash; shows detail without error', (tester) async {
+  await pumpAppE2E(tester);
+  // Simulate stale notification tap (entry already viewed)
+  final route = routeForNotification({'entryId': 'stale-1'}, alreadyViewed: true);
+  expect(route, equals('/today/food/stale-1'));
+  // Navigate to the route — should not crash even if entry is missing
+  expect(tester.takeException(), isNull);
+});
+testWidgets('offline mode: capture queued, no crash, retry fires on connectivity resume', (tester) async {
+  await pumpAppE2E(tester, initialLocation: '/scan');
+  // Simulate offline capture
+  final fakeCamera = FakeCameraService();
+  await tester.tap(find.byKey(const ValueKey('capture-button')));
+  await tester.pumpAndSettle();
+  // Capture should be queued, not lost
+  expect(fakeCamera.captureCount, 1);
+  expect(tester.takeException(), isNull);
+});
+```
+
+- [ ] **Step 14: RED** — Run: `fvm flutter test integration_test/exploratory -d emulator-5554` → Expected: FAIL (some flows loosely wired).
+
+- [ ] **Step 15: GREEN** — Run: same → Expected: all exploratory scenarios PASS. Fix product code via WORKER-RUN until green; each fix recorded in `docs/implementation-status.md`.
+
+#### 18.5 Evidence and Stage Verification
+
+- [ ] **Step 16: Record all evidence** in `docs/implementation-status.md`:
+  - Duration contract table: widget → expected duration → actual duration → match (yes/no)
+  - Frame timing table (from integration_test on device): widget → p50 build (ms) → p95 build (ms) → max build (ms) → p50 raster (ms) → p95 raster (ms) → max raster (ms) → janky frames (60Hz) → total frames → 120Hz status (active/not-applicable) → janky frames (120Hz, if applicable)
+  - Reduced-motion snap table: widget → snaps on frame 1 (yes/no)
+  - Accessibility table: screen ID → androidTapTargetGuideline → labeledTapTargetGuideline → textContrastGuideline
+  - Exploratory table: scenario → pass/fail → device → build hash
+
+- [ ] **Step 17: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+
+- [ ] **Step 18: REVIEW-GATE Task 18** (performance/a11y evidence) until green, then **HANDOFF Task 18**
+
+```powershell
+git add -A
+git commit -m "Add performance measurement, accessibility gates, and exploratory device tests"
+git push
+```
+
+---
+
+### Task 19: Final Static/Unit/Widget/Emulator/Connected-Device/UI-Diff Gates, Evidence Manifest, and Release Decision
+
+The terminal gate task. Runs every verification surface end-to-end, assembles the release evidence manifest, performs the final external no-mutation review, and records the release decision. Nothing ships or is pushed past this point without explicit user confirmation.
+
+**Files:**
+- Create: `docs/release-manifest-2026-07-17.md` (release evidence manifest)
+- Modify: `docs/implementation-status.md` (final gate rows, release decision)
+- Test: re-runs of all test suites (no new test files; this task orchestrates existing ones)
+
+**Interfaces:**
+- Consumes: all evidence from Tasks 0–18
+- Produces: `docs/release-manifest-2026-07-17.md` containing the complete evidence bundle and release decision
+
+#### 19.1 Static Analysis Gate
+
+- [ ] **Step 1: Run** `fvm flutter analyze`
+  Expected: `No issues found!`
+  If failures: record each failure with file:line and specific reason in `docs/implementation-status.md`; remediate via WORKER-RUN; re-run until clean.
+
+#### 19.2 Unit/Widget Test Gate
+
+- [ ] **Step 2: Run** `fvm flutter test`
+  Expected: all tests PASS; zero regressions vs Task 0 baseline counts.
+  Record exact pass/fail counts in `docs/implementation-status.md`.
+
+#### 19.3 Functions Gate
+
+- [ ] **Step 3: Run** `npm --prefix functions run build` → compiles; `npm --prefix functions test` → all PASS.
+  Record script names and pass counts in `docs/implementation-status.md`.
+
+#### 19.4 Emulator Integration/E2E Gate
+
+- [ ] **Step 4: Run** `fvm flutter test integration_test/e2e -d emulator-5554` (emulator launched via `fvm flutter emulators --launch Api35_NoPlay`; Firebase emulators running).
+  Expected: all 13 E2E suites PASS (meal_flow, barcode_flow, label_flow, manual_flow, review_flow, crud, goals_flow, assistant_flow, notification_return, interrupted_upload, profile_return, swipe_nav, device_state).
+  Record suite → pass/fail, device, build hash in `docs/implementation-status.md`.
+
+#### 19.5 Read-Only Live Contract Gate (Environment B)
+
+- [ ] **Step 5: Run** `fvm flutter test test/contracts --tags live`
+  Expected: OFF live contract test PASS (read-only GET against Open Food Facts).
+  Record response snapshot date in `docs/implementation-status.md`.
+
+#### 19.6 Authorization-Blocked Cloud Gates (Environment C) — Recorded as BLOCKED
+
+- [ ] **Step 6: Record** the following gates as **blocked** in `docs/implementation-status.md` with the exact reason: `"requires explicit user authorization and isolated test project"`:
+  - Real cloud model processing (Cloud Functions invoking the vision model against a real image)
+  - Real push notification delivery (Firebase Cloud Messaging to a real device)
+  - Production Firestore write/read (any mutation of live user data)
+  These gates are **never marked passed**. They remain blocked until the user explicitly authorizes an isolated test project.
+
+#### 19.7 UI-Diff Final Gate (Re-verification)
+
+- [ ] **Step 7: Re-run** the 38-state ui-diff loop from Task 17. For each state: verify the existing artifacts are still valid (build hash unchanged, no code delta since Task 17 capture). If any code changed since Task 17, re-capture the affected states and re-run broad→region→target.
+  Expected: 38/38 states pass with `auditLimited: false`, `unresolved: 0`, `verdict: pass`.
+  Record final run IDs in `docs/implementation-status.md`.
+
+#### 19.8 Accessibility and Performance Final Gate
+
+- [ ] **Step 8: Re-run** `fvm flutter test test/a11y/accessibility_guidelines_test.dart` → PASS for all 19 screens. Re-run `fvm flutter test test/performance/animation_duration_test.dart` → PASS. Re-run `fvm flutter test test/performance/reduced_motion_snap_test.dart` → PASS. Re-run `fvm flutter test integration_test/performance/frame_timing_test.dart -d emulator-5554 --profile` → PASS.
+  Record final results in `docs/implementation-status.md`.
+
+#### 19.9 External No-Mutation Review
+
+- [ ] **Step 9: REVIEW-GATE Task 19** — host calls `mcp__antigravity-mcp__ask-ai` with `model: "gemini-3.1-pro-preview"`, `approvalMode: "yolo"`, `conversationId: "calorix-handoff-2026-07-17"`. The prompt includes:
+  - Full diff summary of all changes since baseline
+  - The complete evidence manifest (all test results, ui-diff run IDs, frame budget data, a11y results)
+  - Verbatim: **"Do not edit files, do not run write commands, and do not mutate the repository; only inspect, reason, review, and propose changes for the main agent to apply. Reply with AGREEMENT_STATUS and MUST_FIX."**
+  Green only when response explicitly reports `AGREEMENT_STATUS: agree` AND `MUST_FIX: none`. Apply must-fix feedback via WORKER-RUN and re-review until green.
+
+#### 19.10 Evidence Manifest Assembly
+
+- [ ] **Step 10: Create** `docs/release-manifest-2026-07-17.md` using a manifest generator that writes **only actual collected results**. The manifest is **not** a template with predeclared outcomes — it is a schema-driven document where every field is populated from real data. If a field cannot be populated (e.g., a test was not run, a gate was not checked), the manifest **blocks** and reports the missing field rather than inserting a placeholder.
+
+**Manifest schema** (required fields — all must be present with actual values; the plan lists fields but never predeclares their outcomes):
+
+The manifest is structured as a prose/field-schema table, not a YAML sample with synthetic value placeholders. Each section defines entity cardinality, required field names, allowed enums, the source artifact, and completeness validation. No example result values are shown; `generate_manifest.ps1` materializes every row from collected evidence and fails closed if any required field is missing.
+
+| Section | Entity | Cardinality | Required fields | Allowed enums / types | Source artifact | Completeness rule |
+|---|---|---|---|---|---|---|
+| `build` | row | 1 | `commit`, `flutter`, `buildHash`, `apkHash` | string (hex SHA-256 for hashes) | `git rev-parse HEAD`, `fvm flutter --version`, `.ui-diff/captures/<date>/build-manifest.json` | All four fields non-empty |
+| `gates.static_analysis` | row | 1 | `command`, `result`, `evidence` | `PASS` or `FAIL` | `fvm flutter analyze` output | `result` is `PASS` or `FAIL`; `evidence` is verbatim snippet |
+| `gates.unit_widget_tests` | row | 1 | `command`, `passed`, `failed`, `total`, `evidence` | integer counts | `fvm flutter test` output | `passed + failed == total`; counts non-negative |
+| `gates.functions_build` | row | 1 | `command`, `result`, `evidence` | `PASS` or `FAIL` | `npm --prefix functions run build` output | `result` is `PASS` or `FAIL` |
+| `gates.functions_tests` | row | 1 | `command`, `passed`, `failed`, `evidence` | integer counts | `npm --prefix functions test` output | `passed + failed` consistent with test runner |
+| `gates.e2e_emulator` | rows | 13 | `name`, `result`, `device`, `buildHash` per suite | `PASS` or `FAIL` | `fvm flutter test integration_test/e2e -d emulator-5554` output | All 13 suite rows present |
+| `gates.live_contract` | row | 1 | `command`, `result`, `snapshotDate` | `PASS` or `FAIL`, ISO date | `fvm flutter test test/contracts --tags live` output | `result` non-empty; `snapshotDate` valid ISO date |
+| `gates.cloud_writes` | row | 1 | `result`, `reason` | `BLOCKED` only | manual record | `result` is `BLOCKED`; `reason` is exact string |
+| `visual_gates.states` | rows | 38 | `state`, `runId`, `fixtureProfile`, `broad`, `regions`, `targets`, `verdict` | `pass` or `fail` per tier | `.ui-diff/runs/<runId>/` reports | All 38 rows present; each field non-empty |
+| `performance_gates.duration_contracts` | rows | per animated widget | `widget`, `expected`, `actual`, `match` | `yes` or `no` | `test/performance/animation_duration_test.dart` output | One row per widget; `match` computed from `expected == actual` |
+| `performance_gates.frame_timing` | rows | per animated widget | `widget`, `p50Build`, `p95Build`, `maxBuild`, `p50Raster`, `p95Raster`, `maxRaster`, `jankyFrames60Hz`, `totalFrames`, `hz120Status`, `jankyFrames120Hz` | numeric ms; `active` or `not-applicable` | `integration_test/performance/frame_timing_test.dart` output | One row per widget; all ms fields non-negative |
+| `performance_gates.reduced_motion` | rows | per animated widget | `widget`, `snapsOnFrame1` | `yes` or `no` | `test/performance/reduced_motion_snap_test.dart` output | One row per widget |
+| `accessibility_gates` | rows | 19 | `screen`, `androidTapTarget`, `labeledTapTarget`, `textContrast` | `PASS` or `FAIL` per guideline | `test/a11y/accessibility_guidelines_test.dart` output | 19 rows; each guideline field present |
+| `exploratory_testing` | rows | per scenario | `scenario`, `result`, `device` | `PASS` or `FAIL` | `integration_test/exploratory/device_state_exploration.dart` output | One row per scenario |
+| `known_deviations` | rows | 2 | `description` | free text | plan spec §3.1, §4 | Exactly 2 rows |
+| `external_review` | row | 1 | `reviewer`, `conversationId`, `agreementStatus`, `mustFix`, `gitStatusAfterReview` | `agree`/`disagree`; `none`/comma-separated list; `clean`/`dirty` | Antigravity MCP response + `git status` | `agreementStatus` is `agree` only if reviewer explicitly said so |
+| `release_decision` | row | 1 | `all_gates_pass_or_blocked`, `evidence_manifest_complete`, `external_review_green`, `ready_for_user_confirmation` | boolean | computed from above rows | All four booleans present; `ready_for_user_confirmation` is conjunction |
+
+The manifest generator (`tool/manifest/generate_manifest.ps1`) reads actual results from `docs/implementation-status.md` and the `.ui-diff/` artifacts, populates every schema field, and **blocks** if any required field is missing or empty. The plan lists required fields but must never predeclare their outcomes. No PASS, green, clean, or placeholder values may appear in the manifest — every cell contains an actual observed value.
+
+#### 19.11 Status Updates and Commit/Push Checkpoint
+
+- [ ] **Step 11: Update** `docs/implementation-status.md` — all task rows → done; all evidence links populated; blocked gates listed in `## Blocked gates` section; release decision recorded.
+
+- [ ] **Step 12: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions; `git status` shows only intended files.
+
+- [ ] **Step 13: HANDOFF Task 19**
+
+```powershell
+git add -A
+git commit -m "Assemble release evidence manifest and final verification gates"
+git push
+```
+
+---
+
+## Traceability Matrix
+
+Maps every user requirement, all 19 canonical screen IDs, and both themes/38 states to owning tasks, concrete tests, and evidence artifacts.
+
+### User Requirements → Tasks → Tests → Evidence
+
+| Req ID | Requirement | Tasks | Concrete Tests | Evidence Artifact |
+|---|---|---|---|---|
+| R-NAV | Flat five-tab nav with horizontal swipes, no FAB | 1, 2 | `spike_conflict_test.dart`, `tab_swipe_shell_test.dart`, `origin_return_test.dart`, `app_shell_test.dart` | Task 17 states `scan_idle--dark/light`, `today--dark/light`; `swipe_nav_test.dart` |
+| R-CAM | Camera-first still-photo capture, no video | 6 | `capture_guard_test.dart`, `scan_screen_test.dart`, `scan_mode_selector_test.dart` | Task 17 states `scan_idle`, `scan_capturing` |
+| R-PERM | Permission screen with platform UX, add-manually fallback | 6 | `permission_screen_test.dart` | Task 17 states `permission--dark/light` |
+| R-PROC | Processing screen with close-app banner, skeleton shimmer | 7 | `processing_lifecycle_test.dart`, `upload_queue_test.dart` | Task 17 states `processing--dark/light` |
+| R-NOTIF | Push notification returns user to results | 7, 16 | `notification_routing_test.dart`, `notification_return_test.dart` | `notification_return_test.dart` pass |
+| R-REVIEW | Low-confidence review branch (<80%), candidate selection | 8 | `review_screen_test.dart` | Task 17 states `review--dark/light` |
+| R-MANUAL | Manual entry reachable from permission/review/manual action | 8 | `manual_entry_screen_test.dart` | Task 17 states `manual--dark/light` |
+| R-TODAY | Today dashboard with macro ring, count-up, aggregation | 11 | `aggregation_truth_test.dart`, `today_screen_test.dart` | Task 17 states `today`, `today_empty` (dark/light) |
+| R-FOOD | Food detail with serving multiplier, CRUD, corrections | 10 | `serving_multiplier_test.dart`, `food_crud_test.dart`, `food_detail_sheet_test.dart` | Task 17 states `food`, `food_edit` (dark/light) |
+| R-HIST | History week/month with time travel, sparkline, drilldown | 12 | `history_time_travel_test.dart`, `history_screen_test.dart` | Task 17 states `history_week`, `history_month` (dark/light) |
+| R-GOALS | Goals with body-goal, slider, macro split, weight log | 13 | `goals_persistence_test.dart`, `goals_screen_test.dart` | Task 17 states `goals`, `goals_select` (dark/light) |
+| R-AI | Assistant chat with confirmation, history, server context | 14 | `thread_repository_test.dart`, `ai_chat_screen_test.dart`, `ai_history_screen_test.dart`, `ai-chat.test.ts`, `ai-threads-rules.test.ts` | Task 17 states `ai`, `ai_history` (dark/light) |
+| R-PROFILE | Profile with theme/units/notifications, origin return | 15 | `profile_sheet_test.dart`, `onboarding_test.dart` | Task 17 states `profile--dark/light` |
+| R-LOADING | Loading screen with staged labels, splash beat | 15 | `onboarding_test.dart` | Task 17 states `loading--dark/light` |
+| R-LOGIN | Login with email/password, guest, keyboard avoidance | 15 | `onboarding_test.dart` | Task 17 states `login--dark/light` |
+| R-CLK | Injectable product clock with IANA tz database, time-shift + DST boundary tests | 3 | `clock_test.dart`, `time_shift_test.dart`, `timezone_boundary_test.dart` | `time_shift_test.dart` pass (10 scenarios), `timezone_boundary_test.dart` pass |
+| R-MOTION | Motion policy, reduced-motion snap, RepaintBoundary | 4, 18 | `app_motion_test.dart`, `reduced_motion_snap_test.dart`, `animation_duration_test.dart`, `frame_timing_test.dart` | Task 18 duration contract table, frame timing table, reduced-motion table |
+| R-A11Y | Accessibility: 44px targets, labels, contrast, no color-only | 4, 18 | `accessibility_guidelines_test.dart` (19 screens) | Task 18 a11y table |
+| R-FIX | Deterministic fixture, deep-link harness, stale-build capture | 5 | `deep_link_matrix_test.dart`, `fixture_isolation_test.dart`, `debug_reseed_test.dart` | Task 17 build manifest, 38 meta JSONs |
+| R-CRUD | Full CRUD for entries, goals, weight, chat | 10, 13, 14 | `food_crud_test.dart`, `goals_persistence_test.dart`, `thread_repository_test.dart` | `crud_test.dart` E2E pass |
+| R-DRAFT | Draft policies: confirm destructive exit, discard notice | 3 | `draft_policy_test.dart` | Draft policy tests pass |
+| R-THEME | Dark and light theme support across all screens | 6–15 | All screen tests run with both themes; Task 17 captures 38 states | 38 ui-diff artifacts (19 IDs × 2 themes) |
+| R-OFFLINE | Offline/retry for upload queue | 7, 16 | `upload_queue_test.dart`, `interrupted_upload_test.dart` | `interrupted_upload_test.dart` E2E pass |
+| R-SECURITY | Firebase auth-only, Firestore owner-only rules | 14 | `ai-threads-rules.test.ts`, `ai-chat.test.ts` | Functions emulator rules tests pass |
+
+### Canonical Screen IDs × Themes → Tasks → Tests → Evidence
+
+| # | ID | Owning Task(s) | Theme | ui-diff State | Test Files | Evidence Artifact |
+|---|---|---|---|---|---|---|
+| 1 | loading | 15 | dark | `loading--dark` | `onboarding_test.dart` | `.ui-diff/captures/<date>/loading--dark.png` + `.meta.json` |
+| 1 | loading | 15 | light | `loading--light` | `onboarding_test.dart` | `.ui-diff/captures/<date>/loading--light.png` + `.meta.json` |
+| 2 | login | 15 | dark | `login--dark` | `onboarding_test.dart` | `.ui-diff/captures/<date>/login--dark.png` + `.meta.json` |
+| 2 | login | 15 | light | `login--light` | `onboarding_test.dart` | `.ui-diff/captures/<date>/login--light.png` + `.meta.json` |
+| 3 | permission | 6, 15 | dark | `permission--dark` | `permission_screen_test.dart` | `.ui-diff/captures/<date>/permission--dark.png` + `.meta.json` |
+| 3 | permission | 6, 15 | light | `permission--light` | `permission_screen_test.dart` | `.ui-diff/captures/<date>/permission--light.png` + `.meta.json` |
+| 4 | scan_idle | 2, 6 | dark | `scan_idle--dark` | `capture_guard_test.dart`, `scan_screen_test.dart` | `.ui-diff/captures/<date>/scan_idle--dark.png` + `.meta.json` |
+| 4 | scan_idle | 2, 6 | light | `scan_idle--light` | `capture_guard_test.dart`, `scan_screen_test.dart` | `.ui-diff/captures/<date>/scan_idle--light.png` + `.meta.json` |
+| 5 | scan_capturing | 6 | dark | `scan_capturing--dark` | `capture_guard_test.dart` | `.ui-diff/captures/<date>/scan_capturing--dark.png` + `.meta.json` |
+| 5 | scan_capturing | 6 | light | `scan_capturing--light` | `capture_guard_test.dart` | `.ui-diff/captures/<date>/scan_capturing--light.png` + `.meta.json` |
+| 6 | processing | 7 | dark | `processing--dark` | `processing_lifecycle_test.dart` | `.ui-diff/captures/<date>/processing--dark.png` + `.meta.json` |
+| 6 | processing | 7 | light | `processing--light` | `processing_lifecycle_test.dart` | `.ui-diff/captures/<date>/processing--light.png` + `.meta.json` |
+| 7 | review | 8 | dark | `review--dark` | `review_screen_test.dart` | `.ui-diff/captures/<date>/review--dark.png` + `.meta.json` |
+| 7 | review | 8 | light | `review--light` | `review_screen_test.dart` | `.ui-diff/captures/<date>/review--light.png` + `.meta.json` |
+| 8 | manual | 8 | dark | `manual--dark` | `manual_entry_screen_test.dart` | `.ui-diff/captures/<date>/manual--dark.png` + `.meta.json` |
+| 8 | manual | 8 | light | `manual--light` | `manual_entry_screen_test.dart` | `.ui-diff/captures/<date>/manual--light.png` + `.meta.json` |
+| 9 | today | 11 | dark | `today--dark` | `aggregation_truth_test.dart`, `today_screen_test.dart` | `.ui-diff/captures/<date>/today--dark.png` + `.meta.json` |
+| 9 | today | 11 | light | `today--light` | `aggregation_truth_test.dart`, `today_screen_test.dart` | `.ui-diff/captures/<date>/today--light.png` + `.meta.json` |
+| 10 | today_empty | 11 | dark | `today_empty--dark` | `today_screen_test.dart` | `.ui-diff/captures/<date>/today_empty--dark.png` + `.meta.json` |
+| 10 | today_empty | 11 | light | `today_empty--light` | `today_screen_test.dart` | `.ui-diff/captures/<date>/today_empty--light.png` + `.meta.json` |
+| 11 | food | 10 | dark | `food--dark` | `food_detail_sheet_test.dart` | `.ui-diff/captures/<date>/food--dark.png` + `.meta.json` |
+| 11 | food | 10 | light | `food--light` | `food_detail_sheet_test.dart` | `.ui-diff/captures/<date>/food--light.png` + `.meta.json` |
+| 12 | food_edit | 10 | dark | `food_edit--dark` | `food_detail_sheet_test.dart` | `.ui-diff/captures/<date>/food_edit--dark.png` + `.meta.json` |
+| 12 | food_edit | 10 | light | `food_edit--light` | `food_detail_sheet_test.dart` | `.ui-diff/captures/<date>/food_edit--light.png` + `.meta.json` |
+| 13 | history_week | 12 | dark | `history_week--dark` | `history_time_travel_test.dart`, `history_screen_test.dart` | `.ui-diff/captures/<date>/history_week--dark.png` + `.meta.json` |
+| 13 | history_week | 12 | light | `history_week--light` | `history_time_travel_test.dart`, `history_screen_test.dart` | `.ui-diff/captures/<date>/history_week--light.png` + `.meta.json` |
+| 14 | history_month | 12 | dark | `history_month--dark` | `history_time_travel_test.dart`, `history_screen_test.dart` | `.ui-diff/captures/<date>/history_month--dark.png` + `.meta.json` |
+| 14 | history_month | 12 | light | `history_month--light` | `history_time_travel_test.dart`, `history_screen_test.dart` | `.ui-diff/captures/<date>/history_month--light.png` + `.meta.json` |
+| 15 | goals | 13 | dark | `goals--dark` | `goals_persistence_test.dart`, `goals_screen_test.dart` | `.ui-diff/captures/<date>/goals--dark.png` + `.meta.json` |
+| 15 | goals | 13 | light | `goals--light` | `goals_persistence_test.dart`, `goals_screen_test.dart` | `.ui-diff/captures/<date>/goals--light.png` + `.meta.json` |
+| 16 | goals_select | 13 | dark | `goals_select--dark` | `goals_screen_test.dart` | `.ui-diff/captures/<date>/goals_select--dark.png` + `.meta.json` |
+| 16 | goals_select | 13 | light | `goals_select--light` | `goals_screen_test.dart` | `.ui-diff/captures/<date>/goals_select--light.png` + `.meta.json` |
+| 17 | ai | 14 | dark | `ai--dark` | `ai_chat_screen_test.dart` | `.ui-diff/captures/<date>/ai--dark.png` + `.meta.json` |
+| 17 | ai | 14 | light | `ai--light` | `ai_chat_screen_test.dart` | `.ui-diff/captures/<date>/ai--light.png` + `.meta.json` |
+| 18 | ai_history | 14 | dark | `ai_history--dark` | `ai_history_screen_test.dart` | `.ui-diff/captures/<date>/ai_history--dark.png` + `.meta.json` |
+| 18 | ai_history | 14 | light | `ai_history--light` | `ai_history_screen_test.dart` | `.ui-diff/captures/<date>/ai_history--light.png` + `.meta.json` |
+| 19 | profile | 15 | dark | `profile--dark` | `profile_sheet_test.dart` | `.ui-diff/captures/<date>/profile--dark.png` + `.meta.json` |
+| 19 | profile | 15 | light | `profile--light` | `profile_sheet_test.dart` | `.ui-diff/captures/<date>/profile--light.png` + `.meta.json` |
+
+### Evidence Artifact Inventory
+
+| Artifact | Location | Producing Task | Consuming Gate |
+|---|---|---|---|
+| Build manifest | `.ui-diff/captures/<date>/build-manifest.json` | 17 | 17, 19 |
+| 38 PNG captures | `.ui-diff/captures/<date>/<id>--<theme>.png` | 17 | 17, 19 |
+| 38 meta JSONs | `.ui-diff/captures/<date>/<id>--<theme>.meta.json` | 17 | 17, 19 |
+| Broad reports | `.ui-diff/runs/<runId>/broad.json` | 17 | 17, 19 |
+| Region reports | `.ui-diff/runs/<runId>/regions.json` | 17 | 17, 19 |
+| Target reports | `.ui-diff/runs/<runId>/targets.json` | 17 | 17, 19 |
+| Frame budget table | `docs/implementation-status.md` §Performance | 18 | 19 |
+| Reduced-motion table | `docs/implementation-status.md` §Performance | 18 | 19 |
+| Accessibility table | `docs/implementation-status.md` §A11y | 18 | 19 |
+| Exploratory table | `docs/implementation-status.md` §Exploratory | 18 | 19 |
+| E2E results | `docs/implementation-status.md` §E2E | 16 | 19 |
+| Functions test results | `docs/implementation-status.md` §Functions | 9, 14 | 19 |
+| Release manifest | `docs/release-manifest-2026-07-17.md` | 19 | User review |
+| External review gate | `docs/implementation-status.md` §Review log | 19 | 19 |
+| Blocked gates | `docs/implementation-status.md` §Blocked gates | 19 | 19 |
+
+
