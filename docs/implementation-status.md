@@ -21,7 +21,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | Task | Status | Worker used | Review gate | Commit | Evidence |
 |---|---|---|---|---|---|
 | 0 | done | host (bookkeeping) | n/a (bookkeeping) | cacca80 | toolchain health above |
-| 1 | verified; ready for commit | OpenCode (bounded edits); host orchestration | pre-implementation review (green) | — | Pre-cleanup comparison 12/12 total (A 6/6, B 6/6); analyzer clean from comparison stage; decision A; rationale A ~43 lines/native PageView vs B 186 custom recognizer lines; Antigravity conversation calorix-navigation-spike-20260717 green: AGREEMENT_STATUS agree, MUST_FIX none; first review's 3 must-fix applied; post-cleanup A-only focused test 6/6 passed; fvm flutter analyze clean; spike_shell_b.dart deleted; device/emulator safety restriction applies — see Task 1 note |
+| 1 | done | OpenCode (bounded edits); host orchestration | pre-implementation review (green) | 0242317 | Pre-cleanup comparison 12/12 total (A 6/6, B 6/6); analyzer clean from comparison stage; decision A; rationale A ~43 lines/native PageView vs B 186 custom recognizer lines; Antigravity conversation calorix-navigation-spike-20260717 green: AGREEMENT_STATUS agree, MUST_FIX none; first review's 3 must-fix applied; post-cleanup A-only focused test 6/6 passed; fvm flutter analyze clean; spike_shell_b.dart deleted; device/emulator safety restriction applies — see Task 1 note; commit 0242317 pushed to origin/main; focused test 6/6 passed; fvm flutter analyze: No issues found; runtime/device verification deliberately not performed — blocked by explicit user safety restriction |
 | 2–19 | pending | — | — | — | — |
 
 **Task 0 commit:** cacca80
@@ -85,10 +85,20 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 
 ## Current Task
 
-**Task 1 verified; ready for commit.**
+**Task 2 — pending / start-ready.**
 
-Verification:
-- `fvm flutter test test/spike_nav/spike_conflict_test.dart` → 6/6 passed
-- `fvm flutter analyze` → No issues found
+No Task 2 implementation has started.
 
-Next: review intended diff, commit, and push.
+Intended RED command:
+```
+fvm flutter test test/router/origin_return_test.dart test/shell/tab_swipe_shell_test.dart test/app_shell_test.dart
+```
+
+Next: run the RED command to confirm test failures before implementation.
+
+## Progress log
+
+| Date | Task | Event |
+|---|---|---|
+| 2026-07-17 | 1 | HANDOFF complete — commit 0242317 pushed; focused test 6/6; analyze clean; runtime verification skipped per user safety restriction |
+| 2026-07-17 | 2 | Status set pending/start-ready; no implementation started |

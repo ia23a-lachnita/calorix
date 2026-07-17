@@ -252,7 +252,7 @@ Expected: PASS for at least one approach across all six behaviors. If only one a
 
 - [x] **Step 6: Decide, gate, and delete the rejected spike** — host records the decision + rationale + per-approach test results in `docs/implementation-status.md`; REVIEW-GATE Task 1 (pre-implementation architecture gate) until green; then `git rm lib/debug/spike_nav/spike_shell_<rejected>.dart` (keep the winner and harness until Task 2 absorbs them).
 
-- [ ] **Step 7: HANDOFF Task 1**
+- [x] **Step 7: HANDOFF Task 1**
 
 ```powershell
 fvm flutter analyze
