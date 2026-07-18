@@ -708,7 +708,7 @@ git push
 
 **Interfaces:**
 - Consumes: `clockProvider` (Task 3); router (Task 2).
-- Produces: deep-link map `kDebugScreenRoutes: Map<String, String>` with exactly the 19 canonical IDs as keys (used by Tasks 16/17); `tool/ui_capture/capture_states.ps1 -Screens <ids|all> -Themes dark,light` producing `<id>--<theme>.png` + `<id>--<theme>.meta.json` (buildHash, route, theme, fixtureHash, deviceModel, pixelSize) under `.ui-diff/captures/<date>/`; fixture contents per spec §10.2 (3 food entries: high-conf, low-conf, editing; 7 days history; 2 weight logs; 1 active plan; 1 chat thread).
+- Produces: typed target registry `kDebugScreenTargets: Map<String, DebugScreenTarget>` with exactly the 19 canonical IDs as keys and explicit route/availability (used by Tasks 16/17); `tool/ui_capture/capture_states.ps1 -Screens <ids|all> -Themes dark,light` producing `<id>--<theme>.png` + `<id>--<theme>.meta.json` (buildHash, route, theme, fixtureHash, deviceModel, pixelSize) under `.ui-diff/captures/<date>/`; fixture contents per spec §10.2 (3 visible food entries including high-confidence and low-confidence/review states; 7 days history; 2 weight logs; 1 active plan; 1 chat thread).
 
 Safety and determinism details:
 - `forceReseedForUiDiff` must throw `UnsupportedError` when `!kDebugMode`; an `assert` or silent return is insufficient. The route is also omitted outside debug builds.
@@ -722,8 +722,8 @@ Safety and determinism details:
 
 ```dart
 // test/debug/deep_link_matrix_test.dart
-test('debug route map covers all 19 canonical IDs exactly', () {
-  expect(kDebugScreenRoutes.keys.toSet(), {
+test('debug target registry covers all 19 canonical IDs exactly', () {
+  expect(kDebugScreenTargets.keys.toSet(), {
     'loading','login','permission','scan_idle','scan_capturing','processing','review','manual',
     'today','today_empty','food','food_edit','history_week','history_month',
     'goals','goals_select','ai','ai_history','profile',
@@ -731,11 +731,14 @@ test('debug route map covers all 19 canonical IDs exactly', () {
 });
 
 // test/debug/fixture_isolation_test.dart
-test('production aggregation ignores the fixture hero override', () {
-  // seed the three fixture entries; real sum must be 845 kcal / 74 P / 92 C / 20 F
-  expect(aggregate(fixtureEntries).kcal, 845);
+test('fixture raw card sum and production accepted sum stay distinct', () {
+  // Three visible cards raw-sum to 845 kcal / 74 P / 92 C / 20 F.
+  // Production accepted aggregation is 800 kcal because the 45-kcal,
+  // 62%-confidence card remains excluded until user confirmation.
+  expect(rawCardSum(fixtureEntries).kcal, 845);
+  expect(acceptedAggregate(fixtureEntries).kcal, 800);
 });
-testWidgets('hero shows 1420 only when uiDiffFixtureEnabledProvider is true', (tester) async { /* override on → 1,420; off → 845 */ });
+testWidgets('hero shows 1420 only when uiDiffFixtureEnabledProvider is true', (tester) async { /* fixture on → 1,420; off → accepted production sum 800 */ });
 
 // test/debug_reseed_test.dart (extend)
 test('forceReseedForUiDiff is idempotent', () async { /* reseed twice through in-memory fixture store; compare canonical snapshots + hashes */ });
