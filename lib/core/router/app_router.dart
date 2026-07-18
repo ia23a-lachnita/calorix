@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'route_names.dart';
+import 'route_fallback.dart';
 import '../../debug/debug_deep_links.dart';
 import '../../debug/debug_reseed_screen.dart';
 import '../../shell/app_shell.dart';
@@ -227,6 +228,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             );
           },
           transitionDuration: const Duration(milliseconds: 320),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.permission,
+        name: RouteNames.permission,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => ScanScreen(
+          onPermissionGranted: () {
+            if (context.mounted) popOrGo(context, RoutePaths.scan);
+          },
+          onManualEntryRequested: () {
+            // Task 8 owns the manual route. Direct permission deep links
+            // return to Scan until that destination is introduced.
+            popOrGo(context, RoutePaths.scan);
+          },
         ),
       ),
       if (kDebugMode)

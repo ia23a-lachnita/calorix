@@ -11,24 +11,43 @@ import 'package:calorix/shared/services/camera_service.dart';
 class FakeCameraService implements CameraService {
   bool granted = true;
   bool holdCapture = false;
+  bool returnNullFile = false;
+  bool throwOnCapture = false;
+  bool grantOnRequest = false;
+  CameraPermissionRequestResult permissionRequestResult =
+      CameraPermissionRequestResult.denied;
   int captureCount = 0;
   int libraryCount = 0;
   int requestPermissionCount = 0;
+  int hasPermissionCallCount = 0;
 
   final List<Completer<XFile?>> _pendingCaptures = [];
 
   @override
-  Future<bool> hasPermission() async => granted;
+  Future<bool> hasPermission() async {
+    hasPermissionCallCount++;
+    return granted;
+  }
 
   @override
-  Future<bool> requestPermission() async {
+  Future<CameraPermissionRequestResult> requestPermission() async {
     requestPermissionCount++;
-    return granted;
+    if (grantOnRequest) {
+      granted = true;
+      return CameraPermissionRequestResult.granted;
+    }
+    return permissionRequestResult;
   }
 
   @override
   Future<XFile?> captureStill() async {
     captureCount++;
+    if (throwOnCapture) {
+      throw Exception('fake capture failure');
+    }
+    if (returnNullFile) {
+      return null;
+    }
     if (holdCapture) {
       final completer = Completer<XFile?>();
       _pendingCaptures.add(completer);

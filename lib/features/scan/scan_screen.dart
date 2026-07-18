@@ -1,17 +1,21 @@
-import 'dart:math' as math;
+import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'providers/scan_providers.dart';
+import 'widgets/capture_button.dart';
+import 'widgets/scan_mode_selector.dart';
+import 'permission_screen.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/motion/app_motion.dart';
 import '../../core/router/route_names.dart';
-import '../../core/time/clock_provider.dart';
 import '../../shared/providers/auth_provider.dart';
-import '../../shared/services/upload_queue_service.dart';
+import '../../shared/providers/ui_diff_provider.dart';
+import '../../shared/services/camera_service.dart';
+import '../../debug/debug_deep_links.dart';
 
 /// Camera chrome tint per cx-screen-scan.jsx (dark liquid-glass).
 const _chipBg = Color(0x8C14181E); // rgba(20,24,30,0.55)
@@ -19,7 +23,16 @@ const _chipBorder = Color(0x1FFFFFFF); // rgba(255,255,255,0.12)
 const _chipInk = Color(0xFFF2F3F5);
 
 class ScanScreen extends ConsumerStatefulWidget {
-  const ScanScreen({super.key});
+  const ScanScreen({
+    super.key,
+    this.onManualEntryRequested,
+    this.onRecentRequested,
+    this.onPermissionGranted,
+  });
+
+  final VoidCallback? onManualEntryRequested;
+  final VoidCallback? onRecentRequested;
+  final VoidCallback? onPermissionGranted;
 
   @override
   ConsumerState<ScanScreen> createState() => _ScanScreenState();
@@ -27,122 +40,169 @@ class ScanScreen extends ConsumerStatefulWidget {
 
 class _ScanScreenState extends ConsumerState<ScanScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-  CameraController? _cameraController;
-  late final AnimationController _captureRingController;
   late final AnimationController _shimmerController;
+  late final CameraLifecycleService _cameraLifecycle;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _captureRingController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    );
+    _cameraLifecycle = ref.read(cameraLifecycleServiceProvider);
     _shimmerController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1600),
+      duration: MotionDurations.scanShimmer,
     );
-    _initCamera();
+    _checkPermission();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _initCamera();
-    if (state == AppLifecycleState.inactive) _disposeCamera();
-  }
-
-  Future<void> _initCamera() async {
-    try {
-      final cameras = await availableCameras();
-      if (cameras.isEmpty || !mounted) return;
-      final controller = CameraController(
-        cameras.first,
-        ResolutionPreset.high,
-        enableAudio: false,
-      );
-      await controller.initialize();
-      if (!mounted) {
-        controller.dispose();
-        return;
-      }
-      setState(() => _cameraController = controller);
-    } catch (_) {
-      // Camera unavailable (emulator, permission denied, hardware issue)
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_resumeAndRecheckPermission());
+    } else if (state == AppLifecycleState.inactive) {
+      unawaited(_cameraLifecycle.pause());
     }
   }
 
-  void _disposeCamera() {
-    _cameraController?.dispose();
-    _cameraController = null;
+  Future<void> _resumeAndRecheckPermission() async {
+    await _checkPermission();
+  }
+
+  Future<void> _checkPermission() async {
+    final service = ref.read(cameraServiceProvider);
+    var granted = await service.hasPermission();
+    if (granted) {
+      try {
+        await _cameraLifecycle.resume();
+      } catch (_) {
+        granted = false;
+      }
+    }
+    if (!mounted) return;
+    ref.read(captureStateProvider.notifier).state =
+        granted ? CaptureState.idle : CaptureState.denied;
+    // The initial state is already idle, so a successful camera startup does
+    // not notify Riverpod. Rebuild explicitly to reveal the new controller.
+    setState(() {});
+    unawaited(_emitDeferredCaptureSignal(granted: granted));
+    if (granted) widget.onPermissionGranted?.call();
+  }
+
+  Future<void> _regrantCamera() async {
+    final settings = ref.read(cameraSettingsServiceProvider);
+    if (await settings.requiresSettings()) {
+      await settings.openSettings();
+      return;
+    }
+    final result = await ref.read(cameraServiceProvider).requestPermission();
+    switch (result) {
+      case CameraPermissionRequestResult.granted:
+        await _checkPermission();
+      case CameraPermissionRequestResult.settingsRequired:
+        await settings.openSettings();
+      case CameraPermissionRequestResult.denied:
+        break;
+    }
+  }
+
+  Future<void> _emitDeferredCaptureSignal({required bool granted}) async {
+    final signal = ref.read(uiDiffPendingCaptureSignalProvider);
+    if (signal == null || signal.screenId != 'scan_idle') return;
+    final line = granted
+        ? signal.line
+        : UiDiffCaptureSignal.blocked(
+            nonce: signal.nonce,
+            screenId: signal.screenId,
+            reason: 'camera_permission_denied',
+          ).line;
+    // A post-frame callback runs before the engine has necessarily rasterized
+    // and composited that frame. Three completed frames keep debug captures
+    // from observing partially painted text/icon layers on physical devices.
+    for (var frame = 0; frame < 3; frame++) {
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted || ref.read(uiDiffPendingCaptureSignalProvider) != signal) {
+      return;
+    }
+    debugPrint(line);
+    ref.read(uiDiffPendingCaptureSignalProvider.notifier).state = null;
+  }
+
+  void _addManually() {
+    // Task 8 owns the destination. Task 6 exposes a real, testable intent
+    // rather than guessing a temporary route that would mislead users.
+    widget.onManualEntryRequested?.call();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _captureRingController.dispose();
+    unawaited(_cameraLifecycle.dispose());
     _shimmerController.dispose();
-    _disposeCamera();
     super.dispose();
   }
 
-  Future<void> _capture() async {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return;
-    }
-    final captureState = ref.read(captureStateProvider);
-    if (captureState == CaptureState.capturing) {
-      ref.read(captureStateProvider.notifier).state = CaptureState.idle;
-      _captureRingController.stop();
-      _shimmerController.stop();
-      return;
-    }
-
+  /// Shared guarded path for both the shutter and the LIBRARY chip: while
+  /// not idle, taps are a strict no-op (no toggle-back, no stop control).
+  Future<void> _runCapture(
+    Future<XFile?> Function(CameraService service) captureFn,
+  ) async {
+    if (ref.read(captureStateProvider) != CaptureState.idle) return;
     ref.read(captureStateProvider.notifier).state = CaptureState.capturing;
-    _captureRingController.repeat();
     _shimmerController.repeat();
-
     try {
-      final file = await _cameraController!.takePicture();
+      final service = ref.read(cameraServiceProvider);
+      final file = await captureFn(service);
+      if (file == null) return;
       await _processImage(file.path);
-    } catch (e) {
-      ref.read(captureStateProvider.notifier).state = CaptureState.idle;
-      _captureRingController.stop();
-      _shimmerController.stop();
+    } catch (_) {
+      // Processing errors return the UI to idle; Task 7 owns retry UX.
+    } finally {
+      _resetToIdle();
     }
   }
 
-  Future<void> _pickFromLibrary() async {
-    final picker = ImagePicker();
-    final file =
-        await picker.pickImage(source: ImageSource.gallery, imageQuality: 90);
-    if (file == null) return;
-    ref.read(captureStateProvider.notifier).state = CaptureState.capturing;
-    await _processImage(file.path);
+  void _resetToIdle() {
+    if (!mounted) return;
+    ref.read(captureStateProvider.notifier).state = CaptureState.idle;
+    _shimmerController.stop();
   }
+
+  Future<void> _capture() => _runCapture((service) => service.captureStill());
+
+  Future<void> _pickFromLibrary() =>
+      _runCapture((service) => service.pickFromLibrary());
 
   Future<void> _processImage(String path) async {
     final uid = ref.read(currentUidProvider);
     if (uid == null) return;
     final scanMode = ref.read(scanModeProvider);
-    final service = UploadQueueService(ref.read(clockProvider));
-    final entryId = await service.enqueueAndUpload(
-      localPath: path,
-      uid: uid,
-      scanMode: scanMode.name,
-    );
+    final entryId = await ref.read(scanUploadGatewayProvider).enqueueAndUpload(
+          localPath: path,
+          uid: uid,
+          scanMode: scanMode.name,
+        );
     if (!mounted) return;
-    ref.read(captureStateProvider.notifier).state = CaptureState.idle;
-    _captureRingController.stop();
-    _shimmerController.stop();
     context.goNamed(RouteNames.processing, pathParameters: {'id': entryId});
   }
 
   @override
   Widget build(BuildContext context) {
     final captureState = ref.watch(captureStateProvider);
+
+    if (captureState == CaptureState.denied) {
+      return PermissionScreen(
+        onOpenSettings: _regrantCamera,
+        onAddManually: _addManually,
+      );
+    }
+
     final scanMode = ref.watch(scanModeProvider);
     final isCapturing = captureState == CaptureState.capturing;
+    final cameraService = ref.watch(cameraServiceProvider);
+    final deviceService =
+        cameraService is DeviceCameraService ? cameraService : null;
+    final previewController = deviceService?.previewController;
     // With extendBody the scaffold reports the nav height as bottom padding.
     final navHeight = MediaQuery.paddingOf(context).bottom;
 
@@ -152,9 +212,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         builder: (context, constraints) => Stack(
           fit: StackFit.expand,
           children: [
-            if (_cameraController != null &&
-                _cameraController!.value.isInitialized)
-              CameraPreview(_cameraController!)
+            if (previewController != null &&
+                previewController.value.isInitialized)
+              CameraPreview(previewController)
             else
               const _CameraPlaceholder(),
 
@@ -162,6 +222,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             if (isCapturing)
               Center(
                 child: ClipRRect(
+                  key: const ValueKey('capture-shimmer'),
                   borderRadius: BorderRadius.circular(16),
                   child: SizedBox(
                     width: 280,
@@ -212,12 +273,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _FlashChip(controller: _cameraController),
+                          _FlashChip(service: deviceService),
                           const _ProfileChip(),
                         ],
                       ),
                       const SizedBox(height: 18),
-                      _ModeSelector(
+                      ScanModeSelector(
                         mode: scanMode,
                         onChanged: (m) =>
                             ref.read(scanModeProvider.notifier).state = m,
@@ -243,16 +304,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
                     onTap: _pickFromLibrary,
                   ),
                   const SizedBox(width: 48),
-                  _CaptureButton(
-                    isCapturing: isCapturing,
-                    controller: _captureRingController,
-                    onTap: _capture,
-                  ),
+                  CaptureButton(isCapturing: isCapturing, onTap: _capture),
                   const SizedBox(width: 48),
                   _RoundChipWithLabel(
                     label: 'RECENT',
                     icon: Icons.history_outlined,
-                    onTap: () {},
+                    onTap: widget.onRecentRequested ??
+                        () => context.goNamed(RouteNames.history),
                   ),
                 ],
               ),
@@ -319,14 +377,14 @@ class _GlassChip extends StatelessWidget {
   }
 }
 
-class _FlashChip extends ConsumerStatefulWidget {
-  const _FlashChip({this.controller});
-  final CameraController? controller;
+class _FlashChip extends StatefulWidget {
+  const _FlashChip({this.service});
+  final DeviceCameraService? service;
   @override
-  ConsumerState<_FlashChip> createState() => _FlashChipState();
+  State<_FlashChip> createState() => _FlashChipState();
 }
 
-class _FlashChipState extends ConsumerState<_FlashChip> {
+class _FlashChipState extends State<_FlashChip> {
   FlashMode _mode = FlashMode.auto;
 
   void _cycle() {
@@ -338,7 +396,7 @@ class _FlashChipState extends ConsumerState<_FlashChip> {
         _ => FlashMode.auto,
       };
     });
-    widget.controller?.setFlashMode(_mode);
+    widget.service?.setFlashMode(_mode);
   }
 
   String get _label => switch (_mode) {
@@ -404,69 +462,6 @@ class _ProfileChip extends ConsumerWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-      ),
-    );
-  }
-}
-
-class _ModeSelector extends StatelessWidget {
-  const _ModeSelector({required this.mode, required this.onChanged});
-
-  final ScanMode mode;
-  final ValueChanged<ScanMode> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: _chipBg,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              width: 0.5,
-              color: Colors.white.withValues(alpha: 0.10),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: ScanMode.values.map((m) {
-              final isActive = m == mode;
-              return GestureDetector(
-                onTap: () => onChanged(m),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? Colors.white.withValues(alpha: 0.95)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    switch (m) {
-                      ScanMode.meal => 'Meal',
-                      ScanMode.barcode => 'Barcode',
-                      ScanMode.label => 'Label',
-                    },
-                    style: TextStyle(
-                      fontFamily: 'Geist',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isActive
-                          ? const Color(0xFF0B0D10)
-                          : Colors.white.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
       ),
     );
   }
@@ -625,124 +620,4 @@ class _ShimmerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ShimmerPainter old) => old.progress != progress;
-}
-
-// ─── Capture button ───────────────────────────────────────────────────────────
-
-class _CaptureButton extends StatelessWidget {
-  const _CaptureButton({
-    required this.isCapturing,
-    required this.controller,
-    required this.onTap,
-  });
-
-  final bool isCapturing;
-  final AnimationController controller;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 80,
-        height: 80,
-        child: AnimatedBuilder(
-          animation: controller,
-          builder: (context, child) => CustomPaint(
-            painter: _CapturePainter(
-              isCapturing: isCapturing,
-              progress: controller.value,
-            ),
-            child: child,
-          ),
-          child: Center(
-            child: isCapturing
-                ? Container(
-                    key: const Key('capture-core-stop'),
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: const Color(0xEB0B0D10),
-                      borderRadius: BorderRadius.circular(6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.cyan.withValues(alpha: 0.30),
-                          blurRadius: 14,
-                        ),
-                      ],
-                    ),
-                  )
-                : Container(
-                    key: const Key('capture-core-idle'),
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      gradient:
-                          const LinearGradient(colors: AppColors.brandGradient),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        width: 1,
-                        color: Colors.white.withValues(alpha: 0.20),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.cyan.withValues(alpha: 0.50),
-                          blurRadius: 18,
-                        ),
-                      ],
-                    ),
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CapturePainter extends CustomPainter {
-  _CapturePainter({required this.isCapturing, required this.progress});
-
-  final bool isCapturing;
-  final double progress;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-
-    // Outer ring: 6px, near-black glass in both states.
-    final outer = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..color = const Color(0xEB0B0D10);
-    canvas.drawCircle(center, size.width / 2 - 3, outer);
-
-    // Animation ring hugging the outer ring's inner edge.
-    final animRadius = size.width / 2 - 6 - 1.25;
-    if (isCapturing) {
-      final sweep = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5
-        ..shader = SweepGradient(
-          colors: const [
-            AppColors.blue,
-            AppColors.cyan,
-            AppColors.green,
-            AppColors.blue,
-          ],
-          transform: GradientRotation(progress * 2 * math.pi),
-        ).createShader(Rect.fromCircle(center: center, radius: animRadius));
-      canvas.drawCircle(center, animRadius, sweep);
-    } else {
-      final idle = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5
-        ..color = const Color(0xFF8C8C8C).withValues(alpha: 0.06);
-      canvas.drawCircle(center, animRadius, idle);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_CapturePainter old) =>
-      old.isCapturing != isCapturing || old.progress != progress;
 }

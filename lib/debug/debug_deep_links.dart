@@ -114,6 +114,11 @@ const Map<String, DebugScreenTarget> kDebugScreenTargets = {
 
 enum UiDiffCaptureTheme { dark, light }
 
+const _deferredReadyTargets = {'scan_idle'};
+
+bool debugTargetDefersReadySignal(String screenId) =>
+    _deferredReadyTargets.contains(screenId);
+
 enum UiDiffCaptureSignalKind { ready, blocked }
 
 @immutable

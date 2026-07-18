@@ -23,6 +23,7 @@ dependencies:
   # Camera & media
   camera: ^0.11.0+2
   image_picker: ^1.1.2
+  permission_handler: ^12.0.3
   flutter_image_compress: ^2.3.0
 
   # Firebase

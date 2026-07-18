@@ -66,4 +66,9 @@ void main() {
       isNot(nonce),
     );
   });
+
+  test('camera-backed scan capture defers readiness to the target screen', () {
+    expect(debugTargetDefersReadySignal('scan_idle'), isTrue);
+    expect(debugTargetDefersReadySignal('today'), isFalse);
+  });
 }

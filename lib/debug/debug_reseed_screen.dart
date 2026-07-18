@@ -66,17 +66,19 @@ class _DebugReseedScreenState extends ConsumerState<DebugReseedScreen> {
     await applyCalorixFullscreenSystemUi();
     if (!mounted) return;
 
+    final readySignal = UiDiffCaptureSignal.ready(
+      nonce: widget.nonce,
+      screenId: widget.screenId,
+      theme: widget.theme,
+      fixtureHash: manifest.fixtureHash,
+    );
+    if (debugTargetDefersReadySignal(widget.screenId)) {
+      ref.read(uiDiffPendingCaptureSignalProvider.notifier).state = readySignal;
+    }
     context.go(target.route);
-    _afterTwoFrames(() {
-      debugPrint(
-        UiDiffCaptureSignal.ready(
-          nonce: widget.nonce,
-          screenId: widget.screenId,
-          theme: widget.theme,
-          fixtureHash: manifest.fixtureHash,
-        ).line,
-      );
-    });
+    if (!debugTargetDefersReadySignal(widget.screenId)) {
+      _afterTwoFrames(() => debugPrint(readySignal.line));
+    }
   }
 
   void _emitBlocked(String reason) {

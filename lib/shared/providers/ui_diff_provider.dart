@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
 import '../../debug/ui_diff_fixture.dart';
+import '../../debug/debug_deep_links.dart';
 
 /// Set to true by the debug/reseed route before navigating to Today.
 /// When true, Today screen animations run at Duration.zero so UI-diff
@@ -21,3 +22,8 @@ final uiDiffFixtureManifestProvider =
 
 /// Debug capture theme; it never writes the user's persisted preference.
 final uiDiffThemeOverrideProvider = StateProvider<ThemeMode?>((ref) => null);
+
+/// A nonce-specific ready signal waiting for an asynchronous target (such as
+/// a hardware camera preview) to finish mounting. Debug capture routes only.
+final uiDiffPendingCaptureSignalProvider =
+    StateProvider<UiDiffCaptureSignal?>((ref) => null);
