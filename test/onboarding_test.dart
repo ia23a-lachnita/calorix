@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:calorix/core/router/app_router.dart';
+import 'package:calorix/core/router/route_names.dart';
 import 'package:calorix/core/theme/app_theme.dart';
 import 'package:calorix/features/onboarding/loading_screen.dart';
 import 'package:calorix/features/onboarding/login_screen.dart';
@@ -153,6 +154,7 @@ void main() {
       addTearDown(container.dispose);
       final router = container.read(routerProvider);
 
+      router.go(RoutePaths.loading);
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,

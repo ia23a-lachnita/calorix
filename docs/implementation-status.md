@@ -22,7 +22,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 |---|---|---|---|---|---|
 | 0 | done | host (bookkeeping) | n/a (bookkeeping) | cacca80 | toolchain health above |
 | 1 | done | OpenCode (bounded edits); host orchestration | pre-implementation review (green) | 0242317 | Pre-cleanup comparison 12/12 total (A 6/6, B 6/6); analyzer clean from comparison stage; decision A; rationale A ~43 lines/native PageView vs B 186 custom recognizer lines; Antigravity conversation calorix-navigation-spike-20260717 green: AGREEMENT_STATUS agree, MUST_FIX none; first review's 3 must-fix applied; post-cleanup A-only focused test 6/6 passed; fvm flutter analyze clean; spike_shell_b.dart deleted; device/emulator safety restriction applies — see Task 1 note; commit 0242317 pushed to origin/main; focused test 6/6 passed; fvm flutter analyze: No issues found; runtime/device verification deliberately not performed — blocked by explicit user safety restriction |
-| 2 | Steps 1–4 done; Step 5 stage verification next | OpenCode; host orchestration | — | pending | router wired to TabSwipeShell; appInitialLocation=/scan; profile entry uses pushNamed and closes to origin; Food Detail Ask AI uses pushNamed; real AiChatScreen has ai-close/ai-close-fallback semantics; spike production and test files removed; focused combined command passed 29/29; analyze clean; substage A+B+C via OpenCode |
+| 2 | Steps 1–5 done; Step 6 review gate next | OpenCode; host orchestration | — | db084f8 | router wired to TabSwipeShell; appInitialLocation=/scan; profile entry uses pushNamed and closes to origin; Food Detail Ask AI uses pushNamed; real AiChatScreen has ai-close/ai-close-fallback semantics; spike production and test files removed; focused combined command passed 29/29; analyze clean; substage A+B+C via OpenCode; stage verification: fvm flutter analyze No issues found; first full test RED — one stale onboarding test expected LoadingScreen from production initial route, conflicting with approved appInitialLocation=/scan; fix: test explicitly navigates real router to RoutePaths.loading, preserving LoadingScreen-to-Login assertions and production cold-start invariant; focused onboarding test 7/7 passed; final full fvm flutter test 94/94 passed |
 | 3–19 | pending | — | — | — | — |
 
 **Task 0 commit:** cacca80
@@ -90,9 +90,9 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 
 ## Current Task
 
-**Task 2 — Step 5 stage verification pending, then review gate.**
+**Task 2 — Step 6 review gate.**
 
-Steps 1–4 complete (RED, substages A/B/C, GREEN). Substage C wired router to `TabSwipeShell` with `appInitialLocation=/scan`, profile push route, AI-close origin semantics, and spike cleanup. Focused combined command passed 29/29. `fvm flutter analyze` clean. No device/emulator interaction.
+Steps 1–5 complete (RED, substages A/B/C, GREEN, stage verification). Stage verification: `fvm flutter analyze` No issues found; first full `fvm flutter test` RED — one stale onboarding test expected `LoadingScreen` from production initial route, conflicting with approved `appInitialLocation=/scan`; fix applied (test explicitly navigates real router to `RoutePaths.loading`, preserving `LoadingScreen`-to-`Login` assertions and production cold-start invariant); focused onboarding test 7/7 passed; final full `fvm flutter test` 94/94 passed. Checkpoint commit db084f8 pushed to origin/main. Review gate (Step 6) is next. No device/emulator interaction.
 
 ## Progress log
 
@@ -104,3 +104,4 @@ Steps 1–4 complete (RED, substages A/B/C, GREEN). Substage C wired router to `
 | 2026-07-18 | 2 | Step 3 substage A done — tab_swipe_shell implemented via OpenCode; navigatorContainerBuilder harness corrected; 8/8 tests pass; analyze clean; no device/emulator; substage B (flatten AppShell nav) next |
 | 2026-07-18 | 2 | Step 3 substage B done — app_shell flattened to five equal-width nav-item-* controls; legacy FAB/glow/label removed; extendBody globally true; bar geometry stable; app_shell_test matcher corrected; 9/9 tests pass; analyze clean; no device/emulator; substage C (router/origin) next |
 | 2026-07-18 | 2 | Step 3 substage C done + Step 4 GREEN — router wired to TabSwipeShell; appInitialLocation=/scan; profile pushNamed closes to origin; Food Detail Ask AI pushNamed; real AiChatScreen with ai-close/ai-close-fallback; spike production+test files removed; focused combined command 29/29; analyze clean; no device/emulator |
+| 2026-07-18 | 2 | Step 5 stage verification done — fvm flutter analyze No issues found; first full fvm flutter test RED: one stale onboarding test expected LoadingScreen from production initial route conflicting with appInitialLocation=/scan; fix: test navigates real router to RoutePaths.loading preserving LoadingScreen-to-Login assertions and cold-start invariant; focused onboarding test 7/7; final full fvm flutter test 94/94 passed; checkpoint commit db084f8 pushed; Step 6 review gate next; no device/emulator |

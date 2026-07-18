@@ -319,7 +319,7 @@ Focused tests to add in `test/shell/tab_swipe_shell_test.dart`:
 
 - [x] **Step 4: GREEN** — Run the same three test files → Expected: PASS, all tests.
 
-- [ ] **Step 5: Stage verification** — Run: `fvm flutter analyze` → `No issues found!`; then `fvm flutter test` → no regressions vs the Task 0 baseline counts.
+- [x] **Step 5: Stage verification** — Run: `fvm flutter analyze` → `No issues found!`; then `fvm flutter test` → no regressions vs the Task 0 baseline counts.
 
 - [ ] **Step 6: REVIEW-GATE Task 2** (multi-file, behavior-changing) until green.
 
