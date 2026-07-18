@@ -752,11 +752,11 @@ test('release/profile invocation is rejected', () { /* exercise the injectable d
 
 - [x] **Step 4: GREEN** — Run: `fvm flutter test test/debug test/debug_reseed_test.dart` → Expected: PASS.
 
-- [ ] **Step 5: Harness contract and authorized runtime smoke (host-only)** — first run plan-only mode for `today,scan_idle` × `dark`; assert the action plan contains two distinct deep links/output pairs, the computed source fingerprint is stable across unchanged reruns, and a controlled fixture metadata sample exercises both stale and fresh decisions. Then, because the user explicitly authorized device use on 2026-07-18, run the real two-screen capture against the explicitly named physical ADB serial only. Never auto-select a target and never use `emulator-5554`. Require the exact nonce-specific ready signal and freshness evidence before saving either capture.
+- [x] **Step 5: Harness contract and authorized runtime smoke (host-only)** — first run plan-only mode for `today,scan_idle` × `dark`; assert the action plan contains two distinct deep links/output pairs, the computed source fingerprint is stable across unchanged reruns, and a controlled fixture metadata sample exercises both stale and fresh decisions. Then, because the user explicitly authorized device use on 2026-07-18, run the real two-screen capture against the explicitly named physical ADB serial only. Never auto-select a target and never use `emulator-5554`. Require the exact nonce-specific ready signal and freshness evidence before saving either capture.
 
-- [ ] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`.
+- [x] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`.
 
-- [ ] **Step 7: REVIEW-GATE Task 5**, then **HANDOFF Task 5**
+- [x] **Step 7: REVIEW-GATE Task 5**, then **HANDOFF Task 5**
 
 ```powershell
 git add -A
