@@ -604,7 +604,7 @@ Tests: clock, time-shift, boundaries, synchronizer (valid-startup, unchanged, re
 
 - [x] **Step 6: REVIEW-GATE Task 3** until green.
 
-- [ ] **Step 7: HANDOFF Task 3**
+- [x] **Step 7: HANDOFF Task 3**
 
 ```powershell
 git add -A
