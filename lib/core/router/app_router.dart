@@ -187,6 +187,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // Full-screen routes outside shell
       GoRoute(
+        path: RoutePaths.aiChatOverlay,
+        name: RouteNames.aiChatOverlay,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final mealId = state.uri.queryParameters['mealId'];
+          return AiChatScreen(preloadedMealId: mealId);
+        },
+      ),
+      GoRoute(
         path: '/processing/:id',
         name: RouteNames.processing,
         parentNavigatorKey: _rootNavigatorKey,

@@ -432,7 +432,7 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                             child: _AskAiCard(
                               isDark: isDark,
                               onTap: () => context.pushNamed(
-                                RouteNames.aiChat,
+                                RouteNames.aiChatOverlay,
                                 queryParameters: {'mealId': entry.id},
                               ),
                             ),

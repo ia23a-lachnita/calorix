@@ -314,14 +314,14 @@ void main() {
       await tester.pumpAndSettle();
 
       // The assistant stub should be visible.
-      expect(find.byKey(const Key('ai-close')), findsOneWidget);
+      expect(find.byKey(const Key('ai-close')).hitTestable(), findsOneWidget);
 
       // Tap close — should pop back to /today.
-      await tester.tap(find.byKey(const Key('ai-close')));
+      await tester.tap(find.byKey(const Key('ai-close')).hitTestable());
       await tester.pumpAndSettle();
 
       // Verify we returned to the origin.
-      expect(find.byKey(const Key('push-ai')), findsOneWidget);
+      expect(find.byKey(const Key('push-ai')).hitTestable(), findsOneWidget);
     },
   );
 
@@ -380,10 +380,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assistant is the cold-start page.
-      expect(find.byKey(const Key('ai-close')), findsOneWidget);
+      expect(find.byKey(const Key('ai-close')).hitTestable(), findsOneWidget);
 
       // Tap close — should fall back to /scan and show the marker.
-      await tester.tap(find.byKey(const Key('ai-close')));
+      await tester.tap(find.byKey(const Key('ai-close')).hitTestable());
       await tester.pumpAndSettle();
 
       // Fallback marker is visible on the Scan page (asserts the branch,
@@ -458,7 +458,7 @@ void main() {
       await _pumpRouter(tester);
 
       // Confirm we are on Today.
-      expect(find.byKey(const Key('today-avatar')), findsOneWidget);
+      expect(find.byKey(const Key('today-avatar')).hitTestable(), findsOneWidget);
 
       // Simulate Android system back — should not throw.
       // At the branch root canPop is false so the router stays put.
@@ -466,7 +466,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Today is still the visible branch.
-      expect(find.byKey(const Key('today-avatar')), findsOneWidget);
+      expect(find.byKey(const Key('today-avatar')).hitTestable(), findsOneWidget);
     },
   );
 }
