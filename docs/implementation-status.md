@@ -90,6 +90,7 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 | 1 | calorix-navigation-spike-20260717 | agree | none | clean (no mutation/noise beyond normal wrapper/model label handling) |
 | 2 (round 1) | calorix-task2-review-retry-20260718 | disagree | 2: cross-branch FoodDetail pushNamed(aiChat) targets inactive AI branch; old visibility tests could pass on offstage widgets | clean (remediation applied) |
 | 2 (round 2) | calorix-task2-review-retry-20260718 | agree | none | clean (no mutation; preserved untracked artifacts/no conflict) |
+| 3 (round 2) | calorix-task3-clock-timezone-20260718 | agree | none | clean (no mutation; pre-implementation only) |
 
 ## Visual evidence log
 
@@ -99,11 +100,35 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 
 (gates recorded as blocked — e.g. real cloud processing without authorization — are listed here, never marked passed)
 
+## Primary-source research (Task 3)
+
+| Package | Version | Finding |
+|---|---|---|
+| `flutter_timezone` | 5.1.0 | `FlutterTimezone.getLocalTimezone()` returns `TimezoneInfo`; the `.identifier` property is the IANA zone string (e.g. `"Europe/Zurich"`). Not a plain String — must access `.identifier`. |
+| `timezone` | 0.11.1 | `tz.local` defaults to `Etc/UTC` after `initializeTimeZones()`. Does NOT auto-detect the device timezone. Requires explicit `tz.setLocalLocation(tz.getLocation(identifier))` after fetching the native identifier. `initializeTimeZones()` is synchronous and returns void — it must NOT be awaited. |
+
+## Pre-review conversation record (Task 3)
+
+Conversation: `calorix-task3-clock-timezone-20260718`
+
+| Round | AGREEMENT_STATUS | MUST_FIX count | Details |
+|---|---|---|---|
+| 1 | agree (with corrections) | 6 | 6 mandatory contract corrections identified and applied to plan |
+| 2 | agree | none | Corrected plan is implementation-ready (Gemini 3.1 Pro (High)) |
+
+Corrections applied:
+1. **Files/scope** — expanded to all product-time call sites (repositories, services, providers, screens, models)
+2. **Timezone architecture** — removed ProviderRef from TimezoneSynchronizer; added TimezoneSyncStatus/TimezoneSyncDiagnostic; TimezoneLifecycleHandler as root StatefulWidget; corrected package aliases (tz_data/tz); corrected initializeTimeZones() as synchronous void
+3. **Clock/date contracts** — localDateKey purity; FoodEntry fallback via explicit tz.TZDateTime.from; MacroTargetPlan.defaultPlan requires explicit startDate; DailyLog deterministic sentinel; full Clock injection
+4. **DST test** — replaced invalid `tz.isDaylightSavings` constructor with plain TZDateTime + offset assertion
+5. **Steps** — Step 1 writes ALL tests; Step 5 adds DateTime.now() audit table
+6. **"await initializeTimeZones" correction** — the reviewer's wording was corrected because the API is synchronous and returns void; plan now correctly says `tz_data.initializeTimeZones()` without await
+
 ## Current Task
 
-**Task 3 — pending/start-ready. No Task 3 implementation has begun.**
+**Task 3 — plan review green (round 2). Implementation Step 1 (failing tests) is next. No Task 3 implementation has begun.**
 
-Task 2 complete. Steps 1–5 (RED, substages A/B/C, GREEN, stage verification), Step 6 review gate (green round 2), Step 7 HANDOFF (commit bc3e420 pushed to origin/main). Stage verification: `fvm flutter analyze` No issues found; `fvm flutter test` 98/98 passed. Review gate: Antigravity conversation `calorix-task2-review-retry-20260718` returned `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none` after round-1 remediation. Commit bc3e420 pushed to origin/main. No device/emulator interaction.
+Task 2 complete (commit bc3e420). Task 3 plan reviewed in conversation `calorix-task3-clock-timezone-20260718`: round 1 applied 6 mandatory contract corrections; round 2 agreed (AGREEMENT_STATUS agree, MUST_FIX none, SHOULD_FIX none). Corrected plan is implementation-ready. Next: worker writes all tests (Step 1), then RED verification (Step 2). No device/emulator interaction.
 
 ## Progress log
 
@@ -118,3 +143,5 @@ Task 2 complete. Steps 1–5 (RED, substages A/B/C, GREEN, stage verification), 
 | 2026-07-18 | 2 | Step 5 stage verification done — fvm flutter analyze No issues found; first full fvm flutter test RED: one stale onboarding test expected LoadingScreen from production initial route conflicting with appInitialLocation=/scan; fix: test navigates real router to RoutePaths.loading preserving LoadingScreen-to-Login assertions and cold-start invariant; focused onboarding test 7/7; final full fvm flutter test 94/94 passed; checkpoint commit db084f8 pushed; Step 6 review gate next; no device/emulator |
 | 2026-07-18 | 2 | Step 6 review remediation done — Antigravity disagree round 1 (calorix-task2-review-retry-20260718): 2 MUST_FIX (cross-branch FoodDetail pushNamed targets inactive AI branch; offstage widget visibility tests); 1 SHOULD_FIX (production topology test); remediation: new ai_origin_topology_test.dart (RED: missing RouteNames/RoutePaths.aiChatOverlay; GREEN: persistent AI tab /ai, root overlay /assistant aiChatOverlay, Food Detail pushes overlay with mealId, close pops origin, direct AI root falls back Scan, hitTestable assertions); focused test 19/19 passed; analyze clean; re-review pending; commit pending host |
 | 2026-07-18 | 2 | HANDOFF complete — commit bc3e420 pushed to origin/main; review gate green round 2 (AGREEMENT_STATUS agree, MUST_FIX none, SHOULD_FIX none); fvm flutter analyze No issues found; fvm flutter test 98/98 passed; no device/emulator interaction |
+| 2026-07-18 | 3 | Plan correction/re-review — 6 mandatory contract corrections applied to Task 3 section: expanded files/scope, corrected timezone architecture (removed ProviderRef, added SyncStatus/Diagnostic, LifecycleHandler widget, tz_data/tz aliases, synchronous initializeTimeZones), corrected Clock/date contracts (localDateKey purity, FoodEntry fallback, MacroTargetPlan startDate, DailyLog sentinel, full injection), fixed DST fall-back test, reordered steps with ALL-tests-first and DateTime.now audit; no implementation started; no device/emulator |
+| 2026-07-18 | 3 | Plan review green round 2 (calorix-task3-clock-timezone-20260718): AGREEMENT_STATUS agree, MUST_FIX none, SHOULD_FIX none; corrected plan implementation-ready; Step 1 (failing tests) next; no implementation started; no device/emulator |

@@ -333,29 +333,66 @@ git push
 
 ---
 
-### Task 3: Injectable Product Clock, Timezone Handling, and Draft/Preference Policies
+### Task 3: Injectable Product Clock, Timezone Synchronizer, Calendar Utilities, and Draft Policy
+
+No device/emulator required for this task — all verification is unit tests and static analysis.
 
 **Files:**
-- Create: `lib/core/time/clock.dart`
-- Create: `lib/core/time/clock_provider.dart`
-- Create: `lib/core/time/timezone_init.dart` (loads IANA tz data, fetches the native platform identifier via `FlutterTimezone.getLocalTimezone()`, calls `tz.setLocalLocation(tz.getLocation(identifier))`, and exposes a `TimezoneSynchronizer` `WidgetsBindingObserver` that re-fetches on `AppLifecycleState.resumed` and updates Riverpod clock/location state only if the identifier changed)
-- Create: `lib/core/time/timezone_utils.dart` (IANA tz database wrappers: `tz.TZDateTime`-based day/week/month boundary calculations using the synchronized `tz.local`)
-- Create: `lib/core/policy/draft_policy.dart`
-- Modify: `pubspec.yaml` — add `timezone: ^0.11.1` dependency (IANA tz database) and `flutter_timezone: ^5.1.0` (native platform timezone identifier)
-- Modify: `lib/shared/utils/date_key.dart` (pure function keeps its signature; all call sites now pass `clock.now()` as a `tz.TZDateTime` via `timezone_utils`)
-- Modify: `lib/main.dart` — call `initializeTimeZones()` before `runApp()` to ensure IANA tz data is loaded before any boundary calculation
-- Modify: `lib/features/today/providers/today_providers.dart`, `lib/features/history/providers/history_providers.dart`, `lib/features/goals/providers/goals_providers.dart`, `lib/shared/services/notification_service.dart` (business-logic `DateTime.now()` → injected clock via `timezone_utils` for daily/weekly/monthly boundaries; operational log/analytics timestamps stay on wall clock, verified per call site during review)
-- Test: `test/core/clock_test.dart`, `test/core/time_shift_test.dart`, `test/core/timezone_boundary_test.dart`, `test/core/draft_policy_test.dart`
+- Create: `lib/core/time/clock.dart` (Clock abstract class, RealClock, FakeClock)
+- Create: `lib/core/time/clock_provider.dart` (clockProvider Riverpod Provider)
+- Create: `lib/core/time/timezone_init.dart` (NativeTimezoneSource, FlutterTimezoneSource, TimezoneSynchronizer, TimezoneSyncStatus, TimezoneSyncDiagnostic, TimezoneLifecycleHandler)
+- Create: `lib/core/time/timezone_utils.dart` (startOfDay, startOfWeek, startOfMonth, dateKeyFor, weekKeyFor, monthKeyFor, yearKeyFor)
+- Create: `lib/core/policy/draft_policy.dart` (DraftType, DraftPolicy, draftPolicyFor)
+- Modify: `pubspec.yaml` — add `timezone: ^0.11.1` (alias `tz_data` for `timezone/data/latest_all.dart`, alias `tz` for `timezone/timezone.dart`; never duplicate aliases) and `flutter_timezone: ^5.1.0` (native platform timezone identifier; use package: `flutter_timezone`)
+- Modify: `lib/shared/utils/date_key.dart` (localDateKey keeps DateTime signature, removes toLocal, extracts supplied year/month/day; instant→device-zone conversion uses `tz.TZDateTime.from(instant, tz.local)`)
+- Modify: `lib/main.dart` — after `WidgetsFlutterBinding.ensureInitialized()`, synchronously call `tz_data.initializeTimeZones()` (returns void, NOT await), then create `TimezoneSynchronizer`, call `await synchronizer.syncOnce()`, then wrap `ProviderScope`/`CalorixApp` in `TimezoneLifecycleHandler`
+- Modify: `lib/shared/repositories/food_entry_repository.dart` — inject Clock; local calendar keys use `clock.nowTZ()`; FoodEntry fallback date must use `tz.TZDateTime.from(instant, tz.local)`, not `DateTime.toLocal`
+- Modify: `lib/shared/services/upload_queue_service.dart` — inject Clock
+- Modify: `lib/shared/services/seed_data_service.dart` — inject Clock
+- Modify: `lib/shared/providers/auth_provider.dart` — inject Clock where DateTime.now was used for local calendar keys
+- Modify: `lib/shared/providers/plan_provider.dart` — inject Clock where DateTime.now was used for local calendar keys
+- Modify: `lib/features/ai_chat/providers/ai_chat_providers.dart` — inject Clock into ChatMessagesNotifier
+- Modify: `lib/features/today/today_screen.dart` — read clockProvider for display-time calendar keys
+- Modify: `lib/features/history/history_screen.dart` — read clockProvider for week/month view navigation
+- Modify: `lib/features/history/history_day_screen.dart` — read clockProvider for day-view date display
+- Modify: `lib/features/goals/goals_screen.dart` — read clockProvider for period calculations
+- Modify: `lib/features/scan/scan_screen.dart` — read clockProvider for scan timestamp calendar key
+- Modify: `lib/shared/models/daily_log.dart` — deterministic malformed-date handling resolving to sentinel `'1970-01-01'` (no DateTime.now fallback; see clock contract below)
+- Modify: `lib/shared/models/macro_target_plan.dart` — defaultPlan requires explicit startDate or Clock; no hidden DateTime.now
+
+**Exact Architecture:**
+- Aliases: `tz_data` for `timezone/data/latest_all.dart`, `tz` for `timezone/timezone.dart`.
+- `initializeTimezoneDatabase()` synchronously calls `tz_data.initializeTimeZones()` **once** in `main` after `WidgetsFlutterBinding.ensureInitialized` and before native lookup. Never say `await initializeTimeZones`.
+- `NativeTimezoneSource.getLocalTimezoneIdentifier`; Flutter source returns `(await FlutterTimezone.getLocalTimezone()).identifier` (5.1.0 API).
+- `TimezoneSynchronizer` has **no** `ProviderRef`. It takes `source` + optional diagnostic callback.
+- `enum TimezoneSyncStatus { updated, unchanged, fallbackUtc, retainedPrevious }`. Immutable `TimezoneSyncDiagnostic(status, requestedIdentifier?, activeIdentifier, error?)`.
+- `syncOnce` rules: unchanged → no `setLocalLocation`; valid changed → set local. Failure before any valid → explicitly sets `Etc/UTC` and emits/returns `fallbackUtc`. Failure after valid → preserves prior location and emits/returns `retainedPrevious`. Startup never crashes.
+- `TimezoneLifecycleHandler` root `StatefulWidget` owns `addObserver`/`removeObserver`; `resumed` uses `unawaited(syncOnce())`. `main` initializes DB, creates synchronizer, awaits `syncOnce`, then wraps `ProviderScope`/`CalorixApp`.
+- `RealClock` reads `tz.local`; no Riverpod invalidation.
+- `Clock`/`FakeClock`/`clockProvider`.
+- `timezone_utils` exposes `startOfDay`/`startOfWeek` (calendar-based), `startOfMonth`, and `dateKeyFor`/`weekKeyFor`/`monthKeyFor`/`yearKeyFor`.
+- `localDateKey` retains `DateTime` signature, removes `toLocal`, extracts supplied year/month/day. Instant conversion uses `tz.TZDateTime.from(instant, tz.local)`.
+- FoodEntry fallback date conversion uses `tz.local`, not `DateTime.toLocal`.
+- `MacroTargetPlan.defaultPlan` requires explicit `startDate`/`Clock`; no hidden `now`.
+- `DailyLog` malformed or missing persisted date keys resolve to the fixed domain sentinel date key `'1970-01-01'`, **never** wall-clock `DateTime.now()`. If the actual model API makes a literal string sentinel impossible, use the model's nullable/error representation for the same sentinel contract. Tests must assert the `'1970-01-01'` sentinel for malformed input and never-now.
+- Clock injected into `FoodEntryRepository`, `UploadQueueService`, `SeedDataService`, `ChatMessagesNotifier` and provider/callers. Screens/providers read `clockProvider`. Server timestamps remain server timestamps; local calendar keys use `clock.nowTZ`.
+- All product `DateTime.now()` call sites in repositories, upload queue, seed data, Today/History/Goals UI/providers, AI chat timestamps, and model defaults are migrated now. Only operational debug/log/analytics/artifact timestamps may remain; Step 5 lists every remaining call with reason.
+- `DraftType`/`DraftPolicy` exhaustive switch as originally specified.
+- DST fall-back test: `tz.TZDateTime(berlin, 2026, 10, 25, 2, 30)`, advance one absolute hour, assert same date and repeated local 02:30 with changed offset. **No** `tz.isDaylightSavings` constructor argument.
+- restart-shaped cases remain Task 16.
+- no device/emulator needed.
 
 **Interfaces:**
-- Consumes: `timezone` package (IANA tz database for DST-aware boundary math).
+- Consumes: `timezone` package (IANA tz database for DST-aware boundary math), `flutter_timezone` (native platform timezone identifier).
 - Produces (used by Tasks 5, 11, 12, 13, 16):
 
 ```dart
 // lib/core/time/clock.dart
+import 'package:timezone/timezone.dart' as tz;
+
 abstract class Clock {
-  tz.TZDateTime nowTZ();       // DST-aware current time
-  DateTime now();               // wall-clock fallback for operational timestamps
+  tz.TZDateTime nowTZ();       // DST-aware current time from tz.local
+  DateTime now();               // wall-clock fallback for operational timestamps only
 }
 
 class RealClock implements Clock {
@@ -377,66 +414,172 @@ class FakeClock implements Clock {
 }
 
 // lib/core/time/clock_provider.dart
+import 'package:riverpod/riverpod.dart';
+
 final clockProvider = Provider<Clock>((_) => RealClock());
 
 // lib/core/time/timezone_init.dart
+import 'dart:async';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
+enum TimezoneSyncStatus { updated, unchanged, fallbackUtc, retainedPrevious }
+
+class TimezoneSyncDiagnostic {
+  const TimezoneSyncDiagnostic({
+    required this.status,
+    required this.activeIdentifier,
+    this.requestedIdentifier,
+    this.error,
+  });
+  final TimezoneSyncStatus status;
+  final String activeIdentifier;
+  final String? requestedIdentifier;
+  final Object? error;
+}
+
 abstract class NativeTimezoneSource {
-  Future<String> getLocalTimezone();
+  Future<String> getLocalTimezoneIdentifier();
 }
 
 class FlutterTimezoneSource implements NativeTimezoneSource {
   @override
-  Future<String> getLocalTimezone() async {
+  Future<String> getLocalTimezoneIdentifier() async {
     final info = await FlutterTimezone.getLocalTimezone();
     return info.identifier;
   }
 }
 
-class TimezoneSynchronizer with WidgetsBindingObserver {
-  TimezoneSynchronizer({required this.clockProviderRef, NativeTimezoneSource? source})
-      : _source = source ?? FlutterTimezoneSource();
-  final ProviderRef<Clock> clockProviderRef;
+typedef DiagnosticCallback = void Function(TimezoneSyncDiagnostic);
+
+class TimezoneSynchronizer {
+  TimezoneSynchronizer(NativeTimezoneSource source, {DiagnosticCallback? onDiagnostic})
+      : _source = source,
+        _onDiagnostic = onDiagnostic;
   final NativeTimezoneSource _source;
+  final DiagnosticCallback? _onDiagnostic;
+  tz.Location? _lastValidLocation;
   String? _lastIdentifier;
 
-  Future<void> syncOnce() async {
-    tz.initializeTimeZones();
-    final identifier = await _source.getLocalTimezone();
-    if (identifier != _lastIdentifier) {
-      tz.setLocalLocation(tz.getLocation(identifier));
+  Future<TimezoneSyncDiagnostic> syncOnce() async {
+    try {
+      final identifier = await _source.getLocalTimezoneIdentifier();
+      if (identifier == _lastIdentifier) {
+        final diagnostic = TimezoneSyncDiagnostic(
+          status: TimezoneSyncStatus.unchanged,
+          activeIdentifier: tz.local.name,
+        );
+        _onDiagnostic?.call(diagnostic);
+        return diagnostic;
+      }
+      final location = tz.getLocation(identifier);
+      tz.setLocalLocation(location);
       _lastIdentifier = identifier;
+      _lastValidLocation = location;
+      final diagnostic = TimezoneSyncDiagnostic(
+        status: TimezoneSyncStatus.updated,
+        activeIdentifier: tz.local.name,
+        requestedIdentifier: identifier,
+      );
+      _onDiagnostic?.call(diagnostic);
+      return diagnostic;
+    } catch (e) {
+      if (_lastValidLocation != null) {
+        tz.setLocalLocation(_lastValidLocation!);
+        final diagnostic = TimezoneSyncDiagnostic(
+          status: TimezoneSyncStatus.retainedPrevious,
+          activeIdentifier: tz.local.name,
+          error: e,
+        );
+        _onDiagnostic?.call(diagnostic);
+        return diagnostic;
+      } else {
+        tz.setLocalLocation(tz.getLocation('Etc/UTC'));
+        final diagnostic = TimezoneSyncDiagnostic(
+          status: TimezoneSyncStatus.fallbackUtc,
+          activeIdentifier: 'Etc/UTC',
+          error: e,
+        );
+        _onDiagnostic?.call(diagnostic);
+        return diagnostic;
+      }
     }
+  }
+}
+
+class TimezoneLifecycleHandler extends StatefulWidget {
+  const TimezoneLifecycleHandler({
+    required this.synchronizer,
+    required this.child,
+  });
+  final TimezoneSynchronizer synchronizer;
+  final Widget child;
+
+  @override
+  State<TimezoneLifecycleHandler> createState() => _TimezoneLifecycleHandlerState();
+}
+
+class _TimezoneLifecycleHandlerState extends State<TimezoneLifecycleHandler>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      syncOnce();
+      unawaited(widget.synchronizer.syncOnce());
     }
   }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 // lib/core/time/timezone_utils.dart
 import 'package:timezone/timezone.dart' as tz;
-/// Returns the start of the local day for the given TZDateTime.
-tz.TZDateTime startOfDay(tz.TZDateTime dt) => tz.TZDateTime(dt.location, dt.year, dt.month, dt.day);
-/// Returns the start of the ISO week (Monday) for the given TZDateTime.
-/// Uses calendar construction (not Duration subtraction) to avoid DST-shift bugs.
+import 'package:intl/intl.dart';
+
+tz.TZDateTime startOfDay(tz.TZDateTime dt) =>
+    tz.TZDateTime(dt.location, dt.year, dt.month, dt.day);
+
 tz.TZDateTime startOfWeek(tz.TZDateTime dt) {
   final weekday = dt.weekday; // 1=Monday..7=Sunday
-  final loc = dt.location;
   if (weekday == 1) return startOfDay(dt);
-  final year = dt.year;
-  final month = dt.month;
-  final day = dt.day - (weekday - 1);
-  return tz.TZDateTime(loc, year, month, day);
+  return tz.TZDateTime(dt.location, dt.year, dt.month, dt.day - (weekday - 1));
 }
-/// Returns the start of the month for the given TZDateTime.
-tz.TZDateTime startOfMonth(tz.TZDateTime dt) => tz.TZDateTime(dt.location, dt.year, dt.month);
+
+tz.TZDateTime startOfMonth(tz.TZDateTime dt) =>
+    tz.TZDateTime(dt.location, dt.year, dt.month);
+
+String dateKeyFor(tz.TZDateTime dt) =>
+    DateFormat('yyyy-MM-dd').format(dt);
+
+String weekKeyFor(tz.TZDateTime dt) {
+  final start = startOfWeek(dt);
+  return DateFormat('yyyy-MM-dd').format(start);
+}
+
+String monthKeyFor(tz.TZDateTime dt) => DateFormat('yyyy-MM').format(dt);
+
+String yearKeyFor(tz.TZDateTime dt) => DateFormat('yyyy').format(dt);
+
+// lib/shared/utils/date_key.dart — revised signature
+/// Returns a date key (yyyy-MM-dd) from the supplied DateTime's calendar fields.
+/// Does NOT call .toLocal(); callers needing instant→device-zone conversion must
+/// first use tz.TZDateTime.from(instant, tz.local).
+String localDateKey(DateTime dt) =>
+    '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
 
 // lib/core/policy/draft_policy.dart
 enum DraftType { foodEdit, manualEntry, goalsEdit, chatComposition, searchFilters }
@@ -447,96 +590,17 @@ DraftPolicy draftPolicyFor(DraftType type) => switch (type) {
     };
 ```
 
-Timezone-change behavior: The `timezone` package uses the IANA tz database, which encodes all historical and future DST transitions. `tz.TZDateTime.now(tz.local)` automatically resolves the correct UTC offset for any instant, including DST spring-forward/fall-back gaps and ambiguous hours. The `TimezoneSynchronizer` (a `WidgetsBindingObserver`) calls `FlutterTimezone.getLocalTimezone()` which returns the native platform timezone identifier via `info.identifier`. On startup and on every `AppLifecycleState.resumed`, `syncOnce()` calls `tz.setLocalLocation(tz.getLocation(identifier))` if the identifier changed. Do not assume `tz.local` auto-detects; always call `setLocalLocation` explicitly. Daily/weekly/monthly boundaries computed via `timezone_utils` are therefore correct regardless of timezone changes. When the device timezone changes at runtime (e.g., user manually switches timezone or airplane-mode carrier update), the next resume event triggers `syncOnce()` which re-fetches the native identifier and updates `tz.local` if it changed. Boundary calculations for already-persisted data (Firestore day keys) are stable because they were computed at write time with the correct offset. Unit tests use `FakeClock` with explicit `tz.TZDateTime` values constructed in a known IANA zone (e.g., `tz.getLocation('Europe/Berlin')`) to pin DST transitions deterministically without depending on the host machine's timezone. Tests use an injectable `NativeTimezoneSource` stub for startup, resume-change, unchanged-zone no-op, and invalid-identifier fallback+diagnostic scenarios.
+Tests: clock, time-shift, boundaries, synchronizer (valid-startup, unchanged, resume-change, invalid-startup-UTC-diagnostic, invalid-after-valid-retained-diagnostic, lifecycle-cleanup-where-feasible), localDateKey purity, deterministic model fallback, draft mapping. No device/emulator needed.
 
-- [ ] **Step 1 (worker): Write failing time-shift tests** covering the spec §9.2 matrix with `FakeClock` + `ProviderContainer(overrides: [clockProvider.overrideWithValue(fake)])`. All DST tests use `tz.TZDateTime` constructed in `tz.getLocation('Europe/Berlin')` to pin transitions deterministically:
+- [ ] **Step 1 (worker): Write all failing tests** — clock_test, time_shift_test (spec §9.2 matrix with `FakeClock` + `ProviderContainer(overrides: [clockProvider.overrideWithValue(fake)])`, all DST tests use `tz.TZDateTime` in `tz.getLocation('Europe/Berlin')` to pin transitions), timezone_boundary_test, timezone_synchronizer_test (valid startup, unchanged zone, resume-change, invalid startup UTC diagnostic, invalid-after-valid retained diagnostic, lifecycle cleanup), localDateKey_purity_test, daily_log_malformed_date_test (assert malformed/missing date keys resolve to sentinel `'1970-01-01'`, never DateTime.now), draft_policy_test, draft_policy_exhaustive_test, clock_injection_callsite_test (repositories, providers, screens read clockProvider; no raw DateTime.now in product callsites).
 
-```dart
-// test/core/time_shift_test.dart — one test per scenario
-test('one minute before midnight then +2min starts a new day key', () {
-  final berlin = tz.getLocation('Europe/Berlin');
-  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 7, 17, 23, 59));
-  final dk = dateKeyFor(fake.nowTZ());
-  fake.advance(const Duration(minutes: 2));
-  expect(dateKeyFor(fake.nowTZ()), isNot(equals(dk)));
-});
-test('crossing midnight (+25h) creates a new daily log boundary', () {
-  final berlin = tz.getLocation('Europe/Berlin');
-  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 7, 17, 12, 0));
-  final dkBefore = dateKeyFor(fake.nowTZ());
-  fake.advance(const Duration(hours: 25));
-  expect(dateKeyFor(fake.nowTZ()), isNot(equals(dkBefore)));
-});
-test('backward 1 day resolves yesterday consistently in history and today', () {
-  final berlin = tz.getLocation('Europe/Berlin');
-  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 7, 17, 10, 0));
-  final todayKey = dateKeyFor(fake.nowTZ());
-  fake.advance(const Duration(days: -1));
-  expect(dateKeyFor(fake.nowTZ()), equals('2026-07-16'));
-  expect(dateKeyFor(fake.nowTZ()), isNot(equals(todayKey)));
-});
-test('+7 days increments the goals week counter', () {
-  final berlin = tz.getLocation('Europe/Berlin');
-  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 7, 17, 10, 0));
-  final weekBefore = weekKeyFor(fake.nowTZ());
-  fake.advance(const Duration(days: 7));
-  expect(weekKeyFor(fake.nowTZ()), isNot(equals(weekBefore)));
-});
-test('+30 days advances history month view and weight range', () {
-  final berlin = tz.getLocation('Europe/Berlin');
-  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 7, 17, 10, 0));
-  final monthBefore = monthKeyFor(fake.nowTZ());
-  fake.advance(const Duration(days: 30));
-  expect(monthKeyFor(fake.nowTZ()), isNot(equals(monthBefore)));
-});
-test('EU DST spring-forward 2026-03-29 keeps day boundaries stable', () {
-  final berlin = tz.getLocation('Europe/Berlin');
-  final beforeGap = tz.TZDateTime(berlin, 2026, 3, 29, 1, 30);
-  final fake = FakeClock(beforeGap);
-  expect(startOfDay(fake.nowTZ()).hour, 0);
-  fake.advance(const Duration(hours: 3)); // jumps over the gap to 04:30 CEST
-  expect(startOfDay(fake.nowTZ()).day, 29);
-});
-test('EU DST fall-back 2026-10-25 does not double-count the repeated hour', () {
-  final berlin = tz.getLocation('Europe/Berlin');
-  final firstPass = tz.TZDateTime(berlin, 2026, 10, 25, 2, 30, 0, 0, tz.isDaylightSavings ? 1 : 0);
-  final fake = FakeClock(firstPass);
-  final dkFirst = dateKeyFor(fake.nowTZ());
-  fake.advance(const Duration(hours: 1));
-  expect(dateKeyFor(fake.nowTZ()), equals(dkFirst));
-});
-test('leap day 2028-02-29 produces a valid day key and month rollover', () {
-  final berlin = tz.getLocation('Europe/Berlin');
-  final fake = FakeClock(tz.TZDateTime(berlin, 2028, 2, 29, 12, 0));
-  expect(dateKeyFor(fake.nowTZ()), equals('2028-02-29'));
-  fake.advance(const Duration(days: 1));
-  expect(dateKeyFor(fake.nowTZ()), equals('2028-03-01'));
-});
-test('month-end Jan 31 → Feb 1 rollover', () {
-  final berlin = tz.getLocation('Europe/Berlin');
-  final fake = FakeClock(tz.TZDateTime(berlin, 2027, 1, 31, 23, 0));
-  expect(monthKeyFor(fake.nowTZ()), equals('2027-01'));
-  fake.advance(const Duration(hours: 2));
-  expect(monthKeyFor(fake.nowTZ()), equals('2027-02'));
-});
-test('year boundary Dec 31 → Jan 1 rollover', () {
-  final berlin = tz.getLocation('Europe/Berlin');
-  final fake = FakeClock(tz.TZDateTime(berlin, 2026, 12, 31, 23, 0));
-  expect(yearKeyFor(fake.nowTZ()), equals('2026'));
-  fake.advance(const Duration(hours: 2));
-  expect(yearKeyFor(fake.nowTZ()), equals('2027'));
-});
-```
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/core` → Expected: FAIL (`Clock`/`TimezoneSynchronizer`/etc. not defined).
 
-Restart-shaped scenarios (cold restart with shifted clock; theme/notification/draft persistence across restart) cannot run in unit tests — they are explicitly owned by Task 16's integration suite; this task's tests pin the pure time logic via the IANA tz database.
+- [ ] **Step 3 (worker): Implement exact architecture + comprehensive callsite migration** — `clock.dart`, `clock_provider.dart`, `timezone_init.dart`, `timezone_utils.dart`, `draft_policy.dart` per the Exact Architecture block. Wire `TimezoneLifecycleHandler` in `main.dart` (init DB, create synchronizer, `await syncOnce()`, then `ProviderScope`/`CalorixApp`). Add `timezone: ^0.11.1` and `flutter_timezone: ^5.1.0` to `pubspec.yaml`. Thread `clockProvider` through all listed repositories, services, providers, and screens. Migrate every product `DateTime.now()` callsite listed in Files. Leave only operational debug/log/analytics/artifact timestamps.
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/core` → Expected: FAIL (`Clock` not defined).
+- [ ] **Step 4: focused GREEN then full suite** — Run: `fvm flutter test test/core` → Expected: PASS. Then `fvm flutter test` → no regressions.
 
-- [ ] **Step 3 (worker): Implement** `clock.dart`, `clock_provider.dart`, `timezone_init.dart`, `timezone_utils.dart`, and `draft_policy.dart` exactly as the Produces block; wire `TimezoneSynchronizer` in `main.dart` (call `syncOnce()` before `runApp()`, register the observer via `WidgetsBinding.instance.addObserver`); add `timezone: ^0.11.1` and `flutter_timezone: ^5.1.0` to `pubspec.yaml`; then thread `clockProvider` through the listed providers/services. Do not touch operational timestamps (debug logs, analytics, crash reports). Do not claim `tz.local` auto-detects; always call `setLocalLocation` explicitly.
-
-- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/core` → Expected: PASS. Then `fvm flutter test` → no regressions.
-
-- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test test/core` → all tests pass including `timezone_boundary_test.dart` (verifies `startOfDay`, `startOfWeek` via calendar construction, `startOfMonth` produce correct `tz.TZDateTime` values in a pinned IANA zone; verifies injectable `NativeTimezoneSource` for startup sync, resume-change sync, unchanged-zone no-op, invalid identifier fallback+diagnostic, and DST calendar boundaries). Host spot-greps `DateTime.now()` remaining call sites and confirms each is operational, listing them in `docs/implementation-status.md`.
+- [ ] **Step 5: analyze/full suite and rg DateTime.now audit table** — `fvm flutter analyze` → `No issues found!`. `fvm flutter test` → full suite passes. Host runs `rg DateTime.now lib/` and lists every remaining call with a reason. **Rule:** `RealClock.now()` (via `clockProvider`) is the one permitted product clock-adapter call; every other remaining raw `DateTime.now` in `lib/` must be an operational debug, log, analytics, or artifact timestamp with an explicit justification listed in the audit table. Any product call still using `DateTime.now()` directly (outside `RealClock`) is a regression.
 
 - [ ] **Step 6: REVIEW-GATE Task 3** until green.
 
@@ -544,7 +608,7 @@ Restart-shaped scenarios (cold restart with shifted clock; theme/notification/dr
 
 ```powershell
 git add -A
-git commit -m "Add injectable product clock with IANA timezone support and draft policies"
+git commit -m "Add injectable product clock with timezone synchronizer, calendar utils, and draft policy"
 git push
 ```
 
