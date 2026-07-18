@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:calorix/core/router/app_router.dart';
+import 'package:calorix/debug/ui_diff_fixture.dart';
 import 'package:calorix/core/system/system_ui.dart';
 import 'package:calorix/shared/providers/auth_provider.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
@@ -86,5 +87,12 @@ void main() {
         .lastOrNull;
     expect(hideCall, isNotNull,
         reason: 'Expected hideSystemBars on com.calorix.calorix/system_ui');
+  });
+
+  test('forceReseedForUiDiff guard cannot be bypassed outside debug mode', () {
+    expect(
+      () => enforceUiDiffDebugGuard(isDebug: false),
+      throwsUnsupportedError,
+    );
   });
 }

@@ -27,10 +27,12 @@ FoodEntry _entry({
 ProviderContainer _container({
   required List<FoodEntry> entries,
   required bool uiDiffMode,
+  bool fixtureEnabled = false,
 }) =>
     ProviderContainer(
       overrides: [
         uiDiffModeProvider.overrideWith((_) => uiDiffMode),
+        uiDiffFixtureEnabledProvider.overrideWith((_) => fixtureEnabled),
         todayEntriesProvider.overrideWith((_) => Stream.value(entries)),
       ],
     );
@@ -54,10 +56,11 @@ void main() {
     );
   });
 
-  test('todayMacroSummaryProvider uses handoff hero values in ui-diff mode',
+  test('todayMacroSummaryProvider uses handoff hero values only for fixture mode',
       () async {
     final container = _container(
       uiDiffMode: true,
+      fixtureEnabled: true,
       entries: [
         _entry(id: 'chicken', kcal: 620, protein: 48, carbs: 72, fat: 16),
         _entry(id: 'yogurt', kcal: 180, protein: 25, carbs: 12, fat: 3),

@@ -718,7 +718,7 @@ Safety and determinism details:
 - All 19 IDs exist in a typed target registry with an availability state. Implemented targets navigate normally. Not-yet-implemented targets mount a debug-only placeholder that emits `UI_DIFF_BLOCKED:<nonce>:<id>:unimplemented`; the capture script treats this as a failure and never saves it as valid visual evidence.
 - Each deep link carries a fresh nonce. A target emits `UI_DIFF_READY:<nonce>:<id>:<theme>:<fixtureHash>` only after seeding, navigation, target data readiness, and two completed frames. The script clears/starts a scoped logcat read before launch and matches the full nonce-specific line; stale signals cannot satisfy a run. Arbitrary sleeps are not readiness.
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/debug/deep_link_matrix_test.dart
@@ -746,13 +746,13 @@ test('reseed only mutates reserved fixture document paths', () async { /* unrela
 test('release/profile invocation is rejected', () { /* exercise the injectable debug guard without relying on assert */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/debug test/debug_reseed_test.dart` → Expected: FAIL (`kDebugScreenRoutes` not defined; idempotency unproven).
+- [x] **Step 2: RED** — Run: `fvm flutter test test/debug test/debug_reseed_test.dart` → Expected: FAIL (`kDebugScreenRoutes` not defined; idempotency unproven).
 
 - [ ] **Step 3 (worker): Implement** the pure fixture manifest/store boundary, reserved-namespace Firestore adapter, canonical fixture hash, deep-link target registry, nonce-specific ready/blocked protocol, separate fixture/theme overrides, and idempotent reseed. Then write `capture_states.ps1` with a safe plan-only default. It must require both `-Execute` and an explicit `-DeviceId <serial>` before invoking build/install/ADB, reject a serial not present in `adb devices`, and never auto-select a connected target. Compute `sourceFingerprint` from sorted path+bytes for `git ls-files --cached --others --exclude-standard` restricted to build-relevant `lib/`, declared `assets/`, `pubspec.yaml`, `pubspec.lock`, and platform build configuration; this includes uncommitted tracked and relevant untracked changes and does not trust HEAD alone. Compare source fingerprint plus APK hash against metadata, rebuild/install only when stale, launch the nonce-bearing deep link, wait for the exact nonce-specific ready signal (or fail immediately on blocked), capture at device-native resolution, and write PNG + metadata. Plan-only mode emits exact actions/freshness decisions without running Flutter, ADB, or touching a device.
 
 - [ ] **Step 4: GREEN** — Run: `fvm flutter test test/debug test/debug_reseed_test.dart` → Expected: PASS.
 
-- [ ] **Step 5: Harness contract smoke (host-only)** — run plan-only mode for `today,scan_idle` × `dark`; assert the action plan contains two distinct deep links/output pairs, the computed source fingerprint is stable across unchanged reruns, and a controlled fixture metadata sample exercises both stale and fresh decisions. This is script-contract evidence only, not runtime capture evidence. The real two-screen capture/re-run remains **blocked** until the user explicitly authorizes a known-safe runtime target; record it as blocked, never passed.
+- [ ] **Step 5: Harness contract and authorized runtime smoke (host-only)** — first run plan-only mode for `today,scan_idle` × `dark`; assert the action plan contains two distinct deep links/output pairs, the computed source fingerprint is stable across unchanged reruns, and a controlled fixture metadata sample exercises both stale and fresh decisions. Then, because the user explicitly authorized device use on 2026-07-18, run the real two-screen capture against the explicitly named physical ADB serial only. Never auto-select a target and never use `emulator-5554`. Require the exact nonce-specific ready signal and freshness evidence before saving either capture.
 
 - [ ] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`.
 
