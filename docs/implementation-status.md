@@ -22,7 +22,8 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 |---|---|---|---|---|---|
 | 0 | done | host (bookkeeping) | n/a (bookkeeping) | cacca80 | toolchain health above |
 | 1 | done | OpenCode (bounded edits); host orchestration | pre-implementation review (green) | 0242317 | Pre-cleanup comparison 12/12 total (A 6/6, B 6/6); analyzer clean from comparison stage; decision A; rationale A ~43 lines/native PageView vs B 186 custom recognizer lines; Antigravity conversation calorix-navigation-spike-20260717 green: AGREEMENT_STATUS agree, MUST_FIX none; first review's 3 must-fix applied; post-cleanup A-only focused test 6/6 passed; fvm flutter analyze clean; spike_shell_b.dart deleted; device/emulator safety restriction applies — see Task 1 note; commit 0242317 pushed to origin/main; focused test 6/6 passed; fvm flutter analyze: No issues found; runtime/device verification deliberately not performed — blocked by explicit user safety restriction |
-| 2–19 | pending | — | — | — | — |
+| 2 | RED verified; implementation pending | OpenCode; host orchestration | — | pending | RED evidence below |
+| 3–19 | pending | — | — | — | — |
 
 **Task 0 commit:** cacca80
 
@@ -48,6 +49,9 @@ Expected FAIL — compilation errors (`SpikeShellA`/`SpikeShellB` not defined). 
 | 2026-07-17 | OpenCode long plan attempt | failed after 474s: "Streaming response failed"; no file created |
 | 2026-07-17 | Claude Fable partial plan write | ended with "Usage credits required" |
 | 2026-07-17 | OpenCode bounded revisions (later) | succeeded |
+| 2026-07-18 | OpenCode origin call #1 | timed out after 304s |
+| 2026-07-18 | OpenCode origin call #2 | timed out after 244s |
+| 2026-07-18 | OpenCode availability | available for code-sized edits |
 
 ## Plan review log
 
@@ -85,16 +89,21 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 
 ## Current Task
 
-**Task 2 — pending / start-ready.**
+**Task 2 — RED verified; Step 3 (implementation) pending.**
 
-No Task 2 implementation has started.
+RED confirmed 2026-07-18. Tests written: `test/app_shell_test.dart`, `test/shell/tab_swipe_shell_test.dart`, `test/router/origin_return_test.dart`.
 
-Intended RED command:
-```
-fvm flutter test test/router/origin_return_test.dart test/shell/tab_swipe_shell_test.dart test/app_shell_test.dart
-```
+RED evidence:
+1. `fvm flutter test test/app_shell_test.dart` failed legitimately: missing flat Scan label/nav-item-* keys, legacy FAB present, unstable extendBody/navigation expectations; two unaffected tests passed.
+2. `fvm flutter test test/shell/tab_swipe_shell_test.dart` failed only because `lib/shell/tab_swipe_shell.dart` and `TabSwipeShell` do not exist.
+3. Profile origin tests were run before adding the compile-contract assertion and failed on missing profile-close key; both assistant test-only public-contract tests passed when isolated.
+4. Full origin suite now fails only at compilation because `appInitialLocation` is undefined; Task 2 GREEN must export it as `RoutePaths.scan` and use it in `GoRouter`.
 
-Next: run the RED command to confirm test failures before implementation.
+Test-harness defects found and corrected before accepting RED: vacuous empty Expanded Scan placeholder, wrong indexedStack/manual children harness, cold-start screen rendering with incomplete fake.
+
+No device/emulator/ADB interaction.
+
+Next: run `fvm flutter test test/router/origin_return_test.dart test/shell/tab_swipe_shell_test.dart test/app_shell_test.dart` after Step 3 implementation to confirm GREEN.
 
 ## Progress log
 
@@ -102,3 +111,4 @@ Next: run the RED command to confirm test failures before implementation.
 |---|---|---|
 | 2026-07-17 | 1 | HANDOFF complete — commit 0242317 pushed; focused test 6/6; analyze clean; runtime verification skipped per user safety restriction |
 | 2026-07-17 | 2 | Status set pending/start-ready; no implementation started |
+| 2026-07-18 | 2 | RED verified — Step 1 (tests written) and Step 2 (RED confirmed) complete; Step 3 implementation pending; harness defects corrected; no device/emulator interaction |

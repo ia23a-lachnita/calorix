@@ -279,7 +279,7 @@ Expected: analyze clean; hook passes; push succeeds.
 - Consumes: spike decision (Task 1).
 - Produces: `TabSwipeShell({super.key, required StatefulNavigationShell shell, required List<Widget> children})` — later tasks assume swipes exist and tab state is preserved; `RouteNames.profile`; router invariant "cold start → `/scan`".
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/router/origin_return_test.dart
@@ -313,7 +313,7 @@ Focused tests to add in `test/shell/tab_swipe_shell_test.dart`:
 
 - **State survival after tab 0 → tab 4 → tab 0 traversal:** pump `TabSwipeShell` with all five branch children, enter text or scroll on tab 0, swipe/fling to tab 4, assert tab 0's text/scroll is gone, swipe back to tab 0, assert the original text/scroll offset is restored (proving `AutomaticKeepAliveClientMixin` + stable keys).
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/router/origin_return_test.dart test/shell/tab_swipe_shell_test.dart test/app_shell_test.dart` → Expected: FAIL (missing `TabSwipeShell`, FAB still present, origin regressions).
+- [x] **Step 2: RED** — Run: `fvm flutter test test/router/origin_return_test.dart test/shell/tab_swipe_shell_test.dart test/app_shell_test.dart` → Expected: FAIL (missing `TabSwipeShell`, FAB still present, origin regressions).
 
 - [ ] **Step 3 (worker): Implement** nav flattening, `TabSwipeShell` hardening (wrapping each branch child in an `AutomaticKeepAliveClientMixin` widget with stable key + `wantKeepAlive: true`; implementing `didUpdateWidget` to detect external `currentIndex` changes and animate/snap `PageController` only when different, with `onPageChanged` index guards preventing feedback loops), parent `app_shell` `Scaffold` with stable `extendBody` (prefer `true`, handle safe-area insets via padding/constraints instead of toggling `extendBody`), profile push route (`context.pushNamed(RouteNames.profile)` from every entry point; close button and swipe-down both `context.pop()`), AI-close origin handling with visible intentional fallback, and spike-folder deletion.
 
