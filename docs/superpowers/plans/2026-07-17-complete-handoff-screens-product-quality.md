@@ -652,7 +652,7 @@ class MotionDurations {
 }
 ```
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/core/app_motion_test.dart
@@ -677,15 +677,15 @@ testWidgets('shell meets tap-target and label guidelines', (tester) async {
 testWidgets('confidence badge is not color-only', (tester) async { /* badge exposes icon plus text like "Review 65%" via Semantics */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/core/app_motion_test.dart test/a11y` → Expected: FAIL (`AppMotion` not defined; guideline violations reported by name).
+- [x] **Step 2: RED** — Run: `fvm flutter test test/core/app_motion_test.dart test/a11y` → Expected: FAIL (`AppMotion` not defined; guideline violations reported by name).
 
-- [ ] **Step 3 (worker): Implement** `app_motion.dart`; migrate Today's existing count-up controller and `ConfidenceBadge`'s pulse controller to `AppMotion.durationOf`, assigning MediaQuery-dependent durations from `didChangeDependencies` (not `initState`). Never call `repeat()` on a zero-duration controller; reduced motion must set the final/static value without scheduling frames. Preserve the externally driven `AnimatedMacroRing` and `MacroProgressBar` APIs, and route `MacroProgressBar`'s internal `AnimatedContainer` duration through `AppMotion.durationOf`. Make `SkeletonShimmer` use `MotionDurations.skeletonShimmer` normally and the shimmer package's `enabled: false` under reduced motion. No `Timer` may drive visual animation frames; business/lifecycle timers are outside this task.
+- [x] **Step 3 (worker): Implement** `app_motion.dart`; migrate Today's existing count-up controller and `ConfidenceBadge`'s pulse controller to `AppMotion.durationOf`, assigning MediaQuery-dependent durations from `didChangeDependencies` (not `initState`). Never call `repeat()` on a zero-duration controller; reduced motion must set the final/static value without scheduling frames. Preserve the externally driven `AnimatedMacroRing` and `MacroProgressBar` APIs, and route `MacroProgressBar`'s internal `AnimatedContainer` duration through `AppMotion.durationOf`. Make `SkeletonShimmer` use `MotionDurations.skeletonShimmer` normally and the shimmer package's `enabled: false` under reduced motion. No `Timer` may drive visual animation frames; business/lifecycle timers are outside this task.
 
-- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/core/app_motion_test.dart test/a11y` → Expected: PASS.
+- [x] **Step 4: GREEN** — Run: `fvm flutter test test/core/app_motion_test.dart test/a11y` → Expected: PASS.
 
-- [ ] **Step 5: Deterministic paint-isolation evidence (host-only)** — write a widget test with paint-counting test render objects or painters around an animated subtree and a stable sibling. Pump animation frames and prove the stable sibling's paint count does not increase when the animated subtree is isolated. Add a `RepaintBoundary` only where this test demonstrates a real isolation benefit; no blanket boundaries. This is repaint-isolation evidence only: it is **not** raster/frame-timing evidence and must not be reported as 60/120Hz compliance. Real p50/p95/max raster timing remains a blocked requirement in Tasks 16 and 19 until the user explicitly authorizes a known-safe runtime target.
+- [x] **Step 5: Deterministic paint-isolation evidence (host-only)** — write a widget test with paint-counting test render objects or painters around an animated subtree and a stable sibling. Pump animation frames and prove the stable sibling's paint count does not increase when the animated subtree is isolated. Add a `RepaintBoundary` only where this test demonstrates a real isolation benefit; no blanket boundaries. This is repaint-isolation evidence only: it is **not** raster/frame-timing evidence and must not be reported as 60/120Hz compliance. Real p50/p95/max raster timing remains a blocked requirement in Tasks 16 and 19 until the user explicitly authorizes a known-safe runtime target.
 
-- [ ] **Step 6: Stage verification** — `fvm flutter test test/core/app_motion_test.dart test/a11y` → PASS; `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Record explicitly that no emulator/device performance evidence was gathered.
+- [x] **Step 6: Stage verification** — `fvm flutter test test/core/app_motion_test.dart test/a11y` → PASS; `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Record explicitly that no emulator/device performance evidence was gathered.
 
 - [ ] **Step 7: REVIEW-GATE Task 4**, then **HANDOFF Task 4**
 

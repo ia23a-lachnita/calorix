@@ -16,6 +16,7 @@ import '../../shared/providers/auth_provider.dart';
 import '../../shared/providers/ui_diff_provider.dart';
 import '../../debug/ui_diff/ui_diff_anchor.dart';
 import '../../core/time/clock_provider.dart';
+import '../../core/motion/app_motion.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -27,6 +28,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _countUp;
   late final Animation<double> _animation;
+  bool _countUpStarted = false;
 
   @override
   void initState() {
@@ -34,17 +36,32 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     if (kDebugMode) {
       UiDiffAnchorRegistry.instance.setScreen('today');
     }
-    final isUiDiffMode = ref.read(uiDiffModeProvider);
     _countUp = AnimationController(
       vsync: this,
-      duration:
-          isUiDiffMode ? Duration.zero : const Duration(milliseconds: 1400),
+      duration: Duration.zero,
     );
     _animation = CurvedAnimation(parent: _countUp, curve: Curves.easeOutCubic);
-    _countUp.forward();
     // Auto-dump removed: anchor export is driven by the integration test
     // (integration_test/today_anchor_dump_test.dart) after pumpAndSettle,
     // ensuring a stable fully-rendered layout before writing the artifact.
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isUiDiffMode = ref.read(uiDiffModeProvider);
+    final duration = isUiDiffMode
+        ? Duration.zero
+        : AppMotion.durationOf(context, MotionDurations.countUp);
+    _countUp.duration = duration;
+
+    if (duration == Duration.zero) {
+      _countUp.stop();
+      _countUp.value = 1;
+    } else if (!_countUpStarted) {
+      _countUp.forward(from: 0);
+    }
+    _countUpStarted = true;
   }
 
   @override
@@ -123,68 +140,89 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                       ),
                       Row(
                         children: [
-                          GestureDetector(
-                            onTap: () {},
-                            child: Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isDark
-                                    ? AppColors.surfaceDark
-                                    : AppColors.surfaceLight,
-                                border: Border.all(
-                                  color: actionBorder,
-                                  width: 0.5,
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.notifications_none,
-                                size: 18,
-                                color: isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondaryLight,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            key: const ValueKey('today-avatar'),
-                            onTap: () => context.pushNamed(RouteNames.profile),
-                            child: Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isDark
-                                    ? const Color(0xFF1E242C)
-                                    : const Color(0xFFEFEDE7),
-                                border: Border.all(
-                                  color: actionBorder,
-                                  width: 0.5,
-                                ),
-                              ),
-                              child: initials != null
-                                  ? Center(
-                                      child: Text(
-                                        initials,
-                                        style:
-                                            AppTextStyles.labelLarge.copyWith(
-                                          color: isDark
-                                              ? AppColors.textPrimaryDark
-                                              : AppColors.textPrimaryLight,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13,
-                                        ),
+                          Semantics(
+                            button: true,
+                            label: 'Notifications',
+                            child: GestureDetector(
+                              onTap: () {},
+                              behavior: HitTestBehavior.opaque,
+                              child: SizedBox.square(
+                                dimension: 48,
+                                child: Center(
+                                  child: Container(
+                                    width: 38,
+                                    height: 38,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isDark
+                                          ? AppColors.surfaceDark
+                                          : AppColors.surfaceLight,
+                                      border: Border.all(
+                                        color: actionBorder,
+                                        width: 0.5,
                                       ),
-                                    )
-                                  : Icon(
-                                      Icons.person,
+                                    ),
+                                    child: Icon(
+                                      Icons.notifications_none,
                                       size: 18,
                                       color: isDark
                                           ? AppColors.textSecondaryDark
                                           : AppColors.textSecondaryLight,
                                     ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Semantics(
+                            button: true,
+                            label: 'Open profile',
+                            child: GestureDetector(
+                              key: const ValueKey('today-avatar'),
+                              onTap: () =>
+                                  context.pushNamed(RouteNames.profile),
+                              behavior: HitTestBehavior.opaque,
+                              child: SizedBox.square(
+                                dimension: 48,
+                                child: Center(
+                                  child: Container(
+                                    width: 38,
+                                    height: 38,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isDark
+                                          ? const Color(0xFF1E242C)
+                                          : const Color(0xFFEFEDE7),
+                                      border: Border.all(
+                                        color: actionBorder,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    child: initials != null
+                                        ? Center(
+                                            child: Text(
+                                              initials,
+                                              style: AppTextStyles.labelLarge
+                                                  .copyWith(
+                                                color: isDark
+                                                    ? AppColors.textPrimaryDark
+                                                    : AppColors
+                                                        .textPrimaryLight,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          )
+                                        : Icon(
+                                            Icons.person,
+                                            size: 18,
+                                            color: isDark
+                                                ? AppColors.textSecondaryDark
+                                                : AppColors.textSecondaryLight,
+                                          ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -429,7 +467,9 @@ class _HeroMacroCard extends StatelessWidget {
                                   '${NumberFormat('#,###').format(kcalLeft.round())} kcal left',
                                   maxLines: 1,
                                   style: AppTextStyles.labelMono.copyWith(
-                                    color: AppColors.green,
+                                    color: isDark
+                                        ? AppColors.green
+                                        : AppColors.greenTextLight,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0.4,

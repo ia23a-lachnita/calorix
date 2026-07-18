@@ -21,6 +21,7 @@ Widget _buildTodayScreen({
   ),
   ThemeMode themeMode = ThemeMode.light,
   bool uiDiffMode = false,
+  bool disableAnimations = false,
 }) {
   return ProviderScope(
     overrides: [
@@ -37,6 +38,12 @@ Widget _buildTodayScreen({
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          disableAnimations: disableAnimations,
+        ),
+        child: child!,
+      ),
       home: const TodayScreen(),
     ),
   );
@@ -84,6 +91,17 @@ void main() {
     await tester.pumpWidget(_buildTodayScreen());
     await _pumpTodayScreen(tester);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Today meets baseline accessibility guidelines', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(393, 852));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_buildTodayScreen());
+    await _pumpTodayScreen(tester);
+
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
   });
 
   testWidgets('Today screen shows macro ring center label', (tester) async {
@@ -187,6 +205,22 @@ void main() {
 
     expect(ring.radiusInset, 4);
     expect(ring.showGlow, isFalse);
+  });
+
+  testWidgets('Today count-up snaps to its final value under reduced motion',
+      (tester) async {
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        disableAnimations: true,
+        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+      ),
+    );
+    await tester.pump();
+
+    final ring = tester.widget<AnimatedMacroRing>(
+      find.byType(AnimatedMacroRing),
+    );
+    expect(ring.animation.value, 1);
   });
 
   testWidgets('Today macro rows use handoff neutral track and spacing',

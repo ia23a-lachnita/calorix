@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/motion/app_motion.dart';
 
 class MacroProgressBar extends StatelessWidget {
   final String label;
@@ -152,7 +153,8 @@ class _Bar extends StatelessWidget {
             ),
           ),
           AnimatedContainer(
-            duration: const Duration(milliseconds: 1200),
+            duration:
+                AppMotion.durationOf(context, MotionDurations.macroBarFill),
             height: height,
             width: constraints.maxWidth * fraction,
             decoration: BoxDecoration(
@@ -179,7 +181,7 @@ class _PercentBadge extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0x14FFFFFF) : const Color(0x0F000000);
     final textColor =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+        isDark ? AppColors.textSecondaryDark : AppColors.compactTextLight;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(

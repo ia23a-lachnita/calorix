@@ -15,6 +15,7 @@ abstract final class AppColors {
   static const Color blue = Color(0xFF3A5BFF);
   static const Color cyan = Color(0xFF19D3D9);
   static const Color green = Color(0xFF1FCC74);
+  static const Color greenTextLight = Color(0xFF0B6B3C);
   static const Color amber = Color(0xFFFFAA00);
 
   // Text
@@ -22,6 +23,7 @@ abstract final class AppColors {
   static const Color textPrimaryDark = Color(0xFFF2F3F5);
   static const Color textSecondaryLight =
       Color(0xFF6B6F77); // spec: #6B6F77 (was 0xFF5A5A6E)
+  static const Color compactTextLight = Color(0xFF575B62);
   static const Color textSecondaryDark =
       Color(0x80F2F3F5); // handoff: rgba(242,243,245,0.50)
   static const Color textTertiaryLight = Color(0xFF9A9EA6); // spec: #9A9EA6

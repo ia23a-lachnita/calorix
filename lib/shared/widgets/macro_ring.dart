@@ -188,18 +188,20 @@ class AnimatedMacroRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, _) => MacroRing(
-        proteinFraction: proteinFraction * animation.value,
-        carbsFraction: carbsFraction * animation.value,
-        fatFraction: fatFraction * animation.value,
-        size: size,
-        strokeWidth: strokeWidth,
-        trackColor: trackColor,
-        center: center,
-        radiusInset: radiusInset,
-        showGlow: showGlow,
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) => MacroRing(
+          proteinFraction: proteinFraction * animation.value,
+          carbsFraction: carbsFraction * animation.value,
+          fatFraction: fatFraction * animation.value,
+          size: size,
+          strokeWidth: strokeWidth,
+          trackColor: trackColor,
+          center: center,
+          radiusInset: radiusInset,
+          showGlow: showGlow,
+        ),
       ),
     );
   }

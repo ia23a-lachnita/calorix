@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/motion/app_motion.dart';
 
 class SkeletonShimmer extends StatelessWidget {
   final Widget child;
@@ -10,10 +11,13 @@ class SkeletonShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final reducedMotion = AppMotion.reducedOf(context);
     return Shimmer.fromColors(
       baseColor: isDark ? AppColors.skeletonBaseDark : AppColors.skeletonBase,
-      highlightColor: isDark ? AppColors.skeletonShineDark : AppColors.skeletonShine,
-      period: const Duration(milliseconds: 1400),
+      highlightColor:
+          isDark ? AppColors.skeletonShineDark : AppColors.skeletonShine,
+      period: MotionDurations.skeletonShimmer,
+      enabled: !reducedMotion,
       child: child,
     );
   }

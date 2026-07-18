@@ -80,7 +80,7 @@ class _CalorixBottomNav extends StatelessWidget {
 
     final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     final bottomZone = math.max(36.0, bottomInset + 26.0);
-    final totalHeight = 14.0 + 46.0 + bottomZone;
+    final totalHeight = 14.0 + 48.0 + bottomZone;
 
     final backdropColor = floating
         ? (isDark
@@ -140,7 +140,7 @@ class _CalorixBottomNav extends StatelessWidget {
               top: 14,
               left: 6,
               right: 6,
-              height: 46,
+              height: 48,
               child: Row(
                 children: List.generate(_items.length, (index) {
                   final item = _items[index];
