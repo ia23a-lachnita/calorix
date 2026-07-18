@@ -23,7 +23,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 0 | done | host (bookkeeping) | n/a (bookkeeping) | cacca80 | toolchain health above |
 | 1 | done | OpenCode (bounded edits); host orchestration | pre-implementation review (green) | 0242317 | Pre-cleanup comparison 12/12 total (A 6/6, B 6/6); analyzer clean from comparison stage; decision A; rationale A ~43 lines/native PageView vs B 186 custom recognizer lines; Antigravity conversation calorix-navigation-spike-20260717 green: AGREEMENT_STATUS agree, MUST_FIX none; first review's 3 must-fix applied; post-cleanup A-only focused test 6/6 passed; fvm flutter analyze clean; spike_shell_b.dart deleted; device/emulator safety restriction applies — see Task 1 note; commit 0242317 pushed to origin/main; focused test 6/6 passed; fvm flutter analyze: No issues found; runtime/device verification deliberately not performed — blocked by explicit user safety restriction |
 | 2 | done | OpenCode; host orchestration | agree round 2 | bc3e420 | router wired to TabSwipeShell; appInitialLocation=/scan; profile entry uses pushNamed and closes to origin; Food Detail Ask AI uses pushNamed; real AiChatScreen has ai-close/ai-close-fallback semantics; spike production and test files removed; focused combined command passed 29/29; analyze clean; substage A+B+C via OpenCode; stage verification: fvm flutter analyze No issues found; first full test RED — one stale onboarding test expected LoadingScreen from production initial route, conflicting with approved appInitialLocation=/scan; fix: test explicitly navigates real router to RoutePaths.loading, preserving LoadingScreen-to-Login assertions and production cold-start invariant; focused onboarding test 7/7 passed; final full fvm flutter test 94/94 passed; Step 6 review gate round 1: Antigravity conversation calorix-task2-review-retry-20260718 returned AGREEMENT_STATUS disagree; MUST_FIX: cross-branch FoodDetail pushNamed(aiChat) targets inactive AI branch; old visibility tests could pass on offstage widgets; SHOULD_FIX: exact production topology test using real TabSwipeShell; remediation implemented (RED: new test/router/ai_origin_topology_test.dart failed only because RouteNames.aiChatOverlay and RoutePaths.aiChatOverlay were missing; GREEN: persistent AI tab remains /ai; new root overlay /assistant named aiChatOverlay with root navigator; Food Detail pushes overlay with mealId; close pops exact origin; direct AI root falls back to Scan; old assistant visibility assertions use hitTestable); focused test command over ai_origin_topology, origin_return, ai_chat_screen, food_detail_sheet: 19/19 passed; fvm flutter analyze No issues found; Step 6 review gate round 2: same Antigravity conversation returned AGREEMENT_STATUS agree, MUST_FIX none, SHOULD_FIX none; fvm flutter analyze No issues found; fvm flutter test 98/98 passed; commit bc3e420 pushed to origin/main |
-| 3–19 | pending | — | — | — | — |
+| 3 | steps 1-2 done (tests corrected, RED confirmed) | host (corrections + RED verification) | pre-implementation review round 3 green | — | Step 1: 9 test files corrected in test/core/; Step 2 RED: exit 1, +9 -19 (fvm flutter test test/core); baseline checkpoint pending commit |
 
 **Task 0 commit:** cacca80
 
@@ -91,6 +91,7 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 | 2 (round 1) | calorix-task2-review-retry-20260718 | disagree | 2: cross-branch FoodDetail pushNamed(aiChat) targets inactive AI branch; old visibility tests could pass on offstage widgets | clean (remediation applied) |
 | 2 (round 2) | calorix-task2-review-retry-20260718 | agree | none | clean (no mutation; preserved untracked artifacts/no conflict) |
 | 3 (round 2) | calorix-task3-clock-timezone-20260718 | agree | none | clean (no mutation; pre-implementation only) |
+| 3 (round 3) | calorix-task3-clock-timezone-20260718 | agree | none | clean (post-RED, pre-implementation; DST UTC-instant correction + 9 RED tests inspected) |
 
 ## Visual evidence log
 
@@ -126,9 +127,17 @@ Corrections applied:
 
 ## Current Task
 
-**Task 3 — plan review green (round 2). Implementation Step 1 (failing tests) is next. No Task 3 implementation has begun.**
+**Task 3 — Step 1 complete (9 test files), Step 2 RED complete. Step 3 implementation next.**
 
-Task 2 complete (commit bc3e420). Task 3 plan reviewed in conversation `calorix-task3-clock-timezone-20260718`: round 1 applied 6 mandatory contract corrections; round 2 agreed (AGREEMENT_STATUS agree, MUST_FIX none, SHOULD_FIX none). Corrected plan is implementation-ready. Next: worker writes all tests (Step 1), then RED verification (Step 2). No device/emulator interaction.
+- Branch: `main`
+- Baseline: `0d52b45` (commit bc3e420); baseline/checkpoint commit pending
+- RED command: `fvm flutter test test/core`
+- RED result: exit 1, +9 -19. Intended causes: missing not-yet-implemented `core/time` (clock, clock_provider, timezone_init, timezone_utils) and `core/policy/draft_policy` symbols/modules, and recursive source-contract failures for existing product `DateTime.now` callsites. Earlier missing Flutter widgets import was corrected before this final RED and is not a remaining failure.
+- No pubspec/lock change occurred from RED
+- No device/emulator interaction
+- Step 3 (implementation) is next
+
+Task 2 complete (commit bc3e420). Task 3 plan reviewed in conversation `calorix-task3-clock-timezone-20260718`: round 1 applied 6 mandatory contract corrections; round 2 agreed. External pre-implementation review round 3 returned `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none` after the DST UTC-instant correction and inspection of all 9 RED tests. Step 1: 9 test files corrected across `test/core/` based on verified timezone package API facts. Step 2 (RED): `fvm flutter test test/core` exit 1, +9 -19. Plan DST section corrected to use UTC-instant construction for first-occurrence disambiguation.
 
 ## Progress log
 
@@ -145,3 +154,7 @@ Task 2 complete (commit bc3e420). Task 3 plan reviewed in conversation `calorix-
 | 2026-07-18 | 2 | HANDOFF complete — commit bc3e420 pushed to origin/main; review gate green round 2 (AGREEMENT_STATUS agree, MUST_FIX none, SHOULD_FIX none); fvm flutter analyze No issues found; fvm flutter test 98/98 passed; no device/emulator interaction |
 | 2026-07-18 | 3 | Plan correction/re-review — 6 mandatory contract corrections applied to Task 3 section: expanded files/scope, corrected timezone architecture (removed ProviderRef, added SyncStatus/Diagnostic, LifecycleHandler widget, tz_data/tz aliases, synchronous initializeTimeZones), corrected Clock/date contracts (localDateKey purity, FoodEntry fallback, MacroTargetPlan startDate, DailyLog sentinel, full injection), fixed DST fall-back test, reordered steps with ALL-tests-first and DateTime.now audit; no implementation started; no device/emulator |
 | 2026-07-18 | 3 | Plan review green round 2 (calorix-task3-clock-timezone-20260718): AGREEMENT_STATUS agree, MUST_FIX none, SHOULD_FIX none; corrected plan implementation-ready; Step 1 (failing tests) next; no implementation started; no device/emulator |
+| 2026-07-18 | 3 | Step 1 tests written — 9 test files created under test/core/: clock_test, time_shift_test, timezone_boundary_test, timezone_synchronizer_test, local_date_key_purity_test, daily_log_malformed_date_test, draft_policy_test, draft_policy_exhaustive_test, clock_injection_callsite_test; RED verification pending (fvm flutter test test/core); no device/emulator; no lib/ edits; no pubspec changes |
+| 2026-07-18 | 3 | Step 1 tests corrected — 9 test files corrected in test/core/ based on verified timezone API facts: (1) tz_data import for initializeTimeZones, (2) timeZone.isDst/timeZoneOffset properties, (3) UTC-instant DST disambiguation for first occurrence, (4) FakeClock advance via original variable not abstract Clock, (5) recursive Directory.listSync in callsite test, (6) lifecycle tests with callCount proving resume triggers syncOnce and dispose stops future calls, (7) removed unused imports, (8) FakeDocumentSnapshot noSuchMethod for compile-complete, (9) removed real-time delay/current-year assertion, (10) test count corrected to 9 files; plan DST section corrected; RED verification pending; plan re-review needed for DST correction |
+| 2026-07-18 | 3 | Step 2 RED complete — `fvm flutter test test/core` exit 1, +9 -19; intended causes: missing clock/clock_provider/timezone_init/timezone_utils/draft_policy modules + recursive source-contract failures; no pubspec/lock change; earlier widgets import error corrected before final RED |
+| 2026-07-18 | 3 | External pre-implementation review round 3 green — calorix-task3-clock-timezone-20260718 returned AGREEMENT_STATUS agree, MUST_FIX none, SHOULD_FIX none after DST UTC-instant correction and inspection of all 9 RED tests; Step 3 implementation next |
