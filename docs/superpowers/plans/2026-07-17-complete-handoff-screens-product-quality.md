@@ -25,7 +25,7 @@
 - Motion per spec §7 catalog; reduced motion via `MediaQuery.disableAnimationsOf(context)` snaps to final frame; profile mode measures real animations, never disables them.
 - Minimum tap target 44×44 logical px; semantic labels; no color-only status indicators.
 - The Today fixture hero override (1,420 kcal / 96g P / 132g C / 38g F vs the real 845 kcal / 74g P / 92g C / 20g F card sum) exists **only** inside the ui-diff fixture harness. Production aggregation always sums real entries.
-- Emulator device: launch via `fvm flutter emulators --launch Api35_NoPlay`; wait for `adb devices` before running. Never use the corrupted local system emulator directly.
+- Runtime safety: do not launch an emulator or interact with/install/run on a physical device without explicit user confirmation. The former `emulator-5554` target was removed after a host/device safety incident. Any device-only gate remains blocked, rather than silently substituted or marked passed, until the user authorizes a known-safe runtime target.
 - Keep large logs out of the conversation; evidence goes to `docs/implementation-status.md` and `.ui-diff/runs/` run IDs.
 
 ## Execution and Delegation Contract
@@ -618,7 +618,8 @@ git push
 
 **Files:**
 - Create: `lib/core/motion/app_motion.dart`
-- Modify: `lib/shared/widgets/macro_ring.dart`, `lib/shared/widgets/skeleton_shimmer.dart`, `lib/shared/widgets/macro_progress_bar.dart` (honor `AppMotion`; `RepaintBoundary` only where Step 5 measurement shows benefit)
+- Modify: `lib/features/today/today_screen.dart` (owns the count-up controller consumed by `AnimatedMacroRing`)
+- Modify: `lib/shared/widgets/macro_ring.dart`, `lib/shared/widgets/skeleton_shimmer.dart`, `lib/shared/widgets/macro_progress_bar.dart` (honor `AppMotion`; preserve externally driven animation compatibility; `RepaintBoundary` only where Step 5 proves paint isolation)
 - Modify: `lib/shared/widgets/confidence_badge.dart` (text + icon, never color-only)
 - Test: `test/core/app_motion_test.dart`, `test/a11y/accessibility_guidelines_test.dart`
 
@@ -662,7 +663,9 @@ testWidgets('durationOf returns zero when disableAnimations is set', (tester) as
   ));
 });
 testWidgets('macro ring snaps to final value under reduced motion', (tester) async { /* pump ring with disableAnimations, pump 1 frame, expect final sweep */ });
+testWidgets('macro progress bar snaps to final width under reduced motion', (tester) async { /* pump one frame and inspect the fill width */ });
 testWidgets('skeleton shimmer is static under reduced motion', (tester) async { /* two frames identical */ });
+testWidgets('confidence badge is static under reduced motion', (tester) async { /* no repeating pulse is scheduled */ });
 
 // test/a11y/accessibility_guidelines_test.dart — run per main screen as they land; start with shell + Today
 testWidgets('shell meets tap-target and label guidelines', (tester) async {
@@ -671,18 +674,18 @@ testWidgets('shell meets tap-target and label guidelines', (tester) async {
   await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
   await expectLater(tester, meetsGuideline(textContrastGuideline));
 });
-testWidgets('confidence badge is not color-only', (tester) async { /* badge exposes text like "Review 65%" via Semantics */ });
+testWidgets('confidence badge is not color-only', (tester) async { /* badge exposes icon plus text like "Review 65%" via Semantics */ });
 ```
 
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/core/app_motion_test.dart test/a11y` → Expected: FAIL (`AppMotion` not defined; guideline violations reported by name).
 
-- [ ] **Step 3 (worker): Implement** `app_motion.dart` and convert the three shared widgets to `AppMotion.durationOf` with `AnimationController` + `TickerProviderStateMixin` (no `Timer`-based animation anywhere; grep and convert offenders).
+- [ ] **Step 3 (worker): Implement** `app_motion.dart`; migrate Today's existing count-up controller and `ConfidenceBadge`'s pulse controller to `AppMotion.durationOf`; preserve the externally driven `AnimatedMacroRing` and `MacroProgressBar` APIs; make `SkeletonShimmer` use `MotionDurations.skeletonShimmer` normally and the shimmer package's `enabled: false` under reduced motion. No `Timer` may drive visual animation frames; business/lifecycle timers are outside this task.
 
 - [ ] **Step 4: GREEN** — Run: `fvm flutter test test/core/app_motion_test.dart test/a11y` → Expected: PASS.
 
-- [ ] **Step 5: Measured repaint boundaries (host + device)** — launch the emulator, run `fvm flutter run --profile`, open DevTools timeline, exercise Today ring count-up and skeleton shimmer; add `RepaintBoundary` only around widgets the timeline shows repainting in isolation (candidates: macro ring, sparkline, capture ring, shimmer); re-measure and record before/after raster times and 60/120Hz frame-budget compliance (16.67ms / 8.33ms) in `docs/implementation-status.md`. No blanket boundaries.
+- [ ] **Step 5: Deterministic paint-isolation evidence (host-only)** — write a widget test with paint-counting test render objects or painters around an animated subtree and a stable sibling. Pump animation frames and prove the stable sibling's paint count does not increase when the animated subtree is isolated. Add a `RepaintBoundary` only where this test demonstrates a real isolation benefit; no blanket boundaries. This is repaint-isolation evidence only: it is **not** raster/frame-timing evidence and must not be reported as 60/120Hz compliance. Real p50/p95/max raster timing remains a blocked requirement in Tasks 16 and 19 until the user explicitly authorizes a known-safe runtime target.
 
-- [ ] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+- [ ] **Step 6: Stage verification** — `fvm flutter test test/core/app_motion_test.dart test/a11y` → PASS; `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Record explicitly that no emulator/device performance evidence was gathered.
 
 - [ ] **Step 7: REVIEW-GATE Task 4**, then **HANDOFF Task 4**
 
