@@ -679,7 +679,7 @@ testWidgets('confidence badge is not color-only', (tester) async { /* badge expo
 
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/core/app_motion_test.dart test/a11y` → Expected: FAIL (`AppMotion` not defined; guideline violations reported by name).
 
-- [ ] **Step 3 (worker): Implement** `app_motion.dart`; migrate Today's existing count-up controller and `ConfidenceBadge`'s pulse controller to `AppMotion.durationOf`; preserve the externally driven `AnimatedMacroRing` and `MacroProgressBar` APIs; make `SkeletonShimmer` use `MotionDurations.skeletonShimmer` normally and the shimmer package's `enabled: false` under reduced motion. No `Timer` may drive visual animation frames; business/lifecycle timers are outside this task.
+- [ ] **Step 3 (worker): Implement** `app_motion.dart`; migrate Today's existing count-up controller and `ConfidenceBadge`'s pulse controller to `AppMotion.durationOf`, assigning MediaQuery-dependent durations from `didChangeDependencies` (not `initState`). Never call `repeat()` on a zero-duration controller; reduced motion must set the final/static value without scheduling frames. Preserve the externally driven `AnimatedMacroRing` and `MacroProgressBar` APIs, and route `MacroProgressBar`'s internal `AnimatedContainer` duration through `AppMotion.durationOf`. Make `SkeletonShimmer` use `MotionDurations.skeletonShimmer` normally and the shimmer package's `enabled: false` under reduced motion. No `Timer` may drive visual animation frames; business/lifecycle timers are outside this task.
 
 - [ ] **Step 4: GREEN** — Run: `fvm flutter test test/core/app_motion_test.dart test/a11y` → Expected: PASS.
 
