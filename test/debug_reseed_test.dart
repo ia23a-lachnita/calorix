@@ -65,7 +65,9 @@ void main() {
     );
 
     final router = container.read(routerProvider);
-    router.go('/debug/reseed');
+    router.go(
+      '/debug/reseed?screen=today&theme=dark&nonce=test-run&fixtureEpochMs=1778846400000',
+    );
 
     await tester.pumpWidget(
       UncontrolledProviderScope(
@@ -80,7 +82,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(container.read(uiDiffModeProvider), isTrue);
-    expect(container.read(uiDiffFixtureManifestProvider), isNotNull);
+    final manifest = container.read(uiDiffFixtureManifestProvider);
+    expect(manifest, isNotNull);
+    final firstTimestamp =
+        manifest!.visibleTodayDocuments.first.value['timestamp'] as DateTime;
+    expect(firstTimestamp.toUtc(), DateTime.utc(2026, 5, 15, 12, 48));
     expect(fakeAuth.signInCount, 0,
         reason:
             'Capture fixtures must remain local and never sign in/write cloud data.');

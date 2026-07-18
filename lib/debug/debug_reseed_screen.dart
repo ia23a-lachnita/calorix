@@ -2,9 +2,10 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../core/system/system_ui.dart';
-import '../core/time/clock_provider.dart';
+import '../core/time/clock.dart';
 import '../shared/providers/ui_diff_provider.dart';
 import 'debug_deep_links.dart';
 import 'ui_diff_fixture.dart';
@@ -15,11 +16,13 @@ class DebugReseedScreen extends ConsumerStatefulWidget {
     required this.screenId,
     required this.theme,
     required this.nonce,
+    required this.fixtureEpochMs,
   });
 
   final String screenId;
   final UiDiffCaptureTheme theme;
   final String nonce;
+  final int fixtureEpochMs;
 
   @override
   ConsumerState<DebugReseedScreen> createState() => _DebugReseedScreenState();
@@ -45,7 +48,12 @@ class _DebugReseedScreenState extends ConsumerState<DebugReseedScreen> {
 
     final manifest = UiDiffFixtureManifest.create(
       uid: 'ui-diff-local',
-      clock: ref.read(clockProvider),
+      clock: FakeClock(
+        tz.TZDateTime.fromMillisecondsSinceEpoch(
+          tz.UTC,
+          widget.fixtureEpochMs,
+        ),
+      ),
     );
 
     ref.read(uiDiffModeProvider.notifier).state = true;

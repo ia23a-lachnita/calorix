@@ -243,6 +243,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               screenId: params['screen'] ?? 'today',
               theme: theme,
               nonce: params['nonce'] ?? 'manual',
+              fixtureEpochMs:
+                  int.tryParse(params['fixtureEpochMs'] ?? '') ?? 1778846400000,
             );
           },
         ),

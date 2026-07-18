@@ -7,7 +7,8 @@ param(
     [string]$DeviceId,
     [string]$OutputRoot = '.ui-diff/captures',
     [string]$BuildMetadataPath = '.ui-diff/captures/build-state.json',
-    [int]$ReadyTimeoutSeconds = 90
+    [int]$ReadyTimeoutSeconds = 90,
+    [long]$FixtureEpochMs = 1778846400000
 )
 
 $ErrorActionPreference = 'Stop'
@@ -144,11 +145,12 @@ $dateFolder = Join-Path $repoRoot (Join-Path $OutputRoot ([DateTime]::UtcNow.ToS
 $plans = foreach ($screen in $requestedScreens) {
     foreach ($theme in $Themes) {
         $nonce = [Guid]::NewGuid().ToString('N')
-        $deepLink = "calorix://debug/reseed?screen=$screen&theme=$theme&nonce=$nonce"
+        $deepLink = "calorix://debug/reseed?screen=$screen&theme=$theme&nonce=$nonce&fixtureEpochMs=$FixtureEpochMs"
         [pscustomobject]@{
             screen = $screen
             theme = $theme
             nonce = $nonce
+            fixtureEpochMs = $FixtureEpochMs
             deepLink = $deepLink
             adbDeepLinkArgument = "'$deepLink'"
             outputPng = Join-Path $dateFolder "$screen--$theme.png"
@@ -228,6 +230,7 @@ foreach ($plan in $plans) {
         theme = $plan.theme
         nonce = $plan.nonce
         fixtureHash = $fixtureHash
+        fixtureEpochMs = $plan.fixtureEpochMs
         sourceFingerprint = $sourceFingerprint
         apkHash = $apkHash
         buildHash = $buildHash
