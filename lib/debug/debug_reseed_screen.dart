@@ -1,13 +1,13 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/system/system_ui.dart';
 import '../core/time/clock_provider.dart';
-import '../shared/providers/auth_provider.dart';
 import '../shared/providers/ui_diff_provider.dart';
-import '../shared/services/seed_data_service.dart';
 import 'debug_deep_links.dart';
+import 'ui_diff_fixture.dart';
 
 class DebugReseedScreen extends ConsumerStatefulWidget {
   const DebugReseedScreen({
@@ -31,10 +31,11 @@ class _DebugReseedScreenState extends ConsumerState<DebugReseedScreen> {
   @override
   void initState() {
     super.initState();
-    _prepareTarget();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _prepareTarget());
   }
 
   Future<void> _prepareTarget() async {
+    enforceUiDiffDebugGuard(isDebug: kDebugMode);
     final target = kDebugScreenTargets[widget.screenId];
     if (target == null ||
         target.availability == DebugTargetAvailability.unimplemented) {
@@ -42,21 +43,14 @@ class _DebugReseedScreenState extends ConsumerState<DebugReseedScreen> {
       return;
     }
 
-    final auth = ref.read(firebaseAuthProvider);
-    if (auth.currentUser == null) await auth.signInAnonymously();
-
-    var fixtureHash = 'no-user';
-    final uid = auth.currentUser?.uid;
-    if (uid != null) {
-      fixtureHash = await SeedDataService(
-        ref.read(firestoreProvider),
-        ref.read(clockProvider),
-      ).forceReseedForUiDiff(uid);
-    }
-    if (!mounted) return;
+    final manifest = UiDiffFixtureManifest.create(
+      uid: 'ui-diff-local',
+      clock: ref.read(clockProvider),
+    );
 
     ref.read(uiDiffModeProvider.notifier).state = true;
     ref.read(uiDiffFixtureEnabledProvider.notifier).state = true;
+    ref.read(uiDiffFixtureManifestProvider.notifier).state = manifest;
     ref.read(uiDiffThemeOverrideProvider.notifier).state =
         widget.theme == UiDiffCaptureTheme.dark
             ? ThemeMode.dark
@@ -71,7 +65,7 @@ class _DebugReseedScreenState extends ConsumerState<DebugReseedScreen> {
           nonce: widget.nonce,
           screenId: widget.screenId,
           theme: widget.theme,
-          fixtureHash: fixtureHash,
+          fixtureHash: manifest.fixtureHash,
         ).line,
       );
     });

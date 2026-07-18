@@ -6,6 +6,35 @@ import '../../../shared/providers/ui_diff_provider.dart';
 export '../../../shared/providers/plan_provider.dart' show activePlanProvider;
 
 final todayEntriesProvider = StreamProvider<List<FoodEntry>>((ref) {
+  final fixture = ref.watch(uiDiffFixtureManifestProvider);
+  if (fixture != null) {
+    return Stream.value(
+      fixture.visibleTodayDocuments.map((entry) {
+        final data = entry.value;
+        return FoodEntry(
+          id: entry.key.split('/').last,
+          uid: data['uid'] as String,
+          timestamp: data['timestamp'] as DateTime,
+          date: data['date'] as String,
+          imageUrl: data['imageUrl'] as String?,
+          scanMode: data['scanMode'] as String,
+          status: FoodEntryStatusWire.fromWire(data['status'] as String?),
+          foodName: data['foodName'] as String?,
+          kcal: (data['kcal'] as num?)?.toDouble(),
+          protein: (data['protein'] as num?)?.toDouble(),
+          carbs: (data['carbs'] as num?)?.toDouble(),
+          fat: (data['fat'] as num?)?.toDouble(),
+          confidence: (data['confidence'] as num?)?.toDouble(),
+          servingMultiplier:
+              (data['servingMultiplier'] as num?)?.toDouble() ?? 1,
+          mealType: MealType.values.firstWhere(
+            (value) => value.name == data['mealType'],
+            orElse: () => MealType.lunch,
+          ),
+        );
+      }).toList(growable: false),
+    );
+  }
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return Stream.value([]);
   return ref.watch(foodEntryRepositoryProvider).watchTodayEntries(uid);

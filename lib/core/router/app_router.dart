@@ -21,6 +21,7 @@ import '../../features/goals/goals_screen.dart';
 import '../../features/ai_chat/ai_chat_screen.dart';
 import '../../features/profile/profile_sheet.dart';
 import '../../shared/providers/auth_provider.dart';
+import '../../shared/providers/ui_diff_provider.dart';
 
 const String appInitialLocation = RoutePaths.scan;
 
@@ -70,6 +71,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // The debug reseed route manages its own auth for automation.
       if (loc.startsWith('/debug/reseed')) return null;
+      if (ref.read(uiDiffModeProvider)) return null;
 
       if (!signedIn && !onOnboarding) return RoutePaths.login;
       if (signedIn && loc.startsWith(RoutePaths.login)) return RoutePaths.scan;

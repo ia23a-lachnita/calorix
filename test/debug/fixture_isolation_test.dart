@@ -198,4 +198,22 @@ void main() {
       (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
     );
   });
+
+  test('today entries can be served entirely from the local fixture manifest',
+      () async {
+    final manifest = createManifest();
+    final container = ProviderContainer(
+      overrides: [
+        uiDiffFixtureManifestProvider.overrideWith((_) => manifest),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final entries = await container.read(todayEntriesProvider.future);
+
+    expect(entries, hasLength(3));
+    expect(
+        entries.map((entry) => entry.scaledKcal).reduce((a, b) => a + b), 845);
+    expect(entries.where((entry) => entry.needsReview), hasLength(1));
+  });
 }

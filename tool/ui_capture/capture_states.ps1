@@ -144,11 +144,13 @@ $dateFolder = Join-Path $repoRoot (Join-Path $OutputRoot ([DateTime]::UtcNow.ToS
 $plans = foreach ($screen in $requestedScreens) {
     foreach ($theme in $Themes) {
         $nonce = [Guid]::NewGuid().ToString('N')
+        $deepLink = "calorix://debug/reseed?screen=$screen&theme=$theme&nonce=$nonce"
         [pscustomobject]@{
             screen = $screen
             theme = $theme
             nonce = $nonce
-            deepLink = "calorix://debug/reseed?screen=$screen&theme=$theme&nonce=$nonce"
+            deepLink = $deepLink
+            adbDeepLinkArgument = "'$deepLink'"
             outputPng = Join-Path $dateFolder "$screen--$theme.png"
             outputMetadata = Join-Path $dateFolder "$screen--$theme.meta.json"
             sourceFingerprint = $sourceFingerprint
@@ -181,16 +183,26 @@ if (-not $buildIsFresh) {
     if ($LASTEXITCODE -ne 0) { throw 'APK install failed.' }
 }
 
+$buildHash = (& git rev-parse HEAD).Trim()
+$metadataParent = Split-Path -Parent $buildMetadataAbsolute
+New-Item -ItemType Directory -Force -Path $metadataParent | Out-Null
+[pscustomobject]@{
+    sourceFingerprint = $sourceFingerprint
+    apkHash = $apkHash
+    buildHash = $buildHash
+    deviceId = $DeviceId
+    installedAtUtc = [DateTime]::UtcNow.ToString('o')
+} | ConvertTo-Json | Set-Content -LiteralPath $buildMetadataAbsolute -Encoding utf8
+
 New-Item -ItemType Directory -Force -Path $dateFolder | Out-Null
 $deviceModel = Invoke-AdbText @('shell', 'getprop', 'ro.product.model')
 $pixelSize = Invoke-AdbText @('shell', 'wm', 'size')
-$buildHash = (& git rev-parse HEAD).Trim()
 
 foreach ($plan in $plans) {
     [void](Invoke-AdbText @('logcat', '-c'))
     [void](Invoke-AdbText @(
         'shell', 'am', 'start', '-W', '-a', 'android.intent.action.VIEW',
-        '-d', $plan.deepLink, 'com.calorix.calorix'
+        '-d', $plan.adbDeepLinkArgument, 'com.calorix.calorix'
     ))
 
     $readyPrefix = "UI_DIFF_READY:$($plan.nonce):$($plan.screen):$($plan.theme):"
@@ -225,16 +237,6 @@ foreach ($plan in $plans) {
         capturedAtUtc = [DateTime]::UtcNow.ToString('o')
     } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $plan.outputMetadata -Encoding utf8
 }
-
-$metadataParent = Split-Path -Parent $buildMetadataAbsolute
-New-Item -ItemType Directory -Force -Path $metadataParent | Out-Null
-[pscustomobject]@{
-    sourceFingerprint = $sourceFingerprint
-    apkHash = $apkHash
-    buildHash = $buildHash
-    deviceId = $DeviceId
-    installedAtUtc = [DateTime]::UtcNow.ToString('o')
-} | ConvertTo-Json | Set-Content -LiteralPath $buildMetadataAbsolute -Encoding utf8
 
 [pscustomobject]@{
     mode = 'executed'

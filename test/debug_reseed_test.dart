@@ -14,6 +14,8 @@ class FakeUserCredential extends Fake implements UserCredential {}
 /// Signed-out fake: signInAnonymously resolves but leaves currentUser null so
 /// the reseed screen skips Firestore seeding (not under test here).
 class FakeFirebaseAuth extends Fake implements FirebaseAuth {
+  int signInCount = 0;
+
   @override
   User? get currentUser => null;
 
@@ -21,7 +23,10 @@ class FakeFirebaseAuth extends Fake implements FirebaseAuth {
   Stream<User?> authStateChanges() => const Stream.empty();
 
   @override
-  Future<UserCredential> signInAnonymously() async => FakeUserCredential();
+  Future<UserCredential> signInAnonymously() async {
+    signInCount++;
+    return FakeUserCredential();
+  }
 }
 
 void main() {
@@ -52,9 +57,10 @@ void main() {
       return null;
     });
 
+    final fakeAuth = FakeFirebaseAuth();
     final container = ProviderContainer(
       overrides: [
-        firebaseAuthProvider.overrideWithValue(FakeFirebaseAuth()),
+        firebaseAuthProvider.overrideWithValue(fakeAuth),
       ],
     );
 
@@ -74,6 +80,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(container.read(uiDiffModeProvider), isTrue);
+    expect(container.read(uiDiffFixtureManifestProvider), isNotNull);
+    expect(fakeAuth.signInCount, 0,
+        reason:
+            'Capture fixtures must remain local and never sign in/write cloud data.');
 
     final edgeToEdgeCall = platformLog
         .where((call) => call.method == 'SystemChrome.setEnabledSystemUIMode')

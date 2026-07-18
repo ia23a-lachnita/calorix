@@ -206,6 +206,12 @@ class UiDiffFixtureManifest {
 
   List<String> get sortedPaths => documents.keys.toList(growable: false);
 
+  Iterable<MapEntry<String, Map<String, Object?>>> get visibleTodayDocuments =>
+      documents.entries.where(
+        (entry) =>
+            entry.key.contains('/entries/${uiDiffFixtureDocumentPrefix}today_'),
+      );
+
   String get canonicalJson => jsonEncode(_sortedMap(
         documents.entries.map(
           (entry) => MapEntry(entry.key, _canonicalize(entry.value)),
