@@ -104,6 +104,22 @@ void main() {
     await expectLater(tester, meetsGuideline(textContrastGuideline));
   });
 
+  testWidgets('Today avatar exposes one profile label without initials',
+      (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _buildTodayScreen(uiDiffMode: true),
+    );
+    await _pumpTodayScreen(tester);
+
+    final avatar = tester.getSemantics(
+      find.byKey(const ValueKey('today-avatar')),
+    );
+    expect(avatar.label, 'Open profile');
+    expect(avatar.label, isNot(contains('EK')));
+    semantics.dispose();
+  });
+
   testWidgets('Today screen shows macro ring center label', (tester) async {
     await tester.pumpWidget(_buildTodayScreen());
     await _pumpTodayScreen(tester);

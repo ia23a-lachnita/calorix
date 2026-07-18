@@ -80,44 +80,51 @@ class _ConfidenceBadgeState extends State<ConfidenceBadge>
     final statusIcon =
         _isConfirmed ? Icons.check_circle_outline : Icons.warning_amber_rounded;
 
-    return Semantics(
-      container: true,
-      label: '$status $pct% confidence',
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FadeTransition(
-            opacity:
-                _isConfirmed ? _opacity : const AlwaysStoppedAnimation(1.0),
-            child: Icon(
-              statusIcon,
-              size: 14,
-              color: color,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            '$pct% · $status',
-            style: AppTextStyles.labelSmall.copyWith(color: color),
-          ),
-          if (!_isConfirmed && !widget.compact && widget.onReviewTap != null)
-            TextButton(
-              onPressed: widget.onReviewTap,
-              style: TextButton.styleFrom(
-                minimumSize: const Size(48, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                tapTargetSize: MaterialTapTargetSize.padded,
-              ),
-              child: Text(
-                'Needs review',
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.needsReview,
-                  decoration: TextDecoration.underline,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Semantics(
+          key: const ValueKey('confidence-status-semantics'),
+          container: true,
+          excludeSemantics: true,
+          label: '$status $pct% confidence',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FadeTransition(
+                opacity:
+                    _isConfirmed ? _opacity : const AlwaysStoppedAnimation(1.0),
+                child: Icon(
+                  statusIcon,
+                  size: 14,
+                  color: color,
                 ),
               ),
+              const SizedBox(width: 6),
+              Text(
+                '$pct% · $status',
+                style: AppTextStyles.labelSmall.copyWith(color: color),
+              ),
+            ],
+          ),
+        ),
+        if (!_isConfirmed && !widget.compact && widget.onReviewTap != null)
+          TextButton(
+            onPressed: widget.onReviewTap,
+            style: TextButton.styleFrom(
+              minimumSize: const Size(48, 48),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              tapTargetSize: MaterialTapTargetSize.padded,
             ),
-        ],
-      ),
+            child: Text(
+              'Needs review',
+              style: AppTextStyles.labelSmall.copyWith(
+                color: AppColors.needsReview,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

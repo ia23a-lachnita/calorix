@@ -143,6 +143,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                           Semantics(
                             button: true,
                             label: 'Notifications',
+                            excludeSemantics: true,
                             child: GestureDetector(
                               onTap: () {},
                               behavior: HitTestBehavior.opaque,
@@ -177,6 +178,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                           Semantics(
                             button: true,
                             label: 'Open profile',
+                            excludeSemantics: true,
                             child: GestureDetector(
                               key: const ValueKey('today-avatar'),
                               onTap: () =>

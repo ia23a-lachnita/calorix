@@ -2,6 +2,7 @@ import 'package:calorix/shell/app_shell.dart';
 import 'package:calorix/shared/widgets/confidence_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -32,6 +33,21 @@ GoRouter _buildShellRouter() => GoRouter(
       ],
     );
 
+List<String> _semanticLabels(WidgetTester tester) {
+  final labels = <String>[];
+  void collect(SemanticsNode node) {
+    if (node.label.isNotEmpty) labels.add(node.label);
+    node.visitChildren((child) {
+      collect(child);
+      return true;
+    });
+  }
+
+  final renderView = tester.binding.renderViews.single;
+  collect(renderView.owner!.semanticsOwner!.rootSemanticsNode!);
+  return labels;
+}
+
 void main() {
   testWidgets('five-tab shell meets tap-target and label guidelines',
       (tester) async {
@@ -60,8 +76,17 @@ void main() {
     expect(find.textContaining('65%'), findsOneWidget);
     expect(find.textContaining('Review'), findsWidgets);
     expect(
-      tester.getSemantics(find.byType(ConfidenceBadge)).label,
-      contains('Review 65%'),
+      tester
+          .getSemantics(
+            find.byKey(const ValueKey('confidence-status-semantics')),
+          )
+          .label,
+      'Review 65% confidence',
+    );
+    expect(
+      _semanticLabels(tester)
+          .where((label) => label.contains('Review') || label.contains('65%')),
+      ['Review 65% confidence'],
     );
     semantics.dispose();
   });
@@ -83,6 +108,10 @@ void main() {
 
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    expect(
+      tester.getSemantics(find.byType(TextButton)).label,
+      'Needs review',
+    );
     semantics.dispose();
   });
 }
