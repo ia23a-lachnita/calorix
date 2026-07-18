@@ -31,7 +31,7 @@ dependencies:
   cloud_firestore: ^5.2.1
   firebase_storage: ^12.1.3
   firebase_messaging: ^15.0.4
-  flutter_local_notifications: ^18.0.1
+  flutter_local_notifications: 22.0.1
 
   # AI / Gemini
 
@@ -41,6 +41,10 @@ dependencies:
 
   # Auth
   google_sign_in: ^7.0.0
+
+  # Time
+  timezone: ^0.11.1
+  flutter_timezone: ^5.1.0
 
   # Utilities
   intl: ^0.19.0

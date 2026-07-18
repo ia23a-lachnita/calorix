@@ -1,12 +1,8 @@
-/// Canonical calendar-day key for diary data.
-///
-/// The client owns day bucketing: `date` fields and `dailyLogs` document IDs
-/// are always the device-local calendar day in `YYYY-MM-DD`. The backend
-/// never re-derives the user's day from a timestamp (which would reintroduce
-/// the UTC-vs-local misfiling bug this replaced).
+/// Returns a date key (yyyy-MM-dd) from the supplied DateTime's calendar fields.
+/// Does NOT call .toLocal(); callers needing instant→device-zone conversion must
+/// first use tz.TZDateTime.from(instant, tz.local).
 String localDateKey(DateTime dateTime) {
-  final local = dateTime.toLocal();
-  final month = local.month.toString().padLeft(2, '0');
-  final day = local.day.toString().padLeft(2, '0');
-  return '${local.year}-$month-$day';
+  final month = dateTime.month.toString().padLeft(2, '0');
+  final day = dateTime.day.toString().padLeft(2, '0');
+  return '${dateTime.year}-$month-$day';
 }

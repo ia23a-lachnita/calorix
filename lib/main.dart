@@ -11,6 +11,7 @@ import 'core/firebase/firebase_options.dart';
 import 'core/router/app_router.dart';
 import 'core/system/system_ui.dart';
 import 'core/theme/app_theme.dart';
+import 'core/time/timezone_init.dart';
 import 'features/profile/profile_sheet.dart';
 import 'shared/providers/auth_provider.dart';
 import 'shared/providers/notification_provider.dart';
@@ -20,6 +21,9 @@ const _useEmulator = bool.fromEnvironment('USE_EMULATOR', defaultValue: false);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initializeTimezoneDatabase();
+  final synchronizer = TimezoneSynchronizer(FlutterTimezoneSource());
+  await synchronizer.syncOnce();
   await applyCalorixFullscreenSystemUi();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
@@ -32,7 +36,10 @@ void main() async {
   }
 
   FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
-  runApp(const ProviderScope(child: CalorixApp()));
+  runApp(TimezoneLifecycleHandler(
+    synchronizer: synchronizer,
+    child: const ProviderScope(child: CalorixApp()),
+  ));
 }
 
 class CalorixApp extends ConsumerWidget {
@@ -79,7 +86,8 @@ class _SessionServicesState extends ConsumerState<_SessionServices> {
       _initializedUid = user.uid;
       Future(() async {
         try {
-          await SeedDataService(ref.read(firestoreProvider)).seedIfEmpty(user.uid);
+          await SeedDataService(ref.read(firestoreProvider))
+              .seedIfEmpty(user.uid);
         } catch (seedError) {
           debugPrint('SEED ERROR (non-fatal): $seedError');
         }

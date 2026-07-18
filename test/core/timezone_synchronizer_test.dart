@@ -25,7 +25,7 @@ class _FailingNativeTimezoneSource implements NativeTimezoneSource {
 
 class _CountingNativeTimezoneSource implements NativeTimezoneSource {
   _CountingNativeTimezoneSource(this._identifier);
-  String _identifier;
+  final String _identifier;
   int callCount = 0;
 
   @override
@@ -119,7 +119,7 @@ void main() {
   group('TimezoneSynchronizer — invalid startup (fallback to UTC)', () {
     test('first sync failure sets Etc/UTC and returns fallbackUtc', () async {
       final source = _FailingNativeTimezoneSource(
-        FormatException('invalid timezone'),
+        const FormatException('invalid timezone'),
       );
       final synchronizer = TimezoneSynchronizer(source);
 
@@ -177,7 +177,8 @@ void main() {
   });
 
   group('TimezoneLifecycleHandler — resume calls syncOnce', () {
-    testWidgets('resumed lifecycle state triggers syncOnce on the source', (tester) async {
+    testWidgets('resumed lifecycle state triggers syncOnce on the source',
+        (tester) async {
       final source = _CountingNativeTimezoneSource('Europe/Berlin');
       final synchronizer = TimezoneSynchronizer(source);
 
@@ -201,7 +202,8 @@ void main() {
   });
 
   group('TimezoneLifecycleHandler — dispose stops future resume calls', () {
-    testWidgets('after dispose, resumed does not call syncOnce', (tester) async {
+    testWidgets('after dispose, resumed does not call syncOnce',
+        (tester) async {
       final source = _CountingNativeTimezoneSource('Asia/Tokyo');
       final synchronizer = TimezoneSynchronizer(source);
 
@@ -229,9 +231,12 @@ void main() {
       final synchronizer = TimezoneSynchronizer(source);
 
       await tester.pumpWidget(
-        TimezoneLifecycleHandler(
-          synchronizer: synchronizer,
-          child: const Text('child'),
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: TimezoneLifecycleHandler(
+            synchronizer: synchronizer,
+            child: const Text('child'),
+          ),
         ),
       );
 

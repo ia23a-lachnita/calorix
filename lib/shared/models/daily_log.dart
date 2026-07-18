@@ -20,16 +20,22 @@ class DailyLog {
   });
 
   factory DailyLog.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
-    final dateStr = data['date'] as String? ?? doc.id;
+    return DailyLog.fromMap(doc.data()!, doc.id);
+  }
+
+  /// Deterministic map-parsing contract behind [fromFirestore]. Exercised
+  /// directly by tests so malformed-date handling doesn't require a fake
+  /// sealed `DocumentSnapshot`.
+  factory DailyLog.fromMap(Map<String, dynamic> data, String id) {
+    final dateStr = data['date'] as String? ?? id;
     return DailyLog(
-      id: doc.id,
+      id: id,
       kcal: (data['kcal'] as num?)?.toDouble() ?? 0,
       protein: (data['protein'] as num?)?.toDouble() ?? 0,
       carbs: (data['carbs'] as num?)?.toDouble() ?? 0,
       fat: (data['fat'] as num?)?.toDouble() ?? 0,
       entryCount: (data['entryCount'] as num?)?.toInt() ?? 0,
-      date: DateTime.tryParse(dateStr) ?? DateTime.now(),
+      date: DateTime.tryParse(dateStr) ?? DateTime(1970, 1, 1),
     );
   }
 

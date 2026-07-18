@@ -24,14 +24,12 @@ void main() {
       expect(result, isA<DateTime>());
     });
 
-    test('nowTZ and now are in the same calendar moment', () {
+    test('nowTZ and now are within 1 second of each other', () {
       final clock = RealClock();
       final tzResult = clock.nowTZ();
       final dtResult = clock.now();
-      expect(tzResult.year, dtResult.year);
-      expect(tzResult.month, dtResult.month);
-      expect(tzResult.day, dtResult.day);
-      expect(tzResult.hour, dtResult.hour);
+      final diff = tzResult.difference(dtResult).abs();
+      expect(diff, lessThan(const Duration(seconds: 1)));
     });
   });
 

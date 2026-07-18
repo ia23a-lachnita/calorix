@@ -37,7 +37,8 @@ class NotificationService {
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings();
     await _local.initialize(
-      const InitializationSettings(android: androidInit, iOS: iosInit),
+      settings:
+          const InitializationSettings(android: androidInit, iOS: iosInit),
       onDidReceiveNotificationResponse: (response) {
         final payload = response.payload;
         if (payload != null && payload.isNotEmpty) {
@@ -71,11 +72,11 @@ class NotificationService {
     final notification = message.notification;
     final docId = docIdOf(message);
     await _local.show(
-      (docId ?? message.messageId ?? '').hashCode,
-      notification?.title ??
+      id: (docId ?? message.messageId ?? '').hashCode,
+      title: notification?.title ??
           '${AppConstants.appDisplayName} finished your meal scan',
-      notification?.body ?? 'Your scan is ready',
-      NotificationDetails(
+      body: notification?.body ?? 'Your scan is ready',
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _channel.id,
           _channel.name,
