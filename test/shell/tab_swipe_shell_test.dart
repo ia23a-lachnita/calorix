@@ -66,8 +66,7 @@ class _BranchPage extends StatelessWidget {
 /// markers — all hit-testable so offstage / kept-alive widgets cannot satisfy
 /// visible assertions.
 class _Tab0Page extends StatefulWidget {
-  const _Tab0Page({this.onInit});
-  final ValueChanged<_Tab0PageState>? onInit;
+  const _Tab0Page();
 
   @override
   State<_Tab0Page> createState() => _Tab0PageState();
@@ -81,9 +80,6 @@ class _Tab0PageState extends State<_Tab0Page> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onInit?.call(this);
-    });
   }
 
   @override

@@ -67,6 +67,7 @@ class ProfileSheet extends ConsumerWidget {
                       style: AppTextStyles.heading2.copyWith(color: textColor)),
                   const Spacer(),
                   IconButton(
+                    key: const ValueKey('profile-close'),
                     icon: const Icon(Icons.close),
                     onPressed: () => _closeSheet(context),
                   ),

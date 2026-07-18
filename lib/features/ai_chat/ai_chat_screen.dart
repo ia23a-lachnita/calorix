@@ -204,30 +204,38 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                     ],
                   ),
                   const Spacer(),
-                  GestureDetector(
-                    // The AI tab is a branch root: with nothing to pop, close
-                    // returns to the Scan home instead of throwing.
-                    onTap: () => context.canPop()
-                        ? context.pop()
-                        : context.goNamed(RouteNames.scan),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isDark
-                            ? const Color(0x14FFFFFF)
-                            : const Color(0x0F000000),
+                  Builder(builder: (context) {
+                    final canPop = context.canPop();
+                    return Semantics(
+                      button: true,
+                      label: canPop ? 'Close' : 'Close and return to Scan',
+                      child: GestureDetector(
+                        key: canPop
+                            ? const ValueKey('ai-close')
+                            : const ValueKey('ai-close-fallback'),
+                        onTap: canPop
+                            ? () => context.pop()
+                            : () => context.goNamed(RouteNames.scan),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isDark
+                                ? const Color(0x14FFFFFF)
+                                : const Color(0x0F000000),
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 16,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
+                          ),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.close,
-                        size: 16,
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                      ),
-                    ),
-                  ),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -412,7 +420,8 @@ class _MessageBubble extends StatelessWidget {
       fontSize: 13.5,
       height: 1.45,
     );
-    final text = isUser ? message.content : _sanitizeAssistantText(message.content);
+    final text =
+        isUser ? message.content : _sanitizeAssistantText(message.content);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -571,9 +580,8 @@ class _ConfirmCard extends StatelessWidget {
                         : const Color(0xFF3A4048),
                     side: BorderSide(
                       width: 0.5,
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
+                      color:
+                          isDark ? AppColors.borderDark : AppColors.borderLight,
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),

@@ -164,9 +164,8 @@ GoRouter _testRouter() => GoRouter(
 // ---------------------------------------------------------------------------
 
 Future<void> _pumpRouter(
-  WidgetTester tester, {
-  String initialLocation = RoutePaths.today,
-}) async {
+  WidgetTester tester,
+) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [

@@ -236,25 +236,22 @@ enum _NavIconType { today, history, scan, goals, ai }
 
 class _CalorixNavIcon extends StatelessWidget {
   const _CalorixNavIcon({
-    super.key,
     required this.type,
     required this.color,
-    this.size = 22,
     this.strokeWidth = 1.6,
   });
 
   final _NavIconType type;
   final Color color;
-  final double size;
   final double strokeWidth;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
       key: Key('nav-icon-${type.name}'),
-      dimension: size,
+      dimension: 22,
       child: CustomPaint(
-        size: Size.square(size),
+        size: const Size.square(22),
         painter: _CalorixNavIconPainter(
           type: type,
           color: color,

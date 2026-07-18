@@ -11,6 +11,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
 import '../../shared/providers/auth_provider.dart';
+import '../../core/router/route_names.dart';
 
 class FoodDetailSheet extends ConsumerWidget {
   final String entryId;
@@ -430,7 +431,10 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                             padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
                             child: _AskAiCard(
                               isDark: isDark,
-                              onTap: () => context.go('/ai?mealId=${entry.id}'),
+                              onTap: () => context.pushNamed(
+                                RouteNames.aiChat,
+                                queryParameters: {'mealId': entry.id},
+                              ),
                             ),
                           ),
                           const SizedBox(height: 120),

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'route_names.dart';
 import '../system/system_ui.dart';
 import '../../shell/app_shell.dart';
+import '../../shell/tab_swipe_shell.dart';
 import '../../features/onboarding/loading_screen.dart';
 import '../../features/onboarding/login_screen.dart';
 import '../../features/scan/scan_screen.dart';
@@ -21,6 +22,8 @@ import '../../features/profile/profile_sheet.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/providers/ui_diff_provider.dart';
 import '../../shared/services/seed_data_service.dart';
+
+const String appInitialLocation = RoutePaths.scan;
 
 /// Re-runs router redirects whenever the Firebase auth state changes.
 class _AuthRefresh extends ChangeNotifier {
@@ -50,7 +53,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: RoutePaths.loading,
+    initialLocation: appInitialLocation,
     refreshListenable: refresh,
     redirect: (context, state) {
       // GoRouter receives the full custom-scheme URI as the location string.
@@ -61,8 +64,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       final signedIn = auth.currentUser != null;
-      final onOnboarding =
-          loc.startsWith(RoutePaths.loading) || loc.startsWith(RoutePaths.login);
+      final onOnboarding = loc.startsWith(RoutePaths.loading) ||
+          loc.startsWith(RoutePaths.login);
 
       // The debug reseed route manages its own auth for automation.
       if (loc.startsWith('/debug/reseed')) return null;
@@ -84,9 +87,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const LoginScreen(),
       ),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (context, state, navigationShell) =>
             AppShell(navigationShell: navigationShell),
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            TabSwipeShell(shell: navigationShell, children: children),
         branches: [
           StatefulShellBranch(
             navigatorKey: _todayNavKey,

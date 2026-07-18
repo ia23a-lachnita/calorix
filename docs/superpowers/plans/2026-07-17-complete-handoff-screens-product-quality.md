@@ -315,9 +315,9 @@ Focused tests to add in `test/shell/tab_swipe_shell_test.dart`:
 
 - [x] **Step 2: RED** — Run: `fvm flutter test test/router/origin_return_test.dart test/shell/tab_swipe_shell_test.dart test/app_shell_test.dart` → Expected: FAIL (missing `TabSwipeShell`, FAB still present, origin regressions).
 
-- [ ] **Step 3 (worker): Implement** nav flattening, `TabSwipeShell` hardening (wrapping each branch child in an `AutomaticKeepAliveClientMixin` widget with stable key + `wantKeepAlive: true`; implementing `didUpdateWidget` to detect external `currentIndex` changes and animate/snap `PageController` only when different, with `onPageChanged` index guards preventing feedback loops), parent `app_shell` `Scaffold` with stable `extendBody` (prefer `true`, handle safe-area insets via padding/constraints instead of toggling `extendBody`), profile push route (`context.pushNamed(RouteNames.profile)` from every entry point; close button and swipe-down both `context.pop()`), AI-close origin handling with visible intentional fallback, and spike-folder deletion.
+- [x] **Step 3 (worker): Implement** nav flattening, `TabSwipeShell` hardening (wrapping each branch child in an `AutomaticKeepAliveClientMixin` widget with stable key + `wantKeepAlive: true`; implementing `didUpdateWidget` to detect external `currentIndex` changes and animate/snap `PageController` only when different, with `onPageChanged` index guards preventing feedback loops), parent `app_shell` `Scaffold` with stable `extendBody` (prefer `true`, handle safe-area insets via padding/constraints instead of toggling `extendBody`), profile push route (`context.pushNamed(RouteNames.profile)` from every entry point; close button and swipe-down both `context.pop()`), AI-close origin handling with visible intentional fallback, and spike-folder deletion.
 
-- [ ] **Step 4: GREEN** — Run the same three test files → Expected: PASS, all tests.
+- [x] **Step 4: GREEN** — Run the same three test files → Expected: PASS, all tests.
 
 - [ ] **Step 5: Stage verification** — Run: `fvm flutter analyze` → `No issues found!`; then `fvm flutter test` → no regressions vs the Task 0 baseline counts.
 

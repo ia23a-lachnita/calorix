@@ -22,7 +22,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 |---|---|---|---|---|---|
 | 0 | done | host (bookkeeping) | n/a (bookkeeping) | cacca80 | toolchain health above |
 | 1 | done | OpenCode (bounded edits); host orchestration | pre-implementation review (green) | 0242317 | Pre-cleanup comparison 12/12 total (A 6/6, B 6/6); analyzer clean from comparison stage; decision A; rationale A ~43 lines/native PageView vs B 186 custom recognizer lines; Antigravity conversation calorix-navigation-spike-20260717 green: AGREEMENT_STATUS agree, MUST_FIX none; first review's 3 must-fix applied; post-cleanup A-only focused test 6/6 passed; fvm flutter analyze clean; spike_shell_b.dart deleted; device/emulator safety restriction applies — see Task 1 note; commit 0242317 pushed to origin/main; focused test 6/6 passed; fvm flutter analyze: No issues found; runtime/device verification deliberately not performed — blocked by explicit user safety restriction |
-| 2 | Step 3 substage A+B done; substage C pending | OpenCode; host orchestration | — | pending | 8/8 tab_swipe_shell tests; 9/9 app_shell_test; app_shell flattened to five equal-width nav-item-* controls; legacy FAB/glow/label removed; extendBody globally true; analyze clean; substage A+B via OpenCode |
+| 2 | Steps 1–4 done; Step 5 stage verification next | OpenCode; host orchestration | — | pending | router wired to TabSwipeShell; appInitialLocation=/scan; profile entry uses pushNamed and closes to origin; Food Detail Ask AI uses pushNamed; real AiChatScreen has ai-close/ai-close-fallback semantics; spike production and test files removed; focused combined command passed 29/29; analyze clean; substage A+B+C via OpenCode |
 | 3–19 | pending | — | — | — | — |
 
 **Task 0 commit:** cacca80
@@ -50,7 +50,8 @@ Expected FAIL — compilation errors (`SpikeShellA`/`SpikeShellB` not defined). 
 | 2026-07-17 | Claude Fable partial plan write | ended with "Usage credits required" |
 | 2026-07-17 | OpenCode bounded revisions (later) | succeeded |
 | 2026-07-18 | OpenCode origin call #1 | timed out after 304s |
-| 2026-07-18 | OpenCode origin call #2 | timed out after 244s |
+| 2026-07-18 | OpenCode origin call #2 | timed out after 244s; left usable edits (router/origin/spike cleanup) |
+| 2026-07-18 | OpenCode scoped cleanup after #2 | succeeded — substage C complete, combined tests 29/29 |
 | 2026-07-18 | OpenCode availability | available for code-sized edits |
 
 ## Plan review log
@@ -89,25 +90,9 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 
 ## Current Task
 
-**Task 2 — Step 3 substage A+B done; substage C (router/origin integration) pending.**
+**Task 2 — Step 5 stage verification pending, then review gate.**
 
-RED confirmed 2026-07-18. Tests written: `test/app_shell_test.dart`, `test/shell/tab_swipe_shell_test.dart`, `test/router/origin_return_test.dart`.
-
-RED evidence:
-1. `fvm flutter test test/app_shell_test.dart` failed legitimately: missing flat Scan label/nav-item-* keys, legacy FAB present, unstable extendBody/navigation expectations; two unaffected tests passed.
-2. `fvm flutter test test/shell/tab_swipe_shell_test.dart` failed only because `lib/shell/tab_swipe_shell.dart` and `TabSwipeShell` do not exist.
-3. Profile origin tests were run before adding the compile-contract assertion and failed on missing profile-close key; both assistant test-only public-contract tests passed when isolated.
-4. Full origin suite now fails only at compilation because `appInitialLocation` is undefined; Task 2 GREEN must export it as `RoutePaths.scan` and use it in `GoRouter`.
-
-Test-harness defects found and corrected before accepting RED: vacuous empty Expanded Scan placeholder, wrong indexedStack/manual children harness, cold-start screen rendering with incomplete fake.
-
-**Substage A (2026-07-18):** `lib/shell/tab_swipe_shell.dart` implemented via OpenCode. Real `StatefulShellRoute` `navigatorContainerBuilder` harness corrected to use actual branch `Navigator` children. Fixture corrections: branch0 `_Tab0Page` and `tab0-body` marker/reverse fling. Verification: `fvm flutter test test/shell/tab_swipe_shell_test.dart` → 8/8 passed; `fvm dart analyze lib/shell/tab_swipe_shell.dart` → no issues found. No device/emulator/ADB.
-
-**Substage B (2026-07-18):** `lib/shell/app_shell.dart` flattened to five real equal-width controls with exact `nav-item-*` keys; Scan normal tab; legacy FAB/glow/label removed. `extendBody` globally true; bar geometry/safe-area stable; Scan keeps translucent camera material with same dimensions; original top highlight preserved. `test/app_shell_test.dart` matcher defect corrected from `SemanticsNode` matcher to `hitTestable` Finder. Verification: `fvm flutter test test/app_shell_test.dart` → 9/9 passed. No device/emulator/ADB.
-
-Task 2 remains in progress; Step 3 incomplete — router wiring, profile/assistant origin behavior, and spike deletion still pending.
-
-Next: substage C — router/origin integration.
+Steps 1–4 complete (RED, substages A/B/C, GREEN). Substage C wired router to `TabSwipeShell` with `appInitialLocation=/scan`, profile push route, AI-close origin semantics, and spike cleanup. Focused combined command passed 29/29. `fvm flutter analyze` clean. No device/emulator interaction.
 
 ## Progress log
 
@@ -118,3 +103,4 @@ Next: substage C — router/origin integration.
 | 2026-07-18 | 2 | RED verified — Step 1 (tests written) and Step 2 (RED confirmed) complete; Step 3 implementation pending; harness defects corrected; no device/emulator interaction |
 | 2026-07-18 | 2 | Step 3 substage A done — tab_swipe_shell implemented via OpenCode; navigatorContainerBuilder harness corrected; 8/8 tests pass; analyze clean; no device/emulator; substage B (flatten AppShell nav) next |
 | 2026-07-18 | 2 | Step 3 substage B done — app_shell flattened to five equal-width nav-item-* controls; legacy FAB/glow/label removed; extendBody globally true; bar geometry stable; app_shell_test matcher corrected; 9/9 tests pass; analyze clean; no device/emulator; substage C (router/origin) next |
+| 2026-07-18 | 2 | Step 3 substage C done + Step 4 GREEN — router wired to TabSwipeShell; appInitialLocation=/scan; profile pushNamed closes to origin; Food Detail Ask AI pushNamed; real AiChatScreen with ai-close/ai-close-fallback; spike production+test files removed; focused combined command 29/29; analyze clean; no device/emulator |

@@ -146,7 +146,8 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                           ),
                           const SizedBox(width: 8),
                           GestureDetector(
-                            onTap: () => context.goNamed(RouteNames.profile),
+                            key: const ValueKey('today-avatar'),
+                            onTap: () => context.pushNamed(RouteNames.profile),
                             child: Container(
                               width: 38,
                               height: 38,
