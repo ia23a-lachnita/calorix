@@ -687,7 +687,7 @@ testWidgets('confidence badge is not color-only', (tester) async { /* badge expo
 
 - [x] **Step 6: Stage verification** — `fvm flutter test test/core/app_motion_test.dart test/a11y` → PASS; `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Record explicitly that no emulator/device performance evidence was gathered.
 
-- [ ] **Step 7: REVIEW-GATE Task 4**, then **HANDOFF Task 4**
+- [x] **Step 7: REVIEW-GATE Task 4**, then **HANDOFF Task 4**
 
 ```powershell
 git add -A
