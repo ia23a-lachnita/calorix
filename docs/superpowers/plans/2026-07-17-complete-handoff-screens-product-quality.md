@@ -735,11 +735,11 @@ test('forceReseedForUiDiff is idempotent', () async { /* reseed twice against fa
 
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/debug test/debug_reseed_test.dart` → Expected: FAIL (`kDebugScreenRoutes` not defined; idempotency unproven).
 
-- [ ] **Step 3 (worker): Implement** the deep-link module, idempotent reseed, and fixture isolation. Then write `capture_states.ps1`: for each requested id×theme — check stale build (`git rev-parse HEAD` + APK `Get-FileHash` vs recorded meta; rebuild/install only when stale), `adb shell am start -a android.intent.action.VIEW -d "calorix://debug/reseed?screen=<id>&theme=<t>"`, wait for settle, `adb exec-out screencap -p` at device-native resolution (no resizing — comparison-space projection normalizes later), write PNG + meta JSON.
+- [ ] **Step 3 (worker): Implement** the deep-link module, idempotent reseed, and fixture isolation. Then write `capture_states.ps1` with a safe plan-only default. It must require both `-Execute` and an explicit `-DeviceId <serial>` before invoking build/install/ADB, reject a serial not present in `adb devices`, and never auto-select a connected target. For each requested id×theme, fingerprint the actual build inputs (tracked commit plus tracked working-tree diff and relevant app/config asset contents; do not treat HEAD alone as fresh), compare that fingerprint plus APK hash against metadata, rebuild/install only when stale, launch `calorix://debug/reseed?screen=<id>&theme=<t>`, wait for a deterministic ready signal, capture at device-native resolution, and write PNG + metadata. Plan-only mode emits the exact actions/freshness decision without running Flutter, ADB, or touching a device.
 
 - [ ] **Step 4: GREEN** — Run: `fvm flutter test test/debug test/debug_reseed_test.dart` → Expected: PASS.
 
-- [ ] **Step 5: Harness smoke (host, device)** — emulator up; run `tool/ui_capture/capture_states.ps1 -Screens today,scan_idle -Themes dark` → two PNGs + two meta JSONs exist; re-run without source change → script reports "build fresh, skipped rebuild".
+- [ ] **Step 5: Harness contract smoke (host-only)** — run plan-only mode for `today,scan_idle` × `dark`; assert the action plan contains two distinct deep links/output pairs, the computed source fingerprint is stable across unchanged reruns, and a controlled fixture metadata sample exercises both stale and fresh decisions. This is script-contract evidence only, not runtime capture evidence. The real two-screen capture/re-run remains **blocked** until the user explicitly authorizes a known-safe runtime target; record it as blocked, never passed.
 
 - [ ] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`.
 
