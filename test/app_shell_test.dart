@@ -85,7 +85,7 @@ void main() {
       final finder = find.byKey(Key(key));
       expect(finder, findsOneWidget, reason: 'Missing nav control: $key');
       expect(
-        tester.getSemantics(finder),
+        finder.hitTestable(),
         findsOneWidget,
         reason: '$key must be hit-testable',
       );
@@ -109,7 +109,7 @@ void main() {
 
     final scanTab = find.byKey(const Key('nav-item-scan'));
     expect(scanTab, findsOneWidget);
-    expect(tester.getSemantics(scanTab), findsOneWidget);
+    expect(scanTab.hitTestable(), findsOneWidget);
   });
 
   testWidgets('Old FAB / glow / ring / protrusion keys are absent',
