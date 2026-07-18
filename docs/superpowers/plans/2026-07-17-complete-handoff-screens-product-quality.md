@@ -710,6 +710,14 @@ git push
 - Consumes: `clockProvider` (Task 3); router (Task 2).
 - Produces: deep-link map `kDebugScreenRoutes: Map<String, String>` with exactly the 19 canonical IDs as keys (used by Tasks 16/17); `tool/ui_capture/capture_states.ps1 -Screens <ids|all> -Themes dark,light` producing `<id>--<theme>.png` + `<id>--<theme>.meta.json` (buildHash, route, theme, fixtureHash, deviceModel, pixelSize) under `.ui-diff/captures/<date>/`; fixture contents per spec §10.2 (3 food entries: high-conf, low-conf, editing; 7 days history; 2 weight logs; 1 active plan; 1 chat thread).
 
+Safety and determinism details:
+- `forceReseedForUiDiff` must throw `UnsupportedError` when `!kDebugMode`; an `assert` or silent return is insufficient. The route is also omitted outside debug builds.
+- A pure `UiDiffFixtureManifest` owns fixed document IDs, fixed values, canonical path ordering, and timestamps derived from one injected `Clock.nowTZ()` read. A Firestore adapter applies only the manifest's known paths with `set()` and deletes only obsolete IDs in the reserved `ui_diff_fixture_*` namespace. It must never wipe arbitrary user documents or whole collections. Tests use an in-memory fixture-store adapter, not real Firebase.
+- Byte identity is proven by a canonical fixture hash over sorted document paths and recursively key-sorted JSON values with timestamps encoded as UTC ISO-8601. Two reseeds from the same `FakeClock` instant must produce the same manifest and hash.
+- `uiDiffModeProvider` controls capture behavior/animation only. A separate `uiDiffFixtureEnabledProvider` gates visual-only fixture overrides such as 1,420 kcal, and a debug-only theme override selects dark/light without mutating the user's persisted theme preference.
+- All 19 IDs exist in a typed target registry with an availability state. Implemented targets navigate normally. Not-yet-implemented targets mount a debug-only placeholder that emits `UI_DIFF_BLOCKED:<nonce>:<id>:unimplemented`; the capture script treats this as a failure and never saves it as valid visual evidence.
+- Each deep link carries a fresh nonce. A target emits `UI_DIFF_READY:<nonce>:<id>:<theme>:<fixtureHash>` only after seeding, navigation, target data readiness, and two completed frames. The script clears/starts a scoped logcat read before launch and matches the full nonce-specific line; stale signals cannot satisfy a run. Arbitrary sleeps are not readiness.
+
 - [ ] **Step 1 (worker): Write failing tests**
 
 ```dart
@@ -730,12 +738,14 @@ test('production aggregation ignores the fixture hero override', () {
 testWidgets('hero shows 1420 only when uiDiffFixtureEnabledProvider is true', (tester) async { /* override on → 1,420; off → 845 */ });
 
 // test/debug_reseed_test.dart (extend)
-test('forceReseedForUiDiff is idempotent', () async { /* reseed twice against fake firestore, deep-equal snapshots */ });
+test('forceReseedForUiDiff is idempotent', () async { /* reseed twice through in-memory fixture store; compare canonical snapshots + hashes */ });
+test('reseed only mutates reserved fixture document paths', () async { /* unrelated user documents remain byte-identical */ });
+test('release/profile invocation is rejected', () { /* exercise the injectable debug guard without relying on assert */ });
 ```
 
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/debug test/debug_reseed_test.dart` → Expected: FAIL (`kDebugScreenRoutes` not defined; idempotency unproven).
 
-- [ ] **Step 3 (worker): Implement** the deep-link module, idempotent reseed, and fixture isolation. Then write `capture_states.ps1` with a safe plan-only default. It must require both `-Execute` and an explicit `-DeviceId <serial>` before invoking build/install/ADB, reject a serial not present in `adb devices`, and never auto-select a connected target. For each requested id×theme, fingerprint the actual build inputs (tracked commit plus tracked working-tree diff and relevant app/config asset contents; do not treat HEAD alone as fresh), compare that fingerprint plus APK hash against metadata, rebuild/install only when stale, launch `calorix://debug/reseed?screen=<id>&theme=<t>`, wait for a deterministic ready signal, capture at device-native resolution, and write PNG + metadata. Plan-only mode emits the exact actions/freshness decision without running Flutter, ADB, or touching a device.
+- [ ] **Step 3 (worker): Implement** the pure fixture manifest/store boundary, reserved-namespace Firestore adapter, canonical fixture hash, deep-link target registry, nonce-specific ready/blocked protocol, separate fixture/theme overrides, and idempotent reseed. Then write `capture_states.ps1` with a safe plan-only default. It must require both `-Execute` and an explicit `-DeviceId <serial>` before invoking build/install/ADB, reject a serial not present in `adb devices`, and never auto-select a connected target. Compute `sourceFingerprint` from sorted path+bytes for `git ls-files --cached --others --exclude-standard` restricted to build-relevant `lib/`, declared `assets/`, `pubspec.yaml`, `pubspec.lock`, and platform build configuration; this includes uncommitted tracked and relevant untracked changes and does not trust HEAD alone. Compare source fingerprint plus APK hash against metadata, rebuild/install only when stale, launch the nonce-bearing deep link, wait for the exact nonce-specific ready signal (or fail immediately on blocked), capture at device-native resolution, and write PNG + metadata. Plan-only mode emits exact actions/freshness decisions without running Flutter, ADB, or touching a device.
 
 - [ ] **Step 4: GREEN** — Run: `fvm flutter test test/debug test/debug_reseed_test.dart` → Expected: PASS.
 
