@@ -26,6 +26,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 3 | done | host orchestration; delegated editors with recorded fallback | post-implementation review agree; MUST_FIX none | a2272d0, a54a8ba | Stage A and Stage B pushed; analyzer clean; core 79/79; full 177/177; no device/emulator |
 | 4 | done | OpenCode unavailable; approved headless fallback unavailable; host fallback under contract | post-review green round 2; MUST_FIX none | 2365d63, 4cf8bbe | Motion/a11y implementation and semantic remediation pushed; analyzer clean; full 189/189; paint isolation proven host-side; real raster timing explicitly blocked; no device/emulator |
 | 5 | done | OpenCode stalled twice; Claude unavailable; host fallback under contract | pre-review Pro green; post-review Flash High green after Pro/MCP timeouts | 12fde03, 6f9dc08, 3f3b7a5, 465db93 | RED/GREEN complete; analyzer clean; full 198/198; deterministic plan-only and physical two-screen smoke passed; exact evidence below |
+| 6 | in progress | OpenCode timed out (904s, zero edits); Claude Code headless completed RED; host verified | pre-implementation review agree (calorix-task6-scan-permission-20260718) | — | RED checkpoint only — see below |
 
 **Task 0 commit:** cacca80
 
@@ -63,6 +64,7 @@ Expected FAIL — compilation errors (`SpikeShellA`/`SpikeShellB` not defined). 
 | 2026-07-18 | Claude headless fallback (Task 3 Stage A) | explicit user-approved fallback after three OpenCode timeouts; edits independently inspected by host before verification |
 | 2026-07-18 | OpenCode Task 4 plan correction | timed out after 184s with no output and no repository edits; orphan `opencode` process stopped |
 | 2026-07-18 | Claude headless Task 4 availability probe | failed: `You've hit your session limit · resets 7pm (Europe/Zurich)` |
+| 2026-07-18 | OpenCode Task 6 RED call | timed out after 904s with zero repository edits; Claude Code headless (Sonnet 5) then completed the RED-only checkpoint; host independently inspected and reran it |
 
 ## Plan review log
 
@@ -96,6 +98,12 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 3. One sandboxed `Gemini 3.5 Flash (High)` inspection call also timed out after 300 seconds and persisted no response.
 4. A final no-sandbox, fact/evidence-based `Gemini 3.5 Flash (High)` call returned the required green verdict. No reviewer call mutated tracked or untracked repository files.
 
+### Antigravity response noise (Task 6 pre-review, calorix-task6-scan-permission-20260718)
+
+1. Requested canonical `gemini-3.1-pro-preview` was rewritten to invalid `gemini-3.1-pro`; the advertised `Gemini 3.1 Pro (High)` worked.
+2. First response inspected the untouched baseline as if the implementation were already complete.
+3. Correction re-grounded the response in the actual contract; it then returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`.
+
 ## Review-gate log
 
 (one row per REVIEW-GATE call: task, conversationId, AGREEMENT_STATUS, MUST_FIX, git-status-after)
@@ -109,6 +117,7 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 | 3 (round 3) | calorix-task3-clock-timezone-20260718 | agree | none | clean (post-RED, pre-implementation; DST UTC-instant correction + 9 RED tests inspected) |
 | 3 (post-implementation) | calorix-task3-clock-timezone-20260718 | agree | none | clean (no mutation; response duplicated the complete review block verbatim, treated as one valid review) |
 | 5 (post-implementation fallback) | calorix-task5-fixture-capture-20260718 | agree | none | clean (no mutation; fact/evidence-based Flash High verdict after Pro inspection calls timed out) |
+| 6 (pre-implementation) | calorix-task6-scan-permission-20260718 | agree | none | clean (no mutation) |
 
 ## Visual evidence log
 
@@ -144,7 +153,28 @@ Corrections applied:
 
 ## Current Task
 
-**Task 5 — complete. Task 6 is next; no Task 6 implementation has begun.**
+**Task 6 — RED checkpoint complete; Step 3 implementation has not begun.**
+
+- Branch: `main`
+- Baseline: `f7d9a54` ("Complete deterministic capture harness handoff")
+- Pre-implementation review: conversation `calorix-task6-scan-permission-20260718` returned `AGREEMENT_STATUS: agree` with the corrected contract: injectable abstract `CameraService` (`hasPermission`/`requestPermission`/`captureStill`/`pickFromLibrary`); `CaptureState` `idle`/`capturing`/`denied` (replacing the prior `uploading` value); taps while `capturing` are a strict no-op (no toggle-back-to-idle); public `ScanModeSelector` and `CaptureButton` widgets (replacing the private `_ModeSelector`/`_CaptureButton`); `PermissionScreen` with route/regrant/manual-navigation-intent behavior; the LIBRARY chip shares the same capture guard as the shutter; `AppMotion`/`MotionDurations` tokens drive all Task 6 motion; runtime verification (Step 5) is authorized only on the explicit physical serial `R58R61161NA`, never an emulator or auto-selected target.
+- Worker routing: OpenCode was invoked for the RED step and timed out after 904s with zero repository edits (no test files created). Claude Code headless (Sonnet 5) then completed the RED-only checkpoint under the repository contract; the host independently inspected and reran the result before recording it. This is recorded in the Worker routing log above.
+- Step 1 (tests written) and Step 2 (RED) complete:
+  - Extended `test/scan_screen_test.dart` with an assertion that `ScanScreen` composes the public `CaptureButton`/`ScanModeSelector` widgets via an injected `cameraServiceProvider`.
+  - Created `test/scan/capture_guard_test.dart` (rapid-triple-tap-is-one-capture; capturing state shows spinner/shimmer/ANALYZING with no stop control).
+  - Created `test/scan/permission_screen_test.dart` (denied → `PermissionScreen` with blurred viewfinder + add-manually card; regrant → back to `scan_idle`; add-manually invokes the manual-entry navigation intent — asserted via callback since `RouteNames.manual` does not exist until Task 8, per the plan's explicit "router redirect stub" allowance).
+  - Created `test/scan/scan_mode_selector_test.dart` (Meal/Barcode/Label segments update `ScanMode`, thumb keyed for `MotionDurations.reticleSnap` animation).
+  - Created shared test doubles/helpers at `test/scan/support/fake_camera_service.dart` and `test/scan/support/pump_scan.dart` (not separately listed in the plan's Files section; added because all four Task 6 test files need the same injectable `CameraService` fake and `ScanScreen` pump helper).
+- Focused RED command: `fvm flutter test test/scan test/scan_screen_test.dart` exited 1 as expected — 0 passed, 4 test files failed to load, all four failures are compilation errors for missing Task 6 APIs only (no unrelated test-authoring mistakes):
+  - `test/scan/capture_guard_test.dart` — `Undefined name 'cameraServiceProvider'`.
+  - `test/scan/permission_screen_test.dart` — `lib/features/scan/permission_screen.dart` not found; `Undefined name 'PermissionScreen'` (×3); `Method not found: 'PermissionScreen'`.
+  - `test/scan/scan_mode_selector_test.dart` — `lib/features/scan/widgets/scan_mode_selector.dart` not found; `Method not found: 'ScanModeSelector'`.
+  - `test/scan_screen_test.dart` — `lib/features/scan/widgets/capture_button.dart` and `.../scan_mode_selector.dart` not found; `Undefined name 'CaptureButton'`; `Undefined name 'ScanModeSelector'`; `Undefined name 'cameraServiceProvider'`.
+- No `lib/` files were modified in this checkpoint. All pre-existing untracked artifacts (`.claude/ui-diff-runs/`, `.gemini/settings.json.bak-20260517-220447`, `assets/calorix_icons/`, `docs/screenshots/*.png`) remain untouched; `git status` shows only `test/scan_screen_test.dart` modified and the new `test/scan/` directory added.
+- Intended focused command for Step 3/4 (implementation, not run in this checkpoint): `fvm flutter test test/scan test/scan_screen_test.dart` (GREEN), then `fvm flutter analyze` and the full `fvm flutter test` for Step 6 stage verification.
+- Next: Step 3 implementation (abstract `CameraService` + device impl, `cameraServiceProvider`, `CaptureState.denied`, public `CaptureButton`/`ScanModeSelector`, `PermissionScreen`, capture-guard behavior change) is out of scope for this checkpoint and has not begun.
+
+**Task 5 — complete.**
 
 - Branch: `main`
 - Baseline: `4454727`
@@ -195,6 +225,7 @@ Task 2 complete (commit bc3e420). Task 3 plan reviewed in conversation `calorix-
 | 2026-07-18 | 5 | Two captures succeeded at 1080×2400, then artifact inspection caught cross-target fixture-hash drift from separate real-clock reads. Shared explicit fixture epoch added test-first; focused 12/12 and plan assertion green; deterministic recapture pending |
 | 2026-07-18 | 5 | Step 5 complete — deterministic recapture on explicit SM-G780G serial passed for today/scan dark; shared fixture/source/APK evidence verified; both artifacts visually inspected; 4.94s immediate repeat skipped build/install; Step 7 review next |
 | 2026-07-18 | 5 | HANDOFF complete — code commits through 465db93 pushed; focused 12/12, analyzer clean, full 198/198; physical deterministic smoke passed; post-review fallback green with no must-fix; Task 6 next |
+| 2026-07-18 | 6 | Steps 1–2 RED checkpoint — pre-implementation review green (calorix-task6-scan-permission-20260718); OpenCode timed out after 904s with zero edits, Claude Code headless (Sonnet 5) then completed the RED-only checkpoint and the host independently inspected and reran it; extended test/scan_screen_test.dart and created test/scan/capture_guard_test.dart, test/scan/permission_screen_test.dart, test/scan/scan_mode_selector_test.dart plus shared test/scan/support helpers; focused command `fvm flutter test test/scan test/scan_screen_test.dart` exited 1 with 4/4 files failing to load, all failures missing-Task-6-API compile errors only; no lib/ edits; Step 3 implementation next |
 | 2026-07-18 | 3 | Step 1 tests written — 9 test files created under test/core/: clock_test, time_shift_test, timezone_boundary_test, timezone_synchronizer_test, local_date_key_purity_test, daily_log_malformed_date_test, draft_policy_test, draft_policy_exhaustive_test, clock_injection_callsite_test; RED verification pending (fvm flutter test test/core); no device/emulator; no lib/ edits; no pubspec changes |
 | 2026-07-18 | 3 | Step 1 tests corrected — 9 test files corrected in test/core/ based on verified timezone API facts: (1) tz_data import for initializeTimeZones, (2) timeZone.isDst/timeZoneOffset properties, (3) UTC-instant DST disambiguation for first occurrence, (4) FakeClock advance via original variable not abstract Clock, (5) recursive Directory.listSync in callsite test, (6) lifecycle tests with callCount proving resume triggers syncOnce and dispose stops future calls, (7) removed unused imports, (8) FakeDocumentSnapshot noSuchMethod for compile-complete, (9) removed real-time delay/current-year assertion, (10) test count corrected to 9 files; plan DST section corrected; RED verification pending; plan re-review needed for DST correction |
 | 2026-07-18 | 3 | Step 2 RED complete — `fvm flutter test test/core` exit 1, +9 -19; intended causes: missing clock/clock_provider/timezone_init/timezone_utils/draft_policy modules + recursive source-contract failures; no pubspec/lock change; earlier widgets import error corrected before final RED |

@@ -4,7 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:calorix/core/theme/app_theme.dart';
 import 'package:calorix/features/scan/scan_screen.dart';
+import 'package:calorix/features/scan/widgets/capture_button.dart';
+import 'package:calorix/features/scan/widgets/scan_mode_selector.dart';
 import 'package:calorix/shared/providers/auth_provider.dart';
+
+import 'scan/support/fake_camera_service.dart';
+import 'scan/support/pump_scan.dart';
 
 Widget _buildScan() {
   return ProviderScope(
@@ -47,4 +52,16 @@ void main() {
     await tester.pump();
     expect(find.text('Flash · Off'), findsOneWidget);
   });
+
+  testWidgets(
+    'scan screen composes the public CaptureButton and ScanModeSelector widgets',
+    (tester) async {
+      final fake = FakeCameraService();
+      await pumpScan(tester, camera: fake);
+
+      expect(find.byType(CaptureButton), findsOneWidget);
+      expect(find.byType(ScanModeSelector), findsOneWidget);
+      expect(find.byKey(const ValueKey('capture-button')), findsOneWidget);
+    },
+  );
 }

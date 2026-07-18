@@ -794,7 +794,7 @@ abstract class CameraService {
 }
 ```
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/scan/capture_guard_test.dart
@@ -817,13 +817,13 @@ testWidgets('add manually navigates to manual route', (tester) async { /* assert
 testWidgets('Meal/Barcode/Label segments animate smoothly and update ScanMode', (tester) async { /* tap each; provider value changes; thumb animates with MotionDurations.reticleSnap */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/scan test/scan_screen_test.dart` → Expected: FAIL (new widgets/providers undefined).
+- [x] **Step 2: RED** — Run: `fvm flutter test test/scan test/scan_screen_test.dart` → Expected: FAIL (new widgets/providers undefined).
 
 - [ ] **Step 3 (worker): Implement** — permission screen per spec §5.3 (platform-appropriate rationale; iOS-style overlay reserved for fixture capture mode), capture button with shutter flash + ring pulse then duplicate-tap guard during `capturing`, LIBRARY chip → `pickFromLibrary()` into the same processing path, RECENT chip → recent entries, glass mode selector, reticle glow + scan-line shimmer via `MotionDurations`.
 
 - [ ] **Step 4: GREEN** — Run: `fvm flutter test test/scan test/scan_screen_test.dart` → Expected: PASS.
 
-- [ ] **Step 5: Runtime verification (host, device)** — on the emulator: deny camera → permission screen; grant → live preview; triple-tap capture → one processing navigation; Library picker opens. Record observations in `docs/implementation-status.md`.
+- [ ] **Step 5: Runtime verification (host, device)** — use only the explicitly named physical ADB serial `R58R61161NA`; never auto-select a target and never use an emulator. Deny camera → permission screen; grant → live preview; triple-tap capture → one processing navigation; Library picker opens. Record observations in `docs/implementation-status.md`.
 
 - [ ] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 
