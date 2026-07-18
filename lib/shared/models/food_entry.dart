@@ -1,4 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:timezone/timezone.dart' as tz;
+
+import '../utils/date_key.dart';
 
 enum FoodEntryStatus { pending, processing, complete, needsReview, error }
 
@@ -140,12 +143,8 @@ class FoodEntry {
     );
   }
 
-  static String _fallbackDateKey(DateTime timestamp) {
-    final local = timestamp.toLocal();
-    final month = local.month.toString().padLeft(2, '0');
-    final day = local.day.toString().padLeft(2, '0');
-    return '${local.year}-$month-$day';
-  }
+  static String _fallbackDateKey(DateTime timestamp) =>
+      localDateKey(tz.TZDateTime.from(timestamp, tz.local));
 
   Map<String, dynamic> toMap() => {
         'uid': uid,

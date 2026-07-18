@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/time/clock_provider.dart';
 import '../../../shared/models/daily_log.dart';
 import '../../../shared/models/macro_target_plan.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/plan_provider.dart';
+import '../../../shared/utils/date_key.dart';
 
 export '../../../shared/providers/plan_provider.dart' show activePlanProvider;
 
@@ -22,18 +23,15 @@ final weightLogsProvider = StreamProvider<List<WeightLog>>((ref) {
       .orderBy(FieldPath.documentId, descending: true)
       .limit(30)
       .snapshots()
-      .map((q) => q.docs
-          .map(WeightLog.fromFirestore)
-          .toList()
-          .reversed
-          .toList());
+      .map((q) =>
+          q.docs.map(WeightLog.fromFirestore).toList().reversed.toList());
 });
 
 /// Writes today's weight (one entry per calendar day, latest value wins).
 Future<void> logWeight(Ref ref, double kg) async {
   final uid = ref.read(currentUidProvider);
   if (uid == null) return;
-  final dateKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  final dateKey = localDateKey(ref.read(clockProvider).nowTZ());
   await ref
       .read(firestoreProvider)
       .collection(AppConstants.usersCollection)
@@ -58,7 +56,8 @@ final bodyGoalProvider = StateProvider<BodyGoal>((ref) {
   return plan?.goal ?? BodyGoal.loseFat;
 });
 
-class MacroSplitNotifier extends StateNotifier<({int kcal, int protein, int carbs, int fat})> {
+class MacroSplitNotifier
+    extends StateNotifier<({int kcal, int protein, int carbs, int fat})> {
   MacroSplitNotifier(MacroTargetPlan? plan)
       : super((
           kcal: plan?.kcal ?? 2400,

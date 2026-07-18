@@ -15,6 +15,7 @@ import '../../core/router/route_names.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/providers/ui_diff_provider.dart';
 import '../../debug/ui_diff/ui_diff_anchor.dart';
+import '../../core/time/clock_provider.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -64,7 +65,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     final entriesAsync = ref.watch(todayEntriesProvider);
     final summary = ref.watch(todayMacroSummaryProvider);
     final planAsync = ref.watch(activePlanProvider);
-    final plan = planAsync.valueOrNull ?? MacroTargetPlan.defaultPlan();
+    final now = ref.watch(clockProvider).nowTZ();
+    final plan =
+        planAsync.valueOrNull ?? MacroTargetPlan.defaultPlan(startDate: now);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
@@ -74,7 +77,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
         _userInitials(user?.displayName) ?? (isUiDiffMode ? 'EK' : null);
     final headerDate = isUiDiffMode
         ? 'FRIDAY · MAY 15'
-        : DateFormat('EEEE · MMMM d').format(DateTime.now()).toUpperCase();
+        : DateFormat('EEEE · MMMM d').format(now).toUpperCase();
 
     final bgColor =
         isDark ? AppColors.backgroundDark : AppColors.backgroundLight;

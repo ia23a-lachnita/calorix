@@ -22,6 +22,7 @@ import '../../features/profile/profile_sheet.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/providers/ui_diff_provider.dart';
 import '../../shared/services/seed_data_service.dart';
+import '../time/clock_provider.dart';
 
 const String appInitialLocation = RoutePaths.scan;
 
@@ -260,7 +261,8 @@ class _DebugReseedScreenState extends ConsumerState<_DebugReseedScreen> {
     }
     final uid = auth.currentUser?.uid;
     if (uid != null) {
-      await SeedDataService(ref.read(firestoreProvider))
+      await SeedDataService(
+              ref.read(firestoreProvider), ref.read(clockProvider))
           .forceReseedForUiDiff(uid);
     }
     if (mounted) {

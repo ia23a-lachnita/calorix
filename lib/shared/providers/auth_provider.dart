@@ -2,15 +2,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../core/time/clock_provider.dart';
 import '../repositories/food_entry_repository.dart';
 import '../repositories/macro_target_repository.dart';
 
-final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
+final firebaseAuthProvider =
+    Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
 
-final firestoreProvider = Provider<FirebaseFirestore>((ref) => FirebaseFirestore.instance);
+final firestoreProvider =
+    Provider<FirebaseFirestore>((ref) => FirebaseFirestore.instance);
 
 final foodEntryRepositoryProvider = Provider<FoodEntryRepository>(
-  (ref) => FoodEntryRepository(ref.watch(firestoreProvider)),
+  (ref) => FoodEntryRepository(
+      ref.watch(firestoreProvider), ref.watch(clockProvider)),
 );
 
 final macroTargetRepositoryProvider = Provider<MacroTargetRepository>(

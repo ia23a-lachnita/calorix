@@ -82,11 +82,12 @@ class MacroTargetPlan {
         isActive: isActive ?? this.isActive,
       );
 
-  static MacroTargetPlan defaultPlan() => MacroTargetPlan(
+  static MacroTargetPlan defaultPlan({required DateTime startDate}) =>
+      MacroTargetPlan(
         id: 'default',
         planName: 'Cut Phase',
         goal: BodyGoal.loseFat,
-        startDate: DateTime.now(),
+        startDate: startDate,
         kcal: 2400,
         protein: 170,
         carbs: 250,

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
 import 'providers/goals_providers.dart';
 import '../../shared/models/daily_log.dart';
 import '../../shared/models/macro_target_plan.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/time/clock_provider.dart';
+import '../../core/time/timezone_utils.dart' as timezone_utils;
 
 /// Static coaching anchors from the handoff (no real TDEE model in V1).
 const _tdee = 2820;
@@ -27,15 +30,16 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
   Widget build(BuildContext context) {
     final macroSplit = ref.watch(macroSplitProvider);
     final bodyGoal = ref.watch(bodyGoalProvider);
+    final now = ref.watch(clockProvider).nowTZ();
     final plan = ref.watch(activePlanProvider).valueOrNull ??
-        MacroTargetPlan.defaultPlan();
+        MacroTargetPlan.defaultPlan(startDate: now);
     final weightLogs = ref.watch(weightLogsProvider).valueOrNull ?? [];
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final ink = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final muted =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-    final planWeek = _planWeek(plan);
+    final planWeek = _planWeek(plan, now);
     final periodLabel = _periodLabel ?? 'Week $planWeek';
 
     return Scaffold(
@@ -137,9 +141,8 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
                     _MacroSplitCard(
                       split: macroSplit,
                       notifier: ref.read(macroSplitProvider.notifier),
-                      weightKg: weightLogs.isNotEmpty
-                          ? weightLogs.last.weight
-                          : 80.0,
+                      weightKg:
+                          weightLogs.isNotEmpty ? weightLogs.last.weight : 80.0,
                       isDark: isDark,
                     ),
                     const SizedBox(height: 12),
@@ -173,6 +176,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
                 planWeek: planWeek,
                 selectedLabel: periodLabel,
                 isDark: isDark,
+                now: now,
                 onSelected: (label) => setState(() {
                   _periodLabel = label;
                   _periodOpen = false;
@@ -185,9 +189,14 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
     );
   }
 
-  int _planWeek(MacroTargetPlan plan) {
-    final days = DateTime.now().difference(plan.startDate).inDays;
-    return (days ~/ 7) + 1;
+  int _planWeek(MacroTargetPlan plan, tz.TZDateTime now) {
+    final start = tz.TZDateTime.from(plan.startDate, now.location);
+    final days = timezone_utils
+        .startOfDay(now)
+        .difference(timezone_utils.startOfDay(start))
+        .inDays;
+    final week = (days ~/ 7) + 1;
+    return week < 1 ? 1 : week;
   }
 
   void _autoComputeMacros(WidgetRef ref, BodyGoal goal) {
@@ -287,6 +296,7 @@ class _PeriodDropdown extends StatelessWidget {
     required this.planWeek,
     required this.selectedLabel,
     required this.isDark,
+    required this.now,
     required this.onSelected,
   });
 
@@ -294,6 +304,7 @@ class _PeriodDropdown extends StatelessWidget {
   final int planWeek;
   final String selectedLabel;
   final bool isDark;
+  final DateTime now;
   final ValueChanged<String> onSelected;
 
   @override
@@ -376,7 +387,6 @@ class _PeriodDropdown extends StatelessWidget {
       rows.add(item(label: 'Week $w', sub: range, dim: w != planWeek));
     }
     rows.add(group('Months'));
-    final now = DateTime.now();
     for (var i = 0; i < 3; i++) {
       final month = DateTime(now.year, now.month - i, 1);
       final label = DateFormat('MMMM yyyy').format(month);
@@ -493,8 +503,7 @@ class _BodyGoalSegmented extends StatelessWidget {
                           boxShadow: g.$1 == current
                               ? [
                                   BoxShadow(
-                                    color:
-                                        Colors.black.withValues(alpha: 0.06),
+                                    color: Colors.black.withValues(alpha: 0.06),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
@@ -522,9 +531,8 @@ class _BodyGoalSegmented extends StatelessWidget {
                                 style: AppTextStyles.labelMono.copyWith(
                                   fontSize: 9.5,
                                   letterSpacing: 9.5 * 0.04,
-                                  color: g.$1 == current
-                                      ? AppColors.green
-                                      : muted,
+                                  color:
+                                      g.$1 == current ? AppColors.green : muted,
                                 ),
                               ),
                             ],
@@ -577,8 +585,7 @@ class _CalorieCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('DAILY CALORIE TARGET',
-                        style:
-                            AppTextStyles.labelMono.copyWith(color: muted)),
+                        style: AppTextStyles.labelMono.copyWith(color: muted)),
                     const SizedBox(height: 4),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -1117,7 +1124,8 @@ class _WeightCard extends StatelessWidget {
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     final hasData = logs.isNotEmpty;
     final latest = hasData ? logs.last.weight : null;
-    final delta = logs.length >= 2 ? logs.last.weight - logs.first.weight : null;
+    final delta =
+        logs.length >= 2 ? logs.last.weight - logs.first.weight : null;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1221,8 +1229,7 @@ class _WeightCard extends StatelessWidget {
             const SizedBox(height: 10),
             Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.green.withValues(alpha: isDark ? 0.06 : 0.08),
                 borderRadius: BorderRadius.circular(14),
@@ -1317,7 +1324,8 @@ class _WeightChartPainter extends CustomPainter {
       final x = values.length == 1
           ? size.width / 2
           : i / (values.length - 1) * size.width;
-      final y = size.height - ((values[i] - minV) / span) * (size.height - 8) - 4;
+      final y =
+          size.height - ((values[i] - minV) / span) * (size.height - 8) - 4;
       return Offset(x, y);
     });
 

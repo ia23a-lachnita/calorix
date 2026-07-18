@@ -2,10 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/food_entry.dart';
 import '../utils/date_key.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/time/clock.dart';
 
 class FoodEntryRepository {
-  FoodEntryRepository(this._firestore);
+  FoodEntryRepository(this._firestore, this._clock);
   final FirebaseFirestore _firestore;
+  final Clock _clock;
 
   CollectionReference<Map<String, dynamic>> _col(String uid) => _firestore
       .collection(AppConstants.usersCollection)
@@ -22,7 +24,7 @@ class FoodEntryRepository {
           );
 
   Stream<List<FoodEntry>> watchTodayEntries(String uid) =>
-      watchEntriesForDate(uid, DateTime.now());
+      watchEntriesForDate(uid, _clock.nowTZ());
 
   Stream<List<FoodEntry>> watchEntriesForDate(String uid, DateTime date) {
     return _col(uid)
@@ -36,7 +38,8 @@ class FoodEntryRepository {
             .toList());
   }
 
-  Future<String> createPendingEntry(String uid, Map<String, dynamic> data) async {
+  Future<String> createPendingEntry(
+      String uid, Map<String, dynamic> data) async {
     final ref = _col(uid).doc();
     await ref.set({...data, 'timestamp': FieldValue.serverTimestamp()});
     return ref.id;
@@ -58,7 +61,7 @@ class FoodEntryRepository {
 
   Future<String> duplicate(FoodEntry entry) async {
     final ref = _col(entry.uid).doc();
-    final now = DateTime.now();
+    final now = _clock.nowTZ();
     await ref.set({
       ...entry.toMap(),
       'timestamp': Timestamp.fromDate(now),

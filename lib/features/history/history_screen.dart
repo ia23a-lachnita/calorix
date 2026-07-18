@@ -10,6 +10,7 @@ import '../../shared/providers/plan_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/time/clock_provider.dart';
 
 /// A day counts as on-target from this fraction of the kcal goal upward;
 /// below it the day renders amber per the handoff status colors.
@@ -23,18 +24,24 @@ class HistoryScreen extends ConsumerStatefulWidget {
 
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   bool _isMonthView = false;
-  DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
 
-  DateTime get _weekStart =>
-      _dateOnly(_selectedDate.subtract(Duration(days: _selectedDate.weekday - 1)));
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = ref.read(clockProvider).nowTZ();
+  }
 
-  bool get _canGoNext {
-    final now = DateTime.now();
+  DateTime get _weekStart => _dateOnly(
+      _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1)));
+
+  bool _canGoNext(DateTime now) {
     if (_isMonthView) {
       return DateTime(_selectedDate.year, _selectedDate.month)
           .isBefore(DateTime(now.year, now.month));
     }
-    final thisWeekStart = _dateOnly(now.subtract(Duration(days: now.weekday - 1)));
+    final thisWeekStart =
+        _dateOnly(now.subtract(Duration(days: now.weekday - 1)));
     return _weekStart.isBefore(thisWeekStart);
   }
 
@@ -47,11 +54,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   void _goNext() {
-    if (!_canGoNext) return;
+    final now = ref.read(clockProvider).nowTZ();
+    if (!_canGoNext(now)) return;
     setState(() {
       if (_isMonthView) {
         final next = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
-        final now = DateTime.now();
         _selectedDate =
             next.month == now.month && next.year == now.year ? now : next;
       } else {
@@ -66,9 +73,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     return ((dayOfYear - d.weekday + 10) / 7).floor();
   }
 
-  int _computeStreak(List<DailyLog> logs) {
+  int _computeStreak(List<DailyLog> logs, DateTime today) {
     int streak = 0;
-    final today = DateTime.now();
     for (int i = 0; i < logs.length; i++) {
       final log = logs[i];
       if (!log.hasData) break;
@@ -93,9 +99,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final kcalTarget = (ref.watch(activePlanProvider).valueOrNull?.kcal ??
             AppConstants.defaultKcalTarget)
         .toDouble();
+    final now = ref.watch(clockProvider).nowTZ();
 
     final weekLogs = _logsForWeek(logs, _weekStart);
-    final streak = _computeStreak(logs);
+    final streak = _computeStreak(logs, _dateOnly(now));
 
     return Scaffold(
       body: CustomScrollView(
@@ -131,7 +138,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         ),
                         GestureDetector(
                           onTap: _goPrevious,
-                          child: Icon(Icons.chevron_left, size: 20, color: muted),
+                          child:
+                              Icon(Icons.chevron_left, size: 20, color: muted),
                         ),
                         const SizedBox(width: 6),
                         GestureDetector(
@@ -139,7 +147,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           child: Icon(
                             Icons.chevron_right,
                             size: 20,
-                            color: _canGoNext ? ink : muted.withValues(alpha: 0.4),
+                            color: _canGoNext(now)
+                                ? ink
+                                : muted.withValues(alpha: 0.4),
                           ),
                         ),
                       ],
@@ -159,7 +169,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   logs: logs,
                   kcalTarget: kcalTarget,
                   isDark: isDark,
-                  onViewChanged: (month) => setState(() => _isMonthView = month),
+                  today: _dateOnly(now),
+                  onViewChanged: (month) =>
+                      setState(() => _isMonthView = month),
                   onDateSelected: (d) => setState(() => _selectedDate = d),
                 ),
                 const SizedBox(height: 12),
@@ -226,7 +238,9 @@ List<DailyLog> _logsForWeek(List<DailyLog> logs, DateTime weekStart) {
 Color? _statusColor(DailyLog? log, double target) {
   if (log == null || !log.hasData) return null;
   final fraction = target > 0 ? log.kcal / target : 0.0;
-  return fraction >= _onTargetFraction ? AppColors.green : AppColors.needsReview;
+  return fraction >= _onTargetFraction
+      ? AppColors.green
+      : AppColors.needsReview;
 }
 
 // ─── Calendar card ────────────────────────────────────────────────────────────
@@ -238,6 +252,7 @@ class _CalendarCard extends StatelessWidget {
     required this.logs,
     required this.kcalTarget,
     required this.isDark,
+    required this.today,
     required this.onViewChanged,
     required this.onDateSelected,
   });
@@ -247,6 +262,7 @@ class _CalendarCard extends StatelessWidget {
   final List<DailyLog> logs;
   final double kcalTarget;
   final bool isDark;
+  final DateTime today;
   final ValueChanged<bool> onViewChanged;
   final ValueChanged<DateTime> onDateSelected;
 
@@ -274,7 +290,9 @@ class _CalendarCard extends StatelessWidget {
               children: [
                 Text(
                   isMonthView
-                      ? DateFormat('MMMM yyyy').format(selectedDate).toUpperCase()
+                      ? DateFormat('MMMM yyyy')
+                          .format(selectedDate)
+                          .toUpperCase()
                       : 'THIS WEEK',
                   style: AppTextStyles.labelMono.copyWith(color: muted),
                 ),
@@ -295,6 +313,7 @@ class _CalendarCard extends StatelessWidget {
                     logs: logs,
                     kcalTarget: kcalTarget,
                     isDark: isDark,
+                    today: today,
                     onDateSelected: onDateSelected,
                   )
                 : _WeekStrip(
@@ -302,6 +321,7 @@ class _CalendarCard extends StatelessWidget {
                     logs: logs,
                     kcalTarget: kcalTarget,
                     isDark: isDark,
+                    today: today,
                     onDateSelected: onDateSelected,
                   ),
           ),
@@ -404,6 +424,7 @@ class _WeekStrip extends StatelessWidget {
     required this.logs,
     required this.kcalTarget,
     required this.isDark,
+    required this.today,
     required this.onDateSelected,
   });
 
@@ -411,13 +432,13 @@ class _WeekStrip extends StatelessWidget {
   final List<DailyLog> logs;
   final double kcalTarget;
   final bool isDark;
+  final DateTime today;
   final ValueChanged<DateTime> onDateSelected;
 
   @override
   Widget build(BuildContext context) {
-    final monday =
-        _dateOnly(selectedDate.subtract(Duration(days: selectedDate.weekday - 1)));
-    final today = _dateOnly(DateTime.now());
+    final monday = _dateOnly(
+        selectedDate.subtract(Duration(days: selectedDate.weekday - 1)));
     final logByDay = {
       for (final log in logs) DateFormat('yyyy-MM-dd').format(log.date): log,
     };
@@ -467,8 +488,9 @@ class _DayPill extends StatelessWidget {
     final muted =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     final hasData = log?.hasData ?? false;
-    final fraction =
-        hasData && kcalTarget > 0 ? (log!.kcal / kcalTarget).clamp(0.0, 1.0) : 0.0;
+    final fraction = hasData && kcalTarget > 0
+        ? (log!.kcal / kcalTarget).clamp(0.0, 1.0)
+        : 0.0;
 
     return GestureDetector(
       onTap: onTap,
@@ -492,7 +514,8 @@ class _DayPill extends StatelessWidget {
           children: [
             Text(
               DateFormat('EEE').format(day).toUpperCase(),
-              style: AppTextStyles.labelMono.copyWith(color: muted, fontSize: 9),
+              style:
+                  AppTextStyles.labelMono.copyWith(color: muted, fontSize: 9),
             ),
             const SizedBox(height: 6),
             Text(
@@ -527,7 +550,8 @@ class _DayPill extends StatelessWidget {
 }
 
 class _DayRingPainter extends CustomPainter {
-  _DayRingPainter({required this.fraction, required this.color, required this.isDark});
+  _DayRingPainter(
+      {required this.fraction, required this.color, required this.isDark});
 
   final double fraction;
   final Color? color;
@@ -575,6 +599,7 @@ class _MonthGrid extends StatelessWidget {
     required this.logs,
     required this.kcalTarget,
     required this.isDark,
+    required this.today,
     required this.onDateSelected,
   });
 
@@ -582,6 +607,7 @@ class _MonthGrid extends StatelessWidget {
   final List<DailyLog> logs;
   final double kcalTarget;
   final bool isDark;
+  final DateTime today;
   final ValueChanged<DateTime> onDateSelected;
 
   @override
@@ -592,7 +618,6 @@ class _MonthGrid extends StatelessWidget {
     final month = DateTime(selectedDate.year, selectedDate.month, 1);
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final startOffset = month.weekday - 1;
-    final today = _dateOnly(DateTime.now());
     final logByDay = {
       for (final log in logs) DateFormat('yyyy-MM-dd').format(log.date): log,
     };
@@ -661,7 +686,8 @@ class _MonthGrid extends StatelessWidget {
                         '$dayNumber',
                         style: AppTextStyles.labelMono.copyWith(
                           fontSize: 11.5,
-                          fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight:
+                              isToday ? FontWeight.w700 : FontWeight.w500,
                           color: isFuture ? muted.withValues(alpha: 0.45) : ink,
                         ),
                       ),
@@ -758,7 +784,8 @@ class _WeeklyStats extends StatelessWidget {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.green.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(10),
@@ -961,12 +988,12 @@ class _SparklinePainter extends CustomPainter {
       ),
       textDirection: ui.TextDirection.ltr,
     )..layout();
-    label.paint(
-        canvas, Offset(size.width - padX - label.width, targetY - 4 - label.height));
+    label.paint(canvas,
+        Offset(size.width - padX - label.width, targetY - 4 - label.height));
 
     final stepW = (size.width - padX * 2) / 6;
-    final points = List.generate(
-        7, (i) => Offset(padX + i * stepW, yFor(fractions[i])));
+    final points =
+        List.generate(7, (i) => Offset(padX + i * stepW, yFor(fractions[i])));
 
     // Area fill under the line.
     final area = Path()..moveTo(points.first.dx, points.first.dy);

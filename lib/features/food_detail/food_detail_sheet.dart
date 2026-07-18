@@ -12,6 +12,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../core/router/route_names.dart';
+import '../../core/time/clock_provider.dart';
 
 class FoodDetailSheet extends ConsumerWidget {
   final String entryId;
@@ -88,11 +89,11 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     final bg = isDark ? AppColors.backgroundDark : AppColors.backgroundLight;
     final plan = ref.watch(activePlanProvider).valueOrNull ??
-        MacroTargetPlan.defaultPlan();
+        MacroTargetPlan.defaultPlan(
+            startDate: ref.watch(clockProvider).nowTZ());
 
-    final detectedWeight = entry.detectedItems
-        .fold(0.0, (sum, item) => sum + item.weight)
-        .round();
+    final detectedWeight =
+        entry.detectedItems.fold(0.0, (sum, item) => sum + item.weight).round();
 
     return DraggableScrollableSheet(
       initialChildSize: 0.92,
@@ -218,8 +219,8 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                         children: [
                                           Text(
                                             entry.foodName ?? 'Unknown food',
-                                            style: AppTextStyles.heading2
-                                                .copyWith(
+                                            style:
+                                                AppTextStyles.heading2.copyWith(
                                               color: ink,
                                               fontSize: 24,
                                               letterSpacing: 24 * -0.03,
@@ -232,8 +233,7 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                                 : '${_fmtMultiplier(_multiplier)} serving',
                                             style: AppTextStyles.bodySmall
                                                 .copyWith(
-                                                    fontSize: 13,
-                                                    color: muted),
+                                                    fontSize: 13, color: muted),
                                           ),
                                         ],
                                       ),
@@ -244,9 +244,8 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                       isDark: isDark,
                                       onTap: () {
                                         ref
-                                            .read(
-                                                foodEditModeProvider(entry.id)
-                                                    .notifier)
+                                            .read(foodEditModeProvider(entry.id)
+                                                .notifier)
                                             .state = !_isEditMode;
                                       },
                                     ),
@@ -262,10 +261,12 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                               multiplier: _multiplier,
                               isEditing: _isEditMode,
                               isDark: isDark,
-                              onMultiplierChanged: (v) => ref
-                                  .read(pendingEditsProvider(entry.id).notifier)
-                                  .state = _pending.copyWith(
-                                      servingMultiplier: v),
+                              onMultiplierChanged: (v) =>
+                                  ref
+                                          .read(pendingEditsProvider(entry.id)
+                                              .notifier)
+                                          .state =
+                                      _pending.copyWith(servingMultiplier: v),
                             ),
                           ),
                           Padding(
@@ -295,8 +296,7 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                     onEdit: (v) => ref
                                         .read(pendingEditsProvider(entry.id)
                                             .notifier)
-                                        .state =
-                                            _pending.copyWith(protein: v),
+                                        .state = _pending.copyWith(protein: v),
                                   ),
                                   _rowDivider(isDark),
                                   _MacroEditRow(
@@ -416,8 +416,7 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                             style: AppTextStyles.bodySmall
                                                 .copyWith(
                                                     fontSize: 12,
-                                                    fontWeight:
-                                                        FontWeight.w500,
+                                                    fontWeight: FontWeight.w500,
                                                     color: muted),
                                           ),
                                         ],

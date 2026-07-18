@@ -2,6 +2,8 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/time/clock.dart';
+import '../../../core/time/clock_provider.dart';
 import '../../../shared/services/ai_chat_service.dart';
 
 enum MessageRole { user, ai }
@@ -50,21 +52,23 @@ class AiAction {
 }
 
 class ChatMessagesNotifier extends StateNotifier<List<ChatMessage>> {
-  ChatMessagesNotifier()
+  ChatMessagesNotifier(this._clock)
       : super([
           ChatMessage(
             role: MessageRole.ai,
             content:
                 'Hi! I can help you plan your macros, adjust your goals, or fix any meal scans. What would you like to do?',
-            timestamp: DateTime.now(),
+            timestamp: _clock.now(),
           ),
         ]);
+
+  final Clock _clock;
 
   void addUserMessage(String content) {
     state = [
       ...state,
       ChatMessage(
-          role: MessageRole.user, content: content, timestamp: DateTime.now())
+          role: MessageRole.user, content: content, timestamp: _clock.now())
     ];
   }
 
@@ -75,7 +79,7 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessage>> {
           role: MessageRole.ai,
           content: content,
           action: action,
-          timestamp: DateTime.now())
+          timestamp: _clock.now())
     ];
   }
 
@@ -93,7 +97,7 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessage>> {
 
 final chatMessagesProvider =
     StateNotifierProvider<ChatMessagesNotifier, List<ChatMessage>>(
-        (ref) => ChatMessagesNotifier());
+        (ref) => ChatMessagesNotifier(ref.watch(clockProvider)));
 
 final isChatLoadingProvider = StateProvider<bool>((ref) => false);
 

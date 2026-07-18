@@ -11,6 +11,7 @@ import 'core/firebase/firebase_options.dart';
 import 'core/router/app_router.dart';
 import 'core/system/system_ui.dart';
 import 'core/theme/app_theme.dart';
+import 'core/time/clock_provider.dart';
 import 'core/time/timezone_init.dart';
 import 'features/profile/profile_sheet.dart';
 import 'shared/providers/auth_provider.dart';
@@ -86,7 +87,8 @@ class _SessionServicesState extends ConsumerState<_SessionServices> {
       _initializedUid = user.uid;
       Future(() async {
         try {
-          await SeedDataService(ref.read(firestoreProvider))
+          await SeedDataService(
+                  ref.read(firestoreProvider), ref.read(clockProvider))
               .seedIfEmpty(user.uid);
         } catch (seedError) {
           debugPrint('SEED ERROR (non-fatal): $seedError');

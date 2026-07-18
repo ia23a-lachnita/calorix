@@ -29,6 +29,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import 'package:calorix/debug/ui_diff/ui_diff_anchor.dart';
 import 'package:calorix/debug/ui_diff/ui_diff_anchor_writer.dart';
@@ -38,18 +39,24 @@ import 'package:calorix/shared/models/food_entry.dart';
 import 'package:calorix/shared/models/macro_target_plan.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
 import 'package:calorix/shared/utils/date_key.dart';
+import 'package:calorix/core/time/clock.dart';
+import 'package:calorix/core/time/clock_provider.dart';
 
 // ---------------------------------------------------------------------------
 // Fixture data aligned with Today mockup source
 // ---------------------------------------------------------------------------
 
-const _kcalConsumed  = 1420.0;
-const _kcalTarget    = 2400;    // matches defaultPlan()
-const _kcalLeft      = _kcalTarget - _kcalConsumed; // 980
+const _kcalConsumed = 1420.0;
+const _kcalTarget = 2400; // matches defaultPlan()
+const _kcalLeft = _kcalTarget - _kcalConsumed; // 980
 
 const _proteinConsumed = 96.0;
-const _carbsConsumed   = 132.0;
-const _fatConsumed     = 38.0;
+const _carbsConsumed = 132.0;
+const _fatConsumed = 38.0;
+
+/// Fixed fixture instant — anchor geometry/labels must stay deterministic
+/// across runs regardless of the device clock.
+final _fixtureNow = tz.TZDateTime.utc(2026, 5, 15, 12, 0);
 
 /// Expected kcal-left label emitted by the anchor — used to verify the
 /// fixture produces the right number.
@@ -61,8 +68,8 @@ final _expectedKcalLeftLabel =
 final _fixtureEntry = FoodEntry(
   id: 'fixture-001',
   uid: 'test-uid',
-  timestamp: DateTime.now(),
-  date: localDateKey(DateTime.now()),
+  timestamp: _fixtureNow,
+  date: localDateKey(_fixtureNow),
   scanMode: 'meal',
   status: FoodEntryStatus.complete,
   foodName: 'Chicken Rice Bowl',
@@ -115,8 +122,11 @@ void main() {
             ),
           ),
           activePlanProvider.overrideWith(
-            (_) => Stream<MacroTargetPlan?>.value(MacroTargetPlan.defaultPlan()),
+            (_) => Stream<MacroTargetPlan?>.value(
+              MacroTargetPlan.defaultPlan(startDate: _fixtureNow),
+            ),
           ),
+          clockProvider.overrideWith((_) => FakeClock(_fixtureNow)),
         ],
         child: const MaterialApp(home: TodayScreen()),
       ),

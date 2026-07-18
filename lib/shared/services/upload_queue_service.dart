@@ -5,8 +5,11 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import '../utils/date_key.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/time/clock.dart';
 
 class UploadQueueService {
+  UploadQueueService(this._clock);
+  final Clock _clock;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
@@ -46,7 +49,7 @@ class UploadQueueService {
     await docRef.set({
       'uid': uid,
       'timestamp': FieldValue.serverTimestamp(),
-      'date': localDateKey(DateTime.now()),
+      'date': localDateKey(_clock.nowTZ()),
       'imageUrl': imageUrl,
       'storagePath': storagePath,
       'scanMode': scanMode,

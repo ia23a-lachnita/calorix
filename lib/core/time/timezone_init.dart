@@ -5,8 +5,12 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
+bool _timezoneDatabaseInitialized = false;
+
 void initializeTimezoneDatabase() {
+  if (_timezoneDatabaseInitialized) return;
   tz_data.initializeTimeZones();
+  _timezoneDatabaseInitialized = true;
 }
 
 enum TimezoneSyncStatus { updated, unchanged, fallbackUtc, retainedPrevious }

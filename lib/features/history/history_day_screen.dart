@@ -5,6 +5,7 @@ import 'providers/history_providers.dart';
 import '../../shared/widgets/confidence_badge.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/time/clock_provider.dart';
 
 class HistoryDayScreen extends ConsumerWidget {
   final String date;
@@ -12,10 +13,12 @@ class HistoryDayScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final parsedDate = DateTime.tryParse(date) ?? DateTime.now();
+    final parsedDate =
+        DateTime.tryParse(date) ?? ref.watch(clockProvider).nowTZ();
     final entriesAsync = ref.watch(historyDayEntriesProvider(parsedDate));
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final textColor =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
     return Scaffold(
       appBar: AppBar(

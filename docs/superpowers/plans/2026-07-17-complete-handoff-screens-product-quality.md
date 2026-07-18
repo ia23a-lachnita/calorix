@@ -596,13 +596,13 @@ Tests: clock, time-shift, boundaries, synchronizer (valid-startup, unchanged, re
 
 - [x] **Step 2: RED** — Run: `fvm flutter test test/core` → Expected: FAIL (`Clock`/`TimezoneSynchronizer`/etc. not defined).
 
-- [ ] **Step 3 (worker): Implement exact architecture + comprehensive callsite migration** — `clock.dart`, `clock_provider.dart`, `timezone_init.dart`, `timezone_utils.dart`, `draft_policy.dart` per the Exact Architecture block. Wire `TimezoneLifecycleHandler` in `main.dart` (init DB, create synchronizer, `await syncOnce()`, then `ProviderScope`/`CalorixApp`). Add `timezone: ^0.11.1` and `flutter_timezone: ^5.1.0` to `pubspec.yaml`. Thread `clockProvider` through all listed repositories, services, providers, and screens. Migrate every product `DateTime.now()` callsite listed in Files. Leave only operational debug/log/analytics/artifact timestamps.
+- [x] **Step 3 (worker): Implement exact architecture + comprehensive callsite migration** — `clock.dart`, `clock_provider.dart`, `timezone_init.dart`, `timezone_utils.dart`, `draft_policy.dart` per the Exact Architecture block. Wire `TimezoneLifecycleHandler` in `main.dart` (init DB, create synchronizer, `await syncOnce()`, then `ProviderScope`/`CalorixApp`). Add `timezone: ^0.11.1` and `flutter_timezone: ^5.1.0` to `pubspec.yaml`. Thread `clockProvider` through all listed repositories, services, providers, and screens. Migrate every product `DateTime.now()` callsite listed in Files. Leave only operational debug/log/analytics/artifact timestamps.
 
-- [ ] **Step 4: focused GREEN then full suite** — Run: `fvm flutter test test/core` → Expected: PASS. Then `fvm flutter test` → no regressions.
+- [x] **Step 4: focused GREEN then full suite** — Run: `fvm flutter test test/core` → Expected: PASS. Then `fvm flutter test` → no regressions.
 
-- [ ] **Step 5: analyze/full suite and rg DateTime.now audit table** — `fvm flutter analyze` → `No issues found!`. `fvm flutter test` → full suite passes. Host runs `rg DateTime.now lib/` and lists every remaining call with a reason. **Rule:** `RealClock.now()` (via `clockProvider`) is the one permitted product clock-adapter call; every other remaining raw `DateTime.now` in `lib/` must be an operational debug, log, analytics, or artifact timestamp with an explicit justification listed in the audit table. Any product call still using `DateTime.now()` directly (outside `RealClock`) is a regression.
+- [x] **Step 5: analyze/full suite and rg DateTime.now audit table** — `fvm flutter analyze` → `No issues found!`. `fvm flutter test` → full suite passes. Host runs `rg DateTime.now lib/` and lists every remaining call with a reason. **Rule:** `RealClock.now()` (via `clockProvider`) is the one permitted product clock-adapter call; every other remaining raw `DateTime.now` in `lib/` must be an operational debug, log, analytics, or artifact timestamp with an explicit justification listed in the audit table. Any product call still using `DateTime.now()` directly (outside `RealClock`) is a regression.
 
-- [ ] **Step 6: REVIEW-GATE Task 3** until green.
+- [x] **Step 6: REVIEW-GATE Task 3** until green.
 
 - [ ] **Step 7: HANDOFF Task 3**
 

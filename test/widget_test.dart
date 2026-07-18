@@ -6,9 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:calorix/shared/models/macro_target_plan.dart';
 
 void main() {
+  final fixedStartDate = DateTime(2026, 1, 1);
+
   group('MacroTargetPlan', () {
     test('defaultPlan is an active loseFat cut plan', () {
-      final plan = MacroTargetPlan.defaultPlan();
+      final plan = MacroTargetPlan.defaultPlan(startDate: fixedStartDate);
       expect(plan.isActive, isTrue);
       expect(plan.goal, BodyGoal.loseFat);
       expect(plan.kcal, 2400);
@@ -16,7 +18,8 @@ void main() {
     });
 
     test('copyWith overrides only the provided fields', () {
-      final plan = MacroTargetPlan.defaultPlan().copyWith(protein: 190);
+      final plan = MacroTargetPlan.defaultPlan(startDate: fixedStartDate)
+          .copyWith(protein: 190);
       expect(plan.protein, 190);
       expect(plan.kcal, 2400); // unchanged
       expect(plan.carbs, 250); // unchanged

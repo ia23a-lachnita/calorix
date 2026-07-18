@@ -28,7 +28,9 @@ Widget _buildTodayScreen({
       todayEntriesProvider.overrideWith((_) => Stream.value(entries)),
       todayMacroSummaryProvider.overrideWith((_) => summary),
       activePlanProvider.overrideWith(
-        (_) => Stream<MacroTargetPlan?>.value(MacroTargetPlan.defaultPlan()),
+        (_) => Stream<MacroTargetPlan?>.value(
+          MacroTargetPlan.defaultPlan(startDate: DateTime(2026, 1, 1)),
+        ),
       ),
     ],
     child: MaterialApp(

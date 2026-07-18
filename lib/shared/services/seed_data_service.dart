@@ -1,14 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:timezone/timezone.dart' as tz;
 import '../utils/date_key.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/time/clock.dart';
 
 /// Seeds demo diary data by writing ENTRIES only. Daily logs are
 /// server-maintained: the aggregateDailyLogs trigger recomputes them from
 /// entry state, so seeding (and everything else) can never desync aggregates.
 class SeedDataService {
   final FirebaseFirestore _db;
-  SeedDataService(this._db);
+  final Clock _clock;
+  SeedDataService(this._db, this._clock);
 
   static const _seedDays = [
     (kcal: 1980.0, protein: 148.0, carbs: 210.0, fat: 62.0, entries: 3),
@@ -27,7 +30,13 @@ class SeedDataService {
     'Greek Yogurt Bowl',
   ];
 
-  static const _seedMealTypes = ['breakfast', 'lunch', 'snack', 'dinner', 'drink'];
+  static const _seedMealTypes = [
+    'breakfast',
+    'lunch',
+    'snack',
+    'dinner',
+    'drink'
+  ];
   static const _seedHours = [8, 12, 15, 19, 10];
 
   // Exact visible handoff meal-card values. The hero summary is intentionally
@@ -87,14 +96,13 @@ class SeedDataService {
   /// before each ui-diff screenshot run.
   Future<void> forceReseedForUiDiff(String uid) async {
     assert(kDebugMode, 'forceReseedForUiDiff is debug-only');
-    final todayKey = localDateKey(DateTime.now());
+    final todayKey = localDateKey(_clock.nowTZ());
     await _deleteEntriesForDate(uid, todayKey);
     await _writeMockupEntries(uid, todayKey);
   }
 
   Future<void> _deleteEntriesForDate(String uid, String dateKey) async {
-    final snap =
-        await _entriesCol(uid).where('date', isEqualTo: dateKey).get();
+    final snap = await _entriesCol(uid).where('date', isEqualTo: dateKey).get();
     if (snap.docs.isEmpty) return;
     final batch = _db.batch();
     for (final doc in snap.docs) {
@@ -105,7 +113,7 @@ class SeedDataService {
 
   Future<void> _writeMockupEntries(String uid, String dateKey) async {
     final col = _entriesCol(uid);
-    final now = DateTime.now();
+    final now = _clock.nowTZ();
     final batch = _db.batch();
     for (final e in _mockupTodayEntries) {
       batch.set(col.doc(), {
@@ -127,7 +135,8 @@ class SeedDataService {
         'detectedItems': <Map<String, dynamic>>[],
         'imageUrl': e.imageUrl,
         'timestamp': Timestamp.fromDate(
-          now.copyWith(hour: e.hour, minute: e.minute, second: 0, millisecond: 0),
+          tz.TZDateTime(
+              now.location, now.year, now.month, now.day, e.hour, e.minute),
         ),
       });
     }
@@ -138,9 +147,10 @@ class SeedDataService {
   /// match the historical targets exactly, so History reads realistic
   /// server-computed daily logs and each day detail shows real rows.
   Future<void> _seedHistoryEntries(String uid) async {
-    final now = DateTime.now();
-    final firstDayKey =
-        localDateKey(now.subtract(Duration(days: _seedDays.length)));
+    final now = _clock.nowTZ();
+    tz.TZDateTime dayOffset(int offset) =>
+        tz.TZDateTime(now.location, now.year, now.month, now.day - offset);
+    final firstDayKey = localDateKey(dayOffset(_seedDays.length));
     final existing = await _entriesCol(uid)
         .where('date', isEqualTo: firstDayKey)
         .limit(1)
@@ -149,7 +159,7 @@ class SeedDataService {
 
     final batch = _db.batch();
     for (int i = 0; i < _seedDays.length; i++) {
-      final day = now.subtract(Duration(days: _seedDays.length - i));
+      final day = dayOffset(_seedDays.length - i);
       final dateKey = localDateKey(day);
       final target = _seedDays[i];
       final parts = _splitDay(
@@ -177,12 +187,13 @@ class SeedDataService {
           'corrected': false,
           'detectedItems': <Map<String, dynamic>>[],
           'imageUrl': null,
-          'timestamp': Timestamp.fromDate(day.copyWith(
-            hour: _seedHours[j % _seedHours.length],
-            minute: 15,
-            second: 0,
-            millisecond: 0,
-            microsecond: 0,
+          'timestamp': Timestamp.fromDate(tz.TZDateTime(
+            day.location,
+            day.year,
+            day.month,
+            day.day,
+            _seedHours[j % _seedHours.length],
+            15,
           )),
         });
       }
@@ -226,7 +237,7 @@ class SeedDataService {
   }
 
   Future<void> _seedTodayEntries(String uid) async {
-    final todayKey = localDateKey(DateTime.now());
+    final todayKey = localDateKey(_clock.nowTZ());
     final existing = await _entriesCol(uid)
         .where('date', isEqualTo: todayKey)
         .limit(1)

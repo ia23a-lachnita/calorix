@@ -9,6 +9,7 @@ import 'providers/scan_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/router/route_names.dart';
+import '../../core/time/clock_provider.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/services/upload_queue_service.dart';
 
@@ -124,7 +125,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     final uid = ref.read(currentUidProvider);
     if (uid == null) return;
     final scanMode = ref.read(scanModeProvider);
-    final service = UploadQueueService();
+    final service = UploadQueueService(ref.read(clockProvider));
     final entryId = await service.enqueueAndUpload(
       localPath: path,
       uid: uid,
@@ -186,9 +187,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    isCapturing
-                        ? 'ANALYZING…'
-                        : 'FRAME YOUR MEAL · TAP ONCE',
+                    isCapturing ? 'ANALYZING…' : 'FRAME YOUR MEAL · TAP ONCE',
                     style: AppTextStyles.labelMono.copyWith(
                       fontSize: 10,
                       letterSpacing: 10 * 0.20,

@@ -13,6 +13,7 @@ import '../../shared/models/macro_target_plan.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/services/ai_chat_service.dart';
 import '../today/providers/today_providers.dart';
+import '../../core/time/clock_provider.dart';
 
 class AiChatScreen extends ConsumerStatefulWidget {
   final String? preloadedMealId;
@@ -57,7 +58,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     ref.read(isChatLoadingProvider.notifier).state = true;
 
     final plan = ref.read(activePlanProvider).valueOrNull ??
-        MacroTargetPlan.defaultPlan();
+        MacroTargetPlan.defaultPlan(startDate: ref.read(clockProvider).nowTZ());
     final today = ref.read(todayMacroSummaryProvider);
 
     try {
@@ -110,7 +111,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     final uid = ref.read(currentUidProvider);
     final repo = ref.read(macroTargetRepositoryProvider);
     final plan = ref.read(activePlanProvider).valueOrNull ??
-        MacroTargetPlan.defaultPlan();
+        MacroTargetPlan.defaultPlan(startDate: ref.read(clockProvider).nowTZ());
     try {
       if (uid == null) throw 'You are not signed in.';
       if (plan.id == 'default') {
