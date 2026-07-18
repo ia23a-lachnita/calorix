@@ -22,7 +22,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 |---|---|---|---|---|---|
 | 0 | done | host (bookkeeping) | n/a (bookkeeping) | cacca80 | toolchain health above |
 | 1 | done | OpenCode (bounded edits); host orchestration | pre-implementation review (green) | 0242317 | Pre-cleanup comparison 12/12 total (A 6/6, B 6/6); analyzer clean from comparison stage; decision A; rationale A ~43 lines/native PageView vs B 186 custom recognizer lines; Antigravity conversation calorix-navigation-spike-20260717 green: AGREEMENT_STATUS agree, MUST_FIX none; first review's 3 must-fix applied; post-cleanup A-only focused test 6/6 passed; fvm flutter analyze clean; spike_shell_b.dart deleted; device/emulator safety restriction applies — see Task 1 note; commit 0242317 pushed to origin/main; focused test 6/6 passed; fvm flutter analyze: No issues found; runtime/device verification deliberately not performed — blocked by explicit user safety restriction |
-| 2 | RED verified; implementation pending | OpenCode; host orchestration | — | pending | RED evidence below |
+| 2 | Step 3 substage A done; substage B pending | OpenCode; host orchestration | — | pending | 8/8 tab_swipe_shell tests pass; analyze clean; substage A implemented via OpenCode |
 | 3–19 | pending | — | — | — | — |
 
 **Task 0 commit:** cacca80
@@ -89,7 +89,7 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 
 ## Current Task
 
-**Task 2 — RED verified; Step 3 (implementation) pending.**
+**Task 2 — Step 3 substage A done; substage B (flatten AppShell nav) pending.**
 
 RED confirmed 2026-07-18. Tests written: `test/app_shell_test.dart`, `test/shell/tab_swipe_shell_test.dart`, `test/router/origin_return_test.dart`.
 
@@ -101,9 +101,11 @@ RED evidence:
 
 Test-harness defects found and corrected before accepting RED: vacuous empty Expanded Scan placeholder, wrong indexedStack/manual children harness, cold-start screen rendering with incomplete fake.
 
-No device/emulator/ADB interaction.
+**Substage A (2026-07-18):** `lib/shell/tab_swipe_shell.dart` implemented via OpenCode. Real `StatefulShellRoute` `navigatorContainerBuilder` harness corrected to use actual branch `Navigator` children. Fixture corrections: branch0 `_Tab0Page` and `tab0-body` marker/reverse fling. Verification: `fvm flutter test test/shell/tab_swipe_shell_test.dart` → 8/8 passed; `fvm dart analyze lib/shell/tab_swipe_shell.dart` → no issues found. No device/emulator/ADB.
 
-Next: run `fvm flutter test test/router/origin_return_test.dart test/shell/tab_swipe_shell_test.dart test/app_shell_test.dart` after Step 3 implementation to confirm GREEN.
+Task 2 remains in progress; Step 3 incomplete — flat `AppShell` and origin routing still pending.
+
+Next: substage B — flatten `AppShell` nav; then run full origin + shell + app_shell suite for GREEN.
 
 ## Progress log
 
@@ -112,3 +114,4 @@ Next: run `fvm flutter test test/router/origin_return_test.dart test/shell/tab_s
 | 2026-07-17 | 1 | HANDOFF complete — commit 0242317 pushed; focused test 6/6; analyze clean; runtime verification skipped per user safety restriction |
 | 2026-07-17 | 2 | Status set pending/start-ready; no implementation started |
 | 2026-07-18 | 2 | RED verified — Step 1 (tests written) and Step 2 (RED confirmed) complete; Step 3 implementation pending; harness defects corrected; no device/emulator interaction |
+| 2026-07-18 | 2 | Step 3 substage A done — tab_swipe_shell implemented via OpenCode; navigatorContainerBuilder harness corrected; 8/8 tests pass; analyze clean; no device/emulator; substage B (flatten AppShell nav) next |

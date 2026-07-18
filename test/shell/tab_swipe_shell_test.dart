@@ -36,7 +36,8 @@ List<StatefulShellBranch> _defaultBranches() => List.generate(
         routes: [
           GoRoute(
             path: '/tab$i',
-            builder: (_, __) => _BranchPage(index: i),
+            builder: (_, __) =>
+                i == 0 ? const _Tab0Page() : _BranchPage(index: i),
           ),
         ],
       ),
@@ -188,8 +189,8 @@ void main() {
     await tester.drag(slider, const Offset(200, 0));
     await tester.pumpAndSettle();
 
-    // tab-0-label must remain visible; tab-1 must not appear.
-    expect(find.byKey(const Key('tab-0-label')).hitTestable(), findsOneWidget);
+    // tab0-body must remain visible; tab-1 must not appear.
+    expect(find.byKey(const Key('tab0-body')).hitTestable(), findsOneWidget);
     expect(find.byKey(const Key('tab-1-label')).hitTestable(), findsNothing);
   });
 
@@ -202,7 +203,7 @@ void main() {
     await tester.fling(hList, const Offset(-300, 0), 800);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('tab-0-label')).hitTestable(), findsOneWidget);
+    expect(find.byKey(const Key('tab0-body')).hitTestable(), findsOneWidget);
     expect(find.byKey(const Key('tab-1-label')).hitTestable(), findsNothing);
   });
 
@@ -219,7 +220,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('tab-0-label')).hitTestable(), findsNothing);
+    expect(find.byKey(const Key('tab0-body')).hitTestable(), findsNothing);
     expect(find.byKey(const Key('tab-1-label')).hitTestable(), findsOneWidget);
   });
 
@@ -235,7 +236,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Still on tab 0.
-    expect(find.byKey(const Key('tab-0-label')).hitTestable(), findsOneWidget);
+    expect(find.byKey(const Key('tab0-body')).hitTestable(), findsOneWidget);
     expect(find.byKey(const Key('tab-1-label')).hitTestable(), findsNothing);
   });
 
@@ -302,15 +303,15 @@ void main() {
     await tester.pump();
 
     // Reverse fling back to the right.
-    await tester.fling(
-      find.byKey(const Key('tab0-body')),
-      const Offset(400, 0),
+    await tester.flingFrom(
+      const Offset(400, 300),
+      const Offset(300, 0),
       1000,
     );
     await tester.pumpAndSettle();
 
     // Should have returned to tab 0.
-    expect(find.byKey(const Key('tab-0-label')).hitTestable(), findsOneWidget);
+    expect(find.byKey(const Key('tab0-body')).hitTestable(), findsOneWidget);
     expect(find.byKey(const Key('tab-1-label')).hitTestable(), findsNothing);
   });
 
@@ -337,7 +338,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('tab-4-label')).hitTestable(), findsOneWidget);
-    expect(find.byKey(const Key('tab-0-label')).hitTestable(), findsNothing);
+    expect(find.byKey(const Key('tab0-body')).hitTestable(), findsNothing);
 
     // After the single external go(), only one or two delegate notifications
     // are expected (the initial push + possibly one settle).  A feedback loop
