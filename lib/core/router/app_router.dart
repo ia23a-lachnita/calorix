@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'route_names.dart';
-import '../system/system_ui.dart';
+import '../../debug/debug_deep_links.dart';
+import '../../debug/debug_reseed_screen.dart';
 import '../../shell/app_shell.dart';
 import '../../shell/tab_swipe_shell.dart';
 import '../../features/onboarding/loading_screen.dart';
@@ -20,9 +21,6 @@ import '../../features/goals/goals_screen.dart';
 import '../../features/ai_chat/ai_chat_screen.dart';
 import '../../features/profile/profile_sheet.dart';
 import '../../shared/providers/auth_provider.dart';
-import '../../shared/providers/ui_diff_provider.dart';
-import '../../shared/services/seed_data_service.dart';
-import '../time/clock_provider.dart';
 
 const String appInitialLocation = RoutePaths.scan;
 
@@ -61,7 +59,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Normalise calorix:// deep links to plain paths so routes can match.
       final loc = state.uri.toString();
       if (loc.startsWith('calorix://debug/reseed')) {
-        return kDebugMode ? '/debug/reseed' : RoutePaths.today;
+        return kDebugMode
+            ? loc.replaceFirst('calorix://debug/reseed', '/debug/reseed')
+            : RoutePaths.today;
       }
 
       final signedIn = auth.currentUser != null;
@@ -231,61 +231,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         GoRoute(
           path: '/debug/reseed',
           parentNavigatorKey: _rootNavigatorKey,
-          builder: (context, state) => const _DebugReseedScreen(),
+          builder: (context, state) {
+            final params = state.uri.queryParameters;
+            final theme = UiDiffCaptureTheme.values.firstWhere(
+              (value) => value.name == params['theme'],
+              orElse: () => UiDiffCaptureTheme.dark,
+            );
+            return DebugReseedScreen(
+              screenId: params['screen'] ?? 'today',
+              theme: theme,
+              nonce: params['nonce'] ?? 'manual',
+            );
+          },
         ),
     ],
   );
 });
-
-class _DebugReseedScreen extends ConsumerStatefulWidget {
-  const _DebugReseedScreen();
-
-  @override
-  ConsumerState<_DebugReseedScreen> createState() => _DebugReseedScreenState();
-}
-
-class _DebugReseedScreenState extends ConsumerState<_DebugReseedScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _reseed();
-  }
-
-  Future<void> _reseed() async {
-    final auth = ref.read(firebaseAuthProvider);
-    // Keep the ui-diff pipeline headless: a fresh install has no session, so
-    // the debug reseed route signs in anonymously instead of stalling on the
-    // login screen.
-    if (auth.currentUser == null) {
-      await auth.signInAnonymously();
-    }
-    final uid = auth.currentUser?.uid;
-    if (uid != null) {
-      await SeedDataService(
-              ref.read(firestoreProvider), ref.read(clockProvider))
-          .forceReseedForUiDiff(uid);
-    }
-    if (mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ref.read(uiDiffModeProvider.notifier).state = true;
-          applyCalorixFullscreenSystemUi();
-          context.go(RoutePaths.today);
-        }
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF0E1117),
-      body: Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: Color(0xFF19D3D9),
-        ),
-      ),
-    );
-  }
-}

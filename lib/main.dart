@@ -16,6 +16,7 @@ import 'core/time/timezone_init.dart';
 import 'features/profile/profile_sheet.dart';
 import 'shared/providers/auth_provider.dart';
 import 'shared/providers/notification_provider.dart';
+import 'shared/providers/ui_diff_provider.dart';
 import 'shared/services/seed_data_service.dart';
 
 const _useEmulator = bool.fromEnvironment('USE_EMULATOR', defaultValue: false);
@@ -49,7 +50,8 @@ class CalorixApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    final themeMode = ref.watch(themeModeProvider);
+    final themeMode =
+        ref.watch(uiDiffThemeOverrideProvider) ?? ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: AppConstants.appDisplayName,

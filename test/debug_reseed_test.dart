@@ -82,9 +82,8 @@ void main() {
         reason:
             'Should not call SystemChrome.setEnabledSystemUIMode edgeToEdge');
 
-    final hideCall = systemUiLog
-        .where((call) => call.method == 'hideSystemBars')
-        .lastOrNull;
+    final hideCall =
+        systemUiLog.where((call) => call.method == 'hideSystemBars').lastOrNull;
     expect(hideCall, isNotNull,
         reason: 'Expected hideSystemBars on com.calorix.calorix/system_ui');
   });

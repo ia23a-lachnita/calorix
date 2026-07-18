@@ -11,8 +11,9 @@ final todayEntriesProvider = StreamProvider<List<FoodEntry>>((ref) {
   return ref.watch(foodEntryRepositoryProvider).watchTodayEntries(uid);
 });
 
-final todayMacroSummaryProvider = Provider<({double kcal, double protein, double carbs, double fat})>((ref) {
-  if (ref.watch(uiDiffModeProvider)) {
+final todayMacroSummaryProvider =
+    Provider<({double kcal, double protein, double carbs, double fat})>((ref) {
+  if (ref.watch(uiDiffFixtureEnabledProvider)) {
     // The static handoff screenshot intentionally shows 1,420 kcal in the
     // hero while the visible meal cards sum to 845 kcal. Keep that mismatch
     // isolated to ui-diff mode so visual parity does not change production math.

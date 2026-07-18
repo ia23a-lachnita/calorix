@@ -136,7 +136,7 @@ Corrections applied:
 
 ## Current Task
 
-**Task 5 — Steps 1–2 complete. Focused RED is confirmed; Step 3 implementation is next.**
+**Task 5 — Steps 1–4 complete; Step 5 plan-only contract smoke passed and authorized physical-device capture is next.**
 
 - Branch: `main`
 - Baseline: `4454727`
@@ -144,6 +144,8 @@ Corrections applied:
 - Runtime authorization: the user explicitly authorized physical-device use when Task 5 needs it. Every execution must still specify the physical ADB serial; never auto-select a target and never use `emulator-5554`.
 - Worker routing: OpenCode timed out twice with no edits (first stopped after 3+ minutes; second exited 124 after 304 seconds). Claude Code fallback failed with `You've hit your session limit · resets 7pm (Europe/Zurich)`. Host fallback is active under the repository contract.
 - Review state: the corrected Task 5 design contract has a green pre-implementation Antigravity review; implementation review remains pending.
+- GREEN evidence: `fvm flutter test test/debug test/debug_reseed_test.dart test/today_providers_test.dart` passed 11/11. `fvm flutter analyze` reports `No issues found!`.
+- Plan-only harness evidence: `today,scan_idle` × `dark` produced 2 unique nonce-bearing links and 2 unique output paths; unchanged reruns kept the same source fingerprint; controlled metadata produced `reuse-installed-build` for a matching fingerprint/APK/device and `rebuild-and-install` for a stale fingerprint. No ADB/build/install/device command ran in plan-only mode.
 
 - Branch: `main`
 - Stage A baseline: `0d52b45` → commit `a2272d0` ("Add product time foundation"), pushed to origin/main
@@ -176,6 +178,7 @@ Task 2 complete (commit bc3e420). Task 3 plan reviewed in conversation `calorix-
 | 2026-07-18 | 3 | Plan correction/re-review — 6 mandatory contract corrections applied to Task 3 section: expanded files/scope, corrected timezone architecture (removed ProviderRef, added SyncStatus/Diagnostic, LifecycleHandler widget, tz_data/tz aliases, synchronous initializeTimeZones), corrected Clock/date contracts (localDateKey purity, FoodEntry fallback, MacroTargetPlan startDate, DailyLog sentinel, full injection), fixed DST fall-back test, reordered steps with ALL-tests-first and DateTime.now audit; no implementation started; no device/emulator |
 | 2026-07-18 | 3 | Plan review green round 2 (calorix-task3-clock-timezone-20260718): AGREEMENT_STATUS agree, MUST_FIX none, SHOULD_FIX none; corrected plan implementation-ready; Step 1 (failing tests) next; no implementation started; no device/emulator |
 | 2026-07-18 | 5 | Steps 1–2 RED checkpoint — deterministic fixture, target registry, nonce protocol, separate hero override, reserved-path isolation, and hard debug guard tests written; focused command exited 1 only for missing Task 5 APIs; device use now explicitly authorized when runtime smoke is reached, with explicit physical serial only |
+| 2026-07-18 | 5 | Steps 3–4 GREEN — pure one-clock fixture manifest and SHA-256 hash, reserved Firestore adapter, 19-target registry, nonce ready/blocked protocol, separate capture/fixture/theme providers, and safe capture harness implemented; focused 11/11 and analyzer clean; plan-only fresh/stale smoke passed; physical capture next |
 | 2026-07-18 | 3 | Step 1 tests written — 9 test files created under test/core/: clock_test, time_shift_test, timezone_boundary_test, timezone_synchronizer_test, local_date_key_purity_test, daily_log_malformed_date_test, draft_policy_test, draft_policy_exhaustive_test, clock_injection_callsite_test; RED verification pending (fvm flutter test test/core); no device/emulator; no lib/ edits; no pubspec changes |
 | 2026-07-18 | 3 | Step 1 tests corrected — 9 test files corrected in test/core/ based on verified timezone API facts: (1) tz_data import for initializeTimeZones, (2) timeZone.isDst/timeZoneOffset properties, (3) UTC-instant DST disambiguation for first occurrence, (4) FakeClock advance via original variable not abstract Clock, (5) recursive Directory.listSync in callsite test, (6) lifecycle tests with callCount proving resume triggers syncOnce and dispose stops future calls, (7) removed unused imports, (8) FakeDocumentSnapshot noSuchMethod for compile-complete, (9) removed real-time delay/current-year assertion, (10) test count corrected to 9 files; plan DST section corrected; RED verification pending; plan re-review needed for DST correction |
 | 2026-07-18 | 3 | Step 2 RED complete — `fvm flutter test test/core` exit 1, +9 -19; intended causes: missing clock/clock_provider/timezone_init/timezone_utils/draft_policy modules + recursive source-contract failures; no pubspec/lock change; earlier widgets import error corrected before final RED |

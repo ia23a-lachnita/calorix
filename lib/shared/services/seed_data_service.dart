@@ -4,6 +4,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../utils/date_key.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/time/clock.dart';
+import '../../debug/ui_diff_fixture.dart';
 
 /// Seeds demo diary data by writing ENTRIES only. Daily logs are
 /// server-maintained: the aggregateDailyLogs trigger recomputes them from
@@ -91,24 +92,16 @@ class SeedDataService {
     await _seedTodayEntries(uid);
   }
 
-  /// Wipes today's data and reseeds with exact mockup values.
-  /// Debug builds only — called via the calorix://debug/reseed deep link
-  /// before each ui-diff screenshot run.
-  Future<void> forceReseedForUiDiff(String uid) async {
-    assert(kDebugMode, 'forceReseedForUiDiff is debug-only');
-    final todayKey = localDateKey(_clock.nowTZ());
-    await _deleteEntriesForDate(uid, todayKey);
-    await _writeMockupEntries(uid, todayKey);
-  }
-
-  Future<void> _deleteEntriesForDate(String uid, String dateKey) async {
-    final snap = await _entriesCol(uid).where('date', isEqualTo: dateKey).get();
-    if (snap.docs.isEmpty) return;
-    final batch = _db.batch();
-    for (final doc in snap.docs) {
-      batch.delete(doc.reference);
-    }
-    await batch.commit();
+  /// Applies only fixed, reserved fixture documents. The hard runtime guard is
+  /// intentionally stronger than an assert so profile/release builds reject
+  /// invocation even when assertions are stripped.
+  Future<String> forceReseedForUiDiff(String uid) async {
+    enforceUiDiffDebugGuard(isDebug: kDebugMode);
+    final manifest = UiDiffFixtureManifest.create(uid: uid, clock: _clock);
+    return reseedUiDiffFixture(
+      _FirestoreUiDiffFixtureStore(_db, uid),
+      manifest,
+    );
   }
 
   Future<void> _writeMockupEntries(String uid, String dateKey) async {
@@ -245,4 +238,47 @@ class SeedDataService {
     if (existing.docs.isNotEmpty) return;
     await _writeMockupEntries(uid, todayKey);
   }
+}
+
+class _FirestoreUiDiffFixtureStore implements UiDiffFixtureStore {
+  _FirestoreUiDiffFixtureStore(this._db, this._uid);
+
+  final FirebaseFirestore _db;
+  final String _uid;
+
+  static const _fixtureCollections = <String>{
+    'entries',
+    'weightLogs',
+    'targets',
+    'aiThreads',
+  };
+
+  @override
+  Future<Map<String, Map<String, Object?>>> readAll() async {
+    final result = <String, Map<String, Object?>>{};
+    for (final collection in _fixtureCollections) {
+      final snapshot = await _db
+          .collection(AppConstants.usersCollection)
+          .doc(_uid)
+          .collection(collection)
+          .orderBy(FieldPath.documentId)
+          .startAt([uiDiffFixtureDocumentPrefix]).endAt(
+              ['$uiDiffFixtureDocumentPrefix\uf8ff']).get();
+      for (final document in snapshot.docs) {
+        result[document.reference.path] =
+            Map<String, Object?>.from(document.data());
+      }
+    }
+    return result;
+  }
+
+  @override
+  Future<void> setDocument(
+    String path,
+    Map<String, Object?> value,
+  ) =>
+      _db.doc(path).set(value);
+
+  @override
+  Future<void> deleteDocument(String path) => _db.doc(path).delete();
 }

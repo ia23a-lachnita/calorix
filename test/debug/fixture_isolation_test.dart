@@ -80,8 +80,7 @@ void main() {
   UiDiffFixtureManifest createManifest({Clock? clock}) =>
       UiDiffFixtureManifest.create(
         uid: 'test-user',
-        clock: clock ??
-            FakeClock(tz.TZDateTime.utc(2026, 7, 18, 10, 30)),
+        clock: clock ?? FakeClock(tz.TZDateTime.utc(2026, 7, 18, 10, 30)),
       );
 
   test('fixture reads the clock once and has stable canonical bytes and hash',
@@ -114,8 +113,7 @@ void main() {
   test('reseed is idempotent and only mutates reserved fixture paths',
       () async {
     const unrelatedPath = 'users/test-user/entries/real-user-entry';
-    const obsoleteFixture =
-        'users/test-user/entries/ui_diff_fixture_obsolete';
+    const obsoleteFixture = 'users/test-user/entries/ui_diff_fixture_obsolete';
     final unrelated = <String, Object?>{'foodName': 'Keep me', 'kcal': 123};
     final store = _MemoryFixtureStore({
       unrelatedPath: unrelated,
@@ -179,8 +177,7 @@ void main() {
         ProviderContainer(
           overrides: [
             uiDiffModeProvider.overrideWith((_) => true),
-            uiDiffFixtureEnabledProvider
-                .overrideWith((_) => fixtureEnabled),
+            uiDiffFixtureEnabledProvider.overrideWith((_) => fixtureEnabled),
             todayEntriesProvider.overrideWith((_) => Stream.value(entries)),
           ],
         );

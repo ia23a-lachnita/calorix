@@ -56,7 +56,8 @@ void main() {
     );
   });
 
-  test('todayMacroSummaryProvider uses handoff hero values only for fixture mode',
+  test(
+      'todayMacroSummaryProvider uses handoff hero values only for fixture mode',
       () async {
     final container = _container(
       uiDiffMode: true,
