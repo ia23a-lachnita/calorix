@@ -844,9 +844,12 @@ git push
 - Create: `lib/shared/services/connectivity_monitor.dart` (injectable `ConnectivityMonitor` backed by `connectivity_plus`; emits interface-level connectivity-change events — reports network-interface availability, not confirmed Internet/backend reachability; no OS background execution — retry only while app is foregrounded: authenticated startup, lifecycle resumed, and offline-to-online transitions)
 - Create: `lib/shared/providers/viewed_entry_store.dart` (`ViewedEntryStore` in `shared_preferences`, bounded to 500 most recently viewed entry IDs; mark on food detail presentation; warm/cold handlers pass `alreadyViewed`; preserve legacy docId support; local-only — remote existence validation lives in `EntryExistenceChecker`, not here)
 - Create: `lib/shared/services/entry_existence_checker.dart` (`EntryExistenceChecker` abstract interface + `FirestoreEntryExistenceChecker` implementation, injected into the notification-tap handler; verifies remote target existence — deleted/missing target routes to `/today`)
-- Create: `lib/shared/services/retry_analysis_service.dart` (authenticated `retryEntryAnalysis` callable/service — atomically verifies ownership, transitions error→pending, invokes existing analysis once, rejects duplicate concurrent retries; retry UI calls the injected service)
+- Create: `lib/shared/services/retry_analysis_service.dart` (authenticated `retryEntryAnalysis` callable/service — thin client wrapper that calls the `retryEntryAnalysis` Cloud Function callable via `FirebaseFunctions.instance`; retry UI calls the injected service)
+- Create: `functions/src/retry-analysis.ts` (pure/testable handler `handleRetryEntryAnalysis(entryId, deps)` plus typed `RetryAnalysisError` — the backend counterpart of the Flutter `RetryAnalysisService` interface; owns the atomic ownership check, the `error → pending` transaction claim, and the single downstream `handleEntryCreated`-style analysis invocation)
+- Modify: `functions/src/index.ts` (export the `retryEntryAnalysis` `onCall` Cloud Function wired to `handleRetryEntryAnalysis`; extract a shared `AnalyzeEntryDeps` factory function used by both `processEntry` and `retryEntryAnalysis` so image/model/prompt/push/error behavior is identical between initial analysis and retry)
 - Modify: `pubspec.yaml` — retain existing `path_provider: ^2.1.4` (locked at 2.1.5, already used by `upload_queue_service.dart`); add `connectivity_plus: ^7.3.0`
-- Test: create `test/processing/processing_lifecycle_test.dart`, `test/processing/upload_queue_test.dart`, `test/processing/notification_routing_test.dart`, `test/processing/connectivity_monitor_test.dart`, `test/processing/viewed_entry_store_test.dart`, `test/processing/entry_existence_checker_test.dart`, `test/processing/retry_analysis_service_test.dart`, `test/processing/combined_state_test.dart`
+- Test: create `test/processing/processing_lifecycle_test.dart`, `test/processing/upload_queue_test.dart`, `test/processing/notification_routing_test.dart`, `test/processing/connectivity_monitor_test.dart`, `test/processing/viewed_entry_store_test.dart`, `test/processing/entry_existence_checker_test.dart`, `test/processing/retry_analysis_service_test.dart` (Flutter client wrapper — calls the callable, surfaces errors), `test/processing/combined_state_test.dart`
+- Test: create `functions/test/retry-analysis.test.ts` (backend handler — injected fakes only, no production/emulator writes)
 
 **Interfaces:**
 - Consumes: `CameraService` capture output (Task 6), router (Task 2), `clockProvider` (Task 3), `AppMotion`/`MotionDurations` (Task 4).
@@ -945,12 +948,47 @@ class FirestoreEntryExistenceChecker implements EntryExistenceChecker {
 ///   stale (already viewed) → /today/food/:id without error.
 String routeForNotification(Map<String, String> data, {required bool alreadyViewed});
 
-// RetryAnalysisService — authenticated, injected.
-// Atomically: verifies ownership, transitions error→pending,
-// invokes existing analysis once, rejects duplicate concurrent retries.
+// RetryAnalysisService — authenticated, injected. The Flutter side is a thin
+// callable wrapper; the atomicity, ownership check, and single-invocation
+// guarantee live server-side in functions/src/retry-analysis.ts (see the
+// Backend contract below), not in this client class.
 abstract class RetryAnalysisService {
   Future<void> retryEntryAnalysis(String entryId);
 }
+```
+
+```typescript
+// functions/src/retry-analysis.ts — backend counterpart, mirrors analyze-entry.ts's shape
+export type RetryAnalysisErrorCode =
+  | 'unauthenticated'
+  | 'invalid-argument'   // missing/empty entryId
+  | 'not-found'          // entry doc does not exist
+  | 'failed-precondition'; // entry status is pending/processing/complete/needs_review
+
+export class RetryAnalysisError extends Error {
+  constructor(readonly code: RetryAnalysisErrorCode, message: string) {
+    super(message);
+  }
+}
+
+export interface RetryAnalysisDeps {
+  runTransaction<T>(fn: (txn: FirebaseFirestore.Transaction) => Promise<T>): Promise<T>;
+  entryRef(uid: string, entryId: string): FirebaseFirestore.DocumentReference;
+  analyzeEntry(entryId: string, data: EntryData, deps: AnalyzeEntryDeps): Promise<void>; // handleEntryCreated
+  buildAnalyzeDeps(uid: string, entryId: string): AnalyzeEntryDeps; // shared factory, see index.ts
+}
+
+// Validates auth + entryId, then atomically claims the entry (only `status
+// == 'error'` may transition to `pending`) inside a single runTransaction
+// call before invoking analysis — this is what makes two concurrent retries
+// produce exactly one analysis invocation. Preserves every other entry field
+// (image/storage/data) on the claimed document; the transaction only writes
+// `status: 'pending'`.
+export async function handleRetryEntryAnalysis(
+  uid: string | undefined,
+  entryId: unknown,
+  deps: RetryAnalysisDeps,
+): Promise<void> { /* implementation */ }
 ```
 
 **Connectivity Monitor contract:**
@@ -982,11 +1020,19 @@ abstract class RetryAnalysisService {
 - Legacy support: if the notification payload contains `docId` (old format) instead of `entryId`, resolve the entry by looking up the doc via `EntryExistenceChecker`; if not found, route to `/today`.
 
 **Retry contract:**
-- `RetryAnalysisService.retryEntryAnalysis(entryId)` is an authenticated callable (Cloud Function or client service).
-- Atomic guard: the function checks the entry's `status` field; if already `pending` or `processing`, reject with `duplicate_retry` (no-op, not an error to the user).
-- If `status == error`: transition to `pending`, invoke the existing analysis pipeline once.
-- If the analysis fails again: transition back to `error` with the new error message on the existing remote Firestore entry, available for another manual retry via `RetryAnalysisService`. There is no local `UploadQueueEntry` at this point — it was already deleted at handoff — so nothing is retried from the local queue.
+- `RetryAnalysisService.retryEntryAnalysis(entryId)` on the Flutter side is a thin authenticated callable wrapper (`FirebaseFunctions.instance.httpsCallable('retryEntryAnalysis')`); it does not itself implement the atomicity/ownership rules below.
 - The retry UI (error state's retry button) calls the injected `RetryAnalysisService`, not raw Firestore writes.
+- If the analysis fails again: the backend transitions the existing remote Firestore entry back to `error` with the new error message, available for another manual retry via `RetryAnalysisService`. There is no local `UploadQueueEntry` at this point — it was already deleted at handoff — so nothing is retried from the local queue.
+
+**Backend contract (`functions/src/retry-analysis.ts`, exported as `retryEntryAnalysis` in `functions/src/index.ts`):**
+- The callable requires `request.auth.uid` (unauthenticated → `HttpsError('unauthenticated', ...)`) and a validated non-empty `entryId` string (missing/empty → `invalid-argument`).
+- Operates on `users/{request.auth.uid}/entries/{entryId}` only — ownership is enforced by construction, not by comparing a caller-supplied `uid` field, so cross-user retries are structurally impossible.
+- Uses a single Firestore `runTransaction` on that document: missing doc → `not-found`; only `status == 'error'` may atomically claim the entry by writing `status: 'pending'` inside the transaction — `pending`, `processing`, `complete`, and `needs_review` are all typed `failed-precondition` duplicate/non-retryable states (there is no separate `duplicate_retry` no-op code; a duplicate concurrent call simply loses the transaction and receives `failed-precondition`).
+- The transaction claim happens **before** `handleEntryCreated` (Task 7's existing analysis handler, shared with `processEntry`) is invoked. This ordering — atomic claim, then single downstream invocation — is what guarantees two concurrent retries produce exactly one analysis invocation; the second caller's transaction fails the precondition check and never reaches `handleEntryCreated`.
+- All other entry fields (image/storage/data) on the claimed document are preserved — the transaction writes only `status: 'pending'`, exactly like the existing `processEntry` transition.
+- `index.ts` extracts a shared `AnalyzeEntryDeps` factory (parameterized by `uid`/`entryId`) so `processEntry` and `retryEntryAnalysis` build identical `updateEntry`/`loadImageBase64`/`generateVision`/`sendPush`/`getModelConfig` dependency wiring — retry and initial analysis have identical image/model/prompt/push/error behavior by construction, not by duplicated code.
+- `functions/test/retry-analysis.test.ts` unit-tests `handleRetryEntryAnalysis` against injected fakes only (fake transaction runner, fake doc ref, fake `analyzeEntry`/`buildAnalyzeDeps`) — no production or emulator Firestore writes. Required coverage: unauthenticated request, invalid/empty entryId, missing entry doc, user isolation (only the auth-scoped `users/{uid}/entries/{entryId}` path is ever read/written — no cross-user path is constructible from the callable's inputs), only `status == 'error'` is accepted (each of pending/processing/complete/needs_review rejected as `failed-precondition`), concurrent retries produce exactly one winner (transaction-based test, not a timing race), preserved entry data (image/storage fields untouched by the transaction), exactly one `analyzeEntry`/`handleEntryCreated`-equivalent invocation per successful claim, and an analysis failure inside the invoked handler returns the remote entry to `error` (via the existing `handleEntryCreated` catch path, not a new one).
+- Focused Firestore-emulator integration evidence for `retryEntryAnalysis` (real transactions against the emulator, real security-rules interaction) is explicitly **not** owned by this task — it is Task 16's responsibility unless a later task explicitly adds it here. This task's unit tests use injected fakes only.
 
 **Motion contract:**
 - Processing screen entrance uses `MotionDurations.cardEntrance` (240ms) for the skeleton card fade-in.
@@ -1058,11 +1104,23 @@ test('bounded to 500 entries — oldest evicted on 501st insert', () async { /* 
 test('exists returns true for existing Firestore doc', () async { /* implement */ });
 test('exists returns false for deleted/missing Firestore doc', () async { /* implement */ });
 
-// test/processing/retry_analysis_service_test.dart
-test('retryEntryAnalysis transitions error→pending and invokes analysis once', () async { /* implement */ });
-test('retryEntryAnalysis rejects duplicate concurrent retry (pending/processing status)', () async { /* implement */ });
-test('retryEntryAnalysis verifies ownership — rejects retry for other user entry', () async { /* implement */ });
-test('retryEntryAnalysis preserves entry data on transition', () async { /* implement */ });
+// test/processing/retry_analysis_service_test.dart — Flutter client wrapper only;
+// the atomic transition/ownership/duplicate-rejection guarantees are backend
+// behavior covered by functions/test/retry-analysis.test.ts below, not here.
+test('retryEntryAnalysis invokes the retryEntryAnalysis callable with the given entryId', () async { /* implement */ });
+test('retryEntryAnalysis surfaces a callable failure (e.g. failed-precondition) as a typed error to the caller', () async { /* implement */ });
+
+// functions/test/retry-analysis.test.ts — backend handler, injected fakes only, no emulator/production writes
+test('rejects unauthenticated request', async () => { /* implement */ });
+test('rejects missing/empty entryId as invalid-argument', async () => { /* implement */ });
+test('rejects retry for missing entry doc as not-found', async () => { /* implement */ });
+test('only reads/writes the auth-scoped users/{uid}/entries/{entryId} path — no cross-user path is constructible', async () => { /* implement */ });
+test('claims entry when status is error, transitions to pending', async () => { /* implement */ });
+test.each(['pending', 'processing', 'complete', 'needs_review'])('rejects retry when status is %s as failed-precondition', async (status) => { /* implement */ });
+test('two concurrent retries against the same entry produce exactly one analysis invocation', async () => { /* implement */ });
+test('preserves image/storage/data fields on the claimed document — transaction writes only status', async () => { /* implement */ });
+test('invokes the shared AnalyzeEntryDeps-based analysis handler exactly once per successful claim', async () => { /* implement */ });
+test('analysis failure inside the invoked handler returns the remote entry to error', async () => { /* implement */ });
 
 // test/processing/combined_state_test.dart
 test('localUploading → firestorePending transition on handoff', () async { /* implement */ });
@@ -1072,7 +1130,7 @@ test('firestoreError → firestorePending via RetryAnalysisService', () async { 
 test('local UploadQueueEntry and durable copy are already deleted by the time firestoreError occurs; retry goes through RetryAnalysisService only, no local queue re-entry', () async { /* implement */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/processing` → Expected: FAIL (`routeForNotification` undefined; `ConnectivityMonitor`, `ViewedEntryStore`, `EntryExistenceChecker`, `RetryAnalysisService`, `ProcessingState` undefined; lifecycle branches missing).
+- [ ] **Step 2: RED** — Run both: `fvm flutter test test/processing` **and** `npm test --prefix functions` → Expected: FAIL on both. Flutter: `routeForNotification` undefined; `ConnectivityMonitor`, `ViewedEntryStore`, `EntryExistenceChecker`, `RetryAnalysisService`, `ProcessingState` undefined; lifecycle branches missing. Functions: `functions/test/retry-analysis.test.ts` fails to compile/run because `functions/src/retry-analysis.ts` (`handleRetryEntryAnalysis`, `RetryAnalysisError`) does not exist yet.
 
 - [ ] **Step 3 (worker): Implement** per the contracts above:
   - `ConnectivityMonitor` injectable with `connectivity_plus`; foreground-only retry triggers; treat "online" as interface availability only.
@@ -1081,17 +1139,23 @@ test('local UploadQueueEntry and durable copy are already deleted by the time fi
   - `ProcessingState` combined provider merging queue state and Firestore snapshot.
   - `ViewedEntryStore` in `shared_preferences`, bounded 500, `markViewed` on food detail; local-only, no remote existence method.
   - `EntryExistenceChecker` abstract interface + `FirestoreEntryExistenceChecker` implementation; injected into the notification-tap handler, called before `routeForNotification` for fresh taps; `routeForNotification` itself stays pure/sync with legacy docId support.
-  - `RetryAnalysisService` authenticated callable with ownership verification, atomic error→pending, single-analysis invocation, duplicate-concurrency rejection; the exclusive retry path for `firestoreError`.
+  - `lib/shared/services/retry_analysis_service.dart`: thin authenticated callable wrapper around `retryEntryAnalysis`.
+  - `functions/src/retry-analysis.ts`: `handleRetryEntryAnalysis` per the Backend contract — auth/entryId validation, single `runTransaction` ownership+status claim (`error` → `pending` only), preserved entry fields, then one downstream analysis invocation via the shared `AnalyzeEntryDeps` factory.
+  - `functions/src/index.ts`: export `retryEntryAnalysis` as an `onCall` wired to `handleRetryEntryAnalysis`; extract the shared `AnalyzeEntryDeps` factory used by both `processEntry` and `retryEntryAnalysis`.
   - Four-state processing screen: skeleton shimmer (`MotionDurations.skeletonShimmer`), entrance (`MotionDurations.cardEntrance`), complete/error result cards.
   - `AppMotion.durationOf` for all animation durations; reduced motion snaps.
 
-- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/processing` → Expected: PASS.
+- [ ] **Step 4: GREEN** — Run all three: `fvm flutter test test/processing`, `npm test --prefix functions`, and `npm run build --prefix functions` → Expected: PASS, PASS, and a clean TypeScript build.
 
-- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. (Real background-kill and push delivery are device-level; owned by Task 16's `interrupted_upload` and `notification_return` suites.)
+- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; full `fvm flutter test` → no regressions; `npm test --prefix functions` → PASS; `npm run build --prefix functions` → clean build. (Real background-kill, push delivery, and Firestore-emulator integration evidence for `retryEntryAnalysis` are owned by Task 16, not this task.)
 
 - [ ] **Step 6: REVIEW-GATE Task 7**, then **HANDOFF Task 7**
 
 ```powershell
+fvm flutter analyze
+fvm flutter test
+npm test --prefix functions
+npm run build --prefix functions
 git add -A
 git commit -m "Harden processing, upload queue, notification lifecycle, and retry analysis"
 git push
