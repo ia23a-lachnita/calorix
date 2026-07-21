@@ -64,7 +64,7 @@ class NotificationService {
   Future<RemoteMessage?> getInitialMessage() => _messaging.getInitialMessage();
 
   String? docIdOf(RemoteMessage message) =>
-      message.data['docId'] as String? ?? message.data['entryId'] as String?;
+      message.data['entryId'] as String? ?? message.data['docId'] as String?;
 
   /// Shows a local notification for a message received while the app is
   /// foregrounded (FCM does not display these automatically).

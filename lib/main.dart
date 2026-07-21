@@ -14,6 +14,7 @@ import 'core/theme/app_theme.dart';
 import 'core/time/clock_provider.dart';
 import 'core/time/timezone_init.dart';
 import 'features/profile/profile_sheet.dart';
+import 'features/scan/providers/scan_providers.dart';
 import 'shared/providers/auth_provider.dart';
 import 'shared/providers/notification_provider.dart';
 import 'shared/providers/ui_diff_provider.dart';
@@ -78,8 +79,28 @@ class _SessionServices extends ConsumerStatefulWidget {
   ConsumerState<_SessionServices> createState() => _SessionServicesState();
 }
 
-class _SessionServicesState extends ConsumerState<_SessionServices> {
+class _SessionServicesState extends ConsumerState<_SessionServices>
+    with WidgetsBindingObserver {
   String? _initializedUid;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    ref.read(uploadRetryCoordinatorProvider.future).then(
+          (coordinator) => coordinator.onLifecycleStateChanged(state),
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +109,11 @@ class _SessionServicesState extends ConsumerState<_SessionServices> {
       if (user == null || user.uid == _initializedUid) return;
       _initializedUid = user.uid;
       Future(() async {
+        final retryCoordinator =
+            await ref.read(uploadRetryCoordinatorProvider.future);
+        await retryCoordinator.onLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
         try {
           await SeedDataService(
                   ref.read(firestoreProvider), ref.read(clockProvider))

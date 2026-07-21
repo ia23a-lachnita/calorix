@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -8,10 +10,22 @@ import '../../core/router/app_router.dart';
 import '../../core/router/route_names.dart';
 import '../../features/scan/providers/scan_providers.dart';
 import '../services/notification_service.dart';
+import '../services/entry_existence_checker.dart';
+import '../services/notification_routing.dart';
+import 'viewed_entry_store.dart';
 import 'auth_provider.dart';
 
 final notificationServiceProvider =
     Provider<NotificationService>((ref) => NotificationService());
+
+final viewedEntryStoreProvider = FutureProvider<ViewedEntryStore>(
+  (ref) => SharedPreferencesViewedEntryStore.create(),
+);
+
+final entryExistenceCheckerProvider = Provider<EntryExistenceChecker?>((ref) {
+  final uid = ref.watch(currentUidProvider);
+  return uid == null ? null : FirestoreEntryExistenceChecker(uid: uid);
+});
 
 /// Handles messages received while the app is terminated or backgrounded.
 ///
@@ -36,16 +50,21 @@ Future<void> initNotifications(WidgetRef ref) async {
   final service = ref.read(notificationServiceProvider);
   final firestore = ref.read(firestoreProvider);
 
-  void deepLink(String? docId) {
+  Future<void> deepLink(String? docId) async {
     final router = ref.read(routerProvider);
-    if (docId != null && docId.isNotEmpty) {
-      router.goNamed(RouteNames.foodDetail, pathParameters: {'id': docId});
-    } else {
+    final checker = ref.read(entryExistenceCheckerProvider);
+    if (checker == null || docId == null || docId.isEmpty) {
       router.goNamed(RouteNames.today);
+      return;
     }
+    final handler = NotificationTapHandler(
+      viewedEntries: await ref.read(viewedEntryStoreProvider.future),
+      entryExists: checker,
+    );
+    router.go(await handler.resolve({'entryId': docId}));
   }
 
-  service.onNotificationTap = deepLink;
+  service.onNotificationTap = (docId) => unawaited(deepLink(docId));
 
   final granted = await service.requestPermission();
   ref.read(fcmPermissionProvider.notifier).state = granted;
@@ -53,13 +72,10 @@ Future<void> initNotifications(WidgetRef ref) async {
   await service.initLocalNotifications();
 
   Future<void> writeToken(String token) {
-    return firestore
-        .collection(AppConstants.usersCollection)
-        .doc(uid)
-        .set(
-          {'fcmToken': token, 'fcmUpdatedAt': FieldValue.serverTimestamp()},
-          SetOptions(merge: true),
-        );
+    return firestore.collection(AppConstants.usersCollection).doc(uid).set(
+      {'fcmToken': token, 'fcmUpdatedAt': FieldValue.serverTimestamp()},
+      SetOptions(merge: true),
+    );
   }
 
   try {
@@ -71,9 +87,10 @@ Future<void> initNotifications(WidgetRef ref) async {
   service.onTokenRefresh.listen(writeToken);
 
   service.onMessage.listen(service.showForeground);
-  service.onMessageOpenedApp
-      .listen((message) => deepLink(service.docIdOf(message)));
+  service.onMessageOpenedApp.listen(
+    (message) => unawaited(deepLink(service.docIdOf(message))),
+  );
 
   final initial = await service.getInitialMessage();
-  if (initial != null) deepLink(service.docIdOf(initial));
+  if (initial != null) await deepLink(service.docIdOf(initial));
 }

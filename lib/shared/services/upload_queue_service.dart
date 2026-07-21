@@ -119,10 +119,14 @@ class UploadQueueService {
   final SourceReader _source;
   final Future<void> Function(UploadQueueEntry entry)? _productionUpload;
   final String Function()? _entryIdFactory;
+  final _changes = StreamController<List<UploadQueueEntry>>.broadcast();
 
   List<UploadQueueEntry> _entries = [];
 
   List<UploadQueueEntry> get entries => List.unmodifiable(_entries);
+  Stream<List<UploadQueueEntry>> get changes => _changes.stream;
+
+  Future<void> dispose() => _changes.close();
 
   static Future<UploadQueueService> production(Clock clock) async {
     final preferences = await SharedPreferences.getInstance();
@@ -377,5 +381,6 @@ class UploadQueueService {
       'entries': _entries.map((e) => e.toJson()).toList(),
     };
     await _kv.write(_queueKey, jsonEncode(json));
+    _changes.add(List.unmodifiable(_entries));
   }
 }

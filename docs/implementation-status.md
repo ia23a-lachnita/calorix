@@ -32,7 +32,8 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 ### Task 7 checkpoints
 
 - `cdfd127`: foreground upload retry coordination; 6/6 focused tests and analyzer clean.
-- Current checkpoint: production viewed-entry MRU, auth-scoped existence check, typed retry callable, and notification routing handler; 10/10 focused tests and analyzer clean. Provider/UI wiring remains pending.
+- `098c02f`: production viewed-entry MRU, auth-scoped existence check, typed retry callable, and notification routing handler; 10/10 focused tests and analyzer clean.
+- Current checkpoint: provider/app-lifecycle wiring, combined local/remote processing state, notification tap integration, viewed-on-detail behavior, and real processing widget states. `fvm flutter test test/processing` passes 58/58; functions pass 46/46 and build clean; focused analyzer clean. Full-project verification and final review remain pending.
 
 **Task 0 commit:** cacca80
 

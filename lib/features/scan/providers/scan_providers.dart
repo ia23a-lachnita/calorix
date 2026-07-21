@@ -5,6 +5,8 @@ import '../../../core/time/clock_provider.dart';
 import '../../../shared/services/camera_service.dart';
 import '../../../shared/services/camera_settings_service.dart';
 import '../../../shared/services/upload_queue_service.dart';
+import '../../../shared/services/connectivity_monitor.dart';
+import '../../../shared/providers/auth_provider.dart';
 
 enum ScanMode { meal, barcode, label }
 
@@ -25,9 +27,30 @@ final cameraSettingsServiceProvider = Provider<CameraSettingsService>(
   (ref) => const DeviceCameraSettingsService(),
 );
 
-final uploadQueueServiceProvider = FutureProvider<UploadQueueService>((ref) {
-  return UploadQueueService.production(ref.watch(clockProvider));
+final uploadQueueServiceProvider =
+    FutureProvider<UploadQueueService>((ref) async {
+  final service = await UploadQueueService.production(ref.watch(clockProvider));
+  ref.onDispose(() => unawaited(service.dispose()));
+  return service;
 });
+
+final connectivityMonitorProvider = Provider<ConnectivityMonitor>(
+  (ref) => RealConnectivityMonitor(),
+);
+
+final uploadRetryCoordinatorProvider = FutureProvider<UploadRetryCoordinator>(
+  (ref) async {
+    final queue = await ref.watch(uploadQueueServiceProvider.future);
+    final coordinator = UploadRetryCoordinator(
+      monitor: ref.watch(connectivityMonitorProvider),
+      drainPending: queue.drainPending,
+      isAuthenticated: () => ref.read(currentUidProvider) != null,
+    );
+    ref.onDispose(() => unawaited(coordinator.dispose()));
+    await coordinator.start();
+    return coordinator;
+  },
+);
 
 class _NoopCameraLifecycleService implements CameraLifecycleService {
   const _NoopCameraLifecycleService();

@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:calorix/shared/models/processing_state.dart'
     show ProcessingPhase, UploadQueueEntry, combineProcessingState;
+import 'package:calorix/features/processing/providers/processing_providers.dart';
+import 'package:calorix/shared/models/food_entry.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
   group('combineProcessingState', () {
@@ -68,6 +71,58 @@ void main() {
         firestorePhase: ProcessingPhase.firestoreError,
       );
       expect(state.phase, ProcessingPhase.firestoreError);
+    });
+  });
+  providerTests();
+}
+
+FoodEntry _remote(FoodEntryStatus status) => FoodEntry(
+      id: 'e1',
+      uid: 'u1',
+      timestamp: DateTime(2026),
+      date: '2026-01-01',
+      scanMode: 'meal',
+      status: status,
+    );
+
+void providerTests() {
+  group('processingStateProvider', () {
+    test('maps a remote pending document to firestorePending', () async {
+      final container = ProviderContainer(overrides: [
+        processingEntryProvider('e1').overrideWith(
+            (ref) => Stream.value(_remote(FoodEntryStatus.pending))),
+        uploadQueueEntriesProvider
+            .overrideWith((ref) => Stream.value(const [])),
+      ]);
+      addTearDown(container.dispose);
+
+      await container.read(processingEntryProvider('e1').future);
+      expect(
+        container.read(processingStateProvider('e1')).valueOrNull?.phase,
+        ProcessingPhase.firestorePending,
+      );
+    });
+
+    test('uses a local queue error before a Firestore document exists',
+        () async {
+      final local = UploadQueueEntry(
+        queueId: 'q1',
+        entryId: 'e1',
+        imagePath: '/pending/e1.jpg',
+        createdAt: DateTime(2026),
+        lastError: 'offline',
+      );
+      final container = ProviderContainer(overrides: [
+        processingEntryProvider('e1')
+            .overrideWith((ref) => const Stream.empty()),
+        uploadQueueEntriesProvider.overrideWith((ref) => Stream.value([local])),
+      ]);
+      addTearDown(container.dispose);
+
+      await container.read(uploadQueueEntriesProvider.future);
+      final state = container.read(processingStateProvider('e1')).valueOrNull;
+      expect(state?.phase, ProcessingPhase.localError);
+      expect(state?.errorMessage, 'offline');
     });
   });
 }

@@ -10,6 +10,8 @@ import '../../shared/widgets/macro_progress_bar.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/router/route_names.dart';
+import '../../core/motion/app_motion.dart';
+import '../../shared/models/processing_state.dart';
 
 class ProcessingScreen extends ConsumerWidget {
   final String entryId;
@@ -18,6 +20,7 @@ class ProcessingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entryAsync = ref.watch(processingEntryProvider(entryId));
+    final stateAsync = ref.watch(processingStateProvider(entryId));
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -26,22 +29,45 @@ class ProcessingScreen extends ConsumerWidget {
         child: Column(
           children: [
             // Top glass banner
-            _GlassBanner(isDark: isDark, onTap: () => context.goNamed(RouteNames.today)),
+            _GlassBanner(
+                isDark: isDark, onTap: () => context.goNamed(RouteNames.today)),
             const SizedBox(height: 20),
 
             Expanded(
-              child: entryAsync.when(
+              child: stateAsync.when(
                 loading: () => const _ProcessingSkeleton(),
-                error: (e, _) => _ErrorState(onRetry: () {}),
-                data: (entry) {
-                  if (entry.status == FoodEntryStatus.complete) {
-                    return _CompletedCard(entry: entry);
-                  }
-                  if (entry.status == FoodEntryStatus.error) {
-                    return _ErrorState(onRetry: () {});
-                  }
-                  return const _ProcessingSkeleton();
-                },
+                error: (error, _) => _ErrorState(
+                  message: error.toString(),
+                  onRetry: () {},
+                ),
+                data: (state) => AnimatedSwitcher(
+                  duration: AppMotion.durationOf(
+                    context,
+                    MotionDurations.cardEntrance,
+                  ),
+                  child: switch (state.phase) {
+                    ProcessingPhase.firestoreComplete
+                        when entryAsync.valueOrNull != null =>
+                      _CompletedCard(
+                        key: const ValueKey('processing-complete-card'),
+                        entry: entryAsync.valueOrNull!,
+                      ),
+                    ProcessingPhase.localError ||
+                    ProcessingPhase.firestoreError =>
+                      _ErrorState(
+                        key: const ValueKey('processing-error-state'),
+                        message: state.errorMessage,
+                        onRetry: () => retryProcessingEntry(
+                          ref,
+                          entryId: entryId,
+                          phase: state.phase,
+                        ),
+                      ),
+                    _ => const _ProcessingSkeleton(
+                        key: ValueKey('processing-skeleton'),
+                      ),
+                  },
+                ),
               ),
             ),
           ],
@@ -161,7 +187,7 @@ class _GlassBannerState extends State<_GlassBanner>
 }
 
 class _ProcessingSkeleton extends StatelessWidget {
-  const _ProcessingSkeleton();
+  const _ProcessingSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +210,8 @@ class _ProcessingSkeleton extends StatelessWidget {
                     top: 12,
                     left: 12,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.skeletonShine,
                         borderRadius: BorderRadius.circular(6),
@@ -213,7 +240,8 @@ class _ProcessingSkeleton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.skeletonBase,
                     borderRadius: BorderRadius.circular(20),
@@ -241,9 +269,13 @@ class _ProcessingSkeleton extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(child: SkeletonLine(widthFraction: 0.3, height: 12)),
+                  const Expanded(
+                      child: SkeletonLine(widthFraction: 0.3, height: 12)),
                   const SizedBox(width: 8),
-                  const SkeletonLine(widthFraction: 0.15, height: 12),
+                  const SizedBox(
+                    width: 48,
+                    child: SkeletonLine(height: 12),
+                  ),
                 ],
               ),
               const SizedBox(height: 6),
@@ -259,7 +291,7 @@ class _ProcessingSkeleton extends StatelessWidget {
 
 class _CompletedCard extends StatelessWidget {
   final FoodEntry entry;
-  const _CompletedCard({required this.entry});
+  const _CompletedCard({super.key, required this.entry});
 
   @override
   Widget build(BuildContext context) {
@@ -287,8 +319,8 @@ class _CompletedCard extends StatelessWidget {
               style: AppTextStyles.heading2.copyWith(color: textColor)),
           const SizedBox(height: 4),
           Text('${entry.scaledKcal.round()} kcal',
-              style: AppTextStyles.heroNumber.copyWith(
-                  color: AppColors.blue, fontSize: 28)),
+              style: AppTextStyles.heroNumber
+                  .copyWith(color: AppColors.blue, fontSize: 28)),
           const SizedBox(height: 20),
           MacroProgressBar(
             label: 'Protein',
@@ -326,7 +358,8 @@ class _CompletedCard extends StatelessWidget {
 
 class _ErrorState extends StatelessWidget {
   final VoidCallback onRetry;
-  const _ErrorState({required this.onRetry});
+  final String? message;
+  const _ErrorState({super.key, required this.onRetry, this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -334,7 +367,10 @@ class _ErrorState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline, color: AppColors.needsReview, size: 48),
+          const Icon(Icons.error_outline,
+              key: ValueKey('processing-error-icon'),
+              color: AppColors.needsReview,
+              size: 48),
           const SizedBox(height: 12),
           const Text('Analysis failed',
               style: TextStyle(
@@ -342,10 +378,15 @@ class _ErrorState extends StatelessWidget {
                   fontSize: 20,
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          const Text('Could not process your image',
-              style: TextStyle(fontFamily: 'Inter Tight', color: AppColors.textSecondaryLight)),
+          Text(message ?? 'Could not process your image',
+              style: const TextStyle(
+                  fontFamily: 'Inter Tight',
+                  color: AppColors.textSecondaryLight)),
           const SizedBox(height: 20),
-          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+          ElevatedButton(
+              key: const ValueKey('processing-retry-button'),
+              onPressed: onRetry,
+              child: const Text('Retry')),
         ],
       ),
     );

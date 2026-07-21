@@ -1,4 +1,5 @@
 import 'package:calorix/shared/services/retry_analysis_service.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -33,5 +34,25 @@ void main() {
       )),
     );
     expect(calls, 0);
+  });
+
+  test('surfaces callable failures as typed retry errors', () async {
+    final service = CloudRetryAnalysisService((_, __) async {
+      throw FirebaseFunctionsException(
+        code: 'failed-precondition',
+        message: 'Entry is already processing',
+      );
+    });
+
+    await expectLater(
+      service.retryEntryAnalysis('e1'),
+      throwsA(isA<RetryAnalysisException>()
+          .having((error) => error.code, 'code', 'failed-precondition')
+          .having(
+            (error) => error.message,
+            'message',
+            'Entry is already processing',
+          )),
+    );
   });
 }

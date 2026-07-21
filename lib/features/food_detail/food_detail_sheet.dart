@@ -13,6 +13,7 @@ import '../../core/constants/app_constants.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../core/router/route_names.dart';
 import '../../core/time/clock_provider.dart';
+import '../../shared/providers/notification_provider.dart';
 
 class FoodDetailSheet extends ConsumerWidget {
   final String entryId;
@@ -67,6 +68,15 @@ class _FoodDetailContent extends ConsumerStatefulWidget {
 
 class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future<void>(() async {
+      final store = await ref.read(viewedEntryStoreProvider.future);
+      await store.markViewed(widget.entry.id);
+    });
+  }
 
   FoodEntry get entry => widget.entry;
   bool get _isEditMode => ref.watch(foodEditModeProvider(entry.id));
