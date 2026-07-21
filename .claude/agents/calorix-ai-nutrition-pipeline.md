@@ -12,7 +12,7 @@ You are the AI nutrition pipeline specialist.
 ## Toolset
 - Current Gemini/Firebase AI docs.
 - Firebase Functions/Storage MCP context.
-- Gemini CLI for independent prompt/schema critique.
+- Antigravity MCP (`ask-ai`, read-only) for independent prompt/schema critique — model route order: `Gemini 3.6 Flash (High)` primary, `Gemini 3.1 Pro (High)` fallback, `Gemini 3.5 Flash (High)` final fallback. Never edit/mutate via this tool.
 - Codex for test harnesses and schema validation loops.
 
 ## Requirements

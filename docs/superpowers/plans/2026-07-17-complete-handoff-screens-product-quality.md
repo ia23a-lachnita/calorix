@@ -67,7 +67,7 @@ Invoke the current worker (ladder above) with this prompt template, filling in t
 
 Required for every substantive (multi-file / behavior-changing / security-touching / parity-affecting) diff, both as pre-review for architecture/data-model/rules changes and post-review after implementation. Trivial single-file edits may skip pre-review; record why in `docs/implementation-status.md`.
 
-1. Host calls `mcp__antigravity-mcp__ask-ai` with `model: "gemini-3.1-pro-preview"`, `approvalMode: "yolo"`, and the persistent `conversationId: "calorix-handoff-2026-07-17"`.
+1. Host calls `mcp__antigravity-mcp__ask-ai` with `approvalMode: "yolo"`, and the persistent `conversationId: "calorix-handoff-2026-07-17"`. Model routing order: (1) `"Gemini 3.6 Flash (High)"` primary, (2) `"Gemini 3.1 Pro (High)"` fallback, (3) `"Gemini 3.5 Flash (High)"` final fallback. All calls remain Antigravity MCP ask-ai with the existing strict read-only/no-mutation prompt. If one route fails before review, try the next in order and record the exact error.
 2. The prompt summarizes the task diff and always includes verbatim: **"Do not edit files, do not run write commands, and do not mutate the repository; only inspect, reason, review, and propose changes for the main agent to apply. Reply with AGREEMENT_STATUS and MUST_FIX."**
 3. Green only when the response explicitly reports `AGREEMENT_STATUS: agree` **and** `MUST_FIX: none`. Apply must-fix feedback via WORKER-RUN and continue the same conversation until green. An empty/noisy response is not green.
 4. After every review call, run `git status`; revert any unexpected mutation (reviewer wrapper noise has mutated the repo before).
@@ -841,21 +841,158 @@ git push
 
 **Files:**
 - Modify: `lib/features/processing/processing_screen.dart`, `lib/features/processing/providers/processing_providers.dart`, `lib/shared/services/upload_queue_service.dart`, `lib/shared/services/notification_service.dart`, `lib/shared/providers/notification_provider.dart`
-- Test: create `test/processing/processing_lifecycle_test.dart`, `test/processing/upload_queue_test.dart`, `test/processing/notification_routing_test.dart`
+- Create: `lib/shared/services/connectivity_monitor.dart` (injectable `ConnectivityMonitor` backed by `connectivity_plus`; emits interface-level connectivity-change events — reports network-interface availability, not confirmed Internet/backend reachability; no OS background execution — retry only while app is foregrounded: authenticated startup, lifecycle resumed, and offline-to-online transitions)
+- Create: `lib/shared/providers/viewed_entry_store.dart` (`ViewedEntryStore` in `shared_preferences`, bounded to 500 most recently viewed entry IDs; mark on food detail presentation; warm/cold handlers pass `alreadyViewed`; preserve legacy docId support; local-only — remote existence validation lives in `EntryExistenceChecker`, not here)
+- Create: `lib/shared/services/entry_existence_checker.dart` (`EntryExistenceChecker` abstract interface + `FirestoreEntryExistenceChecker` implementation, injected into the notification-tap handler; verifies remote target existence — deleted/missing target routes to `/today`)
+- Create: `lib/shared/services/retry_analysis_service.dart` (authenticated `retryEntryAnalysis` callable/service — atomically verifies ownership, transitions error→pending, invokes existing analysis once, rejects duplicate concurrent retries; retry UI calls the injected service)
+- Modify: `pubspec.yaml` — retain existing `path_provider: ^2.1.4` (locked at 2.1.5, already used by `upload_queue_service.dart`); add `connectivity_plus: ^7.3.0`
+- Test: create `test/processing/processing_lifecycle_test.dart`, `test/processing/upload_queue_test.dart`, `test/processing/notification_routing_test.dart`, `test/processing/connectivity_monitor_test.dart`, `test/processing/viewed_entry_store_test.dart`, `test/processing/entry_existence_checker_test.dart`, `test/processing/retry_analysis_service_test.dart`, `test/processing/combined_state_test.dart`
 
 **Interfaces:**
-- Consumes: `CameraService` capture output (Task 6), router (Task 2), `clockProvider` (Task 3).
+- Consumes: `CameraService` capture output (Task 6), router (Task 2), `clockProvider` (Task 3), `AppMotion`/`MotionDurations` (Task 4).
 - Produces (used by Tasks 8, 11, 16):
 
 ```dart
-enum ProcessingStatus { uploading, processing, complete, error }
+// Combined processing state — local upload/retry/error takes precedence before
+// Firestore document exists, then Firestore pending/processing/complete/error:
+enum ProcessingPhase { localUploading, localError, firestorePending, firestoreProcessing, firestoreComplete, firestoreError }
 
-// notification payload contract (Cloud Function push.ts already emits data payloads;
-// the client resolver is the owned contract here):
-/// Resolves a notification tap to a route: fresh result → /today/food/:id,
-/// summary → /today, stale (already viewed) → /today/food/:id without error.
+class ProcessingState {
+  const ProcessingState({required this.phase, this.progress, this.errorMessage});
+  final ProcessingPhase phase;
+  final double? progress;        // 0..1 during localUploading
+  final String? errorMessage;    // non-null on localError / firestoreError
+}
+
+// Upload queue — versioned JSON persisted in shared_preferences.
+// Before enqueue returns, the source image is copied/compressed into
+// getApplicationSupportDirectory()/pending_uploads/<queueId>.jpg via path_provider.
+// Stable queueId / entryId / storage path across retries.
+// Durable source (and queue entry) deleted only on: successful Storage
+// upload + Firestore handoff, a truly fatal non-retryable local failure
+// (auth/permission error, malformed payload), or explicit user
+// dismissal/cancellation of the localError entry. Reaching the automatic
+// retry cap is NOT a deletion trigger — it pauses auto-retry
+// (autoRetryDisabled = true, nextRetryAt = null) while retaining the
+// entry and durable copy, so the localError screen's Retry action can
+// still manually resume this same entry (reset autoRetryDisabled to
+// false and recompute nextRetryAt, same queueId/entryId — no duplicate
+// is created). Never retained on account of a post-handoff
+// firestoreError — once the Firestore document exists, the local queue
+// entry is already gone; that retry path is exclusively RetryAnalysisService
+// operating on the existing remote entry.
+class UploadQueueEntry {
+  const UploadQueueEntry({
+    required this.queueId,
+    required this.entryId,
+    required this.imagePath,       // durable copy path under pending_uploads/
+    required this.createdAt,
+    this.retryCount = 0,
+    this.lastError,
+    this.nextRetryAt,              // bounded exponential backoff, driven by injected clock; null while autoRetryDisabled
+    this.autoRetryDisabled = false, // true once retryCount hits the cap; auto-drain skips this entry until manual retry clears it
+  });
+  final String queueId;
+  final String entryId;
+  final String imagePath;
+  final DateTime createdAt;
+  final int retryCount;
+  final String? lastError;
+  final DateTime? nextRetryAt;
+  final bool autoRetryDisabled;
+}
+
+// ViewedEntryStore — shared_preferences backed, bounded to 500 entries.
+// Mark on food detail presentation. Warm/cold handlers pass alreadyViewed.
+// Local-only: does not perform remote I/O. Remote existence validation is
+// extracted into EntryExistenceChecker below.
+class ViewedEntryStore {
+  Future<bool> isViewed(String entryId);
+  Future<void> markViewed(String entryId);
+  Future<List<String>> recentIds();     // most-recently-viewed, bounded to 500
+}
+
+// EntryExistenceChecker — injected remote existence check, kept separate
+// from ViewedEntryStore so ViewedEntryStore stays local-only/synchronous-friendly.
+abstract class EntryExistenceChecker {
+  Future<bool> exists(String entryId);  // verifies Firestore doc still present
+}
+
+// FirestoreEntryExistenceChecker — production implementation.
+class FirestoreEntryExistenceChecker implements EntryExistenceChecker {
+  const FirestoreEntryExistenceChecker(this._firestore, this._uid);
+  final FirebaseFirestore _firestore;
+  final String _uid;
+  @override
+  Future<bool> exists(String entryId) async {
+    final doc = await _firestore
+        .collection(AppConstants.usersCollection)
+        .doc(_uid)
+        .collection(AppConstants.entriesSubCollection)
+        .doc(entryId)
+        .get();
+    return doc.exists;
+  }
+}
+
+// Notification route resolver — preserves legacy docId support. Pure/sync,
+// no I/O. For fresh taps, the notification-tap handler calls the injected
+// EntryExistenceChecker.exists(entryId) before routing; a deleted/missing
+// target routes to /today instead of calling this resolver.
+/// Resolves a notification tap to a route:
+///   fresh result → /today/food/:id,
+///   summary → /today,
+///   stale (already viewed) → /today/food/:id without error.
 String routeForNotification(Map<String, String> data, {required bool alreadyViewed});
+
+// RetryAnalysisService — authenticated, injected.
+// Atomically: verifies ownership, transitions error→pending,
+// invokes existing analysis once, rejects duplicate concurrent retries.
+abstract class RetryAnalysisService {
+  Future<void> retryEntryAnalysis(String entryId);
+}
 ```
+
+**Connectivity Monitor contract:**
+- `ConnectivityMonitor` is an injectable abstract class; `RealConnectivityMonitor` wraps `connectivity_plus` and exposes a `Stream<ConnectivityState>` where `ConnectivityState` is `{online, offline}`.
+- `connectivity_plus` reports network-interface availability (Wi-Fi/cellular attached), not confirmed Internet or backend reachability. An "online" event only triggers an attempt to drain the queue; it is not treated as proof the upload will succeed.
+- Retry triggers: (a) authenticated app startup — check connectivity and drain queue; (b) `AppLifecycleState.resumed` — check and drain; (c) offline→online transition event — drain.
+- **No OS background execution is claimed.** All retry happens while the app process is alive and in the foreground. If the app is killed mid-upload, retry happens on next cold start (Step 2's durable copy survives process death).
+- On enqueue: before the method returns, copy/compress the source image into `getApplicationSupportDirectory()/pending_uploads/<queueId>.jpg` via `path_provider`. The durable copy path is stored in the queue entry and used across retries. The durable copy (and queue entry) is deleted only on Storage upload + Firestore handoff success, a truly fatal non-retryable failure, or explicit user dismissal/cancellation. It is retained on any retryable/offline failure, and it is also retained when the automatic retry cap is reached (see below) — reaching the cap pauses auto-retry, it does not delete anything.
+- Queue drain must wrap each upload attempt in error classification: catch socket/HTTP/`FirebaseException` transport errors and timeouts, and classify them as retryable (network unreachable, timeout, 5xx/`unavailable`/`deadline-exceeded`) vs. fatal/non-retryable (auth/permission errors, malformed payload, `unauthenticated`). Retryable failures retain queue metadata and the durable copy for the next drain attempt, surfaced to the user as `localError` with auto-retry still active; fatal failures delete the durable copy and remove the entry (surfaced to the user as `localError`, no retry possible — the entry is gone).
+
+**Queue persistence contract:**
+- Versioned JSON array serialized to a `shared_preferences` key (`upload_queue_v1`).
+- Each entry carries a stable `queueId` (UUID), `entryId` (Firestore doc ID or pending ID), `imagePath` (absolute path under `pending_uploads/`), `createdAt`, `retryCount`, `lastError`, `nextRetryAt`.
+- On app restart: deserialize queue, verify each durable copy exists on disk (delete orphaned entries), then attempt upload for each entry in FIFO order.
+- `enqueue` is idempotent: if an entry with the same `entryId` is already in the queue (pending), return the existing `queueId` without creating a duplicate.
+- Retryable drain failures use bounded exponential backoff: `nextRetryAt = clock.now() + baseDelay * 2^retryCount` (capped at a max delay), computed from the injected `clockProvider` (Task 3) so tests are deterministic — no real `sleep`/timers. A drain pass skips entries whose `nextRetryAt` is still in the future. `retryCount` is capped at a fixed maximum (e.g. 5); once exceeded, the entry sets `autoRetryDisabled = true` and `nextRetryAt = null` — drain skips it, and it surfaces as `localError` with a manual Retry action — retries are bounded, never infinite auto-retry.
+- Reaching the retry cap does **not** remove the entry or delete its durable copy: the entry stays in the queue, `autoRetryDisabled` true, so the localError screen's Retry action can manually retry it. Tapping Retry after the cap resets `retryCount` (or otherwise clears `autoRetryDisabled` and recomputes `nextRetryAt` to now), re-enabling auto-drain for the same `queueId`/`entryId` — no duplicate entry is created.
+- The entry (and its durable copy) is removed from the queue only on: (a) successful Storage upload + Firestore handoff, (b) a truly fatal non-retryable local failure (auth/permission error, malformed payload — not the retry cap), or (c) explicit user dismissal/cancellation of the localError entry. It is never re-added after a successful handoff — a subsequent `firestoreError` is a remote-only concern handled exclusively by `RetryAnalysisService` against the existing Firestore entry, not by re-queuing.
+
+**Combined processing state contract:**
+- Local phase takes precedence while no Firestore document exists: `localUploading` (image copy + upload in progress), `localError` (copy or upload failed, retryable).
+- Once the Firestore document is created (analysis request accepted): `firestorePending` → `firestoreProcessing` → `firestoreComplete` | `firestoreError`.
+- The processing screen reads `ProcessingState` from a provider that merges queue state and Firestore snapshot. Transitions are: `localUploading` → `localError` (retry) or `firestorePending` (handoff) → `firestoreProcessing` → `firestoreComplete` | `firestoreError` (retry via `RetryAnalysisService`).
+
+**ViewedEntryStore contract:**
+- Bounded to 500 most recently viewed entry IDs (FIFO eviction on overflow).
+- `markViewed(entryId)` called on food detail presentation (not on Today card tap — only when the full detail sheet/screen is shown).
+- `ViewedEntryStore` is local-only (`shared_preferences`) and has no `exists`/remote-lookup method. The notification-tap handler is injected with both `ViewedEntryStore` and `EntryExistenceChecker`: it reads `alreadyViewed` from `ViewedEntryStore`, and for fresh taps calls `EntryExistenceChecker.exists(entryId)` against Firestore before routing; if the doc is deleted or missing, it routes to `/today` instead of calling `routeForNotification`.
+- Legacy support: if the notification payload contains `docId` (old format) instead of `entryId`, resolve the entry by looking up the doc via `EntryExistenceChecker`; if not found, route to `/today`.
+
+**Retry contract:**
+- `RetryAnalysisService.retryEntryAnalysis(entryId)` is an authenticated callable (Cloud Function or client service).
+- Atomic guard: the function checks the entry's `status` field; if already `pending` or `processing`, reject with `duplicate_retry` (no-op, not an error to the user).
+- If `status == error`: transition to `pending`, invoke the existing analysis pipeline once.
+- If the analysis fails again: transition back to `error` with the new error message on the existing remote Firestore entry, available for another manual retry via `RetryAnalysisService`. There is no local `UploadQueueEntry` at this point — it was already deleted at handoff — so nothing is retried from the local queue.
+- The retry UI (error state's retry button) calls the injected `RetryAnalysisService`, not raw Firestore writes.
+
+**Motion contract:**
+- Processing screen entrance uses `MotionDurations.cardEntrance` (240ms) for the skeleton card fade-in.
+- Skeleton shimmer uses `MotionDurations.skeletonShimmer` (1400ms) via `AppMotion.durationOf`.
+- Complete/error transitions use `MotionDurations.cardEntrance` for the result card entrance.
+- Reduced motion snaps to final frame per `AppMotion.reducedOf`.
 
 - [ ] **Step 1 (worker): Write failing tests**
 
@@ -864,23 +1001,89 @@ String routeForNotification(Map<String, String> data, {required bool alreadyView
 testWidgets('shows close-app banner with spinner and skeleton card while processing', (tester) async { /* implement */ });
 testWidgets('banner tap navigates to today', (tester) async { /* implement */ });
 testWidgets('complete state shows image, name, kcal, macro bars, View in Today', (tester) async { /* implement */ });
-testWidgets('error state shows amber icon, Analysis failed, and retry', (tester) async { /* implement */ });
+testWidgets('error state shows amber icon, Analysis failed, and retry button', (tester) async { /* implement */ });
+testWidgets('processing screen uses MotionDurations.cardEntrance for entrance and skeletonShimmer for shimmer', (tester) async { /* verify animation durations via AppMotion */ });
+testWidgets('reduced motion snaps skeleton and result card to final frame', (tester) async { /* disableAnimations → Duration.zero */ });
+testWidgets('combined state: localUploading shows upload progress, firestorePending shows spinner', (tester) async { /* implement */ });
+testWidgets('combined state: localError shows retry, firestoreError shows retry via RetryAnalysisService', (tester) async { /* implement */ });
 
 // test/processing/upload_queue_test.dart
-test('upload interrupted by kill is re-enqueued and retried on next start', () async { /* persist queue entry, recreate service, expect retry */ });
+test('upload interrupted by kill is re-enqueued and retried on next start', () async { /* persist queue entry with durable copy, recreate service, expect retry */ });
 test('offline enqueue does not lose the capture; retry fires on connectivity resume', () async { /* implement */ });
+test('durable copy survives process death and is used on restart retry', () async { /* create entry, verify file on disk, simulate restart, verify upload uses same path */ });
+test('enqueue is idempotent — duplicate entryId returns existing queueId', () async { /* enqueue twice with same entryId, expect same queueId, queue length 1 */ });
+test('durable copy deleted after Firestore handoff success', () async { /* enqueue, upload success, verify file deleted from pending_uploads/ */ });
+test('durable copy retained on retryable failure, deleted on fatal failure', () async { /* enqueue, retryable fail → file exists; fatal fail → file deleted */ });
+test('retryable transport error (socket timeout, FirebaseException unavailable/deadline-exceeded) is classified retryable — queue metadata and durable copy retained', () async { /* implement */ });
+test('fatal error (permission-denied, unauthenticated, malformed payload) is classified non-retryable — durable copy deleted and entry removed', () async { /* implement */ });
+test('bounded exponential backoff: nextRetryAt computed from injected clockProvider, increases with retryCount', () async { /* FakeClock, assert nextRetryAt = base * 2^retryCount */ });
+test('drain skips entries whose nextRetryAt is still in the future', () async { /* implement */ });
+test('retryCount capped at max — entry sets autoRetryDisabled true and nextRetryAt null, stops auto-retrying, surfaces as localError for manual retry; entry and durable copy are retained, not deleted, never retries infinitely', () async { /* implement */ });
+test('manual retry after retry-cap reached clears autoRetryDisabled and recomputes nextRetryAt, re-enabling auto-drain for the same queueId/entryId without creating a duplicate queue entry', () async { /* implement */ });
+test('queue version migration: v0 (no version key) deserializes gracefully', () async { /* implement */ });
+test('queue persists across FakeClock restart with stable queueId/entryId', () async { /* implement */ });
 
 // test/processing/notification_routing_test.dart
-test('fresh result routes to food detail; stale tap routes without error', () {
+test('fresh result routes to food detail', () {
   expect(routeForNotification({'entryId': 'e1'}, alreadyViewed: false), '/today/food/e1');
+});
+test('stale tap routes to food detail without error', () {
   expect(routeForNotification({'entryId': 'e1'}, alreadyViewed: true), '/today/food/e1');
+});
+test('missing data routes to /today', () {
   expect(routeForNotification({}, alreadyViewed: false), '/today');
 });
+test('deleted/missing target routes to /today via handler, without calling routeForNotification', () async {
+  /* inject FakeEntryExistenceChecker returning false; verify handler routes to /today */
+});
+test('legacy docId format resolves correctly', () {
+  expect(routeForNotification({'docId': 'legacy1'}, alreadyViewed: false), '/today/food/legacy1');
+});
+test('cold start notification routes correctly with alreadyViewed=false', () async { /* implement */ });
+test('warm tap notification routes correctly with alreadyViewed from ViewedEntryStore', () async { /* implement */ });
+
+// test/processing/connectivity_monitor_test.dart
+test('emits online on initial check when connected', () async { /* implement */ });
+test('emits offline→online transition triggers queue drain', () async { /* implement */ });
+test('retry does not fire while app is backgrounded', () async { /* implement */ });
+test('retry fires on authenticated startup when online', () async { /* implement */ });
+test('retry fires on lifecycle resumed when online', () async { /* implement */ });
+test('interface-online event alone does not mark upload successful — drain still classifies transport errors', () async { /* implement */ });
+
+// test/processing/viewed_entry_store_test.dart
+test('markViewed adds entryId and isViewed returns true', () async { /* implement */ });
+test('bounded to 500 entries — oldest evicted on 501st insert', () async { /* implement */ });
+
+// test/processing/entry_existence_checker_test.dart
+test('exists returns true for existing Firestore doc', () async { /* implement */ });
+test('exists returns false for deleted/missing Firestore doc', () async { /* implement */ });
+
+// test/processing/retry_analysis_service_test.dart
+test('retryEntryAnalysis transitions error→pending and invokes analysis once', () async { /* implement */ });
+test('retryEntryAnalysis rejects duplicate concurrent retry (pending/processing status)', () async { /* implement */ });
+test('retryEntryAnalysis verifies ownership — rejects retry for other user entry', () async { /* implement */ });
+test('retryEntryAnalysis preserves entry data on transition', () async { /* implement */ });
+
+// test/processing/combined_state_test.dart
+test('localUploading → firestorePending transition on handoff', () async { /* implement */ });
+test('localError → localUploading on retry', () async { /* implement */ });
+test('firestorePending → firestoreProcessing → firestoreComplete', () async { /* implement */ });
+test('firestoreError → firestorePending via RetryAnalysisService', () async { /* implement */ });
+test('local UploadQueueEntry and durable copy are already deleted by the time firestoreError occurs; retry goes through RetryAnalysisService only, no local queue re-entry', () async { /* implement */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/processing` → Expected: FAIL (`routeForNotification` undefined; lifecycle branches missing).
+- [ ] **Step 2: RED** — Run: `fvm flutter test test/processing` → Expected: FAIL (`routeForNotification` undefined; `ConnectivityMonitor`, `ViewedEntryStore`, `EntryExistenceChecker`, `RetryAnalysisService`, `ProcessingState` undefined; lifecycle branches missing).
 
-- [ ] **Step 3 (worker): Implement** the four-state processing screen (skeleton shimmer via `MotionDurations.skeletonShimmer`, entrance `cardEntrance`), persistent upload queue with retry on app start and connectivity resume, and the notification route resolver wired into `notification_provider.dart` cold-start and warm-tap paths.
+- [ ] **Step 3 (worker): Implement** per the contracts above:
+  - `ConnectivityMonitor` injectable with `connectivity_plus`; foreground-only retry triggers; treat "online" as interface availability only.
+  - Versioned queue JSON in `shared_preferences`; durable copy via `path_provider` to `getApplicationSupportDirectory()/pending_uploads/<queueId>.jpg`; stable IDs; delete-on-handoff, delete-on-truly-fatal-failure, delete-on-explicit-user-dismissal; retain-on-retryable-failure and retain-on-retry-cap-reached.
+  - Queue drain: catch and classify socket/HTTP/`FirebaseException` transport errors as retryable vs. fatal; bounded exponential backoff via injected `clockProvider` (`nextRetryAt`), capped `retryCount`. On cap: set `autoRetryDisabled = true`, `nextRetryAt = null`, retain entry/durable copy, surface `localError` with manual Retry; manual Retry clears `autoRetryDisabled` and resumes the same entry (no duplicate ID). Never infinite auto-retry.
+  - `ProcessingState` combined provider merging queue state and Firestore snapshot.
+  - `ViewedEntryStore` in `shared_preferences`, bounded 500, `markViewed` on food detail; local-only, no remote existence method.
+  - `EntryExistenceChecker` abstract interface + `FirestoreEntryExistenceChecker` implementation; injected into the notification-tap handler, called before `routeForNotification` for fresh taps; `routeForNotification` itself stays pure/sync with legacy docId support.
+  - `RetryAnalysisService` authenticated callable with ownership verification, atomic error→pending, single-analysis invocation, duplicate-concurrency rejection; the exclusive retry path for `firestoreError`.
+  - Four-state processing screen: skeleton shimmer (`MotionDurations.skeletonShimmer`), entrance (`MotionDurations.cardEntrance`), complete/error result cards.
+  - `AppMotion.durationOf` for all animation durations; reduced motion snaps.
 
 - [ ] **Step 4: GREEN** — Run: `fvm flutter test test/processing` → Expected: PASS.
 
@@ -890,7 +1093,7 @@ test('fresh result routes to food detail; stale tap routes without error', () {
 
 ```powershell
 git add -A
-git commit -m "Harden processing, upload queue, and notification lifecycle"
+git commit -m "Harden processing, upload queue, notification lifecycle, and retry analysis"
 git push
 ```
 
@@ -2011,7 +2214,7 @@ The terminal gate task. Runs every verification surface end-to-end, assembles th
 
 #### 19.9 External No-Mutation Review
 
-- [ ] **Step 9: REVIEW-GATE Task 19** — host calls `mcp__antigravity-mcp__ask-ai` with `model: "gemini-3.1-pro-preview"`, `approvalMode: "yolo"`, `conversationId: "calorix-handoff-2026-07-17"`. The prompt includes:
+- [ ] **Step 9: REVIEW-GATE Task 19** — host calls `mcp__antigravity-mcp__ask-ai` with `approvalMode: "yolo"`, `conversationId: "calorix-handoff-2026-07-17"`. Model routing order: (1) `"Gemini 3.6 Flash (High)"` primary, (2) `"Gemini 3.1 Pro (High)"` fallback, (3) `"Gemini 3.5 Flash (High)"` final fallback. The prompt includes:
   - Full diff summary of all changes since baseline
   - The complete evidence manifest (all test results, ui-diff run IDs, frame budget data, a11y results)
   - Verbatim: **"Do not edit files, do not run write commands, and do not mutate the repository; only inspect, reason, review, and propose changes for the main agent to apply. Reply with AGREEMENT_STATUS and MUST_FIX."**

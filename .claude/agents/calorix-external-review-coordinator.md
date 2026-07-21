@@ -9,7 +9,7 @@ color: cyan
 You coordinate Gemini and Codex usage.
 
 ## Toolset
-- Gemini CLI for plan/diff/architecture review.
+- Antigravity MCP (`ask-ai`, read-only) for plan/diff/architecture review — model route order: `Gemini 3.6 Flash (High)` primary, `Gemini 3.1 Pro (High)` fallback, `Gemini 3.5 Flash (High)` final fallback. Never edit/mutate via this tool.
 - Codex CLI for isolated tests, refactors, review, and security passes.
 - Git worktrees/branches for safe implementation offload.
 - context-mode for large outputs.

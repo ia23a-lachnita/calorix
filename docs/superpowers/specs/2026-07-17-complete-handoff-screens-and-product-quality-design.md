@@ -831,7 +831,7 @@ The Today fixture uses an intentional calorie sum of 1420 kcal that does not mat
 
 ### 12.3 External Review
 
-- **Antigravity MCP** with `gemini-3.1-pro-preview` model
+- **Antigravity MCP** with model route order: `Gemini 3.6 Flash (High)` primary, `Gemini 3.1 Pro (High)` fallback, `Gemini 3.5 Flash (High)` final fallback
 - Persistent `conversationId` per work stream
 - Review prompt must include: "Do not edit files, do not run write commands, and do not mutate the repository; only inspect, reason, review, and propose changes for the main agent to apply."
 - Green gate: `AGREEMENT_STATUS: agree` AND `MUST_FIX: none`

@@ -4,6 +4,14 @@
 
 The binding rules are in `AGENTS.md` section 4 (model, approvalMode, conversationId, read-only prompt requirement, green criteria `AGREEMENT_STATUS: agree` + `MUST_FIX: none`, and the required pre/post review gates). `GEMINI.md` defines the reviewer-side output contract.
 
+## Model routing order
+
+1. `Gemini 3.6 Flash (High)` — primary
+2. `Gemini 3.1 Pro (High)` — fallback
+3. `Gemini 3.5 Flash (High)` — final fallback
+
+Try the next route in order only if the current one fails before producing a review; record the exact error for each failed attempt.
+
 ## Prompt template
 
 Include in every review request:

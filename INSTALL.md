@@ -30,11 +30,6 @@ claude plugin install firebase@firebase
 # Optional manual Firebase MCP fallback
 claude mcp add firebase npx -- -y firebase-tools@latest mcp
 
-# Gemini CLI model and MCP checks
-gemini
-/model
-/mcp
-
 # Codex Dart MCP through FVM
 codex mcp add dart -- fvm dart mcp-server --force-roots-fallback
 ```
@@ -49,3 +44,5 @@ fvm flutter run --debug
 ```
 
 Restart Claude Code after adding or editing `.claude/agents/*.md` so subagent definitions reload.
+
+External review uses the configured Antigravity MCP `ask-ai` tool from supported hosts, not the `gemini` or `agy` CLI. Model route order: `Gemini 3.6 Flash (High)` primary, `Gemini 3.1 Pro (High)` fallback, `Gemini 3.5 Flash (High)` final fallback. See `.claude/gemini.md` and `AGENTS.md` section 4.
