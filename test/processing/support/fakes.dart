@@ -40,6 +40,7 @@ class FakePendingDir implements PendingDir {
   final Set<String> _existing = {};
 
   String get path => '/fake/pending_uploads';
+  int get existingCount => _existing.length;
 
   @override
   String pathFor(String queueId) => '$path/$queueId.jpg';

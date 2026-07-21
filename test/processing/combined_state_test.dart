@@ -70,27 +70,4 @@ void main() {
       expect(state.phase, ProcessingPhase.firestoreError);
     });
   });
-
-  group('retry action spy', () {
-    test('retry callback is invoked with correct entryId', () async {
-      String? retriedEntryId;
-      void onRetry(String entryId) {
-        retriedEntryId = entryId;
-      }
-
-      onRetry('e1');
-      expect(retriedEntryId, 'e1');
-    });
-
-    test('retry callback captures multiple invocations', () async {
-      final invoked = <String>[];
-      void onRetry(String entryId) {
-        invoked.add(entryId);
-      }
-
-      onRetry('e1');
-      onRetry('e2');
-      expect(invoked, ['e1', 'e2']);
-    });
-  });
 }

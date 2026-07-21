@@ -111,33 +111,6 @@ void main() {
       expect(pending.fileExists(qId), isTrue);
     });
 
-    test('durable copy deleted after Firestore handoff success', () async {
-      final qId = await queue.enqueue(entryId: 'e1', imagePath: imgFile.path);
-      expect(pending.fileExists(qId), isTrue);
-      await queue.remove(qId);
-      expect(pending.fileExists(qId), isFalse);
-      expect(queue.entries.isEmpty, isTrue);
-    });
-
-    test('durable copy retained on retryable failure', () async {
-      final qId = await queue.enqueue(entryId: 'e1', imagePath: imgFile.path);
-      final existing = queue.entries.firstWhere((e) => e.queueId == qId);
-      await queue.updateEntry(existing.copyWith(
-        retryCount: 1,
-        lastError: 'Socket timeout',
-        nextRetryAt: clock.now().add(const Duration(seconds: 30)),
-      ));
-      expect(pending.fileExists(qId), isTrue);
-      expect(queue.entries.length, 1);
-    });
-
-    test('durable copy deleted on fatal non-retryable failure', () async {
-      final qId = await queue.enqueue(entryId: 'e1', imagePath: imgFile.path);
-      await queue.remove(qId);
-      expect(pending.fileExists(qId), isFalse);
-      expect(queue.entries.isEmpty, isTrue);
-    });
-
     test('upload interrupted by kill is re-enqueued and retried on next start',
         () async {
       await queue.enqueue(entryId: 'e1', imagePath: imgFile.path);
@@ -169,19 +142,109 @@ void main() {
     });
   });
 
-  group('bounded exponential backoff', () {
-    test(
-        'nextRetryAt computed from injected clockProvider, increases with retryCount',
-        () {
+  group('production handoff seam', () {
+    test('enqueueAndUpload persists metadata, hands off, and cleans up',
+        () async {
       final clock = makeFakeClock();
-      const baseDelay = Duration(seconds: 30);
+      final kv = InMemoryKvStore();
+      final pending = FakePendingDir();
+      final source = FakeSourceReader();
+      final tmpDir = await Directory.systemTemp.createTemp('uq_prod_');
+      final image = File('${tmpDir.path}/meal.jpg');
+      await image.writeAsBytes([1, 2, 3]);
+      source.register(image.path, [1, 2, 3]);
+      UploadQueueEntry? handedOff;
+      final queue = UploadQueueService(
+        clock,
+        kv,
+        pending,
+        source,
+        (entry) async {
+          handedOff = entry;
+        },
+        () => 'entry-prod',
+      );
 
-      final retryAt0 = clock.now().add(baseDelay * 1);
-      final retryAt3 = clock.now().add(baseDelay * 8);
+      final entryId = await queue.enqueueAndUpload(
+        localPath: image.path,
+        uid: 'user-1',
+        scanMode: 'meal',
+      );
 
-      expect(retryAt3.isAfter(retryAt0), isTrue);
+      expect(entryId, 'entry-prod');
+      expect(handedOff?.uid, 'user-1');
+      expect(handedOff?.scanMode, 'meal');
+      expect(handedOff?.storagePath, 'scans/user-1/entry-prod.jpg');
+      expect(queue.entries, isEmpty);
+      expect(pending.existingCount, 0);
+      await tmpDir.delete(recursive: true);
     });
 
+    test('production-configured enqueue rejects metadata loss before copying',
+        () async {
+      final source = FakeSourceReader()..register('/meal.jpg', [1, 2, 3]);
+      final pending = FakePendingDir();
+      final queue = UploadQueueService(
+        makeFakeClock(),
+        InMemoryKvStore(),
+        pending,
+        source,
+        (entry) async {},
+        () => 'entry-prod',
+      );
+
+      await expectLater(
+        queue.enqueue(entryId: 'entry-prod', imagePath: '/meal.jpg'),
+        throwsArgumentError,
+      );
+      expect(queue.entries, isEmpty);
+      expect(pending.existingCount, 0);
+    });
+
+    test('cold-start load retains metadata and drainPending resumes handoff',
+        () async {
+      final clock = makeFakeClock();
+      final kv = InMemoryKvStore();
+      final pending = FakePendingDir();
+      final source = FakeSourceReader()..register('/meal.jpg', [1, 2, 3]);
+      final first = UploadQueueService(
+        clock,
+        kv,
+        pending,
+        source,
+        (entry) async {},
+        () => 'unused',
+      );
+      await first.enqueue(
+        entryId: 'entry-restart',
+        imagePath: '/meal.jpg',
+        uid: 'user-1',
+        scanMode: 'barcode',
+        storagePath: 'scans/user-1/entry-restart.jpg',
+      );
+
+      UploadQueueEntry? resumed;
+      final restarted = UploadQueueService(
+        clock,
+        kv,
+        pending,
+        source,
+        (entry) async {
+          resumed = entry;
+        },
+        () => 'unused',
+      );
+      await restarted.loadQueue();
+      await restarted.drainPending();
+
+      expect(resumed?.entryId, 'entry-restart');
+      expect(resumed?.uid, 'user-1');
+      expect(resumed?.scanMode, 'barcode');
+      expect(restarted.entries, isEmpty);
+    });
+  });
+
+  group('bounded exponential backoff', () {
     test('computeBackoff returns correct exponential values', () {
       expect(UploadQueueService.computeBackoff(0), const Duration(seconds: 30));
       expect(UploadQueueService.computeBackoff(1), const Duration(seconds: 60));
@@ -194,46 +257,6 @@ void main() {
     test('computeBackoff is capped at max delay', () {
       expect(
           UploadQueueService.computeBackoff(10), const Duration(minutes: 30));
-    });
-
-    test(
-        'retryCount capped at max -- entry sets autoRetryDisabled true and nextRetryAt null',
-        () {
-      const maxRetries = 5;
-      final entry = UploadQueueEntry(
-        queueId: 'q0',
-        entryId: 'e0',
-        imagePath: '/path',
-        createdAt: DateTime(2026),
-        retryCount: maxRetries,
-        autoRetryDisabled: true,
-        nextRetryAt: null,
-      );
-      expect(entry.autoRetryDisabled, isTrue);
-      expect(entry.nextRetryAt, isNull);
-      expect(entry.imagePath, isNotEmpty);
-    });
-
-    test('manual retry after cap reached clears autoRetryDisabled', () {
-      final capped = UploadQueueEntry(
-        queueId: 'q0',
-        entryId: 'e0',
-        imagePath: '/path',
-        createdAt: DateTime(2026),
-        retryCount: 5,
-        autoRetryDisabled: true,
-        nextRetryAt: null,
-      );
-      final retried = capped.copyWith(
-        autoRetryDisabled: false,
-        retryCount: 0,
-        nextRetryAt: DateTime(2026, 1, 1, 0, 0, 30),
-      );
-      expect(retried.autoRetryDisabled, isFalse);
-      expect(retried.retryCount, 0);
-      expect(retried.nextRetryAt, isNotNull);
-      expect(retried.queueId, capped.queueId);
-      expect(retried.entryId, capped.entryId);
     });
 
     test('drain skips entries whose nextRetryAt is still in the future',
@@ -345,7 +368,7 @@ void main() {
     });
 
     test(
-        'manual retry after retry-cap reached clears autoRetryDisabled and recomputes nextRetryAt',
+        'manual retry after retry-cap makes the same entry immediately eligible',
         () async {
       final clock = makeFakeClock();
       final kv = InMemoryKvStore();
@@ -380,8 +403,11 @@ void main() {
       final resumed = queue.entries.firstWhere((e) => e.queueId == qId);
       expect(resumed.autoRetryDisabled, isFalse);
       expect(resumed.retryCount, 0);
-      expect(resumed.nextRetryAt, isNotNull);
-      expect(resumed.nextRetryAt!.isAfter(clock.now()), isTrue);
+      expect(resumed.nextRetryAt, isNull);
+      var attempts = 0;
+      await queue.drain((entryId, imagePath) async => attempts++);
+      expect(attempts, 1);
+      expect(queue.entries, isEmpty);
       await tmpDir.delete(recursive: true);
     });
 

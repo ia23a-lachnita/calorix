@@ -180,6 +180,10 @@ class UploadQueueService {
     String? scanMode,
     String? storagePath,
   }) async {
+    if (_productionUpload != null &&
+        (uid == null || uid.isEmpty || scanMode == null || scanMode.isEmpty)) {
+      throw ArgumentError('Production queue entries require uid and scanMode.');
+    }
     final existing = _entries.where((e) => e.entryId == entryId);
     if (existing.isNotEmpty) {
       return existing.first.queueId;
@@ -353,7 +357,7 @@ class UploadQueueService {
     await updateEntry(entry.copyWith(
       autoRetryDisabled: false,
       retryCount: 0,
-      nextRetryAt: _clock.now().add(_baseDelay),
+      clearNextRetryAt: true,
       clearLastError: true,
     ));
   }

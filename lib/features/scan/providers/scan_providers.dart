@@ -25,6 +25,10 @@ final cameraSettingsServiceProvider = Provider<CameraSettingsService>(
   (ref) => const DeviceCameraSettingsService(),
 );
 
+final uploadQueueServiceProvider = FutureProvider<UploadQueueService>((ref) {
+  return UploadQueueService.production(ref.watch(clockProvider));
+});
+
 class _NoopCameraLifecycleService implements CameraLifecycleService {
   const _NoopCameraLifecycleService();
 
@@ -73,6 +77,6 @@ class _DeviceScanUploadGateway implements ScanUploadGateway {
 
 final scanUploadGatewayProvider = Provider<ScanUploadGateway>(
   (ref) => _DeviceScanUploadGateway(
-    UploadQueueService.production(ref.watch(clockProvider)),
+    ref.watch(uploadQueueServiceProvider.future),
   ),
 );
