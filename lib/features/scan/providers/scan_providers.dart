@@ -56,15 +56,15 @@ abstract class ScanUploadGateway {
 class _DeviceScanUploadGateway implements ScanUploadGateway {
   _DeviceScanUploadGateway(this._service);
 
-  final UploadQueueService _service;
+  final Future<UploadQueueService> _service;
 
   @override
   Future<String> enqueueAndUpload({
     required String localPath,
     required String uid,
     required String scanMode,
-  }) =>
-      _service.enqueueAndUpload(
+  }) async =>
+      (await _service).enqueueAndUpload(
         localPath: localPath,
         uid: uid,
         scanMode: scanMode,
@@ -73,6 +73,6 @@ class _DeviceScanUploadGateway implements ScanUploadGateway {
 
 final scanUploadGatewayProvider = Provider<ScanUploadGateway>(
   (ref) => _DeviceScanUploadGateway(
-    UploadQueueService(ref.watch(clockProvider)),
+    UploadQueueService.production(ref.watch(clockProvider)),
   ),
 );
