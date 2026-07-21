@@ -22,6 +22,20 @@ class ProcessingScreen extends ConsumerWidget {
     final entryAsync = ref.watch(processingEntryProvider(entryId));
     final stateAsync = ref.watch(processingStateProvider(entryId));
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    ref.listen(processingEntryProvider(entryId), (_, next) {
+      final entry = next.valueOrNull;
+      final requiresReview = entry?.status == FoodEntryStatus.needsReview ||
+          entry?.confidence != null && entry!.confidence! < 0.80;
+      if (!requiresReview) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          context.goNamed(
+            RouteNames.review,
+            pathParameters: {'id': entryId},
+          );
+        }
+      });
+    });
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,

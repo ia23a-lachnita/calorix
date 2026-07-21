@@ -1203,7 +1203,7 @@ class ManualFoodDraft {
 /// Review candidates are Firestore-backed data on FoodEntry, not UI-only state.
 ```
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/review/review_screen_test.dart
@@ -1220,16 +1220,16 @@ testWidgets('invalid draft (negative kcal, empty name) blocks save with field er
 testWidgets('destructive exit with unsaved draft prompts confirmation (DraftPolicy.confirmDestructiveExit)', (tester) async { /* implement */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/review test/manual` → Expected: FAIL (screens undefined).
+- [x] **Step 2: RED** — Run: `fvm flutter test test/review test/manual` → Expected: FAIL (screens undefined).
 
-- [ ] **Step 3 (worker): Implement** both screens per spec §5.7/§5.8 (bottom sheet slide-up `MotionDurations.sheetSlideUp`; manual reachable from permission fallback, review none-of-these, explicit manual action, custom-food creation) and the <80% routing in the router/processing completion path.
+- [x] **Step 3 (worker): Implement** both screens per spec §5.7/§5.8 (bottom sheet slide-up `MotionDurations.sheetSlideUp`; manual reachable from permission fallback, review none-of-these, explicit manual action, custom-food creation) and the <80% routing in the router/processing completion path.
 
   - The permission screen's `onManualEntryRequested` must navigate to `RouteNames.manual`.
   - Manual unsaved form/search state must use `DraftPolicy.confirmDestructiveExit` through `PopScope`.
   - Review "Ask assistant" pushes the root assistant overlay with `mealId: entryId`.
   - Applying a candidate updates the auth-scoped entry with candidate nutrition and `status: complete`; no client creates a cross-user path.
 
-- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/review test/manual` → Expected: PASS. Then `fvm flutter test test/scan/permission_screen_test.dart` → the Task 6 add-manually stub assertion now exercises the real route.
+- [x] **Step 4: GREEN** — Run: `fvm flutter test test/review test/manual` → Expected: PASS. Then `fvm flutter test test/scan/permission_screen_test.dart` → the Task 6 add-manually stub assertion now exercises the real route.
 
 - [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 

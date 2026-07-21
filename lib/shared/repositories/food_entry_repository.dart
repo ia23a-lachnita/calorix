@@ -57,6 +57,39 @@ class FoodEntryRepository {
   Future<void> confirmReview(String uid, String id) =>
       update(uid, id, {'status': FoodEntryStatus.complete.wireName});
 
+  Future<String> createManualEntry({
+    required String uid,
+    required String name,
+    required double kcal,
+    required double protein,
+    required double carbs,
+    required double fat,
+    required String servingSize,
+    required double quantity,
+    required MealType mealType,
+  }) async {
+    final now = _clock.nowTZ();
+    final ref = _col(uid).doc();
+    await ref.set({
+      'uid': uid,
+      'timestamp': Timestamp.fromDate(now),
+      'date': localDateKey(now),
+      'scanMode': 'manual',
+      'status': FoodEntryStatus.complete.wireName,
+      'foodName': name,
+      'kcal': kcal,
+      'protein': protein,
+      'carbs': carbs,
+      'fat': fat,
+      'servingSize': servingSize,
+      'servingMultiplier': quantity,
+      'mealType': mealType.name,
+      'confidence': 1.0,
+      'corrected': true,
+    });
+    return ref.id;
+  }
+
   Future<void> delete(String uid, String id) => _col(uid).doc(id).delete();
 
   Future<String> duplicate(FoodEntry entry) async {

@@ -55,6 +55,11 @@ Future<GoRouter> _pumpScreen(
         name: 'today',
         builder: (_, __) => const Scaffold(body: Text('Today destination')),
       ),
+      GoRoute(
+        path: '/review/:id',
+        name: 'review',
+        builder: (_, route) => Text('Review ${route.pathParameters['id']}'),
+      ),
     ],
   );
   await tester.pumpWidget(
@@ -168,5 +173,20 @@ void main() {
       find.byType(AnimatedSwitcher).first,
     );
     expect(switcher.duration, Duration.zero);
+  });
+
+  testWidgets('low-confidence result redirects to review instead of complete',
+      (tester) async {
+    final router = await _pumpScreen(
+      tester,
+      state: const ProcessingState(
+        phase: ProcessingPhase.firestoreComplete,
+      ),
+      entry: _entry().copyWith(status: FoodEntryStatus.needsReview),
+    );
+    await tester.pumpAndSettle();
+
+    expect(router.state.uri.path, '/review/e1');
+    expect(find.text('Review e1'), findsOneWidget);
   });
 }

@@ -21,8 +21,11 @@ import '../../features/history/history_day_screen.dart';
 import '../../features/goals/goals_screen.dart';
 import '../../features/ai_chat/ai_chat_screen.dart';
 import '../../features/profile/profile_sheet.dart';
+import '../../features/review/review_screen.dart';
+import '../../features/manual/manual_entry_screen.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/providers/ui_diff_provider.dart';
+import '../motion/app_motion.dart';
 
 const String appInitialLocation = RoutePaths.scan;
 
@@ -209,6 +212,30 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: RoutePaths.review,
+        name: RouteNames.review,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: ReviewScreen(entryId: state.pathParameters['id']!),
+          transitionDuration: MotionDurations.sheetSlideUp,
+          transitionsBuilder: (_, animation, __, child) => SlideTransition(
+            position: Tween(begin: const Offset(0, 1), end: Offset.zero)
+                .animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            )),
+            child: child,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.manual,
+        name: RouteNames.manual,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManualEntryScreen(),
+      ),
+      GoRoute(
         path: RoutePaths.profile,
         name: RouteNames.profile,
         parentNavigatorKey: _rootNavigatorKey,
@@ -239,9 +266,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             if (context.mounted) popOrGo(context, RoutePaths.scan);
           },
           onManualEntryRequested: () {
-            // Task 8 owns the manual route. Direct permission deep links
-            // return to Scan until that destination is introduced.
-            popOrGo(context, RoutePaths.scan);
+            context.goNamed(RouteNames.manual);
           },
         ),
       ),

@@ -54,6 +54,42 @@ class BoundingBox {
       );
 }
 
+class ReviewCandidate {
+  const ReviewCandidate({
+    required this.name,
+    required this.confidence,
+    required this.kcal,
+    required this.proteinG,
+    required this.carbsG,
+    required this.fatG,
+  });
+
+  final String name;
+  final double confidence;
+  final int kcal;
+  final double proteinG;
+  final double carbsG;
+  final double fatG;
+
+  factory ReviewCandidate.fromMap(Map<String, dynamic> map) => ReviewCandidate(
+        name: map['name'] as String,
+        confidence: (map['confidence'] as num).toDouble(),
+        kcal: (map['kcal'] as num).round(),
+        proteinG: (map['proteinG'] ?? map['protein'] as num?)?.toDouble() ?? 0,
+        carbsG: (map['carbsG'] ?? map['carbs'] as num?)?.toDouble() ?? 0,
+        fatG: (map['fatG'] ?? map['fat'] as num?)?.toDouble() ?? 0,
+      );
+
+  Map<String, dynamic> toMap() => {
+        'name': name,
+        'confidence': confidence,
+        'kcal': kcal,
+        'proteinG': proteinG,
+        'carbsG': carbsG,
+        'fatG': fatG,
+      };
+}
+
 class FoodEntry {
   final String id;
   final String uid;
@@ -76,6 +112,7 @@ class FoodEntry {
   final double? confidence;
   final bool corrected;
   final BoundingBox? boundingBox;
+  final List<ReviewCandidate> candidates;
 
   const FoodEntry({
     required this.id,
@@ -97,6 +134,7 @@ class FoodEntry {
     this.confidence,
     this.corrected = false,
     this.boundingBox,
+    this.candidates = const [],
   });
 
   double get scaledKcal => (kcal ?? 0) * servingMultiplier;
@@ -140,6 +178,10 @@ class FoodEntry {
       boundingBox: data['boundingBox'] != null
           ? BoundingBox.fromMap(data['boundingBox'] as Map<String, dynamic>)
           : null,
+      candidates: ((data['candidates'] as List<dynamic>?) ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(ReviewCandidate.fromMap)
+          .toList(),
     );
   }
 
@@ -164,6 +206,7 @@ class FoodEntry {
         'detectedItems': detectedItems.map((e) => e.toMap()).toList(),
         'confidence': confidence,
         'corrected': corrected,
+        'candidates': candidates.map((candidate) => candidate.toMap()).toList(),
       };
 
   FoodEntry copyWith({
@@ -177,6 +220,7 @@ class FoodEntry {
     List<DetectedItem>? detectedItems,
     bool? corrected,
     FoodEntryStatus? status,
+    List<ReviewCandidate>? candidates,
   }) =>
       FoodEntry(
         id: id,
@@ -198,5 +242,6 @@ class FoodEntry {
         confidence: confidence,
         corrected: corrected ?? this.corrected,
         boundingBox: boundingBox,
+        candidates: candidates ?? this.candidates,
       );
 }

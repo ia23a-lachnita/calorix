@@ -12,6 +12,8 @@ abstract final class RouteNames {
   static const String aiChatOverlay = 'aiChatOverlay';
   static const String profile = 'profile';
   static const String permission = 'permission';
+  static const String review = 'review';
+  static const String manual = 'manual';
 }
 
 abstract final class RoutePaths {
@@ -28,4 +30,6 @@ abstract final class RoutePaths {
   static const String aiChatOverlay = '/assistant';
   static const String profile = '/profile';
   static const String permission = '/permission';
+  static const String review = '/review/:id';
+  static const String manual = '/manual';
 }
