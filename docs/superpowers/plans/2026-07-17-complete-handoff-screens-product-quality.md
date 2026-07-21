@@ -1171,7 +1171,9 @@ Creates the two missing scan-outcome screens and their data contracts.
 - Create: `lib/features/review/review_screen.dart`, `lib/features/review/providers/review_providers.dart`
 - Create: `lib/features/manual/manual_entry_screen.dart`, `lib/features/manual/providers/manual_providers.dart`
 - Modify: `lib/core/router/route_names.dart` + `lib/core/router/app_router.dart` (add `RouteNames.review`, `RouteNames.manual`; confidence <80% routes processing → review)
-- Modify: `lib/shared/models/food_entry.dart` (only if candidate fields are missing — inspect first)
+- Modify: `lib/features/processing/processing_screen.dart`, `lib/features/processing/providers/processing_providers.dart` (a `needsReview` or confidence `< 0.80` remote result redirects to Review instead of rendering the completed card)
+- Modify: `lib/shared/models/food_entry.dart` (add serialized/deserialized review candidates because the current model has none)
+- Modify: `lib/shared/repositories/food_entry_repository.dart` (persist complete manual entries with the injected clock and local date key)
 - Test: create `test/review/review_screen_test.dart`, `test/manual/manual_entry_screen_test.dart`
 
 **Interfaces:**
@@ -1195,6 +1197,10 @@ class ManualFoodDraft {
       required this.mealType});
   // all fields required and validated non-negative before save
 }
+
+/// Manual saves validate non-empty name and non-negative nutrition, then use
+/// clockProvider/nowTZ + localDateKey, scanMode `manual`, and complete status.
+/// Review candidates are Firestore-backed data on FoodEntry, not UI-only state.
 ```
 
 - [ ] **Step 1 (worker): Write failing tests**
@@ -1217,6 +1223,11 @@ testWidgets('destructive exit with unsaved draft prompts confirmation (DraftPoli
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/review test/manual` → Expected: FAIL (screens undefined).
 
 - [ ] **Step 3 (worker): Implement** both screens per spec §5.7/§5.8 (bottom sheet slide-up `MotionDurations.sheetSlideUp`; manual reachable from permission fallback, review none-of-these, explicit manual action, custom-food creation) and the <80% routing in the router/processing completion path.
+
+  - The permission screen's `onManualEntryRequested` must navigate to `RouteNames.manual`.
+  - Manual unsaved form/search state must use `DraftPolicy.confirmDestructiveExit` through `PopScope`.
+  - Review "Ask assistant" pushes the root assistant overlay with `mealId: entryId`.
+  - Applying a candidate updates the auth-scoped entry with candidate nutrition and `status: complete`; no client creates a cross-user path.
 
 - [ ] **Step 4: GREEN** — Run: `fvm flutter test test/review test/manual` → Expected: PASS. Then `fvm flutter test test/scan/permission_screen_test.dart` → the Task 6 add-manually stub assertion now exercises the real route.
 

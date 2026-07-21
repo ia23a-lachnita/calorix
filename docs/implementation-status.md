@@ -28,6 +28,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 5 | done | OpenCode stalled twice; Claude unavailable; host fallback under contract | pre-review Pro green; post-review Flash High green after Pro/MCP timeouts | 12fde03, 6f9dc08, 3f3b7a5, 465db93 | RED/GREEN complete; analyzer clean; full 198/198; deterministic plan-only and physical two-screen smoke passed; exact evidence below |
 | 6 | done | OpenCode timed out (904s, zero edits); delegated fallback left usable edits; host completed physical-device debugging and verification | pre- and post-implementation review agree (`calorix-task6-scan-permission-20260718`) | a130f2d | 226/226 tests; analyzer clean; physical permission/settings/live-preview/library/harness flow passed on `R58R61161NA`; real production-cloud upload intentionally not invoked |
 | 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
+| 8 | in progress | OpenCode headless requested for implementation | pre-review green round 2 (`calorix-task8-review-manual-20260722`) | pending | corrected plan includes low-confidence redirect, serialized candidates, manual persistence, real permission route, destructive-exit policy, and linked assistant context; focused RED/GREEN pending |
 
 ### Task 7 checkpoints
 
@@ -97,6 +98,12 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 - One JS interpolation failure occurred before review.
 - Two responses prepended an unrelated "searching-system" sentence.
 - No repository mutation occurred.
+
+### Antigravity response noise (Task 8 pre-review)
+
+- Round 1 emitted `AGREEMENT_STATUS: agree` while also listing three `MUST_FIX` items; it was correctly treated as non-green.
+- Round 1 appended unrelated background search completion messages. The plan findings were still concrete and applied; round 2 returned the clean required verdict (`agree`, `MUST_FIX: none`).
+- Neither round mutated the repository.
 
 ### Antigravity response noise (Task 2 review, calorix-task2-review-retry-20260718)
 
