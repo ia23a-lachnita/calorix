@@ -1283,7 +1283,7 @@ export async function fetchOffProduct(barcode: string): Promise<OffProduct | nul
 
 Plausibility is recorded data, not an invented gate: `atwaterKcal` is stored alongside reported kcal so review UI and evidence can show the mismatch; the only branch threshold remains the spec's 80% confidence.
 
-- [ ] **Step 1 (worker): Write failing unit tests**
+- [x] **Step 1 (worker): Write failing unit tests**
 
 ```ts
 // functions/src/nutrition.test.ts
@@ -1306,11 +1306,11 @@ test('live OFF lookup for barcode 3017624010701 returns the contract fields', ()
 });
 ```
 
-- [ ] **Step 2: RED** — Run: `npm --prefix functions test` (recorded script) → Expected: FAIL (`off-client` missing, contract fields absent). And `fvm flutter test test/contracts --tags live` → FAIL (contract test not yet passing) — live test is excluded from default runs.
+- [x] **Step 2: RED** — Run: `npm --prefix functions test` (recorded script) → Expected: FAIL (`off-client` missing, contract fields absent). And `fvm flutter test test/contracts --tags live` → FAIL (contract test not yet passing) — live test is excluded from default runs.
 
-- [ ] **Step 3 (worker): Implement** `off-client.ts`, extend `analyze-entry.ts`/`nutrition.ts` to emit `AnalysisResult` for all three sources, keep model/prompt config in `config.ts`/`model-config.ts`. The OFF client uses an injectable `fetch`, identifying `User-Agent`, abort timeout, GET only, finite numeric validation, and returns `null` for not-found/non-2xx/malformed/network/timeout. `index.ts` and `retry-analysis.ts` preserve `scanMode` and optional `rawBarcode`. Meal and label use distinct vision prompts; barcode uses a supplied barcode or a barcode-extraction vision result before OFF. Firestore serialization exactly matches Flutter: `foodName`, `protein`/`carbs`/`fat`, `atwaterKcal`, `scanMode`, and candidate objects with `proteinG`/`carbsG`/`fatG`.
+- [x] **Step 3 (worker): Implement** `off-client.ts`, extend `analyze-entry.ts`/`nutrition.ts` to emit `AnalysisResult` for all three sources, keep model/prompt config in `config.ts`/`model-config.ts`. The OFF client uses an injectable `fetch`, identifying `User-Agent`, abort timeout, GET only, finite numeric validation, and returns `null` for not-found/non-2xx/malformed/network/timeout. `index.ts` and `retry-analysis.ts` preserve `scanMode` and optional `rawBarcode`. Meal and label use distinct vision prompts; barcode uses a supplied barcode or a barcode-extraction vision result before OFF. Firestore serialization exactly matches Flutter: `foodName`, `protein`/`carbs`/`fat`, `atwaterKcal`, `scanMode`, and candidate objects with `proteinG`/`carbsG`/`fatG`.
 
-- [ ] **Step 4: GREEN** — Run: `npm --prefix functions run build` → compiles; `npm --prefix functions test` → PASS; `fvm flutter test test/contracts --tags live` → PASS (host runs this once, records the response snapshot date); `fvm flutter test test/contracts` → PASS (live excluded by tag by default).
+- [x] **Step 4: GREEN** — Run: `npm --prefix functions run build` → compiles; `npm --prefix functions test` → PASS; `fvm flutter test test/contracts --tags live` → PASS (host runs this once, records the response snapshot date); `fvm flutter test test/contracts` → PASS (live excluded by tag by default).
 
 - [ ] **Step 5: Emulator round-trip (host)** — `firebase emulators:exec --only auth,firestore,storage,functions "npm --prefix functions test"` → PASS; confirms all writes stayed in the emulator (check `firebase use` shows the expected project but nothing deployed — no `firebase deploy` anywhere in this plan).
 

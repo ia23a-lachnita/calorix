@@ -110,6 +110,7 @@ class FoodEntry {
   final MealType mealType;
   final List<DetectedItem> detectedItems;
   final double? confidence;
+  final double? atwaterKcal;
   final bool corrected;
   final BoundingBox? boundingBox;
   final List<ReviewCandidate> candidates;
@@ -132,6 +133,7 @@ class FoodEntry {
     this.mealType = MealType.lunch,
     this.detectedItems = const [],
     this.confidence,
+    this.atwaterKcal,
     this.corrected = false,
     this.boundingBox,
     this.candidates = const [],
@@ -150,9 +152,21 @@ class FoodEntry {
 
   factory FoodEntry.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
-    final timestamp = (data['timestamp'] as Timestamp).toDate();
+    return FoodEntry.fromData(id: doc.id, data: data);
+  }
+
+  factory FoodEntry.fromData({
+    required String id,
+    required Map<String, dynamic> data,
+  }) {
+    final rawTimestamp = data['timestamp'];
+    final timestamp = switch (rawTimestamp) {
+      Timestamp value => value.toDate(),
+      DateTime value => value,
+      _ => throw const FormatException('FoodEntry timestamp is required.'),
+    };
     return FoodEntry(
-      id: doc.id,
+      id: id,
       uid: data['uid'] as String,
       timestamp: timestamp,
       date: data['date'] as String? ?? _fallbackDateKey(timestamp),
@@ -174,6 +188,7 @@ class FoodEntry {
           .map((e) => DetectedItem.fromMap(e as Map<String, dynamic>))
           .toList(),
       confidence: (data['confidence'] as num?)?.toDouble(),
+      atwaterKcal: (data['atwaterKcal'] as num?)?.toDouble(),
       corrected: data['corrected'] as bool? ?? false,
       boundingBox: data['boundingBox'] != null
           ? BoundingBox.fromMap(data['boundingBox'] as Map<String, dynamic>)
@@ -205,6 +220,7 @@ class FoodEntry {
         'mealType': mealType.name,
         'detectedItems': detectedItems.map((e) => e.toMap()).toList(),
         'confidence': confidence,
+        if (atwaterKcal != null) 'atwaterKcal': atwaterKcal,
         'corrected': corrected,
         'candidates': candidates.map((candidate) => candidate.toMap()).toList(),
       };
@@ -221,6 +237,7 @@ class FoodEntry {
     bool? corrected,
     FoodEntryStatus? status,
     List<ReviewCandidate>? candidates,
+    double? atwaterKcal,
   }) =>
       FoodEntry(
         id: id,
@@ -240,6 +257,7 @@ class FoodEntry {
         mealType: mealType ?? this.mealType,
         detectedItems: detectedItems ?? this.detectedItems,
         confidence: confidence,
+        atwaterKcal: atwaterKcal ?? this.atwaterKcal,
         corrected: corrected ?? this.corrected,
         boundingBox: boundingBox,
         candidates: candidates ?? this.candidates,

@@ -29,7 +29,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 6 | done | OpenCode timed out (904s, zero edits); delegated fallback left usable edits; host completed physical-device debugging and verification | pre- and post-implementation review agree (`calorix-task6-scan-permission-20260718`) | a130f2d | 226/226 tests; analyzer clean; physical permission/settings/live-preview/library/harness flow passed on `R58R61161NA`; real production-cloud upload intentionally not invoked |
 | 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
 | 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
-| 9 | in progress | OpenCode stalled with zero edits; host fallback under contract | pre-review green round 2 (`calorix-task9-analysis-contracts-20260722`) | backend checkpoint pending | current OFF v3 client and canonical meal/label/barcode backend GREEN; 51/51 Functions tests and TypeScript build pass; Flutter contract/live gate pending |
+| 9 | in progress | OpenCode stalled with zero edits; host fallback under contract | pre-review green round 2 (`calorix-task9-analysis-contracts-20260722`) | 49bcffc + client checkpoint pending | backend 51/51 and build pass; Flutter wire contract passes; read-only OFF v3 live gate passed 2026-07-22; emulator/full verification pending |
 
 ### Task 9 backend checkpoint
 
@@ -37,7 +37,15 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - RED: focused orchestration command produced exactly 6 expected failures for missing prompt routing, OFF lookup, barcode review gating, and retry metadata preservation; 18 pre-existing tests remained green.
 - GREEN: current Open Food Facts v3 GET client, canonical nutrition parser, distinct meal/label/barcode prompts, known-product short circuit, review-only unknown barcode fallback, exact Firestore field mapping, and retry/initial-trigger metadata preservation.
 - Verification: focused 33/33; full `npm --prefix functions test` 51/51; `npm --prefix functions run build` passed.
-- Next: Flutter wire-contract parser/test, guarded read-only live OFF contract, emulator gate, full verification, and post-implementation review.
+- Backend checkpoint commit: `49bcffc`, pushed to `origin/main`; client/emulator/review evidence follows below.
+
+### Task 9 client-contract checkpoint
+
+- RED: `fvm flutter test test/contracts` failed only because `FoodEntry.fromData` was absent; the guarded live test skipped by default.
+- GREEN: pure `FoodEntry.fromData` parses both Firestore `Timestamp` and testable `DateTime` values; `atwaterKcal` and canonical candidate fields round-trip through the Flutter model.
+- Default contract gate: 1 passed, 1 explicitly skipped live test.
+- Read-only live gate: `fvm flutter test test/contracts/off_live_contract_test.dart --dart-define=RUN_OFF_LIVE=true --tags live` passed on 2026-07-22 against current OFF v3.
+- Next: Firebase emulator round-trip, full analyzer/test/build suites, and post-implementation review.
 
 ### Task 8 handoff
 
