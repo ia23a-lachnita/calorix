@@ -30,6 +30,14 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
 | 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
 | 9 | done | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, 5c8d3fb | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
+| 10 | in progress (RED next) | host planning; implementation worker pending | pre-review green round 2 (`calorix-task10-food-crud-20260722`) | plan checkpoint pending | corrected contract owns canonical base nutrition, exactly-once scaling, auth-scoped CRUD, and edit-state safety |
+
+### Task 10 plan correction
+
+- Pre-review found the current edit path can multiply an already displayed macro a second time and persist that scaled value as base nutrition.
+- Task 10 now owns the canonical `baseKcal/baseProtein/baseCarbs/baseFat` migration for all new writes, legacy read fallback, exactly-once aggregation/display scaling, auth-scoped CRUD, deterministic correction timestamps, nullable watch behavior, draft protection, and pending/processing edit restrictions.
+- Antigravity response formatting concatenated several requested headings/line breaks. The substantive findings were coherent, but this is recorded as MCP response noise; confirmation review is required before implementation.
+- Confirmation review returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`; implementation may start with Task 10 Step 1 RED tests.
 
 ### Task 9 backend checkpoint
 

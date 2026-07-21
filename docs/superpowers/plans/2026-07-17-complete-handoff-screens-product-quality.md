@@ -1332,7 +1332,10 @@ Covers `food` and `food_edit` (one route, edit branch).
 
 **Files:**
 - Modify: `lib/features/food_detail/food_detail_sheet.dart`, `lib/features/food_detail/providers/food_detail_providers.dart`, `lib/shared/repositories/food_entry_repository.dart`, `lib/shared/models/food_entry.dart` (add `correctedAt`/serving fields only if missing — inspect first)
+- Modify: `lib/features/manual/providers/manual_providers.dart`, `lib/shared/services/seed_data_service.dart`, `lib/debug/ui_diff_fixture.dart`, `firestore.rules`
+- Modify: `functions/src/analyze-entry.ts`, `functions/src/aggregation.ts`, `functions/src/index.ts` and their contract tests so every new backend write uses canonical `base*` fields
 - Test: extend `test/food_detail_sheet_test.dart`; create `test/food_detail/serving_multiplier_test.dart`, `test/food_detail/food_crud_test.dart`
+- Test: extend `test/contracts/analysis_result_contract_test.dart`, Functions analysis/aggregation tests, and Firestore rules tests for canonical-write plus legacy-read behavior
 
 **Interfaces:**
 - Consumes: `AnalysisResult` fields on `FoodEntry` (Task 9), `DraftPolicy.confirmDestructiveExit` (Task 3), `MotionDurations.cardExpansion` (Task 4).
@@ -1340,17 +1343,24 @@ Covers `food` and `food_edit` (one route, edit branch).
 
 ```dart
 // lib/features/food_detail/providers/food_detail_providers.dart
-/// Serving multiplier: 0.25× steps, clamped to [0.25, 5.0]; macros and kcal scale linearly.
+/// Serving multiplier: 0.25× steps, clamped to [0.25, 5.0].
 double clampServing(double raw) => (raw * 4).roundToDouble().clamp(1, 20) / 4;
+/// Returns a copy whose multiplier changes; base nutrition is unchanged.
 FoodEntry scaledBy(FoodEntry base, double multiplier);
+/// Converts an unrounded displayed total back to canonical one-serving data.
+double baseFromDisplayed(double displayed, double multiplier);
 
-// lib/shared/repositories/food_entry_repository.dart — CRUD surface later tasks rely on:
-Future<void> create(FoodEntry entry);
-Stream<FoodEntry?> watch(String id);
-Future<void> update(FoodEntry entry);          // sets correctedAt when user-edited
-Future<void> delete(String id);
-Future<FoodEntry> duplicate(String id);        // new id, same values, now() via clockProvider
+// lib/shared/repositories/food_entry_repository.dart — all paths remain auth scoped:
+Future<String> create(String uid, FoodEntry entry);
+Stream<FoodEntry?> watchEntry(String uid, String id);
+Future<void> saveCorrection(String uid, String id, NutritionCorrection edit);
+Future<void> delete(String uid, String id);
+Future<String> duplicate(FoodEntry entry); // new id, same base values, now() via injected Clock
 ```
+
+`FoodEntry` owns unambiguous `baseKcal/baseProtein/baseCarbs/baseFat` fields and `scaled*` getters. `fromData` reads legacy `kcal/protein/carbs/fat` only when the matching canonical field is absent. Temporary legacy getter/constructor aliases may remain to avoid an unrelated all-app rewrite, but `toMap`, worker output, manual entry, duplicate, seed, fixture, edit saves, and new backend writes emit only canonical `base*` nutrition fields. Aggregation reads canonical first and legacy second, then multiplies exactly once. No storage layer rounds nutrition.
+
+`saveCorrection` accepts canonical one-serving values and an optional multiplier. It writes only fields the user actually changed, adds `corrected: true`, and records deterministic `correctedAt`/`updatedAt` from the injected `Clock`. Editing a displayed total uses `baseFromDisplayed(displayed, multiplier)` before persistence. A multiplier-only correction writes no base nutrition fields. Pending/processing entries expose no edit controls and repository/rules tests reject nutrition edits in those states.
 
 - [ ] **Step 1 (worker): Write failing tests**
 
@@ -1362,22 +1372,31 @@ test('clampServing snaps to 0.25 steps within 0.25..5.0', () {
   expect(clampServing(7.0), 5.0);
 });
 test('scaledBy scales kcal and macros proportionally', () { /* 2.0× doubles all four values */ });
+test('scaledBy changes only multiplier and preserves canonical base values', () { /* implement */ });
+test('displayed macro edit converts back to unrounded base once', () { /* 50g at 2x -> 25g base -> 50g display */ });
 
 // test/food_detail/food_crud_test.dart (fake Firestore)
 test('update marks entry corrected and persists edited macros', () async { /* implement */ });
 test('delete removes entry; duplicate creates a distinct id with same values', () async { /* implement */ });
+test('all CRUD paths remain under users/{uid}/entries and watch emits null after delete', () async { /* injected data-store port */ });
+test('multiplier-only correction does not rewrite base nutrition', () async { /* implement */ });
 
 // test/food_detail_sheet_test.dart (extend)
 testWidgets('hero photo, back, duplicate/delete chips, confidence pill, detected chips, ask-assistant card render', (tester) async { /* implement */ });
 testWidgets('edit chip toggles action bar with Undo and Save to Today; save pops back', (tester) async { /* implement */ });
 testWidgets('macro value tap opens numeric input sheet in edit mode', (tester) async { /* implement */ });
 testWidgets('unsaved edit exit prompts confirmation', (tester) async { /* DraftPolicy.confirmDestructiveExit */ });
+testWidgets('pending and processing entries expose no edit or serving controls', (tester) async { /* implement */ });
 testWidgets('card-to-detail uses shared transition of ~320ms and dark/light themes both render', (tester) async { /* implement */ });
 ```
 
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/food_detail test/food_detail_sheet_test.dart` → Expected: FAIL (`clampServing`/CRUD surface undefined; UI branches missing).
 
-- [ ] **Step 3 (worker): Implement** per spec §5.11/§5.12 — draggable sheet, kcal banner stepper, editable macro rows, add-item chip, Undo/Save bar, `correctedAt` on save, delete confirmation dialog, duplicate action.
+- [ ] **Step 3A (worker): Implement canonical nutrition migration** — `FoodEntry` canonical base fields with legacy read fallback, backend/manual/seed/fixture/duplicate/edit writes emitting only `base*`, aggregation canonical-first fallback, and rules validation. Do not run a production backfill.
+
+- [ ] **Step 3B (worker): Implement CRUD and scaling** — auth-scoped repository/data-store seam; nullable watch; deterministic `correctedAt`; clamp/multiplier helpers; displayed-to-base conversion; duplicate/delete semantics; no double scaling.
+
+- [ ] **Step 3C (worker): Complete UI behavior** per spec §5.11/§5.12 by extending the existing widget hierarchy — editable macro rows, add-item chip, Undo/Save bar, delete/duplicate actions, `PopScope` + `DraftPolicy` unsaved-exit confirmation, and edit controls hidden for pending/processing. Do not rewrite already-correct hero/detail components.
 
 - [ ] **Step 4: GREEN** — Run: `fvm flutter test test/food_detail test/food_detail_sheet_test.dart` → Expected: PASS.
 
