@@ -29,6 +29,11 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 6 | done | OpenCode timed out (904s, zero edits); delegated fallback left usable edits; host completed physical-device debugging and verification | pre- and post-implementation review agree (`calorix-task6-scan-permission-20260718`) | a130f2d | 226/226 tests; analyzer clean; physical permission/settings/live-preview/library/harness flow passed on `R58R61161NA`; real production-cloud upload intentionally not invoked |
 | 7 | in progress | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | backend and queue post-reviews green; final Task 7 review pending | 072e21b, db4cff0, e972112 | backend retry 46/46 + build clean; queue 34/34 + focused analyzer clean; connectivity coordinator 6/6 + focused analyzer clean; remaining notification/deep-link/processing UI work pending |
 
+### Task 7 checkpoints
+
+- `cdfd127`: foreground upload retry coordination; 6/6 focused tests and analyzer clean.
+- Current checkpoint: production viewed-entry MRU, auth-scoped existence check, typed retry callable, and notification routing handler; 10/10 focused tests and analyzer clean. Provider/UI wiring remains pending.
+
 **Task 0 commit:** cacca80
 
 **Task 1 note:** OpenCode first implementation call stalled 12+ minutes with no edits; Claude headless fallback was unavailable because its session limit resets at midnight Europe/Zurich. Runtime check attempted but blocked/aborted: Pixel_8_API35_GoogleAPIs was unavailable under plan's old ID, direct software and host-GPU boots left emulator-5554 offline with hanging QEMU CPU/main-loop threads, then the user's phone shut down and had to be rebooted; all emulator/QEMU processes terminated and emulator-5554 removed. The physical phone had shut down/rebooted after the emulator attempts. DO NOT launch emulators or interact with/install/run on the physical device without explicit user confirmation. Aborted `flutter run` terminated before evidence — not counted. No runtime result counts as evidence. Architecture review explicitly accepted automated test evidence in lieu of runtime. Focused command: `fvm flutter test test/spike_nav/spike_conflict_test.dart`
