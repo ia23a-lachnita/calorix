@@ -3,14 +3,17 @@ import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
-import { getStorage } from 'firebase-admin/storage';
 import { VertexAI } from '@google-cloud/vertexai';
 import { APP_DISPLAY_NAME, LOCATION, PROJECT_ID } from './config';
 import { MEAL_ANALYSIS_PROMPT } from './prompts';
 import { affectedDateKeys, summarizeCompleteEntries, type AggregatableEntry } from './aggregation';
 import { createModelConfigLoader } from './model-config';
-import { handleEntryCreated, type AnalyzeEntryDeps, type EntryData } from './analyze-entry';
+import { handleEntryCreated, type EntryData } from './analyze-entry';
 import { AiChatInputError, handleAiChat, type ChatContent } from './ai-chat';
+import {
+  createRetryEntryAnalysisHandler,
+  entriesCollection,
+} from './retry-analysis';
 
 initializeApp();
 
@@ -21,10 +24,6 @@ const getModelConfig = createModelConfigLoader(async () => {
   const doc = await db.doc('model_configs/default').get();
   return doc.data();
 });
-
-function entriesCollection(uid: string) {
-  return db.collection('users').doc(uid).collection('entries');
-}
 
 function dailyLogDoc(uid: string, dateKey: string) {
   return db.collection('users').doc(uid).collection('dailyLogs').doc(dateKey);
@@ -50,58 +49,11 @@ export const processEntry = onDocumentCreated(
       ...(typeof raw.storagePath === 'string' ? { storagePath: raw.storagePath } : {}),
     };
 
-    const entryRef = entriesCollection(uid).doc(entryId);
-
-    const deps: AnalyzeEntryDeps = {
-      updateEntry: async (fields) => {
-        await entryRef.update(fields);
-      },
-      getFcmToken: async (userId) => {
-        const userDoc = await db.collection('users').doc(userId).get();
-        const token = userDoc.data()?.fcmToken;
-        return typeof token === 'string' && token.length > 0 ? token : undefined;
-      },
-      loadImageBase64: async (data) => {
-        if (data.storagePath) {
-          const [bytes] = await getStorage().bucket().file(data.storagePath).download();
-          return bytes.toString('base64');
-        }
-        if (data.imageUrl) {
-          const response = await fetch(data.imageUrl);
-          if (!response.ok) {
-            throw new Error(`Image download failed (HTTP ${response.status})`);
-          }
-          return Buffer.from(await response.arrayBuffer()).toString('base64');
-        }
-        throw new Error('Entry has neither storagePath nor imageUrl');
-      },
-      generateVision: async (model, prompt, imageBase64) => {
-        const generativeModel = vertexAI.getGenerativeModel({ model });
-        const result = await generativeModel.generateContent({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                { text: prompt },
-                { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } },
-              ],
-            },
-          ],
-        });
-        const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (typeof text !== 'string' || text.length === 0) {
-          throw new Error('Empty model response');
-        }
-        return text;
-      },
-      sendPush: async (message) => {
-        await getMessaging().send(message);
-      },
-      getModelConfig,
-      appDisplayName: APP_DISPLAY_NAME,
-      prompt: MEAL_ANALYSIS_PROMPT,
-      log: (message, error) => console.error(message, error),
-    };
+    // Lazy import avoids circular dependency at module load time:
+    // retry-analysis.ts exports entriesCollection used by aggregateDailyLogs,
+    // and this module exports retryEntryAnalysis from retry-analysis.ts.
+    const { buildAnalyzeEntryDepsFactory } = await import('./retry-analysis');
+    const deps = buildAnalyzeEntryDepsFactory(uid, entryId);
 
     await handleEntryCreated(entryId, entry, deps);
   },
@@ -140,6 +92,14 @@ export const aiChat = onCall(
       throw new HttpsError('unavailable', 'The assistant is temporarily unavailable.');
     }
   },
+);
+
+export const retryEntryAnalysis = onCall(
+  {
+    region: LOCATION,
+    timeoutSeconds: 120,
+  },
+  createRetryEntryAnalysisHandler(),
 );
 
 /**
