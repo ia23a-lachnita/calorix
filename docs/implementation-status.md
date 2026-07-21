@@ -27,13 +27,16 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 4 | done | OpenCode unavailable; approved headless fallback unavailable; host fallback under contract | post-review green round 2; MUST_FIX none | 2365d63, 4cf8bbe | Motion/a11y implementation and semantic remediation pushed; analyzer clean; full 189/189; paint isolation proven host-side; real raster timing explicitly blocked; no device/emulator |
 | 5 | done | OpenCode stalled twice; Claude unavailable; host fallback under contract | pre-review Pro green; post-review Flash High green after Pro/MCP timeouts | 12fde03, 6f9dc08, 3f3b7a5, 465db93 | RED/GREEN complete; analyzer clean; full 198/198; deterministic plan-only and physical two-screen smoke passed; exact evidence below |
 | 6 | done | OpenCode timed out (904s, zero edits); delegated fallback left usable edits; host completed physical-device debugging and verification | pre- and post-implementation review agree (`calorix-task6-scan-permission-20260718`) | a130f2d | 226/226 tests; analyzer clean; physical permission/settings/live-preview/library/harness flow passed on `R58R61161NA`; real production-cloud upload intentionally not invoked |
-| 7 | in progress | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | backend and queue post-reviews green; final Task 7 review pending | 072e21b, db4cff0, e972112 | backend retry 46/46 + build clean; queue 34/34 + focused analyzer clean; connectivity coordinator 6/6 + focused analyzer clean; remaining notification/deep-link/processing UI work pending |
+| 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
 
 ### Task 7 checkpoints
 
 - `cdfd127`: foreground upload retry coordination; 6/6 focused tests and analyzer clean.
 - `098c02f`: production viewed-entry MRU, auth-scoped existence check, typed retry callable, and notification routing handler; 10/10 focused tests and analyzer clean.
-- Current checkpoint: provider/app-lifecycle wiring, combined local/remote processing state, notification tap integration, viewed-on-detail behavior, and real processing widget states. `fvm flutter test test/processing` passes 58/58; functions pass 46/46 and build clean; focused analyzer clean. Full-project verification and final review remain pending.
+- `a59f962`: provider/app-lifecycle wiring, combined local/remote processing state, notification tap integration, viewed-on-detail behavior, and real processing widget states.
+- Final verification: `fvm flutter analyze` clean; `fvm flutter test` 284/284; `fvm flutter test test/processing` 58/58; functions 46/46; TypeScript build clean.
+- Final review: Antigravity conversation `calorix-task7-final-review-20260722`, Gemini 3.6 Flash (High), `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`; no repository mutation or response noise.
+- Next task: Task 8 (Review and Manual canonical screens).
 
 **Task 0 commit:** cacca80
 

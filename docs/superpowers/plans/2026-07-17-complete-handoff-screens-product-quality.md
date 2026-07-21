@@ -1040,7 +1040,7 @@ export async function handleRetryEntryAnalysis(
 - Complete/error transitions use `MotionDurations.cardEntrance` for the result card entrance.
 - Reduced motion snaps to final frame per `AppMotion.reducedOf`.
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/processing/processing_lifecycle_test.dart
@@ -1130,9 +1130,9 @@ test('firestoreError → firestorePending via RetryAnalysisService', () async { 
 test('local UploadQueueEntry and durable copy are already deleted by the time firestoreError occurs; retry goes through RetryAnalysisService only, no local queue re-entry', () async { /* implement */ });
 ```
 
-- [ ] **Step 2: RED** — Run both: `fvm flutter test test/processing` **and** `npm test --prefix functions` → Expected: FAIL on both. Flutter: `routeForNotification` undefined; `ConnectivityMonitor`, `ViewedEntryStore`, `EntryExistenceChecker`, `RetryAnalysisService`, `ProcessingState` undefined; lifecycle branches missing. Functions: `functions/test/retry-analysis.test.ts` fails to compile/run because `functions/src/retry-analysis.ts` (`handleRetryEntryAnalysis`, `RetryAnalysisError`) does not exist yet.
+- [x] **Step 2: RED** — Run both: `fvm flutter test test/processing` **and** `npm test --prefix functions` → Expected: FAIL on both. Flutter: `routeForNotification` undefined; `ConnectivityMonitor`, `ViewedEntryStore`, `EntryExistenceChecker`, `RetryAnalysisService`, `ProcessingState` undefined; lifecycle branches missing. Functions: `functions/test/retry-analysis.test.ts` fails to compile/run because `functions/src/retry-analysis.ts` (`handleRetryEntryAnalysis`, `RetryAnalysisError`) does not exist yet.
 
-- [ ] **Step 3 (worker): Implement** per the contracts above:
+- [x] **Step 3 (worker): Implement** per the contracts above:
   - `ConnectivityMonitor` injectable with `connectivity_plus`; foreground-only retry triggers; treat "online" as interface availability only.
   - Versioned queue JSON in `shared_preferences`; durable copy via `path_provider` to `getApplicationSupportDirectory()/pending_uploads/<queueId>.jpg`; stable IDs; delete-on-handoff, delete-on-truly-fatal-failure, delete-on-explicit-user-dismissal; retain-on-retryable-failure and retain-on-retry-cap-reached.
   - Queue drain: catch and classify socket/HTTP/`FirebaseException` transport errors as retryable vs. fatal; bounded exponential backoff via injected `clockProvider` (`nextRetryAt`), capped `retryCount`. On cap: set `autoRetryDisabled = true`, `nextRetryAt = null`, retain entry/durable copy, surface `localError` with manual Retry; manual Retry clears `autoRetryDisabled` and resumes the same entry (no duplicate ID). Never infinite auto-retry.
@@ -1145,11 +1145,11 @@ test('local UploadQueueEntry and durable copy are already deleted by the time fi
   - Four-state processing screen: skeleton shimmer (`MotionDurations.skeletonShimmer`), entrance (`MotionDurations.cardEntrance`), complete/error result cards.
   - `AppMotion.durationOf` for all animation durations; reduced motion snaps.
 
-- [ ] **Step 4: GREEN** — Run all three: `fvm flutter test test/processing`, `npm test --prefix functions`, and `npm run build --prefix functions` → Expected: PASS, PASS, and a clean TypeScript build.
+- [x] **Step 4: GREEN** — Run all three: `fvm flutter test test/processing`, `npm test --prefix functions`, and `npm run build --prefix functions` → Expected: PASS, PASS, and a clean TypeScript build.
 
-- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; full `fvm flutter test` → no regressions; `npm test --prefix functions` → PASS; `npm run build --prefix functions` → clean build. (Real background-kill, push delivery, and Firestore-emulator integration evidence for `retryEntryAnalysis` are owned by Task 16, not this task.)
+- [x] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; full `fvm flutter test` → no regressions; `npm test --prefix functions` → PASS; `npm run build --prefix functions` → clean build. (Real background-kill, push delivery, and Firestore-emulator integration evidence for `retryEntryAnalysis` are owned by Task 16, not this task.)
 
-- [ ] **Step 6: REVIEW-GATE Task 7**, then **HANDOFF Task 7**
+- [x] **Step 6: REVIEW-GATE Task 7**, then **HANDOFF Task 7**
 
 ```powershell
 fvm flutter analyze
