@@ -29,7 +29,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 6 | done | OpenCode timed out (904s, zero edits); delegated fallback left usable edits; host completed physical-device debugging and verification | pre- and post-implementation review agree (`calorix-task6-scan-permission-20260718`) | a130f2d | 226/226 tests; analyzer clean; physical permission/settings/live-preview/library/harness flow passed on `R58R61161NA`; real production-cloud upload intentionally not invoked |
 | 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
 | 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
-| 9 | in progress (handoff) | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, final cleanup pending | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
+| 9 | done | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, 5c8d3fb | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
 
 ### Task 9 backend checkpoint
 
@@ -53,7 +53,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Full verification: `fvm flutter analyze` clean; `fvm flutter test` 294 passed plus 1 intentional live skip; Functions lint/build clean; Functions tests 51/51.
 - Post-review: Antigravity conversation `calorix-task9-analysis-contracts-20260722`, Gemini 3.6 Flash (High), `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`; no response noise and no repository mutation.
 - Follow-up risk: the Functions emulator reports `@google-cloud/vertexai` deprecated with a 2026-06-24 removal date. It still loads and all gates pass, but migration to `@google/genai` must be scheduled as a separate infrastructure dependency task before a future provider/runtime upgrade.
-- Next: final Task 9 handoff commit/push, then Task 10.
+- Handoff: implementation and verification are pushed through `5c8d3fb`; Task 10 is next.
 
 ### Task 8 handoff
 

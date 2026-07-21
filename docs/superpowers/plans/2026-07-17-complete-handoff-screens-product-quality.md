@@ -1316,7 +1316,7 @@ test('live OFF lookup for barcode 3017624010701 returns the contract fields', ()
 
 - [x] **Step 6: REVIEW-GATE Task 9** (pre-review required — data-model change; then post-review) until green.
 
-- [ ] **Step 7: HANDOFF Task 9**
+- [x] **Step 7: HANDOFF Task 9**
 
 ```powershell
 git add -A
