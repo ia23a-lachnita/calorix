@@ -1312,9 +1312,9 @@ test('live OFF lookup for barcode 3017624010701 returns the contract fields', ()
 
 - [x] **Step 4: GREEN** — Run: `npm --prefix functions run build` → compiles; `npm --prefix functions test` → PASS; `fvm flutter test test/contracts --tags live` → PASS (host runs this once, records the response snapshot date); `fvm flutter test test/contracts` → PASS (live excluded by tag by default).
 
-- [ ] **Step 5: Emulator round-trip (host)** — `firebase emulators:exec --only auth,firestore,storage,functions "npm --prefix functions test"` → PASS; confirms all writes stayed in the emulator (check `firebase use` shows the expected project but nothing deployed — no `firebase deploy` anywhere in this plan).
+- [x] **Step 5: Emulator round-trip (host)** — `firebase emulators:exec --only auth,firestore,storage,functions "npm --prefix functions test"` → PASS; confirms all writes stayed in the emulator (check `firebase use` shows the expected project but nothing deployed — no `firebase deploy` anywhere in this plan).
 
-- [ ] **Step 6: REVIEW-GATE Task 9** (pre-review required — data-model change; then post-review) until green.
+- [x] **Step 6: REVIEW-GATE Task 9** (pre-review required — data-model change; then post-review) until green.
 
 - [ ] **Step 7: HANDOFF Task 9**
 

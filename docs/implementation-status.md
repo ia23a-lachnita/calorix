@@ -29,7 +29,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 6 | done | OpenCode timed out (904s, zero edits); delegated fallback left usable edits; host completed physical-device debugging and verification | pre- and post-implementation review agree (`calorix-task6-scan-permission-20260718`) | a130f2d | 226/226 tests; analyzer clean; physical permission/settings/live-preview/library/harness flow passed on `R58R61161NA`; real production-cloud upload intentionally not invoked |
 | 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
 | 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
-| 9 | in progress | OpenCode stalled with zero edits; host fallback under contract | pre-review green round 2 (`calorix-task9-analysis-contracts-20260722`) | 49bcffc + client checkpoint pending | backend 51/51 and build pass; Flutter wire contract passes; read-only OFF v3 live gate passed 2026-07-22; emulator/full verification pending |
+| 9 | in progress (handoff) | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, final cleanup pending | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
 
 ### Task 9 backend checkpoint
 
@@ -46,6 +46,14 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Default contract gate: 1 passed, 1 explicitly skipped live test.
 - Read-only live gate: `fvm flutter test test/contracts/off_live_contract_test.dart --dart-define=RUN_OFF_LIVE=true --tags live` passed on 2026-07-22 against current OFF v3.
 - Next: Firebase emulator round-trip, full analyzer/test/build suites, and post-implementation review.
+
+### Task 9 final verification
+
+- Firebase emulator gate: auth, Firestore, Storage, and Functions started; all four Functions exports loaded; 51/51 tests passed inside `firebase emulators:exec`; no deploy command or production write was run.
+- Full verification: `fvm flutter analyze` clean; `fvm flutter test` 294 passed plus 1 intentional live skip; Functions lint/build clean; Functions tests 51/51.
+- Post-review: Antigravity conversation `calorix-task9-analysis-contracts-20260722`, Gemini 3.6 Flash (High), `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`; no response noise and no repository mutation.
+- Follow-up risk: the Functions emulator reports `@google-cloud/vertexai` deprecated with a 2026-06-24 removal date. It still loads and all gates pass, but migration to `@google/genai` must be scheduled as a separate infrastructure dependency task before a future provider/runtime upgrade.
+- Next: final Task 9 handoff commit/push, then Task 10.
 
 ### Task 8 handoff
 

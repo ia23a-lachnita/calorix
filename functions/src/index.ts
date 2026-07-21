@@ -2,7 +2,6 @@ import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/fire
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getMessaging } from 'firebase-admin/messaging';
 import { VertexAI } from '@google-cloud/vertexai';
 import { APP_DISPLAY_NAME, LOCATION, PROJECT_ID } from './config';
 import { affectedDateKeys, summarizeCompleteEntries, type AggregatableEntry } from './aggregation';
