@@ -28,7 +28,15 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 5 | done | OpenCode stalled twice; Claude unavailable; host fallback under contract | pre-review Pro green; post-review Flash High green after Pro/MCP timeouts | 12fde03, 6f9dc08, 3f3b7a5, 465db93 | RED/GREEN complete; analyzer clean; full 198/198; deterministic plan-only and physical two-screen smoke passed; exact evidence below |
 | 6 | done | OpenCode timed out (904s, zero edits); delegated fallback left usable edits; host completed physical-device debugging and verification | pre- and post-implementation review agree (`calorix-task6-scan-permission-20260718`) | a130f2d | 226/226 tests; analyzer clean; physical permission/settings/live-preview/library/harness flow passed on `R58R61161NA`; real production-cloud upload intentionally not invoked |
 | 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
-| 8 | in progress | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 (`calorix-task8-review-manual-20260722`) | pending | RED confirmed missing screens/contracts; GREEN: 14 review/manual/processing tests pass, permission suite 6/6, focused analyzer clean; full verification and post-review pending |
+| 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
+
+### Task 8 handoff
+
+- Added production Review and Manual routes/screens, persisted review candidates, auth-scoped candidate confirmation, clock/date-backed manual entries, permission-to-manual routing, linked assistant context, and low-confidence processing redirect.
+- Destructive manual exit uses the shared `DraftPolicy` and a guarded `PopScope`; review sheet is height-constrained and scrollable; route entrance uses `MotionDurations.sheetSlideUp`.
+- Verification: `fvm flutter test test/review test/manual test/processing/processing_lifecycle_test.dart` 14/14; `fvm flutter test test/scan/permission_screen_test.dart` 6/6; full `fvm flutter analyze` clean; full `fvm flutter test` 293/293.
+- Review: Antigravity conversation `calorix-task8-review-manual-20260722`, Gemini 3.6 Flash (High), final `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`; no post-review mutation/noise.
+- Next task: Task 9 (real product analysis contracts).
 
 ### Task 7 checkpoints
 

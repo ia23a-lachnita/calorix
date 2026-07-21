@@ -1231,9 +1231,9 @@ testWidgets('destructive exit with unsaved draft prompts confirmation (DraftPoli
 
 - [x] **Step 4: GREEN** — Run: `fvm flutter test test/review test/manual` → Expected: PASS. Then `fvm flutter test test/scan/permission_screen_test.dart` → the Task 6 add-manually stub assertion now exercises the real route.
 
-- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+- [x] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 
-- [ ] **Step 6: REVIEW-GATE Task 8**, then **HANDOFF Task 8**
+- [x] **Step 6: REVIEW-GATE Task 8**, then **HANDOFF Task 8**
 
 ```powershell
 git add -A
