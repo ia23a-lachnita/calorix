@@ -27,6 +27,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 4 | done | OpenCode unavailable; approved headless fallback unavailable; host fallback under contract | post-review green round 2; MUST_FIX none | 2365d63, 4cf8bbe | Motion/a11y implementation and semantic remediation pushed; analyzer clean; full 189/189; paint isolation proven host-side; real raster timing explicitly blocked; no device/emulator |
 | 5 | done | OpenCode stalled twice; Claude unavailable; host fallback under contract | pre-review Pro green; post-review Flash High green after Pro/MCP timeouts | 12fde03, 6f9dc08, 3f3b7a5, 465db93 | RED/GREEN complete; analyzer clean; full 198/198; deterministic plan-only and physical two-screen smoke passed; exact evidence below |
 | 6 | done | OpenCode timed out (904s, zero edits); delegated fallback left usable edits; host completed physical-device debugging and verification | pre- and post-implementation review agree (`calorix-task6-scan-permission-20260718`) | a130f2d | 226/226 tests; analyzer clean; physical permission/settings/live-preview/library/harness flow passed on `R58R61161NA`; real production-cloud upload intentionally not invoked |
+| 7 | in progress | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | backend and queue post-reviews green; final Task 7 review pending | 072e21b, db4cff0, e972112 | backend retry 46/46 + build clean; queue 34/34 + focused analyzer clean; connectivity coordinator 6/6 + focused analyzer clean; remaining notification/deep-link/processing UI work pending |
 
 **Task 0 commit:** cacca80
 
@@ -68,6 +69,7 @@ Expected FAIL — compilation errors (`SpikeShellA`/`SpikeShellB` not defined). 
 | 2026-07-18 | Task 6 Step 3/4 (GREEN) | not routed through OpenCode — user directed Claude Code (Sonnet 5) to implement directly given the Step 1/2 904s zero-edit timeout recorded above on this same task; no OpenCode call attempted for this step |
 | 2026-07-18 | Task 6 physical-remediation tests | delegated headless fallback timed out after leaving usable test edits; host inspected and verified them before implementation |
 | 2026-07-18 | Task 6 physical-remediation implementation | delegated headless fallback failed with exact message `You've hit your session limit · resets 12am`; host fallback completed the permission/lifecycle/readiness fixes under the recorded tool-exhaustion exception |
+| 2026-07-22 | Task 7 backend, queue, connectivity | OpenCode repeatedly stalled/timed out with zero edits; Claude was session-limited; delegated Luna/Terra workers stalled. Host fallback implemented bounded slices, independently verified each, and retained main-agent architecture/review judgment. |
 
 ## Plan review log
 
