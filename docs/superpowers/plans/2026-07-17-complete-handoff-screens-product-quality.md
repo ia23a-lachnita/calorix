@@ -1248,8 +1248,8 @@ git push
 Cloud Functions + client contracts for the three scan modes. All Firestore writes go through emulators; the only live network call is a read-only Open Food Facts contract check.
 
 **Files:**
-- Modify: `functions/src/analyze-entry.ts`, `functions/src/nutrition.ts`, `functions/src/prompts.ts`, `functions/src/config.ts`
-- Create: `functions/src/off-client.ts` (read-only Open Food Facts v2 product lookup)
+- Modify: `functions/src/analyze-entry.ts`, `functions/src/nutrition.ts`, `functions/src/prompts.ts`, `functions/src/config.ts`, `functions/src/index.ts`, `functions/src/retry-analysis.ts`
+- Create: `functions/src/off-client.ts` (read-only current Open Food Facts v3 product lookup; v2 is deprecated)
 - Test: create `functions/src/nutrition.test.ts`, `functions/src/off-client.test.ts` (unit, mocked HTTP); create `test/contracts/off_live_contract_test.dart` tagged `live`; create `test/contracts/analysis_result_contract_test.dart` (client-side shape of the function result)
 - (Exact functions test script name: as recorded in `docs/implementation-status.md` §Baseline from Task 0; add a `test` script mirroring the recorded runner if none exists.)
 
@@ -1270,6 +1270,12 @@ export interface AnalysisResult {
 }
 export function atwaterKcal(p: number, c: number, f: number): number;
 
+// EntryData carries scanMode and optional rawBarcode through both the initial
+// Firestore trigger and retry transaction. If a barcode capture has no raw
+// barcode, the barcode vision prompt extracts one before the OFF lookup; an
+// unknown/unreadable barcode uses the vision nutrition result at review-level
+// confidence rather than pretending OFF confirmed it.
+
 // functions/src/off-client.ts
 export interface OffProduct { name: string; kcalPer100g: number; proteinPer100g: number; carbsPer100g: number; fatPer100g: number; }
 export async function fetchOffProduct(barcode: string): Promise<OffProduct | null>; // GET only, never writes
@@ -1287,7 +1293,7 @@ test('barcode source fills nutrition from OFF product and sets confidence 1.0 fo
 test('label source parses nutrition-label fixture into per-serving values', async () => { /* mocked OCR/model fixture */ });
 
 // functions/src/off-client.test.ts
-test('parses OFF v2 payload shape', async () => { /* canned JSON → OffProduct */ });
+test('parses current OFF v3 payload shape', async () => { /* canned JSON → OffProduct */ });
 test('returns null on 404/malformed payload', async () => { /* implement */ });
 ```
 
@@ -1295,14 +1301,14 @@ test('returns null on 404/malformed payload', async () => { /* implement */ });
 // test/contracts/off_live_contract_test.dart
 @Tags(['live'])
 test('live OFF lookup for barcode 3017624010701 returns the contract fields', () async {
-  // read-only GET https://world.openfoodfacts.org/api/v2/product/3017624010701.json
+  // read-only GET https://world.openfoodfacts.org/api/v3/product/3017624010701?fields=product_name,nutriments
   // asserts nutriments energy-kcal_100g / proteins_100g / carbohydrates_100g / fat_100g exist and are numeric
 });
 ```
 
 - [ ] **Step 2: RED** — Run: `npm --prefix functions test` (recorded script) → Expected: FAIL (`off-client` missing, contract fields absent). And `fvm flutter test test/contracts --tags live` → FAIL (contract test not yet passing) — live test is excluded from default runs.
 
-- [ ] **Step 3 (worker): Implement** `off-client.ts`, extend `analyze-entry.ts`/`nutrition.ts` to emit `AnalysisResult` for all three sources, keep model/prompt config in `config.ts`/`model-config.ts`.
+- [ ] **Step 3 (worker): Implement** `off-client.ts`, extend `analyze-entry.ts`/`nutrition.ts` to emit `AnalysisResult` for all three sources, keep model/prompt config in `config.ts`/`model-config.ts`. The OFF client uses an injectable `fetch`, identifying `User-Agent`, abort timeout, GET only, finite numeric validation, and returns `null` for not-found/non-2xx/malformed/network/timeout. `index.ts` and `retry-analysis.ts` preserve `scanMode` and optional `rawBarcode`. Meal and label use distinct vision prompts; barcode uses a supplied barcode or a barcode-extraction vision result before OFF. Firestore serialization exactly matches Flutter: `foodName`, `protein`/`carbs`/`fat`, `atwaterKcal`, `scanMode`, and candidate objects with `proteinG`/`carbsG`/`fatG`.
 
 - [ ] **Step 4: GREEN** — Run: `npm --prefix functions run build` → compiles; `npm --prefix functions test` → PASS; `fvm flutter test test/contracts --tags live` → PASS (host runs this once, records the response snapshot date); `fvm flutter test test/contracts` → PASS (live excluded by tag by default).
 

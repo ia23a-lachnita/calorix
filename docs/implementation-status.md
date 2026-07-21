@@ -29,6 +29,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 6 | done | OpenCode timed out (904s, zero edits); delegated fallback left usable edits; host completed physical-device debugging and verification | pre- and post-implementation review agree (`calorix-task6-scan-permission-20260718`) | a130f2d | 226/226 tests; analyzer clean; physical permission/settings/live-preview/library/harness flow passed on `R58R61161NA`; real production-cloud upload intentionally not invoked |
 | 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
 | 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
+| 9 | in progress | implementation worker pending | pre-review green round 2 (`calorix-task9-analysis-contracts-20260722`) | pending | plan corrected from deprecated OFF v2 to current v3; live v3 probe returned Nutella and numeric kcal; RED/GREEN pending |
 
 ### Task 8 handoff
 
@@ -113,6 +114,11 @@ Conversation: `calorix-complete-handoff-product-quality-20260717`
 - Round 1 emitted `AGREEMENT_STATUS: agree` while also listing three `MUST_FIX` items; it was correctly treated as non-green.
 - Round 1 appended unrelated background search completion messages. The plan findings were still concrete and applied; round 2 returned the clean required verdict (`agree`, `MUST_FIX: none`).
 - Neither round mutated the repository.
+
+### Antigravity response noise (Task 9 pre-review)
+
+- Round 1 emitted `AGREEMENT_STATUS: agree` with three `MUST_FIX` items and concatenated section headings, so it was treated as non-green.
+- The concrete findings were applied to the plan; round 2 returned the required clean verdict. No repository mutation occurred.
 
 ### Antigravity response noise (Task 2 review, calorix-task2-review-retry-20260718)
 
