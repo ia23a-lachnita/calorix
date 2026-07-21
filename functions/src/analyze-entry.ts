@@ -1,5 +1,11 @@
 import type { ModelConfig } from './model-config';
-import { parseNutritionResponse, type NutritionResult } from './nutrition';
+import {
+  atwaterKcal,
+  parseNutritionResponse,
+  type AnalysisResult,
+  type AnalysisSource,
+} from './nutrition';
+import type { OffProduct } from './off-client';
 import { buildScanCompletePush, buildScanReviewPush, type ScanPushMessage } from './push';
 
 export interface EntryData {
@@ -7,6 +13,8 @@ export interface EntryData {
   status: string;
   imageUrl?: string;
   storagePath?: string;
+  scanMode?: string;
+  rawBarcode?: string;
 }
 
 export interface AnalyzeEntryDeps {
@@ -14,38 +22,71 @@ export interface AnalyzeEntryDeps {
   getFcmToken(uid: string): Promise<string | undefined>;
   loadImageBase64(entry: EntryData): Promise<string>;
   generateVision(model: string, prompt: string, imageBase64: string): Promise<string>;
+  fetchOffProduct(barcode: string): Promise<OffProduct | null>;
   sendPush(message: ScanPushMessage): Promise<void>;
   getModelConfig(): Promise<ModelConfig>;
   appDisplayName: string;
-  prompt: string;
+  mealPrompt: string;
+  labelPrompt: string;
+  barcodePrompt: string;
   log: (message: string, error?: unknown) => void;
 }
 
+function analysisSource(value: string | undefined): AnalysisSource {
+  return value === 'barcode' || value === 'label' ? value : 'meal';
+}
+
+function promptFor(source: AnalysisSource, deps: AnalyzeEntryDeps): string {
+  if (source === 'barcode') return deps.barcodePrompt;
+  if (source === 'label') return deps.labelPrompt;
+  return deps.mealPrompt;
+}
+
+function offAnalysis(product: OffProduct, barcode: string): AnalysisResult {
+  return {
+    name: product.name,
+    kcal: product.kcalPer100g,
+    proteinG: product.proteinPer100g,
+    carbsG: product.carbsPer100g,
+    fatG: product.fatPer100g,
+    confidence: 1,
+    atwaterKcal: atwaterKcal(
+      product.proteinPer100g,
+      product.carbsPer100g,
+      product.fatPer100g,
+    ),
+    candidates: [],
+    source: 'barcode',
+    barcode,
+    detectedItems: [],
+    boundingBox: null,
+  };
+}
+
 export function analysisEntryFields(
-  nutrition: NutritionResult,
+  analysis: AnalysisResult,
   status: 'complete' | 'needs_review',
   model: string,
 ): Record<string, unknown> {
   return {
     status,
-    foodName: nutrition.foodName,
-    kcal: nutrition.kcal,
-    protein: nutrition.protein,
-    carbs: nutrition.carbs,
-    fat: nutrition.fat,
-    confidence: nutrition.confidence,
-    detectedItems: nutrition.detectedItems,
-    boundingBox: nutrition.boundingBox,
+    foodName: analysis.name,
+    kcal: analysis.kcal,
+    protein: analysis.proteinG,
+    carbs: analysis.carbsG,
+    fat: analysis.fatG,
+    confidence: analysis.confidence,
+    atwaterKcal: analysis.atwaterKcal,
+    candidates: analysis.candidates,
+    scanMode: analysis.source,
+    ...(analysis.barcode ? { barcode: analysis.barcode } : {}),
+    detectedItems: analysis.detectedItems,
+    boundingBox: analysis.boundingBox,
     analysisModel: model,
   };
 }
 
-/**
- * Orchestrates one pending entry: mark processing, analyze the image, gate on
- * confidence, write the analysis, and notify. Daily-log aggregation is NOT
- * done here — the aggregation trigger recomputes affected days from entry
- * state, so retries of this handler can never double-count.
- */
+/** Analyze one pending entry and persist the canonical client wire contract. */
 export async function handleEntryCreated(
   entryId: string,
   data: EntryData,
@@ -56,20 +97,57 @@ export async function handleEntryCreated(
   await deps.updateEntry({ status: 'processing' });
 
   try {
-    const [imageBase64, config] = await Promise.all([
-      deps.loadImageBase64(data),
-      deps.getModelConfig(),
-    ]);
-    const responseText = await deps.generateVision(config.visionModel, deps.prompt, imageBase64);
-    const parsed = parseNutritionResponse(responseText);
-    if (!parsed.ok) {
-      throw new Error(`Invalid model response (${parsed.reason})`);
+    const source = analysisSource(data.scanMode);
+    const config = await deps.getModelConfig();
+    const attemptedBarcodes = new Set<string>();
+    let analysis: AnalysisResult | null = null;
+    let analysisModel = config.visionModel;
+
+    const lookupOff = async (barcode: string | undefined): Promise<AnalysisResult | null> => {
+      if (!barcode || attemptedBarcodes.has(barcode)) return null;
+      attemptedBarcodes.add(barcode);
+      const product = await deps.fetchOffProduct(barcode);
+      return product ? offAnalysis(product, barcode) : null;
+    };
+
+    if (source === 'barcode') {
+      analysis = await lookupOff(data.rawBarcode);
+      if (analysis) analysisModel = 'open-food-facts-v3';
     }
-    const nutrition = parsed.result;
+
+    if (!analysis) {
+      const imageBase64 = await deps.loadImageBase64(data);
+      const responseText = await deps.generateVision(
+        config.visionModel,
+        promptFor(source, deps),
+        imageBase64,
+      );
+      const parsed = parseNutritionResponse(responseText, source);
+      if (!parsed.ok) {
+        throw new Error(`Invalid model response (${parsed.reason})`);
+      }
+      analysis = parsed.result;
+
+      if (source === 'barcode') {
+        const confirmed = await lookupOff(analysis.barcode);
+        if (confirmed) {
+          analysis = confirmed;
+          analysisModel = 'open-food-facts-v3';
+        } else {
+          analysis = {
+            ...analysis,
+            confidence: Math.min(
+              analysis.confidence,
+              Math.max(0, config.confidenceThreshold - 0.01),
+            ),
+          };
+        }
+      }
+    }
 
     const status =
-      nutrition.confidence >= config.confidenceThreshold ? 'complete' : 'needs_review';
-    await deps.updateEntry(analysisEntryFields(nutrition, status, config.visionModel));
+      analysis.confidence >= config.confidenceThreshold ? 'complete' : 'needs_review';
+    await deps.updateEntry(analysisEntryFields(analysis, status, analysisModel));
 
     const token = await deps.getFcmToken(data.uid);
     if (token) {
@@ -77,14 +155,14 @@ export async function handleEntryCreated(
         status === 'complete'
           ? buildScanCompletePush({
               appDisplayName: deps.appDisplayName,
-              foodName: nutrition.foodName,
-              kcal: nutrition.kcal,
+              foodName: analysis.name,
+              kcal: analysis.kcal,
               entryId,
               token,
             })
           : buildScanReviewPush({
               appDisplayName: deps.appDisplayName,
-              foodName: nutrition.foodName,
+              foodName: analysis.name,
               entryId,
               token,
             });

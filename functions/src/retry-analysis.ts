@@ -3,7 +3,12 @@ import { getMessaging } from 'firebase-admin/messaging';
 import { getStorage } from 'firebase-admin/storage';
 import { VertexAI } from '@google-cloud/vertexai';
 import { APP_DISPLAY_NAME, LOCATION, PROJECT_ID } from './config';
-import { MEAL_ANALYSIS_PROMPT } from './prompts';
+import {
+  BARCODE_ANALYSIS_PROMPT,
+  LABEL_ANALYSIS_PROMPT,
+  MEAL_ANALYSIS_PROMPT,
+} from './prompts';
+import { fetchOffProduct } from './off-client';
 import { createModelConfigLoader } from './model-config';
 import { handleEntryCreated, type AnalyzeEntryDeps, type EntryData } from './analyze-entry';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -122,9 +127,12 @@ export function buildAnalyzeEntryDepsFactory(
     sendPush: async (message) => {
       await getMessaging().send(message);
     },
+    fetchOffProduct,
     getModelConfig: getModelConfig(),
     appDisplayName: APP_DISPLAY_NAME,
-    prompt: MEAL_ANALYSIS_PROMPT,
+    mealPrompt: MEAL_ANALYSIS_PROMPT,
+    labelPrompt: LABEL_ANALYSIS_PROMPT,
+    barcodePrompt: BARCODE_ANALYSIS_PROMPT,
     log: (message: string, error?: unknown) => console.error(message, error),
   };
 }
@@ -184,6 +192,12 @@ export async function handleRetryEntryAnalysis(
       ...(typeof entryData?.imageUrl === 'string' ? { imageUrl: entryData.imageUrl } : {}),
       ...(typeof entryData?.storagePath === 'string'
         ? { storagePath: entryData.storagePath }
+        : {}),
+      ...(typeof entryData?.scanMode === 'string'
+        ? { scanMode: entryData.scanMode }
+        : {}),
+      ...(typeof entryData?.rawBarcode === 'string'
+        ? { rawBarcode: entryData.rawBarcode }
         : {}),
     };
   });

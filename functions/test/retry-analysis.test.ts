@@ -136,7 +136,10 @@ function makeDeps(overrides: Partial<RetryAnalysisDeps> = {}): {
           confidenceThreshold: 0.8,
         }),
         appDisplayName: 'Calorix',
-        prompt: 'test prompt',
+        mealPrompt: 'meal prompt',
+        labelPrompt: 'label prompt',
+        barcodePrompt: 'barcode prompt',
+        fetchOffProduct: async () => null,
         log: () => {},
       } as unknown as AnalyzeEntryDeps;
     },
@@ -331,6 +334,32 @@ describe('handleRetryEntryAnalysis', () => {
       });
       expect(call.data.imageUrl).toBe('img');
     });
+
+    it('preserves scanMode and rawBarcode for retry analysis', async () => {
+      const docs = new Map<string, FakeDocState>([
+        ['users/uid-1/entries/entry-1', {
+          exists: true,
+          fields: {
+            status: 'error',
+            imageUrl: 'img',
+            scanMode: 'barcode',
+            rawBarcode: '3017624010701',
+          },
+        }],
+      ]);
+      const { deps, recorded } = makeDeps({
+        runTransaction: fakeTransactionRunner(docs),
+      });
+
+      await handleRetryEntryAnalysis('uid-1', 'entry-1', deps);
+
+      expect(recorded.analyzeCalls[0]?.data).toMatchObject({
+        uid: 'uid-1',
+        status: 'pending',
+        scanMode: 'barcode',
+        rawBarcode: '3017624010701',
+      });
+    });
   });
 
   describe('analysis failure recovery', () => {
@@ -370,7 +399,10 @@ describe('handleRetryEntryAnalysis', () => {
               confidenceThreshold: 0.8,
             }),
             appDisplayName: 'Calorix',
-            prompt: 'test prompt',
+            mealPrompt: 'meal prompt',
+            labelPrompt: 'label prompt',
+            barcodePrompt: 'barcode prompt',
+            fetchOffProduct: async () => null,
             log: () => {},
           } as unknown as AnalyzeEntryDeps;
         },

@@ -5,7 +5,6 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 import { VertexAI } from '@google-cloud/vertexai';
 import { APP_DISPLAY_NAME, LOCATION, PROJECT_ID } from './config';
-import { MEAL_ANALYSIS_PROMPT } from './prompts';
 import { affectedDateKeys, summarizeCompleteEntries, type AggregatableEntry } from './aggregation';
 import { createModelConfigLoader } from './model-config';
 import { handleEntryCreated, type EntryData } from './analyze-entry';
@@ -47,6 +46,8 @@ export const processEntry = onDocumentCreated(
       status: String(raw.status ?? ''),
       ...(typeof raw.imageUrl === 'string' ? { imageUrl: raw.imageUrl } : {}),
       ...(typeof raw.storagePath === 'string' ? { storagePath: raw.storagePath } : {}),
+      ...(typeof raw.scanMode === 'string' ? { scanMode: raw.scanMode } : {}),
+      ...(typeof raw.rawBarcode === 'string' ? { rawBarcode: raw.rawBarcode } : {}),
     };
 
     // Lazy import avoids circular dependency at module load time:
