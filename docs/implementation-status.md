@@ -32,7 +32,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 9 | done | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, 5c8d3fb | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
 | 10 | done | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 and post-review green (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5, 4caaa9d, 34e3310 | analyzer clean; Flutter 313 passed + 1 intentional live skip; Functions 52/52 with lint/build clean; rules 14/14; focused Food Detail 21/21 |
 | 11 | done | OpenCode unavailable; host fallback under contract | pre- and post-review green (`calorix-task11-today-truth-20260722`) | 61db8c6 | focused Today 26/26; analyzer clean; full Flutter 319 passed + 1 intentional live skip |
-| 12 | in progress (implementation verified; post-review pending) | OpenCode timed out with partial RED file; host completed under contract | pre-review green; post-review pending | baseline 32d99f2 | focused History 28/28; analyzer clean; full Flutter 340 passed + 1 intentional live skip |
+| 12 | done | OpenCode timed out with partial RED file; host completed under contract | pre- and post-review green (`calorix-task12-history-time-travel-20260722`) | 096e2e0 | focused History 28/28; analyzer clean; full Flutter 340 passed + 1 intentional live skip |
 
 ### Task 11 plan checkpoint
 
@@ -58,7 +58,8 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - RED: focused compilation failed on the planned missing `HistoryRange`, range provider, row materializer, streak helper, creation provider, and widget keys/contracts.
 - GREEN: immutable canonical range equality, auto-disposed selected Firestore range queries, timezone-aware calendar shifts, elapsed empty rows, active-streak grace, creation-period navigation clamp, reduced-motion transition, stable row keys, status dots, future-cell disabling, both themes, and day drilldown are implemented.
 - Verification: focused History suite 28/28; `fvm flutter analyze` clean; full `fvm flutter test` 340 passed plus 1 intentional live-contract skip.
-- Next: commit/push this checkpoint and run the Task 12 post-implementation review.
+- Post-review: Antigravity conversation `calorix-task12-history-time-travel-20260722`, `Gemini 3.6 Flash (High)`, returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`; only the standard model footer was appended and no repository mutation occurred.
+- Task 12 is complete at `096e2e0`. Next: Task 13 (Goals and Goals Select).
 
 ### Task 10 plan correction
 

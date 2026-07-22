@@ -1500,7 +1500,7 @@ testWidgets('horizontal strip gestures do not trigger tab swipe; both themes ren
 
 - [x] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 
-- [ ] **Step 6: REVIEW-GATE Task 12**, then **HANDOFF Task 12**
+- [x] **Step 6: REVIEW-GATE Task 12**, then **HANDOFF Task 12**
 
 ```powershell
 git add -A
