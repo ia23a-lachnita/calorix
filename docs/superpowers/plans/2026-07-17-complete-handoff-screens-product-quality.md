@@ -1573,6 +1573,11 @@ Covers `ai` and `ai_history`. Security-touching (Firestore rules) — pre-review
 
 **Interfaces:**
 - Consumes: `activePlanProvider`/`macro_target_repository` (Task 13), `linkedMealId` from review "Ask AI" (Task 8), origin-return routing (Task 2).
+- Canonical storage is the already-shipped `users/{uid}/aiThreads` collection. References to `ai_threads` in the design prose are stale; implementation, rules, fixtures, and tests must not create a parallel collection.
+- The callable owns exchange persistence and archival. Its client payload is `{message, clientMessageId, threadId?, linkedMealId?}` only; plan, intake, profile, recent meals, and prior turns are loaded server-side from the authenticated user's documents. User/reply message IDs are deterministic so a completed retry returns the persisted reply without a second model call.
+- Thread titles use Unicode code-point-safe 60-character truncation. The server validates a linked meal under the authenticated user's entries before storing it and validates structured model actions before returning them.
+- The client repository reads threads/messages with document-snapshot cursors and explicitly deletes `messages` and `messageArchive` in batches of at most 500 before deleting a thread parent. Archive writes remain server-only; owner clients may read archived messages.
+- Confirmation Apply enters an `applying` state before awaiting `MacroTargetRepository.saveActivePlan`; repeat taps are no-ops. Failed sends retain the user turn and retry with the same `clientMessageId`.
 - Produces (used by Task 16):
 
 ```dart
@@ -1598,7 +1603,7 @@ match /users/{uid}/ai_threads/{threadId} {
 }
 ```
 
-- [ ] **Step 1: Pre-implementation REVIEW-GATE Task 14** — host submits the thread model, rules diff, and server-context design for review **before** implementation; proceed only when green.
+- [x] **Step 1: Pre-implementation REVIEW-GATE Task 14** — host submits the thread model, rules diff, and server-context design for review **before** implementation; proceed only when green.
 
 - [ ] **Step 2 (worker): Write failing tests**
 
