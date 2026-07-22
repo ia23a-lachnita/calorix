@@ -1,12 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
-import '../../../core/time/clock_provider.dart';
 import '../../../shared/models/daily_log.dart';
 import '../../../shared/models/macro_target_plan.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/plan_provider.dart';
-import '../../../shared/utils/date_key.dart';
 
 export '../../../shared/providers/plan_provider.dart' show activePlanProvider;
 
@@ -15,30 +11,14 @@ export '../../../shared/providers/plan_provider.dart' show activePlanProvider;
 final weightLogsProvider = StreamProvider<List<WeightLog>>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return Stream.value([]);
-  return ref
-      .watch(firestoreProvider)
-      .collection(AppConstants.usersCollection)
-      .doc(uid)
-      .collection(AppConstants.weightLogsSubCollection)
-      .orderBy(FieldPath.documentId, descending: true)
-      .limit(30)
-      .snapshots()
-      .map((q) =>
-          q.docs.map(WeightLog.fromFirestore).toList().reversed.toList());
+  return ref.watch(weightLogRepositoryProvider).watchRecent(uid);
 });
 
 /// Writes today's weight (one entry per calendar day, latest value wins).
 Future<void> logWeight(Ref ref, double kg) async {
   final uid = ref.read(currentUidProvider);
   if (uid == null) return;
-  final dateKey = localDateKey(ref.read(clockProvider).nowTZ());
-  await ref
-      .read(firestoreProvider)
-      .collection(AppConstants.usersCollection)
-      .doc(uid)
-      .collection(AppConstants.weightLogsSubCollection)
-      .doc(dateKey)
-      .set(WeightLog(date: dateKey, weight: kg).toMap());
+  await ref.read(weightLogRepositoryProvider).log(uid, kg);
 }
 
 final logWeightProvider = Provider<Future<void> Function(double kg)>((ref) {

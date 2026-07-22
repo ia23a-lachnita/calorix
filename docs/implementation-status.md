@@ -69,7 +69,10 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Planned architecture: synchronized immutable draft + explicit Adjust/Save lifecycle, plan and weight data-store seams, store-level validation, timezone-aware period math, and `DraftPolicy.goalsEdit` exit protection. Existing visual composition remains intact.
 - Pre-review round 1 was substantively positive with no MUST_FIX, but concatenated `AGREEMENT_STATUS`, `MUST_FIX`, and `SHOULD_FIX` headings; it is recorded as MCP response noise and requires a clean confirmation. Its recommendations were adopted: atomic create-and-activate batch, dedicated weight repository seam, loading/error draft guards, and location-preserving plan-week math.
 - Confirmation review in `calorix-task13-goals-persistence-20260722` returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`; only the standard model footer was appended and no repository mutation occurred.
-- Next: OpenCode RED-only attempt.
+- OpenCode RED-only invocation timed out after 244 seconds with no output or file changes; the host terminated lingering child process `20096`. Host fallback proceeded under the repeated-stall rule.
+- Repository RED failed on missing plan/weight data-store seams, atomic create-and-activate, typed save, and clock-backed weight repository.
+- Repository GREEN: injectable plan and weight stores, Firestore adapters, atomic default-plan create/activate batch, validated existing-plan updates, clock-date weight upsert, same-day overwrite, and next-day extension. Focused persistence tests 5/5; analyzer clean.
+- Next: synchronized `GoalsDraft` RED/GREEN and screen Adjust/Save/exit behavior.
 
 ### Task 10 plan correction
 

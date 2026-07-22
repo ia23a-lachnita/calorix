@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../core/time/clock_provider.dart';
 import '../repositories/food_entry_repository.dart';
 import '../repositories/macro_target_repository.dart';
+import '../repositories/weight_log_repository.dart';
 
 final firebaseAuthProvider =
     Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
@@ -19,6 +20,13 @@ final foodEntryRepositoryProvider = Provider<FoodEntryRepository>(
 
 final macroTargetRepositoryProvider = Provider<MacroTargetRepository>(
   (ref) => MacroTargetRepository(ref.watch(firestoreProvider)),
+);
+
+final weightLogRepositoryProvider = Provider<WeightLogRepository>(
+  (ref) => WeightLogRepository(
+    ref.watch(firestoreProvider),
+    ref.watch(clockProvider),
+  ),
 );
 
 final authStateProvider = StreamProvider<User?>((ref) {
