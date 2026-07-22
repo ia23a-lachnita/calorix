@@ -32,6 +32,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 9 | done | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, 5c8d3fb | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
 | 10 | done | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 and post-review green (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5, 4caaa9d, 34e3310 | analyzer clean; Flutter 313 passed + 1 intentional live skip; Functions 52/52 with lint/build clean; rules 14/14; focused Food Detail 21/21 |
 | 11 | done | OpenCode unavailable; host fallback under contract | pre- and post-review green (`calorix-task11-today-truth-20260722`) | 61db8c6 | focused Today 26/26; analyzer clean; full Flutter 319 passed + 1 intentional live skip |
+| 12 | in progress (plan reconciliation) | pending OpenCode RED attempt | pre-review pending | baseline 588ab9b | inspect existing History implementation; intended focused gate: `fvm flutter test test/history test/history_screen_test.dart` |
 
 ### Task 11 plan checkpoint
 
@@ -44,6 +45,13 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Verification: focused Today suite 26/26; `fvm flutter analyze` clean; full `fvm flutter test` 319 passed plus 1 intentional live-contract skip.
 - Post-review: Antigravity conversation `calorix-task11-today-truth-20260722`, `Gemini 3.6 Flash (High)`, returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. The only extra output was the standard model footer; `git status` showed no reviewer mutation.
 - Task 11 is complete at `61db8c6`. Next: Task 12 (History Week/Month Time Travel, Fills, and Drilldown).
+
+### Task 12 plan checkpoint
+
+- Existing History already implements the handoff calendar, weekly stats, status colors, future-day dimming, streak surface, and day-detail screen; Task 12 will preserve these rather than rewrite them.
+- Missing production contracts found during inspection: selected periods still read a fixed latest-30 stream; previous navigation has no account-creation lower bound; elapsed empty days are absent from day rows; `AnimatedSize` uses a literal duration and ignores reduced motion; focused routing/time-travel tests are absent.
+- Planned architecture: immutable `HistoryRange` family query for selected week/month, separate recent stream for cross-week streaks, overrideable auth-metadata creation boundary, pure elapsed-week row materializer, and `AppMotion` transition timing.
+- Next: Antigravity pre-implementation review, then an OpenCode RED-only attempt using the reviewed plan.
 
 ### Task 10 plan correction
 

@@ -1470,13 +1470,15 @@ git push
 
 **Interfaces:**
 - Consumes: `clockProvider` (Task 3), `todaySummaryProvider` shape (Task 11), day-key util (`lib/shared/utils/date_key.dart`).
-- Produces: `historyRangeProvider(DateRange)` used by Task 16's time-travel integration suite; week↔month toggle state preserved across tab swipes (Task 2 shell).
+- Produces: immutable `HistoryRange(start, endExclusive)` plus `historyRangeProvider(HistoryRange)` used by Task 16's time-travel integration suite; week↔month toggle state preserved across tab swipes (Task 2 shell). The range provider queries canonical `dailyLogs.date` keys without a fixed document limit. A separate recent-history stream remains responsible for cross-week streak calculation.
+- Navigation lower bound: `accountCreationProvider` derives Firebase Auth `metadata.creationTime` and is overrideable in tests. Previous-week/month navigation stops at the period containing account creation; missing metadata does not invent a lower bound.
+- Day-row truth: `buildHistoryWeekRows` materializes every eligible date from account creation through `min(endOfWeek, now)`, preserving real aggregate rows and inserting explicit zero-entry rows for elapsed empty days. Future dates never become day rows or drilldown targets.
 
 - [ ] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/history/history_time_travel_test.dart (FakeClock overrides)
-test('advancing 3 days shows 3 new empty day rows with previous data intact', () async { /* implement */ });
+test('advancing 3 days shows 3 new empty day rows with previous data intact', () async { /* use FakeClock + buildHistoryWeekRows */ });
 test('week strip navigates back/forward with chevrons and clamps at account creation', () async { /* implement */ });
 test('month grid marks green (target met) and amber (review/miss) dots from real data, today gets cyan border, future days dimmed', () async { /* implement */ });
 
@@ -1489,7 +1491,7 @@ testWidgets('horizontal strip gestures do not trigger tab swipe; both themes ren
 
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/history test/history_screen_test.dart` → Expected: FAIL on new assertions.
 
-- [ ] **Step 3 (worker): Implement** per spec §5.13/§5.14 against `cx-screen-history.jsx`; all date math through the injected clock.
+- [ ] **Step 3 (worker): Implement** per spec §5.13/§5.14 against `cx-screen-history.jsx`; all date math through the injected clock. Replace the screen's fixed-limit source with the selected range provider, retain a recent stream for streaks, apply `AppMotion.durationOf` to the 300ms week↔month transition, and route only elapsed eligible day rows to History Day.
 
 - [ ] **Step 4: GREEN** — Run: same → Expected: PASS.
 
