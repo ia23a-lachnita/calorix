@@ -81,6 +81,9 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
   FoodEntry get entry => widget.entry;
   bool get _isEditMode => ref.watch(foodEditModeProvider(entry.id));
   PendingEdits get _pending => ref.watch(pendingEditsProvider(entry.id));
+  bool get _canEdit =>
+      entry.status != FoodEntryStatus.pending &&
+      entry.status != FoodEntryStatus.processing;
 
   double get _multiplier =>
       _pending.servingMultiplier ?? entry.servingMultiplier;
@@ -249,16 +252,18 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                       ),
                                     ),
                                     const SizedBox(width: 10),
-                                    _EditChip(
-                                      isEditing: _isEditMode,
-                                      isDark: isDark,
-                                      onTap: () {
-                                        ref
-                                            .read(foodEditModeProvider(entry.id)
-                                                .notifier)
-                                            .state = !_isEditMode;
-                                      },
-                                    ),
+                                    if (_canEdit)
+                                      _EditChip(
+                                        isEditing: _isEditMode,
+                                        isDark: isDark,
+                                        onTap: () {
+                                          ref
+                                              .read(
+                                                  foodEditModeProvider(entry.id)
+                                                      .notifier)
+                                              .state = !_isEditMode;
+                                        },
+                                      ),
                                   ],
                                 ),
                               ],
@@ -269,7 +274,7 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                             child: _KcalBanner(
                               kcal: _displayKcal,
                               multiplier: _multiplier,
-                              isEditing: _isEditMode,
+                              isEditing: _isEditMode && _canEdit,
                               isDark: isDark,
                               onMultiplierChanged: (v) =>
                                   ref
@@ -463,7 +468,7 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
             ),
           ],
         ),
-        bottomNavigationBar: _isEditMode
+        bottomNavigationBar: _isEditMode && _canEdit
             ? _EditActionBar(
                 isSaving: _isSaving,
                 isDark: isDark,

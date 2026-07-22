@@ -62,6 +62,13 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Verification: combined food-detail tests 9/9; analyzer clean from the same source delta.
 - Next: nullable watch/delete behavior and unsaved/pending-state UI gates.
 
+### Task 10 entry-state edit checkpoint
+
+- RED: pending and processing detail sheets still rendered the Edit chip.
+- GREEN: non-terminal entries hide Edit, cannot activate the serving stepper, and cannot render the save action bar.
+- Verification: food-detail tests 11/11; analyzer clean.
+- Next: nullable watch/delete behavior and `PopScope` unsaved-exit confirmation.
+
 ### Task 9 backend checkpoint
 
 - OpenCode invocation `opencode/mimo-v2.5-free` was terminated on 2026-07-22 after more than three minutes with no output and no file changes; host fallback used under the recorded repeated-stall rule.

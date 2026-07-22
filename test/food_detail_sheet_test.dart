@@ -9,7 +9,12 @@ import 'package:calorix/features/food_detail/providers/food_detail_providers.dar
 import 'package:calorix/shared/models/food_entry.dart';
 import 'package:calorix/shared/providers/auth_provider.dart';
 
-FoodEntry _entry({String? imageUrl, String? storagePath}) => FoodEntry(
+FoodEntry _entry({
+  String? imageUrl,
+  String? storagePath,
+  FoodEntryStatus status = FoodEntryStatus.complete,
+}) =>
+    FoodEntry(
       id: 'e1',
       uid: 'u1',
       timestamp: DateTime(2026, 7, 8, 12, 48),
@@ -17,7 +22,7 @@ FoodEntry _entry({String? imageUrl, String? storagePath}) => FoodEntry(
       imageUrl: imageUrl,
       storagePath: storagePath,
       scanMode: 'meal',
-      status: FoodEntryStatus.complete,
+      status: status,
       foodName: 'Chicken Rice Bowl',
       kcal: 620,
       protein: 48,
@@ -88,8 +93,8 @@ void main() {
     expect(find.textContaining('% of protein target'), findsOneWidget);
 
     // Regression: progress fill collapsed to zero height in the loose Stack.
-    final fill = tester
-        .getSize(find.byKey(const Key('macro-progress-fill-Protein')));
+    final fill =
+        tester.getSize(find.byKey(const Key('macro-progress-fill-Protein')));
     expect(fill.height, 4);
     expect(fill.width, greaterThan(0));
 
@@ -100,4 +105,17 @@ void main() {
     expect(find.text('Not right? Ask AI to fix this'), findsOneWidget);
     tester.takeException();
   });
+
+  for (final status in [
+    FoodEntryStatus.pending,
+    FoodEntryStatus.processing,
+  ]) {
+    testWidgets('${status.name} entries hide edit controls', (tester) async {
+      await tester.pumpWidget(_app(_entry(status: status)));
+      await _pump(tester);
+
+      expect(find.text('Edit'), findsNothing);
+      expect(find.text('Save to Today'), findsNothing);
+    });
+  }
 }
