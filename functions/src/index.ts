@@ -128,6 +128,14 @@ export const aggregateDailyLogs = onDocumentWritten(
         const data = doc.data();
         return {
           status: String(data.status ?? ''),
+          ...(typeof data.baseKcal === 'number' ? { baseKcal: data.baseKcal } : {}),
+          ...(typeof data.baseProtein === 'number'
+            ? { baseProtein: data.baseProtein }
+            : {}),
+          ...(typeof data.baseCarbs === 'number'
+            ? { baseCarbs: data.baseCarbs }
+            : {}),
+          ...(typeof data.baseFat === 'number' ? { baseFat: data.baseFat } : {}),
           kcal: typeof data.kcal === 'number' ? data.kcal : 0,
           protein: typeof data.protein === 'number' ? data.protein : 0,
           carbs: typeof data.carbs === 'number' ? data.carbs : 0,

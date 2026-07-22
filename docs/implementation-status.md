@@ -30,7 +30,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
 | 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
 | 9 | done | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, 5c8d3fb | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
-| 10 | in progress (RED next) | host planning; implementation worker pending | pre-review green round 2 (`calorix-task10-food-crud-20260722`) | plan checkpoint pending | corrected contract owns canonical base nutrition, exactly-once scaling, auth-scoped CRUD, and edit-state safety |
+| 10 | in progress (CRUD next) | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 (`calorix-task10-food-crud-20260722`) | plan 01264d8; canonical checkpoint pending | canonical base migration green across Flutter, Functions, fixtures, aggregation, and rules; CRUD/UI stages pending |
 
 ### Task 10 plan correction
 
@@ -38,6 +38,15 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Task 10 now owns the canonical `baseKcal/baseProtein/baseCarbs/baseFat` migration for all new writes, legacy read fallback, exactly-once aggregation/display scaling, auth-scoped CRUD, deterministic correction timestamps, nullable watch behavior, draft protection, and pending/processing edit restrictions.
 - Antigravity response formatting concatenated several requested headings/line breaks. The substantive findings were coherent, but this is recorded as MCP response noise; confirmation review is required before implementation.
 - Confirmation review returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`; implementation may start with Task 10 Step 1 RED tests.
+
+### Task 10 canonical nutrition checkpoint
+
+- OpenCode RED-only invocation was terminated after roughly 90 seconds with no output and no file changes; host fallback used under the repeated-stall rule.
+- RED: Flutter failed on missing `base*` fields and serving helpers; Functions failed on legacy serialization and canonical aggregation precedence.
+- GREEN: `FoodEntry` owns canonical `base*` data with temporary source aliases and legacy read fallback; `toMap` and all identified new worker/manual/seed/fixture/duplicate writes emit only `base*`; aggregation reads canonical first and multiplies exactly once; Firestore rules require canonical nutrition for new complete entries.
+- Full evidence: Flutter analyzer clean; Flutter 262 passed plus 1 intentional live skip; Functions build/lint clean and 52/52 tests; Firestore rules 13/13 through the emulator.
+- Workspace warning: stale historical `opencode run` processes deleted three tracked Task 7 test files (`test/processing/combined_state_test.dart`, `test/processing/support/fakes.dart`, `test/processing/upload_queue_test.dart`) during this stage. They are unrelated to Task 10 and are deliberately not staged or restored by this checkpoint; all stale run processes were stopped. The 262-test result therefore is not accepted as the original 294-test baseline until those external deletions are resolved.
+- Next: auth-scoped CRUD/correction RED tests and implementation, then detail-sheet edit/draft behavior.
 
 ### Task 9 backend checkpoint
 

@@ -36,12 +36,37 @@ describe('affectedDateKeys', () => {
 describe('summarizeCompleteEntries', () => {
   it('sums only complete entries, scaled by servingMultiplier', () => {
     const totals = summarizeCompleteEntries([
-      { status: 'complete', kcal: 620, protein: 48, carbs: 72, fat: 16 },
-      { status: 'complete', kcal: 100, protein: 10, carbs: 5, fat: 2, servingMultiplier: 2 },
+      { status: 'complete', baseKcal: 620, baseProtein: 48, baseCarbs: 72, baseFat: 16 },
+      { status: 'complete', baseKcal: 100, baseProtein: 10, baseCarbs: 5, baseFat: 2, servingMultiplier: 2 },
       { status: 'needs_review', kcal: 400, protein: 30, carbs: 40, fat: 12 },
       { status: 'pending', kcal: 999 },
     ]);
     expect(totals).toEqual({ kcal: 820, protein: 68, carbs: 82, fat: 20, entryCount: 2 });
+  });
+
+  it('prefers canonical base fields and falls back to legacy fields', () => {
+    const totals = summarizeCompleteEntries([
+      {
+        status: 'complete',
+        baseKcal: 100,
+        baseProtein: 10,
+        baseCarbs: 20,
+        baseFat: 5,
+        kcal: 999,
+        protein: 999,
+        carbs: 999,
+        fat: 999,
+        servingMultiplier: 2,
+      },
+      { status: 'complete', kcal: 50, protein: 5, carbs: 4, fat: 3 },
+    ]);
+    expect(totals).toEqual({
+      kcal: 250,
+      protein: 25,
+      carbs: 44,
+      fat: 13,
+      entryCount: 2,
+    });
   });
 
   it('returns zero totals for an empty day so the daily log can be deleted', () => {

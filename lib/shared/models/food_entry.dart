@@ -102,10 +102,10 @@ class FoodEntry {
   final String scanMode;
   final FoodEntryStatus status;
   final String? foodName;
-  final double? kcal;
-  final double? protein;
-  final double? carbs;
-  final double? fat;
+  final double? baseKcal;
+  final double? baseProtein;
+  final double? baseCarbs;
+  final double? baseFat;
   final double servingMultiplier;
   final MealType mealType;
   final List<DetectedItem> detectedItems;
@@ -125,10 +125,14 @@ class FoodEntry {
     required this.scanMode,
     required this.status,
     this.foodName,
-    this.kcal,
-    this.protein,
-    this.carbs,
-    this.fat,
+    double? baseKcal,
+    double? baseProtein,
+    double? baseCarbs,
+    double? baseFat,
+    double? kcal,
+    double? protein,
+    double? carbs,
+    double? fat,
     this.servingMultiplier = 1.0,
     this.mealType = MealType.lunch,
     this.detectedItems = const [],
@@ -137,12 +141,21 @@ class FoodEntry {
     this.corrected = false,
     this.boundingBox,
     this.candidates = const [],
-  });
+  })  : baseKcal = baseKcal ?? kcal,
+        baseProtein = baseProtein ?? protein,
+        baseCarbs = baseCarbs ?? carbs,
+        baseFat = baseFat ?? fat;
 
-  double get scaledKcal => (kcal ?? 0) * servingMultiplier;
-  double get scaledProtein => (protein ?? 0) * servingMultiplier;
-  double get scaledCarbs => (carbs ?? 0) * servingMultiplier;
-  double get scaledFat => (fat ?? 0) * servingMultiplier;
+  /// Temporary source-compatible aliases. Persistence uses only `base*`.
+  double? get kcal => baseKcal;
+  double? get protein => baseProtein;
+  double? get carbs => baseCarbs;
+  double? get fat => baseFat;
+
+  double get scaledKcal => (baseKcal ?? 0) * servingMultiplier;
+  double get scaledProtein => (baseProtein ?? 0) * servingMultiplier;
+  double get scaledCarbs => (baseCarbs ?? 0) * servingMultiplier;
+  double get scaledFat => (baseFat ?? 0) * servingMultiplier;
 
   bool get isConfirmed => (confidence ?? 0) >= 0.80;
 
@@ -165,6 +178,10 @@ class FoodEntry {
       DateTime value => value,
       _ => throw const FormatException('FoodEntry timestamp is required.'),
     };
+    double? nutritionValue(String canonical, String legacy) {
+      return (data[canonical] ?? data[legacy] as num?)?.toDouble();
+    }
+
     return FoodEntry(
       id: id,
       uid: data['uid'] as String,
@@ -175,10 +192,10 @@ class FoodEntry {
       scanMode: data['scanMode'] as String? ?? 'meal',
       status: FoodEntryStatusWire.fromWire(data['status'] as String?),
       foodName: data['foodName'] as String?,
-      kcal: (data['kcal'] as num?)?.toDouble(),
-      protein: (data['protein'] as num?)?.toDouble(),
-      carbs: (data['carbs'] as num?)?.toDouble(),
-      fat: (data['fat'] as num?)?.toDouble(),
+      baseKcal: nutritionValue('baseKcal', 'kcal'),
+      baseProtein: nutritionValue('baseProtein', 'protein'),
+      baseCarbs: nutritionValue('baseCarbs', 'carbs'),
+      baseFat: nutritionValue('baseFat', 'fat'),
       servingMultiplier: (data['servingMultiplier'] as num?)?.toDouble() ?? 1.0,
       mealType: MealType.values.firstWhere(
         (m) => m.name == (data['mealType'] as String? ?? 'lunch'),
@@ -212,10 +229,10 @@ class FoodEntry {
         'scanMode': scanMode,
         'status': status.wireName,
         'foodName': foodName,
-        'kcal': kcal,
-        'protein': protein,
-        'carbs': carbs,
-        'fat': fat,
+        'baseKcal': baseKcal,
+        'baseProtein': baseProtein,
+        'baseCarbs': baseCarbs,
+        'baseFat': baseFat,
         'servingMultiplier': servingMultiplier,
         'mealType': mealType.name,
         'detectedItems': detectedItems.map((e) => e.toMap()).toList(),
@@ -231,6 +248,10 @@ class FoodEntry {
     double? protein,
     double? carbs,
     double? fat,
+    double? baseKcal,
+    double? baseProtein,
+    double? baseCarbs,
+    double? baseFat,
     double? servingMultiplier,
     MealType? mealType,
     List<DetectedItem>? detectedItems,
@@ -249,10 +270,10 @@ class FoodEntry {
         scanMode: scanMode,
         status: status ?? this.status,
         foodName: foodName ?? this.foodName,
-        kcal: kcal ?? this.kcal,
-        protein: protein ?? this.protein,
-        carbs: carbs ?? this.carbs,
-        fat: fat ?? this.fat,
+        baseKcal: baseKcal ?? kcal ?? this.baseKcal,
+        baseProtein: baseProtein ?? protein ?? this.baseProtein,
+        baseCarbs: baseCarbs ?? carbs ?? this.baseCarbs,
+        baseFat: baseFat ?? fat ?? this.baseFat,
         servingMultiplier: servingMultiplier ?? this.servingMultiplier,
         mealType: mealType ?? this.mealType,
         detectedItems: detectedItems ?? this.detectedItems,

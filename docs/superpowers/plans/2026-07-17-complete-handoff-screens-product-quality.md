@@ -1392,7 +1392,7 @@ testWidgets('card-to-detail uses shared transition of ~320ms and dark/light them
 
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/food_detail test/food_detail_sheet_test.dart` → Expected: FAIL (`clampServing`/CRUD surface undefined; UI branches missing).
 
-- [ ] **Step 3A (worker): Implement canonical nutrition migration** — `FoodEntry` canonical base fields with legacy read fallback, backend/manual/seed/fixture/duplicate/edit writes emitting only `base*`, aggregation canonical-first fallback, and rules validation. Do not run a production backfill.
+- [x] **Step 3A (worker): Implement canonical nutrition migration** — `FoodEntry` canonical base fields with legacy read fallback, backend/manual/seed/fixture/duplicate/edit writes emitting only `base*`, aggregation canonical-first fallback, and rules validation. Do not run a production backfill.
 
 - [ ] **Step 3B (worker): Implement CRUD and scaling** — auth-scoped repository/data-store seam; nullable watch; deterministic `correctedAt`; clamp/multiplier helpers; displayed-to-base conversion; duplicate/delete semantics; no double scaling.
 

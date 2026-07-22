@@ -11,7 +11,11 @@ service cloud.firestore {
     }
 
     function validMacros(data) {
-      return (!('kcal' in data) || (data.kcal is number && data.kcal >= 0 && data.kcal <= 10000))
+      return (!('baseKcal' in data) || (data.baseKcal is number && data.baseKcal >= 0 && data.baseKcal <= 10000))
+        && (!('baseProtein' in data) || (data.baseProtein is number && data.baseProtein >= 0))
+        && (!('baseCarbs' in data) || (data.baseCarbs is number && data.baseCarbs >= 0))
+        && (!('baseFat' in data) || (data.baseFat is number && data.baseFat >= 0))
+        && (!('kcal' in data) || (data.kcal is number && data.kcal >= 0 && data.kcal <= 10000))
         && (!('protein' in data) || (data.protein is number && data.protein >= 0))
         && (!('carbs' in data) || (data.carbs is number && data.carbs >= 0))
         && (!('fat' in data) || (data.fat is number && data.fat >= 0))
@@ -33,10 +37,10 @@ service cloud.firestore {
           && validMacros(request.resource.data)
           && (request.resource.data.status != 'complete' || (
                 request.resource.data.foodName is string
-                && request.resource.data.kcal is number
-                && request.resource.data.protein is number
-                && request.resource.data.carbs is number
-                && request.resource.data.fat is number));
+                && request.resource.data.baseKcal is number
+                && request.resource.data.baseProtein is number
+                && request.resource.data.baseCarbs is number
+                && request.resource.data.baseFat is number));
 
         // 'processing', 'needs_review', and 'error' are server-assigned.
         // Clients may confirm a review (needs_review -> complete) or retry a

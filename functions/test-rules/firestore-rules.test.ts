@@ -28,10 +28,10 @@ function validEntry(overrides: Record<string, unknown> = {}) {
 const completeFields = {
   status: 'complete',
   foodName: 'Chicken Rice Bowl',
-  kcal: 620,
-  protein: 48,
-  carbs: 72,
-  fat: 16,
+  baseKcal: 620,
+  baseProtein: 48,
+  baseCarbs: 72,
+  baseFat: 16,
   confidence: 0.91,
 };
 
@@ -89,13 +89,29 @@ describe('entries', () => {
     await assertFails(
       setDoc(
         doc(ownerDb(), `users/${OWNER}/entries/e5`),
-        validEntry({ ...completeFields, kcal: 60000 }),
+        validEntry({ ...completeFields, baseKcal: 60000 }),
       ),
     );
     await assertFails(
       setDoc(
         doc(ownerDb(), `users/${OWNER}/entries/e6`),
         validEntry({ ...completeFields, confidence: 1.5 }),
+      ),
+    );
+  });
+
+  it('rejects legacy nutrition fields on new complete entries', async () => {
+    await assertFails(
+      setDoc(
+        doc(ownerDb(), `users/${OWNER}/entries/legacy`),
+        validEntry({
+          status: 'complete',
+          foodName: 'Legacy meal',
+          kcal: 100,
+          protein: 10,
+          carbs: 20,
+          fat: 5,
+        }),
       ),
     );
   });
@@ -157,10 +173,10 @@ describe('entries', () => {
       );
     });
     await assertSucceeds(
-      updateDoc(doc(ownerDb(), `users/${OWNER}/entries/e9`), { kcal: 500 }),
+      updateDoc(doc(ownerDb(), `users/${OWNER}/entries/e9`), { baseKcal: 500 }),
     );
     await assertFails(
-      updateDoc(doc(otherDb(), `users/${OWNER}/entries/e9`), { kcal: 1 }),
+      updateDoc(doc(otherDb(), `users/${OWNER}/entries/e9`), { baseKcal: 1 }),
     );
     await assertSucceeds(deleteDoc(doc(ownerDb(), `users/${OWNER}/entries/e9`)));
   });

@@ -3,6 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/food_entry.dart';
 import '../../../shared/providers/auth_provider.dart';
 
+double clampServing(double raw) =>
+    (raw * 4).roundToDouble().clamp(1, 20).toDouble() / 4;
+
+double baseFromDisplayed(double displayed, double multiplier) {
+  if (!displayed.isFinite || !multiplier.isFinite || multiplier <= 0) {
+    throw ArgumentError('Displayed nutrition and multiplier must be finite.');
+  }
+  return displayed / multiplier;
+}
+
+FoodEntry scaledBy(FoodEntry base, double multiplier) =>
+    base.copyWith(servingMultiplier: clampServing(multiplier));
+
 /// Resolves a Cloud Storage path (the field real scans carry) to a fetchable
 /// URL, so the detail hero shows the user's actual photo.
 final storageImageUrlProvider =
@@ -75,5 +88,5 @@ class PendingEdits {
       };
 }
 
-final pendingEditsProvider =
-    StateProvider.autoDispose.family<PendingEdits, String>((ref, id) => const PendingEdits());
+final pendingEditsProvider = StateProvider.autoDispose
+    .family<PendingEdits, String>((ref, id) => const PendingEdits());

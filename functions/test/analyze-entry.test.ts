@@ -122,10 +122,10 @@ describe('handleEntryCreated', () => {
     expect(recorded.updates[1]).toMatchObject({
       status: 'complete',
       foodName: 'Chicken Rice Bowl',
-      kcal: 620,
-      protein: 48,
-      carbs: 72,
-      fat: 16,
+      baseKcal: 620,
+      baseProtein: 48,
+      baseCarbs: 72,
+      baseFat: 16,
       confidence: 0.91,
       atwaterKcal: 624,
       scanMode: 'meal',
@@ -134,6 +134,8 @@ describe('handleEntryCreated', () => {
     expect(recorded.updates[1]?.candidates).toEqual([
       expect.objectContaining({ name: 'Chicken Rice Bowl', proteinG: 48 }),
     ]);
+    expect(recorded.updates[1]).not.toHaveProperty('kcal');
+    expect(recorded.updates[1]).not.toHaveProperty('protein');
     expect(recorded.pushes[0]!.notification.body).toBe('Chicken Rice Bowl · 620 kcal');
   });
 
@@ -165,10 +167,10 @@ describe('handleEntryCreated', () => {
     expect(recorded.updates[1]).toMatchObject({
       status: 'complete',
       foodName: 'Nutella',
-      kcal: 539,
-      protein: 6.3,
-      carbs: 57.5,
-      fat: 30.9,
+      baseKcal: 539,
+      baseProtein: 6.3,
+      baseCarbs: 57.5,
+      baseFat: 30.9,
       confidence: 1,
       atwaterKcal: 533,
       scanMode: 'barcode',

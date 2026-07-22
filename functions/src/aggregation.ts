@@ -1,5 +1,9 @@
 export interface AggregatableEntry {
   status: string;
+  baseKcal?: number;
+  baseProtein?: number;
+  baseCarbs?: number;
+  baseFat?: number;
   kcal?: number;
   protein?: number;
   carbs?: number;
@@ -44,10 +48,10 @@ export function summarizeCompleteEntries(entries: AggregatableEntry[]): DailyTot
   for (const entry of entries) {
     if (entry.status !== 'complete') continue;
     const multiplier = entry.servingMultiplier ?? 1;
-    totals.kcal += (entry.kcal ?? 0) * multiplier;
-    totals.protein += (entry.protein ?? 0) * multiplier;
-    totals.carbs += (entry.carbs ?? 0) * multiplier;
-    totals.fat += (entry.fat ?? 0) * multiplier;
+    totals.kcal += (entry.baseKcal ?? entry.kcal ?? 0) * multiplier;
+    totals.protein += (entry.baseProtein ?? entry.protein ?? 0) * multiplier;
+    totals.carbs += (entry.baseCarbs ?? entry.carbs ?? 0) * multiplier;
+    totals.fat += (entry.baseFat ?? entry.fat ?? 0) * multiplier;
     totals.entryCount += 1;
   }
   return totals;
