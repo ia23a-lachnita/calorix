@@ -1519,8 +1519,8 @@ git push
 **Interfaces:**
 - Consumes: `clockProvider` (Task 3 — week/month period math), `DraftPolicy.confirmDestructiveExit` for goal edits (Task 3).
 - Produces: `activePlanProvider` (plan persists across restart via repository), `weightLogProvider`; assistant confirmation flow (Task 14) mutates plans only through `macro_target_repository.dart`.
-- Draft contract: one immutable `GoalsDraft` owns source plan ID, goal, kcal/macros, edit/dirty/saving/error state. A notifier listens to `activePlanProvider`, adopts delayed/restarted plan emissions only while clean, and never overwrites an unsaved draft from the same source plan. `Adjust` enters edit mode; it becomes `Save` while editing. Successful save clears dirty/editing and re-synchronizes from the repository; failed save remains editable and visible.
-- Persistence contract: add testable `MacroTargetDataStore` and `WeightLogDataStore` seams with Firestore adapters. Existing plans update in place; a missing/default plan creates one and activates it atomically through the repository API. All writes remain under `users/{uid}/targets` or `users/{uid}/weightLogs`.
+- Draft contract: one immutable `GoalsDraft` owns source plan ID, goal, kcal/macros, edit/dirty/saving/error state. A notifier listens to `activePlanProvider`, adopts delayed/restarted `AsyncData` plan emissions only while clean, explicitly ignores `AsyncLoading`/`AsyncError`, and never overwrites an unsaved draft from the same source plan. `Adjust` enters edit mode; it becomes `Save` while editing. Successful save clears dirty/editing and re-synchronizes from the repository; failed save remains editable and visible.
+- Persistence contract: add testable `MacroTargetDataStore` and `WeightLogDataStore` seams with Firestore adapters and repositories. Existing plans update in place; a missing/default plan uses `createAndSetActivePlan`, whose Firestore adapter deactivates existing active plans and creates the replacement in one `WriteBatch`. All writes remain under `users/{uid}/targets` or `users/{uid}/weightLogs`.
 - Validation contract: kcal stays within `AppConstants.kcalSliderMin..kcalSliderMax`; protein/carbs/fat must be positive and bounded; weight must be finite and within the existing UI-supported range. Invalid values never reach a data store.
 - Exit contract: a dirty Goals draft uses `DraftPolicy.goalsEdit` via `PopScope`, offering Keep editing/Discard. Clean, saved, or read-only state exits immediately.
 
@@ -1544,7 +1544,7 @@ testWidgets('Adjust enters edit mode, Save persists, failure stays editable, and
 
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/goals test/goals_screen_test.dart` → Expected: FAIL on new assertions.
 
-- [ ] **Step 3 (worker): Implement** per spec §5.15/§5.16 against `cx-screen-goals.jsx`; dropdown and segmented selection via `AppMotion`, persistence through the testable repository seams, and all period math through timezone-aware calendar dates rather than physical-duration day counts.
+- [ ] **Step 3 (worker): Implement** per spec §5.15/§5.16 against `cx-screen-goals.jsx`; dropdown and segmented selection via `AppMotion`, persistence through the testable repository seams, and all period math by converting `plan.startDate` to `now.location` before timezone-aware calendar-date calculations rather than physical-duration day counts.
 
 - [ ] **Step 4: GREEN** — Run: same → Expected: PASS.
 

@@ -67,7 +67,9 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Existing Goals already renders the handoff's period dropdown, body-goal selector, calorie slider/stepper, macro split, weight chart, and trend state.
 - Missing production contracts found during inspection: plan controls mutate only transient providers and never persist; `macroSplitProvider` can initialize before the active plan stream emits and then remain stale; `Adjust` is decorative; weight logging has no testable store seam; dirty goals have no exit protection; dropdown/segment motion is not reduced-motion aware.
 - Planned architecture: synchronized immutable draft + explicit Adjust/Save lifecycle, plan and weight data-store seams, store-level validation, timezone-aware period math, and `DraftPolicy.goalsEdit` exit protection. Existing visual composition remains intact.
-- Next: Antigravity pre-implementation review, then an OpenCode RED-only attempt.
+- Pre-review round 1 was substantively positive with no MUST_FIX, but concatenated `AGREEMENT_STATUS`, `MUST_FIX`, and `SHOULD_FIX` headings; it is recorded as MCP response noise and requires a clean confirmation. Its recommendations were adopted: atomic create-and-activate batch, dedicated weight repository seam, loading/error draft guards, and location-preserving plan-week math.
+- Confirmation review in `calorix-task13-goals-persistence-20260722` returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`; only the standard model footer was appended and no repository mutation occurred.
+- Next: OpenCode RED-only attempt.
 
 ### Task 10 plan correction
 
