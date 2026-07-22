@@ -33,6 +33,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 10 | done | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 and post-review green (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5, 4caaa9d, 34e3310 | analyzer clean; Flutter 313 passed + 1 intentional live skip; Functions 52/52 with lint/build clean; rules 14/14; focused Food Detail 21/21 |
 | 11 | done | OpenCode unavailable; host fallback under contract | pre- and post-review green (`calorix-task11-today-truth-20260722`) | 61db8c6 | focused Today 26/26; analyzer clean; full Flutter 319 passed + 1 intentional live skip |
 | 12 | done | OpenCode timed out with partial RED file; host completed under contract | pre- and post-review green (`calorix-task12-history-time-travel-20260722`) | 096e2e0 | focused History 28/28; analyzer clean; full Flutter 340 passed + 1 intentional live skip |
+| 13 | in progress (plan reconciliation) | pending OpenCode RED attempt | pre-review pending | baseline d6876d8 | inspect Goals UI/persistence; intended focused gate: `fvm flutter test test/goals test/goals_screen_test.dart` |
 
 ### Task 11 plan checkpoint
 
@@ -60,6 +61,13 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Verification: focused History suite 28/28; `fvm flutter analyze` clean; full `fvm flutter test` 340 passed plus 1 intentional live-contract skip.
 - Post-review: Antigravity conversation `calorix-task12-history-time-travel-20260722`, `Gemini 3.6 Flash (High)`, returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`; only the standard model footer was appended and no repository mutation occurred.
 - Task 12 is complete at `096e2e0`. Next: Task 13 (Goals and Goals Select).
+
+### Task 13 plan checkpoint
+
+- Existing Goals already renders the handoff's period dropdown, body-goal selector, calorie slider/stepper, macro split, weight chart, and trend state.
+- Missing production contracts found during inspection: plan controls mutate only transient providers and never persist; `macroSplitProvider` can initialize before the active plan stream emits and then remain stale; `Adjust` is decorative; weight logging has no testable store seam; dirty goals have no exit protection; dropdown/segment motion is not reduced-motion aware.
+- Planned architecture: synchronized immutable draft + explicit Adjust/Save lifecycle, plan and weight data-store seams, store-level validation, timezone-aware period math, and `DraftPolicy.goalsEdit` exit protection. Existing visual composition remains intact.
+- Next: Antigravity pre-implementation review, then an OpenCode RED-only attempt.
 
 ### Task 10 plan correction
 

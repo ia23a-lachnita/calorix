@@ -1519,26 +1519,32 @@ git push
 **Interfaces:**
 - Consumes: `clockProvider` (Task 3 — week/month period math), `DraftPolicy.confirmDestructiveExit` for goal edits (Task 3).
 - Produces: `activePlanProvider` (plan persists across restart via repository), `weightLogProvider`; assistant confirmation flow (Task 14) mutates plans only through `macro_target_repository.dart`.
+- Draft contract: one immutable `GoalsDraft` owns source plan ID, goal, kcal/macros, edit/dirty/saving/error state. A notifier listens to `activePlanProvider`, adopts delayed/restarted plan emissions only while clean, and never overwrites an unsaved draft from the same source plan. `Adjust` enters edit mode; it becomes `Save` while editing. Successful save clears dirty/editing and re-synchronizes from the repository; failed save remains editable and visible.
+- Persistence contract: add testable `MacroTargetDataStore` and `WeightLogDataStore` seams with Firestore adapters. Existing plans update in place; a missing/default plan creates one and activates it atomically through the repository API. All writes remain under `users/{uid}/targets` or `users/{uid}/weightLogs`.
+- Validation contract: kcal stays within `AppConstants.kcalSliderMin..kcalSliderMax`; protein/carbs/fat must be positive and bounded; weight must be finite and within the existing UI-supported range. Invalid values never reach a data store.
+- Exit contract: a dirty Goals draft uses `DraftPolicy.goalsEdit` via `PopScope`, offering Keep editing/Discard. Clean, saved, or read-only state exits immediately.
 
 - [ ] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/goals/goals_persistence_test.dart (fake Firestore + FakeClock)
-test('plan edits persist and survive provider container recreation (restart shape)', () async { /* implement */ });
+test('plan edits persist and survive provider container recreation (restart shape)', () async { /* fake MacroTargetDataStore */ });
+test('late active-plan emission hydrates a clean draft but never overwrites dirty edits', () async { /* implement */ });
 test('body goal change adjusts kcal target and macro split per plan rules', () async { /* implement */ });
-test('weight log appends and the 30-day series extends with clock advance', () async { /* implement */ });
-test('validation rejects non-positive targets and out-of-range slider values', () async { /* implement */ });
-test('period week counter increments after +7 days', () async { /* implement */ });
+test('weight log appends and the 30-day series extends with clock advance', () async { /* fake WeightLogDataStore */ });
+test('validation rejects non-positive targets and out-of-range slider or weight values before store calls', () async { /* implement */ });
+test('period week counter increments after +7 calendar days across DST', () async { /* implement */ });
 
 // test/goals_screen_test.dart (extend)
 testWidgets('period dropdown opens under the pill with barrier dismiss, cyan active row, checkmark, ~200ms entrance', (tester) async { /* implement */ });
 testWidgets('gradient kcal slider drag changes target and does not trigger tab swipe', (tester) async { /* implement */ });
 testWidgets('segmented body-goal control, calorie card with TDEE badge and stepper, macro split tiles, weight card render in both themes', (tester) async { /* implement */ });
+testWidgets('Adjust enters edit mode, Save persists, failure stays editable, and dirty back prompts', (tester) async { /* implement */ });
 ```
 
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/goals test/goals_screen_test.dart` → Expected: FAIL on new assertions.
 
-- [ ] **Step 3 (worker): Implement** per spec §5.15/§5.16 against `cx-screen-goals.jsx`; dropdown via `MotionDurations.goalsDropdown`.
+- [ ] **Step 3 (worker): Implement** per spec §5.15/§5.16 against `cx-screen-goals.jsx`; dropdown and segmented selection via `AppMotion`, persistence through the testable repository seams, and all period math through timezone-aware calendar dates rather than physical-duration day counts.
 
 - [ ] **Step 4: GREEN** — Run: same → Expected: PASS.
 
