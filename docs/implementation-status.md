@@ -44,8 +44,8 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - OpenCode RED-only invocation was terminated after roughly 90 seconds with no output and no file changes; host fallback used under the repeated-stall rule.
 - RED: Flutter failed on missing `base*` fields and serving helpers; Functions failed on legacy serialization and canonical aggregation precedence.
 - GREEN: `FoodEntry` owns canonical `base*` data with temporary source aliases and legacy read fallback; `toMap` and all identified new worker/manual/seed/fixture/duplicate writes emit only `base*`; aggregation reads canonical first and multiplies exactly once; Firestore rules require canonical nutrition for new complete entries.
-- Full evidence: Flutter analyzer clean; Flutter 262 passed plus 1 intentional live skip; Functions build/lint clean and 52/52 tests; Firestore rules 13/13 through the emulator.
-- Workspace warning: stale historical `opencode run` processes deleted three tracked Task 7 test files (`test/processing/combined_state_test.dart`, `test/processing/support/fakes.dart`, `test/processing/upload_queue_test.dart`) during this stage. They are unrelated to Task 10 and are deliberately not staged or restored by this checkpoint; all stale run processes were stopped. The 262-test result therefore is not accepted as the original 294-test baseline until those external deletions are resolved.
+- Full evidence after workspace repair: Flutter analyzer clean; Flutter 298 passed plus 1 intentional live skip; Functions build/lint clean and 52/52 tests; Firestore rules 13/13 through the emulator.
+- Workspace incident resolved: stale historical `opencode run` processes deleted three tracked Task 7 test files during this stage. All stale run processes were stopped, the files were restored byte-for-byte from `HEAD`, `test/processing` passed 59/59, and no tracked restoration diff remains.
 - Next: auth-scoped CRUD/correction RED tests and implementation, then detail-sheet edit/draft behavior.
 
 ### Task 9 backend checkpoint
