@@ -33,7 +33,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 10 | done | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 and post-review green (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5, 4caaa9d, 34e3310 | analyzer clean; Flutter 313 passed + 1 intentional live skip; Functions 52/52 with lint/build clean; rules 14/14; focused Food Detail 21/21 |
 | 11 | done | OpenCode unavailable; host fallback under contract | pre- and post-review green (`calorix-task11-today-truth-20260722`) | 61db8c6 | focused Today 26/26; analyzer clean; full Flutter 319 passed + 1 intentional live skip |
 | 12 | done | OpenCode timed out with partial RED file; host completed under contract | pre- and post-review green (`calorix-task12-history-time-travel-20260722`) | 096e2e0 | focused History 28/28; analyzer clean; full Flutter 340 passed + 1 intentional live skip |
-| 13 | in progress (stage verification) | OpenCode timed out; host fallback under contract | pre-review green | 1adad69 + pending UI commit | repository seam and Goals draft/UI focused gate 17/17; analyzer clean; full regression and post-review pending |
+| 13 | done | OpenCode timed out; host fallback under contract | pre- and post-review green (`calorix-task13-goals-persistence-20260722`) | 1adad69, 2ceab96 | focused Goals 17/17; analyzer clean; full Flutter 354 passed + 1 intentional live skip |
 
 ### Task 11 plan checkpoint
 
@@ -74,7 +74,9 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Repository GREEN: injectable plan and weight stores, Firestore adapters, atomic default-plan create/activate batch, validated existing-plan updates, clock-date weight upsert, same-day overwrite, and next-day extension. Focused persistence tests 5/5; analyzer clean.
 - Draft/UI RED failed on the planned missing synchronized draft, Adjust/Save lifecycle, dirty-exit protection, and reduced-motion behavior. OpenCode then timed out after 184 seconds with zero additional edits; lingering process `47704` was terminated, and host fallback proceeded under the contract.
 - Draft/UI GREEN: one synchronized `GoalsDraft` replaces the stale dual transient providers; controls are read-only until Adjust, Save persists through the repository, failed saves remain dirty/editable with visible feedback, dirty exit consults `DraftPolicy.goalsEdit`, and period/dropdown calendar math preserves the active timezone across DST. Focused Goals suite 17/17; analyzer clean.
-- Next: full Flutter regression, post-implementation review, then Task 13 handoff.
+- Stage verification: `fvm flutter analyze` reported no issues; full `fvm flutter test` passed 354 tests with 1 intentional live-contract skip.
+- Post-review: Antigravity conversation `calorix-task13-goals-persistence-20260722`, `Gemini 3.6 Flash (High)`, returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`; no repository mutation occurred. The response contained minor Markdown/word-splitting presentation noise, recorded as non-substantive MCP response noise.
+- Task 13 is complete at `2ceab96`. Next: Task 14 (Assistant Chat, Chat History, Confirmation Actions, Functions, and Rules).
 
 ### Task 10 plan correction
 

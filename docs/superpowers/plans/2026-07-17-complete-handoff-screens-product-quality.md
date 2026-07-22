@@ -1548,9 +1548,9 @@ testWidgets('Adjust enters edit mode, Save persists, failure stays editable, and
 
 - [x] **Step 4: GREEN** — Run: same → Expected: PASS.
 
-- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+- [x] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 
-- [ ] **Step 6: REVIEW-GATE Task 13**, then **HANDOFF Task 13**
+- [x] **Step 6: REVIEW-GATE Task 13**, then **HANDOFF Task 13**
 
 ```powershell
 git add -A
