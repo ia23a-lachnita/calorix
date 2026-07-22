@@ -26,6 +26,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => const Center(child: Text('Could not load review')),
         data: (value) {
+          if (value == null) {
+            return const Center(child: Text('Food entry no longer exists'));
+          }
           final candidates = value.candidates;
           final confidence = ((value.confidence ?? 0) * 100).round();
           if (_selected >= candidates.length) _selected = 0;

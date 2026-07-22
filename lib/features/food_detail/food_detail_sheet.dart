@@ -10,6 +10,7 @@ import '../../shared/providers/plan_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/policy/draft_policy.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../core/router/route_names.dart';
 import '../../core/time/clock_provider.dart';
@@ -25,7 +26,9 @@ class FoodDetailSheet extends ConsumerWidget {
     return entryAsync.when(
       loading: () => const _LoadingSheet(),
       error: (e, _) => const _ErrorSheet(),
-      data: (entry) => _FoodDetailContent(entry: entry),
+      data: (entry) => entry == null
+          ? const _MissingSheet()
+          : _FoodDetailContent(entry: entry),
     );
   }
 }
@@ -58,6 +61,29 @@ class _ErrorSheet extends StatelessWidget {
       );
 }
 
+class _MissingSheet extends StatelessWidget {
+  const _MissingSheet();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.no_food_outlined, size: 48),
+              const SizedBox(height: 12),
+              const Text('Food entry no longer exists'),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () => context.pop(),
+                child: const Text('Back'),
+              ),
+            ],
+          ),
+        ),
+      );
+}
+
 class _FoodDetailContent extends ConsumerStatefulWidget {
   final FoodEntry entry;
   const _FoodDetailContent({required this.entry});
@@ -68,6 +94,7 @@ class _FoodDetailContent extends ConsumerStatefulWidget {
 
 class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
   bool _isSaving = false;
+  bool _allowPop = false;
 
   @override
   void initState() {
@@ -84,6 +111,7 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
   bool get _canEdit =>
       entry.status != FoodEntryStatus.pending &&
       entry.status != FoodEntryStatus.processing;
+  bool get _isDirty => !_pending.isEmpty;
 
   double get _multiplier =>
       _pending.servingMultiplier ?? entry.servingMultiplier;
@@ -108,379 +136,423 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
     final detectedWeight =
         entry.detectedItems.fold(0.0, (sum, item) => sum + item.weight).round();
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.92,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      expand: false,
-      builder: (context, scrollController) => Scaffold(
-        backgroundColor: bg,
-        body: Stack(
-          children: [
-            // Hero photo with top chrome and confidence pill.
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 320,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  _HeroImage(entry: entry),
-                  Positioned(
-                    top: 12,
-                    left: 18,
-                    right: 18,
-                    child: SafeArea(
-                      bottom: false,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _GlassChip(
-                            onTap: () => context.pop(),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
+    return PopScope(
+      canPop: _allowPop || !_isDirty,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop) await _requestExit();
+      },
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.92,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Scaffold(
+          backgroundColor: bg,
+          body: Stack(
+            children: [
+              // Hero photo with top chrome and confidence pill.
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 320,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _HeroImage(entry: entry),
+                    Positioned(
+                      top: 12,
+                      left: 18,
+                      right: 18,
+                      child: SafeArea(
+                        bottom: false,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _GlassChip(
+                              onTap: _requestExit,
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.chevron_left,
+                                      color: Color(0xFFF2F3F5), size: 14),
+                                  SizedBox(width: 2),
+                                  Text('Back',
+                                      style: TextStyle(
+                                          color: Color(0xFFF2F3F5),
+                                          fontFamily: 'Geist',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500)),
+                                ],
+                              ),
+                            ),
+                            Row(
                               children: [
-                                Icon(Icons.chevron_left,
-                                    color: Color(0xFFF2F3F5), size: 14),
-                                SizedBox(width: 2),
-                                Text('Back',
-                                    style: TextStyle(
-                                        color: Color(0xFFF2F3F5),
-                                        fontFamily: 'Geist',
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500)),
+                                _GlassChip(
+                                  onTap: () => _duplicate(context, ref),
+                                  child: const Icon(Icons.copy_outlined,
+                                      color: Color(0xFFF2F3F5), size: 14),
+                                ),
+                                const SizedBox(width: 8),
+                                _GlassChip(
+                                  onTap: () => _delete(context, ref),
+                                  child: const Icon(Icons.delete_outline,
+                                      color: Color(0xFFF2F3F5), size: 14),
+                                ),
                               ],
                             ),
-                          ),
-                          Row(
-                            children: [
-                              _GlassChip(
-                                onTap: () => _duplicate(context, ref),
-                                child: const Icon(Icons.copy_outlined,
-                                    color: Color(0xFFF2F3F5), size: 14),
-                              ),
-                              const SizedBox(width: 8),
-                              _GlassChip(
-                                onTap: () => _delete(context, ref),
-                                child: const Icon(Icons.delete_outline,
-                                    color: Color(0xFFF2F3F5), size: 14),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (entry.confidence != null)
-                    Positioned(
-                      left: 18,
-                      bottom: 40,
-                      child: _ConfidencePill(confidence: entry.confidence!),
-                    ),
-                ],
-              ),
-            ),
-
-            // Sheet body overlapping the hero per cx-screen-food.jsx.
-            Positioned.fill(
-              top: 296,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: bg,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8, bottom: 6),
-                      child: Container(
-                        width: 36,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.borderDark
-                              : AppColors.borderLight,
-                          borderRadius: BorderRadius.circular(999),
+                          ],
                         ),
                       ),
                     ),
-                    Expanded(
-                      child: ListView(
-                        controller: scrollController,
-                        padding: EdgeInsets.zero,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'DETECTED · ${entry.mealType.name.toUpperCase()} · ${DateFormat('HH:mm').format(entry.timestamp)}',
-                                  style: AppTextStyles.labelMono
-                                      .copyWith(color: muted),
-                                ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            entry.foodName ?? 'Unknown food',
-                                            style:
-                                                AppTextStyles.heading2.copyWith(
-                                              color: ink,
-                                              fontSize: 24,
-                                              letterSpacing: 24 * -0.03,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            detectedWeight > 0
-                                                ? '${entry.detectedItems.length} items · ≈ ${detectedWeight}g'
-                                                : '${_fmtMultiplier(_multiplier)} serving',
-                                            style: AppTextStyles.bodySmall
-                                                .copyWith(
-                                                    fontSize: 13, color: muted),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    if (_canEdit)
-                                      _EditChip(
-                                        isEditing: _isEditMode,
-                                        isDark: isDark,
-                                        onTap: () {
-                                          ref
-                                              .read(
-                                                  foodEditModeProvider(entry.id)
-                                                      .notifier)
-                                              .state = !_isEditMode;
-                                        },
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                            child: _KcalBanner(
-                              kcal: _displayKcal,
-                              multiplier: _multiplier,
-                              isEditing: _isEditMode && _canEdit,
-                              isDark: isDark,
-                              onMultiplierChanged: (v) =>
-                                  ref
-                                          .read(pendingEditsProvider(entry.id)
-                                              .notifier)
-                                          .state =
-                                      _pending.copyWith(servingMultiplier: v),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.surfaceDark
-                                    : AppColors.surfaceLight,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  width: 0.5,
-                                  color: isDark
-                                      ? AppColors.borderDark
-                                      : AppColors.borderLight,
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  _MacroEditRow(
-                                    label: 'Protein',
-                                    value: _displayProtein,
-                                    color: AppColors.protein,
-                                    target: plan.protein.toDouble(),
-                                    isEditing: _isEditMode,
-                                    isDark: isDark,
-                                    onEdit: (v) => ref
-                                        .read(pendingEditsProvider(entry.id)
-                                            .notifier)
-                                        .state = _pending.copyWith(
-                                      protein:
-                                          baseFromDisplayed(v, _multiplier),
-                                    ),
-                                  ),
-                                  _rowDivider(isDark),
-                                  _MacroEditRow(
-                                    label: 'Carbs',
-                                    value: _displayCarbs,
-                                    color: AppColors.carbs,
-                                    target: plan.carbs.toDouble(),
-                                    isEditing: _isEditMode,
-                                    isDark: isDark,
-                                    onEdit: (v) => ref
-                                        .read(pendingEditsProvider(entry.id)
-                                            .notifier)
-                                        .state = _pending.copyWith(
-                                      carbs: baseFromDisplayed(v, _multiplier),
-                                    ),
-                                  ),
-                                  _rowDivider(isDark),
-                                  _MacroEditRow(
-                                    label: 'Fat',
-                                    value: _displayFat,
-                                    color: AppColors.fat,
-                                    target: plan.fat.toDouble(),
-                                    isEditing: _isEditMode,
-                                    isDark: isDark,
-                                    onEdit: (v) => ref
-                                        .read(pendingEditsProvider(entry.id)
-                                            .notifier)
-                                        .state = _pending.copyWith(
-                                      fat: baseFromDisplayed(v, _multiplier),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (entry.detectedItems.isNotEmpty) ...[
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-                              child: Text(
-                                'DETECTED ITEMS · TAP TO ADJUST',
-                                style: AppTextStyles.labelMono
-                                    .copyWith(color: muted),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              child: Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: [
-                                  ...entry.detectedItems.map(
-                                    (item) => Container(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          8, 7, 10, 7),
-                                      decoration: BoxDecoration(
-                                        color: isDark
-                                            ? AppColors.surfaceDark
-                                            : AppColors.surfaceLight,
-                                        borderRadius:
-                                            BorderRadius.circular(999),
-                                        border: Border.all(
-                                          width: 0.5,
-                                          color: isDark
-                                              ? AppColors.borderDark
-                                              : AppColors.borderLight,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Container(
-                                            width: 5,
-                                            height: 5,
-                                            decoration: const BoxDecoration(
-                                              color: AppColors.cyan,
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            item.name,
-                                            style: AppTextStyles.bodySmall
-                                                .copyWith(
-                                                    fontSize: 12, color: ink),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            '${item.weight.round()}g',
-                                            style: AppTextStyles.labelMono
-                                                .copyWith(
-                                                    fontSize: 10.5,
-                                                    color: muted),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  if (_isEditMode)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 7),
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(999),
-                                        border: Border.all(
-                                          color: isDark
-                                              ? AppColors.borderDark
-                                              : AppColors.borderLight,
-                                          style: BorderStyle.solid,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.add,
-                                              size: 12, color: muted),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'Add item',
-                                            style: AppTextStyles.bodySmall
-                                                .copyWith(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w500,
-                                                    color: muted),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
-                            child: _AskAiCard(
-                              isDark: isDark,
-                              onTap: () => context.pushNamed(
-                                RouteNames.aiChatOverlay,
-                                queryParameters: {'mealId': entry.id},
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 120),
-                        ],
+                    if (entry.confidence != null)
+                      Positioned(
+                        left: 18,
+                        bottom: 40,
+                        child: _ConfidencePill(confidence: entry.confidence!),
                       ),
-                    ),
                   ],
                 ),
               ),
-            ),
-          ],
+
+              // Sheet body overlapping the hero per cx-screen-food.jsx.
+              Positioned.fill(
+                top: 296,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(28)),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8, bottom: 6),
+                        child: Container(
+                          width: 36,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.borderDark
+                                : AppColors.borderLight,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView(
+                          controller: scrollController,
+                          padding: EdgeInsets.zero,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'DETECTED · ${entry.mealType.name.toUpperCase()} · ${DateFormat('HH:mm').format(entry.timestamp)}',
+                                    style: AppTextStyles.labelMono
+                                        .copyWith(color: muted),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              entry.foodName ?? 'Unknown food',
+                                              style: AppTextStyles.heading2
+                                                  .copyWith(
+                                                color: ink,
+                                                fontSize: 24,
+                                                letterSpacing: 24 * -0.03,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              detectedWeight > 0
+                                                  ? '${entry.detectedItems.length} items · ≈ ${detectedWeight}g'
+                                                  : '${_fmtMultiplier(_multiplier)} serving',
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                      fontSize: 13,
+                                                      color: muted),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      if (_canEdit)
+                                        _EditChip(
+                                          isEditing: _isEditMode,
+                                          isDark: isDark,
+                                          onTap: () {
+                                            ref
+                                                .read(foodEditModeProvider(
+                                                        entry.id)
+                                                    .notifier)
+                                                .state = !_isEditMode;
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                              child: _KcalBanner(
+                                kcal: _displayKcal,
+                                multiplier: _multiplier,
+                                isEditing: _isEditMode && _canEdit,
+                                isDark: isDark,
+                                onMultiplierChanged: (v) => ref
+                                        .read(pendingEditsProvider(entry.id)
+                                            .notifier)
+                                        .state =
+                                    _pending.copyWith(servingMultiplier: v),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? AppColors.surfaceDark
+                                      : AppColors.surfaceLight,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    width: 0.5,
+                                    color: isDark
+                                        ? AppColors.borderDark
+                                        : AppColors.borderLight,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    _MacroEditRow(
+                                      label: 'Protein',
+                                      value: _displayProtein,
+                                      color: AppColors.protein,
+                                      target: plan.protein.toDouble(),
+                                      isEditing: _isEditMode,
+                                      isDark: isDark,
+                                      onEdit: (v) => ref
+                                          .read(pendingEditsProvider(entry.id)
+                                              .notifier)
+                                          .state = _pending.copyWith(
+                                        protein:
+                                            baseFromDisplayed(v, _multiplier),
+                                      ),
+                                    ),
+                                    _rowDivider(isDark),
+                                    _MacroEditRow(
+                                      label: 'Carbs',
+                                      value: _displayCarbs,
+                                      color: AppColors.carbs,
+                                      target: plan.carbs.toDouble(),
+                                      isEditing: _isEditMode,
+                                      isDark: isDark,
+                                      onEdit: (v) => ref
+                                          .read(pendingEditsProvider(entry.id)
+                                              .notifier)
+                                          .state = _pending.copyWith(
+                                        carbs:
+                                            baseFromDisplayed(v, _multiplier),
+                                      ),
+                                    ),
+                                    _rowDivider(isDark),
+                                    _MacroEditRow(
+                                      label: 'Fat',
+                                      value: _displayFat,
+                                      color: AppColors.fat,
+                                      target: plan.fat.toDouble(),
+                                      isEditing: _isEditMode,
+                                      isDark: isDark,
+                                      onEdit: (v) => ref
+                                          .read(pendingEditsProvider(entry.id)
+                                              .notifier)
+                                          .state = _pending.copyWith(
+                                        fat: baseFromDisplayed(v, _multiplier),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            if (entry.detectedItems.isNotEmpty) ...[
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                                child: Text(
+                                  'DETECTED ITEMS · TAP TO ADJUST',
+                                  style: AppTextStyles.labelMono
+                                      .copyWith(color: muted),
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                child: Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: [
+                                    ...entry.detectedItems.map(
+                                      (item) => Container(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            8, 7, 10, 7),
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? AppColors.surfaceDark
+                                              : AppColors.surfaceLight,
+                                          borderRadius:
+                                              BorderRadius.circular(999),
+                                          border: Border.all(
+                                            width: 0.5,
+                                            color: isDark
+                                                ? AppColors.borderDark
+                                                : AppColors.borderLight,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 5,
+                                              height: 5,
+                                              decoration: const BoxDecoration(
+                                                color: AppColors.cyan,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              item.name,
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                      fontSize: 12, color: ink),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              '${item.weight.round()}g',
+                                              style: AppTextStyles.labelMono
+                                                  .copyWith(
+                                                      fontSize: 10.5,
+                                                      color: muted),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    if (_isEditMode)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 7),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(999),
+                                          border: Border.all(
+                                            color: isDark
+                                                ? AppColors.borderDark
+                                                : AppColors.borderLight,
+                                            style: BorderStyle.solid,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.add,
+                                                size: 12, color: muted),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Add item',
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: muted),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+                              child: _AskAiCard(
+                                isDark: isDark,
+                                onTap: () => context.pushNamed(
+                                  RouteNames.aiChatOverlay,
+                                  queryParameters: {'mealId': entry.id},
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 120),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          bottomNavigationBar: _isEditMode && _canEdit
+              ? _EditActionBar(
+                  isSaving: _isSaving,
+                  isDark: isDark,
+                  onUndo: () {
+                    ref.read(pendingEditsProvider(entry.id).notifier).state =
+                        const PendingEdits();
+                  },
+                  onSave: () => _save(context, ref),
+                )
+              : null,
         ),
-        bottomNavigationBar: _isEditMode && _canEdit
-            ? _EditActionBar(
-                isSaving: _isSaving,
-                isDark: isDark,
-                onUndo: () {
-                  ref.read(pendingEditsProvider(entry.id).notifier).state =
-                      const PendingEdits();
-                },
-                onSave: () => _save(context, ref),
-              )
-            : null,
       ),
     );
+  }
+
+  Future<bool> _confirmExit() async {
+    if (!_isDirty ||
+        draftPolicyFor(DraftType.foodEdit) !=
+            DraftPolicy.confirmDestructiveExit) {
+      return true;
+    }
+    return await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Discard changes?'),
+            content: const Text('Your unsaved food edits will be lost.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Keep editing'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> _requestExit() async {
+    if (!await _confirmExit() || !mounted) return;
+    setState(() => _allowPop = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).maybePop();
+    });
   }
 
   Future<void> _save(BuildContext context, WidgetRef ref) async {
@@ -492,6 +564,9 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
           markCorrected: true);
       if (!mounted) return;
       ref.read(foodEditModeProvider(entry.id).notifier).state = false;
+      ref.read(pendingEditsProvider(entry.id).notifier).state =
+          const PendingEdits();
+      setState(() => _allowPop = true);
       router.pop();
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -854,6 +929,7 @@ class _ServingStepper extends StatelessWidget {
           ? multiplier > AppConstants.servingMultiplierMin
           : multiplier < AppConstants.servingMultiplierMax;
       return GestureDetector(
+        key: Key(step < 0 ? 'serving-decrement' : 'serving-increment'),
         onTap: enabled ? () => onChanged(multiplier + step) : null,
         behavior: HitTestBehavior.opaque,
         child: Container(

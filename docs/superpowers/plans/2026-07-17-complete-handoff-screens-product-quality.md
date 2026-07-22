@@ -1394,7 +1394,7 @@ testWidgets('card-to-detail uses shared transition of ~320ms and dark/light them
 
 - [x] **Step 3A (worker): Implement canonical nutrition migration** — `FoodEntry` canonical base fields with legacy read fallback, backend/manual/seed/fixture/duplicate/edit writes emitting only `base*`, aggregation canonical-first fallback, and rules validation. Do not run a production backfill.
 
-- [ ] **Step 3B (worker): Implement CRUD and scaling** — auth-scoped repository/data-store seam; nullable watch; deterministic `correctedAt`; clamp/multiplier helpers; displayed-to-base conversion; duplicate/delete semantics; no double scaling.
+- [x] **Step 3B (worker): Implement CRUD and scaling** — auth-scoped repository/data-store seam; nullable watch; deterministic `correctedAt`; clamp/multiplier helpers; displayed-to-base conversion; duplicate/delete semantics; no double scaling.
 
 - [ ] **Step 3C (worker): Complete UI behavior** per spec §5.11/§5.12 by extending the existing widget hierarchy — editable macro rows, add-item chip, Undo/Save bar, delete/duplicate actions, `PopScope` + `DraftPolicy` unsaved-exit confirmation, and edit controls hidden for pending/processing. Do not rewrite already-correct hero/detail components.
 

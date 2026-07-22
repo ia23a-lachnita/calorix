@@ -24,7 +24,7 @@ final storageImageUrlProvider =
 });
 
 final foodEntryProvider =
-    StreamProvider.autoDispose.family<FoodEntry, String>((ref, id) {
+    StreamProvider.autoDispose.family<FoodEntry?, String>((ref, id) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return const Stream.empty();
   return ref.watch(foodEntryRepositoryProvider).watchEntry(uid, id);
@@ -53,6 +53,16 @@ class PendingEdits {
     this.mealType,
     this.detectedItems,
   });
+
+  bool get isEmpty =>
+      foodName == null &&
+      kcal == null &&
+      protein == null &&
+      carbs == null &&
+      fat == null &&
+      servingMultiplier == null &&
+      mealType == null &&
+      detectedItems == null;
 
   PendingEdits copyWith({
     String? foodName,

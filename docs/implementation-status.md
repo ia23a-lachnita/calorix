@@ -30,7 +30,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
 | 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
 | 9 | done | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, 5c8d3fb | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
-| 10 | in progress (CRUD next) | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 (`calorix-task10-food-crud-20260722`) | plan 01264d8; canonical checkpoint pending | canonical base migration green across Flutter, Functions, fixtures, aggregation, and rules; CRUD/UI stages pending |
+| 10 | in progress (edit-surface completion next) | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5; current checkpoint pending | canonical migration, exactly-once scaling, deterministic correction metadata, auth-scoped CRUD seam, nullable watch, and draft/pending restrictions green; remaining edit-surface tests and post-review pending |
 
 ### Task 10 plan correction
 
@@ -68,6 +68,16 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - GREEN: non-terminal entries hide Edit, cannot activate the serving stepper, and cannot render the save action bar.
 - Verification: food-detail tests 11/11; analyzer clean.
 - Next: nullable watch/delete behavior and `PopScope` unsaved-exit confirmation.
+
+### Task 10 scoped CRUD and draft checkpoint
+
+- RED: repository tests failed on the absent `FoodEntryDataStore`, nullable watch, `NutritionCorrection`, and `FoodEntryRepository.withStore` contracts; the widget test then failed because a changed serving had no destructive-exit confirmation.
+- GREEN: the Firebase adapter and in-memory-testable repository seam preserve `users/{uid}/entries/{id}` ownership for point CRUD and query operations; delete emits `null`; duplicate creates a distinct ID with unchanged canonical base nutrition; `saveCorrection` writes only changed canonical values plus deterministic correction metadata.
+- Nullable entry absence is explicit in Food Detail and Review instead of being filtered into a permanent loading state; Processing carries the nullable stream while retaining its local queue fallback.
+- Food Detail now applies `DraftPolicy.foodEdit` through `PopScope`; a changed serving prompts `Keep editing` / `Discard`, Undo removes pending state, and save clears the draft before navigation. Pending/processing edit controls remain unavailable.
+- The review-confirm path was corrected to write canonical `base*` nutrition keys instead of reintroducing legacy fields.
+- Verification: `fvm flutter analyze` clean; combined food-detail, processing, and review suite 79/79; repository-focused suite 5/5.
+- Next: complete and test the remaining editable detail fields/actions, run full verification, then post-implementation review.
 
 ### Task 9 backend checkpoint
 

@@ -9,7 +9,7 @@ import '../../../shared/services/retry_analysis_service.dart';
 import '../../scan/providers/scan_providers.dart';
 
 final processingEntryProvider =
-    StreamProvider.autoDispose.family<FoodEntry, String>((ref, entryId) {
+    StreamProvider.autoDispose.family<FoodEntry?, String>((ref, entryId) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return const Stream.empty();
   return ref.watch(foodEntryRepositoryProvider).watchEntry(uid, entryId);

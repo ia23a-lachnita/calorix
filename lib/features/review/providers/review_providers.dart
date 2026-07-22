@@ -6,7 +6,7 @@ import '../../../shared/providers/auth_provider.dart';
 export '../../../shared/models/food_entry.dart' show ReviewCandidate;
 
 final reviewEntryProvider =
-    StreamProvider.autoDispose.family<FoodEntry, String>((ref, entryId) {
+    StreamProvider.autoDispose.family<FoodEntry?, String>((ref, entryId) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return const Stream.empty();
   return ref.watch(foodEntryRepositoryProvider).watchEntry(uid, entryId);
@@ -30,10 +30,10 @@ class _RepositoryReviewEntryGateway implements ReviewEntryGateway {
           {
             'foodName': candidate.name,
             'confidence': candidate.confidence,
-            'kcal': candidate.kcal,
-            'protein': candidate.proteinG,
-            'carbs': candidate.carbsG,
-            'fat': candidate.fatG,
+            'baseKcal': candidate.kcal,
+            'baseProtein': candidate.proteinG,
+            'baseCarbs': candidate.carbsG,
+            'baseFat': candidate.fatG,
             'status': FoodEntryStatus.complete.wireName,
           },
           markCorrected: true,

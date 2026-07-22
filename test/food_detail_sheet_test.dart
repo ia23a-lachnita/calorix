@@ -35,7 +35,7 @@ FoodEntry _entry({
       ],
     );
 
-Widget _app(FoodEntry entry) {
+Widget _app(FoodEntry? entry) {
   return ProviderScope(
     overrides: [
       authStateProvider.overrideWith((ref) => const Stream<User?>.empty()),
@@ -104,6 +104,36 @@ void main() {
     expect(find.text('DETECTED ITEMS · TAP TO ADJUST'), findsOneWidget);
     expect(find.text('Not right? Ask AI to fix this'), findsOneWidget);
     tester.takeException();
+  });
+
+  testWidgets('missing entry renders an explicit unavailable state',
+      (tester) async {
+    await tester.pumpWidget(_app(null));
+    await _pump(tester);
+
+    expect(find.text('Food entry no longer exists'), findsOneWidget);
+    expect(find.text('Back'), findsOneWidget);
+  });
+
+  testWidgets('unsaved serving edit prompts before destructive exit',
+      (tester) async {
+    await tester.pumpWidget(_app(_entry()));
+    await _pump(tester);
+
+    await tester.tap(find.text('Edit'));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('serving-increment')));
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Discard changes?'), findsOneWidget);
+    expect(find.text('Keep editing'), findsOneWidget);
+    expect(find.text('Discard'), findsOneWidget);
+
+    await tester.tap(find.text('Keep editing'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Save to Today'), findsOneWidget);
   });
 
   for (final status in [
