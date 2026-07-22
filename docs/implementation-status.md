@@ -30,7 +30,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 7 | done | OpenCode/Claude/delegated workers unavailable or stalled; host fallback after recorded exhaustion | final review green (`calorix-task7-final-review-20260722`) | 072e21b, db4cff0, e972112, cdfd127, 098c02f, a59f962 | full analyzer clean; full Flutter 284/284; processing 58/58; functions 46/46; TypeScript build clean; real background-kill, push delivery, and Firestore-emulator transaction evidence remain owned by Task 16 |
 | 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
 | 9 | done | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, 5c8d3fb | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
-| 10 | in progress (edit-surface completion next) | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5; current checkpoint pending | canonical migration, exactly-once scaling, deterministic correction metadata, auth-scoped CRUD seam, nullable watch, and draft/pending restrictions green; remaining edit-surface tests and post-review pending |
+| 10 | done | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 and post-review green (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5, 4caaa9d, 34e3310 | analyzer clean; Flutter 313 passed + 1 intentional live skip; Functions 52/52 with lint/build clean; rules 14/14; focused Food Detail 21/21 |
 
 ### Task 10 plan correction
 
@@ -87,6 +87,13 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Firestore client updates are allowed only for stable editable `complete`/`needs_review` entries, `needs_review -> complete`, and `error -> pending`; pending/processing analysis remains server-owned. Admin SDK workers are unaffected.
 - Verification: focused Food Detail suite 21/21; `fvm flutter analyze` clean; Firestore emulator rules 14/14.
 - Next: full Flutter/Functions verification, post-implementation review, and Task 10 handoff.
+
+### Task 10 final verification and review
+
+- Full verification at `34e3310`: `fvm flutter analyze` clean; full Flutter suite 313 passed plus 1 intentional live skip; Functions 52/52, ESLint clean, TypeScript build clean; Firestore emulator rules 14/14.
+- Post-implementation review conversation `calorix-task10-food-crud-20260722` used `Gemini 3.6 Flash (High)` and inspected the complete Task 10 commit range. Final confirmation: `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`.
+- Response-noise record: the first response concatenated requested headings and both responses included the MCP model footer. The same conversation returned the exact four requested decision lines on retry; `git status` confirmed no reviewer mutation.
+- Task 10 is complete. Next implementation task: Task 11 (Today, Today Empty, and Production Aggregation Truth).
 
 ### Task 9 backend checkpoint
 
@@ -274,7 +281,9 @@ Corrections applied:
 
 ## Current Task
 
-**Task 6 — complete at `a130f2d` and pushed to `origin/main`. Task 7's backend-aware corrected plan is green after re-review; product implementation has not started — RED is next.**
+**Task 10 is complete through `34e3310`; final tracking commit is pending. Task 11 is next.**
+
+## Historical Task 6/7 execution record
 
 - Task 7 pre-implementation plan review (conversation `calorix-task7-processing-20260721`, primary model `Gemini 3.6 Flash (High)`): an earlier response reported `AGREEMENT_STATUS: agree` while simultaneously listing five `MUST_FIX` items. This is a response-format anomaly (contradictory agree+must-fix), not a valid green verdict, so it was **not** counted as green; it is retained below as historical response noise. The corrected plan was re-reviewed in the same conversation and returned an internally consistent `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. The Task 7 plan review gate is green; implementation RED is next.
 - Worker routing for the Task 7 plan-correction pass (commit `1b8dcf9` and prior): OpenCode made partial documentation edits, then timed out after 1,204.1s with no final response. Claude Code headless fallback completed the corrections in 530.3s, and a final targeted retry-cap correction followed in 182.7s.

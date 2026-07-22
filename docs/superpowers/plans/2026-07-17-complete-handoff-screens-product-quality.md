@@ -1362,7 +1362,7 @@ Future<String> duplicate(FoodEntry entry); // new id, same base values, now() vi
 
 `saveCorrection` accepts canonical one-serving values and an optional multiplier. It writes only fields the user actually changed, adds `corrected: true`, and records deterministic `correctedAt`/`updatedAt` from the injected `Clock`. Editing a displayed total uses `baseFromDisplayed(displayed, multiplier)` before persistence. A multiplier-only correction writes no base nutrition fields. Pending/processing entries expose no edit controls and repository/rules tests reject nutrition edits in those states.
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/food_detail/serving_multiplier_test.dart
@@ -1390,7 +1390,7 @@ testWidgets('pending and processing entries expose no edit or serving controls',
 testWidgets('card-to-detail uses shared transition of ~320ms and dark/light themes both render', (tester) async { /* implement */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/food_detail test/food_detail_sheet_test.dart` → Expected: FAIL (`clampServing`/CRUD surface undefined; UI branches missing).
+- [x] **Step 2: RED** — Run: `fvm flutter test test/food_detail test/food_detail_sheet_test.dart` → Expected: FAIL (`clampServing`/CRUD surface undefined; UI branches missing).
 
 - [x] **Step 3A (worker): Implement canonical nutrition migration** — `FoodEntry` canonical base fields with legacy read fallback, backend/manual/seed/fixture/duplicate/edit writes emitting only `base*`, aggregation canonical-first fallback, and rules validation. Do not run a production backfill.
 
@@ -1400,9 +1400,9 @@ testWidgets('card-to-detail uses shared transition of ~320ms and dark/light them
 
 - [x] **Step 4: GREEN** — Run: `fvm flutter test test/food_detail test/food_detail_sheet_test.dart` → Expected: PASS.
 
-- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+- [x] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 
-- [ ] **Step 6: REVIEW-GATE Task 10**, then **HANDOFF Task 10**
+- [x] **Step 6: REVIEW-GATE Task 10**, then **HANDOFF Task 10**
 
 ```powershell
 git add -A
