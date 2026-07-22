@@ -33,7 +33,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 10 | done | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 and post-review green (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5, 4caaa9d, 34e3310 | analyzer clean; Flutter 313 passed + 1 intentional live skip; Functions 52/52 with lint/build clean; rules 14/14; focused Food Detail 21/21 |
 | 11 | done | OpenCode unavailable; host fallback under contract | pre- and post-review green (`calorix-task11-today-truth-20260722`) | 61db8c6 | focused Today 26/26; analyzer clean; full Flutter 319 passed + 1 intentional live skip |
 | 12 | done | OpenCode timed out with partial RED file; host completed under contract | pre- and post-review green (`calorix-task12-history-time-travel-20260722`) | 096e2e0 | focused History 28/28; analyzer clean; full Flutter 340 passed + 1 intentional live skip |
-| 13 | in progress (plan reconciliation) | pending OpenCode RED attempt | pre-review pending | baseline d6876d8 | inspect Goals UI/persistence; intended focused gate: `fvm flutter test test/goals test/goals_screen_test.dart` |
+| 13 | in progress (stage verification) | OpenCode timed out; host fallback under contract | pre-review green | 1adad69 + pending UI commit | repository seam and Goals draft/UI focused gate 17/17; analyzer clean; full regression and post-review pending |
 
 ### Task 11 plan checkpoint
 
@@ -72,7 +72,9 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - OpenCode RED-only invocation timed out after 244 seconds with no output or file changes; the host terminated lingering child process `20096`. Host fallback proceeded under the repeated-stall rule.
 - Repository RED failed on missing plan/weight data-store seams, atomic create-and-activate, typed save, and clock-backed weight repository.
 - Repository GREEN: injectable plan and weight stores, Firestore adapters, atomic default-plan create/activate batch, validated existing-plan updates, clock-date weight upsert, same-day overwrite, and next-day extension. Focused persistence tests 5/5; analyzer clean.
-- Next: synchronized `GoalsDraft` RED/GREEN and screen Adjust/Save/exit behavior.
+- Draft/UI RED failed on the planned missing synchronized draft, Adjust/Save lifecycle, dirty-exit protection, and reduced-motion behavior. OpenCode then timed out after 184 seconds with zero additional edits; lingering process `47704` was terminated, and host fallback proceeded under the contract.
+- Draft/UI GREEN: one synchronized `GoalsDraft` replaces the stale dual transient providers; controls are read-only until Adjust, Save persists through the repository, failed saves remain dirty/editable with visible feedback, dirty exit consults `DraftPolicy.goalsEdit`, and period/dropdown calendar math preserves the active timezone across DST. Focused Goals suite 17/17; analyzer clean.
+- Next: full Flutter regression, post-implementation review, then Task 13 handoff.
 
 ### Task 10 plan correction
 

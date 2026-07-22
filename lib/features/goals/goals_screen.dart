@@ -9,7 +9,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/time/clock_provider.dart';
-import '../../core/time/timezone_utils.dart' as timezone_utils;
+import '../../core/motion/app_motion.dart';
+import '../../core/policy/draft_policy.dart';
 
 /// Static coaching anchors from the handoff (no real TDEE model in V1).
 const _tdee = 2820;
@@ -28,8 +29,15 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final macroSplit = ref.watch(macroSplitProvider);
-    final bodyGoal = ref.watch(bodyGoalProvider);
+    final draft = ref.watch(goalsDraftProvider);
+    final draftNotifier = ref.read(goalsDraftProvider.notifier);
+    final macroSplit = (
+      kcal: draft.kcal,
+      protein: draft.protein,
+      carbs: draft.carbs,
+      fat: draft.fat,
+    );
+    final bodyGoal = draft.goal;
     final now = ref.watch(clockProvider).nowTZ();
     final plan = ref.watch(activePlanProvider).valueOrNull ??
         MacroTargetPlan.defaultPlan(startDate: now);
@@ -41,179 +49,254 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
 
     final planWeek = _planWeek(plan, now);
     final periodLabel = _periodLabel ?? 'Week $planWeek';
+    final confirmDirtyExit = draftPolicyFor(DraftType.goalsEdit) ==
+        DraftPolicy.confirmDestructiveExit;
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _PeriodPill(
-                                planName: plan.planName,
-                                label: periodLabel,
-                                isOpen: _periodOpen,
-                                isDark: isDark,
-                                onTap: () =>
-                                    setState(() => _periodOpen = !_periodOpen),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Goals',
-                                style: AppTextStyles.heading1.copyWith(
-                                  color: ink,
-                                  fontSize: 30,
-                                  letterSpacing: 30 * -0.04,
-                                  height: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.surfaceDark
-                                : AppColors.surfaceLight,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              width: 0.5,
-                              color: isDark
-                                  ? AppColors.borderDark
-                                  : AppColors.borderLight,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.tune_rounded, size: 13, color: muted),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Adjust',
-                                style: AppTextStyles.labelSmall.copyWith(
-                                  fontSize: 12,
-                                  color: isDark
-                                      ? AppColors.textPrimaryDark
-                                          .withValues(alpha: 0.78)
-                                      : const Color(0xFF3A4048),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+    return PopScope<Object?>(
+      canPop: !draft.dirty || !confirmDirtyExit,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop || !draft.dirty || !confirmDirtyExit) return;
+        final discard = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Discard goal changes?'),
+            content: const Text('Your unsaved goal changes will be lost.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Keep editing'),
               ),
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    _BodyGoalSegmented(
-                      current: bodyGoal,
-                      isDark: isDark,
-                      onChanged: (g) {
-                        ref.read(bodyGoalProvider.notifier).state = g;
-                        _autoComputeMacros(ref, g);
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                    _CalorieCard(
-                      kcal: macroSplit.kcal,
-                      onChanged: (v) =>
-                          ref.read(macroSplitProvider.notifier).setKcal(v),
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 12),
-                    _MacroSplitCard(
-                      split: macroSplit,
-                      notifier: ref.read(macroSplitProvider.notifier),
-                      weightKg:
-                          weightLogs.isNotEmpty ? weightLogs.last.weight : 80.0,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 12),
-                    _WeightCard(
-                      logs: weightLogs,
-                      goal: bodyGoal,
-                      isDark: isDark,
-                      onLogWeight: (kg) => ref.read(logWeightProvider)(kg),
-                    ),
-                    const SizedBox(height: 110),
-                  ]),
-                ),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Discard'),
               ),
             ],
           ),
-          // goals_select state: dropdown anchored under the period pill with
-          // a transparent barrier that dismisses it.
-          if (_periodOpen) ...[
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => setState(() => _periodOpen = false),
-                child: const SizedBox.expand(),
-              ),
+        );
+        if (discard != true || !context.mounted) return;
+        draftNotifier.discard();
+        Navigator.of(context).pop(result);
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _PeriodPill(
+                                  planName: plan.planName,
+                                  label: periodLabel,
+                                  isOpen: _periodOpen,
+                                  isDark: isDark,
+                                  onTap: () => setState(
+                                      () => _periodOpen = !_periodOpen),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Goals',
+                                  style: AppTextStyles.heading1.copyWith(
+                                    color: ink,
+                                    fontSize: 30,
+                                    letterSpacing: 30 * -0.04,
+                                    height: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          GestureDetector(
+                            key: const Key('goals-adjust-save'),
+                            onTap: draft.saving
+                                ? null
+                                : () async {
+                                    if (!draft.editing) {
+                                      draftNotifier.beginEditing();
+                                      return;
+                                    }
+                                    try {
+                                      await ref.read(saveGoalsDraftProvider)();
+                                    } catch (_) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Could not save goals. Try again.',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.surfaceDark
+                                    : AppColors.surfaceLight,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  width: 0.5,
+                                  color: isDark
+                                      ? AppColors.borderDark
+                                      : AppColors.borderLight,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (draft.saving)
+                                    const SizedBox.square(
+                                      dimension: 13,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 1.5,
+                                      ),
+                                    )
+                                  else
+                                    Icon(
+                                      draft.editing
+                                          ? Icons.check
+                                          : Icons.tune_rounded,
+                                      size: 13,
+                                      color: muted,
+                                    ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    draft.saving
+                                        ? 'Saving'
+                                        : draft.editing
+                                            ? 'Save'
+                                            : 'Adjust',
+                                    style: AppTextStyles.labelSmall.copyWith(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? AppColors.textPrimaryDark
+                                              .withValues(alpha: 0.78)
+                                          : const Color(0xFF3A4048),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      IgnorePointer(
+                        key: const Key('goals-edit-controls'),
+                        ignoring: !draft.editing,
+                        child: AnimatedOpacity(
+                          duration: AppMotion.durationOf(
+                            context,
+                            MotionDurations.reticleSnap,
+                          ),
+                          opacity: draft.editing ? 1 : 0.78,
+                          child: Column(
+                            children: [
+                              _BodyGoalSegmented(
+                                current: bodyGoal,
+                                isDark: isDark,
+                                onChanged: draftNotifier.setGoal,
+                              ),
+                              const SizedBox(height: 14),
+                              _CalorieCard(
+                                kcal: macroSplit.kcal,
+                                onChanged: draftNotifier.setKcal,
+                                isDark: isDark,
+                              ),
+                              const SizedBox(height: 12),
+                              _MacroSplitCard(
+                                split: macroSplit,
+                                notifier: draftNotifier,
+                                weightKg: weightLogs.isNotEmpty
+                                    ? weightLogs.last.weight
+                                    : 80.0,
+                                isDark: isDark,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _WeightCard(
+                        logs: weightLogs,
+                        goal: bodyGoal,
+                        isDark: isDark,
+                        onLogWeight: (kg) => ref.read(logWeightProvider)(kg),
+                      ),
+                      const SizedBox(height: 110),
+                    ]),
+                  ),
+                ),
+              ],
             ),
-            Positioned(
-              top: MediaQuery.viewPaddingOf(context).top + 16 + 32,
-              left: 20,
-              child: _PeriodDropdown(
-                plan: plan,
-                planWeek: planWeek,
-                selectedLabel: periodLabel,
-                isDark: isDark,
-                now: now,
-                onSelected: (label) => setState(() {
-                  _periodLabel = label;
-                  _periodOpen = false;
-                }),
+            // goals_select state: dropdown anchored under the period pill with
+            // a transparent barrier that dismisses it.
+            if (_periodOpen) ...[
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() => _periodOpen = false),
+                  child: const SizedBox.expand(),
+                ),
               ),
-            ),
+              Positioned(
+                top: MediaQuery.viewPaddingOf(context).top + 16 + 32,
+                left: 20,
+                child: TweenAnimationBuilder<double>(
+                  key: const Key('goals-period-entrance'),
+                  tween: Tween(begin: 0, end: 1),
+                  duration: AppMotion.durationOf(
+                    context,
+                    MotionDurations.goalsDropdown,
+                  ),
+                  curve: Curves.easeOut,
+                  builder: (context, value, child) => Opacity(
+                    opacity: value,
+                    child: Transform.translate(
+                      offset: Offset(0, 6 * (1 - value)),
+                      child: child,
+                    ),
+                  ),
+                  child: _PeriodDropdown(
+                    plan: plan,
+                    planWeek: planWeek,
+                    selectedLabel: periodLabel,
+                    isDark: isDark,
+                    now: now,
+                    onSelected: (label) => setState(() {
+                      _periodLabel = label;
+                      _periodOpen = false;
+                    }),
+                  ),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 
   int _planWeek(MacroTargetPlan plan, tz.TZDateTime now) {
-    final start = tz.TZDateTime.from(plan.startDate, now.location);
-    final days = timezone_utils
-        .startOfDay(now)
-        .difference(timezone_utils.startOfDay(start))
-        .inDays;
-    final week = (days ~/ 7) + 1;
-    return week < 1 ? 1 : week;
-  }
-
-  void _autoComputeMacros(WidgetRef ref, BodyGoal goal) {
-    final notifier = ref.read(macroSplitProvider.notifier);
-    switch (goal) {
-      case BodyGoal.loseFat:
-        notifier.setKcal(2000);
-        break;
-      case BodyGoal.maintain:
-        notifier.setKcal(2400);
-        break;
-      case BodyGoal.leanPlus:
-        notifier.setKcal(2800);
-        break;
-      case BodyGoal.custom:
-        break;
-    }
+    return planWeekNumber(plan, now);
   }
 }
 
@@ -304,7 +387,7 @@ class _PeriodDropdown extends StatelessWidget {
   final int planWeek;
   final String selectedLabel;
   final bool isDark;
-  final DateTime now;
+  final tz.TZDateTime now;
   final ValueChanged<String> onSelected;
 
   @override
@@ -377,9 +460,20 @@ class _PeriodDropdown extends StatelessWidget {
     }
 
     rows.add(group('Weeks'));
+    final planStart = tz.TZDateTime.from(plan.startDate, now.location);
     for (var w = planWeek; w >= 1 && w > planWeek - 5; w--) {
-      final start = plan.startDate.add(Duration(days: (w - 1) * 7));
-      final end = start.add(const Duration(days: 6));
+      final start = tz.TZDateTime(
+        now.location,
+        planStart.year,
+        planStart.month,
+        planStart.day + (w - 1) * 7,
+      );
+      final end = tz.TZDateTime(
+        now.location,
+        start.year,
+        start.month,
+        start.day + 6,
+      );
       final sameMonth = start.month == end.month;
       final range = sameMonth
           ? '${DateFormat('MMM d').format(start)} – ${end.day}'
@@ -388,7 +482,7 @@ class _PeriodDropdown extends StatelessWidget {
     }
     rows.add(group('Months'));
     for (var i = 0; i < 3; i++) {
-      final month = DateTime(now.year, now.month - i, 1);
+      final month = tz.TZDateTime(now.location, now.year, now.month - i, 1);
       final label = DateFormat('MMMM yyyy').format(month);
       final sub = i == 0
           ? '${plan.planName.toLowerCase()} · $planWeek wk in'
@@ -482,7 +576,10 @@ class _BodyGoalSegmented extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () => onChanged(g.$1),
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                        duration: AppMotion.durationOf(
+                          context,
+                          MotionDurations.reticleSnap,
+                        ),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 10),
                         decoration: BoxDecoration(
@@ -854,7 +951,7 @@ class _MacroSplitCard extends StatelessWidget {
   });
 
   final ({int kcal, int protein, int carbs, int fat}) split;
-  final MacroSplitNotifier notifier;
+  final GoalsDraftNotifier notifier;
   final double weightKg;
   final bool isDark;
 

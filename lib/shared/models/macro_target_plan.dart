@@ -27,7 +27,8 @@ class MacroTargetPlan {
     this.isActive = false,
   });
 
-  factory MacroTargetPlan.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory MacroTargetPlan.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
     return MacroTargetPlan(
       id: doc.id,
@@ -61,8 +62,11 @@ class MacroTargetPlan {
       };
 
   MacroTargetPlan copyWith({
+    String? id,
     String? planName,
     BodyGoal? goal,
+    DateTime? startDate,
+    DateTime? endDate,
     int? kcal,
     int? protein,
     int? carbs,
@@ -70,11 +74,11 @@ class MacroTargetPlan {
     bool? isActive,
   }) =>
       MacroTargetPlan(
-        id: id,
+        id: id ?? this.id,
         planName: planName ?? this.planName,
         goal: goal ?? this.goal,
-        startDate: startDate,
-        endDate: endDate,
+        startDate: startDate ?? this.startDate,
+        endDate: endDate ?? this.endDate,
         kcal: kcal ?? this.kcal,
         protein: protein ?? this.protein,
         carbs: carbs ?? this.carbs,

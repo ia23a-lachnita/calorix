@@ -1524,7 +1524,7 @@ git push
 - Validation contract: kcal stays within `AppConstants.kcalSliderMin..kcalSliderMax`; protein/carbs/fat must be positive and bounded; weight must be finite and within the existing UI-supported range. Invalid values never reach a data store.
 - Exit contract: a dirty Goals draft uses `DraftPolicy.goalsEdit` via `PopScope`, offering Keep editing/Discard. Clean, saved, or read-only state exits immediately.
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/goals/goals_persistence_test.dart (fake Firestore + FakeClock)
@@ -1542,11 +1542,11 @@ testWidgets('segmented body-goal control, calorie card with TDEE badge and stepp
 testWidgets('Adjust enters edit mode, Save persists, failure stays editable, and dirty back prompts', (tester) async { /* implement */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/goals test/goals_screen_test.dart` → Expected: FAIL on new assertions.
+- [x] **Step 2: RED** — Run: `fvm flutter test test/goals test/goals_screen_test.dart` → Expected: FAIL on new assertions.
 
-- [ ] **Step 3 (worker): Implement** per spec §5.15/§5.16 against `cx-screen-goals.jsx`; dropdown and segmented selection via `AppMotion`, persistence through the testable repository seams, and all period math by converting `plan.startDate` to `now.location` before timezone-aware calendar-date calculations rather than physical-duration day counts.
+- [x] **Step 3 (worker): Implement** per spec §5.15/§5.16 against `cx-screen-goals.jsx`; dropdown and segmented selection via `AppMotion`, persistence through the testable repository seams, and all period math by converting `plan.startDate` to `now.location` before timezone-aware calendar-date calculations rather than physical-duration day counts.
 
-- [ ] **Step 4: GREEN** — Run: same → Expected: PASS.
+- [x] **Step 4: GREEN** — Run: same → Expected: PASS.
 
 - [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 

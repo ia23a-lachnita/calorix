@@ -1,4 +1,5 @@
 import 'package:calorix/core/time/clock.dart';
+import 'package:calorix/features/goals/providers/goals_providers.dart';
 import 'package:calorix/shared/models/daily_log.dart';
 import 'package:calorix/shared/models/macro_target_plan.dart';
 import 'package:calorix/shared/repositories/macro_target_repository.dart';
@@ -164,5 +165,52 @@ void main() {
     expect(() => repository.log('user', double.nan), throwsArgumentError);
     expect(() => repository.log('user', 0), throwsArgumentError);
     expect(store.setCalls, 0);
+  });
+
+  test('clean draft hydrates late plan but dirty edits survive stream changes',
+      () {
+    final initial = _plan(id: 'default');
+    final notifier = GoalsDraftNotifier(initial);
+    final remote = _plan(id: 'remote', kcal: 2300);
+
+    notifier.syncPlan(remote);
+    expect(notifier.state.kcal, 2300);
+    expect(notifier.state.sourcePlanId, 'remote');
+
+    notifier.beginEditing();
+    notifier.setKcal(2100);
+    notifier.syncPlan(_plan(id: 'remote', kcal: 2500));
+    expect(notifier.state.kcal, 2100);
+    expect(notifier.state.dirty, isTrue);
+  });
+
+  test('body goal selection applies deterministic calorie and macro split', () {
+    final notifier = GoalsDraftNotifier(_plan())..beginEditing();
+
+    notifier.setGoal(BodyGoal.maintain);
+    expect(notifier.state.kcal, 2400);
+    expect(notifier.state.protein, greaterThan(0));
+    expect(notifier.state.carbs, greaterThan(0));
+    expect(notifier.state.fat, greaterThan(0));
+
+    notifier.setGoal(BodyGoal.leanPlus);
+    expect(notifier.state.kcal, 2800);
+  });
+
+  test('draft rejects out-of-range calories and non-positive macros', () {
+    final notifier = GoalsDraftNotifier(_plan())..beginEditing();
+
+    expect(() => notifier.setKcal(1499), throwsArgumentError);
+    expect(() => notifier.setProtein(0), throwsArgumentError);
+    expect(notifier.state.dirty, isFalse);
+  });
+
+  test('plan week increments after seven calendar days across DST', () {
+    final plan = _plan().copyWith(startDate: DateTime.utc(2026, 3, 23, 12));
+    final before = tz.TZDateTime(location, 2026, 3, 29, 12);
+    final after = tz.TZDateTime(location, 2026, 3, 30, 12);
+
+    expect(planWeekNumber(plan, before), 1);
+    expect(planWeekNumber(plan, after), 2);
   });
 }
