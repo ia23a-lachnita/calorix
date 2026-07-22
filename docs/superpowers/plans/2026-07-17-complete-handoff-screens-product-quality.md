@@ -1452,7 +1452,7 @@ testWidgets('avatar tap pushes profile; bell is a placeholder; both themes rende
 
 - [x] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 
-- [ ] **Step 6: REVIEW-GATE Task 11**, then **HANDOFF Task 11**
+- [x] **Step 6: REVIEW-GATE Task 11**, then **HANDOFF Task 11**
 
 ```powershell
 git add -A
