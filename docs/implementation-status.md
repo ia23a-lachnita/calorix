@@ -31,6 +31,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
 | 9 | done | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, 5c8d3fb | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
 | 10 | done | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 and post-review green (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5, 4caaa9d, 34e3310 | analyzer clean; Flutter 313 passed + 1 intentional live skip; Functions 52/52 with lint/build clean; rules 14/14; focused Food Detail 21/21 |
+| 11 | in progress (plan reconciliation) | pending OpenCode RED attempt | pre-review pending | baseline 32aecd5 | inspect existing Today parity; isolate fixture-only presentation values from production aggregation; intended focused gate: `fvm flutter test test/today test/today_screen_test.dart test/today_providers_test.dart` |
 
 ### Task 10 plan correction
 
@@ -281,7 +282,7 @@ Corrections applied:
 
 ## Current Task
 
-**Task 10 is complete through `34e3310`; final tracking commit is pending. Task 11 is next.**
+**Task 11 — Today production aggregation truth and remaining parity tests. Baseline `32aecd5`; pre-review is next.**
 
 ## Historical Task 6/7 execution record
 
