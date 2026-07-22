@@ -306,7 +306,10 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                     onEdit: (v) => ref
                                         .read(pendingEditsProvider(entry.id)
                                             .notifier)
-                                        .state = _pending.copyWith(protein: v),
+                                        .state = _pending.copyWith(
+                                      protein:
+                                          baseFromDisplayed(v, _multiplier),
+                                    ),
                                   ),
                                   _rowDivider(isDark),
                                   _MacroEditRow(
@@ -319,7 +322,9 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                     onEdit: (v) => ref
                                         .read(pendingEditsProvider(entry.id)
                                             .notifier)
-                                        .state = _pending.copyWith(carbs: v),
+                                        .state = _pending.copyWith(
+                                      carbs: baseFromDisplayed(v, _multiplier),
+                                    ),
                                   ),
                                   _rowDivider(isDark),
                                   _MacroEditRow(
@@ -332,7 +337,9 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                     onEdit: (v) => ref
                                         .read(pendingEditsProvider(entry.id)
                                             .notifier)
-                                        .state = _pending.copyWith(fat: v),
+                                        .state = _pending.copyWith(
+                                      fat: baseFromDisplayed(v, _multiplier),
+                                    ),
                                   ),
                                 ],
                               ),

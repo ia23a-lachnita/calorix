@@ -48,6 +48,13 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Workspace incident resolved: stale historical `opencode run` processes deleted three tracked Task 7 test files during this stage. All stale run processes were stopped, the files were restored byte-for-byte from `HEAD`, `test/processing` passed 59/59, and no tracked restoration diff remains.
 - Next: auth-scoped CRUD/correction RED tests and implementation, then detail-sheet edit/draft behavior.
 
+### Task 10 exactly-once edit checkpoint
+
+- RED: pending correction test received legacy `{kcal, protein}` fields instead of canonical `{baseKcal, baseProtein}`.
+- GREEN: `PendingEdits.toUpdateMap` emits only canonical base nutrition; macro input sheets convert displayed totals through `baseFromDisplayed` before persistence, preventing multiplier double application.
+- Verification: serving/detail focused tests 7/7; Flutter analyzer clean.
+- Next: deterministic correction timestamps/auth-scoped CRUD tests, nullable watch/delete behavior, then draft/pending-state UI gates.
+
 ### Task 9 backend checkpoint
 
 - OpenCode invocation `opencode/mimo-v2.5-free` was terminated on 2026-07-22 after more than three minutes with no output and no file changes; host fallback used under the recorded repeated-stall rule.

@@ -39,4 +39,15 @@ void main() {
     expect(baseFromDisplayed(50, 2), 25);
     expect(baseFromDisplayed(10, 3), closeTo(3.3333333333333335, 1e-12));
   });
+
+  test('pending corrections serialize canonical base fields only', () {
+    const edits = PendingEdits(kcal: 100, protein: 25, servingMultiplier: 2);
+    final map = edits.toUpdateMap();
+
+    expect(map, containsPair('baseKcal', 100));
+    expect(map, containsPair('baseProtein', 25));
+    expect(map, containsPair('servingMultiplier', 2));
+    expect(map.containsKey('kcal'), isFalse);
+    expect(map.containsKey('protein'), isFalse);
+  });
 }

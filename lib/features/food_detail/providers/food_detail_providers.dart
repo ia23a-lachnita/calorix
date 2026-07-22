@@ -77,10 +77,10 @@ class PendingEdits {
 
   Map<String, dynamic> toUpdateMap() => {
         if (foodName != null) 'foodName': foodName,
-        if (kcal != null) 'kcal': kcal,
-        if (protein != null) 'protein': protein,
-        if (carbs != null) 'carbs': carbs,
-        if (fat != null) 'fat': fat,
+        if (kcal != null) 'baseKcal': kcal,
+        if (protein != null) 'baseProtein': protein,
+        if (carbs != null) 'baseCarbs': carbs,
+        if (fat != null) 'baseFat': fat,
         if (servingMultiplier != null) 'servingMultiplier': servingMultiplier,
         if (mealType != null) 'mealType': mealType!.name,
         if (detectedItems != null)
