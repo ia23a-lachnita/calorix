@@ -1420,7 +1420,7 @@ git push
 
 **Interfaces:**
 - Consumes: `FoodEntry` CRUD (Task 10), `clockProvider` (Task 3), `AppMotion` (Task 4), fixture isolation (Task 5).
-- Produces: `todaySummaryProvider` emitting `({int kcal, double proteinG, double carbsG, double fatG, int targetKcal, int kcalLeft})` — always summed from real entries; Task 16/17 depend on this name.
+- Produces: synchronous reactive `todaySummaryProvider` emitting `({int kcal, double proteinG, double carbsG, double fatG, int targetKcal, int kcalLeft})` — always summed from real entries; Task 16/17 depend on this name. `todayDisplaySummaryProvider` is the only fixture-aware presentation adapter and may substitute handoff hero values for `TodayScreen`; no repository, aggregate, or downstream feature may consume that adapter.
 
 - [ ] **Step 1 (worker): Write failing tests**
 
@@ -1429,10 +1429,12 @@ git push
 test('summary sums real entries — never the fixture hero override', () async {
   // three fixture entries → 845 kcal / 74 P / 92 C / 20 F even when ui-diff fixture flag is on,
   // because the override applies only in the fixture presentation layer, not the provider
-  final s = await container.read(todaySummaryProvider.future);
+  await container.read(todayEntriesProvider.future);
+  final s = container.read(todaySummaryProvider);
   expect(s.kcal, 845);
 });
 test('kcalLeft = targetKcal - eaten, floored at provider level per current behavior', () async { /* implement */ });
+test('display adapter alone may substitute fixture hero values', () async { /* production summary remains 845 while display is 1420 */ });
 
 // test/today_screen_test.dart (extend)
 testWidgets('hero ring count-up runs ~1.4s easeOutCubic and snaps under reduced motion', (tester) async { /* implement */ });
@@ -1444,7 +1446,7 @@ testWidgets('avatar tap pushes profile; bell is a placeholder; both themes rende
 
 - [ ] **Step 2: RED** — Run: `fvm flutter test test/today test/today_screen_test.dart test/today_providers_test.dart` → Expected: FAIL on the new assertions.
 
-- [ ] **Step 3 (worker): Implement** parity details per spec §5.9/§5.10 against `cx-screen-today.jsx` values (paddings/radii/font sizes copied exactly), count-up via `AppMotion`, aggregation strictly from repository entries.
+- [ ] **Step 3 (worker): Implement** parity details per spec §5.9/§5.10 against `cx-screen-today.jsx` values (paddings/radii/font sizes copied exactly), count-up via `AppMotion`, aggregation strictly from repository entries. Implement `todaySummaryProvider` as a synchronous `Provider` watching `todayEntriesProvider` and `activePlanProvider` `AsyncValue`s so Firestore/plan emissions remain reactive; isolate the fixture hero mismatch in `todayDisplaySummaryProvider` and test the two contracts separately.
 
 - [ ] **Step 4: GREEN** — Run: same test files → Expected: PASS.
 

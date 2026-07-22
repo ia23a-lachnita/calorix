@@ -33,6 +33,13 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 10 | done | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 and post-review green (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5, 4caaa9d, 34e3310 | analyzer clean; Flutter 313 passed + 1 intentional live skip; Functions 52/52 with lint/build clean; rules 14/14; focused Food Detail 21/21 |
 | 11 | in progress (plan reconciliation) | pending OpenCode RED attempt | pre-review pending | baseline 32aecd5 | inspect existing Today parity; isolate fixture-only presentation values from production aggregation; intended focused gate: `fvm flutter test test/today test/today_screen_test.dart test/today_providers_test.dart` |
 
+### Task 11 plan checkpoint
+
+- Existing visual parity coverage is retained; implementation is scoped to the missing production summary contract, fixture/presentation isolation, and genuinely absent widget assertions.
+- Review conversation `calorix-task11-today-truth-20260722` confirmed a synchronous reactive `todaySummaryProvider` plus fixture-only `todayDisplaySummaryProvider`. The plan now awaits `todayEntriesProvider.future` before reading the synchronous summary and tests both providers independently.
+- Final pre-review confirmation: `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none` on `Gemini 3.6 Flash (High)`. The MCP appended its standard model footer; no repository mutation occurred.
+- Next: OpenCode RED-only attempt for Task 11 provider and missing widget tests.
+
 ### Task 10 plan correction
 
 - Pre-review found the current edit path can multiply an already displayed macro a second time and persist that scaled value as base nutrition.
