@@ -35,7 +35,10 @@ FoodEntry _entry({
       ],
     );
 
-Widget _app(FoodEntry? entry) {
+Widget _app(
+  FoodEntry? entry, {
+  ThemeMode themeMode = ThemeMode.dark,
+}) {
   return ProviderScope(
     overrides: [
       authStateProvider.overrideWith((ref) => const Stream<User?>.empty()),
@@ -46,7 +49,7 @@ Widget _app(FoodEntry? entry) {
     child: MaterialApp(
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.dark,
+      themeMode: themeMode,
       home: const FoodDetailSheet(entryId: 'e1'),
     ),
   );
@@ -88,7 +91,8 @@ void main() {
 
     expect(find.text('Chicken Rice Bowl'), findsOneWidget);
     expect(find.text('CALORIES'), findsOneWidget);
-    expect(find.textContaining('DETECTED · LUNCH ·'), findsOneWidget);
+    expect(find.text('DETECTED · '), findsOneWidget);
+    expect(find.text('LUNCH'), findsOneWidget);
     expect(find.text('AI · 91% CONFIDENCE'), findsOneWidget);
     expect(find.textContaining('% of protein target'), findsOneWidget);
 
@@ -115,6 +119,20 @@ void main() {
     expect(find.text('Back'), findsOneWidget);
   });
 
+  for (final themeMode in [ThemeMode.dark, ThemeMode.light]) {
+    testWidgets(
+        '${themeMode.name} detail theme renders the full action surface',
+        (tester) async {
+      await tester.pumpWidget(_app(_entry(), themeMode: themeMode));
+      await _pump(tester);
+
+      expect(find.text('Chicken Rice Bowl'), findsOneWidget);
+      expect(find.text('Edit'), findsOneWidget);
+      expect(find.byIcon(Icons.copy_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+    });
+  }
+
   testWidgets('unsaved serving edit prompts before destructive exit',
       (tester) async {
     await tester.pumpWidget(_app(_entry()));
@@ -134,6 +152,132 @@ void main() {
     await tester.tap(find.text('Keep editing'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Save to Today'), findsOneWidget);
+  });
+
+  testWidgets('edit mode exposes and applies direct nutrition inputs',
+      (tester) async {
+    tester.view.physicalSize = const Size(800, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(_app(_entry()));
+    await _pump(tester);
+
+    await tester.tap(find.text('Edit'));
+    await tester.pump();
+    expect(find.text('Undo'), findsOneWidget);
+    expect(find.text('Save to Today'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('kcal-editor')));
+    await _pump(tester);
+    expect(find.text('Edit calories'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).last, '700');
+    tester.testTextInput.hide();
+    await tester.pump();
+    await tester.drag(
+      find.byType(SingleChildScrollView).last,
+      const Offset(0, -360),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Done'));
+    await _pump(tester);
+    expect(find.text('700'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('macro-editor-Protein')));
+    await _pump(tester);
+    expect(find.text('Edit Protein (g)'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).last, '50');
+    tester.testTextInput.hide();
+    await tester.pump();
+    await tester.drag(
+      find.byType(SingleChildScrollView).last,
+      const Offset(0, -360),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Done'));
+    await _pump(tester);
+    expect(find.text('50'), findsOneWidget);
+  });
+
+  testWidgets('edit mode changes name and meal type inline', (tester) async {
+    tester.view.physicalSize = const Size(800, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(_app(_entry()));
+    await _pump(tester);
+    await tester.tap(find.text('Edit'));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('food-name-editor')));
+    await _pump(tester);
+    await tester.enterText(find.byType(TextField).last, 'Teriyaki bowl');
+    tester.testTextInput.hide();
+    await tester.pump();
+    await tester.drag(
+      find.byType(SingleChildScrollView).last,
+      const Offset(0, -360),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Done'));
+    await _pump(tester);
+    expect(find.text('Teriyaki bowl'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('meal-type-editor')));
+    await _pump(tester);
+    await tester.tap(find.text('Dinner').last);
+    await _pump(tester);
+    expect(find.textContaining('DINNER'), findsOneWidget);
+  });
+
+  testWidgets('detected items can be adjusted and added in edit mode',
+      (tester) async {
+    tester.view.physicalSize = const Size(800, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(_app(_entry()));
+    await _pump(tester);
+    await tester.tap(find.text('Edit'));
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('detected-item-0')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('detected-item-0')));
+    await _pump(tester);
+    expect(find.text('Edit detected item'), findsOneWidget);
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(1), '140');
+    tester.testTextInput.hide();
+    await tester.pump();
+    await tester.drag(
+      find.byType(SingleChildScrollView).last,
+      const Offset(0, -420),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Done'));
+    await _pump(tester);
+    expect(find.text('140g'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('add-detected-item')));
+    await _pump(tester);
+    expect(find.text('Add detected item'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).at(0), 'Broccoli');
+    await tester.enterText(find.byType(TextField).at(1), '80');
+    tester.testTextInput.hide();
+    await tester.pump();
+    await tester.drag(
+      find.byType(SingleChildScrollView).last,
+      const Offset(0, -420),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Add'));
+    await _pump(tester);
+    expect(find.text('Broccoli'), findsOneWidget);
+    expect(find.text('80g'), findsOneWidget);
   });
 
   for (final status in [

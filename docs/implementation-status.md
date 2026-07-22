@@ -79,6 +79,15 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Verification: `fvm flutter analyze` clean; combined food-detail, processing, and review suite 79/79; repository-focused suite 5/5.
 - Next: complete and test the remaining editable detail fields/actions, run full verification, then post-implementation review.
 
+### Task 10 edit-surface checkpoint
+
+- RED: direct-edit widget tests failed on absent calories, food-name, meal-type, and detected-item controls; the security regression test proved owners could mutate nutrition while an entry remained `pending` or `processing`.
+- GREEN: edit mode now exposes inline handoff-aligned editors for name and meal type plus scroll-safe root sheets for calories, macros, and detected-item name/weight; detected items can be adjusted or added and are included in the pending correction map.
+- The shared number editor replaces the older macro-only modal, avoiding divergent keyboard/small-screen behavior. Food Detail route motion now uses `MotionDurations.cardExpansion` instead of a duplicated `320ms` literal.
+- Firestore client updates are allowed only for stable editable `complete`/`needs_review` entries, `needs_review -> complete`, and `error -> pending`; pending/processing analysis remains server-owned. Admin SDK workers are unaffected.
+- Verification: focused Food Detail suite 21/21; `fvm flutter analyze` clean; Firestore emulator rules 14/14.
+- Next: full Flutter/Functions verification, post-implementation review, and Task 10 handoff.
+
 ### Task 9 backend checkpoint
 
 - OpenCode invocation `opencode/mimo-v2.5-free` was terminated on 2026-07-22 after more than three minutes with no output and no file changes; host fallback used under the recorded repeated-stall rule.

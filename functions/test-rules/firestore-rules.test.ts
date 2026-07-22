@@ -165,6 +165,27 @@ describe('entries', () => {
     );
   });
 
+  it('rejects nutrition corrections while analysis is pending or processing', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `users/${OWNER}/entries/pending-edit`), validEntry());
+      await setDoc(
+        doc(ctx.firestore(), `users/${OWNER}/entries/processing-edit`),
+        validEntry({ status: 'processing' }),
+      );
+    });
+
+    await assertFails(
+      updateDoc(doc(ownerDb(), `users/${OWNER}/entries/pending-edit`), {
+        baseKcal: 500,
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(ownerDb(), `users/${OWNER}/entries/processing-edit`), {
+        servingMultiplier: 2,
+      }),
+    );
+  });
+
   it('lets the owner edit and delete complete entries', async () => {
     await env.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(

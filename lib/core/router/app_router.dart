@@ -129,7 +129,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                             child: child,
                           );
                         },
-                        transitionDuration: const Duration(milliseconds: 320),
+                        transitionDuration: MotionDurations.cardExpansion,
                       );
                     },
                   ),

@@ -49,7 +49,8 @@ service cloud.firestore {
           && validDateKey(request.resource.data.date)
           && validMacros(request.resource.data)
           && (
-            resource.data.status == request.resource.data.status
+            (resource.data.status in ['complete', 'needs_review']
+              && resource.data.status == request.resource.data.status)
             || (resource.data.status == 'needs_review' && request.resource.data.status == 'complete')
             || (resource.data.status == 'error' && request.resource.data.status == 'pending')
           );

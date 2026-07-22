@@ -1396,9 +1396,9 @@ testWidgets('card-to-detail uses shared transition of ~320ms and dark/light them
 
 - [x] **Step 3B (worker): Implement CRUD and scaling** — auth-scoped repository/data-store seam; nullable watch; deterministic `correctedAt`; clamp/multiplier helpers; displayed-to-base conversion; duplicate/delete semantics; no double scaling.
 
-- [ ] **Step 3C (worker): Complete UI behavior** per spec §5.11/§5.12 by extending the existing widget hierarchy — editable macro rows, add-item chip, Undo/Save bar, delete/duplicate actions, `PopScope` + `DraftPolicy` unsaved-exit confirmation, and edit controls hidden for pending/processing. Do not rewrite already-correct hero/detail components.
+- [x] **Step 3C (worker): Complete UI behavior** per spec §5.11/§5.12 by extending the existing widget hierarchy — editable macro rows, add-item chip, Undo/Save bar, delete/duplicate actions, `PopScope` + `DraftPolicy` unsaved-exit confirmation, and edit controls hidden for pending/processing. Do not rewrite already-correct hero/detail components.
 
-- [ ] **Step 4: GREEN** — Run: `fvm flutter test test/food_detail test/food_detail_sheet_test.dart` → Expected: PASS.
+- [x] **Step 4: GREEN** — Run: `fvm flutter test test/food_detail test/food_detail_sheet_test.dart` → Expected: PASS.
 
 - [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 
