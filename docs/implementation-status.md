@@ -51,7 +51,10 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Existing History already implements the handoff calendar, weekly stats, status colors, future-day dimming, streak surface, and day-detail screen; Task 12 will preserve these rather than rewrite them.
 - Missing production contracts found during inspection: selected periods still read a fixed latest-30 stream; previous navigation has no account-creation lower bound; elapsed empty days are absent from day rows; `AnimatedSize` uses a literal duration and ignores reduced motion; focused routing/time-travel tests are absent.
 - Planned architecture: immutable `HistoryRange` family query for selected week/month, separate recent stream for cross-week streaks, overrideable auth-metadata creation boundary, pure elapsed-week row materializer, and `AppMotion` transition timing.
-- Next: Antigravity pre-implementation review, then an OpenCode RED-only attempt using the reviewed plan.
+- Pre-review round 1 returned `AGREEMENT_STATUS: agree` while listing four `MUST_FIX` items, so it was correctly treated as non-green. The response also concatenated the final MUST_FIX item with the SHOULD_FIX heading; findings remained actionable and no repository mutation occurred.
+- Plan corrections: timezone-aware calendar arithmetic across DST; canonical range-key equality/hash for Riverpod stability; active-streak grace when today is empty; disabled/dimmed previous navigation at account creation; auto-disposed range streams and deterministic row keys.
+- Confirmation review in `calorix-task12-history-time-travel-20260722` returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`; only the standard model footer was appended and no repository mutation occurred.
+- Next: OpenCode RED-only attempt using the reviewed plan.
 
 ### Task 10 plan correction
 
