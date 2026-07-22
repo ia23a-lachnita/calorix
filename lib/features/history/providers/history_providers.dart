@@ -6,9 +6,32 @@ import '../../../shared/providers/auth_provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/time/clock_provider.dart';
 import '../../../core/time/timezone_utils.dart' as timezone_utils;
+import '../history_time_travel.dart';
 
 final selectedWeekProvider = StateProvider<DateTime>((ref) {
   return timezone_utils.startOfWeek(ref.watch(clockProvider).nowTZ());
+});
+
+final accountCreationProvider = Provider<DateTime?>((ref) {
+  return ref.watch(authStateProvider).valueOrNull?.metadata.creationTime;
+});
+
+final historyRangeProvider = StreamProvider.autoDispose
+    .family<List<DailyLog>, HistoryRange>((ref, range) {
+  final uid = ref.watch(currentUidProvider);
+  if (uid == null) return Stream.value([]);
+  final firestore = ref.watch(firestoreProvider);
+  return firestore
+      .collection(AppConstants.usersCollection)
+      .doc(uid)
+      .collection(AppConstants.dailyLogsSubCollection)
+      .where('date', isGreaterThanOrEqualTo: range.startKey)
+      .where('date', isLessThan: range.endExclusiveKey)
+      .orderBy('date', descending: true)
+      .snapshots()
+      .map((query) => query.docs
+          .map((doc) => DailyLog.fromFirestore(doc))
+          .toList(growable: false));
 });
 
 final historyProvider = StreamProvider<List<DailyLog>>((ref) {

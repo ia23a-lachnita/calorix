@@ -4,13 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
 import 'providers/history_providers.dart';
+import 'history_time_travel.dart';
 import '../../shared/models/daily_log.dart';
 import '../../shared/providers/plan_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/time/clock_provider.dart';
+import '../../core/time/timezone_utils.dart' as timezone_utils;
+import '../../core/motion/app_motion.dart';
 
 /// A day counts as on-target from this fraction of the kcal goal upward;
 /// below it the day renders amber per the handoff status colors.
@@ -24,7 +28,7 @@ class HistoryScreen extends ConsumerStatefulWidget {
 
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   bool _isMonthView = false;
-  late DateTime _selectedDate;
+  late tz.TZDateTime _selectedDate;
 
   @override
   void initState() {
@@ -32,24 +36,42 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     _selectedDate = ref.read(clockProvider).nowTZ();
   }
 
-  DateTime get _weekStart => _dateOnly(
-      _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1)));
+  tz.TZDateTime get _weekStart => timezone_utils.startOfWeek(_selectedDate);
 
-  bool _canGoNext(DateTime now) {
+  HistoryRange get _selectedRange => _isMonthView
+      ? historyMonthRange(_selectedDate)
+      : historyWeekRange(_selectedDate);
+
+  bool _canGoPrevious(DateTime? accountCreated) => _isMonthView
+      ? canGoToPreviousMonth(
+          selectedMonth: _selectedDate,
+          accountCreated: accountCreated,
+        )
+      : canGoToPreviousWeek(
+          selectedWeek: _selectedDate,
+          accountCreated: accountCreated,
+        );
+
+  bool _canGoNext(tz.TZDateTime now) {
     if (_isMonthView) {
-      return DateTime(_selectedDate.year, _selectedDate.month)
-          .isBefore(DateTime(now.year, now.month));
+      return timezone_utils
+          .startOfMonth(_selectedDate)
+          .isBefore(timezone_utils.startOfMonth(now));
     }
-    final thisWeekStart =
-        _dateOnly(now.subtract(Duration(days: now.weekday - 1)));
+    final thisWeekStart = timezone_utils.startOfWeek(now);
     return _weekStart.isBefore(thisWeekStart);
   }
 
-  void _goPrevious() {
+  void _goPrevious(DateTime? accountCreated) {
+    if (!_canGoPrevious(accountCreated)) return;
     setState(() {
       _selectedDate = _isMonthView
-          ? DateTime(_selectedDate.year, _selectedDate.month - 1, 1)
-          : _selectedDate.subtract(const Duration(days: 7));
+          ? tz.TZDateTime(
+              _selectedDate.location,
+              _selectedDate.year,
+              _selectedDate.month - 1,
+            )
+          : calendarDay(_weekStart, -7);
     });
   }
 
@@ -58,39 +80,32 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     if (!_canGoNext(now)) return;
     setState(() {
       if (_isMonthView) {
-        final next = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+        final next = tz.TZDateTime(
+          _selectedDate.location,
+          _selectedDate.year,
+          _selectedDate.month + 1,
+        );
         _selectedDate =
             next.month == now.month && next.year == now.year ? now : next;
       } else {
-        _selectedDate = _selectedDate.add(const Duration(days: 7));
+        _selectedDate = calendarDay(_weekStart, 7);
       }
     });
   }
 
   int get _weekNumber {
     final d = _selectedDate;
-    final dayOfYear = d.difference(DateTime(d.year, 1, 1)).inDays + 1;
+    final dayOfYear = DateTime.utc(d.year, d.month, d.day)
+            .difference(DateTime.utc(d.year, 1, 1))
+            .inDays +
+        1;
     return ((dayOfYear - d.weekday + 10) / 7).floor();
-  }
-
-  int _computeStreak(List<DailyLog> logs, DateTime today) {
-    int streak = 0;
-    for (int i = 0; i < logs.length; i++) {
-      final log = logs[i];
-      if (!log.hasData) break;
-      final expected = today.subtract(Duration(days: i));
-      if (DateFormat('yyyy-MM-dd').format(log.date) !=
-          DateFormat('yyyy-MM-dd').format(expected)) {
-        break;
-      }
-      streak++;
-    }
-    return streak;
   }
 
   @override
   Widget build(BuildContext context) {
-    final historyAsync = ref.watch(historyProvider);
+    final historyAsync = ref.watch(historyRangeProvider(_selectedRange));
+    final recentHistory = ref.watch(historyProvider).valueOrNull ?? const [];
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final ink = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final muted =
@@ -100,9 +115,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             AppConstants.defaultKcalTarget)
         .toDouble();
     final now = ref.watch(clockProvider).nowTZ();
+    final accountCreated = ref.watch(accountCreationProvider);
 
     final weekLogs = _logsForWeek(logs, _weekStart);
-    final streak = _computeStreak(logs, _dateOnly(now));
+    final dayRows = buildHistoryWeekRows(
+      weekStart: _weekStart,
+      logs: weekLogs,
+      now: now,
+      accountCreated: accountCreated,
+    ).reversed.toList(growable: false);
+    final streak = computeActiveStreak(logs: recentHistory, today: now);
+    final canGoPrevious = _canGoPrevious(accountCreated);
 
     return Scaffold(
       body: CustomScrollView(
@@ -137,12 +160,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: _goPrevious,
-                          child:
-                              Icon(Icons.chevron_left, size: 20, color: muted),
+                          key: const Key('history.previous'),
+                          onTap: canGoPrevious
+                              ? () => _goPrevious(accountCreated)
+                              : null,
+                          child: Icon(
+                            Icons.chevron_left,
+                            size: 20,
+                            color: canGoPrevious
+                                ? ink
+                                : muted.withValues(alpha: 0.4),
+                          ),
                         ),
                         const SizedBox(width: 6),
                         GestureDetector(
+                          key: const Key('history.next'),
                           onTap: _goNext,
                           child: Icon(
                             Icons.chevron_right,
@@ -169,7 +201,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   logs: logs,
                   kcalTarget: kcalTarget,
                   isDark: isDark,
-                  today: _dateOnly(now),
+                  today: timezone_utils.startOfDay(now),
                   onViewChanged: (month) =>
                       setState(() => _isMonthView = month),
                   onDateSelected: (d) => setState(() => _selectedDate = d),
@@ -181,7 +213,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   isDark: isDark,
                 ),
                 const SizedBox(height: 16),
-                if (weekLogs.isNotEmpty) ...[
+                if (dayRows.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
                     child: Row(
@@ -193,14 +225,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       ],
                     ),
                   ),
-                  ...weekLogs.map((log) => Padding(
+                  ...dayRows.map((row) => Padding(
+                        key: Key('history-day-row-${row.dateKey}'),
                         padding: const EdgeInsets.only(bottom: 8),
                         child: _DayRow(
-                          log: log,
+                          log: row.log,
                           kcalTarget: kcalTarget,
                           isDark: isDark,
-                          onTap: () => context.go(
-                              '/history/${DateFormat('yyyy-MM-dd').format(log.date)}'),
+                          onTap: () => context.go('/history/${row.dateKey}'),
                         ),
                       )),
                 ] else
@@ -223,15 +255,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 }
 
-DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
-
-List<DailyLog> _logsForWeek(List<DailyLog> logs, DateTime weekStart) {
-  final weekEnd = weekStart.add(const Duration(days: 7));
-  return logs
-      .where((log) =>
-          !_dateOnly(log.date).isBefore(weekStart) &&
-          _dateOnly(log.date).isBefore(weekEnd))
-      .toList()
+List<DailyLog> _logsForWeek(List<DailyLog> logs, tz.TZDateTime weekStart) {
+  final startKey = timezone_utils.dateKeyFor(weekStart);
+  final endKey = timezone_utils.dateKeyFor(calendarDay(weekStart, 7));
+  return logs.where((log) {
+    final key = DateFormat('yyyy-MM-dd').format(log.date);
+    return key.compareTo(startKey) >= 0 && key.compareTo(endKey) < 0;
+  }).toList()
     ..sort((a, b) => b.date.compareTo(a.date));
 }
 
@@ -258,13 +288,13 @@ class _CalendarCard extends StatelessWidget {
   });
 
   final bool isMonthView;
-  final DateTime selectedDate;
+  final tz.TZDateTime selectedDate;
   final List<DailyLog> logs;
   final double kcalTarget;
   final bool isDark;
-  final DateTime today;
+  final tz.TZDateTime today;
   final ValueChanged<bool> onViewChanged;
-  final ValueChanged<DateTime> onDateSelected;
+  final ValueChanged<tz.TZDateTime> onDateSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -305,7 +335,8 @@ class _CalendarCard extends StatelessWidget {
             ),
           ),
           AnimatedSize(
-            duration: const Duration(milliseconds: 300),
+            duration: AppMotion.durationOf(
+                context, MotionDurations.historyViewToggle),
             curve: Curves.easeInOut,
             child: isMonthView
                 ? _MonthGrid(
@@ -428,17 +459,16 @@ class _WeekStrip extends StatelessWidget {
     required this.onDateSelected,
   });
 
-  final DateTime selectedDate;
+  final tz.TZDateTime selectedDate;
   final List<DailyLog> logs;
   final double kcalTarget;
   final bool isDark;
-  final DateTime today;
-  final ValueChanged<DateTime> onDateSelected;
+  final tz.TZDateTime today;
+  final ValueChanged<tz.TZDateTime> onDateSelected;
 
   @override
   Widget build(BuildContext context) {
-    final monday = _dateOnly(
-        selectedDate.subtract(Duration(days: selectedDate.weekday - 1)));
+    final monday = timezone_utils.startOfWeek(selectedDate);
     final logByDay = {
       for (final log in logs) DateFormat('yyyy-MM-dd').format(log.date): log,
     };
@@ -447,7 +477,7 @@ class _WeekStrip extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
       child: Row(
         children: List.generate(7, (i) {
-          final day = monday.add(Duration(days: i));
+          final day = calendarDay(monday, i);
           final log = logByDay[DateFormat('yyyy-MM-dd').format(day)];
           return Expanded(
             child: _DayPill(
@@ -475,7 +505,7 @@ class _DayPill extends StatelessWidget {
     required this.onTap,
   });
 
-  final DateTime day;
+  final tz.TZDateTime day;
   final DailyLog? log;
   final double kcalTarget;
   final bool isToday;
@@ -603,20 +633,21 @@ class _MonthGrid extends StatelessWidget {
     required this.onDateSelected,
   });
 
-  final DateTime selectedDate;
+  final tz.TZDateTime selectedDate;
   final List<DailyLog> logs;
   final double kcalTarget;
   final bool isDark;
-  final DateTime today;
-  final ValueChanged<DateTime> onDateSelected;
+  final tz.TZDateTime today;
+  final ValueChanged<tz.TZDateTime> onDateSelected;
 
   @override
   Widget build(BuildContext context) {
     final ink = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final muted =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
-    final month = DateTime(selectedDate.year, selectedDate.month, 1);
-    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+    final month = timezone_utils.startOfMonth(selectedDate);
+    final daysInMonth =
+        tz.TZDateTime(month.location, month.year, month.month + 1, 0).day;
     final startOffset = month.weekday - 1;
     final logByDay = {
       for (final log in logs) DateFormat('yyyy-MM-dd').format(log.date): log,
@@ -656,9 +687,15 @@ class _MonthGrid extends StatelessWidget {
             itemBuilder: (context, index) {
               if (index < startOffset) return const SizedBox.shrink();
               final dayNumber = index - startOffset + 1;
-              final date = DateTime(month.year, month.month, dayNumber);
-              final isToday = _dateOnly(date) == today;
-              final isFuture = _dateOnly(date).isAfter(today);
+              final date = tz.TZDateTime(
+                month.location,
+                month.year,
+                month.month,
+                dayNumber,
+              );
+              final isToday = timezone_utils.dateKeyFor(date) ==
+                  timezone_utils.dateKeyFor(today);
+              final isFuture = date.isAfter(today);
               final log = logByDay[DateFormat('yyyy-MM-dd').format(date)];
               final dotColor =
                   isToday ? AppColors.green : _statusColor(log, kcalTarget);

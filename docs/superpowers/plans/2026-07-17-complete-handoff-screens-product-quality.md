@@ -1476,7 +1476,7 @@ git push
 - Day-row truth: `buildHistoryWeekRows` materializes every eligible date from account creation through `min(endOfWeek, now)`, preserving real aggregate rows and inserting explicit zero-entry rows for elapsed empty days. Future dates never become day rows or drilldown targets.
 - Streak truth: `computeActiveStreak` starts at today when today has data, otherwise grants the still-open current day and starts at yesterday; it then requires consecutive canonical date keys with data. This preserves an active streak before the user logs today's first meal.
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/history/history_time_travel_test.dart (FakeClock overrides)
@@ -1492,13 +1492,13 @@ testWidgets('day row tap opens history day screen listing that day\'s foods', (t
 testWidgets('horizontal strip gestures do not trigger tab swipe; both themes render', (tester) async { /* implement */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/history test/history_screen_test.dart` → Expected: FAIL on new assertions.
+- [x] **Step 2: RED** — Run: `fvm flutter test test/history test/history_screen_test.dart` → Expected: FAIL on new assertions.
 
-- [ ] **Step 3 (worker): Implement** per spec §5.13/§5.14 against `cx-screen-history.jsx`; all date math through the injected clock and timezone-aware calendar constructors. Replace the screen's fixed-limit source with an auto-disposed selected range provider, retain a recent stream for cross-week streaks, apply `AppMotion.durationOf` to the 300ms week↔month transition, key rows as `history-day-row-YYYY-MM-DD`, and route only elapsed eligible day rows to History Day. Retain and regression-test the existing disabled/dimmed future month cells.
+- [x] **Step 3 (worker): Implement** per spec §5.13/§5.14 against `cx-screen-history.jsx`; all date math through the injected clock and timezone-aware calendar constructors. Replace the screen's fixed-limit source with an auto-disposed selected range provider, retain a recent stream for cross-week streaks, apply `AppMotion.durationOf` to the 300ms week↔month transition, key rows as `history-day-row-YYYY-MM-DD`, and route only elapsed eligible day rows to History Day. Retain and regression-test the existing disabled/dimmed future month cells.
 
-- [ ] **Step 4: GREEN** — Run: same → Expected: PASS.
+- [x] **Step 4: GREEN** — Run: same → Expected: PASS.
 
-- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+- [x] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 
 - [ ] **Step 6: REVIEW-GATE Task 12**, then **HANDOFF Task 12**
 
