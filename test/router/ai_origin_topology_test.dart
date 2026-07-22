@@ -170,8 +170,15 @@ Future<void> _pumpTopology(WidgetTester tester, GoRouter router) async {
       overrides: [
         aiChatServiceProvider.overrideWithValue(_StubAiChatService()),
         authStateProvider.overrideWith((ref) => const Stream<User?>.empty()),
-        todayMacroSummaryProvider.overrideWithValue(
-          (kcal: 0.0, protein: 0.0, carbs: 0.0, fat: 0.0),
+        todaySummaryProvider.overrideWithValue(
+          (
+            kcal: 0,
+            proteinG: 0.0,
+            carbsG: 0.0,
+            fatG: 0.0,
+            targetKcal: 2400,
+            kcalLeft: 2400,
+          ),
         ),
       ],
       child: MaterialApp.router(routerConfig: router),
@@ -225,8 +232,8 @@ void main() {
 
       // Verify preloaded meal context was passed through.
       final overlayFinder = find.byType(AiChatScreen).last;
-      final overlayWidget = overlayFinder.hitTestable().evaluate().single.widget
-          as AiChatScreen;
+      final overlayWidget =
+          overlayFinder.hitTestable().evaluate().single.widget as AiChatScreen;
       expect(
         overlayWidget.preloadedMealId,
         'meal-42',
@@ -279,9 +286,8 @@ void main() {
                 ],
               ),
             ),
-            navigatorContainerBuilder:
-                (context, navigationShell, children) =>
-                    TabSwipeShell(shell: navigationShell, children: children),
+            navigatorContainerBuilder: (context, navigationShell, children) =>
+                TabSwipeShell(shell: navigationShell, children: children),
             branches: [
               StatefulShellBranch(
                 navigatorKey: aiKey,
@@ -355,11 +361,10 @@ void main() {
       final router = container.read(routerProvider);
 
       // --- Find the top-level GoRoute for aiChatOverlay ---
-      final overlayRoutes = router.configuration.routes
-          .whereType<GoRoute>()
-          .where(
-            (r) => r.name == RouteNames.aiChatOverlay,
-          );
+      final overlayRoutes =
+          router.configuration.routes.whereType<GoRoute>().where(
+                (r) => r.name == RouteNames.aiChatOverlay,
+              );
       expect(
         overlayRoutes.length,
         1,
@@ -401,8 +406,8 @@ void main() {
           .expand((b) => b.routes)
           .whereType<GoRoute>()
           .where(
-        (r) => r.name == RouteNames.aiChatOverlay,
-      );
+            (r) => r.name == RouteNames.aiChatOverlay,
+          );
       expect(
         shellOverlayMatches.isEmpty,
         isTrue,

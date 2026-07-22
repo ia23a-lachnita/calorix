@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/food_entry.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/providers/plan_provider.dart';
 import '../../../shared/providers/ui_diff_provider.dart';
 
 export '../../../shared/providers/plan_provider.dart' show activePlanProvider;
@@ -23,16 +24,19 @@ final todayEntriesProvider = StreamProvider<List<FoodEntry>>((ref) {
   return ref.watch(foodEntryRepositoryProvider).watchTodayEntries(uid);
 });
 
-final todayMacroSummaryProvider =
-    Provider<({double kcal, double protein, double carbs, double fat})>((ref) {
-  if (ref.watch(uiDiffFixtureEnabledProvider)) {
-    // The static handoff screenshot intentionally shows 1,420 kcal in the
-    // hero while the visible meal cards sum to 845 kcal. Keep that mismatch
-    // isolated to ui-diff mode so visual parity does not change production math.
-    return (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0);
-  }
+typedef TodaySummary = ({
+  int kcal,
+  double proteinG,
+  double carbsG,
+  double fatG,
+  int targetKcal,
+  int kcalLeft,
+});
 
+final todaySummaryProvider = Provider<TodaySummary>((ref) {
   final entries = ref.watch(todayEntriesProvider).valueOrNull ?? [];
+  final activePlan = ref.watch(activePlanProvider).valueOrNull;
+  final targetKcal = activePlan?.kcal ?? 2400;
   double kcal = 0, protein = 0, carbs = 0, fat = 0;
   for (final e in entries) {
     // Low-confidence scans awaiting review stay visible in the list but never
@@ -43,5 +47,31 @@ final todayMacroSummaryProvider =
     carbs += e.scaledCarbs;
     fat += e.scaledFat;
   }
-  return (kcal: kcal, protein: protein, carbs: carbs, fat: fat);
+  final roundedKcal = kcal.round();
+  return (
+    kcal: roundedKcal,
+    proteinG: protein,
+    carbsG: carbs,
+    fatG: fat,
+    targetKcal: targetKcal,
+    kcalLeft: (targetKcal - roundedKcal).clamp(0, targetKcal).toInt(),
+  );
+});
+
+final todayDisplaySummaryProvider = Provider<TodaySummary>((ref) {
+  final summary = ref.watch(todaySummaryProvider);
+  if (!ref.watch(uiDiffFixtureEnabledProvider)) return summary;
+
+  // The static handoff intentionally shows values that differ from its
+  // visible cards. Only this screen-facing adapter may reproduce that fixture.
+  const fixtureKcal = 1420;
+  return (
+    kcal: fixtureKcal,
+    proteinG: 96,
+    carbsG: 132,
+    fatG: 38,
+    targetKcal: summary.targetKcal,
+    kcalLeft:
+        (summary.targetKcal - fixtureKcal).clamp(0, summary.targetKcal).toInt(),
+  );
 });

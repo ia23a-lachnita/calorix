@@ -31,14 +31,18 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 8 | done | OpenCode headless stalled ~3 minutes with zero edits; host fallback under recorded contract | pre-review green round 2 and post-review green (`calorix-task8-review-manual-20260722`) | aaa8ebc | RED confirmed missing screens/contracts; GREEN: 14 targeted tests, permission 6/6, full analyzer clean, full Flutter 293/293; post-review `agree`, `MUST_FIX: none`, `SHOULD_FIX: none` |
 | 9 | done | OpenCode stalled with zero edits; host fallback under contract | pre- and post-review green (`calorix-task9-analysis-contracts-20260722`) | 49bcffc, f695371, 5c8d3fb | backend 51/51; Flutter 294/294 plus 1 intentional live skip; analyzer/lint/build clean; OFF v3 live and full emulator gates pass |
 | 10 | done | OpenCode RED worker stalled with zero edits; host fallback | pre-review green round 2 and post-review green (`calorix-task10-food-crud-20260722`) | 01264d8, a94cb5d, 1b9f3de, f2a1190, 94785a5, 4caaa9d, 34e3310 | analyzer clean; Flutter 313 passed + 1 intentional live skip; Functions 52/52 with lint/build clean; rules 14/14; focused Food Detail 21/21 |
-| 11 | in progress (plan reconciliation) | pending OpenCode RED attempt | pre-review pending | baseline 32aecd5 | inspect existing Today parity; isolate fixture-only presentation values from production aggregation; intended focused gate: `fvm flutter test test/today test/today_screen_test.dart test/today_providers_test.dart` |
+| 11 | in progress (implementation verified; post-review pending) | OpenCode unavailable; host fallback under contract | pre-review green; post-review pending | baseline 219b5fb | focused Today 26/26; analyzer clean; full Flutter 319 passed + 1 intentional live skip |
 
 ### Task 11 plan checkpoint
 
 - Existing visual parity coverage is retained; implementation is scoped to the missing production summary contract, fixture/presentation isolation, and genuinely absent widget assertions.
 - Review conversation `calorix-task11-today-truth-20260722` confirmed a synchronous reactive `todaySummaryProvider` plus fixture-only `todayDisplaySummaryProvider`. The plan now awaits `todayEntriesProvider.future` before reading the synchronous summary and tests both providers independently.
 - Final pre-review confirmation: `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none` on `Gemini 3.6 Flash (High)`. The MCP appended its standard model footer; no repository mutation occurred.
-- Next: OpenCode RED-only attempt for Task 11 provider and missing widget tests.
+- OpenCode RED-only invocation failed on 2026-07-22 after 20.5 seconds with exact error `Error: No provider available`; it produced no file changes. Host fallback proceeded under the explicit unavailable-provider exception.
+- RED: the focused suite failed on missing `todaySummaryProvider`, missing `todayDisplaySummaryProvider`, and missing `Scan a meal`; the initial amber-dot matcher also failed and was corrected as a test-authoring issue before GREEN.
+- GREEN: production aggregation is synchronous/reactive, excludes unconfirmed entries, applies serving multipliers exactly once, owns target/remaining kcal, and stays independent of fixture mode. Only `todayDisplaySummaryProvider` substitutes the handoff hero values. Today now exposes an explicit camera CTA and verified confidence, count-up, macro-value, target, percentage, and color behavior.
+- Verification: focused Today suite 26/26; `fvm flutter analyze` clean; full `fvm flutter test` 319 passed plus 1 intentional live-contract skip.
+- Next: commit/push this checkpoint, run the Task 11 post-implementation review, remediate any findings, and close the task.
 
 ### Task 10 plan correction
 

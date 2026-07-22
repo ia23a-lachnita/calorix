@@ -1422,7 +1422,7 @@ git push
 - Consumes: `FoodEntry` CRUD (Task 10), `clockProvider` (Task 3), `AppMotion` (Task 4), fixture isolation (Task 5).
 - Produces: synchronous reactive `todaySummaryProvider` emitting `({int kcal, double proteinG, double carbsG, double fatG, int targetKcal, int kcalLeft})` — always summed from real entries; Task 16/17 depend on this name. `todayDisplaySummaryProvider` is the only fixture-aware presentation adapter and may substitute handoff hero values for `TodayScreen`; no repository, aggregate, or downstream feature may consume that adapter.
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/today/aggregation_truth_test.dart
@@ -1444,13 +1444,13 @@ testWidgets('meal card shows thumbnail, name, kcal, time, macro pips, confidence
 testWidgets('avatar tap pushes profile; bell is a placeholder; both themes render', (tester) async { /* implement */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/today test/today_screen_test.dart test/today_providers_test.dart` → Expected: FAIL on the new assertions.
+- [x] **Step 2: RED** — Run: `fvm flutter test test/today test/today_screen_test.dart test/today_providers_test.dart` → Expected: FAIL on the new assertions.
 
-- [ ] **Step 3 (worker): Implement** parity details per spec §5.9/§5.10 against `cx-screen-today.jsx` values (paddings/radii/font sizes copied exactly), count-up via `AppMotion`, aggregation strictly from repository entries. Implement `todaySummaryProvider` as a synchronous `Provider` watching `todayEntriesProvider` and `activePlanProvider` `AsyncValue`s so Firestore/plan emissions remain reactive; isolate the fixture hero mismatch in `todayDisplaySummaryProvider` and test the two contracts separately.
+- [x] **Step 3 (worker): Implement** parity details per spec §5.9/§5.10 against `cx-screen-today.jsx` values (paddings/radii/font sizes copied exactly), count-up via `AppMotion`, aggregation strictly from repository entries. Implement `todaySummaryProvider` as a synchronous `Provider` watching `todayEntriesProvider` and `activePlanProvider` `AsyncValue`s so Firestore/plan emissions remain reactive; isolate the fixture hero mismatch in `todayDisplaySummaryProvider` and test the two contracts separately.
 
-- [ ] **Step 4: GREEN** — Run: same test files → Expected: PASS.
+- [x] **Step 4: GREEN** — Run: same test files → Expected: PASS.
 
-- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
+- [x] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions.
 
 - [ ] **Step 6: REVIEW-GATE Task 11**, then **HANDOFF Task 11**
 

@@ -190,13 +190,14 @@ void main() {
     await fixtureHero.read(todayEntriesProvider.future);
 
     expect(
-      productionMath.read(todayMacroSummaryProvider),
-      (kcal: 800.0, protein: 73.0, carbs: 84.0, fat: 19.0),
+      productionMath.read(todaySummaryProvider).kcal,
+      800,
     );
     expect(
-      fixtureHero.read(todayMacroSummaryProvider),
-      (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+      fixtureHero.read(todaySummaryProvider).kcal,
+      800,
     );
+    expect(fixtureHero.read(todayDisplaySummaryProvider).kcal, 1420);
   });
 
   test('today entries can be served entirely from the local fixture manifest',

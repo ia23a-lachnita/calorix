@@ -30,8 +30,15 @@ Widget _app(AiChatService service) {
     overrides: [
       aiChatServiceProvider.overrideWithValue(service),
       authStateProvider.overrideWith((ref) => const Stream<User?>.empty()),
-      todayMacroSummaryProvider.overrideWithValue(
-        (kcal: 845.0, protein: 52.0, carbs: 90.0, fat: 32.0),
+      todaySummaryProvider.overrideWithValue(
+        (
+          kcal: 845,
+          proteinG: 52.0,
+          carbsG: 90.0,
+          fatG: 32.0,
+          targetKcal: 2400,
+          kcalLeft: 1555,
+        ),
       ),
     ],
     child: MaterialApp.router(
@@ -114,8 +121,15 @@ void main() {
         overrides: [
           aiChatServiceProvider.overrideWithValue(service),
           authStateProvider.overrideWith((ref) => const Stream<User?>.empty()),
-          todayMacroSummaryProvider.overrideWithValue(
-            (kcal: 845.0, protein: 52.0, carbs: 90.0, fat: 32.0),
+          todaySummaryProvider.overrideWithValue(
+            (
+              kcal: 845,
+              proteinG: 52.0,
+              carbsG: 90.0,
+              fatG: 32.0,
+              targetKcal: 2400,
+              kcalLeft: 1555,
+            ),
           ),
         ],
         child: MaterialApp.router(

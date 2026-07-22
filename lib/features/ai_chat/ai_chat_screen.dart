@@ -59,7 +59,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
 
     final plan = ref.read(activePlanProvider).valueOrNull ??
         MacroTargetPlan.defaultPlan(startDate: ref.read(clockProvider).nowTZ());
-    final today = ref.read(todayMacroSummaryProvider);
+    final today = ref.read(todaySummaryProvider);
 
     try {
       final raw = await ref.read(aiChatServiceProvider).sendMessage(
@@ -74,9 +74,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         },
         consumed: {
           'kcal': today.kcal,
-          'protein': today.protein,
-          'carbs': today.carbs,
-          'fat': today.fat,
+          'protein': today.proteinG,
+          'carbs': today.carbsG,
+          'fat': today.fatG,
         },
       );
       final parsed = _parseReply(raw, plan);

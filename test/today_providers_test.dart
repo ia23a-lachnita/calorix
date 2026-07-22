@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:calorix/features/today/providers/today_providers.dart';
 import 'package:calorix/shared/models/food_entry.dart';
+import 'package:calorix/shared/models/macro_target_plan.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
 
 FoodEntry _entry({
@@ -34,11 +35,16 @@ ProviderContainer _container({
         uiDiffModeProvider.overrideWith((_) => uiDiffMode),
         uiDiffFixtureEnabledProvider.overrideWith((_) => fixtureEnabled),
         todayEntriesProvider.overrideWith((_) => Stream.value(entries)),
+        activePlanProvider.overrideWith(
+          (_) => Stream.value(
+            MacroTargetPlan.defaultPlan(startDate: DateTime(2026, 1, 1)),
+          ),
+        ),
       ],
     );
 
 void main() {
-  test('todayMacroSummaryProvider sums entries in normal mode', () async {
+  test('todaySummaryProvider sums entries in normal mode', () async {
     final container = _container(
       uiDiffMode: false,
       entries: [
@@ -49,15 +55,22 @@ void main() {
     addTearDown(container.dispose);
 
     await container.read(todayEntriesProvider.future);
+    await container.read(activePlanProvider.future);
 
     expect(
-      container.read(todayMacroSummaryProvider),
-      (kcal: 145.0, protein: 11.0, carbs: 28.0, fat: 4.0),
+      container.read(todaySummaryProvider),
+      (
+        kcal: 145,
+        proteinG: 11.0,
+        carbsG: 28.0,
+        fatG: 4.0,
+        targetKcal: 2400,
+        kcalLeft: 2255,
+      ),
     );
   });
 
-  test(
-      'todayMacroSummaryProvider uses handoff hero values only for fixture mode',
+  test('todayDisplaySummaryProvider alone uses handoff fixture hero values',
       () async {
     final container = _container(
       uiDiffMode: true,
@@ -71,10 +84,9 @@ void main() {
     addTearDown(container.dispose);
 
     await container.read(todayEntriesProvider.future);
+    await container.read(activePlanProvider.future);
 
-    expect(
-      container.read(todayMacroSummaryProvider),
-      (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
-    );
+    expect(container.read(todaySummaryProvider).kcal, 845);
+    expect(container.read(todayDisplaySummaryProvider).kcal, 1420);
   });
 }

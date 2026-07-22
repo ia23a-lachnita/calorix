@@ -113,12 +113,14 @@ void main() {
           todayEntriesProvider.overrideWith(
             (_) => Stream.value([_fixtureEntry]),
           ),
-          todayMacroSummaryProvider.overrideWith(
+          todayDisplaySummaryProvider.overrideWith(
             (_) => (
-              kcal: _kcalConsumed,
-              protein: _proteinConsumed,
-              carbs: _carbsConsumed,
-              fat: _fatConsumed,
+              kcal: _kcalConsumed.round(),
+              proteinG: _proteinConsumed,
+              carbsG: _carbsConsumed,
+              fatG: _fatConsumed,
+              targetKcal: 2400,
+              kcalLeft: (2400 - _kcalConsumed.round()).clamp(0, 2400).toInt(),
             ),
           ),
           activePlanProvider.overrideWith(

@@ -80,7 +80,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
   @override
   Widget build(BuildContext context) {
     final entriesAsync = ref.watch(todayEntriesProvider);
-    final summary = ref.watch(todayMacroSummaryProvider);
+    final summary = ref.watch(todayDisplaySummaryProvider);
     final planAsync = ref.watch(activePlanProvider);
     final now = ref.watch(clockProvider).nowTZ();
     final plan =
@@ -330,7 +330,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
 
 class _HeroMacroCard extends StatelessWidget {
   final Animation<double> animation;
-  final ({double kcal, double protein, double carbs, double fat}) summary;
+  final TodaySummary summary;
   final MacroTargetPlan plan;
   final bool isDark;
 
@@ -343,7 +343,7 @@ class _HeroMacroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final kcalLeft = (plan.kcal - summary.kcal).clamp(0, double.infinity);
+    final kcalLeft = summary.kcalLeft;
     final textColor =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
@@ -388,20 +388,21 @@ class _HeroMacroCard extends StatelessWidget {
             animation: animation,
             builder: (context, _) {
               final kcalNow = summary.kcal * animation.value;
-              final pNow = summary.protein * animation.value;
-              final cNow = summary.carbs * animation.value;
-              final fNow = summary.fat * animation.value;
+              final pNow = summary.proteinG * animation.value;
+              final cNow = summary.carbsG * animation.value;
+              final fNow = summary.fatG * animation.value;
               return Column(
                 children: [
                   const SizedBox(height: 8),
                   Center(
                     child: AnimatedMacroRing(
                       animation: animation,
-                      proteinFraction:
-                          plan.protein > 0 ? summary.protein / plan.protein : 0,
+                      proteinFraction: plan.protein > 0
+                          ? summary.proteinG / plan.protein
+                          : 0,
                       carbsFraction:
-                          plan.carbs > 0 ? summary.carbs / plan.carbs : 0,
-                      fatFraction: plan.fat > 0 ? summary.fat / plan.fat : 0,
+                          plan.carbs > 0 ? summary.carbsG / plan.carbs : 0,
+                      fatFraction: plan.fat > 0 ? summary.fatG / plan.fat : 0,
                       size: 222,
                       strokeWidth: 10,
                       trackColor: isDark
@@ -933,6 +934,12 @@ class _EmptyMeals extends StatelessWidget {
                   color: isDark
                       ? AppColors.textSecondaryDark
                       : AppColors.textSecondaryLight),
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () => context.goNamed(RouteNames.scan),
+              icon: const Icon(Icons.camera_alt_outlined, size: 18),
+              label: const Text('Scan a meal'),
             ),
           ],
         ),

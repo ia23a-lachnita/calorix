@@ -9,6 +9,7 @@ import 'package:calorix/shared/utils/date_key.dart';
 import 'package:calorix/shared/models/food_entry.dart';
 import 'package:calorix/shared/models/macro_target_plan.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
+import 'package:calorix/shared/widgets/macro_progress_bar.dart';
 import 'package:calorix/shared/widgets/macro_ring.dart';
 
 Widget _buildTodayScreen({
@@ -27,7 +28,16 @@ Widget _buildTodayScreen({
     overrides: [
       uiDiffModeProvider.overrideWith((_) => uiDiffMode),
       todayEntriesProvider.overrideWith((_) => Stream.value(entries)),
-      todayMacroSummaryProvider.overrideWith((_) => summary),
+      todayDisplaySummaryProvider.overrideWith(
+        (_) => (
+          kcal: summary.kcal.round(),
+          proteinG: summary.protein,
+          carbsG: summary.carbs,
+          fatG: summary.fat,
+          targetKcal: 2400,
+          kcalLeft: (2400 - summary.kcal.round()).clamp(0, 2400).toInt(),
+        ),
+      ),
       activePlanProvider.overrideWith(
         (_) => Stream<MacroTargetPlan?>.value(
           MacroTargetPlan.defaultPlan(startDate: DateTime(2026, 1, 1)),
@@ -138,6 +148,40 @@ void main() {
     // skipOffstage: false also finds widgets scrolled below the fold
     expect(
         find.text('No meals logged yet', skipOffstage: false), findsOneWidget);
+    expect(find.text('Scan a meal', skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('Today confidence badge uses amber review state below 80%',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(393, 852));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        entries: [
+          _foodEntry(
+            id: 'review',
+            name: 'Uncertain meal',
+            timestamp: DateTime(2026, 7, 22, 12),
+            kcal: 400,
+            protein: 20,
+            carbs: 50,
+            fat: 12,
+            confidence: 0.72,
+          ),
+        ],
+      ),
+    );
+    await _pumpTodayScreen(tester);
+
+    expect(find.text('72% · Review'), findsOneWidget);
+    final amberDots = find.byWidgetPredicate(
+      (widget) =>
+          widget is DecoratedBox &&
+          widget.decoration is BoxDecoration &&
+          (widget.decoration as BoxDecoration).color == AppColors.needsReview &&
+          (widget.decoration as BoxDecoration).shape == BoxShape.circle,
+    );
+    expect(amberDots, findsOneWidget);
   });
 
   testWidgets('Today screen does NOT show error text on success',
@@ -237,6 +281,58 @@ void main() {
       find.byType(AnimatedMacroRing),
     );
     expect(ring.animation.value, 1);
+  });
+
+  testWidgets('Today count-up progresses and finishes near 1.4 seconds',
+      (tester) async {
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+
+    AnimatedMacroRing ring() => tester.widget<AnimatedMacroRing>(
+          find.byType(AnimatedMacroRing),
+        );
+
+    expect(ring().animation.value, lessThan(0.2));
+    await tester.pump(const Duration(milliseconds: 650));
+    expect(ring().animation.value, allOf(greaterThan(0), lessThan(1)));
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(ring().animation.value, 1);
+  });
+
+  testWidgets('Today macro rows show value, target, percent, and spec colors',
+      (tester) async {
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+      ),
+    );
+    await _pumpTodayScreen(tester);
+
+    expect(find.text('96'), findsOneWidget);
+    expect(find.text(' / 170g'), findsOneWidget);
+    expect(find.text('56%'), findsOneWidget);
+    expect(find.text('132'), findsOneWidget);
+    expect(find.text(' / 250g'), findsOneWidget);
+    expect(find.text('53%'), findsOneWidget);
+    expect(find.text('38'), findsOneWidget);
+    expect(find.text(' / 70g'), findsOneWidget);
+    expect(find.text('54%'), findsOneWidget);
+
+    final rows = tester.widgetList<MacroProgressBar>(
+      find.byType(MacroProgressBar),
+    );
+    expect(
+      {for (final row in rows) row.label: row.color},
+      {
+        'Protein': AppColors.protein,
+        'Carbs': AppColors.carbs,
+        'Fat': AppColors.fat,
+      },
+    );
   });
 
   testWidgets('Today macro rows use handoff neutral track and spacing',
