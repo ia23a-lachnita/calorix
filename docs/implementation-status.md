@@ -55,6 +55,13 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Verification: serving/detail focused tests 7/7; Flutter analyzer clean.
 - Next: deterministic correction timestamps/auth-scoped CRUD tests, nullable watch/delete behavior, then draft/pending-state UI gates.
 
+### Task 10 correction metadata checkpoint
+
+- RED: `correctionUpdateFields` was absent.
+- GREEN: correction writes retain only caller-supplied nutrition/multiplier fields, set `corrected: true`, and record `correctedAt` plus `updatedAt` from the injected `Clock`; `FoodEntry` round-trips optional `correctedAt`.
+- Verification: combined food-detail tests 9/9; analyzer clean from the same source delta.
+- Next: nullable watch/delete behavior and unsaved/pending-state UI gates.
+
 ### Task 9 backend checkpoint
 
 - OpenCode invocation `opencode/mimo-v2.5-free` was terminated on 2026-07-22 after more than three minutes with no output and no file changes; host fallback used under the recorded repeated-stall rule.

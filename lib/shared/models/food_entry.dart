@@ -112,6 +112,7 @@ class FoodEntry {
   final double? confidence;
   final double? atwaterKcal;
   final bool corrected;
+  final DateTime? correctedAt;
   final BoundingBox? boundingBox;
   final List<ReviewCandidate> candidates;
 
@@ -139,6 +140,7 @@ class FoodEntry {
     this.confidence,
     this.atwaterKcal,
     this.corrected = false,
+    this.correctedAt,
     this.boundingBox,
     this.candidates = const [],
   })  : baseKcal = baseKcal ?? kcal,
@@ -207,6 +209,7 @@ class FoodEntry {
       confidence: (data['confidence'] as num?)?.toDouble(),
       atwaterKcal: (data['atwaterKcal'] as num?)?.toDouble(),
       corrected: data['corrected'] as bool? ?? false,
+      correctedAt: (data['correctedAt'] as Timestamp?)?.toDate(),
       boundingBox: data['boundingBox'] != null
           ? BoundingBox.fromMap(data['boundingBox'] as Map<String, dynamic>)
           : null,
@@ -239,6 +242,8 @@ class FoodEntry {
         'confidence': confidence,
         if (atwaterKcal != null) 'atwaterKcal': atwaterKcal,
         'corrected': corrected,
+        if (correctedAt != null)
+          'correctedAt': Timestamp.fromDate(correctedAt!),
         'candidates': candidates.map((candidate) => candidate.toMap()).toList(),
       };
 
@@ -256,6 +261,7 @@ class FoodEntry {
     MealType? mealType,
     List<DetectedItem>? detectedItems,
     bool? corrected,
+    DateTime? correctedAt,
     FoodEntryStatus? status,
     List<ReviewCandidate>? candidates,
     double? atwaterKcal,
@@ -280,6 +286,7 @@ class FoodEntry {
         confidence: confidence,
         atwaterKcal: atwaterKcal ?? this.atwaterKcal,
         corrected: corrected ?? this.corrected,
+        correctedAt: correctedAt ?? this.correctedAt,
         boundingBox: boundingBox,
         candidates: candidates ?? this.candidates,
       );

@@ -4,6 +4,19 @@ import '../utils/date_key.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/time/clock.dart';
 
+Map<String, dynamic> correctionUpdateFields(
+  Map<String, dynamic> fields,
+  DateTime now,
+) {
+  final timestamp = Timestamp.fromDate(now);
+  return {
+    ...fields,
+    'corrected': true,
+    'correctedAt': timestamp,
+    'updatedAt': timestamp,
+  };
+}
+
 class FoodEntryRepository {
   FoodEntryRepository(this._firestore, this._clock);
   final FirebaseFirestore _firestore;
@@ -45,13 +58,19 @@ class FoodEntryRepository {
     return ref.id;
   }
 
-  Future<void> update(String uid, String id, Map<String, dynamic> fields,
-          {bool markCorrected = false}) =>
-      _col(uid).doc(id).update({
-        ...fields,
-        if (markCorrected) 'corrected': true,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+  Future<void> update(
+    String uid,
+    String id,
+    Map<String, dynamic> fields, {
+    bool markCorrected = false,
+  }) {
+    final now = _clock.nowTZ();
+    return _col(uid).doc(id).update(
+          markCorrected
+              ? correctionUpdateFields(fields, now)
+              : {...fields, 'updatedAt': Timestamp.fromDate(now)},
+        );
+  }
 
   /// Confirms a low-confidence scan; the aggregation trigger then counts it.
   Future<void> confirmReview(String uid, String id) =>
