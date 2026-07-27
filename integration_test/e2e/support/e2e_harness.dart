@@ -19,6 +19,7 @@ import 'package:calorix/features/ai_chat/providers/ai_chat_providers.dart';
 import 'package:calorix/features/food_detail/food_detail_sheet.dart';
 import 'package:calorix/features/goals/goals_screen.dart';
 import 'package:calorix/features/history/history_screen.dart';
+import 'package:calorix/features/history/providers/history_providers.dart';
 import 'package:calorix/features/manual/manual_entry_screen.dart';
 import 'package:calorix/features/onboarding/loading_screen.dart';
 import 'package:calorix/features/onboarding/login_screen.dart';
@@ -35,9 +36,10 @@ import 'package:calorix/shared/models/food_entry.dart';
 import 'package:calorix/shared/models/macro_target_plan.dart';
 import 'package:calorix/shared/providers/auth_provider.dart';
 import 'package:calorix/shared/providers/notification_provider.dart';
-import 'package:calorix/shared/providers/plan_provider.dart';
 import 'package:calorix/shared/providers/settings_provider.dart';
 import 'package:calorix/shared/providers/viewed_entry_store.dart';
+import 'package:calorix/shared/models/ai_chat_thread.dart';
+import 'package:calorix/shared/repositories/ai_thread_repository.dart';
 import 'package:calorix/shared/repositories/food_entry_repository.dart';
 import 'package:calorix/shared/repositories/macro_target_repository.dart';
 import 'package:calorix/shared/repositories/weight_log_repository.dart';
@@ -179,19 +181,41 @@ class InMemoryFoodEntryDataStore implements FoodEntryDataStore {
 class InMemoryMacroTargetDataStore implements MacroTargetDataStore {
   String? _activePlanId;
   final Map<String, MacroTargetPlan> _plans = {};
+  final _activeWatchers = <StreamController<MacroTargetPlan?>>{};
+  final _allWatchers = <StreamController<List<MacroTargetPlan>>>{};
+  int updateCount = 0;
+  int createAndSetCount = 0;
+
+  MacroTargetPlan? get activePlan =>
+      _activePlanId == null ? null : _plans[_activePlanId];
+  int get writeCount => updateCount + createAndSetCount;
 
   @override
-  Stream<MacroTargetPlan?> watchActivePlan(String uid) async* {
-    if (_activePlanId == null) {
-      yield null;
-      return;
-    }
-    yield _plans[_activePlanId];
+  Stream<MacroTargetPlan?> watchActivePlan(String uid) {
+    late final StreamController<MacroTargetPlan?> watcher;
+    watcher = StreamController<MacroTargetPlan?>(
+      sync: true,
+      onListen: () {
+        _activeWatchers.add(watcher);
+        watcher.add(activePlan);
+      },
+      onCancel: () => _activeWatchers.remove(watcher),
+    );
+    return watcher.stream;
   }
 
   @override
-  Stream<List<MacroTargetPlan>> watchAllPlans(String uid) async* {
-    yield _plans.values.toList();
+  Stream<List<MacroTargetPlan>> watchAllPlans(String uid) {
+    late final StreamController<List<MacroTargetPlan>> watcher;
+    watcher = StreamController<List<MacroTargetPlan>>(
+      sync: true,
+      onListen: () {
+        _allWatchers.add(watcher);
+        watcher.add(_plans.values.toList(growable: false));
+      },
+      onCancel: () => _allWatchers.remove(watcher),
+    );
+    return watcher.stream;
   }
 
   @override
@@ -199,6 +223,7 @@ class InMemoryMacroTargetDataStore implements MacroTargetDataStore {
       String uid, String planId, Map<String, dynamic> fields) async {
     final existing = _plans[planId];
     if (existing == null) return;
+    updateCount++;
     _plans[planId] = MacroTargetPlan(
       id: existing.id,
       planName: fields['planName'] as String? ?? existing.planName,
@@ -214,12 +239,14 @@ class InMemoryMacroTargetDataStore implements MacroTargetDataStore {
       fat: (fields['fat'] as num?)?.toInt() ?? existing.fat,
       isActive: fields['isActive'] as bool? ?? existing.isActive,
     );
+    _notify();
   }
 
   @override
   Future<String> createPlan(String uid, MacroTargetPlan plan) async {
     final id = const Uuid().v4();
     _plans[id] = plan.copyWith(id: id);
+    _notify();
     return id;
   }
 
@@ -229,35 +256,60 @@ class InMemoryMacroTargetDataStore implements MacroTargetDataStore {
       _plans[p.id] = p.copyWith(isActive: p.id == planId);
     }
     _activePlanId = planId;
+    _notify();
   }
 
   @override
   Future<String> createAndSetActivePlan(
       String uid, MacroTargetPlan plan) async {
+    createAndSetCount++;
     final id = await createPlan(uid, plan);
     await setActivePlan(uid, id);
     return id;
+  }
+
+  void seedActive(MacroTargetPlan plan) {
+    _plans[plan.id] = plan.copyWith(isActive: true);
+    _activePlanId = plan.id;
+    _notify();
+  }
+
+  void _notify() {
+    for (final watcher in _activeWatchers.toList(growable: false)) {
+      watcher.add(activePlan);
+    }
+    final plans = _plans.values.toList(growable: false);
+    for (final watcher in _allWatchers.toList(growable: false)) {
+      watcher.add(plans);
+    }
   }
 }
 
 class InMemoryWeightLogDataStore implements WeightLogDataStore {
   final Map<String, WeightLog> _logs = {};
+  final _changes = StreamController<void>.broadcast();
 
-  @override
-  Stream<List<WeightLog>> watchRecent(String uid, int limit) async* {
+  List<WeightLog> _recent(String uid, int limit) {
     final sorted = _logs.entries
         .where((e) => e.key.startsWith('$uid/'))
         .map((e) => e.value)
         .toList()
       ..sort((a, b) => a.date.compareTo(b.date));
-    yield sorted.length > limit
+    return sorted.length > limit
         ? sorted.sublist(sorted.length - limit)
         : sorted;
   }
 
   @override
+  Stream<List<WeightLog>> watchRecent(String uid, int limit) async* {
+    yield _recent(uid, limit);
+    yield* _changes.stream.map((_) => _recent(uid, limit));
+  }
+
+  @override
   Future<void> set(String uid, WeightLog log) async {
     _logs['$uid/${log.date}'] = log;
+    _changes.add(null);
   }
 }
 
@@ -434,6 +486,44 @@ class FakeE2EEntryExistenceChecker implements EntryExistenceChecker {
   Future<bool> exists(String entryId) async => _existing.contains(entryId);
 }
 
+class _FakeAiThreadDataStore implements AiThreadDataStore {
+  @override
+  Stream<List<AiChatThread>> watchThreads(String uid) => Stream.value(const []);
+
+  @override
+  Future<AiMessagePage> loadMessages(
+    String uid,
+    String threadId, {
+    required int limit,
+    AiMessageCursor? after,
+  }) async =>
+      const AiMessagePage(
+        messages: [],
+        nextCursor: null,
+        hasMore: false,
+      );
+
+  @override
+  Future<List<String>> listMessageIds(
+    String uid,
+    String threadId,
+    String collection, {
+    required int limit,
+  }) async =>
+      const [];
+
+  @override
+  Future<void> deleteMessageBatch(
+    String uid,
+    String threadId,
+    String collection,
+    List<String> ids,
+  ) async {}
+
+  @override
+  Future<void> deleteThreadDocument(String uid, String threadId) async {}
+}
+
 class FakeE2EAppSettingsStore implements AppSettingsStore {
   AppSettings _settings = const AppSettings();
 
@@ -445,6 +535,10 @@ class FakeE2EAppSettingsStore implements AppSettingsStore {
 }
 
 class FakeE2EAiChatService implements AiChatService {
+  FakeE2EAiChatService({this.actionResponder});
+
+  final AiChatServiceResponse Function(String message)? actionResponder;
+
   @override
   Future<AiChatServiceResponse> sendMessage({
     required String message,
@@ -452,6 +546,9 @@ class FakeE2EAiChatService implements AiChatService {
     String? threadId,
     String? linkedMealId,
   }) async {
+    if (actionResponder != null) {
+      return actionResponder!(message);
+    }
     return AiChatServiceResponse(
       threadId: threadId ?? 'fake-thread-1',
       reply: 'Fake AI response to: $message',
@@ -500,11 +597,15 @@ class E2EHarness {
   static Future<E2EHarness> create({
     FakeClock? clock,
     String uid = e2eTestUid,
+    AiChatServiceResponse Function(String message)? aiActionResponder,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final fakeClock = clock ?? makeE2EClock();
     final foodStore = InMemoryFoodEntryDataStore();
     final macroStore = InMemoryMacroTargetDataStore();
+    macroStore.seedActive(
+      MacroTargetPlan.defaultPlan(startDate: fakeClock.nowTZ()),
+    );
     final weightStore = InMemoryWeightLogDataStore();
     final settingsStore = FakeE2EAppSettingsStore();
     final camera = FakeE2ECameraService();
@@ -525,6 +626,11 @@ class E2EHarness {
       foodEntryRepositoryProvider.overrideWithValue(foodRepo),
       macroTargetRepositoryProvider.overrideWithValue(macroRepo),
       weightLogRepositoryProvider.overrideWithValue(weightRepo),
+      accountCreationProvider.overrideWithValue(fakeClock.now()),
+      historyProvider.overrideWith((ref) => Stream.value(<DailyLog>[])),
+      historyRangeProvider.overrideWith(
+        (ref, range) => Stream.value(<DailyLog>[]),
+      ),
       cameraServiceProvider.overrideWithValue(camera),
       cameraSettingsServiceProvider.overrideWithValue(cameraSettings),
       cameraLifecycleServiceProvider
@@ -535,7 +641,12 @@ class E2EHarness {
       entryExistenceCheckerProvider.overrideWithValue(existenceChecker),
       retryAnalysisServiceProvider.overrideWithValue(retryAnalysis),
       appSettingsStoreProvider.overrideWithValue(settingsStore),
-      aiChatServiceProvider.overrideWithValue(FakeE2EAiChatService()),
+      aiChatServiceProvider.overrideWithValue(
+        FakeE2EAiChatService(actionResponder: aiActionResponder),
+      ),
+      aiThreadRepositoryProvider.overrideWithValue(
+        AiThreadRepository.withStore(_FakeAiThreadDataStore()),
+      ),
       connectivityMonitorProvider
           .overrideWithValue(FakeE2EConnectivityMonitor()),
       uploadQueueServiceProvider.overrideWith(
@@ -544,11 +655,6 @@ class E2EHarness {
           _MemoryKvStore(),
           _MemoryPendingDir(),
           _MemorySourceReader(),
-        ),
-      ),
-      activePlanProvider.overrideWith(
-        (_) => Stream.value(
-          MacroTargetPlan.defaultPlan(startDate: fakeClock.now()),
         ),
       ),
     ];

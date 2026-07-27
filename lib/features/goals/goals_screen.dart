@@ -1158,6 +1158,7 @@ class _TargetTile extends StatelessWidget {
     final controller = TextEditingController(text: grams.toString());
     final result = await showModalBottomSheet<int>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
@@ -1173,6 +1174,7 @@ class _TargetTile extends StatelessWidget {
                 style: AppTextStyles.heading3),
             const SizedBox(height: 16),
             TextField(
+              key: ValueKey('goals-target-input-$label'),
               controller: controller,
               keyboardType: TextInputType.number,
               autofocus: true,
@@ -1360,6 +1362,7 @@ class _WeightCard extends StatelessWidget {
     final controller = TextEditingController();
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
@@ -1374,6 +1377,7 @@ class _WeightCard extends StatelessWidget {
             const Text('Log weight', style: AppTextStyles.heading3),
             const SizedBox(height: 16),
             TextField(
+              key: const ValueKey('goals-weight-input'),
               controller: controller,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
