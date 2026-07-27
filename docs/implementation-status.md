@@ -34,7 +34,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 11 | done | OpenCode unavailable; host fallback under contract | pre- and post-review green (`calorix-task11-today-truth-20260722`) | 61db8c6 | focused Today 26/26; analyzer clean; full Flutter 319 passed + 1 intentional live skip |
 | 12 | done | OpenCode timed out with partial RED file; host completed under contract | pre- and post-review green (`calorix-task12-history-time-travel-20260722`) | 096e2e0 | focused History 28/28; analyzer clean; full Flutter 340 passed + 1 intentional live skip |
 | 13 | done | OpenCode timed out; host fallback under contract | pre- and post-review green (`calorix-task13-goals-persistence-20260722`) | 1adad69, 2ceab96 | focused Goals 17/17; analyzer clean; full Flutter 354 passed + 1 intentional live skip |
-| 14 | in progress (Flutter persistence/UI next) | OpenCode timed out; headless fallback quota-blocked; host fallback under contract | pre-review green (`calorix-task14-chat-security-20260722`) | backend commit pending | backend/rules: Functions 57/57, lint/build clean, rules 16/16; Flutter history/UI pending |
+| 14 | in progress (chat/history UI next) | OpenCode timed out; headless fallback quota-blocked; host fallback under contract | pre-review green (`calorix-task14-chat-security-20260722`) | 93a91b4 + pending client persistence commit | backend/rules green; Flutter repository 4/4 and analyzer clean; screen/history pending |
 
 ### Task 11 plan checkpoint
 
@@ -88,7 +88,10 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Worker availability on 2026-07-27: OpenCode timed out after 184 seconds with zero edits and lingering process `19032` was terminated; the approved headless fallback exited after 19 seconds with `You've hit your monthly spend limit`. Host fallback proceeded under the recorded exhaustion rule.
 - Backend RED: focused tests failed 10/12 against the old trusted-client contract; archive rules failed 1/16 because the owner could not read server-archived messages.
 - Backend GREEN: strict message/id payload, server-derived profile/plan/current-day intake/recent meals/history, deterministic first-thread and message/reply IDs, transaction claim lease, completed-retry short circuit, Unicode-safe title, linked-meal ownership validation, structured action validation, 200-message archive cap, and owner-read/server-write archive rules. Verification: Functions 57/57; lint clean; TypeScript build clean; Firestore emulator rules 16/16.
-- Next: Flutter thread model/repository RED/GREEN, then chat/history UI and full Task 14 review.
+- Backend stage committed and pushed at `93a91b4`.
+- Flutter persistence RED failed on the missing thread/message models, data-store seam, stable cursor pages, and recursive cleanup contract.
+- Flutter persistence GREEN: immutable thread/message/action models, robust Firestore date decoding, newest-first stable thread ordering, opaque document-snapshot cursors with 20-message pages, and <=500-document cleanup loops for both `messages` and `messageArchive` before parent deletion. Focused repository tests 4/4; analyzer clean.
+- Next: persisted chat state, retry/confirmation UI, history screen/router, then full Task 14 review.
 
 ### Task 10 plan correction
 

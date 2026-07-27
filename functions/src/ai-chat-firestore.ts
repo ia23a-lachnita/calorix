@@ -308,7 +308,10 @@ export function createFirestoreAiChatDeps(
       );
       batch.set(
         threadRef,
-        { updatedAt: FieldValue.serverTimestamp() },
+        {
+          updatedAt: FieldValue.serverTimestamp(),
+          preview: Array.from(response.reply).slice(0, 120).join(''),
+        },
         { merge: true },
       );
       await batch.commit();

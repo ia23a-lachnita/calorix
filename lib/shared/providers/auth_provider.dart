@@ -6,6 +6,7 @@ import '../../core/time/clock_provider.dart';
 import '../repositories/food_entry_repository.dart';
 import '../repositories/macro_target_repository.dart';
 import '../repositories/weight_log_repository.dart';
+import '../repositories/ai_thread_repository.dart';
 
 final firebaseAuthProvider =
     Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
@@ -27,6 +28,10 @@ final weightLogRepositoryProvider = Provider<WeightLogRepository>(
     ref.watch(firestoreProvider),
     ref.watch(clockProvider),
   ),
+);
+
+final aiThreadRepositoryProvider = Provider<AiThreadRepository>(
+  (ref) => AiThreadRepository(ref.watch(firestoreProvider)),
 );
 
 final authStateProvider = StreamProvider<User?>((ref) {

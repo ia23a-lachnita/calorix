@@ -43,4 +43,7 @@ abstract final class AppConstants {
   static const String dailyLogsSubCollection = 'dailyLogs';
   static const String targetsSubCollection = 'targets';
   static const String weightLogsSubCollection = 'weightLogs';
+  static const String aiThreadsSubCollection = 'aiThreads';
+  static const String aiMessagesSubCollection = 'messages';
+  static const String aiMessageArchiveSubCollection = 'messageArchive';
 }
