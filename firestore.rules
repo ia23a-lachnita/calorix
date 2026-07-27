@@ -84,7 +84,10 @@ service cloud.firestore {
         // but only the server can create, mutate, or delete archived turns.
         match /messageArchive/{messageId} {
           allow read: if isOwner(uid);
-          allow write: if false;
+          // Archive content remains server-authored, while owners may delete
+          // it as part of deleting an entire conversation.
+          allow delete: if isOwner(uid);
+          allow create, update: if false;
         }
       }
     }

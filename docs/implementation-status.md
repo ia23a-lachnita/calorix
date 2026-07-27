@@ -34,7 +34,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 11 | done | OpenCode unavailable; host fallback under contract | pre- and post-review green (`calorix-task11-today-truth-20260722`) | 61db8c6 | focused Today 26/26; analyzer clean; full Flutter 319 passed + 1 intentional live skip |
 | 12 | done | OpenCode timed out with partial RED file; host completed under contract | pre- and post-review green (`calorix-task12-history-time-travel-20260722`) | 096e2e0 | focused History 28/28; analyzer clean; full Flutter 340 passed + 1 intentional live skip |
 | 13 | done | OpenCode timed out; host fallback under contract | pre- and post-review green (`calorix-task13-goals-persistence-20260722`) | 1adad69, 2ceab96 | focused Goals 17/17; analyzer clean; full Flutter 354 passed + 1 intentional live skip |
-| 14 | in progress (full verification and post-review next) | OpenCode timed out; headless fallback quota-blocked; host fallback under contract | pre-review green (`calorix-task14-chat-security-20260722`) | 93a91b4, 405e306 + pending UI commit | backend/rules and focused Flutter suites green; full suite/rules rerun and post-review pending |
+| 14 | done | OpenCode timed out; headless fallback quota-blocked; host fallback under contract | pre- and post-review green (`calorix-task14-chat-security-20260722`) | 93a91b4, 405e306, 7cdf6ad + handoff remediation commit | Flutter 368 passed + 1 intentional live skip; analyze clean; Functions 57/57 lint/build clean; rules 16/16 |
 
 ### Task 11 plan checkpoint
 
@@ -92,9 +92,12 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Flutter repository stage committed and pushed at `405e306`.
 - Client/UI GREEN checkpoint: strict callable payload, persisted thread loading with 20-message upward pagination, retry with the same client message ID, structured confirmation actions through atomic `saveActivePlan`, double-apply guard, history list/open/delete/empty states, reduced-motion typing indicator, explicit bubble alignment/tails, production `/ai/history` routing, and fixture message subcollections are implemented. During verification, the server recent-meal query was corrected from nonexistent `createdAt` to canonical `timestamp`.
 - Focused verification: assistant/debug/router Flutter suites 32/32; Functions 57/57; Functions lint and TypeScript build clean; `fvm flutter analyze` clean. Rules emulator and full Flutter suite remain the next gate.
+- Final verification: `fvm flutter test` passed 368 tests with 1 intentional live-contract skip; `fvm flutter analyze` clean; Functions remained 57/57 with lint/build clean; Firestore rules emulator passed 16/16.
+- Post-review routing: `Gemini 3.6 Flash (High)` timed out after 300 seconds with no review body. `Gemini 3.1 Pro (High)` found one MUST_FIX: archive rules denied the client delete that `AiThreadRepository.deleteThread` requires after the 200-message cap. Rules now allow owner delete while preserving server-only create/update, and the emulator test proves owner/cross-user/create/update behavior. Confirmation review returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`.
+- MCP response noise: the first fallback response included an unexpected `<messaging>` wrapper and background-test notification. It did not mutate the repository and was not used as verification evidence.
 - Flutter persistence RED failed on the missing thread/message models, data-store seam, stable cursor pages, and recursive cleanup contract.
 - Flutter persistence GREEN: immutable thread/message/action models, robust Firestore date decoding, newest-first stable thread ordering, opaque document-snapshot cursors with 20-message pages, and <=500-document cleanup loops for both `messages` and `messageArchive` before parent deletion. Focused repository tests 4/4; analyzer clean.
-- Next: commit/push the client/UI checkpoint, run the rules emulator and full Flutter suite, then complete the Task 14 post-review.
+- Task 14 is complete. Next: Task 15 (Profile, Loading, Login, and Permission Secondary Parity).
 
 ### Task 10 plan correction
 
@@ -345,7 +348,7 @@ Corrections applied:
 
 ## Current Task
 
-**Task 14 — Assistant persistence/history client is implemented. Focused suites are green; full verification, rules rerun, and post-implementation review are next.**
+**Task 15 — Profile, Loading, Login, and Permission Secondary Parity. Pre-implementation inspection/review is next.**
 
 ## Historical Task 6/7 execution record
 

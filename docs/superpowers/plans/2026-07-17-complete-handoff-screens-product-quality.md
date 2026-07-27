@@ -1638,11 +1638,11 @@ test('owner can read/write own thread + messages; other uid and unauthenticated 
 
 - [x] **Step 4 (worker): Implement** per spec §5.17/§5.18/§8 — persistence, pagination, archive cap, history screen, bubble alignment, animated waiting states, confirmation apply/reject with idempotency guard, origin-close, rules block, server-context in `ai-chat.ts`.
 
-- [ ] **Step 5: GREEN** — Run: `fvm flutter test test/ai_chat test/ai_chat_screen_test.dart` → PASS; `npm --prefix functions run build` → compiles; `firebase emulators:exec --only firestore "npm --prefix functions test"` → PASS (all writes emulator-only).
+- [x] **Step 5: GREEN** — Run: `fvm flutter test test/ai_chat test/ai_chat_screen_test.dart` → PASS; `npm --prefix functions run build` → compiles; `firebase emulators:exec --only firestore "npm --prefix functions test"` → PASS (all writes emulator-only).
 
-- [ ] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions; host re-reads `firestore.rules` diff against the current deployed rules file in-repo (no deploy happens — rules deploy needs explicit user confirmation and is out of scope).
+- [x] **Step 6: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions; host re-reads `firestore.rules` diff against the current deployed rules file in-repo (no deploy happens — rules deploy needs explicit user confirmation and is out of scope).
 
-- [ ] **Step 7: Post-implementation REVIEW-GATE Task 14** (security-touching — include the rules diff) until green, then **HANDOFF Task 14**
+- [x] **Step 7: Post-implementation REVIEW-GATE Task 14** (security-touching — include the rules diff) until green, then **HANDOFF Task 14**
 
 ```powershell
 git add -A

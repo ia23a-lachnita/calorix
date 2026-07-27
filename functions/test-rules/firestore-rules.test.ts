@@ -275,7 +275,7 @@ describe('assistant thread security', () => {
     );
   });
 
-  it('allows owner archive reads but denies every client archive write', async () => {
+  it('allows owner archive reads/deletes but denies client create/update', async () => {
     const path = `users/${OWNER}/aiThreads/t1/messageArchive/m0`;
     await env.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), path), {
@@ -287,7 +287,14 @@ describe('assistant thread security', () => {
     await assertSucceeds(getDoc(doc(ownerDb(), path)));
     await assertFails(getDoc(doc(otherDb(), path)));
     await assertFails(setDoc(doc(ownerDb(), path), { content: 'tampered' }));
-    await assertFails(deleteDoc(doc(ownerDb(), path)));
+    await assertFails(
+      setDoc(
+        doc(ownerDb(), `users/${OWNER}/aiThreads/t1/messageArchive/new`),
+        { content: 'injected' },
+      ),
+    );
+    await assertFails(deleteDoc(doc(otherDb(), path)));
+    await assertSucceeds(deleteDoc(doc(ownerDb(), path)));
   });
 });
 
