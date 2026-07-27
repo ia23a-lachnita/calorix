@@ -29,6 +29,9 @@ class _ManualEntryScreenState extends ConsumerState<ManualEntryScreen> {
   final _protein = TextEditingController();
   final _carbs = TextEditingController();
   final _fat = TextEditingController();
+  final _servingSize = TextEditingController(text: '1 serving');
+  final _quantity = TextEditingController(text: '1');
+  MealType _mealType = MealType.lunch;
   bool _custom = false;
   bool _saving = false;
   bool _allowPop = false;
@@ -37,12 +40,28 @@ class _ManualEntryScreenState extends ConsumerState<ManualEntryScreen> {
   bool get _dirty =>
       _search.text.isNotEmpty ||
       _custom &&
-          [_name, _kcal, _protein, _carbs, _fat]
-              .any((controller) => controller.text.isNotEmpty);
+          [
+            _name,
+            _kcal,
+            _protein,
+            _carbs,
+            _fat,
+            _servingSize,
+            _quantity,
+          ].any((controller) => controller.text.isNotEmpty);
 
   @override
   void dispose() {
-    for (final controller in [_search, _name, _kcal, _protein, _carbs, _fat]) {
+    for (final controller in [
+      _search,
+      _name,
+      _kcal,
+      _protein,
+      _carbs,
+      _fat,
+      _servingSize,
+      _quantity,
+    ]) {
       controller.dispose();
     }
     super.dispose();
@@ -58,9 +77,9 @@ class _ManualEntryScreenState extends ConsumerState<ManualEntryScreen> {
         proteinG: _number(_protein),
         carbsG: _number(_carbs),
         fatG: _number(_fat),
-        servingSize: '1 serving',
-        quantity: 1,
-        mealType: MealType.lunch,
+        servingSize: _servingSize.text,
+        quantity: _number(_quantity),
+        mealType: _mealType,
       );
 
   Future<void> _save(ManualFoodDraft draft) async {
@@ -194,6 +213,40 @@ class _ManualEntryScreenState extends ConsumerState<ManualEntryScreen> {
                     key: 'manual-protein'),
                 _field('Carbs (g)', _carbs, 'carbs', key: 'manual-carbs'),
                 _field('Fat (g)', _fat, 'fat', key: 'manual-fat'),
+                _field(
+                  'Serving size',
+                  _servingSize,
+                  'servingSize',
+                  key: 'manual-serving-size',
+                ),
+                _field(
+                  'Quantity',
+                  _quantity,
+                  'quantity',
+                  key: 'manual-quantity',
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: DropdownButtonFormField<MealType>(
+                    key: const ValueKey('manual-meal-type'),
+                    initialValue: _mealType,
+                    decoration: const InputDecoration(labelText: 'Meal'),
+                    items: MealType.values
+                        .map(
+                          (type) => DropdownMenuItem(
+                            value: type,
+                            child: Text(
+                              type.name[0].toUpperCase() +
+                                  type.name.substring(1),
+                            ),
+                          ),
+                        )
+                        .toList(growable: false),
+                    onChanged: (value) {
+                      if (value != null) setState(() => _mealType = value);
+                    },
+                  ),
+                ),
                 const SizedBox(height: 8),
                 FilledButton(
                   onPressed: _saving ? null : () => _save(_draft()),

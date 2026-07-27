@@ -1719,7 +1719,7 @@ The deleted `emulator-5554` target is not used or recreated. All 13 scripted UI 
 - One device run executes at a time. Each runner is confirmed terminated before another starts. No device-global settings are changed.
 - If physical-to-host Firebase emulator access becomes necessary, first run explicit `adb -s R58R61161NA reverse` for only the required ports and pass `--dart-define=FIREBASE_EMULATOR_HOST=127.0.0.1`; remove the reverse mappings afterward. The default plan does not require this path.
 
-- [ ] **Step 1 (worker): Write the core flow suites** (each maps 1:1 to spec §11 scenarios; skeleton shape):
+- [x] **Step 1 (worker): Write the core flow suites** (each maps 1:1 to spec §11 scenarios; skeleton shape):
 
 ```dart
 // integration_test/e2e/support/e2e_harness.dart
@@ -1734,11 +1734,11 @@ Future<void> pumpAppE2E(WidgetTester tester, {FakeClock? clock, bool seed = true
 // crud_test.dart — §11.6 create/read/update/delete/duplicate round trip.
 ```
 
-- [ ] **Step 2: RED — core flows** — Run the six core files on `-d R58R61161NA` with the deterministic harness → Expected: initial failures where flows are loosely wired; fix product code via WORKER-RUN until green. No Firebase emulator or production service is reachable from these suites.
+- [x] **Step 2: RED — core flows** — Run the six core files on `-d R58R61161NA` with the deterministic harness → Expected: initial failures where flows are loosely wired; fix product code via WORKER-RUN until green. No Firebase emulator or production service is reachable from these suites.
 
-- [ ] **Step 3: GREEN — core flows** — Run the same six files on `-d R58R61161NA` → Expected: all 6 core suites PASS on the physical renderer with in-process fakes.
+- [x] **Step 3: GREEN — core flows** — Run the same six files on `-d R58R61161NA` → Expected: all 6 core suites PASS on the physical renderer with in-process fakes.
 
-- [ ] **Step 4: CHECKPOINT 1 — core flows verified** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Host updates `docs/implementation-status.md` with exact red/green evidence (test output counts, suite names) and the next step for stateful suites. Host commits checkpoint: `git add -A && git commit -m "E2E core flows passing (meal, barcode, label, manual, review, crud)"`. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 5. The local commit remains intact; do not revert it.
+- [x] **Step 4: CHECKPOINT 1 — core flows verified** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Host updates `docs/implementation-status.md` with exact red/green evidence (test output counts, suite names) and the next step for stateful suites. Host commits checkpoint: `git add -A && git commit -m "E2E core flows passing (meal, barcode, label, manual, review, crud)"`. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 5. The local commit remains intact; do not revert it.
 
 - [ ] **Step 5 (worker): Write the stateful/weird-state suites**:
 

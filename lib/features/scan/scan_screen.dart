@@ -129,9 +129,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   }
 
   void _addManually() {
-    // Task 8 owns the destination. Task 6 exposes a real, testable intent
-    // rather than guessing a temporary route that would mislead users.
-    widget.onManualEntryRequested?.call();
+    final callback = widget.onManualEntryRequested;
+    if (callback != null) {
+      callback();
+      return;
+    }
+    context.pushNamed(RouteNames.manual);
   }
 
   @override

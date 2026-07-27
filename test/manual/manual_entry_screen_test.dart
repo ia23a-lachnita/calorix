@@ -1,5 +1,6 @@
 import 'package:calorix/features/manual/manual_entry_screen.dart';
 import 'package:calorix/features/manual/providers/manual_providers.dart';
+import 'package:calorix/shared/models/food_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -48,7 +49,16 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('manual-create-custom')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('manual-kcal')), '-1');
-    await tester.ensureVisible(find.text('Save food'));
+    await tester.scrollUntilVisible(
+      find.text('Save food'),
+      120,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await Scrollable.ensureVisible(
+      tester.element(find.text('Save food')),
+      alignment: 0.5,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Save food'));
     await tester.pump();
     expect(find.text('Name is required'), findsOneWidget);
@@ -69,10 +79,38 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('manual-protein')), '28');
     await tester.enterText(find.byKey(const ValueKey('manual-carbs')), '52');
     await tester.enterText(find.byKey(const ValueKey('manual-fat')), '14');
-    await tester.ensureVisible(find.text('Save food'));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('manual-serving-size')),
+      120,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('manual-serving-size')),
+      '2 cups',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('manual-quantity')),
+      '1.5',
+    );
+    await tester.tap(find.byKey(const ValueKey('manual-meal-type')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dinner').last);
+    await tester.scrollUntilVisible(
+      find.text('Save food'),
+      120,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await Scrollable.ensureVisible(
+      tester.element(find.text('Save food')),
+      alignment: 0.5,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Save food'));
     await tester.pumpAndSettle();
     expect(saver.saved?.name, 'Tofu bowl');
+    expect(saver.saved?.servingSize, '2 cups');
+    expect(saver.saved?.quantity, 1.5);
+    expect(saver.saved?.mealType, MealType.dinner);
     expect(find.text('Today'), findsOneWidget);
   });
 
