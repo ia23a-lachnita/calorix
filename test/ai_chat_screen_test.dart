@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,19 +15,25 @@ import 'package:calorix/shared/services/ai_chat_service.dart';
 
 class _StubAiChatService implements AiChatService {
   _StubAiChatService(this.handler);
-  final Future<String> Function(String message) handler;
+  final Future<AiChatServiceResponse> Function(
+    String message,
+    String clientMessageId,
+  ) handler;
 
   @override
-  Future<String> sendMessage({
+  Future<AiChatServiceResponse> sendMessage({
     required String message,
-    required List<AiChatTurn> history,
-    required Map<String, Object?> plan,
-    required Map<String, Object?> consumed,
+    required String clientMessageId,
+    String? threadId,
+    String? linkedMealId,
   }) =>
-      handler(message);
+      handler(message, clientMessageId);
 }
 
-Widget _app(AiChatService service) {
+AiChatServiceResponse _reply(String text, {AiChatServiceAction? action}) =>
+    AiChatServiceResponse(threadId: 'thread-1', reply: text, action: action);
+
+Widget _app(AiChatService service, {bool disableAnimations = false}) {
   return ProviderScope(
     overrides: [
       aiChatServiceProvider.overrideWithValue(service),
@@ -42,6 +50,12 @@ Widget _app(AiChatService service) {
       ),
     ],
     child: MaterialApp.router(
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          disableAnimations: disableAnimations,
+        ),
+        child: child!,
+      ),
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.dark,
@@ -52,6 +66,14 @@ Widget _app(AiChatService service) {
             path: '/ai',
             name: RouteNames.aiChat,
             builder: (context, state) => const AiChatScreen(),
+            routes: [
+              GoRoute(
+                path: 'history',
+                name: RouteNames.aiHistory,
+                builder: (_, __) =>
+                    const Scaffold(body: Text('History screen')),
+              ),
+            ],
           ),
         ],
       ),
@@ -67,19 +89,19 @@ Future<void> _send(WidgetTester tester, String text) async {
 }
 
 void main() {
-  testWidgets('backend failures surface friendly copy, never raw errors',
+  testWidgets('backend failures keep the user turn retryable, never raw errors',
       (tester) async {
     await tester.pumpWidget(_app(
-      _StubAiChatService((_) async => throw Exception('boom-internal-detail')),
+      _StubAiChatService(
+        (_, __) async => throw Exception('boom-internal-detail'),
+      ),
     ));
     await tester.pump();
 
     await _send(tester, 'hello');
 
-    expect(
-      find.textContaining("I couldn't reach the assistant just now"),
-      findsOneWidget,
-    );
+    expect(find.text('hello'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
     expect(find.textContaining('boom-internal-detail'), findsNothing);
     expect(find.textContaining('Exception'), findsNothing);
   });
@@ -87,8 +109,8 @@ void main() {
   testWidgets('assistant markdown renders bold instead of leaking asterisks',
       (tester) async {
     await tester.pumpWidget(_app(
-      _StubAiChatService(
-          (_) async => 'Raise protein to **190 g** today.\n* keep carbs'),
+      _StubAiChatService((_, __) async =>
+          _reply('Raise protein to **190 g** today.\n* keep carbs')),
     ));
     await tester.pump();
 
@@ -102,7 +124,8 @@ void main() {
 
   testWidgets('no api-key placeholder remains in the chat flow',
       (tester) async {
-    await tester.pumpWidget(_app(_StubAiChatService((_) async => 'Done.')));
+    await tester
+        .pumpWidget(_app(_StubAiChatService((_, __) async => _reply('Done.'))));
     await tester.pump();
 
     await _send(tester, 'hello');
@@ -110,6 +133,121 @@ void main() {
     expect(find.textContaining('GEMINI_API_KEY'), findsNothing);
     expect(find.textContaining('not configured'), findsNothing);
     expect(find.text('Done.'), findsOneWidget);
+  });
+
+  testWidgets('failed send retries with the same client message id',
+      (tester) async {
+    final ids = <String>[];
+    var attempts = 0;
+    await tester.pumpWidget(_app(
+      _StubAiChatService((_, id) async {
+        ids.add(id);
+        attempts++;
+        if (attempts == 1) throw Exception('offline');
+        return _reply('Recovered.');
+      }),
+    ));
+    await tester.pump();
+
+    await _send(tester, 'retry me');
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(ids, hasLength(2));
+    expect(ids[1], ids[0]);
+    expect(find.text('retry me'), findsOneWidget);
+    expect(find.text('Recovered.'), findsOneWidget);
+  });
+
+  testWidgets('user bubble is right aligned and assistant is left aligned',
+      (tester) async {
+    await tester.pumpWidget(
+      _app(_StubAiChatService((_, __) async => _reply('Assistant reply'))),
+    );
+    await tester.pump();
+
+    await _send(tester, 'User message');
+
+    final user = tester.getRect(
+      find.byKey(
+        find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget.key is ValueKey<String> &&
+                  (widget.key! as ValueKey<String>)
+                      .value
+                      .startsWith('ai-bubble-user-'),
+            )
+            .evaluate()
+            .single
+            .widget
+            .key!,
+      ),
+    );
+    final assistant = tester.getRect(
+      find.byKey(
+        find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget.key is ValueKey<String> &&
+                  (widget.key! as ValueKey<String>)
+                      .value
+                      .startsWith('ai-bubble-assistant-'),
+            )
+            .evaluate()
+            .last
+            .widget
+            .key!,
+      ),
+    );
+    expect(user.left, greaterThan(assistant.left));
+    expect(user.center.dx, greaterThanOrEqualTo(400));
+  });
+
+  testWidgets('typing dots are staggered and static under reduced motion',
+      (tester) async {
+    final response = Completer<AiChatServiceResponse>();
+    await tester.pumpWidget(
+      _app(
+        _StubAiChatService((_, __) => response.future),
+        disableAnimations: true,
+      ),
+    );
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), 'wait');
+    await tester.tap(find.byIcon(Icons.arrow_upward));
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('ai-typing-indicator')),
+      findsOneWidget,
+    );
+    final opacities = List.generate(
+      3,
+      (index) => tester
+          .widget<Opacity>(
+            find.byKey(ValueKey('ai-typing-dot-$index')),
+          )
+          .opacity,
+    );
+    expect(opacities.toSet(), hasLength(1));
+
+    response.complete(_reply('Ready.'));
+    await tester.pump();
+  });
+
+  testWidgets('history icon opens assistant history', (tester) async {
+    await tester.pumpWidget(
+      _app(_StubAiChatService((_, __) async => _reply('Done.'))),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('ai-history')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('History screen'), findsOneWidget);
   });
 
   group('close button routing', () {
@@ -165,7 +303,7 @@ void main() {
     testWidgets('pushed over origin shows ai-close and pops to origin',
         (tester) async {
       await tester.pumpWidget(routerApp(
-        service: _StubAiChatService((_) async => 'Done.'),
+        service: _StubAiChatService((_, __) async => _reply('Done.')),
         initialLocation: RoutePaths.today,
       ));
       await tester.pumpAndSettle();
@@ -189,7 +327,7 @@ void main() {
     testWidgets('root route shows ai-close-fallback and navigates to Scan',
         (tester) async {
       await tester.pumpWidget(routerApp(
-        service: _StubAiChatService((_) async => 'Done.'),
+        service: _StubAiChatService((_, __) async => _reply('Done.')),
         initialLocation: '/ai',
       ));
       await tester.pumpAndSettle();

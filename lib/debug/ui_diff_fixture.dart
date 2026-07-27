@@ -186,18 +186,21 @@ class UiDiffFixtureManifest {
       'fat': 70,
       'isActive': true,
     });
-    add('aiThreads', '${uiDiffFixtureDocumentPrefix}chat_thread', {
+    const threadId = '${uiDiffFixtureDocumentPrefix}chat_thread';
+    add('aiThreads', threadId, {
+      'uid': uid,
       'title': 'Today’s plan',
+      'preview': 'Your fixture plan is ready.',
       'createdAt': now.toUtc(),
       'updatedAt': now.toUtc(),
-      'messages': <Map<String, Object?>>[
-        {
-          'role': 'assistant',
-          'content': 'Your fixture plan is ready.',
-          'timestamp': now.toUtc(),
-        },
-      ],
     });
+    documents[
+        '$root/aiThreads/$threadId/messages/${uiDiffFixtureDocumentPrefix}chat_reply'] = {
+      'role': 'assistant',
+      'content': 'Your fixture plan is ready.',
+      'createdAt': now.toUtc(),
+      'status': 'complete',
+    };
 
     return UiDiffFixtureManifest._(documents);
   }

@@ -267,6 +267,22 @@ class _FirestoreUiDiffFixtureStore implements UiDiffFixtureStore {
       for (final document in snapshot.docs) {
         result[document.reference.path] =
             Map<String, Object?>.from(document.data());
+        if (collection == AppConstants.aiThreadsSubCollection) {
+          for (final nestedCollection in const [
+            AppConstants.aiMessagesSubCollection,
+            AppConstants.aiMessageArchiveSubCollection,
+          ]) {
+            final nested = await document.reference
+                .collection(nestedCollection)
+                .orderBy(FieldPath.documentId)
+                .startAt([uiDiffFixtureDocumentPrefix]).endAt(
+                    ['$uiDiffFixtureDocumentPrefix\uf8ff']).get();
+            for (final nestedDocument in nested.docs) {
+              result[nestedDocument.reference.path] =
+                  Map<String, Object?>.from(nestedDocument.data());
+            }
+          }
+        }
       }
     }
     return result;

@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 import 'providers/ai_chat_providers.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/router/route_names.dart';
@@ -11,13 +10,19 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/models/macro_target_plan.dart';
 import '../../shared/providers/auth_provider.dart';
-import '../../shared/services/ai_chat_service.dart';
-import '../today/providers/today_providers.dart';
+import '../../shared/providers/plan_provider.dart';
 import '../../core/time/clock_provider.dart';
+import '../../shared/repositories/ai_thread_repository.dart';
 
 class AiChatScreen extends ConsumerStatefulWidget {
   final String? preloadedMealId;
-  const AiChatScreen({super.key, this.preloadedMealId});
+  final String? threadId;
+
+  const AiChatScreen({
+    super.key,
+    this.preloadedMealId,
+    this.threadId,
+  });
 
   @override
   ConsumerState<AiChatScreen> createState() => _AiChatScreenState();
@@ -26,6 +31,14 @@ class AiChatScreen extends ConsumerStatefulWidget {
 class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
+  final _uuid = const Uuid();
+  final _applyingMessageIds = <String>{};
+  AiMessageCursor? _olderCursor;
+  bool _hasOlder = false;
+  bool _loadingOlder = false;
+  bool _initialLoadStarted = false;
+  bool _sendInFlight = false;
+  String? _threadId;
 
   static const _suggestedPrompts = [
     'Plan my remaining macros',
@@ -35,77 +48,173 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _threadId = widget.threadId;
+    _scrollController.addListener(_onScroll);
+    if (_threadId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialThread());
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(chatMessagesProvider.notifier).reset();
+      });
+    }
+  }
+
+  @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _sendMessage(String text) async {
-    if (text.trim().isEmpty) return;
-    _controller.clear();
-    final notifier = ref.read(chatMessagesProvider.notifier);
-
-    // Prior turns only — the new message travels separately.
-    final prior = ref.read(chatMessagesProvider);
-    final recent = prior.length > 12 ? prior.sublist(prior.length - 12) : prior;
-    final history = <AiChatTurn>[
-      for (final m in recent)
-        (role: m.role == MessageRole.user ? 'user' : 'model', text: m.content),
-    ];
-
-    notifier.addUserMessage(text);
-    ref.read(isChatLoadingProvider.notifier).state = true;
-
-    final plan = ref.read(activePlanProvider).valueOrNull ??
-        MacroTargetPlan.defaultPlan(startDate: ref.read(clockProvider).nowTZ());
-    final today = ref.read(todaySummaryProvider);
-
-    try {
-      final raw = await ref.read(aiChatServiceProvider).sendMessage(
-        message: text,
-        history: history,
-        plan: {
-          'kcal': plan.kcal,
-          'protein': plan.protein,
-          'carbs': plan.carbs,
-          'fat': plan.fat,
-          'planName': plan.planName,
-        },
-        consumed: {
-          'kcal': today.kcal,
-          'protein': today.proteinG,
-          'carbs': today.carbsG,
-          'fat': today.fatG,
-        },
-      );
-      final parsed = _parseReply(raw, plan);
-      notifier.addAiMessage(parsed.text.isEmpty ? 'Done.' : parsed.text,
-          action: parsed.action);
-    } catch (e, stackTrace) {
-      // Never surface raw errors in the conversation; keep them in the log.
-      debugPrint('aiChat failed: $e\n$stackTrace');
-      notifier.addAiMessage(
-          "I couldn't reach the assistant just now — please try again in a moment.");
-    } finally {
-      ref.read(isChatLoadingProvider.notifier).state = false;
-    }
-
-    await Future.delayed(const Duration(milliseconds: 100));
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+  @override
+  void didUpdateWidget(covariant AiChatScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.threadId == oldWidget.threadId) return;
+    _threadId = widget.threadId;
+    _olderCursor = null;
+    _hasOlder = false;
+    _initialLoadStarted = false;
+    if (_threadId == null) {
+      ref.read(chatMessagesProvider.notifier).reset();
+    } else {
+      _loadInitialThread();
     }
   }
 
-  Future<void> _applyAction(int index, AiAction action) async {
+  void _onScroll() {
+    if (_scrollController.hasClients &&
+        _scrollController.offset <= 80 &&
+        _hasOlder &&
+        !_loadingOlder) {
+      _loadOlder();
+    }
+  }
+
+  Future<void> _loadInitialThread() async {
+    final uid = ref.read(currentUidProvider);
+    final threadId = _threadId;
+    if (uid == null || threadId == null || _initialLoadStarted) return;
+    _initialLoadStarted = true;
+    ref.read(isChatLoadingProvider.notifier).state = true;
+    try {
+      final page = await ref
+          .read(aiThreadRepositoryProvider)
+          .loadMessages(uid, threadId);
+      if (!mounted) return;
+      ref
+          .read(chatMessagesProvider.notifier)
+          .loadInitial(page.messages.reversed.toList(growable: false));
+      _olderCursor = page.nextCursor;
+      _hasOlder = page.hasMore;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.jumpTo(
+            _scrollController.position.maxScrollExtent,
+          );
+        }
+      });
+    } catch (error, stackTrace) {
+      _initialLoadStarted = false;
+      debugPrint('Loading assistant thread failed: $error\n$stackTrace');
+    } finally {
+      if (mounted) {
+        ref.read(isChatLoadingProvider.notifier).state = false;
+      }
+    }
+  }
+
+  Future<void> _loadOlder() async {
+    final uid = ref.read(currentUidProvider);
+    final threadId = _threadId;
+    final cursor = _olderCursor;
+    if (uid == null || threadId == null || cursor == null) return;
+    setState(() => _loadingOlder = true);
+    try {
+      final page = await ref
+          .read(aiThreadRepositoryProvider)
+          .loadMessages(uid, threadId, after: cursor);
+      if (!mounted) return;
+      final before = _scrollController.hasClients
+          ? _scrollController.position.maxScrollExtent
+          : 0.0;
+      ref
+          .read(chatMessagesProvider.notifier)
+          .prependOlder(page.messages.reversed.toList(growable: false));
+      _olderCursor = page.nextCursor;
+      _hasOlder = page.hasMore;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          final added = _scrollController.position.maxScrollExtent - before;
+          _scrollController.jumpTo(_scrollController.offset + added);
+        }
+      });
+    } finally {
+      if (mounted) setState(() => _loadingOlder = false);
+    }
+  }
+
+  Future<void> _sendMessage(
+    String text, {
+    String? existingClientMessageId,
+  }) async {
+    if (text.trim().isEmpty || _sendInFlight) return;
+    _sendInFlight = true;
+    _controller.clear();
     final notifier = ref.read(chatMessagesProvider.notifier);
+    final clientMessageId = existingClientMessageId ?? _uuid.v4();
+
+    notifier.addUserMessage(text, clientMessageId: clientMessageId);
+    ref.read(isChatLoadingProvider.notifier).state = true;
+
+    try {
+      final response = await ref.read(aiChatServiceProvider).sendMessage(
+            message: text,
+            clientMessageId: clientMessageId,
+            threadId: _threadId,
+            linkedMealId: widget.preloadedMealId,
+          );
+      _threadId = response.threadId;
+      notifier.markComplete(clientMessageId);
+      notifier.addAiMessage(
+        response.reply,
+        id: 'reply_$clientMessageId',
+        action: response.action == null
+            ? null
+            : AiAction.fromService(response.action!),
+      );
+    } catch (e, stackTrace) {
+      debugPrint('aiChat failed: $e\n$stackTrace');
+      notifier.markFailed(clientMessageId);
+    } finally {
+      _sendInFlight = false;
+      ref.read(isChatLoadingProvider.notifier).state = false;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      } else {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  Future<void> _applyAction(String messageId, AiAction action) async {
+    final notifier = ref.read(chatMessagesProvider.notifier);
+    if (!_applyingMessageIds.add(messageId)) return;
+    notifier.setConfirmationStatus(messageId, ConfirmationStatus.applying);
     final update = action.targetUpdate;
     if (update == null) {
-      notifier.clearActionAt(index);
+      notifier.clearAction(messageId, ConfirmationStatus.applied);
+      _applyingMessageIds.remove(messageId);
       return;
     }
     final uid = ref.read(currentUidProvider);
@@ -114,35 +223,38 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         MacroTargetPlan.defaultPlan(startDate: ref.read(clockProvider).nowTZ());
     try {
       if (uid == null) throw 'You are not signed in.';
-      if (plan.id == 'default') {
-        final newPlan = plan.copyWith(
-          kcal: update['kcal'],
-          protein: update['protein'],
-          carbs: update['carbs'],
-          fat: update['fat'],
-          isActive: true,
-        );
-        final id = await repo.createPlan(uid, newPlan);
-        await repo.setActivePlan(uid, id);
-      } else {
-        await repo.updatePlan(uid, plan.id, update);
-      }
-      notifier.clearActionAt(index);
+      final desired = plan.copyWith(
+        kcal: update['kcal'],
+        protein: update['protein'],
+        carbs: update['carbs'],
+        fat: update['fat'],
+        isActive: true,
+      );
+      await repo.saveActivePlan(uid, plan, desired);
+      notifier.clearAction(messageId, ConfirmationStatus.applied);
       notifier.addAiMessage(
           'Done — your ${action.field.toLowerCase()} target is now ${action.newValue}.');
     } catch (e) {
-      notifier.addAiMessage("I couldn't apply that change: $e");
+      notifier.setConfirmationStatus(messageId, ConfirmationStatus.failed);
+      notifier.addAiMessage("I couldn't apply that change.");
+    } finally {
+      _applyingMessageIds.remove(messageId);
     }
   }
 
-  void _rejectAction(int index) {
+  void _rejectAction(String messageId) {
     final notifier = ref.read(chatMessagesProvider.notifier);
-    notifier.clearActionAt(index);
+    notifier.clearAction(messageId, ConfirmationStatus.rejected);
     notifier.addAiMessage("No problem — I'll leave your targets unchanged.");
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String?>(currentUidProvider, (previous, next) {
+      if (next != null && _threadId != null && !_initialLoadStarted) {
+        _loadInitialThread();
+      }
+    });
     final messages = ref.watch(chatMessagesProvider);
     final isLoading = ref.watch(isChatLoadingProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -205,6 +317,17 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                     ],
                   ),
                   const Spacer(),
+                  IconButton(
+                    key: const ValueKey('ai-history'),
+                    tooltip: 'Chat history',
+                    onPressed: () => context.pushNamed(RouteNames.aiHistory),
+                    icon: Icon(
+                      Icons.history,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
                   Builder(builder: (context) {
                     final canPop = context.canPop();
                     return Semantics(
@@ -261,16 +384,30 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: messages.length + (isLoading ? 1 : 0),
+              itemCount: messages.length +
+                  (isLoading ? 1 : 0) +
+                  (_loadingOlder ? 1 : 0),
               itemBuilder: (context, index) {
-                if (index == messages.length) {
+                if (_loadingOlder && index == 0) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(8),
+                      child: SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  );
+                }
+                final messageIndex = index - (_loadingOlder ? 1 : 0);
+                if (messageIndex == messages.length) {
                   return const _TypingIndicator();
                 }
-                final msg = messages[index];
+                final msg = messages[messageIndex];
                 // Show time separator before this message if gap > 15 min or first message
-                final showSeparator = index == 0 ||
+                final showSeparator = messageIndex == 0 ||
                     msg.timestamp
-                            .difference(messages[index - 1].timestamp)
+                            .difference(messages[messageIndex - 1].timestamp)
                             .inMinutes
                             .abs() >=
                         15;
@@ -283,10 +420,16 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                       message: msg,
                       isDark: isDark,
                       onApply: msg.action != null
-                          ? () => _applyAction(index, msg.action!)
+                          ? () => _applyAction(msg.id, msg.action!)
                           : null,
                       onReject: msg.action != null
-                          ? () => _rejectAction(index)
+                          ? () => _rejectAction(msg.id)
+                          : null,
+                      onRetry: msg.status == ChatMessageStatus.failed
+                          ? () => _sendMessage(
+                                msg.content,
+                                existingClientMessageId: msg.id,
+                              )
                           : null,
                     ),
                   ],
@@ -377,6 +520,7 @@ class _TimeSeparator extends StatelessWidget {
     final subColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     return Padding(
+      key: const ValueKey('ai-typing-indicator'),
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
@@ -406,11 +550,13 @@ class _MessageBubble extends StatelessWidget {
   final bool isDark;
   final VoidCallback? onApply;
   final VoidCallback? onReject;
+  final VoidCallback? onRetry;
   const _MessageBubble({
     required this.message,
     required this.isDark,
     this.onApply,
     this.onReject,
+    this.onRetry,
   });
 
   @override
@@ -430,37 +576,50 @@ class _MessageBubble extends StatelessWidget {
         crossAxisAlignment:
             isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.82,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              // Per cx-screen-ai.jsx: user bubbles are blue-tinted with a
-              // blue hairline; assistant bubbles sit on the card surface.
-              color: isUser
-                  ? AppColors.blue.withValues(alpha: isDark ? 0.18 : 0.10)
-                  : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(18),
-                topRight: const Radius.circular(18),
-                bottomLeft: Radius.circular(isUser ? 18 : 6),
-                bottomRight: Radius.circular(isUser ? 6 : 18),
+          Align(
+            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+            child: Container(
+              key: ValueKey(
+                'ai-bubble-${isUser ? 'user' : 'assistant'}-${message.id}',
               ),
-              border: Border.all(
-                width: 0.5,
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.82,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
                 color: isUser
-                    ? AppColors.blue.withValues(alpha: isDark ? 0.35 : 0.22)
-                    : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                    ? AppColors.blue.withValues(alpha: isDark ? 0.18 : 0.10)
+                    : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(18),
+                  topRight: const Radius.circular(18),
+                  bottomLeft: Radius.circular(isUser ? 6 : 18),
+                  bottomRight: Radius.circular(isUser ? 18 : 6),
+                ),
+                border: Border.all(
+                  width: 0.5,
+                  color: isUser
+                      ? AppColors.blue.withValues(alpha: isDark ? 0.35 : 0.22)
+                      : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                ),
               ),
-            ),
-            child: Text.rich(
-              TextSpan(
-                style: baseStyle,
-                children: _inlineBoldSpans(text, baseStyle),
+              child: Text.rich(
+                TextSpan(
+                  style: baseStyle,
+                  children: _inlineBoldSpans(text, baseStyle),
+                ),
               ),
             ),
           ),
+          if (message.status == ChatMessageStatus.failed) ...[
+            const SizedBox(height: 6),
+            TextButton.icon(
+              key: ValueKey('ai-retry-${message.id}'),
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh, size: 15),
+              label: const Text('Retry'),
+            ),
+          ],
           if (message.action != null) ...[
             const SizedBox(height: 8),
             _ConfirmCard(
@@ -468,6 +627,7 @@ class _MessageBubble extends StatelessWidget {
               isDark: isDark,
               onApply: onApply,
               onReject: onReject,
+              status: message.confirmationStatus,
             ),
           ],
         ],
@@ -481,11 +641,13 @@ class _ConfirmCard extends StatelessWidget {
   final bool isDark;
   final VoidCallback? onApply;
   final VoidCallback? onReject;
+  final ConfirmationStatus status;
   const _ConfirmCard({
     required this.action,
     required this.isDark,
     this.onApply,
     this.onReject,
+    required this.status,
   });
 
   @override
@@ -574,7 +736,8 @@ class _ConfirmCard extends StatelessWidget {
               Expanded(
                 flex: 5,
                 child: OutlinedButton(
-                  onPressed: onReject,
+                  onPressed:
+                      status == ConfirmationStatus.applying ? null : onReject,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: isDark
                         ? AppColors.textPrimaryDark.withValues(alpha: 0.78)
@@ -593,7 +756,9 @@ class _ConfirmCard extends StatelessWidget {
               Expanded(
                 flex: 7,
                 child: ElevatedButton.icon(
-                  onPressed: onApply,
+                  key: const ValueKey('ai-action-apply'),
+                  onPressed:
+                      status == ConfirmationStatus.applying ? null : onApply,
                   style: ElevatedButton.styleFrom(
                     // Per cx-screen-ai.jsx the primary action is ink-on-bg,
                     // not brand blue.
@@ -605,8 +770,17 @@ class _ConfirmCard extends StatelessWidget {
                         : AppColors.backgroundLight,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  icon: const Icon(Icons.check, size: 14),
-                  label: const Text('Apply'),
+                  icon: status == ConfirmationStatus.applying
+                      ? const SizedBox.square(
+                          dimension: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.check, size: 14),
+                  label: Text(
+                    status == ConfirmationStatus.applying
+                        ? 'Applying…'
+                        : 'Apply',
+                  ),
                 ),
               ),
             ],
@@ -617,8 +791,49 @@ class _ConfirmCard extends StatelessWidget {
   }
 }
 
-class _TypingIndicator extends StatelessWidget {
+class _TypingIndicator extends StatefulWidget {
   const _TypingIndicator();
+
+  @override
+  State<_TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<_TypingIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+      _controller.value = 0.5;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  double _opacityFor(int offsetMs) {
+    if (MediaQuery.disableAnimationsOf(context)) return 0.65;
+    final elapsed = (_controller.value * 1200 - offsetMs) % 1200;
+    final phase = (elapsed / 600).clamp(0.0, 1.0);
+    return phase <= 0.5 ? 0.3 + phase * 1.4 : 1.0 - (phase - 0.5) * 1.4;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -642,15 +857,18 @@ class _TypingIndicator extends StatelessWidget {
                 color: isDark ? AppColors.borderDark : AppColors.borderLight,
               ),
             ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _Dot(delay: 0),
-                SizedBox(width: 4),
-                _Dot(delay: 200),
-                SizedBox(width: 4),
-                _Dot(delay: 400),
-              ],
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _Dot(index: 0, opacity: _opacityFor(0)),
+                  const SizedBox(width: 4),
+                  _Dot(index: 1, opacity: _opacityFor(200)),
+                  const SizedBox(width: 4),
+                  _Dot(index: 2, opacity: _opacityFor(400)),
+                ],
+              ),
             ),
           ),
         ],
@@ -659,42 +877,17 @@ class _TypingIndicator extends StatelessWidget {
   }
 }
 
-class _Dot extends StatefulWidget {
-  final int delay;
-  const _Dot({required this.delay});
-
-  @override
-  State<_Dot> createState() => _DotState();
-}
-
-class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _opacity;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    )..repeat(reverse: true);
-    _opacity = Tween<double>(begin: 0.3, end: 1.0).animate(_controller);
-    Future.delayed(Duration(milliseconds: widget.delay), () {
-      if (mounted) _controller.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+class _Dot extends StatelessWidget {
+  final int index;
+  final double opacity;
+  const _Dot({required this.index, required this.opacity});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return FadeTransition(
-      opacity: _opacity,
+    return Opacity(
+      key: ValueKey('ai-typing-dot-$index'),
+      opacity: opacity,
       child: Container(
         width: 7,
         height: 7,
@@ -844,50 +1037,4 @@ List<TextSpan> _inlineBoldSpans(String text, TextStyle base) {
     spans.add(TextSpan(text: text.substring(index)));
   }
   return spans;
-}
-
-int _currentTarget(MacroTargetPlan p, String macro) => switch (macro) {
-      'kcal' => p.kcal,
-      'protein' => p.protein,
-      'carbs' => p.carbs,
-      'fat' => p.fat,
-      _ => 0,
-    };
-
-/// Splits a Gemini reply into display text and an optional applicable
-/// macro-target action encoded as a trailing JSON object.
-({String text, AiAction? action}) _parseReply(
-    String raw, MacroTargetPlan plan) {
-  final match = RegExp(r'\{[^{}]*"action"[\s\S]*?\}\s*\}').firstMatch(raw) ??
-      RegExp(r'\{[\s\S]*"action"[\s\S]*\}').firstMatch(raw);
-  if (match == null) return (text: raw.trim(), action: null);
-
-  final cleaned = raw.replaceFirst(match.group(0)!, '').trim();
-  try {
-    final json = jsonDecode(match.group(0)!) as Map<String, dynamic>;
-    final a = json['action'] as Map<String, dynamic>;
-    final macro = (a['macro'] as String? ?? '').toLowerCase();
-    final newV = (a['new'] as num?)?.toInt();
-    if (!const ['kcal', 'protein', 'carbs', 'fat'].contains(macro) ||
-        newV == null) {
-      return (text: cleaned.isEmpty ? raw.trim() : cleaned, action: null);
-    }
-    final oldV = (a['old'] as num?)?.toInt() ?? _currentTarget(plan, macro);
-    final field = a['field'] as String? ??
-        '${macro[0].toUpperCase()}${macro.substring(1)}';
-    final unit = macro == 'kcal' ? '' : 'g';
-    return (
-      text: cleaned.isEmpty ? 'Here is a suggested change.' : cleaned,
-      action: AiAction(
-        title: 'Update $field target',
-        field: field,
-        oldValue: '$oldV$unit',
-        newValue: '$newV$unit',
-        delta: newV - oldV,
-        targetUpdate: {macro: newV},
-      ),
-    );
-  } catch (_) {
-    return (text: raw.trim(), action: null);
-  }
 }

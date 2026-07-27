@@ -102,8 +102,8 @@ const Map<String, DebugScreenTarget> kDebugScreenTargets = {
   ),
   'ai_history': DebugScreenTarget(
     id: 'ai_history',
-    route: '/debug/placeholder/ai_history',
-    availability: DebugTargetAvailability.unimplemented,
+    route: '/ai/history',
+    availability: DebugTargetAvailability.implemented,
   ),
   'profile': DebugScreenTarget(
     id: 'profile',

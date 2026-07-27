@@ -9,6 +9,7 @@ abstract final class RouteNames {
   static const String historyDay = 'historyDay';
   static const String goals = 'goals';
   static const String aiChat = 'aiChat';
+  static const String aiHistory = 'aiHistory';
   static const String aiChatOverlay = 'aiChatOverlay';
   static const String profile = 'profile';
   static const String permission = 'permission';
@@ -27,6 +28,7 @@ abstract final class RoutePaths {
   static const String historyDay = '/history/:date';
   static const String goals = '/goals';
   static const String aiChat = '/ai';
+  static const String aiHistory = '/ai/history';
   static const String aiChatOverlay = '/assistant';
   static const String profile = '/profile';
   static const String permission = '/permission';

@@ -20,6 +20,7 @@ import '../../features/history/history_screen.dart';
 import '../../features/history/history_day_screen.dart';
 import '../../features/goals/goals_screen.dart';
 import '../../features/ai_chat/ai_chat_screen.dart';
+import '../../features/ai_chat/ai_history_screen.dart';
 import '../../features/profile/profile_sheet.dart';
 import '../../features/review/review_screen.dart';
 import '../../features/manual/manual_entry_screen.dart';
@@ -185,8 +186,19 @@ final routerProvider = Provider<GoRouter>((ref) {
                 name: RouteNames.aiChat,
                 builder: (context, state) {
                   final mealContext = state.uri.queryParameters['mealId'];
-                  return AiChatScreen(preloadedMealId: mealContext);
+                  final threadId = state.uri.queryParameters['threadId'];
+                  return AiChatScreen(
+                    preloadedMealId: mealContext,
+                    threadId: threadId,
+                  );
                 },
+                routes: [
+                  GoRoute(
+                    path: 'history',
+                    name: RouteNames.aiHistory,
+                    builder: (context, state) => const AiHistoryScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -199,7 +211,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final mealId = state.uri.queryParameters['mealId'];
-          return AiChatScreen(preloadedMealId: mealId);
+          final threadId = state.uri.queryParameters['threadId'];
+          return AiChatScreen(
+            preloadedMealId: mealId,
+            threadId: threadId,
+          );
         },
       ),
       GoRoute(

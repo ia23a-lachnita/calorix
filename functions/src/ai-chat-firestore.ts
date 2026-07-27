@@ -214,7 +214,7 @@ export function createFirestoreAiChatDeps(
           userRef
             .collection('entries')
             .where('status', '==', 'complete')
-            .orderBy('createdAt', 'desc')
+            .orderBy('timestamp', 'desc')
             .limit(5)
             .get(),
         ]);

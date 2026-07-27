@@ -51,13 +51,16 @@ class _ScanStub extends StatelessWidget {
 
 class _StubAiChatService implements AiChatService {
   @override
-  Future<String> sendMessage({
+  Future<AiChatServiceResponse> sendMessage({
     required String message,
-    required List<AiChatTurn> history,
-    required Map<String, Object?> plan,
-    required Map<String, Object?> consumed,
+    required String clientMessageId,
+    String? threadId,
+    String? linkedMealId,
   }) async =>
-      'Stub reply';
+      const AiChatServiceResponse(
+        threadId: 'thread-1',
+        reply: 'Stub reply',
+      );
 }
 
 // ---------------------------------------------------------------------------

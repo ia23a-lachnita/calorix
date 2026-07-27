@@ -1605,7 +1605,7 @@ match /users/{uid}/ai_threads/{threadId} {
 
 - [x] **Step 1: Pre-implementation REVIEW-GATE Task 14** — host submits the thread model, rules diff, and server-context design for review **before** implementation; proceed only when green.
 
-- [ ] **Step 2 (worker): Write failing tests**
+- [x] **Step 2 (worker): Write failing tests**
 
 ```dart
 // test/ai_chat/thread_repository_test.dart (fake Firestore)
@@ -1634,9 +1634,9 @@ test('request context is server-derived: profile, plan, recent meals attached; c
 test('owner can read/write own thread + messages; other uid and unauthenticated are denied', async () => { /* implement */ });
 ```
 
-- [ ] **Step 3: RED** — Run: `fvm flutter test test/ai_chat test/ai_chat_screen_test.dart` → FAIL; `firebase emulators:exec --only firestore "npm --prefix functions test"` → FAIL (rules/tests missing).
+- [x] **Step 3: RED** — Run: `fvm flutter test test/ai_chat test/ai_chat_screen_test.dart` → FAIL; `firebase emulators:exec --only firestore "npm --prefix functions test"` → FAIL (rules/tests missing).
 
-- [ ] **Step 4 (worker): Implement** per spec §5.17/§5.18/§8 — persistence, pagination, archive cap, history screen, bubble alignment, animated waiting states, confirmation apply/reject with idempotency guard, origin-close, rules block, server-context in `ai-chat.ts`.
+- [x] **Step 4 (worker): Implement** per spec §5.17/§5.18/§8 — persistence, pagination, archive cap, history screen, bubble alignment, animated waiting states, confirmation apply/reject with idempotency guard, origin-close, rules block, server-context in `ai-chat.ts`.
 
 - [ ] **Step 5: GREEN** — Run: `fvm flutter test test/ai_chat test/ai_chat_screen_test.dart` → PASS; `npm --prefix functions run build` → compiles; `firebase emulators:exec --only firestore "npm --prefix functions test"` → PASS (all writes emulator-only).
 
