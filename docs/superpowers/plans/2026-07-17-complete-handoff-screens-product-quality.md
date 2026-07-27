@@ -1699,16 +1699,25 @@ git push
 
 ### Task 16: Connected-Device E2E Matrix
 
-All scripted suites run against emulators/fakes (Firebase emulator suite + mock processing backend + device camera). Environments are strictly separated: **(a) emulator/fake** — scripted pass/fail; **(b) read-only live** — OFF contract test only (Task 9's tagged test, re-run here); **(c) authorization-blocked cloud** — real cloud processing/push delivery through production infrastructure is NOT exercised; each such gate is recorded as **blocked** in `docs/implementation-status.md`, never as passed.
+The deleted `emulator-5554` target is not used or recreated. All 13 scripted UI journeys run on the explicitly authorized physical device `R58R61161NA` through a deterministic in-process harness: production router/screens with in-memory auth, clock, repository, camera, upload/processing, notification, assistant, settings, and session-side-effect seams. The physical renderer is real; Firebase/production network writes are impossible from the harness. Firebase adapter/rules/transaction contracts run separately through host `firebase emulators:exec` gates. Environments remain strictly separated: **(a) physical renderer + in-process fakes** — scripted pass/fail; **(b) host Firebase emulators** — adapter/rules/transaction pass/fail; **(c) read-only live** — OFF contract only; **(d) authorization-blocked cloud** — real production processing, push delivery, and storage writes are not exercised and are recorded as blocked.
 
 **Files:**
 - Create: `integration_test/e2e/meal_flow_test.dart`, `barcode_flow_test.dart`, `label_flow_test.dart`, `manual_flow_test.dart`, `review_flow_test.dart`, `crud_test.dart`, `goals_flow_test.dart`, `assistant_flow_test.dart`, `notification_return_test.dart`, `interrupted_upload_test.dart`, `profile_return_test.dart`, `swipe_nav_test.dart`, `device_state_test.dart`
-- Create: `integration_test/e2e/support/e2e_harness.dart` (boots app against emulator Firebase + `FakeClock` + mock processing backend; exposes `pumpAppE2E()`, reseed, notification-tap simulation)
+- Create: `integration_test/e2e/e2e_matrix_test.dart` (imports/registers all 13 suites so the full physical matrix builds and installs one APK)
+- Create: `integration_test/e2e/support/e2e_harness.dart` (boots production routing/screens against persistent in-memory fakes + `FakeClock`; overrides session seeding/notification side effects; resets `SharedPreferences.setMockInitialValues({})` for each suite; exposes `pumpAppE2E()`, reseed, restart, notification-tap simulation)
+- Modify: `lib/main.dart` (configurable `FIREBASE_EMULATOR_HOST`, defaulting to `10.0.2.2` only for Android emulators; physical host access requires explicit `adb reverse` + `127.0.0.1`)
 - Test: the files above are the tests.
 
 **Interfaces:**
 - Consumes: every Produces block from Tasks 2–15 plus the deep-link harness (Task 5).
-- Produces: the release E2E evidence rows in `docs/implementation-status.md` (suite → pass/fail/blocked, device, build hash).
+- Produces: the release E2E evidence rows in `docs/implementation-status.md` (suite → pass/fail/blocked, explicit device serial, build hash, environment class).
+
+**Safety and isolation invariants:**
+- Every device command includes `-d R58R61161NA`; never auto-select a target and never launch an emulator/QEMU process.
+- The harness overrides `firestoreProvider`/session seeding, notification/FCM permission initialization, auth, all data stores, camera, upload/processing, assistant, settings, and clock before any signed-in frame. No production credential or default Firebase singleton may be reached.
+- Each suite owns fresh stores and calls `SharedPreferences.setMockInitialValues({})`; restart tests explicitly retain only the stores whose persistence they are proving.
+- One device run executes at a time. Each runner is confirmed terminated before another starts. No device-global settings are changed.
+- If physical-to-host Firebase emulator access becomes necessary, first run explicit `adb -s R58R61161NA reverse` for only the required ports and pass `--dart-define=FIREBASE_EMULATOR_HOST=127.0.0.1`; remove the reverse mappings afterward. The default plan does not require this path.
 
 - [ ] **Step 1 (worker): Write the core flow suites** (each maps 1:1 to spec §11 scenarios; skeleton shape):
 
@@ -1725,9 +1734,9 @@ Future<void> pumpAppE2E(WidgetTester tester, {FakeClock? clock, bool seed = true
 // crud_test.dart — §11.6 create/read/update/delete/duplicate round trip.
 ```
 
-- [ ] **Step 2: RED — core flows** — Run: `fvm flutter test integration_test/e2e/meal_flow_test.dart integration_test/e2e/barcode_flow_test.dart integration_test/e2e/label_flow_test.dart integration_test/e2e/manual_flow_test.dart integration_test/e2e/review_flow_test.dart integration_test/e2e/crud_test.dart -d emulator-5554` (emulator launched via `fvm flutter emulators --launch Api35_NoPlay`; Firebase emulators running via `firebase emulators:start --only auth,firestore,storage,functions` in a second shell) → Expected: initial failures where flows are still loosely wired; fix product code via WORKER-RUN until green — every fix lands with its own RED→GREEN note in `docs/implementation-status.md`.
+- [ ] **Step 2: RED — core flows** — Run the six core files on `-d R58R61161NA` with the deterministic harness → Expected: initial failures where flows are loosely wired; fix product code via WORKER-RUN until green. No Firebase emulator or production service is reachable from these suites.
 
-- [ ] **Step 3: GREEN — core flows** — Run: same command → Expected: all 6 core suites PASS on the connected emulator.
+- [ ] **Step 3: GREEN — core flows** — Run the same six files on `-d R58R61161NA` → Expected: all 6 core suites PASS on the physical renderer with in-process fakes.
 
 - [ ] **Step 4: CHECKPOINT 1 — core flows verified** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Host updates `docs/implementation-status.md` with exact red/green evidence (test output counts, suite names) and the next step for stateful suites. Host commits checkpoint: `git add -A && git commit -m "E2E core flows passing (meal, barcode, label, manual, review, crud)"`. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 5. The local commit remains intact; do not revert it.
 
@@ -1746,13 +1755,13 @@ Future<void> pumpAppE2E(WidgetTester tester, {FakeClock? clock, bool seed = true
 //   with shifted FakeClock → Scan landing, theme persists, history/goals/weight advance correctly.
 ```
 
-- [ ] **Step 6: RED — stateful/weird-state flows** — Run: `fvm flutter test integration_test/e2e/goals_flow_test.dart integration_test/e2e/assistant_flow_test.dart integration_test/e2e/notification_return_test.dart integration_test/e2e/interrupted_upload_test.dart integration_test/e2e/profile_return_test.dart integration_test/e2e/swipe_nav_test.dart integration_test/e2e/device_state_test.dart -d emulator-5554` → Expected: initial failures; fix via WORKER-RUN until green.
+- [ ] **Step 6: RED — stateful/weird-state flows** — Run the seven stateful files on `-d R58R61161NA` with fresh per-suite stores and explicit restart persistence → Expected: initial failures; fix via WORKER-RUN until green.
 
 - [ ] **Step 7: GREEN — stateful/weird-state flows** — Run: same command → Expected: all 7 suites PASS.
 
 - [ ] **Step 8: CHECKPOINT 2 — stateful/weird-state flows verified** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Host updates `docs/implementation-status.md` with exact red/green evidence (test output counts, suite names) and the next step for full matrix run. Host commits checkpoint: `git add -A && git commit -m "E2E stateful and weird-state flows passing (goals, assistant, notification, upload, profile, nav, device-state)"`. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 9. The local commit remains intact; do not revert it.
 
-- [ ] **Step 9: Full matrix run** — Run: `fvm flutter test integration_test/e2e -d emulator-5554` → Expected: all 13 suites PASS. Re-run the read-only live contract: `fvm flutter test test/contracts --tags live` → PASS (environment b). Record environment-c gates (real push delivery, real cloud model processing) as **blocked** with the exact reason "requires explicit user authorization and isolated test project".
+- [ ] **Step 9: Full matrix run** — Run the single combined entrypoint: `fvm flutter test integration_test/e2e/e2e_matrix_test.dart -d R58R61161NA` → Expected: all 13 suites PASS in one APK session. Separately run host Firebase emulator adapter/rules/transaction gates via `firebase emulators:exec`; re-run the read-only OFF contract. Record real push delivery, real cloud model processing, and production storage writes as **blocked** with the exact reason "requires explicit authorization and an isolated test project".
 
 - [ ] **Step 10: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → full unit/widget suite passes.
 

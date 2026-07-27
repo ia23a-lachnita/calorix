@@ -349,7 +349,11 @@ Corrections applied:
 
 ## Current Task
 
-**Task 16 — Connected-Device E2E Matrix. Task 15 is complete and pushed; inspect the current device/emulator constraints and test harness before starting Task 16.**
+**Task 16 — Connected-Device E2E Matrix. Corrected physical-device/in-process-fake plan is reviewed; Stage A harness and six core-flow RED tests are next.**
+
+- Task 16 preflight found the plan's `emulator-5554` commands stale. `adb devices -l` reports the explicitly authorized physical `R58R61161NA` (`SM_G780G`) as healthy; no emulator exists and none will be launched.
+- Corrected architecture: 13 physical-renderer UI journeys use an in-process fake harness with zero Firebase/production network writes; host Firebase emulators separately own adapter/rules/transaction evidence; the full physical matrix uses one combined test entrypoint/APK.
+- Pre-review conversation `calorix-task16-e2e-matrix-20260727` on `Gemini 3.6 Flash (High)` returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. Adopted SHOULD_FIX items: override session seeding/FCM side effects, isolate SharedPreferences, use a combined matrix runner, and support a configurable physical-device emulator host if an explicit `adb reverse` path is later required. The response concatenated `QUESTIONS` onto the final SHOULD_FIX paragraph; this is recorded as formatting noise, not a missing finding.
 
 - Pre-review conversation `calorix-task15-secondary-parity-20260727` used `Gemini 3.6 Flash (High)`. The first response concatenated review headings and was recorded as formatting noise; the same conversation then returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. Adopted guidance: synchronous settings defaults with asynchronous hydration; constraints-based login keyboard safety; mounted guards; reduced-motion loading; fixture-only permission overlay.
 - OpenCode RED invocation timed out after 304,050 ms (exit 124), left `test/profile/profile_sheet_test.dart`, and retained process `89204`; the host stopped it before inspection. The bounded settings/profile implementation retry timed out after 364,041 ms (exit 124), left partial source edits, and retained process `87452`; the host stopped it before remediation. Neither call reported quota exhaustion.
