@@ -78,6 +78,14 @@ service cloud.firestore {
         match /messages/{messageId} {
           allow read, write: if isOwner(uid);
         }
+
+        // Old assistant turns are moved here by the Admin SDK when a thread
+        // exceeds its active-message cap. Clients may inspect their archive,
+        // but only the server can create, mutate, or delete archived turns.
+        match /messageArchive/{messageId} {
+          allow read: if isOwner(uid);
+          allow write: if false;
+        }
       }
     }
 

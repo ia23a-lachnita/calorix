@@ -7,7 +7,14 @@ import { APP_DISPLAY_NAME, LOCATION, PROJECT_ID } from './config';
 import { affectedDateKeys, summarizeCompleteEntries, type AggregatableEntry } from './aggregation';
 import { createModelConfigLoader } from './model-config';
 import { handleEntryCreated, type EntryData } from './analyze-entry';
-import { AiChatInputError, handleAiChat, type ChatContent } from './ai-chat';
+import {
+  AiChatBusyError,
+  AiChatInputError,
+  AiChatNotFoundError,
+  handleAiChat,
+  type ChatContent,
+} from './ai-chat';
+import { createFirestoreAiChatDeps } from './ai-chat-firestore';
 import {
   createRetryEntryAnalysisHandler,
   entriesCollection,
@@ -21,6 +28,18 @@ const vertexAI = new VertexAI({ project: PROJECT_ID, location: LOCATION });
 const getModelConfig = createModelConfigLoader(async () => {
   const doc = await db.doc('model_configs/default').get();
   return doc.data();
+});
+
+const aiChatDeps = createFirestoreAiChatDeps({
+  db,
+  getModelConfig,
+  appDisplayName: APP_DISPLAY_NAME,
+  generateChat: async (model: string, contents: ChatContent[]) => {
+    const generativeModel = vertexAI.getGenerativeModel({ model });
+    const result = await generativeModel.generateContent({ contents });
+    const parts = result.response.candidates?.[0]?.content?.parts ?? [];
+    return parts.map((part) => part.text ?? '').join('');
+  },
 });
 
 function dailyLogDoc(uid: string, dateKey: string) {
@@ -74,19 +93,16 @@ export const aiChat = onCall(
       throw new HttpsError('unauthenticated', 'Sign in to use the assistant.');
     }
     try {
-      return await handleAiChat(request.data, {
-        getModelConfig,
-        appDisplayName: APP_DISPLAY_NAME,
-        generateChat: async (model: string, contents: ChatContent[]) => {
-          const generativeModel = vertexAI.getGenerativeModel({ model });
-          const result = await generativeModel.generateContent({ contents });
-          const parts = result.response.candidates?.[0]?.content?.parts ?? [];
-          return parts.map((part) => part.text ?? '').join('');
-        },
-      });
+      return await handleAiChat(request.auth.uid, request.data, aiChatDeps);
     } catch (error) {
       if (error instanceof AiChatInputError) {
         throw new HttpsError('invalid-argument', error.message);
+      }
+      if (error instanceof AiChatNotFoundError) {
+        throw new HttpsError('not-found', error.message);
+      }
+      if (error instanceof AiChatBusyError) {
+        throw new HttpsError('aborted', error.message);
       }
       console.error('aiChat error:', error);
       throw new HttpsError('unavailable', 'The assistant is temporarily unavailable.');

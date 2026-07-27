@@ -244,6 +244,53 @@ describe('owner-only subcollections', () => {
   });
 });
 
+describe('assistant thread security', () => {
+  it('allows only the owner to read threads and active messages', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `users/${OWNER}/aiThreads/t1`), {
+        title: 'Macros',
+      });
+      await setDoc(
+        doc(ctx.firestore(), `users/${OWNER}/aiThreads/t1/messages/m1`),
+        { role: 'user', content: 'hi' },
+      );
+    });
+
+    await assertSucceeds(
+      getDoc(doc(ownerDb(), `users/${OWNER}/aiThreads/t1`)),
+    );
+    await assertSucceeds(
+      getDoc(doc(ownerDb(), `users/${OWNER}/aiThreads/t1/messages/m1`)),
+    );
+    await assertFails(
+      getDoc(doc(otherDb(), `users/${OWNER}/aiThreads/t1`)),
+    );
+    await assertFails(
+      getDoc(
+        doc(
+          env.unauthenticatedContext().firestore(),
+          `users/${OWNER}/aiThreads/t1/messages/m1`,
+        ),
+      ),
+    );
+  });
+
+  it('allows owner archive reads but denies every client archive write', async () => {
+    const path = `users/${OWNER}/aiThreads/t1/messageArchive/m0`;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), path), {
+        role: 'assistant',
+        content: 'old',
+      });
+    });
+
+    await assertSucceeds(getDoc(doc(ownerDb(), path)));
+    await assertFails(getDoc(doc(otherDb(), path)));
+    await assertFails(setDoc(doc(ownerDb(), path), { content: 'tampered' }));
+    await assertFails(deleteDoc(doc(ownerDb(), path)));
+  });
+});
+
 describe('server-owned collections', () => {
   it('denies all client access to catalog, barcode index, and model configs', async () => {
     await env.withSecurityRulesDisabled(async (ctx) => {
