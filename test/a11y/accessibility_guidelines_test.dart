@@ -1,5 +1,9 @@
 import 'package:calorix/shell/app_shell.dart';
+import 'package:calorix/features/onboarding/login_screen.dart';
+import 'package:calorix/features/profile/profile_sheet.dart';
+import 'package:calorix/shared/providers/auth_provider.dart';
 import 'package:calorix/shared/widgets/confidence_badge.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/semantics.dart';
@@ -114,4 +118,44 @@ void main() {
     );
     semantics.dispose();
   });
+
+  testWidgets('login controls meet tap-target and label guidelines',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          firebaseAuthProvider.overrideWithValue(_FakeAuth()),
+        ],
+        child: const MaterialApp(home: LoginScreen()),
+      ),
+    );
+    await tester.pump();
+
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+  });
+
+  testWidgets('profile controls meet tap-target and label guidelines',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          firebaseAuthProvider.overrideWithValue(_FakeAuth()),
+        ],
+        child: const MaterialApp(home: ProfileSheet()),
+      ),
+    );
+    await tester.pump();
+
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+  });
+}
+
+class _FakeAuth extends Fake implements FirebaseAuth {
+  @override
+  User? get currentUser => null;
+
+  @override
+  Stream<User?> authStateChanges() => Stream.value(null);
 }

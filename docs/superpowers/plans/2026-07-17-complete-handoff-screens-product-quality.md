@@ -1665,7 +1665,7 @@ git push
 - Consumes: theme/units/notification preferences via `shared_preferences`; router push semantics (Task 2); `AppMotion` (Task 4).
 - Produces: `settingsProvider` (`themeMode`, `units`, `notificationsEnabled`, `cameraResolution`, `autoCapture`) persisted across restart — Task 16 asserts persistence; Task 17 captures `loading`/`login`/`permission`/`profile` states.
 
-- [ ] **Step 1 (worker): Write failing tests**
+- [x] **Step 1 (worker): Write failing tests**
 
 ```dart
 // test/profile/profile_sheet_test.dart
@@ -1679,15 +1679,15 @@ testWidgets('loading shows staged labels in order with ≥1.8s beat before navig
 testWidgets('signed-in redirect lands on scan; signed-out lands on login', (tester) async { /* implement */ });
 ```
 
-- [ ] **Step 2: RED** — Run: `fvm flutter test test/profile test/onboarding_test.dart` → Expected: FAIL on new assertions.
+- [x] **Step 2: RED** — Run: `fvm flutter test test/profile test/onboarding_test.dart` → Expected: FAIL on new assertions.
 
-- [ ] **Step 3 (worker): Implement** against `cx-screen-profile.jsx`, `cx-screen-loading.jsx`, `cx-screen-login.jsx`, `cx-screen-states.jsx` exact values.
+- [x] **Step 3 (worker): Implement** against `cx-screen-profile.jsx`, `cx-screen-loading.jsx`, `cx-screen-login.jsx`, `cx-screen-states.jsx` exact values.
 
-- [ ] **Step 4: GREEN** — Run: same → Expected: PASS.
+- [x] **Step 4: GREEN** — Run: same → Expected: PASS.
 
-- [ ] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions; a11y guideline test (Task 4 file) extended to profile/login and passing.
+- [x] **Step 5: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions; a11y guideline test (Task 4 file) extended to profile/login and passing.
 
-- [ ] **Step 6: REVIEW-GATE Task 15**, then **HANDOFF Task 15**
+- [x] **Step 6: REVIEW-GATE Task 15**, then **HANDOFF Task 15**
 
 ```powershell
 git add -A

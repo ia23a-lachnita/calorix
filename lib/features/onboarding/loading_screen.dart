@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_constants.dart';
+import '../../core/motion/app_motion.dart';
 import '../../core/router/route_names.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/providers/auth_provider.dart';
@@ -30,20 +31,25 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
     (pct: 96, label: 'READY'),
   ];
 
-  late final AnimationController _spin =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))
-        ..repeat();
-  late final AnimationController _halo =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 2600))
-        ..repeat(reverse: true);
-  late final AnimationController _dot =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))
-        ..repeat(reverse: true);
+  late final AnimationController _spin = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  );
+  late final AnimationController _halo = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2600),
+  );
+  late final AnimationController _dot = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  );
 
   Timer? _stageTimer;
+  Timer? _minimumBeatTimer;
   int _stage = 0;
   bool _minBeatDone = false;
   bool _navigated = false;
+  bool? _reducedMotion;
 
   @override
   void initState() {
@@ -55,15 +61,40 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
       }
       setState(() => _stage += 1);
     });
-    Future.delayed(const Duration(milliseconds: 1800), () {
+    _minimumBeatTimer = Timer(const Duration(milliseconds: 1800), () {
+      if (!mounted) return;
       _minBeatDone = true;
       _maybeNavigate();
     });
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reducedMotion = AppMotion.reducedOf(context);
+    if (_reducedMotion == reducedMotion) return;
+    _reducedMotion = reducedMotion;
+    if (reducedMotion) {
+      _spin
+        ..stop()
+        ..value = 0;
+      _halo
+        ..stop()
+        ..value = 0.5;
+      _dot
+        ..stop()
+        ..value = 1;
+    } else {
+      _spin.repeat();
+      _halo.repeat(reverse: true);
+      _dot.repeat(reverse: true);
+    }
+  }
+
+  @override
   void dispose() {
     _stageTimer?.cancel();
+    _minimumBeatTimer?.cancel();
     _spin.dispose();
     _halo.dispose();
     _dot.dispose();
@@ -250,18 +281,21 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: dark ? const Color(0xFF0E1217) : Colors.white,
+                              color:
+                                  dark ? const Color(0xFF0E1217) : Colors.white,
                               border: Border.all(
                                 width: 0.5,
                                 color: dark
                                     ? Colors.white.withValues(alpha: 0.10)
-                                    : const Color(0xFF0B0D10).withValues(alpha: 0.06),
+                                    : const Color(0xFF0B0D10)
+                                        .withValues(alpha: 0.06),
                               ),
                               boxShadow: [
                                 BoxShadow(
                                   color: dark
                                       ? Colors.black.withValues(alpha: 0.45)
-                                      : const Color(0xFF0B0D10).withValues(alpha: 0.10),
+                                      : const Color(0xFF0B0D10)
+                                          .withValues(alpha: 0.10),
                                   offset: const Offset(0, 18),
                                   blurRadius: 40,
                                 ),
@@ -315,7 +349,8 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
                                 color: AppColors.cyan,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.cyan.withValues(alpha: 0.2),
+                                    color:
+                                        AppColors.cyan.withValues(alpha: 0.2),
                                     spreadRadius: 3,
                                   ),
                                 ],
@@ -358,11 +393,15 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
                           child: ColoredBox(
                             color: dark
                                 ? Colors.white.withValues(alpha: 0.06)
-                                : const Color(0xFF0B0D10).withValues(alpha: 0.07),
+                                : const Color(0xFF0B0D10)
+                                    .withValues(alpha: 0.07),
                           ),
                         ),
                         AnimatedFractionallySizedBox(
-                          duration: const Duration(milliseconds: 900),
+                          duration: AppMotion.durationOf(
+                            context,
+                            const Duration(milliseconds: 900),
+                          ),
                           curve: Curves.easeOutCubic,
                           alignment: Alignment.centerLeft,
                           widthFactor: cur.pct / 100,

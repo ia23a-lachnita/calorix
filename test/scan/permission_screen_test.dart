@@ -152,6 +152,38 @@ void main() {
       expect(allText.contains('Calorix'), isFalse);
     },
   );
+
+  for (final brightness in [Brightness.dark, Brightness.light]) {
+    testWidgets(
+      'fixture mode renders the iOS-style prompt and manual fallback in '
+      '${brightness.name}',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(brightness: brightness),
+            home: PermissionScreen(
+              showFixtureSystemPrompt: true,
+              onOpenSettings: () async {},
+              onAddManually: () {},
+            ),
+          ),
+        );
+
+        expect(
+          find.byKey(const ValueKey('permission-fixture-system-prompt')),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('Would Like to Access the Camera'),
+          findsOneWidget,
+        );
+        expect(find.text("Don't Allow"), findsOneWidget);
+        expect(find.text('Allow'), findsOneWidget);
+        expect(find.text('No camera? No problem.'), findsOneWidget);
+        expect(find.text('Add manually'), findsOneWidget);
+      },
+    );
+  }
 }
 
 class _FakeCameraSettingsService implements CameraSettingsService {

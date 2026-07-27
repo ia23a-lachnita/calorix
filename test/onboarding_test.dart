@@ -13,16 +13,30 @@ import 'package:calorix/shared/providers/auth_provider.dart';
 
 class FakeUserCredential extends Fake implements UserCredential {}
 
+class FakeUser extends Fake implements User {
+  @override
+  String get uid => 'signed-in-user';
+
+  @override
+  bool get isAnonymous => false;
+
+  @override
+  String? get displayName => 'Signed In';
+}
+
 class FakeFirebaseAuth extends Fake implements FirebaseAuth {
+  FakeFirebaseAuth({this.user});
+
   final _controller = StreamController<User?>.broadcast();
+  final User? user;
   int anonymousSignIns = 0;
 
   @override
-  User? get currentUser => null;
+  User? get currentUser => user;
 
   @override
   Stream<User?> authStateChanges() async* {
-    yield null;
+    yield user;
     yield* _controller.stream;
   }
 
@@ -48,10 +62,11 @@ Widget _wrap(Widget child, FakeFirebaseAuth auth, {bool dark = true}) {
 void main() {
   group('LoginScreen', () {
     for (final dark in [true, false]) {
-      testWidgets('renders handoff structure in ${dark ? 'dark' : 'light'} mode',
+      testWidgets(
+          'renders handoff structure in ${dark ? 'dark' : 'light'} mode',
           (tester) async {
-        await tester.pumpWidget(_wrap(const LoginScreen(), FakeFirebaseAuth(),
-            dark: dark));
+        await tester.pumpWidget(
+            _wrap(const LoginScreen(), FakeFirebaseAuth(), dark: dark));
         await tester.pump();
 
         expect(find.text('WELCOME BACK'), findsOneWidget);
@@ -65,7 +80,8 @@ void main() {
       });
     }
 
-    testWidgets('rejects invalid email before calling Firebase', (tester) async {
+    testWidgets('rejects invalid email before calling Firebase',
+        (tester) async {
       await tester.pumpWidget(_wrap(const LoginScreen(), FakeFirebaseAuth()));
       await tester.pump();
 
@@ -98,6 +114,29 @@ void main() {
 
       expect(find.text('GET STARTED'), findsOneWidget);
       expect(find.text('Create account'), findsOneWidget);
+    });
+
+    testWidgets(
+        'keyboard-open compact viewport remains scrollable without overflow',
+        (tester) async {
+      tester.view.physicalSize = const Size(390, 520);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(_wrap(const LoginScreen(), FakeFirebaseAuth()));
+      await tester.pump();
+      await tester.showKeyboard(find.byType(EditableText).first);
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(SingleChildScrollView), findsOneWidget);
+      await tester.drag(
+        find.byType(SingleChildScrollView),
+        const Offset(0, -300),
+      );
+      await tester.pump();
+      expect(find.text('Continue as guest'), findsOneWidget);
     });
   });
 
@@ -172,11 +211,75 @@ void main() {
       expect(find.text('SNAP · TRACK · STAY ON TARGET'), findsOneWidget);
       expect(find.text('SECURE · END-TO-END'), findsOneWidget);
 
+      await tester.pump(const Duration(milliseconds: 1700));
+      expect(find.byType(LoadingScreen), findsOneWidget);
+
       // Past the minimum splash beat the signed-out session lands on login.
-      await tester.pump(const Duration(milliseconds: 1900));
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump();
 
       expect(find.byType(LoginScreen), findsOneWidget);
+    });
+
+    testWidgets('signed-in session routes to scan after the minimum beat',
+        (tester) async {
+      final auth = FakeFirebaseAuth(user: FakeUser());
+      final container = ProviderContainer(
+        overrides: [
+          firebaseAuthProvider.overrideWithValue(auth),
+          authStateProvider.overrideWith(
+            (ref) => Stream.value(FakeUser()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+
+      router.go(RoutePaths.loading);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1799));
+      expect(find.byType(LoadingScreen), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 2));
+
+      expect(router.routeInformationProvider.value.uri.path, RoutePaths.scan);
+    });
+
+    testWidgets('reduced motion settles without continuous splash tickers',
+        (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            firebaseAuthProvider.overrideWithValue(FakeFirebaseAuth()),
+            authStateProvider.overrideWith(
+              (ref) => const Stream<User?>.empty(),
+            ),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.light(),
+            home: const MediaQuery(
+              data: MediaQueryData(disableAnimations: true),
+              child: LoadingScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 3500));
+      await tester.pumpAndSettle();
+
+      expect(find.text('READY'), findsOneWidget);
+      expect(find.text('96%'), findsOneWidget);
+      expect(tester.binding.hasScheduledFrame, isFalse);
     });
   });
 }

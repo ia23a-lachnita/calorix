@@ -82,6 +82,7 @@ class ProfileSheet extends ConsumerWidget {
                     const Spacer(),
                     IconButton(
                       key: const ValueKey('profile-close'),
+                      tooltip: 'Close profile',
                       icon: const Icon(Icons.close),
                       onPressed: () => _closeSheet(context),
                     ),

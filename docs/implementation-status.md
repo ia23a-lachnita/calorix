@@ -35,7 +35,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 12 | done | OpenCode timed out with partial RED file; host completed under contract | pre- and post-review green (`calorix-task12-history-time-travel-20260722`) | 096e2e0 | focused History 28/28; analyzer clean; full Flutter 340 passed + 1 intentional live skip |
 | 13 | done | OpenCode timed out; host fallback under contract | pre- and post-review green (`calorix-task13-goals-persistence-20260722`) | 1adad69, 2ceab96 | focused Goals 17/17; analyzer clean; full Flutter 354 passed + 1 intentional live skip |
 | 14 | done | OpenCode timed out; headless fallback quota-blocked; host fallback under contract | pre- and post-review green (`calorix-task14-chat-security-20260722`) | 93a91b4, 405e306, 7cdf6ad + handoff remediation commit | Flutter 368 passed + 1 intentional live skip; analyze clean; Functions 57/57 lint/build clean; rules 16/16 |
-| 15 | in progress | OpenCode timed out twice with partial RED/implementation files; host fallback under contract | pre-review green (`calorix-task15-secondary-parity-20260727`); post-review pending | pending | Settings/profile slice: focused 15/15; analyzer clean. Loading/login/permission slice next. |
+| 15 | done | OpenCode timed out twice with partial RED/implementation files; host fallback under contract | pre- and post-review green (`calorix-task15-secondary-parity-20260727`) | 1f4ac4f + handoff commit | Focused profile 15/15; onboarding/permission 18/18; a11y 5/5; analyzer clean; full Flutter 390 passed + 1 intentional live skip. |
 
 ### Task 11 plan checkpoint
 
@@ -349,12 +349,15 @@ Corrections applied:
 
 ## Current Task
 
-**Task 15 — Profile, Loading, Login, and Permission Secondary Parity. Settings/profile checkpoint is green; loading/login/permission tests and implementation are next.**
+**Task 16 — Connected-Device E2E Matrix. Task 15 is complete and pushed; inspect the current device/emulator constraints and test harness before starting Task 16.**
 
 - Pre-review conversation `calorix-task15-secondary-parity-20260727` used `Gemini 3.6 Flash (High)`. The first response concatenated review headings and was recorded as formatting noise; the same conversation then returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. Adopted guidance: synchronous settings defaults with asynchronous hydration; constraints-based login keyboard safety; mounted guards; reduced-motion loading; fixture-only permission overlay.
 - OpenCode RED invocation timed out after 304,050 ms (exit 124), left `test/profile/profile_sheet_test.dart`, and retained process `89204`; the host stopped it before inspection. The bounded settings/profile implementation retry timed out after 364,041 ms (exit 124), left partial source edits, and retained process `87452`; the host stopped it before remediation. Neither call reported quota exhaustion.
 - Host review found the partial provider would throw in production without an override, did not serialize writes, and could overwrite a user update with late hydration. The replacement boots from immutable safe defaults, asynchronously hydrates through an injectable store, preserves updates made during hydration, validates persisted enums, and serializes writes.
 - Settings/profile GREEN: persisted theme, units, notifications, camera resolution, and auto-capture; complete preference controls; async account-link mounted guards; sign-out confirmation; and origin-safe close affordances. Focused `fvm flutter test test/profile/profile_sheet_test.dart` passed 15/15; `fvm flutter analyze` reported no issues.
+- Secondary-screen GREEN: splash controllers start only after motion preference is known, halt under reduced motion, cancel both stage/minimum-beat timers, and keep the 1.8-second auth-routing beat; login uses viewport constraints under keyboard resize and exposes 48px labeled controls; the iOS-style permission prompt is fixture-only while production denied/settings/manual behavior remains unchanged.
+- Task 15 final verification: onboarding/permission 18/18; accessibility guidelines 5/5; profile 15/15; `fvm flutter analyze` no issues; full `fvm flutter test` 390 passed with 1 intentional OFF live-contract skip.
+- Post-review in `calorix-task15-secondary-parity-20260727` on `Gemini 3.6 Flash (High)` returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. The response appended a duplicate Markdown review summary after the requested headings; this is recorded as non-substantive MCP response-format noise. `git status` confirmed no reviewer mutation.
 
 ## Historical Task 6/7 execution record
 

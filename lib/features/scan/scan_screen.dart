@@ -194,6 +194,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       return PermissionScreen(
         onOpenSettings: _regrantCamera,
         onAddManually: _addManually,
+        showFixtureSystemPrompt: ref.watch(uiDiffFixtureEnabledProvider),
       );
     }
 

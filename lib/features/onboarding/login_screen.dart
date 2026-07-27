@@ -49,7 +49,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _continueWithEmail() {
@@ -93,13 +94,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ? AppColors.textPrimaryDark.withValues(alpha: 0.50)
         : const Color(0xFF7B8088);
     final hairline = dark ? AppColors.borderDark : AppColors.borderLight;
-    final hairline2 = dark ? AppColors.borderDarkStrong : AppColors.borderLightStrong;
+    final hairline2 =
+        dark ? AppColors.borderDarkStrong : AppColors.borderLightStrong;
     final surface = dark ? Colors.white.withValues(alpha: 0.04) : Colors.white;
     final fieldBg =
         dark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFFBFAF6);
 
     return Scaffold(
-      backgroundColor: dark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      backgroundColor:
+          dark ? AppColors.backgroundDark : AppColors.backgroundLight,
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
@@ -107,7 +110,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           Positioned(
             right: -120,
             top: -100,
-            child: _halo(AppColors.cyan.withValues(alpha: dark ? 0.22 : 0.28), 360),
+            child: _halo(
+                AppColors.cyan.withValues(alpha: dark ? 0.22 : 0.28), 360),
           ),
           Positioned(
             left: -140,
@@ -115,341 +119,369 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: _halo(AppColors.blue.withValues(alpha: 0.18), 320),
           ),
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height -
-                      MediaQuery.of(context).padding.vertical -
-                      64,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const CxWordmark(height: 30),
-                    const SizedBox(height: 28),
-                    Text(
-                      _signUpMode ? 'GET STARTED' : 'WELCOME BACK',
-                      style: TextStyle(
-                        fontFamily: 'GeistMono',
-                        fontSize: 10,
-                        letterSpacing: 10 * 0.16,
-                        color: muted,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Snap. Track.\nStay on target.',
-                      style: TextStyle(
-                        fontFamily: 'Geist',
-                        fontSize: 30,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 30 * -0.04,
-                        height: 1.05,
-                        color: ink,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 320),
-                      child: Text(
-                        _signUpMode
-                            ? 'Create an account to sync scans, macros and goals across your devices.'
-                            : "Sign in to sync today's scans, macros and goals across your devices.",
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight > 64
+                        ? constraints.maxHeight - 64
+                        : 0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const CxWordmark(height: 30),
+                      const SizedBox(height: 28),
+                      Text(
+                        _signUpMode ? 'GET STARTED' : 'WELCOME BACK',
                         style: TextStyle(
-                          fontFamily: 'Geist',
-                          fontSize: 13.5,
-                          height: 1.45,
-                          letterSpacing: 13.5 * -0.005,
+                          fontFamily: 'GeistMono',
+                          fontSize: 10,
+                          letterSpacing: 10 * 0.16,
                           color: muted,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 22),
-                    // Form card.
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: surface,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(width: 0.5, color: hairline),
-                        boxShadow: dark
-                            ? [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  offset: const Offset(0, 12),
-                                  blurRadius: 28,
+                      const SizedBox(height: 8),
+                      Text(
+                        'Snap. Track.\nStay on target.',
+                        style: TextStyle(
+                          fontFamily: 'Geist',
+                          fontSize: 30,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 30 * -0.04,
+                          height: 1.05,
+                          color: ink,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        child: Text(
+                          _signUpMode
+                              ? 'Create an account to sync scans, macros and goals across your devices.'
+                              : "Sign in to sync today's scans, macros and goals across your devices.",
+                          style: TextStyle(
+                            fontFamily: 'Geist',
+                            fontSize: 13.5,
+                            height: 1.45,
+                            letterSpacing: 13.5 * -0.005,
+                            color: muted,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      // Form card.
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: surface,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(width: 0.5, color: hairline),
+                          boxShadow: dark
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.4),
+                                    offset: const Offset(0, 12),
+                                    blurRadius: 28,
+                                  ),
+                                ]
+                              : [
+                                  BoxShadow(
+                                    color: const Color(0xFF0B0D10)
+                                        .withValues(alpha: 0.04),
+                                    offset: const Offset(0, 1),
+                                    blurRadius: 2,
+                                  ),
+                                  BoxShadow(
+                                    color: const Color(0xFF0B0D10)
+                                        .withValues(alpha: 0.04),
+                                    offset: const Offset(0, 8),
+                                    blurRadius: 24,
+                                  ),
+                                ],
+                        ),
+                        child: Column(
+                          children: [
+                            _Field(
+                              label: 'EMAIL',
+                              controller: _email,
+                              icon: Icons.person_outline,
+                              keyboardType: TextInputType.emailAddress,
+                              fieldBg: fieldBg,
+                              dark: dark,
+                              hairline: hairline,
+                              ink: ink,
+                              ink2: ink2,
+                              muted: muted,
+                            ),
+                            const SizedBox(height: 10),
+                            _Field(
+                              label: 'PASSWORD',
+                              controller: _password,
+                              icon: Icons.lock_outline,
+                              obscure: !_showPassword,
+                              fieldBg: fieldBg,
+                              dark: dark,
+                              hairline: hairline,
+                              ink: ink,
+                              ink2: ink2,
+                              muted: muted,
+                              trailing: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => setState(
+                                    () => _showPassword = !_showPassword),
+                                child: SizedBox(
+                                  width: 48,
+                                  height: 48,
+                                  child: Center(
+                                    child: Text(
+                                      _showPassword ? 'HIDE' : 'SHOW',
+                                      style: const TextStyle(
+                                        fontFamily: 'GeistMono',
+                                        fontSize: 10,
+                                        letterSpacing: 10 * 0.14,
+                                        color: AppColors.cyan,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ]
-                            : [
-                                BoxShadow(
-                                  color: const Color(0xFF0B0D10).withValues(alpha: 0.04),
-                                  offset: const Offset(0, 1),
-                                  blurRadius: 2,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GestureDetector(
+                                  onTap: () => setState(
+                                      () => _staySignedIn = !_staySignedIn),
+                                  behavior: HitTestBehavior.opaque,
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 18,
+                                          height: 18,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            gradient: _staySignedIn
+                                                ? const LinearGradient(
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                    colors:
+                                                        AppColors.brandGradient,
+                                                  )
+                                                : null,
+                                            border: _staySignedIn
+                                                ? null
+                                                : Border.all(color: hairline2),
+                                          ),
+                                          child: _staySignedIn
+                                              ? const Icon(
+                                                  Icons.check,
+                                                  size: 12,
+                                                  color: Color(0xFF0B0D10),
+                                                )
+                                              : null,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Stay signed in',
+                                          style: TextStyle(
+                                            fontFamily: 'Geist',
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w500,
+                                            color: ink2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                BoxShadow(
-                                  color: const Color(0xFF0B0D10).withValues(alpha: 0.04),
-                                  offset: const Offset(0, 8),
-                                  blurRadius: 24,
+                                GestureDetector(
+                                  onTap: _forgotPassword,
+                                  child: Container(
+                                    constraints:
+                                        const BoxConstraints(minHeight: 48),
+                                    alignment: Alignment.center,
+                                    child: Container(
+                                      padding: const EdgeInsets.only(bottom: 1),
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            width: 0.5,
+                                            color: hairline2,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Forgot?',
+                                        style: TextStyle(
+                                          fontFamily: 'Geist',
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w500,
+                                          color: ink2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ],
-                      ),
-                      child: Column(
-                        children: [
-                          _Field(
-                            label: 'EMAIL',
-                            controller: _email,
-                            icon: Icons.person_outline,
-                            keyboardType: TextInputType.emailAddress,
-                            fieldBg: fieldBg,
-                            dark: dark,
-                            hairline: hairline,
-                            ink: ink,
-                            ink2: ink2,
-                            muted: muted,
-                          ),
-                          const SizedBox(height: 10),
-                          _Field(
-                            label: 'PASSWORD',
-                            controller: _password,
-                            icon: Icons.lock_outline,
-                            obscure: !_showPassword,
-                            fieldBg: fieldBg,
-                            dark: dark,
-                            hairline: hairline,
-                            ink: ink,
-                            ink2: ink2,
-                            muted: muted,
-                            trailing: GestureDetector(
-                              onTap: () =>
-                                  setState(() => _showPassword = !_showPassword),
-                              child: Text(
-                                _showPassword ? 'HIDE' : 'SHOW',
-                                style: const TextStyle(
-                                  fontFamily: 'GeistMono',
-                                  fontSize: 10,
-                                  letterSpacing: 10 * 0.14,
-                                  color: AppColors.cyan,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              GestureDetector(
-                                onTap: () =>
-                                    setState(() => _staySignedIn = !_staySignedIn),
-                                behavior: HitTestBehavior.opaque,
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 18,
-                                      height: 18,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(6),
-                                        gradient: _staySignedIn
-                                            ? const LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: AppColors.brandGradient,
-                                              )
-                                            : null,
-                                        border: _staySignedIn
-                                            ? null
-                                            : Border.all(color: hairline2),
-                                      ),
-                                      child: _staySignedIn
-                                          ? const Icon(
-                                              Icons.check,
-                                              size: 12,
-                                              color: Color(0xFF0B0D10),
-                                            )
-                                          : null,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Stay signed in',
-                                      style: TextStyle(
-                                        fontFamily: 'Geist',
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w500,
-                                        color: ink2,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: _forgotPassword,
-                                child: Container(
-                                  padding: const EdgeInsets.only(bottom: 1),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        width: 0.5,
-                                        color: hairline2,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Forgot?',
-                                    style: TextStyle(
-                                      fontFamily: 'Geist',
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w500,
-                                      color: ink2,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    // Primary CTA — the one gradient use on this screen.
-                    _PrimaryCta(
-                      busy: _busy,
-                      label: _signUpMode ? 'Create account' : 'Continue',
-                      onTap: _continueWithEmail,
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        Expanded(child: Container(height: 1, color: hairline)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            'OR CONTINUE WITH',
-                            style: TextStyle(
-                              fontFamily: 'GeistMono',
-                              fontSize: 9.5,
-                              letterSpacing: 9.5 * 0.18,
-                              color: muted,
-                            ),
-                          ),
-                        ),
-                        Expanded(child: Container(height: 1, color: hairline)),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _SocialButton(
-                            label: 'Apple',
-                            dark: dark,
-                            hairline2: hairline2,
-                            ink: ink,
-                            mark: Icon(Icons.apple, size: 20, color: ink),
-                            onTap: () => _showError(
-                                'Apple sign-in is coming soon on this build.'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _SocialButton(
-                            label: 'Google',
-                            dark: dark,
-                            hairline2: hairline2,
-                            ink: ink,
-                            mark: const _GoogleMark(),
-                            onTap: () => _run(
-                                () => signInWithGoogle(ref.read(firebaseAuthProvider))),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    // Trust chips + footer. FittedBox keeps the pair on one
-                    // line on devices narrower than the 402px design width.
-                    Center(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Row(
-                          children: [
-                            _TrustChip(
-                              icon: Icons.cloud_outlined,
-                              label: 'NO FOOD PHOTOS SOLD',
-                              dark: dark,
-                              hairline: hairline,
-                              ink2: ink2,
-                            ),
-                            const SizedBox(width: 12),
-                            _TrustChip(
-                              icon: Icons.check,
-                              label: 'GDPR · CLOUD SYNC',
-                              dark: dark,
-                              hairline: hairline,
-                              ink2: ink2,
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    Center(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _signUpMode = !_signUpMode),
-                        child: Text.rich(
-                          TextSpan(
-                            text: _signUpMode
-                                ? 'Already have an account? '
-                                : 'New to ${AppConstants.appDisplayName}? ',
-                            style: TextStyle(
-                              fontFamily: 'Geist',
-                              fontSize: 12.5,
-                              color: ink2,
+                      const SizedBox(height: 14),
+                      // Primary CTA — the one gradient use on this screen.
+                      _PrimaryCta(
+                        busy: _busy,
+                        label: _signUpMode ? 'Create account' : 'Continue',
+                        onTap: _continueWithEmail,
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                              child: Container(height: 1, color: hairline)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Text(
+                              'OR CONTINUE WITH',
+                              style: TextStyle(
+                                fontFamily: 'GeistMono',
+                                fontSize: 9.5,
+                                letterSpacing: 9.5 * 0.18,
+                                color: muted,
+                              ),
                             ),
+                          ),
+                          Expanded(
+                              child: Container(height: 1, color: hairline)),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _SocialButton(
+                              label: 'Apple',
+                              dark: dark,
+                              hairline2: hairline2,
+                              ink: ink,
+                              mark: Icon(Icons.apple, size: 20, color: ink),
+                              onTap: () => _showError(
+                                  'Apple sign-in is coming soon on this build.'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _SocialButton(
+                              label: 'Google',
+                              dark: dark,
+                              hairline2: hairline2,
+                              ink: ink,
+                              mark: const _GoogleMark(),
+                              onTap: () => _run(() => signInWithGoogle(
+                                  ref.read(firebaseAuthProvider))),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      // Trust chips + footer. FittedBox keeps the pair on one
+                      // line on devices narrower than the 402px design width.
+                      Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
                             children: [
-                              TextSpan(
-                                text: _signUpMode ? 'Sign in' : 'Create an account',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: ink,
-                                  decoration: TextDecoration.underline,
-                                ),
+                              _TrustChip(
+                                icon: Icons.cloud_outlined,
+                                label: 'NO FOOD PHOTOS SOLD',
+                                dark: dark,
+                                hairline: hairline,
+                                ink2: ink2,
+                              ),
+                              const SizedBox(width: 12),
+                              _TrustChip(
+                                icon: Icons.check,
+                                label: 'GDPR · CLOUD SYNC',
+                                dark: dark,
+                                hairline: hairline,
+                                ink2: ink2,
                               ),
                             ],
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 44,
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: _busy
-                            ? null
-                            : () => _run(() async {
-                                  await ref
-                                      .read(firebaseAuthProvider)
-                                      .signInAnonymously();
-                                }),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: hairline2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          splashFactory: NoSplash.splashFactory,
-                        ),
-                        child: Text(
-                          'Continue as guest',
-                          style: TextStyle(
-                            fontFamily: 'Geist',
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 13 * -0.005,
-                            color: ink2,
+                      const SizedBox(height: 14),
+                      Center(
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _signUpMode = !_signUpMode),
+                          child: Text.rich(
+                            TextSpan(
+                              text: _signUpMode
+                                  ? 'Already have an account? '
+                                  : 'New to ${AppConstants.appDisplayName}? ',
+                              style: TextStyle(
+                                fontFamily: 'Geist',
+                                fontSize: 12.5,
+                                color: ink2,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: _signUpMode
+                                      ? 'Sign in'
+                                      : 'Create an account',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: ink,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 44,
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: _busy
+                              ? null
+                              : () => _run(() async {
+                                    await ref
+                                        .read(firebaseAuthProvider)
+                                        .signInAnonymously();
+                                  }),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: hairline2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            splashFactory: NoSplash.splashFactory,
+                          ),
+                          child: Text(
+                            'Continue as guest',
+                            style: TextStyle(
+                              fontFamily: 'Geist',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 13 * -0.005,
+                              color: ink2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -502,7 +534,7 @@ class _Field extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       decoration: BoxDecoration(
         color: fieldBg,
         borderRadius: BorderRadius.circular(14),
@@ -522,41 +554,60 @@ class _Field extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontFamily: 'GeistMono',
-                    fontSize: 9.5,
-                    letterSpacing: 9.5 * 0.16,
-                    color: muted,
+            child: SizedBox(
+              height: 48,
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 2,
+                    child: ExcludeSemantics(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontFamily: 'GeistMono',
+                          fontSize: 9.5,
+                          letterSpacing: 9.5 * 0.16,
+                          color: muted,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                TextField(
-                  controller: controller,
-                  obscureText: obscure,
-                  keyboardType: keyboardType,
-                  autocorrect: false,
-                  style: TextStyle(
-                    fontFamily: 'Geist',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 14 * -0.005,
-                    color: ink,
+                  Positioned.fill(
+                    child: Semantics(
+                      label: label,
+                      child: TextField(
+                        controller: controller,
+                        obscureText: obscure,
+                        keyboardType: keyboardType,
+                        autocorrect: false,
+                        style: TextStyle(
+                          fontFamily: 'Geist',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 14 * -0.005,
+                          color: ink,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: label == 'EMAIL' ? 'you@example.com' : null,
+                          isDense: true,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.only(top: 16),
+                        ),
+                      ),
+                    ),
                   ),
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-          if (trailing != null) trailing!,
+          if (trailing != null)
+            SizedBox(
+              width: 48,
+              height: 48,
+              child: Center(child: trailing),
+            ),
         ],
       ),
     );
@@ -567,7 +618,8 @@ class _PrimaryCta extends StatelessWidget {
   final bool busy;
   final String label;
   final VoidCallback onTap;
-  const _PrimaryCta({required this.busy, required this.label, required this.onTap});
+  const _PrimaryCta(
+      {required this.busy, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -704,7 +756,8 @@ class _GoogleMarkPainter extends CustomPainter {
     final s = size.width / 24;
     final paint = Paint()..style = PaintingStyle.fill;
 
-    Path scaled(Path p) => p.transform(Matrix4.diagonal3Values(s, s, 1).storage);
+    Path scaled(Path p) =>
+        p.transform(Matrix4.diagonal3Values(s, s, 1).storage);
 
     paint.color = const Color(0xFF4285F4);
     canvas.drawPath(
