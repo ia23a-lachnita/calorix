@@ -69,8 +69,12 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Stage A1 RED: four canonical image/data assertions failed and the watchdog constructor was absent. GREEN: capture-only canonical meal imagery now covers permission, scan, processing, and review; review uses the canonical 62% three-candidate state; processing includes the canonical scan nav; unresolved target semantics emit finite `UI_DIFF_BLOCKED:...:semantic_timeout_<target>_<reason>` diagnostics.
 - Stage A1 verification: focused capture `79/79`; affected debug/scan/processing/review suite `191/191`; `fvm flutter analyze` reported no issues.
 - Stage A1 post-review: same conversation/model returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. Response noise: it appended an unrelated claim about a background file-search task; this was not used as evidence. `git status` confirmed no reviewer mutation.
+- Stage A2 RED: the nominal `today_empty` capture still received the populated fixture hero summary and rendered the populated-state section structure. The first focused provider test also exposed nondeterministic test setup through an uninitialized timezone-local clock.
+- Stage A2 GREEN: `todayDisplaySummaryProvider` preserves zero real/fixture values for `UiDiffFixtureProfile.empty`; an empty entry list hides the `Recent scans` heading and renders the canonical `Nothing logged yet` state with scan and manual-entry actions. The provider test uses a fixed UTC clock.
+- Stage A2 verification: focused provider/capture suite `82/82`; `fvm flutter analyze` reported no issues.
+- Stage A2 post-review: primary selector `gemini-3.6-flash` was rejected because the MCP wrapper required an effort value its schema did not expose. Retrying the same conversation with selector `gemini-3.6-flash-high` returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. Response-format noise: the required headings were concatenated; no unrelated findings or repository mutation were observed.
 - Delegation: `opencode/mimo-v2.5-free` timed out after 904 seconds with no output or edits. Its remaining process tree was terminated. Host fallback proceeded under the repository contract.
-- Next: fix `today_empty`, canonical history/goals/loading fixtures, AI-history density, and the production profile information architecture; recapture affected states before broad/region/target diffs.
+- Next: fix canonical history/goals/loading fixtures, AI-history density, and the production profile information architecture; recapture affected states before broad/region/target diffs.
 
 ## Toolchain Health (Task 0)
 

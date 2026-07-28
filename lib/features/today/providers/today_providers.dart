@@ -3,6 +3,7 @@ import '../../../shared/models/food_entry.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/plan_provider.dart';
 import '../../../shared/providers/ui_diff_provider.dart';
+import '../../../debug/debug_deep_links.dart';
 
 export '../../../shared/providers/plan_provider.dart' show activePlanProvider;
 
@@ -61,6 +62,8 @@ final todaySummaryProvider = Provider<TodaySummary>((ref) {
 final todayDisplaySummaryProvider = Provider<TodaySummary>((ref) {
   final summary = ref.watch(todaySummaryProvider);
   if (!ref.watch(uiDiffFixtureEnabledProvider)) return summary;
+  final fixtureProfile = ref.watch(uiDiffFixtureManifestProvider)?.profile;
+  if (fixtureProfile == UiDiffFixtureProfile.empty) return summary;
 
   // The static handoff intentionally shows values that differ from its
   // visible cards. Only this screen-facing adapter may reproduce that fixture.

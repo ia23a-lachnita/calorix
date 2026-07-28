@@ -566,7 +566,10 @@ void main() {
       await _pumpStableFrames(tester);
 
       expect(find.byType(TodayScreen), findsOneWidget);
-      expect(find.text('No meals logged yet'), findsOneWidget);
+      expect(find.text('Nothing logged yet'), findsOneWidget);
+      expect(find.text('Scan your first meal'), findsOneWidget);
+      expect(find.text('Recent scans'), findsNothing);
+      expect(find.text('1,420'), findsNothing);
     });
 
     testWidgets('food_edit opens in edit mode with correct entry',

@@ -1,9 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:calorix/core/time/clock.dart';
+import 'package:calorix/debug/debug_deep_links.dart';
+import 'package:calorix/debug/ui_diff_fixture.dart';
 import 'package:calorix/features/today/providers/today_providers.dart';
 import 'package:calorix/shared/models/food_entry.dart';
 import 'package:calorix/shared/models/macro_target_plan.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 FoodEntry _entry({
   required String id,
@@ -29,11 +33,13 @@ ProviderContainer _container({
   required List<FoodEntry> entries,
   required bool uiDiffMode,
   bool fixtureEnabled = false,
+  UiDiffFixtureManifest? manifest,
 }) =>
     ProviderContainer(
       overrides: [
         uiDiffModeProvider.overrideWith((_) => uiDiffMode),
         uiDiffFixtureEnabledProvider.overrideWith((_) => fixtureEnabled),
+        uiDiffFixtureManifestProvider.overrideWith((_) => manifest),
         todayEntriesProvider.overrideWith((_) => Stream.value(entries)),
         activePlanProvider.overrideWith(
           (_) => Stream.value(
@@ -88,5 +94,26 @@ void main() {
 
     expect(container.read(todaySummaryProvider).kcal, 845);
     expect(container.read(todayDisplaySummaryProvider).kcal, 1420);
+  });
+
+  test('empty capture profile never receives populated hero values', () async {
+    final manifest = UiDiffFixtureManifest.create(
+      uid: 'test-user',
+      clock: FakeClock(tz.TZDateTime.utc(2026, 7, 4, 12)),
+      profile: UiDiffFixtureProfile.empty,
+    );
+    final container = _container(
+      uiDiffMode: true,
+      fixtureEnabled: true,
+      manifest: manifest,
+      entries: const [],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(todayEntriesProvider.future);
+    await container.read(activePlanProvider.future);
+
+    expect(container.read(todayDisplaySummaryProvider).kcal, 0);
+    expect(container.read(todayDisplaySummaryProvider).kcalLeft, 2400);
   });
 }

@@ -257,35 +257,37 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                       'Recent scans',
                       style: AppTextStyles.heading3.copyWith(color: textColor),
                     ),
-                    data: (entries) => UiDiffAnchor(
-                      id: 'today.recentScansSection',
-                      label: 'Recent scans section header',
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Recent scans',
-                            style: AppTextStyles.todaySectionHeading
-                                .copyWith(color: textColor),
-                          ),
-                          if (entries.isNotEmpty)
-                            UiDiffAnchor(
-                              id: 'today.recentScansCount',
-                              label: '${entries.length} TODAY',
-                              child: Text(
-                                '${entries.length} TODAY',
-                                style: AppTextStyles.labelMono.copyWith(
-                                  fontSize: 10,
-                                  letterSpacing: 1.6,
-                                  color: isDark
-                                      ? AppColors.textSecondaryDark
-                                      : AppColors.textSecondaryLight,
+                    data: (entries) => entries.isEmpty
+                        ? const SizedBox.shrink()
+                        : UiDiffAnchor(
+                            id: 'today.recentScansSection',
+                            label: 'Recent scans section header',
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Recent scans',
+                                  style: AppTextStyles.todaySectionHeading
+                                      .copyWith(color: textColor),
                                 ),
-                              ),
+                                if (entries.isNotEmpty)
+                                  UiDiffAnchor(
+                                    id: 'today.recentScansCount',
+                                    label: '${entries.length} TODAY',
+                                    child: Text(
+                                      '${entries.length} TODAY',
+                                      style: AppTextStyles.labelMono.copyWith(
+                                        fontSize: 10,
+                                        letterSpacing: 1.6,
+                                        color: isDark
+                                            ? AppColors.textSecondaryDark
+                                            : AppColors.textSecondaryLight,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
-                        ],
-                      ),
-                    ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -910,38 +912,88 @@ class _EmptyMeals extends StatelessWidget {
   const _EmptyMeals({required this.isDark});
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32),
-        child: Column(
-          children: [
-            Icon(Icons.camera_alt_outlined,
-                size: 48,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight),
-            const SizedBox(height: 12),
-            Text(
-              'No meals logged yet',
-              style: AppTextStyles.bodyLarge.copyWith(
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondaryLight),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Tap Scan to photograph your meal',
-              style: AppTextStyles.bodySmall.copyWith(
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondaryLight),
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () => context.goNamed(RouteNames.scan),
-              icon: const Icon(Icons.camera_alt_outlined, size: 18),
-              label: const Text('Scan a meal'),
-            ),
-          ],
+  Widget build(BuildContext context) {
+    final ink = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final muted =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final border =
+        isDark ? AppColors.borderDarkStrong : AppColors.borderLightStrong;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(0, 12, 0, 4),
+      padding: const EdgeInsets.fromLTRB(22, 30, 22, 24),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.02)
+            : Colors.white.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: border,
+          style: BorderStyle.solid,
         ),
-      );
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: AppColors.brandGradient),
+              shape: BoxShape.circle,
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF10141A) : Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.remove_red_eye_outlined, size: 24, color: ink),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Nothing logged yet',
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: ink,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "Point the camera at your first meal — one tap and it's tracked.",
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall.copyWith(color: muted, height: 1.5),
+          ),
+          const SizedBox(height: 18),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: AppColors.brandGradient),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: TextButton(
+              onPressed: () => context.goNamed(RouteNames.scan),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(0, 46),
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                foregroundColor: const Color(0xFF0B0D10),
+                textStyle: AppTextStyles.labelLarge,
+              ),
+              child: const Text('Scan your first meal'),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => context.pushNamed(RouteNames.manual),
+            child: Text(
+              'OR ADD MANUALLY →',
+              style: AppTextStyles.labelMono.copyWith(
+                color: muted,
+                fontSize: 10,
+                letterSpacing: 1.6,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
