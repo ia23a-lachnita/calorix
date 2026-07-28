@@ -17,7 +17,9 @@ const _tdee = 2820;
 const _bmr = 1950;
 
 class GoalsScreen extends ConsumerStatefulWidget {
-  const GoalsScreen({super.key});
+  const GoalsScreen({super.key, this.initialPeriodOpen = false});
+
+  final bool initialPeriodOpen;
 
   @override
   ConsumerState<GoalsScreen> createState() => _GoalsScreenState();
@@ -25,6 +27,12 @@ class GoalsScreen extends ConsumerStatefulWidget {
 
 class _GoalsScreenState extends ConsumerState<GoalsScreen> {
   bool _periodOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _periodOpen = widget.initialPeriodOpen;
+  }
   String? _periodLabel;
 
   @override

@@ -8,6 +8,23 @@ Flutter: 3.41.9 stable, Dart 3.11.5, DevTools 2.54.2
 Functions scripts: test=vitest run, lint=eslint src test, build=tsc -p tsconfig.json, test:watch=vitest, test:rules=firebase emulators:exec --only firestore vitest rules config, deploy=out of scope
 Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-runs/, .gemini/settings.json.bak-20260517-220447, assets/calorix_icons/, docs/screenshots/today-screen-2026-06-17-adb-current.png, docs/screenshots/today-screen-2026-07-01-parity-fixes.png, docs/screenshots/today-screen-preflight-2026-06-05.png
 
+## Current Task
+
+**Task 17 is in progress. Step 1 and the deterministic 19-target capture-adapter prerequisite are complete; plan Steps 2–13 remain unchecked.**
+
+### Task 17 deterministic capture-adapter checkpoint (2026-07-28)
+
+- All 19 canonical IDs now route through `/debug/capture/<id>` and render real production widgets for both themes from one in-memory, profile-specific fixture manifest. Capture mode performs no Firebase, auth, repository-network, or camera-hardware work.
+- Handoff states that include the five-tab shell reuse the production `CalorixBottomNav`; loading, login, permission, processing, and review remain shell-free as their references require.
+- Canonical fixture content is visible before capture: prefilled login, four-turn assistant conversation plus action, assistant-history thread, populated profile identity, synchronous Goals draft, review candidates, processing state, food states, and history/today data.
+- `UI_DIFF_READY` now waits for target-specific provider data and two stable rendered frames. Unknown/missing/mismatched targets emit `UI_DIFF_BLOCKED` once. Changing targets disposes the prior target-scoped `ProviderContainer`, resets signal state, and emits a fresh READY without fixture leakage.
+- Loading, Scan capturing, Processing, Food confidence, and Today animations are frozen only under capture/reduced-motion conditions; normal production defaults remain animated.
+- Processing fixture `imageUrl` is intentionally `null`; the previous path named a nonexistent asset.
+- Test-first evidence: the consecutive-target test failed because the second READY remained pending, then passed after target-scoped container/signal reset. Final focused capture suite: 77/77. Compatibility subset: 158/158. `fvm flutter analyze`: no issues. Full `fvm flutter test --reporter compact`: 479 passed, 1 intentional live-contract skip.
+- Delegation record: `opencode/mimo-v2.5-free` produced no output or edits in two attempts (one over 10 minutes, one 304-second timeout); retained processes were terminated. The headless fallback returned `You've hit your monthly spend limit` after 18 seconds. Host fallback proceeded under the repository contract.
+- Post-review conversation `calorix-task17-visual-program-20260728`: primary `Gemini 3.6 Flash (High)` timed out at the MCP boundary after 300 seconds with no response. `Gemini 3.1 Pro (High)` returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. Adopted its fixture-leakage recommendation with the consecutive-target regression; a confirmation review of that delta returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. Response noise: the first successful response concatenated headings and incorrectly mentioned `TickerMode`; the decision/findings were otherwise coherent, and `git status` confirmed no reviewer mutation.
+- Next: Task 17 Step 2. Build/install a fingerprinted debug APK on the explicit physical device, execute the 38-state capture loop, validate exactly 38 PNG/meta pairs, then inspect and iterate through the broad/region/target diff program. No visual parity or Task 17 completion claim is made at this checkpoint.
+
 ## Toolchain Health (Task 0)
 
 - `fvm flutter pub get`: succeeded; 82 newer incompatible package notices; no lockfile change.
@@ -37,6 +54,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 14 | done | OpenCode timed out; headless fallback quota-blocked; host fallback under contract | pre- and post-review green (`calorix-task14-chat-security-20260722`) | 93a91b4, 405e306, 7cdf6ad + handoff remediation commit | Flutter 368 passed + 1 intentional live skip; analyze clean; Functions 57/57 lint/build clean; rules 16/16 |
 | 15 | done | OpenCode timed out twice with partial RED/implementation files; host fallback under contract | pre- and post-review green (`calorix-task15-secondary-parity-20260727`) | 1f4ac4f + handoff commit | Focused profile 15/15; onboarding/permission 18/18; a11y 5/5; analyzer clean; full Flutter 390 passed + 1 intentional live skip. |
 | 16 | done | OpenCode timed out on both Stage A and Stage B slice 1; host repaired/completed under the recorded fallback | pre-review green (`calorix-task16-e2e-matrix-20260727`); post-review green (`calorix-task16-post-review-20260728`, Gemini 3.6 Flash (High), `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`) | `5422c74`, `06657da`, `cd4fc62`, handoff tracking commit 2d2c2ce pushed | 46/46 one-APK physical on `R58R61161NA`; Functions 57/57; rules 16/16; real concurrent retry transaction 1/1; OFF v3 live 1/1; analyzer clean; full Flutter 390 passed + 1 intentional live skip. Explicitly blocked: real push delivery, real cloud model processing, production storage writes. |
+| 17 | in progress | OpenCode unavailable; headless fallback quota-blocked; host fallback under contract | post-review green (`calorix-task17-visual-program-20260728`) | pending checkpoint commit | Step 1 plus deterministic 19-target adapter complete; focused 77/77; compatibility 158/158; analyzer clean; full Flutter 479 passed + 1 intentional live skip. Steps 2–13 and all physical visual evidence remain pending. |
 
 ### Task 11 plan checkpoint
 
@@ -349,7 +367,7 @@ Corrections applied:
 5. **Steps** — Step 1 writes ALL tests; Step 5 adds DateTime.now() audit table
 6. **"await initializeTimeZones" correction** — the reviewer's wording was corrected because the API is synchronous and returns void; plan now correctly says `tz_data.initializeTimeZones()` without await
 
-## Current Task
+## Historical Task 17 staging notes (superseded by current status above)
 
 **Task 17 Stage A1 (Step 1: canonical visual-state inventory only). Task 16 remains complete; see its record below.**
 
@@ -367,7 +385,27 @@ Corrections applied:
 - Blockers carried forward for the remainder of Task 17 (explicitly not addressed in Stage A1, per scope): 9 fixture profiles (`empty`, `populated`, `flow_permission`, `flow_scan`, `flow_processing`, `flow_review`, `flow_manual`, `flow_loading`, `flow_login`) remain unimplemented as deterministic in-memory debug fixture profiles — these must never hit Firebase, auth, or the network — only the `populated` fixture's intended contents are described in the plan's fixture-profile table, and none are wired to a deterministic reseed target; capture-pipeline metadata (`.meta.json` `fixtureHash` generation/validation) and `tool/ui_capture/validate_artifacts.ps1` artifact-integrity checks do not exist yet. No target adapters, fixture profiles, capture extensions, or `validate_artifacts.ps1` were implemented in this stage.
 - Only Step 1 is checked in the Task 17 section of the plan; Steps 2–13 remain unchecked. Nothing was committed or pushed for this stage.
 
-### Task 17 Stage A1 remediation (2026-07-28, same stage — Steps 2–13 still untouched)
+### Task 17 Stage A2 (2026-07-28 — route adapters, profile fixes, capture screen)
+
+- **Pre-implementation review**: not required per AGENTS.md §4 (debug-only internal interface, no Firebase/security/data-model scope change; route additions are reversible).
+- **Enum fix**: `UiDiffFixtureProfile` values renamed from snake_case (`flow_permission`) to camelCase (`flowPermission`). Added `wireName` getter and `fromWire` static for consistent serialization matching `FoodEntryStatus` convention.
+- **Fixture fix**: `flow_review` profile changed from storing data in `detectedItems` (newline-delimited name/weight pairs) to `candidates` with proper `name/confidence/kcal/proteinG/carbsG/fatG/imageUrl` fields. `imageUrl` set to `null` to prevent `Image.network` in review screen. `detectedItems` left as empty list for backward compat.
+- **Blocker count fix**: "8 previously-unimplemented targets" corrected to "9" (the `goals_select` target was omitted from the count).
+- **Constructor seams**: `HistoryScreen` gained `initialMonthView` parameter; `GoalsScreen` gained `initialPeriodOpen` parameter. These are ignored in production, used by capture adapters to open specific UI states.
+- **`DebugCaptureScreen`** (`lib/debug/debug_capture_screen.dart`): new adapter widget that renders the correct production screen for each target ID. Waits 3 `endOfFrame` completions before printing the pending ready signal. Provides fake camera services for scan adapters to avoid physical camera access. Handles 9 adapter targets:
+  - `scan_idle` / `scan_capturing`: `ScanScreen` with fake camera + settings services
+  - `permission`: `PermissionScreen` with `CaptureState.denied`
+  - `processing`: `ProcessingScreen` with fixture entry ID
+  - `review`: `ReviewScreen` with fixture entry ID
+  - `manual`: `ManualEntryScreen`
+  - `today_empty`: `TodayScreen` (empty fixtures)
+  - `food_edit`: `FoodDetailSheet` with edit mode override
+  - `history_month`: `HistoryScreen(initialMonthView: true)`
+  - `goals_select`: `GoalsScreen(initialPeriodOpen: true)`
+- **Route wiring**: added `/debug/capture/:id` GoRoute (kDebugMode only) in `app_router.dart`.
+- **Route replacement**: all 9 placeholder routes (`/debug/placeholder/*`) replaced with `/debug/capture/<id>` in `kDebugScreenTargets`. Production targets (loading, login, today, food, history_week, goals, ai, ai_history, profile) keep their production routes; they emit the ready signal directly from `DebugReseedScreen`.
+- **Deferred ready signal**: `debugTargetDefersReadySignal` now infers from route prefix (`/debug/capture/`) instead of a hardcoded set. `DebugReseedScreen` stores pending ready signal for adapter targets; `DebugCaptureScreen` picks it up after 3-frame verification.
+- **Stage verification**: `fvm flutter analyze` → `No issues found!`. All 20 focused debug tests pass (6 deep_link_matrix + 14 fixture_isolation).
 
 - Corrected a tree-hash conflation: `reference-images-manifest.json`'s `source_tree` (`97339699...`) is the `docs/design-handoff/placeholder-app/reference-images` git tree, not the JSX tree. The actual JSX tree at `docs/design-handoff/placeholder-app/src`, both at the recorded source commit and current HEAD, is `9c7a646d377691c18da4bc01968fcf9d2960c6a5` (verified via `git rev-parse HEAD:docs/design-handoff/placeholder-app/src` and `git rev-parse 307dfc04ee23bee022f85059cc09dc363b2e80f6:docs/design-handoff/placeholder-app/src`). Added explicit `jsx_source_tree` to `visual-state-inventory.json`.
 - RED/GREEN: extended `test/visual_state_inventory_test.dart` with an assertion on `jsx_source_tree` plus a fail-closed `Process.runSync('git', ['rev-parse', 'HEAD:$_srcRoot'])` check (non-zero exit or hash mismatch fails the test). Focused run failed first with `Expected: not null / Actual: <null>` (field absent), then passed `+1: All tests passed!` after adding the field.
@@ -377,7 +415,29 @@ Corrections applied:
 - Fresh verification after remediation: focused `test/visual_state_inventory_test.dart` → `+1: All tests passed!`; full `fvm flutter test` → 391 passed + 1 intentional OFF live-contract skip (unchanged from prior stage count); `flutter.bat analyze --no-pub` → `No issues found!`.
 - Steps 2–13 checkboxes untouched; nothing committed or pushed for this remediation.
 
-- Task 16 preflight found the plan's `emulator-5554` commands stale. `adb devices -l` reports the explicitly authorized physical `R58R61161NA` (`SM_G780G`) as healthy; no emulator exists and none will be launched.
+### Task 17 Stage A2a (UiDiffFixtureProfile enum + profile-aware manifest)
+
+- OpenCode free route (`opencode/deepseek-v4-flash-free`) is the authorized fallback (mimo route unavailable, Claude quota exhausted). No quota errors were encountered.
+- Pre-implementation review: not required per AGENTS.md §4 (internal debug-only interface change without Firebase/security/data-model impact; single-file logic change pattern; changes are reversible and in-scope).
+- **Added** `UiDiffFixtureProfile` enum to `lib/debug/debug_deep_links.dart` with 9 values: `empty`, `populated`, `flow_permission`, `flow_scan`, `flow_processing`, `flow_review`, `flow_manual`, `flow_loading`, `flow_login`. Enum value names intentionally match the canonical `flow_*` convention from `visual-state-inventory.json`; linter `constant_identifier_names` suppressed with `ignore_for_file`.
+- **Added** `fixtureProfile` field to `DebugScreenTarget` (required). All 19 `kDebugScreenTargets` entries updated with the correct `UiDiffFixtureProfile` per `visual-state-inventory.json`. All targets marked `DebugTargetAvailability.implemented` (route adapters deferred to next slice).
+- **Refactored** `UiDiffFixtureManifest.create` to require `UiDiffFixtureProfile profile` parameter. Profile drives data generation:
+  - `populated`: 3 today entries (Chicken Rice Bowl 620, Protein Yogurt 180, Espresso Oat 45), 7 history entries, 2 weight logs, 1 active plan, 1 chat thread (existing behavior preserved).
+  - `empty`: no documents.
+  - `flow_review`: 1 low-confidence entry (confidence 0.42, `needs_review` status, 350 kcal) with 3 candidate detectedItems.
+  - `flow_processing`: 1 pending entry (status `pending`, 0 kcal, `imageUrl` set, shimmer-compatible).
+  - `flow_manual`: 3 deterministic search fixture entries (Grilled Chicken Breast 284, Brown Rice 216, Steamed Broccoli 55).
+  - `flow_permission` / `flow_scan` / `flow_loading` / `flow_login`: no production data; hash distinct via profile identity in canonical JSON.
+- **Canonical JSON** now wraps documents in `{'profile': profile.name, 'documents': <sorted docs>}` — ensures all 9 profiles have distinct hashes even when document maps are identical (all empty).
+- **Totals** are profile-aware: `rawVisibleTotals` returns 845/74/92/20 for `populated`, 350/15/40/12 for `flow_review`, zero for all others. `acceptedTotals` returns 800/73/84/19 for `populated`, zero for others.
+- **Added** `const FixtureNutrition.zero()` named constructor.
+- **Updated call sites**: `debug_reseed_screen.dart` passes `target.fixtureProfile`; `seed_data_service.dart` passes `UiDiffFixtureProfile.populated`.
+- **Did NOT edit**: `tool/ui_capture/capture_states.ps1` (explicitly protected), `tool/ui_capture/prepare_expected.ps1`, any production widget. Route adapters remain placeholder routes; this slice owns only profile definitions and data generation.
+- **RED**: wrote `test/debug/deep_link_matrix_test.dart` with 4 new focused tests (fixture profile mapping, all 9 values used, all targets implemented, profile coverage) and `test/debug/fixture_isolation_test.dart` with 7 new tests (stable hash per profile, 9 distinct hashes, empty/populated/review/processing/manual contents, flow profiles distinct without data). Tests failed at compile stage before enum/field/parameter existed.
+- **GREEN**: all 22 focused tests passed (`test/debug/deep_link_matrix_test.dart` 6, `test/debug/fixture_isolation_test.dart` 12, `test/debug_reseed_test.dart` 4).
+- **Stage verification**: `fvm flutter analyze` → `No issues found!`. Full `fvm flutter test` → 402 passed (390 prior + 11 new + 1 existing that was counted differently) + 1 intentional OFF live-contract skip.
+- **Blockers carried forward**: route adapters for the 9 previously-unimplemented targets (permission, scan_capturing, processing, review, manual, today_empty, food_edit, history_month, goals_select) remain placeholder routes. Profile-aware data exists in `UiDiffFixtureManifest` but is not yet wired through real routers to actual Flutter widgets — the adapter implementations are deferred to the next slice.
+- Nothing committed or pushed for this stage. `adb devices -l` reports the explicitly authorized physical `R58R61161NA` (`SM_G780G`) as healthy; no emulator exists and none will be launched.
 - Corrected architecture: 13 physical-renderer UI journeys use an in-process fake harness with zero Firebase/production network writes; host Firebase emulators separately own adapter/rules/transaction evidence; the full physical matrix uses one combined test entrypoint/APK.
 - Pre-review conversation `calorix-task16-e2e-matrix-20260727` on `Gemini 3.6 Flash (High)` returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. Adopted SHOULD_FIX items: override session seeding/FCM side effects, isolate SharedPreferences, use a combined matrix runner, and support a configurable physical-device emulator host if an explicit `adb reverse` path is later required. The response concatenated `QUESTIONS` onto the final SHOULD_FIX paragraph; this is recorded as formatting noise, not a missing finding.
 - Stage A worker route: `opencode run --model opencode/mimo-v2.5-free --auto` timed out after 424,035 ms (exit 124); retained process `27084` was stopped. It left only a partial 23 KB harness with 35 analyzer errors and no suite files. No quota-exhaustion response was returned. The host used the recorded repeated-stall fallback, repaired the harness, and independently inspected every new file.

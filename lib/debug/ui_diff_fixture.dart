@@ -2,9 +2,11 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../core/time/clock.dart';
 import '../shared/utils/date_key.dart';
+import 'debug_deep_links.dart';
 
 const String uiDiffFixtureDocumentPrefix = 'ui_diff_fixture_';
 
@@ -15,6 +17,12 @@ class FixtureNutrition {
     required this.carbs,
     required this.fat,
   });
+
+  const FixtureNutrition.zero()
+      : kcal = 0,
+        protein = 0,
+        carbs = 0,
+        fat = 0;
 
   final double kcal;
   final double protein;
@@ -34,11 +42,12 @@ class FixtureNutrition {
 }
 
 class UiDiffFixtureManifest {
-  UiDiffFixtureManifest._(this.documents);
+  UiDiffFixtureManifest._(this.documents, this.profile);
 
   factory UiDiffFixtureManifest.create({
     required String uid,
     required Clock clock,
+    required UiDiffFixtureProfile profile,
   }) {
     final now = clock.nowTZ();
     final today = localDateKey(now);
@@ -49,6 +58,98 @@ class UiDiffFixtureManifest {
       documents['$root/$collection/$id'] = value;
     }
 
+    switch (profile) {
+      case UiDiffFixtureProfile.populated:
+        _addPopulatedData(now, today, uid, root, add, documents);
+      case UiDiffFixtureProfile.flowReview:
+        _addReviewData(now, today, uid, add);
+      case UiDiffFixtureProfile.flowProcessing:
+        _addProcessingData(now, today, uid, add);
+      case UiDiffFixtureProfile.flowManual:
+        _addManualData(now, today, uid, add);
+      case UiDiffFixtureProfile.empty:
+      case UiDiffFixtureProfile.flowPermission:
+      case UiDiffFixtureProfile.flowScan:
+      case UiDiffFixtureProfile.flowLoading:
+      case UiDiffFixtureProfile.flowLogin:
+        break;
+    }
+
+    return UiDiffFixtureManifest._(documents, profile);
+  }
+
+  final UiDiffFixtureProfile profile;
+  final SplayTreeMap<String, Map<String, Object?>> documents;
+
+  List<String> get sortedPaths => documents.keys.toList(growable: false);
+
+  Iterable<MapEntry<String, Map<String, Object?>>> get visibleTodayDocuments =>
+      documents.entries.where(
+        (entry) =>
+            entry.key
+                .contains('/entries/${uiDiffFixtureDocumentPrefix}today_') ||
+            entry.key
+                .contains('/entries/${uiDiffFixtureDocumentPrefix}review_') ||
+            entry.key
+                .contains('/entries/${uiDiffFixtureDocumentPrefix}processing_'),
+      );
+
+  String get canonicalJson => jsonEncode({
+        'profile': profile.name,
+        'documents': _sortedMap(
+          documents.entries.map(
+            (entry) => MapEntry(entry.key, _canonicalize(entry.value)),
+          ),
+        ),
+      });
+
+  String get fixtureHash =>
+      sha256.convert(utf8.encode(canonicalJson)).toString();
+
+  FixtureNutrition get rawVisibleTotals {
+    switch (profile) {
+      case UiDiffFixtureProfile.populated:
+        return const FixtureNutrition(
+            kcal: 845, protein: 74, carbs: 92, fat: 20);
+      case UiDiffFixtureProfile.flowReview:
+        return const FixtureNutrition(
+            kcal: 350, protein: 15, carbs: 40, fat: 12);
+      case UiDiffFixtureProfile.empty:
+      case UiDiffFixtureProfile.flowPermission:
+      case UiDiffFixtureProfile.flowScan:
+      case UiDiffFixtureProfile.flowProcessing:
+      case UiDiffFixtureProfile.flowManual:
+      case UiDiffFixtureProfile.flowLoading:
+      case UiDiffFixtureProfile.flowLogin:
+        return const FixtureNutrition.zero();
+    }
+  }
+
+  FixtureNutrition get acceptedTotals {
+    switch (profile) {
+      case UiDiffFixtureProfile.populated:
+        return const FixtureNutrition(
+            kcal: 800, protein: 73, carbs: 84, fat: 19);
+      case UiDiffFixtureProfile.empty:
+      case UiDiffFixtureProfile.flowPermission:
+      case UiDiffFixtureProfile.flowScan:
+      case UiDiffFixtureProfile.flowProcessing:
+      case UiDiffFixtureProfile.flowReview:
+      case UiDiffFixtureProfile.flowManual:
+      case UiDiffFixtureProfile.flowLoading:
+      case UiDiffFixtureProfile.flowLogin:
+        return const FixtureNutrition.zero();
+    }
+  }
+
+  static void _addPopulatedData(
+    tz.TZDateTime now,
+    String today,
+    String uid,
+    String root,
+    void Function(String, String, Map<String, Object?>) add,
+    SplayTreeMap<String, Map<String, Object?>> documents,
+  ) {
     final visibleEntries = <({
       String id,
       String name,
@@ -189,46 +290,202 @@ class UiDiffFixtureManifest {
     const threadId = '${uiDiffFixtureDocumentPrefix}chat_thread';
     add('aiThreads', threadId, {
       'uid': uid,
-      'title': 'Today’s plan',
+      'title': 'Today\'s plan',
       'preview': 'Your fixture plan is ready.',
       'createdAt': now.toUtc(),
       'updatedAt': now.toUtc(),
     });
     documents[
-        '$root/aiThreads/$threadId/messages/${uiDiffFixtureDocumentPrefix}chat_reply'] = {
-      'role': 'assistant',
-      'content': 'Your fixture plan is ready.',
-      'createdAt': now.toUtc(),
+        '$root/aiThreads/$threadId/messages/${uiDiffFixtureDocumentPrefix}chat_user_1'] = {
+      'role': 'user',
+      'content':
+          'That last scan is wrong — it was chicken and rice, not a curry.',
+      'createdAt': now.subtract(const Duration(minutes: 4)).toUtc(),
       'status': 'complete',
     };
-
-    return UiDiffFixtureManifest._(documents);
+    documents[
+        '$root/aiThreads/$threadId/messages/${uiDiffFixtureDocumentPrefix}chat_reply_1'] = {
+      'role': 'assistant',
+      'content':
+          'Got it. I re-estimated your 12:48 Lunch as a chicken rice bowl, ~380g. The macros come down a bit:',
+      'createdAt': now.subtract(const Duration(minutes: 3)).toUtc(),
+      'status': 'complete',
+    };
+    documents[
+        '$root/aiThreads/$threadId/messages/${uiDiffFixtureDocumentPrefix}chat_user_2'] = {
+      'role': 'user',
+      'content': "Also bump protein up — I'm hitting the gym 5×/week now.",
+      'createdAt': now.subtract(const Duration(minutes: 2)).toUtc(),
+      'status': 'complete',
+    };
+    documents[
+        '$root/aiThreads/$threadId/messages/${uiDiffFixtureDocumentPrefix}chat_reply_2'] = {
+      'role': 'assistant',
+      'content':
+          "Reasonable. At your current weight (81.4 kg) and training load I'd raise protein to 180 g/day and pull carbs slightly to keep calories at 2,400.",
+      'createdAt': now.subtract(const Duration(minutes: 1)).toUtc(),
+      'status': 'complete',
+      'action': {
+        'field': 'Protein',
+        'macro': 'protein',
+        'old': 170,
+        'new': 180,
+      },
+    };
   }
 
-  final SplayTreeMap<String, Map<String, Object?>> documents;
+  static void _addReviewData(
+    tz.TZDateTime now,
+    String today,
+    String uid,
+    void Function(String, String, Map<String, Object?>) add,
+  ) {
+    add('entries', '${uiDiffFixtureDocumentPrefix}review_food', {
+      'uid': uid,
+      'date': today,
+      'foodName': 'Unknown Food',
+      'baseKcal': 350,
+      'baseProtein': 15,
+      'baseCarbs': 40,
+      'baseFat': 12,
+      'confidence': 0.42,
+      'mealType': 'lunch',
+      'servingSize': 1.0,
+      'quantity': 1.0,
+      'status': 'needs_review',
+      'scanMode': 'meal',
+      'servingMultiplier': 1.0,
+      'corrected': false,
+      'detectedItems': <Map<String, Object?>>[],
+      'candidates': <Map<String, Object?>>[
+        {
+          'name': 'Chicken Sandwich',
+          'confidence': 0.65,
+          'kcal': 420,
+          'proteinG': 28.0,
+          'carbsG': 35.0,
+          'fatG': 18.0,
+          'imageUrl': null
+        },
+        {
+          'name': 'Turkey Club',
+          'confidence': 0.52,
+          'kcal': 380,
+          'proteinG': 24.0,
+          'carbsG': 32.0,
+          'fatG': 15.0,
+          'imageUrl': null
+        },
+        {
+          'name': 'Veggie Wrap',
+          'confidence': 0.38,
+          'kcal': 310,
+          'proteinG': 12.0,
+          'carbsG': 40.0,
+          'fatG': 8.0,
+          'imageUrl': null
+        },
+      ],
+      'imageUrl': null,
+      'timestamp': now.toUtc(),
+    });
+  }
 
-  List<String> get sortedPaths => documents.keys.toList(growable: false);
+  static void _addProcessingData(
+    tz.TZDateTime now,
+    String today,
+    String uid,
+    void Function(String, String, Map<String, Object?>) add,
+  ) {
+    add('entries', '${uiDiffFixtureDocumentPrefix}processing_entry', {
+      'uid': uid,
+      'date': today,
+      'foodName': 'Processing...',
+      'baseKcal': 0,
+      'baseProtein': 0,
+      'baseCarbs': 0,
+      'baseFat': 0,
+      'confidence': null,
+      'mealType': 'lunch',
+      'servingSize': 1.0,
+      'quantity': 1.0,
+      'status': 'pending',
+      'scanMode': 'meal',
+      'servingMultiplier': 1.0,
+      'corrected': false,
+      'detectedItems': <Map<String, Object?>>[],
+      'imageUrl': null,
+      'timestamp': now.toUtc(),
+    });
+  }
 
-  Iterable<MapEntry<String, Map<String, Object?>>> get visibleTodayDocuments =>
-      documents.entries.where(
-        (entry) =>
-            entry.key.contains('/entries/${uiDiffFixtureDocumentPrefix}today_'),
-      );
-
-  String get canonicalJson => jsonEncode(_sortedMap(
-        documents.entries.map(
-          (entry) => MapEntry(entry.key, _canonicalize(entry.value)),
-        ),
-      ));
-
-  String get fixtureHash =>
-      sha256.convert(utf8.encode(canonicalJson)).toString();
-
-  FixtureNutrition get rawVisibleTotals =>
-      const FixtureNutrition(kcal: 845, protein: 74, carbs: 92, fat: 20);
-
-  FixtureNutrition get acceptedTotals =>
-      const FixtureNutrition(kcal: 800, protein: 73, carbs: 84, fat: 19);
+  static void _addManualData(
+    tz.TZDateTime now,
+    String today,
+    String uid,
+    void Function(String, String, Map<String, Object?>) add,
+  ) {
+    add('entries', '${uiDiffFixtureDocumentPrefix}manual_search_1', {
+      'uid': uid,
+      'date': today,
+      'foodName': 'Grilled Chicken Breast',
+      'baseKcal': 284,
+      'baseProtein': 43,
+      'baseCarbs': 0,
+      'baseFat': 11,
+      'confidence': 1.0,
+      'mealType': 'manual_search',
+      'servingSize': 1.0,
+      'quantity': 0,
+      'status': 'complete',
+      'scanMode': 'manual',
+      'servingMultiplier': 1.0,
+      'corrected': false,
+      'detectedItems': <Map<String, Object?>>[],
+      'imageUrl': null,
+      'timestamp': now.toUtc(),
+    });
+    add('entries', '${uiDiffFixtureDocumentPrefix}manual_search_2', {
+      'uid': uid,
+      'date': today,
+      'foodName': 'Brown Rice',
+      'baseKcal': 216,
+      'baseProtein': 5,
+      'baseCarbs': 45,
+      'baseFat': 2,
+      'confidence': 1.0,
+      'mealType': 'manual_search',
+      'servingSize': 1.0,
+      'quantity': 0,
+      'status': 'complete',
+      'scanMode': 'manual',
+      'servingMultiplier': 1.0,
+      'corrected': false,
+      'detectedItems': <Map<String, Object?>>[],
+      'imageUrl': null,
+      'timestamp': now.toUtc(),
+    });
+    add('entries', '${uiDiffFixtureDocumentPrefix}manual_search_3', {
+      'uid': uid,
+      'date': today,
+      'foodName': 'Steamed Broccoli',
+      'baseKcal': 55,
+      'baseProtein': 4,
+      'baseCarbs': 11,
+      'baseFat': 1,
+      'confidence': 1.0,
+      'mealType': 'manual_search',
+      'servingSize': 1.0,
+      'quantity': 0,
+      'status': 'complete',
+      'scanMode': 'manual',
+      'servingMultiplier': 1.0,
+      'corrected': false,
+      'detectedItems': <Map<String, Object?>>[],
+      'imageUrl': null,
+      'timestamp': now.toUtc(),
+    });
+  }
 }
 
 abstract interface class UiDiffFixtureStore {

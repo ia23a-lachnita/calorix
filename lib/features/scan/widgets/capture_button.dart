@@ -36,6 +36,18 @@ class _CaptureButtonState extends State<CaptureButton>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller
+        ..stop()
+        ..value = widget.isCapturing ? 0.5 : 0;
+    } else if (widget.isCapturing && !_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
   void didUpdateWidget(covariant CaptureButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isCapturing && !oldWidget.isCapturing) {

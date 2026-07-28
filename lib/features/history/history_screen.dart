@@ -21,7 +21,10 @@ import '../../core/motion/app_motion.dart';
 const _onTargetFraction = 0.85;
 
 class HistoryScreen extends ConsumerStatefulWidget {
-  const HistoryScreen({super.key});
+  const HistoryScreen({super.key, this.initialMonthView = false});
+
+  final bool initialMonthView;
+
   @override
   ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
 }
@@ -33,6 +36,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   @override
   void initState() {
     super.initState();
+    _isMonthView = widget.initialMonthView;
     _selectedDate = ref.read(clockProvider).nowTZ();
   }
 

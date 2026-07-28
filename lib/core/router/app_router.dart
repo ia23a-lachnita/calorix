@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'route_names.dart';
 import 'route_fallback.dart';
+import '../../debug/debug_capture_screen.dart';
 import '../../debug/debug_deep_links.dart';
 import '../../debug/debug_reseed_screen.dart';
 import '../../shell/app_shell.dart';
@@ -286,7 +287,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           },
         ),
       ),
-      if (kDebugMode)
+      if (kDebugMode) ...[
         GoRoute(
           path: '/debug/reseed',
           parentNavigatorKey: _rootNavigatorKey,
@@ -305,6 +306,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             );
           },
         ),
+        GoRoute(
+          path: '/debug/capture/:id',
+          parentNavigatorKey: _rootNavigatorKey,
+          builder: (context, state) => DebugCaptureScreen(
+            targetId: state.pathParameters['id']!,
+          ),
+        ),
+      ],
     ],
   );
 });

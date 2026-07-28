@@ -54,6 +54,7 @@ class _DebugReseedScreenState extends ConsumerState<DebugReseedScreen> {
           widget.fixtureEpochMs,
         ),
       ),
+      profile: target.fixtureProfile,
     );
 
     ref.read(uiDiffModeProvider.notifier).state = true;

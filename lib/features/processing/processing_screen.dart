@@ -25,7 +25,9 @@ class ProcessingScreen extends ConsumerWidget {
     ref.listen(processingEntryProvider(entryId), (_, next) {
       final entry = next.valueOrNull;
       final requiresReview = entry?.status == FoodEntryStatus.needsReview ||
-          entry?.confidence != null && entry!.confidence! < 0.80;
+          entry?.status == FoodEntryStatus.complete &&
+              entry?.confidence != null &&
+              entry!.confidence! < 0.80;
       if (!requiresReview) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
@@ -111,6 +113,18 @@ class _GlassBannerState extends State<_GlassBanner>
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _spin
+        ..stop()
+        ..value = 0;
+    } else if (!_spin.isAnimating) {
+      _spin.repeat();
+    }
   }
 
   @override

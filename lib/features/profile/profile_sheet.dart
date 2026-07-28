@@ -19,6 +19,16 @@ final themeModeProvider = Provider<ThemeMode>((ref) {
   return ref.watch(settingsProvider).themeMode;
 });
 
+class ProfileDisplayIdentity {
+  const ProfileDisplayIdentity({
+    required this.displayName,
+    required this.email,
+  });
+
+  final String displayName;
+  final String email;
+}
+
 /// The sheet may sit on a replaced stack (deep link, stale navigation);
 /// closing must never strand the user, so fall back to the Scan home.
 void _closeSheet(BuildContext context) {
@@ -30,7 +40,9 @@ void _closeSheet(BuildContext context) {
 }
 
 class ProfileSheet extends ConsumerWidget {
-  const ProfileSheet({super.key});
+  const ProfileSheet({super.key, this.displayIdentity});
+
+  final ProfileDisplayIdentity? displayIdentity;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -115,12 +127,15 @@ class ProfileSheet extends ConsumerWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      user?.displayName ?? 'Guest',
+                                      displayIdentity?.displayName ??
+                                          user?.displayName ??
+                                          'Guest',
                                       style: AppTextStyles.labelLarge
                                           .copyWith(color: textColor),
                                     ),
                                     Text(
-                                      user?.email ??
+                                      displayIdentity?.email ??
+                                          user?.email ??
                                           (user?.isAnonymous == true
                                               ? 'Anonymous user'
                                               : 'Not signed in'),

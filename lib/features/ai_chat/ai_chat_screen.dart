@@ -17,11 +17,15 @@ import '../../shared/repositories/ai_thread_repository.dart';
 class AiChatScreen extends ConsumerStatefulWidget {
   final String? preloadedMealId;
   final String? threadId;
+  final bool? canPopOverride;
+  final bool preserveInitialMessages;
 
   const AiChatScreen({
     super.key,
     this.preloadedMealId,
     this.threadId,
+    this.canPopOverride,
+    this.preserveInitialMessages = false,
   });
 
   @override
@@ -54,7 +58,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     _scrollController.addListener(_onScroll);
     if (_threadId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialThread());
-    } else {
+    } else if (!widget.preserveInitialMessages) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) ref.read(chatMessagesProvider.notifier).reset();
       });
@@ -329,7 +333,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                     ),
                   ),
                   Builder(builder: (context) {
-                    final canPop = context.canPop();
+                    final canPop = widget.canPopOverride ?? context.canPop();
                     return Semantics(
                       button: true,
                       label: canPop ? 'Close' : 'Close and return to Scan',

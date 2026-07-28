@@ -28,11 +28,15 @@ class ScanScreen extends ConsumerStatefulWidget {
     this.onManualEntryRequested,
     this.onRecentRequested,
     this.onPermissionGranted,
+    this.initializeCamera = true,
+    this.initialCaptureState,
   });
 
   final VoidCallback? onManualEntryRequested;
   final VoidCallback? onRecentRequested;
   final VoidCallback? onPermissionGranted;
+  final bool initializeCamera;
+  final CaptureState? initialCaptureState;
 
   @override
   ConsumerState<ScanScreen> createState() => _ScanScreenState();
@@ -52,7 +56,30 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       vsync: this,
       duration: MotionDurations.scanShimmer,
     );
-    _checkPermission();
+    final initialCaptureState = widget.initialCaptureState;
+    if (initialCaptureState != null) {
+      if (initialCaptureState == CaptureState.capturing) {
+        _shimmerController.repeat();
+      }
+    }
+    if (widget.initializeCamera) {
+      _checkPermission();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final captureState =
+        widget.initialCaptureState ?? ref.read(captureStateProvider);
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _shimmerController
+        ..stop()
+        ..value = captureState == CaptureState.capturing ? 0.5 : 0;
+    } else if (captureState == CaptureState.capturing &&
+        !_shimmerController.isAnimating) {
+      _shimmerController.repeat();
+    }
   }
 
   @override
@@ -191,7 +218,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
 
   @override
   Widget build(BuildContext context) {
-    final captureState = ref.watch(captureStateProvider);
+    final captureState =
+        widget.initialCaptureState ?? ref.watch(captureStateProvider);
 
     if (captureState == CaptureState.denied) {
       return PermissionScreen(

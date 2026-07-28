@@ -11,19 +11,36 @@ import '../../shared/widgets/brand.dart';
 /// Apple/Google, guest affordance, trust chips. "Create an account" flips the
 /// form into sign-up mode with identical visuals.
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({
+    super.key,
+    this.initialEmail = '',
+    this.initialPassword = '',
+    this.initialStaySignedIn = true,
+  });
+
+  final String initialEmail;
+  final String initialPassword;
+  final bool initialStaySignedIn;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _email = TextEditingController();
-  final _password = TextEditingController();
+  late final TextEditingController _email;
+  late final TextEditingController _password;
   bool _showPassword = false;
-  bool _staySignedIn = true;
+  late bool _staySignedIn;
   bool _signUpMode = false;
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _email = TextEditingController(text: widget.initialEmail);
+    _password = TextEditingController(text: widget.initialPassword);
+    _staySignedIn = widget.initialStaySignedIn;
+  }
 
   @override
   void dispose() {
@@ -263,6 +280,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     child: Row(
                                       children: [
                                         Container(
+                                          key: _staySignedIn
+                                              ? const ValueKey(
+                                                  'login-stay-signed-in-checked')
+                                              : const ValueKey(
+                                                  'login-stay-signed-in-unchecked'),
                                           width: 18,
                                           height: 18,
                                           decoration: BoxDecoration(

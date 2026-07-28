@@ -16,7 +16,14 @@ import '../../shared/widgets/brand.dart';
 /// mark, staged progress copy, no bare spinners. Routes to login or scan once
 /// the auth session resolves and the minimum splash beat has played.
 class LoadingScreen extends ConsumerStatefulWidget {
-  const LoadingScreen({super.key});
+  const LoadingScreen({
+    super.key,
+    this.navigateWhenReady = true,
+    this.freezeForCapture = false,
+  });
+
+  final bool navigateWhenReady;
+  final bool freezeForCapture;
 
   @override
   ConsumerState<LoadingScreen> createState() => _LoadingScreenState();
@@ -54,6 +61,11 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
   @override
   void initState() {
     super.initState();
+    if (widget.freezeForCapture) {
+      _stage = 2;
+      _minBeatDone = true;
+      return;
+    }
     _stageTimer = Timer.periodic(const Duration(milliseconds: 1100), (timer) {
       if (!mounted || _stage >= _stages.length - 1) {
         timer.cancel();
@@ -102,7 +114,9 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
   }
 
   void _maybeNavigate() {
-    if (_navigated || !_minBeatDone || !mounted) return;
+    if (!widget.navigateWhenReady || _navigated || !_minBeatDone || !mounted) {
+      return;
+    }
     final auth = ref.read(authStateProvider);
     if (auth.isLoading) return;
     _navigated = true;

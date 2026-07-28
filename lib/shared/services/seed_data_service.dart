@@ -4,6 +4,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../utils/date_key.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/time/clock.dart';
+import '../../debug/debug_deep_links.dart';
 import '../../debug/ui_diff_fixture.dart';
 
 /// Seeds demo diary data by writing ENTRIES only. Daily logs are
@@ -97,7 +98,11 @@ class SeedDataService {
   /// invocation even when assertions are stripped.
   Future<String> forceReseedForUiDiff(String uid) async {
     enforceUiDiffDebugGuard(isDebug: kDebugMode);
-    final manifest = UiDiffFixtureManifest.create(uid: uid, clock: _clock);
+    final manifest = UiDiffFixtureManifest.create(
+      uid: uid,
+      clock: _clock,
+      profile: UiDiffFixtureProfile.populated,
+    );
     return reseedUiDiffFixture(
       _FirestoreUiDiffFixtureStore(_db, uid),
       manifest,

@@ -34,7 +34,7 @@ class _AppShellState extends State<AppShell> {
       bottomNavigationBar: UiDiffAnchor(
         id: 'today.bottomNav',
         label: 'Bottom navigation bar',
-        child: _CalorixBottomNav(
+        child: CalorixBottomNav(
           currentIndex: currentIndex,
           onTap: _onTap,
           isDark: isDark,
@@ -45,8 +45,9 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
-class _CalorixBottomNav extends StatelessWidget {
-  const _CalorixBottomNav({
+class CalorixBottomNav extends StatelessWidget {
+  const CalorixBottomNav({
+    super.key,
     required this.currentIndex,
     required this.onTap,
     required this.isDark,
