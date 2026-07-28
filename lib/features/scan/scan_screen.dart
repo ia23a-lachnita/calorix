@@ -449,6 +449,7 @@ class _ProfileChip extends ConsumerWidget {
         (user.displayName == null && user.email == null);
 
     return GestureDetector(
+      key: const ValueKey('scan-profile'),
       // Push (not go) so the sheet keeps a back stack and can be closed.
       onTap: () => context.pushNamed(RouteNames.profile),
       child: _GlassChip(

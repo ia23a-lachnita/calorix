@@ -604,6 +604,7 @@ class E2EHarness {
   static Future<E2EHarness> create({
     FakeClock? clock,
     String uid = e2eTestUid,
+    DateTime? accountCreated,
     AiChatServiceResponse Function(String message)? aiActionResponder,
     void Function(String entryId)? onNotificationTap,
   }) async {
@@ -635,7 +636,9 @@ class E2EHarness {
       foodEntryRepositoryProvider.overrideWithValue(foodRepo),
       macroTargetRepositoryProvider.overrideWithValue(macroRepo),
       weightLogRepositoryProvider.overrideWithValue(weightRepo),
-      accountCreationProvider.overrideWithValue(fakeClock.now()),
+      accountCreationProvider.overrideWithValue(
+        accountCreated ?? fakeClock.now(),
+      ),
       historyProvider.overrideWith((ref) => Stream.value(<DailyLog>[])),
       historyRangeProvider.overrideWith(
         (ref, range) => Stream.value(<DailyLog>[]),
@@ -722,6 +725,13 @@ class E2EHarness {
   Future<void> go(WidgetTester tester, String location) async {
     final context = tester.element(find.byType(MaterialApp));
     ProviderScope.containerOf(context).read(routerProvider).go(location);
+    await tester.pump();
+  }
+
+  Future<void> push(WidgetTester tester, String location) async {
+    final context = tester.element(find.byType(MaterialApp));
+    final router = ProviderScope.containerOf(context).read(routerProvider);
+    unawaited(router.push(location));
     await tester.pump();
   }
 }
