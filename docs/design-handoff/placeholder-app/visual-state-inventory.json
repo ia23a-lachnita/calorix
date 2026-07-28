@@ -1,0 +1,178 @@
+{
+  "source_commit": "307dfc04ee23bee022f85059cc09dc363b2e80f6",
+  "source_tree": "97339699422bcec8d92f2ec8e47c4179c184e034",
+  "jsx_source_tree": "9c7a646d377691c18da4bc01968fcf9d2960c6a5",
+  "states": [
+    {
+      "id": "loading",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-loading.jsx",
+      "component": "CXLoadingScreen",
+      "props": {},
+      "fixtureProfile": "flow_loading",
+      "referenceDark": "loading--dark.png",
+      "referenceLight": "loading--light.png"
+    },
+    {
+      "id": "login",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-login.jsx",
+      "component": "CXLoginScreen",
+      "props": {},
+      "fixtureProfile": "flow_login",
+      "referenceDark": "login--dark.png",
+      "referenceLight": "login--light.png"
+    },
+    {
+      "id": "permission",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-states.jsx",
+      "component": "CXPermissionScreen",
+      "props": {},
+      "fixtureProfile": "flow_permission",
+      "referenceDark": "permission--dark.png",
+      "referenceLight": "permission--light.png"
+    },
+    {
+      "id": "scan_idle",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-scan.jsx",
+      "component": "CXScanScreen",
+      "props": { "state": "idle" },
+      "fixtureProfile": "flow_scan",
+      "referenceDark": "scan_idle--dark.png",
+      "referenceLight": "scan_idle--light.png"
+    },
+    {
+      "id": "scan_capturing",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-scan.jsx",
+      "component": "CXScanScreen",
+      "props": { "state": "capturing" },
+      "fixtureProfile": "flow_scan",
+      "referenceDark": "scan_capturing--dark.png",
+      "referenceLight": "scan_capturing--light.png"
+    },
+    {
+      "id": "processing",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-processing.jsx",
+      "component": "CXProcessingScreen",
+      "props": {},
+      "fixtureProfile": "flow_processing",
+      "referenceDark": "processing--dark.png",
+      "referenceLight": "processing--light.png"
+    },
+    {
+      "id": "review",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-states.jsx",
+      "component": "CXScanReviewScreen",
+      "props": {},
+      "fixtureProfile": "flow_review",
+      "referenceDark": "review--dark.png",
+      "referenceLight": "review--light.png"
+    },
+    {
+      "id": "manual",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-states.jsx",
+      "component": "CXManualAddScreen",
+      "props": {},
+      "fixtureProfile": "flow_manual",
+      "referenceDark": "manual--dark.png",
+      "referenceLight": "manual--light.png"
+    },
+    {
+      "id": "today",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-today.jsx",
+      "component": "CXTodayScreen",
+      "props": {},
+      "fixtureProfile": "populated",
+      "referenceDark": "today--dark.png",
+      "referenceLight": "today--light.png"
+    },
+    {
+      "id": "today_empty",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-today.jsx",
+      "component": "CXTodayScreen",
+      "props": { "empty": true },
+      "fixtureProfile": "empty",
+      "referenceDark": "today_empty--dark.png",
+      "referenceLight": "today_empty--light.png"
+    },
+    {
+      "id": "food",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-food.jsx",
+      "component": "CXFoodDetailScreen",
+      "props": { "editing": false },
+      "fixtureProfile": "populated",
+      "referenceDark": "food--dark.png",
+      "referenceLight": "food--light.png"
+    },
+    {
+      "id": "food_edit",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-food.jsx",
+      "component": "CXFoodDetailScreen",
+      "props": { "editing": true },
+      "fixtureProfile": "populated",
+      "referenceDark": "food_edit--dark.png",
+      "referenceLight": "food_edit--light.png"
+    },
+    {
+      "id": "history_week",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-history.jsx",
+      "component": "CXHistoryScreen",
+      "props": { "view": "week" },
+      "fixtureProfile": "populated",
+      "referenceDark": "history_week--dark.png",
+      "referenceLight": "history_week--light.png"
+    },
+    {
+      "id": "history_month",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-history.jsx",
+      "component": "CXHistoryScreen",
+      "props": { "view": "month" },
+      "fixtureProfile": "populated",
+      "referenceDark": "history_month--dark.png",
+      "referenceLight": "history_month--light.png"
+    },
+    {
+      "id": "goals",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-goals.jsx",
+      "component": "CXGoalsScreen",
+      "props": { "period": "idle" },
+      "fixtureProfile": "populated",
+      "referenceDark": "goals--dark.png",
+      "referenceLight": "goals--light.png"
+    },
+    {
+      "id": "goals_select",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-goals.jsx",
+      "component": "CXGoalsScreen",
+      "props": { "period": "select" },
+      "fixtureProfile": "populated",
+      "referenceDark": "goals_select--dark.png",
+      "referenceLight": "goals_select--light.png"
+    },
+    {
+      "id": "ai",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-ai.jsx",
+      "component": "CXAIScreen",
+      "props": {},
+      "fixtureProfile": "populated",
+      "referenceDark": "ai--dark.png",
+      "referenceLight": "ai--light.png"
+    },
+    {
+      "id": "ai_history",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-ai-history.jsx",
+      "component": "CXAIHistoryScreen",
+      "props": {},
+      "fixtureProfile": "populated",
+      "referenceDark": "ai_history--dark.png",
+      "referenceLight": "ai_history--light.png"
+    },
+    {
+      "id": "profile",
+      "jsxSource": "docs/design-handoff/placeholder-app/src/cx-screen-profile.jsx",
+      "component": "CXProfileScreen",
+      "props": {},
+      "fixtureProfile": "populated",
+      "referenceDark": "profile--dark.png",
+      "referenceLight": "profile--light.png"
+    }
+  ]
+}
