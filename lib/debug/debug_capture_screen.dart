@@ -585,7 +585,7 @@ List<DailyLog> _historyLogs(UiDiffFixtureManifest manifest) {
         protein: (data['baseProtein'] as num?)?.toDouble() ?? 0,
         carbs: (data['baseCarbs'] as num?)?.toDouble() ?? 0,
         fat: (data['baseFat'] as num?)?.toDouble() ?? 0,
-        entryCount: 1,
+        entryCount: (data['entryCount'] as num?)?.round() ?? 1,
         date: date,
       ),
     );

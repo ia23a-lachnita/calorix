@@ -237,25 +237,26 @@ class UiDiffFixtureManifest {
       });
     }
 
-    const historyKcal = [
-      1980.0,
-      2140.0,
-      1760.0,
-      2310.0,
-      2050.0,
-      1890.0,
-      2010.0
+    const historyDays = [
+      (kcal: 2350.0, protein: 172.0, carbs: 245.0, fat: 68.0, meals: 5),
+      (kcal: 1980.0, protein: 148.0, carbs: 220.0, fat: 56.0, meals: 4),
+      (kcal: 2410.0, protein: 178.0, carbs: 258.0, fat: 71.0, meals: 6),
+      (kcal: 2280.0, protein: 166.0, carbs: 245.0, fat: 66.0, meals: 5),
+      (kcal: 2050.0, protein: 151.0, carbs: 226.0, fat: 61.0, meals: 4),
+      (kcal: 1890.0, protein: 143.0, carbs: 205.0, fat: 58.0, meals: 4),
+      (kcal: 2010.0, protein: 149.0, carbs: 218.0, fat: 60.0, meals: 4),
     ];
-    for (var i = 0; i < historyKcal.length; i++) {
+    for (var i = 0; i < historyDays.length; i++) {
+      final history = historyDays[i];
       final day = DateTime.utc(now.year, now.month, now.day - i - 1, 12, 15);
       add('entries', '${uiDiffFixtureDocumentPrefix}history_${i + 1}', {
         'uid': uid,
         'date': _utcDateKey(day),
         'foodName': 'Fixture day ${i + 1}',
-        'baseKcal': historyKcal[i],
-        'baseProtein': 140.0 + i,
-        'baseCarbs': 200.0 + i,
-        'baseFat': 60.0 + i,
+        'baseKcal': history.kcal,
+        'baseProtein': history.protein,
+        'baseCarbs': history.carbs,
+        'baseFat': history.fat,
         'confidence': .95,
         'mealType': 'lunch',
         'status': 'complete',
@@ -264,22 +265,27 @@ class UiDiffFixtureManifest {
         'corrected': false,
         'detectedItems': <Map<String, Object?>>[],
         'imageUrl': null,
+        'entryCount': history.meals,
         'timestamp': day,
       });
     }
 
     add('weightLogs', '${uiDiffFixtureDocumentPrefix}weight_previous', {
       'date': _utcDateKey(DateTime.utc(now.year, now.month, now.day - 14)),
-      'weight': 81.2,
+      'weight': 83.2,
     });
     add('weightLogs', '${uiDiffFixtureDocumentPrefix}weight_current', {
       'date': today,
-      'weight': 79.8,
+      'weight': 81.4,
     });
     add('targets', '${uiDiffFixtureDocumentPrefix}active_plan', {
       'planName': 'Cut Phase',
       'goal': 'loseFat',
-      'startDate': DateTime.utc(now.year, now.month, now.day - 21),
+      'startDate': DateTime.utc(
+        now.year,
+        now.month,
+        now.day - (now.weekday - DateTime.monday) - 21,
+      ),
       'endDate': null,
       'kcal': 2400,
       'protein': 170,

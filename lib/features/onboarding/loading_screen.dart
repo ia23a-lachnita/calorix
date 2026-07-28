@@ -62,7 +62,7 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
   void initState() {
     super.initState();
     if (widget.freezeForCapture) {
-      _stage = 2;
+      _stage = _stages.length - 1;
       _minBeatDone = true;
       return;
     }

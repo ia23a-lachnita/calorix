@@ -148,6 +148,50 @@ void main() {
         const FixtureNutrition(kcal: 800, protein: 73, carbs: 84, fat: 19));
   });
 
+  test('populated profile uses canonical history rows and weight trajectory',
+      () {
+    final manifest = UiDiffFixtureManifest.create(
+      uid: 'test-user',
+      clock: FakeClock(tz.TZDateTime.utc(2026, 5, 15, 12)),
+      profile: UiDiffFixtureProfile.populated,
+    );
+
+    Map<String, Object?> document(String suffix) => manifest.documents.entries
+        .singleWhere((entry) => entry.key.endsWith(suffix))
+        .value;
+
+    expect(document('/entries/ui_diff_fixture_history_1'), {
+      'uid': 'test-user',
+      'date': '2026-05-14',
+      'foodName': 'Fixture day 1',
+      'baseKcal': 2350.0,
+      'baseProtein': 172.0,
+      'baseCarbs': 245.0,
+      'baseFat': 68.0,
+      'confidence': .95,
+      'mealType': 'lunch',
+      'status': 'complete',
+      'scanMode': 'meal',
+      'servingMultiplier': 1.0,
+      'corrected': false,
+      'detectedItems': <Map<String, Object?>>[],
+      'imageUrl': null,
+      'entryCount': 5,
+      'timestamp': DateTime.utc(2026, 5, 14, 12, 15),
+    });
+    expect(document('/entries/ui_diff_fixture_history_2')['baseKcal'], 1980.0);
+    expect(document('/entries/ui_diff_fixture_history_3')['baseKcal'], 2410.0);
+    expect(document('/entries/ui_diff_fixture_history_4')['baseKcal'], 2280.0);
+    expect(
+      document('/weightLogs/ui_diff_fixture_weight_previous')['weight'],
+      83.2,
+    );
+    expect(
+      document('/weightLogs/ui_diff_fixture_weight_current')['weight'],
+      81.4,
+    );
+  });
+
   test('flow_review profile has low-confidence entry with candidates', () {
     final manifest = createManifest(profile: UiDiffFixtureProfile.flowReview);
     final docs = manifest.visibleTodayDocuments.toList();

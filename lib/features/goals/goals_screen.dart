@@ -469,7 +469,8 @@ class _PeriodDropdown extends StatelessWidget {
 
     rows.add(group('Weeks'));
     final planStart = tz.TZDateTime.from(plan.startDate, now.location);
-    for (var w = planWeek; w >= 1 && w > planWeek - 5; w--) {
+    final firstVisibleWeek = planWeek > 2 ? planWeek - 2 : 1;
+    for (var w = planWeek + 2; w >= firstVisibleWeek; w--) {
       final start = tz.TZDateTime(
         now.location,
         planStart.year,

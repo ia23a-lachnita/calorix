@@ -106,6 +106,8 @@ void main() {
     expect(find.byKey(const Key('goals-period-dropdown')), findsOneWidget);
     expect(find.text('WEEKS'), findsOneWidget);
     expect(find.text('MONTHS'), findsOneWidget);
+    expect(find.text('Week 4'), findsOneWidget);
+    expect(find.text('Week 3'), findsOneWidget);
 
     final monthLabel = DateFormat('MMMM yyyy').format(DateTime(2026, 3, 30));
     await tester.tap(find.text(monthLabel));

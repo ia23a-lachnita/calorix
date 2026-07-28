@@ -184,6 +184,36 @@ void main() {
       expect(find.text('READY'), findsOneWidget);
     });
 
+    testWidgets('capture freeze renders the canonical READY stage',
+        (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            firebaseAuthProvider.overrideWithValue(FakeFirebaseAuth()),
+            authStateProvider.overrideWith(
+              (ref) => const Stream<User?>.empty(),
+            ),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.light(),
+            home: const MediaQuery(
+              data: MediaQueryData(disableAnimations: true),
+              child: LoadingScreen(
+                navigateWhenReady: false,
+                freezeForCapture: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('96%'), findsOneWidget);
+      expect(find.text('READY'), findsOneWidget);
+      expect(find.text('74%'), findsNothing);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
     testWidgets('shows staged splash and routes signed-out users to login',
         (tester) async {
       final auth = FakeFirebaseAuth();
