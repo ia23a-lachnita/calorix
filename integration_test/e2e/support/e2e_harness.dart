@@ -49,6 +49,7 @@ import 'package:calorix/shared/services/camera_settings_service.dart';
 import 'package:calorix/shared/services/connectivity_monitor.dart';
 import 'package:calorix/shared/services/entry_existence_checker.dart';
 import 'package:calorix/shared/services/notification_service.dart';
+import 'package:calorix/shared/services/notification_routing.dart';
 import 'package:calorix/shared/services/retry_analysis_service.dart';
 import 'package:calorix/shared/services/upload_queue_service.dart';
 import 'package:calorix/shell/app_shell.dart';
@@ -466,6 +467,8 @@ class FakeE2ERetryAnalysisService implements RetryAnalysisService {
 class FakeE2EViewedEntryStore implements ViewedEntryStore {
   final Set<String> _viewed = {};
 
+  void markViewedSync(String entryId) => _viewed.add(entryId);
+
   @override
   Future<bool> isViewed(String entryId) async => _viewed.contains(entryId);
 
@@ -580,6 +583,8 @@ class E2EHarness {
     required this.camera,
     required this.uploadGateway,
     required this.notification,
+    required this.viewedEntries,
+    required this.existenceChecker,
     required this.overrides,
   });
 
@@ -592,12 +597,15 @@ class E2EHarness {
   final FakeE2ECameraService camera;
   final FakeE2EScanUploadGateway uploadGateway;
   final FakeE2ENotificationService notification;
+  final FakeE2EViewedEntryStore viewedEntries;
+  final FakeE2EEntryExistenceChecker existenceChecker;
   final List<Override> overrides;
 
   static Future<E2EHarness> create({
     FakeClock? clock,
     String uid = e2eTestUid,
     AiChatServiceResponse Function(String message)? aiActionResponder,
+    void Function(String entryId)? onNotificationTap,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final fakeClock = clock ?? makeE2EClock();
@@ -611,6 +619,7 @@ class E2EHarness {
     final camera = FakeE2ECameraService();
     final uploadGateway = FakeE2EScanUploadGateway(foodStore, fakeClock);
     final notification = FakeE2ENotificationService();
+    notification.onNotificationTap = onNotificationTap;
     final viewedEntries = FakeE2EViewedEntryStore();
     final existenceChecker = FakeE2EEntryExistenceChecker();
     final retryAnalysis = FakeE2ERetryAnalysisService();
@@ -669,6 +678,8 @@ class E2EHarness {
       camera: camera,
       uploadGateway: uploadGateway,
       notification: notification,
+      viewedEntries: viewedEntries,
+      existenceChecker: existenceChecker,
       overrides: overrides,
     );
   }
@@ -683,7 +694,30 @@ class E2EHarness {
         initialLocation: initialLocation,
       );
 
-  void seed(FoodEntry entry) => foodStore.seed(entry);
+  void seed(FoodEntry entry) {
+    foodStore.seed(entry);
+    existenceChecker.addEntry(entry.id);
+  }
+
+  void markViewed(String entryId) => viewedEntries.markViewedSync(entryId);
+
+  void wireNotificationDeepLink(WidgetTester tester) {
+    notification.onNotificationTap = (docId) async {
+      final context = tester.element(find.byType(MaterialApp));
+      final container = ProviderScope.containerOf(context);
+      final router = container.read(routerProvider);
+      if (docId.isEmpty) {
+        router.go('/today');
+        return;
+      }
+      final handler = NotificationTapHandler(
+        viewedEntries: viewedEntries,
+        entryExists: existenceChecker,
+      );
+      final resolvedRoute = await handler.resolve({'entryId': docId});
+      router.go(resolvedRoute);
+    };
+  }
 
   Future<void> go(WidgetTester tester, String location) async {
     final context = tester.element(find.byType(MaterialApp));
