@@ -19,6 +19,7 @@ import 'package:calorix/features/ai_chat/providers/ai_chat_providers.dart';
 import 'package:calorix/features/food_detail/food_detail_sheet.dart';
 import 'package:calorix/features/goals/goals_screen.dart';
 import 'package:calorix/features/history/history_screen.dart';
+import 'package:calorix/features/history/history_time_travel.dart';
 import 'package:calorix/features/history/providers/history_providers.dart';
 import 'package:calorix/features/manual/manual_entry_screen.dart';
 import 'package:calorix/features/onboarding/loading_screen.dart';
@@ -320,8 +321,11 @@ class InMemoryWeightLogDataStore implements WeightLogDataStore {
 
 class FakeE2ECameraService implements CameraService {
   bool granted = true;
+  bool holdCapture = false;
   int captureCount = 0;
   int libraryCount = 0;
+
+  final List<Completer<XFile?>> _pendingCaptures = [];
 
   @override
   Future<bool> hasPermission() async => granted;
@@ -334,7 +338,21 @@ class FakeE2ECameraService implements CameraService {
   @override
   Future<XFile?> captureStill() async {
     captureCount++;
+    if (holdCapture) {
+      final completer = Completer<XFile?>();
+      _pendingCaptures.add(completer);
+      return completer.future;
+    }
     return XFile('fake_capture_$captureCount.jpg');
+  }
+
+  void completeCapture() {
+    for (final completer in _pendingCaptures) {
+      if (!completer.isCompleted) {
+        completer.complete(XFile('fake_capture_$captureCount.jpg'));
+      }
+    }
+    _pendingCaptures.clear();
   }
 
   @override
@@ -607,16 +625,23 @@ class E2EHarness {
     DateTime? accountCreated,
     AiChatServiceResponse Function(String message)? aiActionResponder,
     void Function(String entryId)? onNotificationTap,
+    InMemoryFoodEntryDataStore? sharedFoodStore,
+    InMemoryMacroTargetDataStore? sharedMacroStore,
+    InMemoryWeightLogDataStore? sharedWeightStore,
+    FakeE2EAppSettingsStore? sharedSettingsStore,
+    List<DailyLog>? sharedHistoryLogs,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final fakeClock = clock ?? makeE2EClock();
-    final foodStore = InMemoryFoodEntryDataStore();
-    final macroStore = InMemoryMacroTargetDataStore();
-    macroStore.seedActive(
-      MacroTargetPlan.defaultPlan(startDate: fakeClock.nowTZ()),
-    );
-    final weightStore = InMemoryWeightLogDataStore();
-    final settingsStore = FakeE2EAppSettingsStore();
+    final foodStore = sharedFoodStore ?? InMemoryFoodEntryDataStore();
+    final macroStore = sharedMacroStore ?? InMemoryMacroTargetDataStore();
+    if (sharedMacroStore == null) {
+      macroStore.seedActive(
+        MacroTargetPlan.defaultPlan(startDate: fakeClock.nowTZ()),
+      );
+    }
+    final weightStore = sharedWeightStore ?? InMemoryWeightLogDataStore();
+    final settingsStore = sharedSettingsStore ?? FakeE2EAppSettingsStore();
     final camera = FakeE2ECameraService();
     final uploadGateway = FakeE2EScanUploadGateway(foodStore, fakeClock);
     final notification = FakeE2ENotificationService();
@@ -639,9 +664,26 @@ class E2EHarness {
       accountCreationProvider.overrideWithValue(
         accountCreated ?? fakeClock.now(),
       ),
-      historyProvider.overrideWith((ref) => Stream.value(<DailyLog>[])),
+      historyProvider.overrideWith((ref) {
+        if (sharedHistoryLogs == null) return Stream.value(<DailyLog>[]);
+        final sorted = List<DailyLog>.of(sharedHistoryLogs)
+          ..sort((a, b) => b.date.compareTo(a.date));
+        return Stream.value(sorted.take(30).toList());
+      }),
       historyRangeProvider.overrideWith(
-        (ref, range) => Stream.value(<DailyLog>[]),
+        (ref, HistoryRange range) {
+          if (sharedHistoryLogs == null) {
+            return Stream.value(<DailyLog>[]);
+          }
+          final filtered = sharedHistoryLogs.where((log) {
+            final key =
+                '${log.date.year.toString().padLeft(4, '0')}-${log.date.month.toString().padLeft(2, '0')}-${log.date.day.toString().padLeft(2, '0')}';
+            return range.startKey.compareTo(key) <= 0 &&
+                key.compareTo(range.endExclusiveKey) < 0;
+          }).toList()
+            ..sort((a, b) => b.date.compareTo(a.date));
+          return Stream.value(filtered);
+        },
       ),
       cameraServiceProvider.overrideWithValue(camera),
       cameraSettingsServiceProvider.overrideWithValue(cameraSettings),

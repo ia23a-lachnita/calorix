@@ -1740,7 +1740,7 @@ Future<void> pumpAppE2E(WidgetTester tester, {FakeClock? clock, bool seed = true
 
 - [x] **Step 4: CHECKPOINT 1 — core flows verified** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Host updates `docs/implementation-status.md` with exact red/green evidence (test output counts, suite names) and the next step for stateful suites. Host commits checkpoint: `git add -A && git commit -m "E2E core flows passing (meal, barcode, label, manual, review, crud)"`. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 5. The local commit remains intact; do not revert it.
 
-- [ ] **Step 5 (worker): Write the stateful/weird-state suites**:
+- [x] **Step 5 (worker): Write the stateful/weird-state suites**:
 
 ```dart
 // goals_flow_test.dart — §11.7 body-goal switch, protein 180g, slider 2200, weight 82.5 → chart.
@@ -1755,9 +1755,9 @@ Future<void> pumpAppE2E(WidgetTester tester, {FakeClock? clock, bool seed = true
 //   with shifted FakeClock → Scan landing, theme persists, history/goals/weight advance correctly.
 ```
 
-- [ ] **Step 6: RED — stateful/weird-state flows** — Run the seven stateful files on `-d R58R61161NA` with fresh per-suite stores and explicit restart persistence → Expected: initial failures; fix via WORKER-RUN until green.
+- [x] **Step 6: RED — stateful/weird-state flows** — Run the seven stateful files on `-d R58R61161NA` with fresh per-suite stores and explicit restart persistence → Expected: initial failures; fix via WORKER-RUN until green.
 
-- [ ] **Step 7: GREEN — stateful/weird-state flows** — Run: same command → Expected: all 7 suites PASS.
+- [x] **Step 7: GREEN — stateful/weird-state flows** — Run: same command → Expected: all 7 suites PASS.
 
 - [ ] **Step 8: CHECKPOINT 2 — stateful/weird-state flows verified** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Host updates `docs/implementation-status.md` with exact red/green evidence (test output counts, suite names) and the next step for full matrix run. Host commits checkpoint: `git add -A && git commit -m "E2E stateful and weird-state flows passing (goals, assistant, notification, upload, profile, nav, device-state)"`. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 9. The local commit remains intact; do not revert it.
 
