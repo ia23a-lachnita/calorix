@@ -221,6 +221,7 @@ void main() {
 
         await tester.pumpWidget(
           ProviderScope(
+            key: ValueKey('capture-$targetId'),
             overrides: [
               uiDiffModeProvider.overrideWith((_) => true),
               uiDiffFixtureEnabledProvider.overrideWith((_) => true),
@@ -341,6 +342,7 @@ void main() {
       Future<void> pumpTarget(String targetId) async {
         await tester.pumpWidget(
           ProviderScope(
+            key: ValueKey('capture-meal-$targetId'),
             overrides: [
               uiDiffModeProvider.overrideWith((_) => true),
               uiDiffFixtureEnabledProvider.overrideWith((_) => true),
@@ -389,8 +391,62 @@ void main() {
       await _pumpStableFrames(tester);
 
       expect(find.byType(ScanScreen), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('capture-meal-preview')),
+        findsOneWidget,
+      );
+      final preview = tester.widget<Image>(
+        find.byKey(const ValueKey('capture-meal-preview')),
+      );
+      expect(
+        preview.image,
+        isA<AssetImage>().having(
+          (image) => image.assetName,
+          'assetName',
+          'assets/images/chicken_rice_bowl_highformat.jpg',
+        ),
+      );
       expect(find.byKey(const ValueKey('capture-shimmer')), findsOneWidget);
       expect(find.text('ANALYZING…'), findsOneWidget);
+    });
+
+    testWidgets('permission and idle scan use the canonical capture meal',
+        (WidgetTester tester) async {
+      Future<void> pumpTarget(
+        String targetId,
+        UiDiffFixtureProfile profile,
+      ) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            key: ValueKey('capture-camera-$targetId'),
+            overrides: [
+              uiDiffModeProvider.overrideWith((_) => true),
+              uiDiffFixtureEnabledProvider.overrideWith((_) => true),
+              uiDiffFixtureManifestProvider.overrideWith(
+                (_) => _createManifest(profile: profile),
+              ),
+              uiDiffThemeOverrideProvider.overrideWith((_) => ThemeMode.dark),
+            ],
+            child: MaterialApp(
+              home: DebugCaptureScreen(targetId: targetId),
+            ),
+          ),
+        );
+        await _pumpStableFrames(tester);
+      }
+
+      await pumpTarget('permission', UiDiffFixtureProfile.flowPermission);
+      expect(
+        find.byKey(const ValueKey('capture-permission-meal')),
+        findsOneWidget,
+      );
+
+      await pumpTarget('scan_idle', UiDiffFixtureProfile.flowScan);
+      expect(
+        find.byKey(const ValueKey('capture-meal-preview')),
+        findsOneWidget,
+      );
+      expect(find.text('Camera initializing…'), findsNothing);
     });
 
     testWidgets('processing shows skeleton while pending',
@@ -416,8 +472,11 @@ void main() {
       await _pumpStableFrames(tester);
 
       expect(find.byType(ProcessingScreen), findsOneWidget);
-      // Skeleton is private, verify via text/content instead
-      expect(find.text('AI'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('capture-processing-meal')),
+        findsOneWidget,
+      );
+      expect(find.text('AI'), findsWidgets);
       expect(find.text('3 / 4'), findsOneWidget);
     });
 
@@ -445,9 +504,14 @@ void main() {
       await _pumpStableFrames(tester);
 
       expect(find.byType(ReviewScreen), findsOneWidget);
-      expect(find.text('Chicken Sandwich'), findsOneWidget);
-      expect(find.text('Turkey Club'), findsOneWidget);
-      expect(find.text('Veggie Wrap'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('capture-review-meal')),
+        findsOneWidget,
+      );
+      expect(find.text('62% CONFIDENCE'), findsOneWidget);
+      expect(find.text('Chicken Rice Bowl'), findsOneWidget);
+      expect(find.text('Teriyaki Chicken Bowl'), findsOneWidget);
+      expect(find.text('Pork Katsu Bowl'), findsOneWidget);
     });
 
     testWidgets('manual entry screen renders search and recent chips',
@@ -726,6 +790,39 @@ void main() {
       expect(find.textContaining('unknown_target'), findsOneWidget);
     });
 
+    testWidgets('semantic readiness watchdog blocks with target diagnostics',
+        (WidgetTester tester) async {
+      final manifest = _createManifest();
+      manifest.documents.removeWhere(
+        (path, _) => path.contains('/targets/'),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            uiDiffModeProvider.overrideWith((_) => true),
+            uiDiffFixtureEnabledProvider.overrideWith((_) => true),
+            uiDiffFixtureManifestProvider.overrideWith((_) => manifest),
+            uiDiffThemeOverrideProvider.overrideWith((_) => ThemeMode.dark),
+          ],
+          child: const MaterialApp(
+            home: DebugCaptureScreen(
+              targetId: 'goals',
+              readinessTimeout: Duration(milliseconds: 10),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 20));
+      await tester.pump(const Duration(milliseconds: 20));
+
+      expect(
+        find.textContaining('semantic_timeout_goals_plan'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('no signal emitted after dispose', (WidgetTester tester) async {
       final manifest = _createManifest(
         profile: UiDiffFixtureProfile.flowScan,
@@ -842,10 +939,10 @@ void main() {
 
       expect(find.byType(ReviewScreen), findsOneWidget);
       // Verify candidates have name, confidence, kcal, proteinG, carbsG, fatG
-      expect(find.text('Chicken Sandwich'), findsOneWidget);
-      expect(find.text('420 kcal'), findsOneWidget);
-      expect(find.text('Turkey Club'), findsOneWidget);
-      expect(find.text('380 kcal'), findsOneWidget);
+      expect(find.text('Chicken Rice Bowl'), findsOneWidget);
+      expect(find.text('620 kcal'), findsWidgets);
+      expect(find.text('Teriyaki Chicken Bowl'), findsOneWidget);
+      expect(find.text('655 kcal'), findsOneWidget);
     });
 
     testWidgets('processing imageUrl uses asset path not network',
@@ -872,7 +969,7 @@ void main() {
 
       expect(find.byType(ProcessingScreen), findsOneWidget);
       // The pending fixture must remain on the production processing skeleton.
-      expect(find.text('AI'), findsOneWidget);
+      expect(find.text('AI'), findsWidgets);
       expect(find.text('3 / 4'), findsOneWidget);
     });
 

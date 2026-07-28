@@ -30,6 +30,7 @@ class ScanScreen extends ConsumerStatefulWidget {
     this.onPermissionGranted,
     this.initializeCamera = true,
     this.initialCaptureState,
+    this.fixturePreviewAsset,
   });
 
   final VoidCallback? onManualEntryRequested;
@@ -37,6 +38,7 @@ class ScanScreen extends ConsumerStatefulWidget {
   final VoidCallback? onPermissionGranted;
   final bool initializeCamera;
   final CaptureState? initialCaptureState;
+  final String? fixturePreviewAsset;
 
   @override
   ConsumerState<ScanScreen> createState() => _ScanScreenState();
@@ -247,6 +249,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             if (previewController != null &&
                 previewController.value.isInitialized)
               CameraPreview(previewController)
+            else if (widget.fixturePreviewAsset != null)
+              Image.asset(
+                widget.fixturePreviewAsset!,
+                key: const ValueKey('capture-meal-preview'),
+                fit: BoxFit.cover,
+              )
             else
               const _CameraPlaceholder(),
 

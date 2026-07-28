@@ -15,11 +15,13 @@ class PermissionScreen extends StatelessWidget {
     required this.onOpenSettings,
     required this.onAddManually,
     this.showFixtureSystemPrompt = false,
+    this.fixtureBackgroundAsset,
   });
 
   final Future<void> Function() onOpenSettings;
   final VoidCallback onAddManually;
   final bool showFixtureSystemPrompt;
+  final String? fixtureBackgroundAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -31,16 +33,23 @@ class PermissionScreen extends StatelessWidget {
           ImageFiltered(
             key: const ValueKey('permission-blurred-viewfinder'),
             imageFilter: ui.ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-            child: Container(
-              color: AppColors.backgroundDark,
-              child: Center(
-                child: Icon(
-                  Icons.camera_alt_outlined,
-                  size: 120,
-                  color: AppColors.textSecondaryDark.withValues(alpha: 0.3),
-                ),
-              ),
-            ),
+            child: fixtureBackgroundAsset == null
+                ? Container(
+                    color: AppColors.backgroundDark,
+                    child: Center(
+                      child: Icon(
+                        Icons.camera_alt_outlined,
+                        size: 120,
+                        color:
+                            AppColors.textSecondaryDark.withValues(alpha: 0.3),
+                      ),
+                    ),
+                  )
+                : Image.asset(
+                    fixtureBackgroundAsset!,
+                    key: const ValueKey('capture-permission-meal'),
+                    fit: BoxFit.cover,
+                  ),
           ),
           if (showFixtureSystemPrompt)
             _FixturePermissionPrompt(

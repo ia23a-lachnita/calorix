@@ -15,7 +15,12 @@ import '../../shared/models/processing_state.dart';
 
 class ProcessingScreen extends ConsumerWidget {
   final String entryId;
-  const ProcessingScreen({super.key, required this.entryId});
+  final String? fixtureBackgroundAsset;
+  const ProcessingScreen({
+    super.key,
+    required this.entryId,
+    this.fixtureBackgroundAsset,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,54 +44,101 @@ class ProcessingScreen extends ConsumerWidget {
       });
     });
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top glass banner
-            _GlassBanner(
-                isDark: isDark, onTap: () => context.goNamed(RouteNames.today)),
-            const SizedBox(height: 20),
-
-            Expanded(
-              child: stateAsync.when(
-                loading: () => const _ProcessingSkeleton(),
-                error: (error, _) => _ErrorState(
-                  message: error.toString(),
-                  onRetry: () {},
+    final content = SafeArea(
+      child: Column(
+        children: [
+          _GlassBanner(
+            isDark: isDark,
+            onTap: () => context.goNamed(RouteNames.today),
+          ),
+          const _AnalyzingChip(),
+          const SizedBox(height: 10),
+          Expanded(
+            child: stateAsync.when(
+              loading: () => const _ProcessingSkeleton(),
+              error: (error, _) => _ErrorState(
+                message: error.toString(),
+                onRetry: () {},
+              ),
+              data: (state) => AnimatedSwitcher(
+                duration: AppMotion.durationOf(
+                  context,
+                  MotionDurations.cardEntrance,
                 ),
-                data: (state) => AnimatedSwitcher(
-                  duration: AppMotion.durationOf(
-                    context,
-                    MotionDurations.cardEntrance,
-                  ),
-                  child: switch (state.phase) {
-                    ProcessingPhase.firestoreComplete
-                        when entryAsync.valueOrNull != null =>
-                      _CompletedCard(
-                        key: const ValueKey('processing-complete-card'),
-                        entry: entryAsync.valueOrNull!,
+                child: switch (state.phase) {
+                  ProcessingPhase.firestoreComplete
+                      when entryAsync.valueOrNull != null =>
+                    _CompletedCard(
+                      key: const ValueKey('processing-complete-card'),
+                      entry: entryAsync.valueOrNull!,
+                    ),
+                  ProcessingPhase.localError ||
+                  ProcessingPhase.firestoreError =>
+                    _ErrorState(
+                      key: const ValueKey('processing-error-state'),
+                      message: state.errorMessage,
+                      onRetry: () => retryProcessingEntry(
+                        ref,
+                        entryId: entryId,
+                        phase: state.phase,
                       ),
-                    ProcessingPhase.localError ||
-                    ProcessingPhase.firestoreError =>
-                      _ErrorState(
-                        key: const ValueKey('processing-error-state'),
-                        message: state.errorMessage,
-                        onRetry: () => retryProcessingEntry(
-                          ref,
-                          entryId: entryId,
-                          phase: state.phase,
-                        ),
-                      ),
-                    _ => const _ProcessingSkeleton(
-                        key: ValueKey('processing-skeleton'),
-                      ),
-                  },
-                ),
+                    ),
+                  _ => const _ProcessingSkeleton(
+                      key: ValueKey('processing-skeleton'),
+                    ),
+                },
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: fixtureBackgroundAsset == null
+          ? content
+          : Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  fixtureBackgroundAsset!,
+                  key: const ValueKey('capture-processing-meal'),
+                  fit: BoxFit.cover,
+                ),
+                ColoredBox(
+                  color: isDark
+                      ? const Color(0xCC080A0D)
+                      : const Color(0x9A080A0D),
+                ),
+                content,
+              ],
+            ),
+    );
+  }
+}
+
+class _AnalyzingChip extends StatelessWidget {
+  const _AnalyzingChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          width: 0.5,
+          color: Colors.white.withValues(alpha: 0.12),
+        ),
+      ),
+      child: Text(
+        '☁  ANALYZING IN CLOUD · EST. 4s',
+        style: AppTextStyles.labelMono.copyWith(
+          color: AppColors.textPrimaryDark,
+          fontSize: 10.5,
+          letterSpacing: 1.05,
         ),
       ),
     );
@@ -220,7 +272,7 @@ class _ProcessingSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SkeletonShimmer(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,6 +362,7 @@ class _ProcessingSkeleton extends StatelessWidget {
               const SkeletonLine(widthFraction: 1.0, height: 4),
               const SizedBox(height: 16),
             ],
+            const SizedBox(height: 16),
           ],
         ),
       ),

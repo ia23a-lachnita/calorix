@@ -10,7 +10,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**Task 17 is in progress. Step 1 and the deterministic 19-target capture-adapter prerequisite are complete; plan Steps 2–13 remain unchecked.**
+**Task 17 is in progress. Plan Steps 1–6 are complete; capture-truth repairs are underway before the Step 7 three-tier diff loop.**
 
 ### Task 17 deterministic capture-adapter checkpoint (2026-07-28)
 
@@ -34,6 +34,43 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Review: `calorix-task17-visual-program-20260728`, `Gemini 3.6 Flash (High)`, returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. Its URI-quoting safeguard is already present via the single-quoted remote-shell deep-link argument; script-producing .NET/filesystem calls do not leak objects into the JSON pipeline.
 - Physical preflight: explicit authorized device `R58R61161NA` is connected in `device` state and reports model `SM_G780G`. Execution remains pending until this script checkpoint is committed and pushed, so `buildHash` and source fingerprint identify committed source.
 - Capture-driver checkpoint commit: `ff49a4c`.
+
+### Task 17 physical capture and exhaustive inspection checkpoint (2026-07-28)
+
+- Explicit physical target: Samsung `SM-G780G`, ADB serial `R58R61161NA`; no emulator was used.
+- One fresh debug APK was built and installed, then all 38 canonical states completed without `UI_DIFF_BLOCKED` or timeout. Evidence directory: `.ui-diff/captures/2026-07-28/`.
+- Strict validator result: `valid: true`, `pngCount: 38`, `metadataCount: 38`, `fixtureProfileCount: 9`, viewport `1080x2400`, nine distinct internally consistent fixture hashes, build `fc6eee21b589156c35fc0a0b79acc1b9f10e7031`, APK SHA-256 `7f986f4f722a2c1233bfe4ca7c6242e5aeb9e281d18ba5a58fba7a15a9818585`, source fingerprint `378aaf7173a7d3e42c704bdab76cb3561c06a5ecb567de22218652609f2d7c13`.
+- Every expected/actual pair was visually inspected at original resolution using ten labeled contact sheets. Result: `0/38` parity passes. Both themes failed for each canonical ID; this is a truthful repair baseline, not a release result.
+
+| State | Dark | Light | Dominant observed mismatch |
+|---|---|---|---|
+| loading | fail | fail | capture froze at `SYNCING TODAY 74%`, reference is `READY 96%` |
+| login | fail | fail | shared viewport/token/spacing drift |
+| permission | fail | fail | black placeholder instead of meal viewfinder |
+| scan_idle | fail | fail | black camera-initializing surface instead of meal preview |
+| scan_capturing | fail | fail | black camera-initializing surface behind capture chrome |
+| processing | fail | fail | generic skeleton, missing meal composition and bottom nav |
+| review | fail | fail | missing hero plus wrong confidence/candidates |
+| manual | fail | fail | Material-default header/chips/cards differ structurally |
+| today | fail | fail | ring/macro geometry and shared viewport/token drift |
+| today_empty | fail | fail | populated fixture leaked into nominal empty state |
+| food | fail | fail | sheet/hero geometry, tokens, and content spacing |
+| food_edit | fail | fail | edit controls and sheet geometry differ |
+| history_week | fail | fail | fixture dates/stats differ; local geometry remains |
+| history_month | fail | fail | calendar substantially too tall plus fixture drift |
+| goals | fail | fail | fixture period/weight values and local geometry differ |
+| goals_select | fail | fail | fixture values and light dropdown opacity/geometry differ |
+| ai | fail | fail | oversized header/logo and message spacing |
+| ai_history | fail | fail | one sparse thread instead of canonical grouped 12-thread IA |
+| profile | fail | fail | production screen implements a different, simplified IA |
+
+- Read-only investigations classified permission/scan/review imagery and empty/history/goals values primarily as fixture/capture defects; processing, AI history, profile, manual, and remaining screen geometry include genuine production UI gaps. The 402x874 reference aspect ratio differs from the 1080x2400 device by about 2.2%, so safe-area/aspect normalization must be settled before broad per-screen size tuning.
+- Pre-repair review conversation `calorix-task17-visual-program-20260728`, `Gemini 3.6 Flash (High)`: `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. Adopted its semantic-readiness watchdog and capture-seam isolation safeguards. Response headings were concatenated.
+- Stage A1 RED: four canonical image/data assertions failed and the watchdog constructor was absent. GREEN: capture-only canonical meal imagery now covers permission, scan, processing, and review; review uses the canonical 62% three-candidate state; processing includes the canonical scan nav; unresolved target semantics emit finite `UI_DIFF_BLOCKED:...:semantic_timeout_<target>_<reason>` diagnostics.
+- Stage A1 verification: focused capture `79/79`; affected debug/scan/processing/review suite `191/191`; `fvm flutter analyze` reported no issues.
+- Stage A1 post-review: same conversation/model returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. Response noise: it appended an unrelated claim about a background file-search task; this was not used as evidence. `git status` confirmed no reviewer mutation.
+- Delegation: `opencode/mimo-v2.5-free` timed out after 904 seconds with no output or edits. Its remaining process tree was terminated. Host fallback proceeded under the repository contract.
+- Next: fix `today_empty`, canonical history/goals/loading fixtures, AI-history density, and the production profile information architecture; recapture affected states before broad/region/target diffs.
 
 ## Toolchain Health (Task 0)
 
@@ -64,7 +101,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 14 | done | OpenCode timed out; headless fallback quota-blocked; host fallback under contract | pre- and post-review green (`calorix-task14-chat-security-20260722`) | 93a91b4, 405e306, 7cdf6ad + handoff remediation commit | Flutter 368 passed + 1 intentional live skip; analyze clean; Functions 57/57 lint/build clean; rules 16/16 |
 | 15 | done | OpenCode timed out twice with partial RED/implementation files; host fallback under contract | pre- and post-review green (`calorix-task15-secondary-parity-20260727`) | 1f4ac4f + handoff commit | Focused profile 15/15; onboarding/permission 18/18; a11y 5/5; analyzer clean; full Flutter 390 passed + 1 intentional live skip. |
 | 16 | done | OpenCode timed out on both Stage A and Stage B slice 1; host repaired/completed under the recorded fallback | pre-review green (`calorix-task16-e2e-matrix-20260727`); post-review green (`calorix-task16-post-review-20260728`, Gemini 3.6 Flash (High), `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`) | `5422c74`, `06657da`, `cd4fc62`, handoff tracking commit 2d2c2ce pushed | 46/46 one-APK physical on `R58R61161NA`; Functions 57/57; rules 16/16; real concurrent retry transaction 1/1; OFF v3 live 1/1; analyzer clean; full Flutter 390 passed + 1 intentional live skip. Explicitly blocked: real push delivery, real cloud model processing, production storage writes. |
-| 17 | in progress | OpenCode unavailable; headless fallback quota-blocked; host fallback under contract | post-review green (`calorix-task17-visual-program-20260728`) | `2a16bcc`, `bdff882`, `ff49a4c` | Step 1, deterministic 19-target adapter, and tested 38-state driver/validator prerequisite complete; analyzer clean; full Flutter 482 passed + 1 intentional live skip. Steps 2–13 and all physical visual evidence remain pending. |
+| 17 | in progress | OpenCode unavailable/timed out; headless fallback quota-blocked; host fallback under contract | capture adapter, driver, and Stage A1 post-reviews green (`calorix-task17-visual-program-20260728`) | `2a16bcc`, `bdff882`, `ff49a4c`, `fc6eee2`, current Stage A1 checkpoint | Steps 1–6 complete; 38/38 physical artifacts valid and exhaustively inspected, 0/38 at parity baseline; Stage A1 capture-truth fixes green at 191/191 and analyzer clean. Step 7+ remain pending. |
 
 ### Task 11 plan checkpoint
 

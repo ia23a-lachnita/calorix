@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -49,9 +51,14 @@ import 'ui_diff_fixture.dart';
 /// Debug-only adapter that renders production widgets from an in-memory
 /// fixture manifest. It never initializes hardware or consults repositories.
 class DebugCaptureScreen extends ConsumerStatefulWidget {
-  const DebugCaptureScreen({super.key, required this.targetId});
+  const DebugCaptureScreen({
+    super.key,
+    required this.targetId,
+    this.readinessTimeout = const Duration(seconds: 5),
+  });
 
   final String targetId;
+  final Duration readinessTimeout;
 
   @override
   ConsumerState<DebugCaptureScreen> createState() => _DebugCaptureScreenState();
@@ -167,6 +174,8 @@ class _DebugCaptureScreenState extends ConsumerState<DebugCaptureScreen> {
         child: _CaptureReadinessGate(
           targetId: widget.targetId,
           onReady: _signalReady,
+          onBlocked: _block,
+          timeout: widget.readinessTimeout,
           child: _buildTarget(manifest),
         ),
       ),
@@ -191,6 +200,8 @@ class _DebugCaptureScreenState extends ConsumerState<DebugCaptureScreen> {
           onOpenSettings: () async {},
           onAddManually: () {},
           showFixtureSystemPrompt: true,
+          fixtureBackgroundAsset:
+              'assets/images/chicken_rice_bowl_highformat.jpg',
         );
       case 'scan_idle':
         return _withMainShell(
@@ -198,6 +209,8 @@ class _DebugCaptureScreenState extends ConsumerState<DebugCaptureScreen> {
           child: const ScanScreen(
             initializeCamera: false,
             initialCaptureState: CaptureState.idle,
+            fixturePreviewAsset:
+                'assets/images/chicken_rice_bowl_highformat.jpg',
           ),
         );
       case 'scan_capturing':
@@ -206,18 +219,31 @@ class _DebugCaptureScreenState extends ConsumerState<DebugCaptureScreen> {
           child: const ScanScreen(
             initializeCamera: false,
             initialCaptureState: CaptureState.capturing,
+            fixturePreviewAsset:
+                'assets/images/chicken_rice_bowl_highformat.jpg',
           ),
         );
       case 'processing':
         final entry = _entryById(manifest, 'ui_diff_fixture_processing_entry');
         return entry == null
             ? const _BlockedCapture(reason: 'no_processing_entry')
-            : ProcessingScreen(entryId: entry.id);
+            : _withMainShell(
+                index: 2,
+                child: ProcessingScreen(
+                  entryId: entry.id,
+                  fixtureBackgroundAsset:
+                      'assets/images/chicken_rice_bowl_highformat.jpg',
+                ),
+              );
       case 'review':
         final entry = _entryById(manifest, 'ui_diff_fixture_review_food');
         return entry == null
             ? const _BlockedCapture(reason: 'no_review_entry')
-            : ReviewScreen(entryId: entry.id);
+            : ReviewScreen(
+                entryId: entry.id,
+                fixtureImageAsset:
+                    'assets/images/chicken_rice_bowl_highformat.jpg',
+              );
       case 'manual':
         return _withMainShell(index: 0, child: const ManualEntryScreen());
       case 'today':
@@ -377,11 +403,15 @@ class _CaptureReadinessGate extends ConsumerStatefulWidget {
   const _CaptureReadinessGate({
     required this.targetId,
     required this.onReady,
+    required this.onBlocked,
+    required this.timeout,
     required this.child,
   });
 
   final String targetId;
   final VoidCallback onReady;
+  final ValueChanged<String> onBlocked;
+  final Duration timeout;
   final Widget child;
 
   @override
@@ -393,6 +423,25 @@ class _CaptureReadinessGateState extends ConsumerState<_CaptureReadinessGate> {
   bool _scheduled = false;
   bool _profileHydrated = false;
   Future<void>? _profileHydration;
+  Timer? _watchdog;
+  String _missingSemantic = 'semantic_not_rendered';
+
+  @override
+  void initState() {
+    super.initState();
+    _watchdog = Timer(widget.timeout, () {
+      if (!mounted || _scheduled) return;
+      widget.onBlocked(
+        'semantic_timeout_${widget.targetId}_$_missingSemantic',
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _watchdog?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -402,9 +451,12 @@ class _CaptureReadinessGateState extends ConsumerState<_CaptureReadinessGate> {
         if (mounted) setState(() => _profileHydrated = true);
       });
     }
-    final ready = _isReady();
+    final missingSemantic = _missingSemanticReason();
+    _missingSemantic = missingSemantic ?? '';
+    final ready = missingSemantic == null;
     if (ready && !_scheduled) {
       _scheduled = true;
+      _watchdog?.cancel();
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         for (var frame = 0; frame < 2; frame++) {
           WidgetsBinding.instance.scheduleFrame();
@@ -416,51 +468,71 @@ class _CaptureReadinessGateState extends ConsumerState<_CaptureReadinessGate> {
     return widget.child;
   }
 
-  bool _isReady() {
+  String? _missingSemanticReason() {
     switch (widget.targetId) {
       case 'processing':
         const id = 'ui_diff_fixture_processing_entry';
-        return ref.watch(processingEntryProvider(id)).hasValue &&
-            ref.watch(processingStateProvider(id)).hasValue;
+        if (!ref.watch(processingEntryProvider(id)).hasValue) {
+          return 'processing_entry';
+        }
+        if (!ref.watch(processingStateProvider(id)).hasValue) {
+          return 'processing_state';
+        }
+        return null;
       case 'review':
         const id = 'ui_diff_fixture_review_food';
         final entry = ref.watch(reviewEntryProvider(id)).valueOrNull;
-        return entry != null && entry.candidates.isNotEmpty;
+        return entry != null && entry.candidates.isNotEmpty
+            ? null
+            : 'review_candidates';
       case 'today':
       case 'today_empty':
-        return ref.watch(todayEntriesProvider).hasValue &&
-            ref.watch(activePlanProvider).hasValue;
+        if (!ref.watch(todayEntriesProvider).hasValue) {
+          return 'today_entries';
+        }
+        if (!ref.watch(activePlanProvider).hasValue) {
+          return 'today_plan';
+        }
+        return null;
       case 'food':
       case 'food_edit':
         return ref
-            .watch(foodEntryProvider('ui_diff_fixture_today_chicken'))
-            .hasValue;
+                .watch(foodEntryProvider('ui_diff_fixture_today_chicken'))
+                .hasValue
+            ? null
+            : 'food_entry';
       case 'history_week':
       case 'history_month':
-        return ref.watch(historyProvider).hasValue;
+        return ref.watch(historyProvider).hasValue ? null : 'history_rows';
       case 'goals':
       case 'goals_select':
         final plan = ref.watch(activePlanProvider).valueOrNull;
         final draft = ref.watch(goalsDraftProvider);
-        return plan != null &&
-            ref.watch(weightLogsProvider).hasValue &&
-            draft.kcal == plan.kcal &&
-            draft.protein == plan.protein;
+        if (plan == null) return 'plan';
+        if (!ref.watch(weightLogsProvider).hasValue) {
+          return 'weights';
+        }
+        if (draft.kcal != plan.kcal || draft.protein != plan.protein) {
+          return 'draft';
+        }
+        return null;
       case 'ai':
-        return ref.watch(chatMessagesProvider).length >= 4;
+        return ref.watch(chatMessagesProvider).length >= 4
+            ? null
+            : 'ai_messages';
       case 'ai_history':
-        return ref.watch(aiThreadsProvider).hasValue;
+        return ref.watch(aiThreadsProvider).hasValue ? null : 'ai_threads';
       case 'profile':
-        return _profileHydrated;
+        return _profileHydrated ? null : 'profile_settings';
       case 'loading':
       case 'login':
       case 'permission':
       case 'scan_idle':
       case 'scan_capturing':
       case 'manual':
-        return true;
+        return null;
     }
-    return false;
+    return 'unknown_target';
   }
 }
 

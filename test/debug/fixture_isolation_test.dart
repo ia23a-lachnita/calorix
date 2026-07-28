@@ -154,7 +154,8 @@ void main() {
     expect(docs, hasLength(1));
     final entry = docs.first.value;
     expect(entry['status'], 'needs_review');
-    expect(entry['confidence'], lessThan(0.5));
+    expect(entry['confidence'], 0.62);
+    expect(entry['confidence'], lessThan(0.8));
     final candidates = entry['candidates'] as List<Object?>;
     expect(candidates, hasLength(greaterThanOrEqualTo(2)));
     final firstCandidate = candidates.first as Map<String, Object?>;

@@ -7,8 +7,13 @@ import '../../core/theme/app_colors.dart';
 import 'providers/review_providers.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
-  const ReviewScreen({super.key, required this.entryId});
+  const ReviewScreen({
+    super.key,
+    required this.entryId,
+    this.fixtureImageAsset,
+  });
   final String entryId;
+  final String? fixtureImageAsset;
 
   @override
   ConsumerState<ReviewScreen> createState() => _ReviewScreenState();
@@ -35,9 +40,15 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           return Stack(
             children: [
               Positioned.fill(
-                child: value.imageUrl == null
-                    ? const ColoredBox(color: AppColors.backgroundDark)
-                    : Image.network(value.imageUrl!, fit: BoxFit.cover),
+                child: widget.fixtureImageAsset != null
+                    ? Image.asset(
+                        widget.fixtureImageAsset!,
+                        key: const ValueKey('capture-review-meal'),
+                        fit: BoxFit.cover,
+                      )
+                    : value.imageUrl == null
+                        ? const ColoredBox(color: AppColors.backgroundDark)
+                        : Image.network(value.imageUrl!, fit: BoxFit.cover),
               ),
               Positioned(
                 top: 48,
