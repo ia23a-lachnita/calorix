@@ -6,7 +6,8 @@ param(
     [switch]$Execute,
     [string]$DeviceId,
     [string]$OutputRoot = '.ui-diff/captures',
-    [string]$BuildMetadataPath = '.ui-diff/captures/build-state.json',
+    [string]$BuildMetadataPath = '',
+    [string]$InventoryPath = 'docs/design-handoff/placeholder-app/visual-state-inventory.json',
     [int]$ReadyTimeoutSeconds = 90,
     [long]$FixtureEpochMs = 1778846400000
 )
@@ -25,7 +26,15 @@ $canonicalScreens = @(
 function Get-Sha256Hex {
     param([Parameter(Mandatory)][string]$Path)
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $null }
-    return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+    $sha = [Security.Cryptography.SHA256]::Create()
+    $stream = [IO.File]::OpenRead($Path)
+    try {
+        return ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '').ToLowerInvariant()
+    }
+    finally {
+        $stream.Dispose()
+        $sha.Dispose()
+    }
 }
 
 function Get-BuildRelevantFiles {
@@ -70,7 +79,7 @@ function Get-SourceFingerprint {
             [void]$sha.TransformBlock($separator, 0, 1, $null, 0)
         }
         [void]$sha.TransformFinalBlock([byte[]]::new(0), 0, 0)
-        return [Convert]::ToHexString($sha.Hash).ToLowerInvariant()
+        return ([BitConverter]::ToString($sha.Hash)).Replace('-', '').ToLowerInvariant()
     }
     finally {
         $sha.Dispose()
@@ -81,6 +90,23 @@ function Read-JsonFile {
     param([string]$Path)
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $null }
     return Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json
+}
+
+function Resolve-RepoPath {
+    param([Parameter(Mandatory)][string]$Path)
+    if ([IO.Path]::IsPathRooted($Path)) { return $Path }
+    return Join-Path $repoRoot $Path
+}
+
+function Get-ViewportSize {
+    param([Parameter(Mandatory)][string]$WmSize)
+    $matches = [Regex]::Matches($WmSize, '(\d+)x(\d+)')
+    if ($matches.Count -eq 0) { throw "Unable to parse adb wm size output: $WmSize" }
+    $match = $matches[$matches.Count - 1]
+    return [pscustomobject]@{
+        width = [int]$match.Groups[1].Value
+        height = [int]$match.Groups[2].Value
+    }
 }
 
 function Assert-ExplicitPhysicalDevice {
@@ -128,12 +154,28 @@ $requestedScreens = if ($Screens -contains 'all') { $canonicalScreens } else { @
 $unknown = @($requestedScreens | Where-Object { $_ -notin $canonicalScreens })
 if ($unknown.Count -gt 0) { throw "Unknown screen IDs: $($unknown -join ', ')" }
 
+$inventoryAbsolute = Resolve-RepoPath $InventoryPath
+$inventory = Read-JsonFile $inventoryAbsolute
+if ($null -eq $inventory) { throw "Visual-state inventory not found at $inventoryAbsolute" }
+$inventoryByScreen = @{}
+foreach ($state in $inventory.states) {
+    $inventoryByScreen[$state.id] = $state
+}
+foreach ($screen in $canonicalScreens) {
+    if (-not $inventoryByScreen.ContainsKey($screen)) {
+        throw "Visual-state inventory is missing canonical screen '$screen'."
+    }
+}
+
+$dateFolder = Join-Path $repoRoot (Join-Path $OutputRoot ([DateTime]::UtcNow.ToString('yyyy-MM-dd')))
+$buildMetadataAbsolute = if ([string]::IsNullOrWhiteSpace($BuildMetadataPath)) {
+    Join-Path $dateFolder 'build-manifest.json'
+} else {
+    Resolve-RepoPath $BuildMetadataPath
+}
 $sourceFingerprint = Get-SourceFingerprint
 $apkPath = Join-Path $repoRoot 'build/app/outputs/flutter-apk/app-debug.apk'
 $apkHash = Get-Sha256Hex $apkPath
-$buildMetadataAbsolute = if ([IO.Path]::IsPathRooted($BuildMetadataPath)) {
-    $BuildMetadataPath
-} else { Join-Path $repoRoot $BuildMetadataPath }
 $previousBuild = Read-JsonFile $buildMetadataAbsolute
 $buildIsFresh = $null -ne $previousBuild -and
     $previousBuild.sourceFingerprint -eq $sourceFingerprint -and
@@ -141,7 +183,6 @@ $buildIsFresh = $null -ne $previousBuild -and
     $previousBuild.apkHash -eq $apkHash -and
     $previousBuild.deviceId -eq $DeviceId
 
-$dateFolder = Join-Path $repoRoot (Join-Path $OutputRoot ([DateTime]::UtcNow.ToString('yyyy-MM-dd')))
 $plans = foreach ($screen in $requestedScreens) {
     foreach ($theme in $Themes) {
         $nonce = [Guid]::NewGuid().ToString('N')
@@ -151,6 +192,7 @@ $plans = foreach ($screen in $requestedScreens) {
             theme = $theme
             nonce = $nonce
             fixtureEpochMs = $FixtureEpochMs
+            fixtureProfile = $inventoryByScreen[$screen].fixtureProfile
             deepLink = $deepLink
             adbDeepLinkArgument = "'$deepLink'"
             outputPng = Join-Path $dateFolder "$screen--$theme.png"
@@ -170,12 +212,14 @@ if (-not $Execute) {
         sourceFingerprint = $sourceFingerprint
         apkHash = $apkHash
         buildIsFresh = $buildIsFresh
+        buildManifestPath = $buildMetadataAbsolute
         actions = @($plans)
     } | ConvertTo-Json -Depth 8
     exit 0
 }
 
 Assert-ExplicitPhysicalDevice
+$buildFreshSkippedRebuild = $buildIsFresh
 if (-not $buildIsFresh) {
     & fvm flutter build apk --debug
     if ($LASTEXITCODE -ne 0) { throw 'Flutter debug APK build failed.' }
@@ -183,9 +227,14 @@ if (-not $buildIsFresh) {
     if ($null -eq $apkHash) { throw "Built APK not found at $apkPath" }
     & adb -s $DeviceId install -r $apkPath
     if ($LASTEXITCODE -ne 0) { throw 'APK install failed.' }
+} else {
+    Write-Host 'build fresh, skipped rebuild'
 }
 
 $buildHash = (& git rev-parse HEAD).Trim()
+$deviceModel = Invoke-AdbText @('shell', 'getprop', 'ro.product.model')
+$pixelSize = Invoke-AdbText @('shell', 'wm', 'size')
+$viewport = Get-ViewportSize $pixelSize
 $metadataParent = Split-Path -Parent $buildMetadataAbsolute
 New-Item -ItemType Directory -Force -Path $metadataParent | Out-Null
 [pscustomobject]@{
@@ -193,12 +242,14 @@ New-Item -ItemType Directory -Force -Path $metadataParent | Out-Null
     apkHash = $apkHash
     buildHash = $buildHash
     deviceId = $DeviceId
+    deviceModel = $deviceModel
+    viewportWidth = $viewport.width
+    viewportHeight = $viewport.height
+    buildFreshSkippedRebuild = $buildFreshSkippedRebuild
     installedAtUtc = [DateTime]::UtcNow.ToString('o')
 } | ConvertTo-Json | Set-Content -LiteralPath $buildMetadataAbsolute -Encoding utf8
 
 New-Item -ItemType Directory -Force -Path $dateFolder | Out-Null
-$deviceModel = Invoke-AdbText @('shell', 'getprop', 'ro.product.model')
-$pixelSize = Invoke-AdbText @('shell', 'wm', 'size')
 
 foreach ($plan in $plans) {
     [void](Invoke-AdbText @('logcat', '-c'))
@@ -226,9 +277,11 @@ foreach ($plan in $plans) {
     Save-AdbScreenshot $plan.outputPng
     [pscustomobject]@{
         screen = $plan.screen
-        route = $plan.deepLink
+        route = "/debug/capture/$($plan.screen)"
+        deepLink = $plan.deepLink
         theme = $plan.theme
         nonce = $plan.nonce
+        fixtureProfile = $plan.fixtureProfile
         fixtureHash = $fixtureHash
         fixtureEpochMs = $plan.fixtureEpochMs
         sourceFingerprint = $sourceFingerprint
@@ -236,13 +289,16 @@ foreach ($plan in $plans) {
         buildHash = $buildHash
         deviceId = $DeviceId
         deviceModel = $deviceModel
-        pixelSize = $pixelSize
-        capturedAtUtc = [DateTime]::UtcNow.ToString('o')
+        viewportWidth = $viewport.width
+        viewportHeight = $viewport.height
+        captureTimestamp = [DateTime]::UtcNow.ToString('o')
+        staleBuildFingerprint = $false
     } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $plan.outputMetadata -Encoding utf8
 }
 
 [pscustomobject]@{
     mode = 'executed'
     deviceId = $DeviceId
+    buildManifestPath = $buildMetadataAbsolute
     captures = @($plans | ForEach-Object { $_.outputPng })
 } | ConvertTo-Json -Depth 5

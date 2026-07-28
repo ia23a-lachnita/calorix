@@ -19,7 +19,15 @@ function Resolve-RepoPath {
 
 function Get-Sha256Hex {
     param([Parameter(Mandatory)][string]$Path)
-    return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+    $sha = [Security.Cryptography.SHA256]::Create()
+    $stream = [IO.File]::OpenRead($Path)
+    try {
+        return ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '').ToLowerInvariant()
+    }
+    finally {
+        $stream.Dispose()
+        $sha.Dispose()
+    }
 }
 
 function Read-RequiredJson {

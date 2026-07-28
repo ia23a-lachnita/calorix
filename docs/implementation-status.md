@@ -26,6 +26,14 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Checkpoint implementation commit: `bdff882`.
 - Next: Task 17 Step 2. Build/install a fingerprinted debug APK on the explicit physical device, execute the 38-state capture loop, validate exactly 38 PNG/meta pairs, then inspect and iterate through the broad/region/target diff program. No visual parity or Task 17 completion claim is made at this checkpoint.
 
+### Task 17 capture-driver prerequisite checkpoint (2026-07-28)
+
+- RED: the new script contract found `Convert.ToHexString` unavailable under Windows PowerShell 5.1, then found `Get-FileHash` unavailable in the child PowerShell environment; plan entries also lacked fixture profiles/date-scoped build-manifest metadata, and the artifact validator did not exist.
+- GREEN: direct streaming SHA-256 is host-compatible; plan-only output contains exactly 38 unique state/theme actions and 9 inventory-derived profiles; build metadata is date-scoped; per-state output carries route/deep-link/profile/hash/build/device/viewport/timestamp/staleness fields; strict validation checks exactly 38 PNGs and 38 meta files, PNG signatures/IHDR dimensions, canonical keys, build/device identity, and nine internally consistent distinct profile hashes.
+- Test evidence: validator rejects an empty capture directory and accepts a synthetic complete canonical 38-state set. `tool/ui_capture/prepare_expected.ps1` validates all 38 references. `fvm flutter analyze`: no issues. Full `fvm flutter test --reporter compact`: 482 passed, 1 intentional live-contract skip.
+- Review: `calorix-task17-visual-program-20260728`, `Gemini 3.6 Flash (High)`, returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. Its URI-quoting safeguard is already present via the single-quoted remote-shell deep-link argument; script-producing .NET/filesystem calls do not leak objects into the JSON pipeline.
+- Physical preflight: explicit authorized device `R58R61161NA` is connected in `device` state and reports model `SM_G780G`. Execution remains pending until this script checkpoint is committed and pushed, so `buildHash` and source fingerprint identify committed source.
+
 ## Toolchain Health (Task 0)
 
 - `fvm flutter pub get`: succeeded; 82 newer incompatible package notices; no lockfile change.
@@ -55,7 +63,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 | 14 | done | OpenCode timed out; headless fallback quota-blocked; host fallback under contract | pre- and post-review green (`calorix-task14-chat-security-20260722`) | 93a91b4, 405e306, 7cdf6ad + handoff remediation commit | Flutter 368 passed + 1 intentional live skip; analyze clean; Functions 57/57 lint/build clean; rules 16/16 |
 | 15 | done | OpenCode timed out twice with partial RED/implementation files; host fallback under contract | pre- and post-review green (`calorix-task15-secondary-parity-20260727`) | 1f4ac4f + handoff commit | Focused profile 15/15; onboarding/permission 18/18; a11y 5/5; analyzer clean; full Flutter 390 passed + 1 intentional live skip. |
 | 16 | done | OpenCode timed out on both Stage A and Stage B slice 1; host repaired/completed under the recorded fallback | pre-review green (`calorix-task16-e2e-matrix-20260727`); post-review green (`calorix-task16-post-review-20260728`, Gemini 3.6 Flash (High), `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`) | `5422c74`, `06657da`, `cd4fc62`, handoff tracking commit 2d2c2ce pushed | 46/46 one-APK physical on `R58R61161NA`; Functions 57/57; rules 16/16; real concurrent retry transaction 1/1; OFF v3 live 1/1; analyzer clean; full Flutter 390 passed + 1 intentional live skip. Explicitly blocked: real push delivery, real cloud model processing, production storage writes. |
-| 17 | in progress | OpenCode unavailable; headless fallback quota-blocked; host fallback under contract | post-review green (`calorix-task17-visual-program-20260728`) | `2a16bcc`, `bdff882` | Step 1 plus deterministic 19-target adapter complete; focused 77/77; compatibility 158/158; analyzer clean; full Flutter 479 passed + 1 intentional live skip. Steps 2–13 and all physical visual evidence remain pending. |
+| 17 | in progress | OpenCode unavailable; headless fallback quota-blocked; host fallback under contract | post-review green (`calorix-task17-visual-program-20260728`) | `2a16bcc`, `bdff882`, script checkpoint pending | Step 1, deterministic 19-target adapter, and tested 38-state driver/validator prerequisite complete; analyzer clean; full Flutter 482 passed + 1 intentional live skip. Steps 2–13 and all physical visual evidence remain pending. |
 
 ### Task 11 plan checkpoint
 
