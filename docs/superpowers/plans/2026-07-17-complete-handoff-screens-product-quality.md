@@ -1765,7 +1765,7 @@ Future<void> pumpAppE2E(WidgetTester tester, {FakeClock? clock, bool seed = true
 
 - [x] **Step 10: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → full unit/widget suite passes.
 
-- [ ] **Step 11: REVIEW-GATE Task 16**, then **HANDOFF Task 16**
+- [x] **Step 11: REVIEW-GATE Task 16**, then **HANDOFF Task 16**
 
 ```powershell
 git add -A
