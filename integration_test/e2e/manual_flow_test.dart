@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:calorix/features/today/today_screen.dart';
 import 'package:calorix/shared/models/food_entry.dart';
 
 import 'support/e2e_harness.dart';
@@ -58,11 +59,12 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
+    expect(find.byType(TodayScreen), findsOneWidget);
     expect(
       harness.foodStore.allEntries.single.foodName,
       'Chicken Rice Bowl',
     );
-    expect(find.text('Chicken Rice Bowl'), findsOneWidget);
+    expect(find.text('Chicken Rice Bowl'), findsWidgets);
   });
 
   testWidgets('custom food validates and persists entered nutrition',

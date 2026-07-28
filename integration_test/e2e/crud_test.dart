@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -24,9 +25,25 @@ void main() {
     await tester.tap(find.byKey(const Key('macro-editor-Protein')));
     await tester.pump();
     await tester.enterText(find.byType(TextFormField).last, '55');
-    await tester.tap(find.text('Done'));
+    await SystemChannels.textInput.invokeMethod<void>(
+      'TextInput.hide',
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final doneFinder = find.widgetWithText(FilledButton, 'Done');
+    expect(doneFinder, findsOneWidget);
+    await tester.ensureVisible(doneFinder);
     await tester.pump();
-    await tester.tap(find.text('Save to Today'));
+    expect(doneFinder.hitTestable(), findsOneWidget);
+    await tester.tap(doneFinder.hitTestable());
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final saveFinder = find.widgetWithText(ElevatedButton, 'Save to Today');
+    expect(saveFinder, findsOneWidget);
+    await tester.ensureVisible(saveFinder);
+    await tester.pump();
+    expect(saveFinder.hitTestable(), findsOneWidget);
+    await tester.tap(saveFinder.hitTestable());
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 

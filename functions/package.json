@@ -2,11 +2,16 @@
   "name": "calorix-functions",
   "description": "Calorix Cloud Functions",
   "scripts": {
-    "lint": "eslint src test",
+    "lint": "eslint src test test-emulator",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:emulator": "vitest run --config vitest.emulator.config.ts",
     "test:rules": "firebase emulators:exec --only firestore \"vitest run --config vitest.rules.config.ts\"",
+    "test:rules:attached": "vitest run --config vitest.rules-attached.config.ts",
+    "test:data-emulators": "firebase emulators:exec --only auth,firestore,storage \"npm run test:rules:attached && npm run test:emulator\"",
+    "test:functions-load": "firebase emulators:exec --only functions \"node test/noop-load.js\"",
+    "test:verify": "npm run build && npm run lint && npm test && npm run test:data-emulators && npm run test:functions-load",
     "deploy": "firebase deploy --only functions"
   },
   "engines": {

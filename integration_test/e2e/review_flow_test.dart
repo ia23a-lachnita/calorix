@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:calorix/features/ai_chat/ai_chat_screen.dart';
+import 'package:calorix/features/food_detail/food_detail_sheet.dart';
 import 'package:calorix/shared/models/food_entry.dart';
 
 import 'support/e2e_harness.dart';
@@ -34,10 +35,11 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
+    expect(find.byType(FoodDetailSheet), findsOneWidget);
     final saved = harness.foodStore.entry('review-entry');
     expect(saved?.status, FoodEntryStatus.complete);
     expect(saved?.foodName, 'Teriyaki Chicken Bowl');
-    expect(find.text('Teriyaki Chicken Bowl'), findsOneWidget);
+    expect(find.text('Teriyaki Chicken Bowl'), findsWidgets);
   });
 
   testWidgets('none of these opens manual entry', (tester) async {

@@ -6,7 +6,7 @@ module.exports = tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['src/**/*.ts', 'test/**/*.ts'],
+    files: ['src/**/*.ts', 'test/**/*.ts', 'test-emulator/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',

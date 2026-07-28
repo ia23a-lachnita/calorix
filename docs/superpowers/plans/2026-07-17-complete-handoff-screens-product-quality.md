@@ -1761,9 +1761,9 @@ Future<void> pumpAppE2E(WidgetTester tester, {FakeClock? clock, bool seed = true
 
 - [x] **Step 8: CHECKPOINT 2 — stateful/weird-state flows verified** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → no regressions. Host updates `docs/implementation-status.md` with exact red/green evidence (test output counts, suite names) and the next step for full matrix run. Host commits checkpoint: `git add -A && git commit -m "E2E stateful and weird-state flows passing (goals, assistant, notification, upload, profile, nav, device-state)"`. Then host runs `git push` separately. **Push gate:** if `git push` fails, record the exact failure output in `docs/implementation-status.md` and stop — do not proceed to Step 9. The local commit remains intact; do not revert it.
 
-- [ ] **Step 9: Full matrix run** — Run the single combined entrypoint: `fvm flutter test integration_test/e2e/e2e_matrix_test.dart -d R58R61161NA` → Expected: all 13 suites PASS in one APK session. Separately run host Firebase emulator adapter/rules/transaction gates via `firebase emulators:exec`; re-run the read-only OFF contract. Record real push delivery, real cloud model processing, and production storage writes as **blocked** with the exact reason "requires explicit authorization and an isolated test project".
+- [x] **Step 9: Full matrix run** — Run the single combined entrypoint: `fvm flutter test integration_test/e2e/e2e_matrix_test.dart -d R58R61161NA` → Expected: all 13 suites PASS in one APK session. Separately run host Firebase emulator adapter/rules/transaction gates via `firebase emulators:exec`; re-run the read-only OFF contract. Record real push delivery, real cloud model processing, and production storage writes as **blocked** with the exact reason "requires explicit authorization and an isolated test project".
 
-- [ ] **Step 10: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → full unit/widget suite passes.
+- [x] **Step 10: Stage verification** — `fvm flutter analyze` → `No issues found!`; `fvm flutter test` → full unit/widget suite passes.
 
 - [ ] **Step 11: REVIEW-GATE Task 16**, then **HANDOFF Task 16**
 
