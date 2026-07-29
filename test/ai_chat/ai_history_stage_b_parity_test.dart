@@ -401,10 +401,10 @@ void main() {
     );
   });
 
-  // ── 4. Normal row avatar: exact surfaceRaised fill, no gradient, 42x42, keyed 6×6 dot ─
+  // ── 4. Normal row avatar: transformed 42px size, exact fill, no gradient, keyed 6x6 dot ─
   group('Stage B normal avatar treatment', () {
     testWidgets(
-      'normal row avatar is 42x42, surfaceRaisedDark fill, no gradient, neutral border dark',
+      'normal row avatar is 42/1.0925, surfaceRaisedDark fill, no gradient, neutral border dark',
       (tester) async {
         await tester.pumpWidget(_app(_fixture));
         await tester.pumpAndSettle();
@@ -415,8 +415,18 @@ void main() {
         expect(normalAvatar, findsOneWidget);
 
         final avatarRect = tester.getRect(normalAvatar);
-        expect(avatarRect.width, 42);
-        expect(avatarRect.height, 42);
+        expect(
+          avatarRect.width,
+          closeTo(42 / 1.0925, 0.01),
+          reason:
+              'Normal avatar width must use the transformed 42px canonical size',
+        );
+        expect(
+          avatarRect.height,
+          closeTo(42 / 1.0925, 0.01),
+          reason:
+              'Normal avatar height must use the transformed 42px canonical size',
+        );
 
         // Inspect exact BoxDecoration
         final decorated = find.descendant(
@@ -462,7 +472,7 @@ void main() {
     );
 
     testWidgets(
-      'normal row avatar is 42x42, surfaceRaisedLight fill, no gradient, neutral border light',
+      'normal row avatar is 42/1.0925, surfaceRaisedLight fill, no gradient, neutral border light',
       (tester) async {
         await tester.pumpWidget(
           _app(_fixture, themeMode: ThemeMode.light),
@@ -475,8 +485,18 @@ void main() {
         expect(normalAvatar, findsOneWidget);
 
         final avatarRect = tester.getRect(normalAvatar);
-        expect(avatarRect.width, 42);
-        expect(avatarRect.height, 42);
+        expect(
+          avatarRect.width,
+          closeTo(42 / 1.0925, 0.01),
+          reason:
+              'Normal avatar width must use the transformed 42px canonical size',
+        );
+        expect(
+          avatarRect.height,
+          closeTo(42 / 1.0925, 0.01),
+          reason:
+              'Normal avatar height must use the transformed 42px canonical size',
+        );
 
         final decorated = find.descendant(
           of: normalAvatar,
@@ -549,10 +569,10 @@ void main() {
     );
   });
 
-  // ── 5. New chat surface geometry: 46px tall, 112..128 wide (Stage C canonical) ──
+  // ── 5. New chat surface: transformed 46px height, 112..128 wide ────────
   group('New chat surface geometry (Stage C canonical values)', () {
     testWidgets(
-      'new chat visible surface is 46 logical px high and 112..128 wide (dark)',
+      'new chat visible surface is 46/1.0925 logical px high and 112..128 wide (dark)',
       (tester) async {
         await tester.pumpWidget(_productionShellApp(_fixture));
         await tester.pumpAndSettle();
@@ -563,8 +583,9 @@ void main() {
         final rect = tester.getRect(surface);
         expect(
           rect.height,
-          46,
-          reason: 'New chat surface height must be 46, got ${rect.height}',
+          closeTo(46 / 1.0925, 0.01),
+          reason: 'New chat surface height must use the transformed 46px '
+              'canonical size, got ${rect.height}',
         );
         expect(
           rect.width,
@@ -580,7 +601,7 @@ void main() {
     );
 
     testWidgets(
-      'new chat visible surface is 46 high and 112..128 wide (light)',
+      'new chat visible surface is 46/1.0925 high and 112..128 wide (light)',
       (tester) async {
         await tester.pumpWidget(
           _productionShellApp(_fixture, themeMode: ThemeMode.light),
@@ -593,9 +614,9 @@ void main() {
         final rect = tester.getRect(surface);
         expect(
           rect.height,
-          46,
-          reason:
-              'New chat surface light height must be 46, got ${rect.height}',
+          closeTo(46 / 1.0925, 0.01),
+          reason: 'New chat surface light height must use the transformed '
+              '46px canonical size, got ${rect.height}',
         );
         expect(
           rect.width,

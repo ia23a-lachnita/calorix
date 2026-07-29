@@ -290,8 +290,8 @@ void main() {
 
       final fieldRect =
           tester.getRect(find.byKey(const ValueKey('ai-history-search')));
-      final kbdRect = tester
-          .getRect(find.byKey(const ValueKey('ai-history-search-kbd')));
+      final kbdRect =
+          tester.getRect(find.byKey(const ValueKey('ai-history-search-kbd')));
       final hintRect =
           tester.getRect(find.text('Search chats and meal edits…'));
 
@@ -504,26 +504,28 @@ void main() {
     });
   });
 
-  // ── 4. New chat: 46 high / ~120 wide / pill / gradient disc ──────────────
+  // ── 4. New chat: transformed 46px canonical height / ~120 wide / pill ────
   group('Stage C New chat surface', () {
-    testWidgets('visible surface is exactly 46 logical px tall (dark)',
+    testWidgets(
+        'visible surface is the transformed 46px canonical height (dark)',
         (tester) async {
       await tester.pumpWidget(_app(_fixture));
       await tester.pumpAndSettle();
 
       final rect =
           tester.getRect(find.byKey(const ValueKey('ai-new-chat-surface')));
-      expect(rect.height, 46);
+      expect(rect.height, closeTo(46 / 1.0925, 0.01));
     });
 
-    testWidgets('visible surface is exactly 46 logical px tall (light)',
+    testWidgets(
+        'visible surface is the transformed 46px canonical height (light)',
         (tester) async {
       await tester.pumpWidget(_app(_fixture, themeMode: ThemeMode.light));
       await tester.pumpAndSettle();
 
       final rect =
           tester.getRect(find.byKey(const ValueKey('ai-new-chat-surface')));
-      expect(rect.height, 46);
+      expect(rect.height, closeTo(46 / 1.0925, 0.01));
     });
 
     testWidgets('visible surface is 112..128 logical px wide', (tester) async {
@@ -646,7 +648,8 @@ void main() {
       );
     });
 
-    testWidgets('gradient disc is 34x34 with a cyan-to-blue LinearGradient',
+    testWidgets(
+        'gradient disc is the transformed 34px size with a cyan-to-blue LinearGradient',
         (tester) async {
       await tester.pumpWidget(_app(_fixture));
       await tester.pumpAndSettle();
@@ -655,8 +658,8 @@ void main() {
       expect(disc, findsOneWidget);
 
       final rect = tester.getRect(disc);
-      expect(rect.width, 34);
-      expect(rect.height, 34);
+      expect(rect.width, closeTo(34 / 1.0925, 0.01));
+      expect(rect.height, closeTo(34 / 1.0925, 0.01));
 
       final container = tester.widget<Container>(disc);
       final decoration = container.decoration as BoxDecoration;

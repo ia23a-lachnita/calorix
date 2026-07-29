@@ -437,7 +437,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
             ),
             // ---- Compact New chat button above outer nav ----
             Positioned(
-              right: 16,
+              right: 10.66,
               bottom: kFabAboveBottomNav,
               child: SizedBox(
                 key: const ValueKey('ai-new-chat'),
@@ -455,7 +455,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                         child: SizedBox(
                           key: const ValueKey('ai-new-chat-surface'),
                           width: 120,
-                          height: 46,
+                          height: 42.11,
                           child: Container(
                             padding: const EdgeInsets.fromLTRB(6, 0, 16, 0),
                             decoration: BoxDecoration(
@@ -470,8 +470,8 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                               children: [
                                 Container(
                                   key: const ValueKey('ai-new-chat-gradient'),
-                                  width: 34,
-                                  height: 34,
+                                  width: 31.12,
+                                  height: 31.12,
                                   alignment: Alignment.center,
                                   decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
@@ -802,11 +802,11 @@ class _ThreadRow extends StatelessWidget {
           ? AppColors.cyan.withValues(alpha: 0.06)
           : AppColors.cyan.withValues(alpha: 0.04);
       borderColor = AppColors.cyan.withValues(alpha: 0.32);
-      borderRadius = BorderRadius.circular(12);
+      borderRadius = BorderRadius.circular(16.48);
     } else {
       surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
       borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
-      borderRadius = BorderRadius.circular(12);
+      borderRadius = BorderRadius.circular(16.48);
     }
 
     return Material(
@@ -825,9 +825,9 @@ class _ThreadRow extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ---- 42×42 avatar ----
+              // ---- 38.44 x 38.44 avatar ----
               _ThreadAvatar(
                 key: ValueKey('ai-thread-avatar-${thread.id}'),
                 thread: thread,
@@ -952,8 +952,8 @@ class _ThreadAvatar extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Container(
-          width: 42,
-          height: 42,
+          width: 38.44,
+          height: 38.44,
           decoration: pinned
               ? BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
