@@ -12,8 +12,8 @@ import '../../shared/models/ai_chat_thread.dart';
 import '../../shared/providers/auth_provider.dart';
 import 'providers/ai_chat_providers.dart';
 
-/// Vertical offset so the FAB clears the production CalorixBottomNav by ≥ 8 px.
-const double kFabAboveBottomNav = 8;
+/// Measured comparison-space clearance target converted to logical px.
+const double kFabAboveBottomNav = 7 / 1.0925;
 
 /// Maps wire categories to human-readable filter labels shown in the UI.
 const _filterLabels = <AiChatThreadCategory, String>{

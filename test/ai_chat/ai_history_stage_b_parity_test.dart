@@ -12,6 +12,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:calorix/core/router/route_names.dart';
 
+const _stageGComparisonScale = 1.0925;
+const _stageGFabClearance = 7 / _stageGComparisonScale;
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -656,7 +659,7 @@ void main() {
     );
 
     testWidgets(
-      'outer ai-new-chat bottom clears CalorixBottomNav top by ≥ 8 px (dark)',
+      'Stage G outer ai-new-chat clearance is the measured 7px comparison gap (dark)',
       (tester) async {
         await tester.pumpWidget(_productionShellApp(_fixture));
         await tester.pumpAndSettle();
@@ -671,16 +674,16 @@ void main() {
         final navRect = tester.getRect(navFinder);
 
         expect(
-          fabRect.bottom,
-          lessThanOrEqualTo(navRect.top - 8),
-          reason: 'New chat FAB (bottom=${fabRect.bottom}) must clear nav '
-              '(top=${navRect.top}) by >= 8 px (dark)',
+          navRect.top - fabRect.bottom,
+          closeTo(_stageGFabClearance, 0.01),
+          reason: 'Stage G measures the coupled production-shell clearance '
+              'at 7/1.0925 comparison px (dark)',
         );
       },
     );
 
     testWidgets(
-      'outer ai-new-chat bottom clears CalorixBottomNav top by ≥ 8 px (light)',
+      'Stage G outer ai-new-chat clearance is the measured 7px comparison gap (light)',
       (tester) async {
         await tester.pumpWidget(
           _productionShellApp(_fixture, themeMode: ThemeMode.light),
@@ -697,10 +700,10 @@ void main() {
         final navRect = tester.getRect(navFinder);
 
         expect(
-          fabRect.bottom,
-          lessThanOrEqualTo(navRect.top - 8),
-          reason: 'New chat FAB (bottom=${fabRect.bottom}) must clear nav '
-              '(top=${navRect.top}) by >= 8 px (light)',
+          navRect.top - fabRect.bottom,
+          closeTo(_stageGFabClearance, 0.01),
+          reason: 'Stage G measures the coupled production-shell clearance '
+              'at 7/1.0925 comparison px (light)',
         );
       },
     );

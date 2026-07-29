@@ -61,12 +61,16 @@ class CalorixBottomNav extends StatelessWidget {
   static const _comparisonScale = 1.0925;
   static const _navTopPadding = 14 / _comparisonScale;
   static const _navRowHeight = 48.0;
-  static const _navHeight = 98 / _comparisonScale;
+  static const _navHeight = 101 / _comparisonScale;
   static const _navBottomPadding = 36 / _comparisonScale;
   static const _scanOuterSize = 60 / _comparisonScale;
   static const _scanInnerSize = 48 / _comparisonScale;
   static const _scanGlowSize = 76 / _comparisonScale;
   static const _scanMarginTop = 28 / _comparisonScale;
+  // Measured physical-capture raster alignment correction. The nav top moves
+  // up by 3 comparison px with the 98 -> 101 height change; this +7px
+  // relative correction produces the observed net +4 comparison px target.
+  static const _scanRasterAlignmentCorrection = 7 / _comparisonScale;
   static const _scanGlowOffset = 6 / _comparisonScale;
   static const _scanHitTargetSize = 60.0;
   static const _scanLabelSize = 9.5 / _comparisonScale;
@@ -186,7 +190,9 @@ class CalorixBottomNav extends StatelessWidget {
             ),
             Positioned(
               key: const Key('scan-branch'),
-              top: _navTopPadding - _scanMarginTop,
+              top: _navTopPadding -
+                  _scanMarginTop +
+                  _scanRasterAlignmentCorrection,
               left: 0,
               right: 0,
               height: _scanOuterSize + 32,
@@ -384,12 +390,18 @@ class _ScanNavButton extends StatelessWidget {
                         BoxShadow(
                           color: Color(0x5919D3D9),
                           blurRadius: 24,
-                          offset: Offset(0, 8),
+                          offset: Offset(
+                            0,
+                            8 / CalorixBottomNav._comparisonScale,
+                          ),
                         ),
                         BoxShadow(
                           color: Color(0x4D3A5BFF),
                           blurRadius: 6,
-                          offset: Offset(0, 2),
+                          offset: Offset(
+                            0,
+                            2 / CalorixBottomNav._comparisonScale,
+                          ),
                         ),
                       ],
                     ),

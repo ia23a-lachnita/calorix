@@ -11,6 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+const _stageGComparisonScale = 1.0925;
+const _stageGFabClearance = 7 / _stageGComparisonScale;
+
 // ---------------------------------------------------------------------------
 // Canonical 12-thread fixture
 // ---------------------------------------------------------------------------
@@ -387,10 +390,10 @@ void main() {
         final navRect = tester.getRect(navFinder);
 
         expect(
-          fabRect.bottom,
-          lessThanOrEqualTo(navRect.top - 8),
-          reason: 'New chat FAB (bottom=${fabRect.bottom}) must clear '
-              'the bottom nav (top=${navRect.top}) by ≥ 8 px (dark)',
+          navRect.top - fabRect.bottom,
+          closeTo(_stageGFabClearance, 0.01),
+          reason: 'Stage G measures the coupled production-shell clearance '
+              'at 7/1.0925 comparison px (dark)',
         );
 
         // Must still be tappable
@@ -418,10 +421,10 @@ void main() {
         final navRect = tester.getRect(navFinder);
 
         expect(
-          fabRect.bottom,
-          lessThanOrEqualTo(navRect.top - 8),
-          reason: 'New chat FAB (bottom=${fabRect.bottom}) must clear '
-              'the bottom nav (top=${navRect.top}) by ≥ 8 px (light)',
+          navRect.top - fabRect.bottom,
+          closeTo(_stageGFabClearance, 0.01),
+          reason: 'Stage G measures the coupled production-shell clearance '
+              'at 7/1.0925 comparison px (light)',
         );
       },
     );

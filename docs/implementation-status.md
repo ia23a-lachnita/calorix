@@ -10,7 +10,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**Task 17 is in progress. AI History Stage E and the bounded Stage F navigation implementation are complete in the working tree, but no physical visual-parity claim is made. The next step is for the host to commit/push this checkpoint, rebuild/install a fingerprinted APK on `R58R61161NA`, recapture the affected screens, inspect the artifacts, and rerun deterministic diff validation.**
+**Task 17 is in progress. Stage G implementation and host verification are complete in the working tree. The next step is to checkpoint-commit/push this state, then perform the exact Stage G physical capture and deterministic diff; that physical evidence is pending.**
 
 ### Task 17 Stage F bottom-navigation implementation checkpoint (2026-07-29)
 
@@ -22,7 +22,18 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Final GREEN: focused accessibility + shell + Stage F verification passed `18/18`; required Stage F + shell + Stage C + Stage D + AI-history parity passed `103/103`; `fvm flutter analyze` reported `No issues found`; full `fvm flutter test --reporter compact` passed `629` with `1` intentional skip and reported all other tests passed.
 - OpenCode headless was already reported unavailable after a timeout with no useful output/edits before this stage. Under the authorized fallback, the gpt-5.6-luna host fallback authored the bounded Stage F patch; the host inspected the diff and ran all verification. No commit or push was performed, as explicitly requested.
 - Post-implementation Antigravity review conversation `calorix-task17-stage-f-20260729` was green with `AGREEMENT_STATUS: agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. The initial review used Gemini 3.6 Flash High; the final delta review after the accessibility correction used Gemini 3.1 Pro High and was also green. Responses contained wrapper/model-footer formatting noise only; the reviewer was instructed read-only and `git status` was checked for source mutation.
-- Stage F has widget-test and analyzer evidence only. No fresh physical APK capture, screenshot inspection, or deterministic visual diff has been run after this navigation change; no visual-parity or production-readiness claim is made.
+- Stage F physical evidence is now recorded: dark/light captures at build `a523d1f` were inspected. Deterministic run `run-1785354896961-21908f` completed but its gate assertion failed because projected mismatch count was `0`; the report contained `3` `deterministic_geometry` diffs with whole `10.333`, content `9.837`, and bottom `13.714`. This is not a visual-parity result.
+
+### Task 17 Stage G measured navigation alignment checkpoint (2026-07-29)
+
+- Scope is limited to `lib/shell/app_shell.dart`, `lib/features/ai_chat/ai_history_screen.dart` (`kFabAboveBottomNav` only), the focused navigation/history parity tests, and this status file. No card widths, list padding, content, or unrelated untracked paths changed.
+- Stage F physical evidence used for this measured correction: pre-navigation run `run-1785352736204-becddd` reported whole-screen `10.365`, bottom-nav `13.429`, and `4` diffs; Stage F run `run-1785354896961-21908f` reported whole-screen `10.333`, bottom-nav `13.714`, and `3` diffs. Those runs supplied the measured nav/Scan/New-chat offsets; the known deterministic gate assertion failure remained recorded and is not treated as a visual pass.
+- TDD RED: the new Stage G assertions failed before production edits. The old nav-relative Scan branch offset was `-12.8146` logical px versus the measured target `-6.4073`; coupled production-shell New-chat clearance was `8.0` versus `7/1.0925 = 6.4073`; and the nav remained on the old `98/1.0925` height contract. The full suite also identified two stale visual-parity assertions still requiring the old 8px clearance.
+- GREEN implementation: `_navHeight` is now `101/1.0925`; the named/commented Scan raster correction adds `7/1.0925` to the existing relative branch top, yielding the measured net `+4` comparison-px movement after the nav-top shift. Scan outer/inner/glow sizes and colors are unchanged. Only Scan shadow offsets `8` and `2` are transformed by `/1.0925`; blur radii remain unchanged. `kFabAboveBottomNav` is now `7/1.0925`, and the coupled production-shell tests assert that exact clearance in dark and light themes.
+- Focused verification passed `47/47` across Stage F navigation, Stage B coupled shell geometry, and AI-history visual parity. `fvm flutter analyze` reported `No issues found`. Full `fvm flutter test --reporter compact` passed `629` with `1` intentional skip; all other tests passed.
+- Final Stage G Antigravity review in conversation `calorix-task17-nav-stage-f-20260729` returned `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. Response noise was limited to the response wrapper, model footer, and concatenated headings; no repository mutation occurred.
+- Independent host final verification confirmed analyzer clean and `629` tests passed with `1` intentional skip.
+- Stage G remains pending physical evidence: no APK rebuild, physical capture, artifact inspection, or deterministic rerun has been performed after these measured changes. No visual-parity or production-readiness claim is made yet.
 
 ### Task 17 AI-history Stage D implementation checkpoint (2026-07-29)
 

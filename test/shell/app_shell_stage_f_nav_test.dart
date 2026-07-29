@@ -5,6 +5,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _comparisonScale = 1.0925;
+const _stageGNavHeight = 101 / _comparisonScale;
+const _stageGScanRasterCorrection = 7 / _comparisonScale;
 
 Widget _app({
   required int currentIndex,
@@ -105,17 +107,44 @@ void main() {
           final navRow = tester.getRect(
             find.byKey(const Key('nav-items-row')),
           );
+          final nav = tester.getRect(
+            find.byKey(const Key('today-bottom-nav')),
+          );
+          final scanBranch = tester.getRect(
+            find.byKey(const Key('scan-branch')),
+          );
           final outer = tester.getRect(
             find.byKey(const Key('scan-fab-outer')),
           );
           expect(outer.top, lessThan(navRow.top));
+          expect(
+            scanBranch.top - nav.top,
+            closeTo(
+              (14 - 28) / _comparisonScale + _stageGScanRasterCorrection,
+              0.01,
+            ),
+            reason: 'Stage G measured raster correction keeps the Scan branch '
+                'at the nav-relative target after the nav-height shift',
+          );
+          final outerDecoration = tester
+              .widget<Container>(find.byKey(const Key('scan-fab-outer')))
+              .decoration! as BoxDecoration;
+          expect(outerDecoration.boxShadow, hasLength(2));
+          expect(
+            outerDecoration.boxShadow![0].offset.dy,
+            closeTo(8 / _comparisonScale, 0.01),
+          );
+          expect(
+            outerDecoration.boxShadow![1].offset.dy,
+            closeTo(2 / _comparisonScale, 0.01),
+          );
           final navElement = tester.element(
             find.byType(CalorixBottomNav),
           );
           final safeBottom = MediaQuery.viewPaddingOf(navElement).bottom;
           expect(
             tester.getSize(find.byKey(const Key('today-bottom-nav'))).height,
-            closeTo(98 / _comparisonScale + safeBottom, 0.01),
+            closeTo(_stageGNavHeight + safeBottom, 0.01),
           );
         },
       );
