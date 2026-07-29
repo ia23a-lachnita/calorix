@@ -7,16 +7,19 @@ import '../../core/constants/app_constants.dart';
 import '../../core/router/route_names.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/time/clock_provider.dart';
 import '../../shared/models/ai_chat_thread.dart';
 import '../../shared/providers/auth_provider.dart';
 import 'providers/ai_chat_providers.dart';
+
+/// Vertical offset so the FAB clears the production CalorixBottomNav by ≥ 8 px.
+const double kFabAboveBottomNav = 8;
 
 /// Maps wire categories to human-readable filter labels shown in the UI.
 const _filterLabels = <AiChatThreadCategory, String>{
   AiChatThreadCategory.goals: 'Plan',
   AiChatThreadCategory.meals: 'Meal edits',
   AiChatThreadCategory.scans: 'Nutrition',
-  AiChatThreadCategory.general: 'Chat',
 };
 
 /// Maps wire categories to uppercase tag labels used in thread row chips.
@@ -141,6 +144,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final threads = ref.watch(aiThreadsProvider);
+    final clockAnchor = ref.watch(clockProvider).nowTZ();
     final ink = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final muted =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
@@ -151,219 +155,250 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            // ---- Compact header ----
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 4, 16, 2),
-              child: Row(
-                children: [
-                  IconButton(
-                    key: const ValueKey('ai-history-back'),
-                    tooltip: 'Back',
-                    onPressed: context.pop,
-                    icon: const Icon(Icons.chevron_left),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Chats',
-                      style: AppTextStyles.heading1.copyWith(color: ink),
-                    ),
-                  ),
-                  threads.maybeWhen(
-                    data: (items) => _CountChip(count: items.length),
-                    orElse: () => const SizedBox.shrink(),
-                  ),
-                ],
-              ),
-            ),
-            // ---- Subtitle ----
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Every conversation with ${AppConstants.appDisplayName} AI.',
-                  style: AppTextStyles.bodySmall.copyWith(color: muted),
-                ),
-              ),
-            ),
-            // ---- Search bar ----
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                key: const ValueKey('ai-history-search'),
-                controller: _searchController,
-                onChanged: (v) => setState(() => _searchQuery = v.trim()),
-                style: AppTextStyles.bodyMedium.copyWith(color: ink),
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  hintStyle: AppTextStyles.bodyMedium.copyWith(color: muted),
-                  prefixIcon: Icon(Icons.search, color: muted, size: 20),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(Icons.close, color: muted, size: 18),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() => _searchQuery = '');
-                          },
-                        )
-                      : null,
-                  filled: true,
-                  fillColor: chipBg,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            // ---- Category filter chips ----
-            SizedBox(
-              height: 30,
-              child: ListView(
-                key: const ValueKey('ai-history-filters'),
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _FilterChip(
-                    label: 'All',
-                    selected: _activeFilter == null,
-                    ink: ink,
-                    chipBg: chipBg,
-                    chipBorder: chipBorder,
-                    onTap: () => setState(() => _activeFilter = null),
-                  ),
-                  const SizedBox(width: 8),
-                  for (final cat in AiChatThreadCategory.values)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _FilterChip(
-                        label: _filterLabels[cat]!,
-                        selected: _activeFilter == cat,
-                        ink: ink,
-                        chipBg: chipBg,
-                        chipBorder: chipBorder,
-                        onTap: () => setState(() => _activeFilter = cat),
+            Column(
+              children: [
+                // ---- Row 1: Back · APPNAME AI brand · Settings ----
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        key: const ValueKey('ai-history-back'),
+                        tooltip: 'Back',
+                        onPressed: context.pop,
+                        icon: const Icon(Icons.chevron_left),
                       ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 4),
-            // ---- Thread list ----
-            Expanded(
-              child: threads.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => _HistoryError(
-                  onRetry: () => ref.invalidate(aiThreadsProvider),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            '${AppConstants.appDisplayName.toUpperCase()} AI',
+                            style: AppTextStyles.labelMono.copyWith(
+                              color: muted,
+                              letterSpacing: 1.6,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        key: const ValueKey('ai-history-settings'),
+                        tooltip: 'Settings',
+                        onPressed: () => context.pushNamed(RouteNames.profile),
+                        icon: Icon(
+                          Icons.tune,
+                          color: muted,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                data: (items) {
-                  if (items.isEmpty) return const _EmptyHistory();
-                  final filtered = _filterThreads(items);
-                  if (filtered.isEmpty) {
-                    return _FilteredEmptyState(
-                      query: _searchQuery,
-                      filter: _activeFilter,
-                    );
-                  }
-                  // Derive the date anchor from the complete snapshot so
-                  // filtering/searching never relabels old threads as Today.
-                  final dateAnchor = items.fold<DateTime>(
-                    items.first.updatedAt,
-                    (latest, t) =>
-                        t.updatedAt.isAfter(latest) ? t.updatedAt : latest,
-                  );
-                  final groups = _groupByDate(filtered, dateAnchor: dateAnchor);
-                  return ListView.builder(
-                    key: const ValueKey('ai-history-list'),
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-                    itemCount: groups.fold<int>(
-                      0,
-                      (sum, g) => sum + 1 + g.threads.length,
+                // ---- Row 2: Chats + thread count badge ----
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 2),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Chats',
+                          style: AppTextStyles.heading1.copyWith(color: ink),
+                        ),
+                      ),
+                      threads.maybeWhen(
+                        data: (items) => _CountChip(count: items.length),
+                        orElse: () => const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
+                ),
+                // ---- Subtitle ----
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Every conversation with ${AppConstants.appDisplayName} AI, including any plan or meal edits it made.',
+                      style: AppTextStyles.bodySmall.copyWith(color: muted),
                     ),
-                    itemBuilder: (context, index) {
-                      int cursor = 0;
-                      for (final group in groups) {
-                        if (index == cursor) {
-                          return _DateGroupHeader(
-                              label: group.label, muted: muted);
-                        }
-                        cursor++;
-                        for (final thread in group.threads) {
-                          if (index == cursor) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Dismissible(
-                                key: ValueKey('ai-thread-${thread.id}'),
-                                direction: DismissDirection.endToStart,
-                                confirmDismiss: (_) => _confirmDelete(context),
-                                onDismissed: (_) {
-                                  final uid = ref.read(currentUidProvider);
-                                  if (uid != null) {
-                                    ref
-                                        .read(aiThreadRepositoryProvider)
-                                        .deleteThread(uid, thread.id);
-                                  }
-                                },
-                                background: Container(
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20),
-                                  color: Theme.of(context).colorScheme.error,
-                                  child: const Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.white,
+                  ),
+                ),
+                // ---- Search bar ----
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextField(
+                    key: const ValueKey('ai-history-search'),
+                    controller: _searchController,
+                    onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                    style: AppTextStyles.bodyMedium.copyWith(color: ink),
+                    decoration: InputDecoration(
+                      hintText: 'Search chats and meal edits…',
+                      hintStyle:
+                          AppTextStyles.bodyMedium.copyWith(color: muted),
+                      prefixIcon: Icon(Icons.search, color: muted, size: 20),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.close, color: muted, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            )
+                          : Padding(
+                              key: const ValueKey('ai-history-search-kbd'),
+                              padding: const EdgeInsets.only(right: 10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: chipBg,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: chipBorder,
+                                    width: 0.5,
                                   ),
                                 ),
-                                child: _ThreadRow(
-                                  thread: thread,
-                                  onTap: () => context.goNamed(
-                                    RouteNames.aiChat,
-                                    queryParameters: {
-                                      'threadId': thread.id,
-                                    },
+                                child: Text(
+                                  '⌘K',
+                                  style: AppTextStyles.labelMono.copyWith(
+                                    color: muted,
+                                    fontSize: 9,
                                   ),
                                 ),
                               ),
-                            );
-                          }
-                          cursor++;
-                        }
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  );
-                },
-              ),
-            ),
-            // ---- Privacy footer ----
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: chipBg,
-                border: Border(
-                  top: BorderSide(color: chipBorder, width: 0.5),
+                            ),
+                      filled: true,
+                      fillColor: chipBg,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              child: Text(
-                'STORED LOCALLY · NEVER SHARED',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.labelMono.copyWith(color: muted),
+                const SizedBox(height: 8),
+                // ---- Category filter chips with live counts ----
+                _FilterChipRow(
+                  activeFilter: _activeFilter,
+                  threads: threads,
+                  ink: ink,
+                  chipBg: chipBg,
+                  chipBorder: chipBorder,
+                  onTap: (cat) => setState(() => _activeFilter = cat),
+                ),
+                const SizedBox(height: 4),
+                // ---- Thread list ----
+                Expanded(
+                  child: threads.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => _HistoryError(
+                      onRetry: () => ref.invalidate(aiThreadsProvider),
+                    ),
+                    data: (items) {
+                      if (items.isEmpty) return const _EmptyHistory();
+                      final filtered = _filterThreads(items);
+                      if (filtered.isEmpty) {
+                        return _FilteredEmptyState(
+                          query: _searchQuery,
+                          filter: _activeFilter,
+                        );
+                      }
+                      final dateAnchor = items.fold<DateTime>(
+                        items.first.updatedAt,
+                        (latest, t) =>
+                            t.updatedAt.isAfter(latest) ? t.updatedAt : latest,
+                      );
+                      final groups =
+                          _groupByDate(filtered, dateAnchor: dateAnchor);
+                      return ListView.builder(
+                        key: const ValueKey('ai-history-list'),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                        itemCount: groups.fold<int>(
+                              0,
+                              (sum, g) => sum + 1 + g.threads.length,
+                            ) +
+                            1, // +1 for privacy footer
+                        itemBuilder: (context, index) {
+                          int cursor = 0;
+                          for (final group in groups) {
+                            if (index == cursor) {
+                              return _DateGroupHeader(
+                                  label: group.label, muted: muted);
+                            }
+                            cursor++;
+                            for (final thread in group.threads) {
+                              if (index == cursor) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Dismissible(
+                                    key: ValueKey('ai-thread-${thread.id}'),
+                                    direction: DismissDirection.endToStart,
+                                    confirmDismiss: (_) =>
+                                        _confirmDelete(context),
+                                    onDismissed: (_) {
+                                      final uid = ref.read(currentUidProvider);
+                                      if (uid != null) {
+                                        ref
+                                            .read(aiThreadRepositoryProvider)
+                                            .deleteThread(uid, thread.id);
+                                      }
+                                    },
+                                    background: Container(
+                                      alignment: Alignment.centerRight,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20),
+                                      color:
+                                          Theme.of(context).colorScheme.error,
+                                      child: const Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    child: _ThreadRow(
+                                      thread: thread,
+                                      anchor: clockAnchor,
+                                      onTap: () => context.goNamed(
+                                        RouteNames.aiChat,
+                                        queryParameters: {
+                                          'threadId': thread.id,
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              cursor++;
+                            }
+                          }
+                          // Privacy footer as last item in scroll list
+                          return _PrivacyFooter(
+                              muted: muted,
+                              chipBg: chipBg,
+                              chipBorder: chipBorder);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            // ---- New chat FAB positioned above outer nav ----
+            Positioned(
+              right: 16,
+              bottom: kFabAboveBottomNav,
+              child: FloatingActionButton.extended(
+                key: const ValueKey('ai-new-chat'),
+                onPressed: () => context.goNamed(RouteNames.aiChat),
+                icon: const Icon(Icons.add),
+                label: const Text('New chat'),
               ),
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const ValueKey('ai-new-chat'),
-        onPressed: () => context.goNamed(RouteNames.aiChat),
-        icon: const Icon(Icons.add),
-        label: const Text('New chat'),
       ),
     );
   }
@@ -398,9 +433,90 @@ class _CountChip extends StatelessWidget {
       );
 }
 
+class _FilterChipRow extends StatelessWidget {
+  const _FilterChipRow({
+    required this.activeFilter,
+    required this.threads,
+    required this.ink,
+    required this.chipBg,
+    required this.chipBorder,
+    required this.onTap,
+  });
+
+  final AiChatThreadCategory? activeFilter;
+  final AsyncValue<List<AiChatThread>> threads;
+  final Color ink;
+  final Color chipBg;
+  final Color chipBorder;
+  final ValueChanged<AiChatThreadCategory?> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = threads.valueOrNull ?? [];
+    final totalCount = items.length;
+    final goalsCount =
+        items.where((t) => t.category == AiChatThreadCategory.goals).length;
+    final mealsCount =
+        items.where((t) => t.category == AiChatThreadCategory.meals).length;
+    final scansCount =
+        items.where((t) => t.category == AiChatThreadCategory.scans).length;
+
+    return SizedBox(
+      height: 32,
+      child: ListView(
+        key: const ValueKey('ai-history-filters'),
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          _FilterChip(
+            label: 'All',
+            count: totalCount,
+            selected: activeFilter == null,
+            ink: ink,
+            chipBg: chipBg,
+            chipBorder: chipBorder,
+            onTap: () => onTap(null),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Plan',
+            count: goalsCount,
+            selected: activeFilter == AiChatThreadCategory.goals,
+            ink: ink,
+            chipBg: chipBg,
+            chipBorder: chipBorder,
+            onTap: () => onTap(AiChatThreadCategory.goals),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Meal edits',
+            count: mealsCount,
+            selected: activeFilter == AiChatThreadCategory.meals,
+            ink: ink,
+            chipBg: chipBg,
+            chipBorder: chipBorder,
+            onTap: () => onTap(AiChatThreadCategory.meals),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Nutrition',
+            count: scansCount,
+            selected: activeFilter == AiChatThreadCategory.scans,
+            ink: ink,
+            chipBg: chipBg,
+            chipBorder: chipBorder,
+            onTap: () => onTap(AiChatThreadCategory.scans),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FilterChip extends StatelessWidget {
   const _FilterChip({
     required this.label,
+    required this.count,
     required this.selected,
     required this.ink,
     required this.chipBg,
@@ -409,6 +525,7 @@ class _FilterChip extends StatelessWidget {
   });
 
   final String label;
+  final int count;
   final bool selected;
   final Color ink;
   final Color chipBg;
@@ -432,14 +549,29 @@ class _FilterChip extends StatelessWidget {
               width: selected ? 1 : 0.5,
             ),
           ),
-          child: Text(
-            label,
-            style: AppTextStyles.labelLarge.copyWith(
-              color: selected ? AppColors.cyan : ink,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: selected ? AppColors.cyan : ink,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '$count',
+                style: AppTextStyles.labelMono.copyWith(
+                  color: selected ? AppColors.cyan : muted,
+                  fontSize: 9,
+                ),
+              ),
+            ],
           ),
         ),
       );
+
+  Color get muted => AppColors.textSecondaryDark;
 }
 
 class _DateGroupHeader extends StatelessWidget {
@@ -450,12 +582,17 @@ class _DateGroupHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(top: 10, bottom: 4),
-        child: Text(
-          label,
-          style: AppTextStyles.labelLarge.copyWith(
-            color: muted,
-            letterSpacing: 0.4,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: AppTextStyles.labelLarge.copyWith(
+                color: muted,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
         ),
       );
 }
@@ -463,10 +600,12 @@ class _DateGroupHeader extends StatelessWidget {
 class _ThreadRow extends StatelessWidget {
   const _ThreadRow({
     required this.thread,
+    required this.anchor,
     required this.onTap,
   });
 
   final AiChatThread thread;
+  final DateTime anchor;
   final VoidCallback onTap;
 
   Color _tagColor(AiChatThreadCategory cat, bool isDark) => switch (cat) {
@@ -477,19 +616,33 @@ class _ThreadRow extends StatelessWidget {
           isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
       };
 
+  String _relativeTimestamp(DateTime dt, DateTime anchor) {
+    final todayStart = anchor.isUtc
+        ? DateTime.utc(anchor.year, anchor.month, anchor.day)
+        : DateTime(anchor.year, anchor.month, anchor.day);
+    final yesterdayStart = todayStart.subtract(const Duration(days: 1));
+
+    if (!dt.isBefore(todayStart)) {
+      return DateFormat('HH:mm').format(dt);
+    } else if (!dt.isBefore(yesterdayStart)) {
+      return 'Yesterday';
+    } else {
+      return DateFormat('MMM d').format(dt);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final ink = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final muted =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
-    final date = DateFormat('MMM d · h:mm a').format(thread.updatedAt);
     final tagColor = _tagColor(thread.category, isDark);
 
     return Material(
       color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         side: BorderSide(
           width: 0.5,
           color: isDark ? AppColors.borderDark : AppColors.borderLight,
@@ -497,38 +650,41 @@ class _ThreadRow extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.all(12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // ---- 42×42 avatar ----
               Container(
-                width: 32,
-                height: 32,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
                   color: tagColor.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.auto_awesome, color: tagColor, size: 16),
+                child: Icon(Icons.auto_awesome, color: tagColor, size: 20),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
+              // ---- Text block ----
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Title + unread dot + timestamp row
                     Row(
                       children: [
-                        Flexible(
+                        Expanded(
                           child: Text(
                             thread.title?.trim().isNotEmpty == true
                                 ? thread.title!
                                 : 'Untitled conversation',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style:
-                                AppTextStyles.labelLarge.copyWith(color: ink),
+                            style: AppTextStyles.labelLarge
+                                .copyWith(color: ink, fontSize: 14),
                           ),
                         ),
                         if (thread.unread) ...[
@@ -542,18 +698,27 @@ class _ThreadRow extends StatelessWidget {
                             ),
                           ),
                         ],
+                        const SizedBox(width: 8),
+                        Text(
+                          _relativeTimestamp(thread.updatedAt, anchor),
+                          style: AppTextStyles.labelMono
+                              .copyWith(color: muted, fontSize: 10),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
+                    // Two-line clamped preview
                     Text(
                       thread.preview?.trim().isNotEmpty == true
                           ? thread.preview!
                           : 'Open conversation',
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bodySmall.copyWith(color: muted),
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: muted, height: 1.3),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
+                    // Tag chips + chevron
                     Row(
                       children: [
                         _TagChip(
@@ -575,9 +740,10 @@ class _ThreadRow extends StatelessWidget {
                           ),
                         ],
                         const Spacer(),
-                        Text(
-                          date,
-                          style: AppTextStyles.labelMono.copyWith(color: muted),
+                        Icon(
+                          Icons.chevron_right,
+                          size: 18,
+                          color: muted,
                         ),
                       ],
                     ),
@@ -610,6 +776,28 @@ class _TagChip extends StatelessWidget {
             color: color,
             fontSize: 8,
           ),
+        ),
+      );
+}
+
+class _PrivacyFooter extends StatelessWidget {
+  const _PrivacyFooter({
+    required this.muted,
+    required this.chipBg,
+    required this.chipBorder,
+  });
+
+  final Color muted;
+  final Color chipBg;
+  final Color chipBorder;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Text(
+          'STORED LOCALLY · NEVER SHARED',
+          textAlign: TextAlign.center,
+          style: AppTextStyles.labelMono.copyWith(color: muted),
         ),
       );
 }

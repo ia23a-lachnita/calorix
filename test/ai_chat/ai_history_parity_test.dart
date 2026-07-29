@@ -203,7 +203,7 @@ void main() {
     });
 
     testWidgets(
-        'renders category filter chips: All, Plan, Meal edits, Nutrition, Chat',
+        'renders category filter chips: All, Plan, Meal edits, Nutrition',
         (tester) async {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
@@ -212,7 +212,8 @@ void main() {
       expect(find.text('Plan'), findsOneWidget);
       expect(find.text('Meal edits'), findsOneWidget);
       expect(find.text('Nutrition'), findsOneWidget);
-      expect(find.text('Chat'), findsOneWidget);
+      // No standalone "Chat" filter chip — general threads show under "All"
+      expect(find.byKey(const ValueKey('ai-filter-Chat')), findsNothing);
     });
 
     testWidgets('shows Pinned section with pinned thread', (tester) async {
@@ -237,7 +238,9 @@ void main() {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
 
-      expect(find.text('Yesterday'), findsOneWidget);
+      // "Yesterday" appears as both the date group header and as relative
+      // timestamps on yesterday's threads (relative to DateTime.now).
+      expect(find.text('Yesterday'), findsWidgets);
     });
 
     testWidgets('shows Earlier date group', (tester) async {
@@ -254,6 +257,12 @@ void main() {
 
       expect(find.text('PLAN'), findsWidgets);
       expect(find.text('MEAL'), findsWidgets);
+      // SCAN may be below the fold with the new taller row density
+      // Scroll to find it if needed
+      final scanFinder = find.text('SCAN');
+      if (scanFinder.evaluate().isEmpty) {
+        await _scrollToVisible(tester, scanFinder);
+      }
       expect(find.text('SCAN'), findsWidgets);
     });
 
@@ -269,10 +278,10 @@ void main() {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
 
-      expect(
-        find.textContaining('STORED LOCALLY'),
-        findsOneWidget,
-      );
+      // Footer is now inside the scrollable list — scroll to find it
+      final footer = find.textContaining('STORED LOCALLY');
+      await _scrollToVisible(tester, footer);
+      expect(footer, findsOneWidget);
     });
 
     testWidgets('renders New chat FAB', (tester) async {
@@ -339,17 +348,20 @@ void main() {
       expect(find.text('Macro plan for 5×/week training'), findsNothing);
     });
 
-    testWidgets('tapping Chat filter shows only general-category threads',
+    testWidgets(
+        'general-category threads are visible under All filter (no Chat chip)',
         (tester) async {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const ValueKey('ai-filter-Chat')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Travel day prep'), findsOneWidget);
-      expect(find.text('Chicken Rice Bowl — wrong scan'), findsNothing);
-      expect(find.text('Macro plan for 5×/week training'), findsNothing);
+      // "All" is the default — general threads should be in the list.
+      // With the new taller row density, "Travel day prep" may be below
+      // the fold; scroll to verify it exists.
+      final generalThread = find.text('Travel day prep');
+      await _scrollToVisible(tester, generalThread);
+      expect(generalThread, findsOneWidget);
+      // No standalone Chat filter chip
+      expect(find.byKey(const ValueKey('ai-filter-Chat')), findsNothing);
     });
 
     testWidgets('tapping All after a filter restores every thread',
@@ -485,7 +497,7 @@ void main() {
 
       // beforeMidnight (23:59 UTC Jul 28) must appear under "Yesterday".
       expect(find.text('Thread before UTC midnight'), findsOneWidget);
-      expect(find.text('Yesterday'), findsOneWidget);
+      expect(find.text('Yesterday'), findsWidgets);
     });
 
     testWidgets('local-anchored threads still group against local midnight',
@@ -532,8 +544,9 @@ void main() {
       expect(find.text('Today'), findsWidgets);
 
       // Before-midnight thread must be "Yesterday" relative to the local anchor.
+      // "Yesterday" appears as both the group header and relative timestamp.
       expect(find.text('Local before midnight'), findsOneWidget);
-      expect(find.text('Yesterday'), findsOneWidget);
+      expect(find.text('Yesterday'), findsWidgets);
     });
   });
 

@@ -93,6 +93,18 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Antigravity review conversation `calorix-task17-ai-history-parity-20260728`: explicit `gemini-3.6-flash`, `gemini-3.1-pro`, `gemini-3.5-flash` selections failed because MCP omitted required effort; configured-default call timed out 300s. MCP-compatible `gemini-3.6-flash-high` alias then returned agree/no `MUST_FIX`, one UTC `SHOULD_FIX`; after adoption confirmation returned `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. First successful response duplicated its summary and concatenated headings; record as response-format noise, no repo mutation.
 - Next exact action: commit/push checkpoint, build/install fresh debug APK on explicit physical `R58R61161NA`, recapture `ai_history` dark/light from the production fixture, validate artifacts, run broad/region/target ui-diff, inspect results, then iterate or proceed to profile IA.
 
+### Task 17 AI-history visual-parity repair checkpoint (2026-07-29)
+
+- Prior committed checkpoint `1128c89` had fresh physical ai_history dark/light captures on `R58R61161NA` and deterministic run `run-1785306294329-07d796`; those exposed collapsed header, hidden FAB, compressed rows, fixed footer, missing settings, wrong filters.
+- This checkpoint repair rebuilds canonical two-row header, settings/profile navigation, exact search hint/keyboard badge, four live-count filters (All/Plan/Meal edits/Nutrition; general only under All), ~104px rich rows, privacy footer inside scroll content, and New chat above real nav.
+- False-green standalone FAB test was replaced with actual `CalorixBottomNav` topology and dark/light rectangle gap assertion; RED at 0 gap, GREEN at named 8px gap.
+- Direct `DateTime.now` regression found by full suite and replaced with injected `clockProvider.nowTZ` passed to rows; focused FakeClock coverage added.
+- Worker routing: OpenCode stalled three times at host windows (~904s, ~364s, and prior ~904s from this repair); the final narrow OpenCode calls succeeded (~301s and ~353s). Claude Code fallback remains blocked by exact message `You've hit your monthly spend limit` after 20.6s. No host application-code edits.
+- Verification: focused production/capture/history 140/140; `fvm flutter analyze` clean; full `fvm flutter test` 549 passed plus 1 existing intentional skip.
+- Post-review: Antigravity conversation `calorix-task17-ai-history-parity-20260728`, `gemini-3.6-flash-high`. First response was substantively green but concatenated headings (record as response-format noise). Clean confirmation: `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. No mutation.
+- Next: recapture ai_history dark/light via physical-device capture script, inspect both, rerun deterministic ui-diff against canonical handoff, then iterate or run full VLM gate when structurally close.
+- Task 17 remains in progress. Do not claim visual parity before fresh physical evidence.
+
 ## Toolchain Health (Task 0)
 
 - `fvm flutter pub get`: succeeded; 82 newer incompatible package notices; no lockfile change.
