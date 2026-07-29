@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -59,6 +58,23 @@ class CalorixBottomNav extends StatelessWidget {
   final bool isDark;
   final bool floating;
 
+  static const _comparisonScale = 1.0925;
+  static const _navTopPadding = 14 / _comparisonScale;
+  static const _navRowHeight = 48.0;
+  static const _navHeight = 98 / _comparisonScale;
+  static const _navBottomPadding = 36 / _comparisonScale;
+  static const _scanOuterSize = 60 / _comparisonScale;
+  static const _scanInnerSize = 48 / _comparisonScale;
+  static const _scanGlowSize = 76 / _comparisonScale;
+  static const _scanMarginTop = 28 / _comparisonScale;
+  static const _scanGlowOffset = 6 / _comparisonScale;
+  static const _scanHitTargetSize = 60.0;
+  static const _scanLabelSize = 9.5 / _comparisonScale;
+  static const _scanLabelLetterSpacing = 9.5 * 0.17 / _comparisonScale;
+  static const _navIconSize = 22 / _comparisonScale;
+  static const _navLabelSize = 10.5 / _comparisonScale;
+  static const _navLabelLetterSpacing = 0.21 / _comparisonScale;
+
   static const _items = [
     _NavItem(icon: _NavIconType.today, label: 'Today', key: 'nav-item-today'),
     _NavItem(
@@ -68,7 +84,6 @@ class CalorixBottomNav extends StatelessWidget {
     _NavItem(icon: _NavIconType.ai, label: 'AI', key: 'nav-item-ai'),
   ];
 
-  // Scan uses same geometry with translucent camera material.
   @override
   Widget build(BuildContext context) {
     final activeColor =
@@ -80,8 +95,9 @@ class CalorixBottomNav extends StatelessWidget {
         : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight);
 
     final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
-    final bottomZone = math.max(36.0, bottomInset + 26.0);
-    final totalHeight = 14.0 + 48.0 + bottomZone;
+    final safeAreaExtension =
+        bottomInset > 0 ? bottomInset + 36.0 - _navBottomPadding : 0.0;
+    final totalHeight = _navHeight + safeAreaExtension;
 
     final backdropColor = floating
         ? (isDark
@@ -103,6 +119,7 @@ class CalorixBottomNav extends StatelessWidget {
         key: const Key('today-bottom-nav'),
         height: totalHeight,
         child: Stack(
+          key: const Key('today-bottom-nav-stack'),
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(
@@ -138,13 +155,20 @@ class CalorixBottomNav extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 14,
+              key: const Key('nav-items-row-position'),
+              top: _navTopPadding,
               left: 6,
               right: 6,
-              height: 48,
+              height: _navRowHeight,
               child: Row(
+                key: const Key('nav-items-row'),
                 children: List.generate(_items.length, (index) {
                   final item = _items[index];
+                  if (item.icon == _NavIconType.scan) {
+                    return const Expanded(
+                      child: SizedBox(key: Key('nav-item-scan-placeholder')),
+                    );
+                  }
                   final isActive = currentIndex == index;
                   return Expanded(
                     child: _NavButton(
@@ -158,6 +182,30 @@ class CalorixBottomNav extends StatelessWidget {
                     ),
                   );
                 }),
+              ),
+            ),
+            Positioned(
+              key: const Key('scan-branch'),
+              top: _navTopPadding - _scanMarginTop,
+              left: 0,
+              right: 0,
+              height: _scanOuterSize + 32,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: _ScanNavButton(
+                  isActive: currentIndex == 2,
+                  isDark: isDark,
+                  activeColor: activeColor,
+                  inactiveColor: inactiveColor,
+                  onTap: () => onTap(2),
+                  outerSize: _scanOuterSize,
+                  innerSize: _scanInnerSize,
+                  glowSize: _scanGlowSize,
+                  glowOffset: _scanGlowOffset,
+                  labelSize: _scanLabelSize,
+                  labelLetterSpacing: _scanLabelLetterSpacing,
+                  hitTargetSize: _scanHitTargetSize,
+                ),
               ),
             ),
           ],
@@ -195,36 +243,217 @@ class _NavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isActive ? activeColor : inactiveColor;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _CalorixNavIcon(
-            type: icon,
-            color: color,
-            strokeWidth: isActive ? 2.0 : 1.6,
+    return Semantics(
+      container: true,
+      button: true,
+      label: label,
+      child: SizedBox.expand(
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _CalorixNavIcon(
+                type: icon,
+                color: color,
+                dimension: CalorixBottomNav._navIconSize,
+                strokeWidth: isActive ? 2.0 : 1.6,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: AppTextStyles.labelSmall.copyWith(
+                  fontSize: CalorixBottomNav._navLabelSize,
+                  letterSpacing: CalorixBottomNav._navLabelLetterSpacing,
+                  color: color,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Opacity(
+                opacity: isActive ? 1.0 : 0.0,
+                child: Container(
+                  width: 4 / CalorixBottomNav._comparisonScale,
+                  height: 4 / CalorixBottomNav._comparisonScale,
+                  decoration: const BoxDecoration(
+                    color: AppColors.cyan,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: color,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-              height: 1.2,
+        ),
+      ),
+    );
+  }
+}
+
+class _ScanNavButton extends StatelessWidget {
+  const _ScanNavButton({
+    required this.isActive,
+    required this.isDark,
+    required this.activeColor,
+    required this.inactiveColor,
+    required this.onTap,
+    required this.outerSize,
+    required this.innerSize,
+    required this.glowSize,
+    required this.glowOffset,
+    required this.labelSize,
+    required this.labelLetterSpacing,
+    required this.hitTargetSize,
+  });
+
+  final bool isActive;
+  final bool isDark;
+  final Color activeColor;
+  final Color inactiveColor;
+  final VoidCallback onTap;
+  final double outerSize;
+  final double innerSize;
+  final double glowSize;
+  final double glowOffset;
+  final double labelSize;
+  final double labelLetterSpacing;
+  final double hitTargetSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final labelColor = isActive ? activeColor : inactiveColor;
+    return SizedBox(
+      width: hitTargetSize,
+      height: outerSize + 32,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topCenter,
+        children: [
+          Positioned(
+            key: const Key('scan-glow'),
+            top: -glowOffset,
+            width: glowSize,
+            height: glowSize,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.cyan.withValues(alpha: 0.35),
+                      AppColors.blue.withValues(alpha: 0.05),
+                      Colors.transparent,
+                    ],
+                    stops: const [0, 0.6, 0.75],
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x3319D3D9),
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 2),
-          Opacity(
-            opacity: isActive ? 1.0 : 0.0,
-            child: Container(
-              width: 4,
-              height: 4,
-              decoration: const BoxDecoration(
-                color: AppColors.cyan,
-                shape: BoxShape.circle,
+          Semantics(
+            label: 'Scan',
+            button: true,
+            child: GestureDetector(
+              key: const Key('nav-item-scan'),
+              onTap: onTap,
+              behavior: HitTestBehavior.opaque,
+              child: SizedBox(
+                key: const Key('scan-hit-target'),
+                width: hitTargetSize,
+                height: hitTargetSize,
+                child: Center(
+                  child: Container(
+                    key: const Key('scan-fab-outer'),
+                    width: outerSize,
+                    height: outerSize,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: AppColors.brandGradient,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x5919D3D9),
+                          blurRadius: 24,
+                          offset: Offset(0, 8),
+                        ),
+                        BoxShadow(
+                          color: Color(0x4D3A5BFF),
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Container(
+                        key: const Key('scan-fab-inner'),
+                        width: innerSize,
+                        height: innerSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isDark
+                              ? const Color(0xD9080C10)
+                              : const Color(0xEBFFFFFF),
+                        ),
+                        child: Center(
+                          child: _CalorixNavIcon(
+                            type: _NavIconType.scan,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                            dimension: 24 / CalorixBottomNav._comparisonScale,
+                            strokeWidth: 1.6,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
+            ),
+          ),
+          Positioned(
+            key: const Key('scan-label-block'),
+            top: outerSize + 20,
+            left: -20,
+            right: -20,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'SCAN',
+                  key: const Key('scan-label'),
+                  style: AppTextStyles.labelMono.copyWith(
+                    color: labelColor,
+                    fontSize: labelSize,
+                    letterSpacing: labelLetterSpacing,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                    height: 1,
+                  ),
+                ),
+                if (isActive)
+                  Container(
+                    key: const Key('scan-active-pip'),
+                    width: 4 / CalorixBottomNav._comparisonScale,
+                    height: 4 / CalorixBottomNav._comparisonScale,
+                    margin: const EdgeInsets.only(
+                      top: 4 / CalorixBottomNav._comparisonScale,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: AppColors.green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
@@ -239,23 +468,26 @@ class _CalorixNavIcon extends StatelessWidget {
   const _CalorixNavIcon({
     required this.type,
     required this.color,
+    this.dimension = 22,
     this.strokeWidth = 1.6,
   });
 
   final _NavIconType type;
   final Color color;
+  final double dimension;
   final double strokeWidth;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
       key: Key('nav-icon-${type.name}'),
-      dimension: 22,
+      dimension: dimension,
       child: CustomPaint(
-        size: const Size.square(22),
+        size: Size.square(dimension),
         painter: _CalorixNavIconPainter(
           type: type,
           color: color,
+          dimension: dimension,
           strokeWidth: strokeWidth,
         ),
       ),
@@ -267,11 +499,13 @@ class _CalorixNavIconPainter extends CustomPainter {
   _CalorixNavIconPainter({
     required this.type,
     required this.color,
+    required this.dimension,
     required this.strokeWidth,
   });
 
   final _NavIconType type;
   final Color color;
+  final double dimension;
   final double strokeWidth;
 
   @override
@@ -377,5 +611,8 @@ class _CalorixNavIconPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CalorixNavIconPainter old) =>
-      old.type != type || old.color != color || old.strokeWidth != strokeWidth;
+      old.type != type ||
+      old.color != color ||
+      old.strokeWidth != strokeWidth ||
+      old.dimension != dimension;
 }

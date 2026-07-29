@@ -57,13 +57,13 @@ void main() {
 
     expect(find.text('Today'), findsWidgets);
     expect(find.text('History'), findsOneWidget);
-    expect(find.text('Scan'), findsOneWidget);
+    expect(find.text('SCAN'), findsOneWidget);
     expect(find.text('Goals'), findsOneWidget);
     expect(find.text('AI'), findsOneWidget);
   });
 
   testWidgets(
-      'Five hit-testable nav controls with equal widths (flat five-tab contract)',
+      'Four regular nav controls retain equal widths beside the raised Scan',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -72,16 +72,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final keys = [
+    final regularKeys = [
       'nav-item-today',
       'nav-item-history',
-      'nav-item-scan',
       'nav-item-goals',
       'nav-item-ai',
     ];
 
     final widths = <double>[];
-    for (final key in keys) {
+    for (final key in regularKeys) {
       final finder = find.byKey(Key(key));
       expect(finder, findsOneWidget, reason: 'Missing nav control: $key');
       expect(
@@ -95,10 +94,12 @@ void main() {
     final maxW = widths.reduce((a, b) => a > b ? a : b);
     final minW = widths.reduce((a, b) => a < b ? a : b);
     expect(maxW - minW, lessThanOrEqualTo(1.0),
-        reason: 'All five nav tabs must have equal widths (max-min <= 1px)');
+        reason: 'Regular nav tabs must have equal widths (max-min <= 1px)');
+    expect(
+        find.byKey(const Key('nav-item-scan')).hitTestable(), findsOneWidget);
   });
 
-  testWidgets('nav-item-scan is present and hit-testable as a normal tab',
+  testWidgets('nav-item-scan is present and hit-testable as the raised branch',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -112,7 +113,7 @@ void main() {
     expect(scanTab.hitTestable(), findsOneWidget);
   });
 
-  testWidgets('Old FAB / glow / ring / protrusion keys are absent',
+  testWidgets('Raised Scan branch exposes its canonical geometry keys',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -121,11 +122,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('scan-fab-column')), findsNothing);
-    expect(find.byKey(const Key('scan-glow')), findsNothing);
-    expect(find.byKey(const Key('scan-fab-outer')), findsNothing);
-    expect(find.byKey(const Key('scan-fab-inner')), findsNothing);
-    expect(find.byKey(const Key('scan-label-block')), findsNothing);
+    expect(find.byKey(const Key('scan-branch')), findsOneWidget);
+    expect(find.byKey(const Key('scan-glow')), findsOneWidget);
+    expect(find.byKey(const Key('scan-fab-outer')), findsOneWidget);
+    expect(find.byKey(const Key('scan-fab-inner')), findsOneWidget);
+    expect(find.byKey(const Key('scan-label-block')), findsOneWidget);
   });
 
   testWidgets('Scaffold extendBody is true across all five branches',
