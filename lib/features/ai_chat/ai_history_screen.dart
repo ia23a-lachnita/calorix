@@ -1141,7 +1141,7 @@ class _ThreadAvatar extends StatelessWidget {
             child: Icon(
               key: ValueKey('ai-thread-avatar-icon-${thread.id}'),
               Icons.auto_awesome,
-              color: pinned ? AppColors.backgroundDark : muted,
+              color: pinned ? AppColors.textPrimaryLight : muted,
               size: pinned
                   ? _kAiHistoryPinnedIconSize
                   : _kAiHistoryNormalIconSize,

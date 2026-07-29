@@ -334,7 +334,7 @@ void main() {
     );
 
     testWidgets(
-      'pinned avatar has opaque LinearGradient [cyan, blue] and backgroundDark icon',
+      'pinned avatar has opaque LinearGradient [cyan, blue] and canonical dark icon',
       (tester) async {
         await tester.pumpWidget(_app(_fixture));
         await tester.pumpAndSettle();
@@ -371,7 +371,7 @@ void main() {
           reason: 'Pinned gradient must be opaque [cyan, blue]',
         );
 
-        // Icon must be backgroundDark (high contrast)
+        // Icon must use the canonical opaque dark foreground (high contrast).
         final icon = find.descendant(
           of: pinnedAvatar,
           matching: find.byIcon(Icons.auto_awesome),
@@ -380,8 +380,8 @@ void main() {
         final iconWidget = icon.evaluate().first.widget as Icon;
         expect(
           iconWidget.color,
-          AppColors.backgroundDark,
-          reason: 'Pinned sparkle icon must use backgroundDark',
+          AppColors.textPrimaryLight,
+          reason: 'Pinned sparkle icon must use the canonical dark foreground',
         );
       },
     );

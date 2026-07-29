@@ -246,7 +246,11 @@ void main() {
               const ValueKey('ai-thread-avatar-icon-ui_diff_fixture_pinned')),
         );
         expect(avatarIcon.size, closeTo(20 / _scale, _tolerance));
-        expect(avatarIcon.color, AppColors.backgroundDark);
+        expect(
+          avatarIcon.color,
+          AppColors.textPrimaryLight,
+          reason: 'Pinned stars must use the canonical opaque dark foreground',
+        );
 
         // Deep rows retain date semantics and linked-meal compatibility.
         await _scrollTo(tester, _tagLabel('yesterday_nutrition'));
