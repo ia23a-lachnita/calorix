@@ -219,13 +219,11 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                       Expanded(
                         child: Text(
                           'Chats',
-                          style:
-                              AppTextStyles.heading1.copyWith(color: ink),
+                          style: AppTextStyles.heading1.copyWith(color: ink),
                         ),
                       ),
                       threads.maybeWhen(
-                        data: (items) =>
-                            _CountChip(count: items.length),
+                        data: (items) => _CountChip(count: items.length),
                         orElse: () => const SizedBox.shrink(),
                       ),
                     ],
@@ -238,8 +236,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Every conversation with ${AppConstants.appDisplayName} AI, including any plan or meal edits it made.',
-                      style:
-                          AppTextStyles.bodySmall.copyWith(color: muted),
+                      style: AppTextStyles.bodySmall.copyWith(color: muted),
                     ),
                   ),
                 ),
@@ -352,7 +349,8 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                           for (final group in groups) {
                             if (index == cursor) {
                               return _DateGroupHeader(
-                                key: ValueKey('ai-history-group-${group.label}'),
+                                key:
+                                    ValueKey('ai-history-group-${group.label}'),
                                 label: group.label,
                                 count: group.threads.length,
                                 muted: muted,
@@ -415,15 +413,69 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                 ),
               ],
             ),
-            // ---- New chat FAB positioned above outer nav ----
+            // ---- Compact New chat button above outer nav ----
             Positioned(
               right: 16,
               bottom: kFabAboveBottomNav,
-              child: FloatingActionButton.extended(
+              child: SizedBox(
                 key: const ValueKey('ai-new-chat'),
-                onPressed: () => context.goNamed(RouteNames.aiChat),
-                icon: const Icon(Icons.add),
-                label: const Text('New chat'),
+                height: 48,
+                child: Tooltip(
+                  message: 'New chat',
+                  child: Semantics(
+                    label: 'New chat',
+                    button: true,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => context.goNamed(RouteNames.aiChat),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: SizedBox(
+                          width: 108,
+                          child: Builder(
+                            builder: (context) {
+                              final cs = Theme.of(context).colorScheme;
+                              return Container(
+                                key: const ValueKey('ai-new-chat-surface'),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: cs.primaryContainer,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.add,
+                                      size: 18,
+                                      color: cs.onPrimaryContainer,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Flexible(
+                                      child: Text(
+                                        'New chat',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.clip,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: cs.onPrimaryContainer,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -577,9 +629,7 @@ class _FilterChip extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
-            color: selected
-                ? AppColors.cyan.withValues(alpha: 0.14)
-                : chipBg,
+            color: selected ? AppColors.cyan.withValues(alpha: 0.14) : chipBg,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
               color: selected
@@ -701,33 +751,50 @@ class _ThreadRow extends StatelessWidget {
     final muted =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     final tagColor = _tagColor(thread.category, isDark);
+    final pinned = thread.pinned;
+
+    // Pinned: cyan-tinted surface + cyan border; Normal: neutral surface.
+    final Color surfaceColor;
+    final Color borderColor;
+    final BorderRadius borderRadius;
+
+    if (pinned) {
+      surfaceColor = isDark
+          ? AppColors.cyan.withValues(alpha: 0.06)
+          : AppColors.cyan.withValues(alpha: 0.04);
+      borderColor = AppColors.cyan.withValues(alpha: 0.32);
+      borderRadius = BorderRadius.circular(12);
+    } else {
+      surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
+      borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
+      borderRadius = BorderRadius.circular(12);
+    }
 
     return Material(
-      color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+      key: ValueKey('ai-thread-surface-${thread.id}'),
+      color: surfaceColor,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: borderRadius,
         side: BorderSide(
-          width: 0.5,
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          width: pinned ? 0.8 : 0.5,
+          color: borderColor,
         ),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: borderRadius,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // ---- 42×42 avatar ----
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: tagColor.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(Icons.auto_awesome, color: tagColor, size: 20),
+              _ThreadAvatar(
+                key: ValueKey('ai-thread-avatar-${thread.id}'),
+                thread: thread,
+                isDark: isDark,
+                tagColor: tagColor,
+                muted: muted,
               ),
               const SizedBox(width: 12),
               // ---- Text block ----
@@ -769,7 +836,7 @@ class _ThreadRow extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 2),
                     // Two-line clamped preview
                     Text(
                       thread.preview?.trim().isNotEmpty == true
@@ -778,9 +845,9 @@ class _ThreadRow extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bodySmall
-                          .copyWith(color: muted, height: 1.3),
+                          .copyWith(color: muted, height: 1.25),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     // Tag chips + chevron
                     Row(
                       children: [
@@ -817,6 +884,84 @@ class _ThreadRow extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Avatar tile: gradient for pinned rows, neutral surface for normal rows,
+/// with a small category-colored status dot at top-right.
+class _ThreadAvatar extends StatelessWidget {
+  const _ThreadAvatar({
+    super.key,
+    required this.thread,
+    required this.isDark,
+    required this.tagColor,
+    required this.muted,
+  });
+
+  final AiChatThread thread;
+  final bool isDark;
+  final Color tagColor;
+  final Color muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final pinned = thread.pinned;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: pinned
+              ? BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.cyan, AppColors.blue],
+                  ),
+                  border: Border.all(
+                    color: AppColors.cyan.withValues(alpha: 0.28),
+                    width: 0.8,
+                  ),
+                )
+              : BoxDecoration(
+                  color: isDark
+                      ? AppColors.surfaceRaisedDark
+                      : AppColors.surfaceRaisedLight,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color:
+                        isDark ? AppColors.borderDark : AppColors.borderLight,
+                    width: 0.5,
+                  ),
+                ),
+          child: Center(
+            child: Icon(
+              Icons.auto_awesome,
+              color: pinned ? AppColors.backgroundDark : muted,
+              size: 18,
+            ),
+          ),
+        ),
+        // Category status dot at top-right (not shown for pinned)
+        if (!pinned)
+          Positioned(
+            top: -1,
+            right: -1,
+            child: Container(
+              key: ValueKey('ai-thread-avatar-status-${thread.id}'),
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: tagColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

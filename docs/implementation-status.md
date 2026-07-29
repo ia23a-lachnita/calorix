@@ -10,7 +10,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**Task 17 is in progress. Plan Steps 1–6 are complete; capture-truth repairs are underway before the Step 7 three-tier diff loop.**
+**Task 17 is in progress. Plan Steps 1–6 are complete; AI-history Stage B implementation is complete and awaiting commit/push before fresh physical captures and the Step 7 three-tier diff loop.**
 
 ### Task 17 deterministic capture-adapter checkpoint (2026-07-28)
 
@@ -115,6 +115,17 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Antigravity conversation `calorix-task17-ai-history-parity-20260728`: first post-review attempt failed before model with exact `Cannot create process, error code: 206`; shorter retry with gemini-3.6-flash-high returned agree/MUST_FIX none/SHOULD_FIX none/QUESTIONS none. Response called key `ai-history-header-row1` while actual is `ai-history-header-row`; record as minor response factual/format noise, no repo mutation.
 - Next Stage B: compact rows/FAB, featured pinned and neutral avatar art, then fresh physical dark/light recapture and deterministic comparison.
 - Task remains in progress; do not claim parity. Preserve existing structure/history and touch no other file.
+
+### Task 17 AI-history Stage B checkpoint (2026-07-29)
+
+- Baseline/current committed HEAD: `3cd9d5e` (Align chat history structure). Stage B changes are uncommitted.
+- Implementation files: `lib/features/ai_chat/ai_history_screen.dart` and new `test/ai_chat/ai_history_stage_b_parity_test.dart`.
+- Behavior: compact 48px outer New chat hit target with 108×~38 visible themed surface and navigation; denser thread rows; pinned card cyan surface/border and cyan-blue avatar; normal neutral avatars and keyed 6×6 category dots.
+- Test strength: exact dark/light fills, gradient colors, border alpha/width, avatar/status-dot geometry, FAB geometry/nav clearance/tap navigation.
+- Verification: Stage B test 21/21; focused AI-history/capture command 178/178; `fvm flutter analyze` clean; full `fvm flutter test` 583 passed + 1 intentional skip.
+- External review conversation `calorix-task17-ai-history-parity-20260728`, Gemini 3.6 Flash (High): `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. Response had minor formatting noise (concatenated headings), no repository mutation.
+- OpenCode history: large Stage B call timed out after 1,204 seconds and left usable partial edits; retained process ended. Bounded follow-up fixed compact FAB overflow and themed colors. Bounded assertion-strengthening follow-up completed; host verified final files and all tests.
+- Next step: commit/push Stage B, fresh physical captures of ai_history dark/light on explicit `R58R61161NA`, visually inspect, rerun deterministic diff against `run-1785309718570-9c3cb4`, then decide whether another correction slice is required. Do not claim visual parity yet.
 
 ## Toolchain Health (Task 0)
 
