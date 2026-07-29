@@ -268,11 +268,12 @@ void main() {
         await tester.pumpWidget(_app(_fixture));
         await tester.pumpAndSettle();
 
-        // Count goals threads: pinned + today_plan + yesterday_nutrition + earlier_plan + earlier_plan2 = 5
+        // Count goals threads: pinned + today_plan + earlier_plan + earlier_plan2 = 4
         final goalsCount = _fixture
             .where((t) => t.category == AiChatThreadCategory.goals)
             .length;
-        expect(find.text('$goalsCount'), findsWidgets);
+        expect(goalsCount, 4);
+        expect(find.text('4'), findsWidgets);
       },
     );
 
@@ -305,17 +306,28 @@ void main() {
     testWidgets(
       'general category is included in All count but has no dedicated chip',
       (tester) async {
-        await tester.pumpWidget(_app(_fixture));
+        // Inject a custom general thread to prove the category is still
+        // supported in product filtering/tagging, without fixture dependency.
+        final customGeneral = AiChatThread(
+          id: 'custom-general-test',
+          uid: 'user-1',
+          title: 'Custom general test',
+          preview: 'Injected general thread.',
+          category: AiChatThreadCategory.general,
+          createdAt: DateTime.utc(2026, 7, 29, 10),
+          updatedAt: DateTime.utc(2026, 7, 29, 10),
+        );
+        await tester.pumpWidget(_app([..._fixture, customGeneral]));
         await tester.pumpAndSettle();
 
-        // general threads exist in fixture
-        final generalCount = _fixture
+        // general thread exists in combined list
+        final generalCount = [..._fixture, customGeneral]
             .where((t) => t.category == AiChatThreadCategory.general)
             .length;
-        expect(generalCount, greaterThanOrEqualTo(1));
+        expect(generalCount, 1);
 
         // All count = total (includes general)
-        expect(find.text('${_fixture.length}'), findsWidgets);
+        expect(find.text('${_fixture.length + 1}'), findsWidgets);
 
         // No Chat chip
         expect(find.byKey(const ValueKey('ai-filter-Chat')), findsNothing);
@@ -325,7 +337,18 @@ void main() {
     testWidgets(
       'tapping All after a category filter restores all threads including general',
       (tester) async {
-        await tester.pumpWidget(_app(_fixture));
+        // Inject a custom general thread to prove it persists across filters.
+        final customGeneral = AiChatThread(
+          id: 'custom-general-filter',
+          uid: 'user-1',
+          title: 'Custom general filter',
+          preview: 'Injected for filter test.',
+          category: AiChatThreadCategory.general,
+          createdAt: DateTime.utc(2026, 7, 29, 10),
+          updatedAt: DateTime.utc(2026, 7, 29, 10),
+        );
+        final allThreads = [..._fixture, customGeneral];
+        await tester.pumpWidget(_app(allThreads));
         await tester.pumpAndSettle();
 
         // Apply Plan filter — only goals threads visible
@@ -333,15 +356,15 @@ void main() {
         await tester.pumpAndSettle();
 
         // general thread should NOT be visible under Plan filter
-        expect(find.text('Travel day prep'), findsNothing);
+        expect(find.text('Custom general filter'), findsNothing);
 
         // Switch to All
         await tester.tap(find.byKey(const ValueKey('ai-filter-All')));
         await tester.pumpAndSettle();
 
         // general thread now visible again under All — may need scrolling
-        await _scrollTo(tester, find.text('Travel day prep'));
-        expect(find.text('Travel day prep'), findsWidgets);
+        await _scrollTo(tester, find.text('Custom general filter'));
+        expect(find.text('Custom general filter'), findsWidgets);
       },
     );
   });

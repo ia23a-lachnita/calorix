@@ -1,4 +1,5 @@
 import 'package:calorix/core/router/route_names.dart';
+import 'package:calorix/core/theme/app_colors.dart';
 import 'package:calorix/core/theme/app_theme.dart';
 import 'package:calorix/debug/ui_diff_fixture.dart';
 import 'package:calorix/features/ai_chat/ai_history_screen.dart';
@@ -144,7 +145,7 @@ void main() {
       expect(ids, contains('ui_diff_fixture_earlier_plan'));
     });
 
-    test('covers every category: meals, goals, scans, general', () {
+    test('covers every captured category: meals, goals, scans (general excluded from fixture)', () {
       final cats = _populatedFixture.map((t) => t.category).toSet();
       expect(
           cats,
@@ -152,8 +153,9 @@ void main() {
             AiChatThreadCategory.meals,
             AiChatThreadCategory.goals,
             AiChatThreadCategory.scans,
-            AiChatThreadCategory.general,
           ]));
+      // General is preserved in the product but not in the fixture
+      expect(cats, isNot(contains(AiChatThreadCategory.general)));
     });
 
     test('includes unread and read threads', () {
@@ -255,14 +257,16 @@ void main() {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
 
+      // PLAN and MEAL tags are visible in the first two groups.
       expect(find.text('PLAN'), findsWidgets);
       expect(find.text('MEAL'), findsWidgets);
-      // SCAN may be below the fold with the new taller row density
-      // Scroll to find it if needed
-      final scanFinder = find.text('SCAN');
-      if (scanFinder.evaluate().isEmpty) {
-        await _scrollToVisible(tester, scanFinder);
-      }
+      // SCAN tags may be below the fold — scroll down to reveal them.
+      final scrollable = find.descendant(
+        of: find.byKey(const ValueKey('ai-history-list')),
+        matching: find.byType(Scrollable),
+      );
+      await tester.drag(scrollable, const Offset(0, -2000));
+      await tester.pumpAndSettle();
       expect(find.text('SCAN'), findsWidgets);
     });
 
@@ -351,13 +355,24 @@ void main() {
     testWidgets(
         'general-category threads are visible under All filter (no Chat chip)',
         (tester) async {
-      await tester.pumpWidget(_app(_populatedFixture));
+      // Inject a custom general thread to prove the category is still
+      // supported in product filtering/tagging, without fixture dependency.
+      final customGeneral = AiChatThread(
+        id: 'custom-general-1',
+        uid: 'user-1',
+        title: 'Custom general question',
+        preview: 'Injected general thread for testing.',
+        category: AiChatThreadCategory.general,
+        createdAt: DateTime.utc(2026, 7, 29, 10),
+        updatedAt: DateTime.utc(2026, 7, 29, 10),
+      );
+      await tester.pumpWidget(
+        _app([..._populatedFixture, customGeneral]),
+      );
       await tester.pumpAndSettle();
 
-      // "All" is the default — general threads should be in the list.
-      // With the new taller row density, "Travel day prep" may be below
-      // the fold; scroll to verify it exists.
-      final generalThread = find.text('Travel day prep');
+      // The custom general thread should appear under "All".
+      final generalThread = find.text('Custom general question');
       await _scrollToVisible(tester, generalThread);
       expect(generalThread, findsOneWidget);
       // No standalone Chat filter chip
@@ -666,6 +681,356 @@ void main() {
 
       expect(find.text('Chats'), findsOneWidget);
       expect(find.byType(AiHistoryScreen), findsOneWidget);
+    });
+  });
+
+  // ---- Stage A: Visual parity contracts ----
+  group('Stage A visual parity', () {
+    test('fixture has exact category counts: All 12, Plan 4, Meals 5, Scans 3, General 0',
+        () {
+      final goalsCount = _populatedFixture
+          .where((t) => t.category == AiChatThreadCategory.goals)
+          .length;
+      final mealsCount = _populatedFixture
+          .where((t) => t.category == AiChatThreadCategory.meals)
+          .length;
+      final scansCount = _populatedFixture
+          .where((t) => t.category == AiChatThreadCategory.scans)
+          .length;
+      final generalCount = _populatedFixture
+          .where((t) => t.category == AiChatThreadCategory.general)
+          .length;
+      expect(_populatedFixture, hasLength(12));
+      expect(goalsCount, 4);
+      expect(mealsCount, 5);
+      expect(scansCount, 3);
+      expect(generalCount, 0);
+    });
+
+    test('fixture date groups: Pinned 1, Today 2, Yesterday 2, Earlier 7', () {
+      final now = DateTime.utc(2026, 7, 28, 14, 10);
+      final todayStart = DateTime.utc(now.year, now.month, now.day);
+      final yesterdayStart = todayStart.subtract(const Duration(days: 1));
+
+      final pinned =
+          _populatedFixture.where((t) => t.pinned).length;
+      final today = _populatedFixture
+          .where((t) => !t.pinned && !t.updatedAt.isBefore(todayStart))
+          .length;
+      final yesterday = _populatedFixture
+          .where((t) =>
+              !t.pinned &&
+              t.updatedAt.isBefore(todayStart) &&
+              !t.updatedAt.isBefore(yesterdayStart))
+          .length;
+      final earlier = _populatedFixture
+          .where((t) => t.updatedAt.isBefore(yesterdayStart))
+          .length;
+
+      expect(pinned, 1);
+      expect(today, 2);
+      expect(yesterday, 2);
+      expect(earlier, 7);
+    });
+
+    testWidgets(
+        'count chip shows exact text "+ 12 THREADS"',
+        (tester) async {
+      await tester.pumpWidget(_app(_populatedFixture));
+      await tester.pumpAndSettle();
+
+      expect(find.text('+ 12 THREADS'), findsOneWidget);
+    });
+
+    testWidgets('count chip singular: "+ 1 THREAD" for single thread',
+        (tester) async {
+      final single = [_populatedFixture.first];
+      await tester.pumpWidget(_app(single));
+      await tester.pumpAndSettle();
+
+      expect(find.text('+ 1 THREAD'), findsOneWidget);
+      expect(find.text('+ 1 THREADS'), findsNothing);
+    });
+
+    testWidgets('DateGroupHeader shows right-aligned count for every group',
+        (tester) async {
+      await tester.pumpWidget(_app(_populatedFixture));
+      await tester.pumpAndSettle();
+
+      // Verify each group header exists via stable key and asserts
+      // its exact label + rendered count.
+      final pinnedHeader = find.byKey(
+        const ValueKey('ai-history-group-Pinned'),
+      );
+      expect(pinnedHeader, findsOneWidget);
+      expect(
+        find.descendant(
+          of: pinnedHeader,
+          matching: find.text('Pinned'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: pinnedHeader,
+          matching: find.text('1'),
+        ),
+        findsOneWidget,
+      );
+
+      final todayHeader = find.byKey(
+        const ValueKey('ai-history-group-Today'),
+      );
+      expect(todayHeader, findsOneWidget);
+      expect(
+        find.descendant(
+          of: todayHeader,
+          matching: find.text('Today'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: todayHeader,
+          matching: find.text('2'),
+        ),
+        findsOneWidget,
+      );
+
+      // Scroll Yesterday header into view via bounded drags on the
+      // keyed list itself (not a Scrollable descendant).
+      final yesterdayHeader = find.byKey(
+        const ValueKey('ai-history-group-Yesterday'),
+      );
+      final listKey = find.byKey(const ValueKey('ai-history-list'));
+      for (var i = 0; i < 20 && !yesterdayHeader.evaluate().isNotEmpty; i++) {
+        await tester.drag(listKey, const Offset(0, -200));
+        await tester.pumpAndSettle();
+      }
+      expect(yesterdayHeader, findsOneWidget);
+      expect(
+        find.descendant(
+          of: yesterdayHeader,
+          matching: find.text('Yesterday'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: yesterdayHeader,
+          matching: find.text('2'),
+        ),
+        findsOneWidget,
+      );
+
+      // Scroll Earlier header into view via bounded drags on the keyed list.
+      final earlierHeader = find.byKey(
+        const ValueKey('ai-history-group-Earlier this week'),
+      );
+      for (var i = 0; i < 20 && !earlierHeader.evaluate().isNotEmpty; i++) {
+        await tester.drag(listKey, const Offset(0, -200));
+        await tester.pumpAndSettle();
+      }
+      expect(earlierHeader, findsOneWidget);
+      expect(
+        find.descendant(
+          of: earlierHeader,
+          matching: find.text('Earlier this week'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: earlierHeader,
+          matching: find.text('7'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Pinned group header has push-pin icon',
+        (tester) async {
+      await tester.pumpWidget(_app(_populatedFixture));
+      await tester.pumpAndSettle();
+
+      // Find the pin icon near the "Pinned" label
+      final pinnedHeader = find.ancestor(
+        of: find.text('Pinned'),
+        matching: find.byType(Row),
+      );
+      expect(pinnedHeader, findsWidgets);
+
+      // The push_pin icon should be present in the pinned header area
+      final pinIcon = find.descendant(
+        of: pinnedHeader.first,
+        matching: find.byIcon(Icons.push_pin),
+      );
+      expect(pinIcon, findsOneWidget);
+    });
+
+    testWidgets('first header row is 36 logical px tall', (tester) async {
+      await tester.pumpWidget(_app(_populatedFixture));
+      await tester.pumpAndSettle();
+
+      final headerRow = find.byKey(
+        const ValueKey('ai-history-header-row'),
+      );
+      expect(headerRow, findsOneWidget);
+      expect(tester.getSize(headerRow).height, 36);
+    });
+
+    testWidgets('search bar horizontal inset is ~11 logical px',
+        (tester) async {
+      await tester.pumpWidget(_app(_populatedFixture));
+      await tester.pumpAndSettle();
+
+      // The search bar is wrapped in Padding(horizontal: 11)
+      final searchField = find.byKey(const ValueKey('ai-history-search'));
+      expect(searchField, findsOneWidget);
+
+      final padding = find.ancestor(
+        of: searchField,
+        matching: find.byWidgetPredicate(
+          (w) =>
+              w is Padding &&
+              w.padding == const EdgeInsets.symmetric(horizontal: 11),
+        ),
+      );
+      expect(padding, findsOneWidget);
+    });
+
+    testWidgets('filter ListView has 11 logical px horizontal padding',
+        (tester) async {
+      await tester.pumpWidget(_app(_populatedFixture));
+      await tester.pumpAndSettle();
+
+      final filterList = find.byKey(const ValueKey('ai-history-filters'));
+      expect(filterList, findsOneWidget);
+
+      // The filter ListView has padding as a direct property, not a Padding ancestor.
+      final listView = filterList.evaluate().first.widget as ListView;
+      expect(
+        listView.padding,
+        const EdgeInsets.symmetric(horizontal: 11),
+      );
+    });
+
+    testWidgets('thread ListView has 11 logical px horizontal padding',
+        (tester) async {
+      await tester.pumpWidget(_app(_populatedFixture));
+      await tester.pumpAndSettle();
+
+      final threadList = find.byKey(const ValueKey('ai-history-list'));
+      expect(threadList, findsOneWidget);
+
+      // The thread ListView has padding as a direct property, not a Padding ancestor.
+      final listView = threadList.evaluate().first.widget as ListView;
+      expect(
+        listView.padding,
+        const EdgeInsets.fromLTRB(11, 0, 11, 96),
+      );
+    });
+
+    testWidgets('light theme: unselected filter count text uses theme-aware muted color',
+        (tester) async {
+      await tester.pumpWidget(
+        _app(_populatedFixture, themeMode: ThemeMode.light),
+      );
+      await tester.pumpAndSettle();
+
+      // Find an unselected filter chip's count text
+      // The "Plan" chip is unselected by default
+      final planChip = find.byKey(const ValueKey('ai-filter-Plan'));
+      expect(planChip, findsOneWidget);
+
+      // The count text inside the chip should use the muted color passed from screen
+      // which is textSecondaryLight in light theme (not textSecondaryDark)
+      final countText = find.descendant(
+        of: planChip,
+        matching: find.byWidgetPredicate(
+          (w) =>
+              w is Text &&
+              w.style?.fontSize == 9,
+        ),
+      );
+      expect(countText, findsOneWidget);
+
+      // Verify the text style uses the light theme muted color
+      final textWidget = countText.evaluate().first.widget as Text;
+      expect(
+        textWidget.style?.color,
+        AppColors.textSecondaryLight,
+        reason:
+            'Unselected filter count must use theme-aware muted color, '
+            'not hardcoded textSecondaryDark',
+      );
+    });
+
+    testWidgets(
+        'general category still supported: injected thread visible under All',
+        (tester) async {
+      final general = AiChatThread(
+        id: 'test-general',
+        uid: 'user-1',
+        title: 'Injected general question',
+        preview: 'Testing general category support.',
+        category: AiChatThreadCategory.general,
+        createdAt: DateTime.utc(2026, 7, 29, 10),
+        updatedAt: DateTime.utc(2026, 7, 29, 10),
+      );
+      await tester.pumpWidget(_app([..._populatedFixture, general]));
+      await tester.pumpAndSettle();
+
+      final generalThread = find.text('Injected general question');
+      await _scrollToVisible(tester, generalThread);
+      expect(generalThread, findsOneWidget);
+
+      // No Chat filter chip — general shows only under All
+      expect(find.byKey(const ValueKey('ai-filter-Chat')), findsNothing);
+    });
+
+    testWidgets(
+        'groups sort threads descending by updatedAt within each group',
+        (tester) async {
+      await tester.pumpWidget(_app(_populatedFixture));
+      await tester.pumpAndSettle();
+
+      // Yesterday group: Greek yogurt (updatedAt 21:42) should appear before
+      // Espresso scan check (updatedAt 8:15) — both in Yesterday group.
+      final greekYogurt = find.byKey(
+        const ValueKey('ai-thread-ui_diff_fixture_yesterday_meal'),
+      );
+      final espressoScan = find.byKey(
+        const ValueKey('ai-thread-ui_diff_fixture_today_scan'),
+      );
+
+      // Scroll both into view by dragging the keyed list directly
+      final listKey = find.byKey(const ValueKey('ai-history-list'));
+      for (var i = 0; i < 20; i++) {
+        if (greekYogurt.evaluate().isNotEmpty &&
+            espressoScan.evaluate().isNotEmpty) {
+          break;
+        }
+        await tester.drag(listKey, const Offset(0, -200));
+        await tester.pumpAndSettle();
+      }
+
+      // Both should be visible now
+      expect(greekYogurt, findsOneWidget);
+      expect(espressoScan, findsOneWidget);
+
+      // Greek yogurt (updatedAt 21:42) should render above Espresso scan
+      // (updatedAt 8:15) — confirmed via actual rendered top positions.
+      final greekYogurtTop = tester.getRect(greekYogurt).top;
+      final espressoScanTop = tester.getRect(espressoScan).top;
+
+      expect(
+        greekYogurtTop,
+        lessThan(espressoScanTop),
+        reason: 'Greek yogurt (updatedAt 21:42) must render above '
+            'Espresso scan (updatedAt 8:15) within Yesterday group; '
+            'got greekYogurtTop=$greekYogurtTop, espressoScanTop=$espressoScanTop',
+      );
     });
   });
 }

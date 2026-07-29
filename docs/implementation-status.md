@@ -105,6 +105,17 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Next: recapture ai_history dark/light via physical-device capture script, inspect both, rerun deterministic ui-diff against canonical handoff, then iterate or run full VLM gate when structurally close.
 - Task 17 remains in progress. Do not claim visual parity before fresh physical evidence.
 
+### Task 17 Stage A checkpoint (2026-07-29)
+
+- Fresh physical evidence from commit `0a67d5b` and deterministic run `run-1785309718570-9c3cb4` led to Stage A.
+- Implemented: canonical fixture categories 12/4/5/3/0 and date groups 1/2/2/7, stable descending timestamps, 36px keyed header, 14/11 insets, exact +thread count, group pin/counts, light chip contrast. General category remains product-supported via isolated injected tests.
+- Host found and corrected false-green group-count and Element.depth ordering tests; actual keyed/rect assertions now pass.
+- Worker did not provide complete pre-implementation RED evidence; filter 16->11 was the genuine missed regression.
+- Verification: focused 157/157, analyzer clean, full Flutter 562 passed +1 intentional skip.
+- Antigravity conversation `calorix-task17-ai-history-parity-20260728`: first post-review attempt failed before model with exact `Cannot create process, error code: 206`; shorter retry with gemini-3.6-flash-high returned agree/MUST_FIX none/SHOULD_FIX none/QUESTIONS none. Response called key `ai-history-header-row1` while actual is `ai-history-header-row`; record as minor response factual/format noise, no repo mutation.
+- Next Stage B: compact rows/FAB, featured pinned and neutral avatar art, then fresh physical dark/light recapture and deterministic comparison.
+- Task remains in progress; do not claim parity. Preserve existing structure/history and touch no other file.
+
 ## Toolchain Health (Task 0)
 
 - `fvm flutter pub get`: succeeded; 82 newer incompatible package notices; no lockfile change.

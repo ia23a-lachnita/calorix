@@ -43,12 +43,15 @@ class FixtureNutrition {
 }
 
 /// Canonical 12-thread AI chat history fixture spanning pinned/today/
-/// yesterday/earlier date groups and all four thread categories. This is the
-/// single source of truth for the `populated` capture fixture's `aiThreads`
-/// content and for tests asserting the AI-history IA — never duplicate this
-/// list elsewhere. Dates are relative to [now] so grouping stays correct
-/// regardless of when a physical capture runs. Only ever written to the
-/// in-memory [UiDiffFixtureManifest]; never to cloud/network.
+/// yesterday/earlier date groups and three captured categories (meals, goals,
+/// scans). The general category is preserved in product code and tested
+/// separately via injected threads — it is deliberately absent from this
+/// canonical capture fixture. This is the single source of truth for the
+/// `populated` capture fixture's `aiThreads` content and for tests asserting
+/// the AI-history IA — never duplicate this list elsewhere. Dates are relative
+/// to [now] so grouping stays correct regardless of when a physical capture
+/// runs. Only ever written to the in-memory [UiDiffFixtureManifest]; never
+/// to cloud/network.
 List<AiChatThread> populatedAiThreadsFixture({
   required String uid,
   required DateTime now,
@@ -102,10 +105,10 @@ List<AiChatThread> populatedAiThreadsFixture({
       title: 'Espresso scan check',
       preview: 'Verified 45 kcal · 1P/8C/1F.',
       category: AiChatThreadCategory.scans,
-      createdAt: at(0, 8, 5),
-      updatedAt: at(0, 8, 15),
+      createdAt: at(1, 8, 5),
+      updatedAt: at(1, 8, 15),
     ),
-    // Yesterday (3)
+    // Yesterday (2)
     AiChatThread(
       id: '${uiDiffFixtureDocumentPrefix}yesterday_meal',
       uid: uid,
@@ -121,20 +124,20 @@ List<AiChatThread> populatedAiThreadsFixture({
       uid: uid,
       title: 'Why are my carbs low?',
       preview: 'Two skipped snacks. I added a 80 g carb suggestion to today.',
-      category: AiChatThreadCategory.goals,
-      createdAt: at(1, 17, 0),
-      updatedAt: at(1, 19, 8),
+      category: AiChatThreadCategory.scans,
+      createdAt: at(2, 17, 0),
+      updatedAt: at(2, 19, 8),
     ),
     AiChatThread(
       id: '${uiDiffFixtureDocumentPrefix}yesterday_general',
       uid: uid,
       title: 'Travel day prep',
       preview: 'Packed portable snacks for tomorrow.',
-      category: AiChatThreadCategory.general,
-      createdAt: at(1, 14, 0),
-      updatedAt: at(1, 15, 30),
+      category: AiChatThreadCategory.meals,
+      createdAt: at(2, 14, 0),
+      updatedAt: at(2, 15, 30),
     ),
-    // Earlier (5)
+    // Earlier (7)
     AiChatThread(
       id: '${uiDiffFixtureDocumentPrefix}earlier_plan',
       uid: uid,
@@ -150,7 +153,7 @@ List<AiChatThread> populatedAiThreadsFixture({
       uid: uid,
       title: 'Grocery list from this week',
       preview: 'Compiled 18 items from logged meals. Tap to export.',
-      category: AiChatThreadCategory.general,
+      category: AiChatThreadCategory.meals,
       createdAt: at(4, 14, 0),
       updatedAt: at(4, 14, 0),
     ),
