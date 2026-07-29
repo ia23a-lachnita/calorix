@@ -878,27 +878,32 @@ void main() {
       expect(tester.getSize(headerRow).height, 36);
     });
 
-    testWidgets('search bar horizontal inset is ~11 logical px',
+    testWidgets('search bar rendered bounds use transformed canonical insets',
         (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
 
-      // The search bar is wrapped in Padding(horizontal: 11)
       final searchField = find.byKey(const ValueKey('ai-history-search'));
       expect(searchField, findsOneWidget);
 
-      final padding = find.ancestor(
-        of: searchField,
-        matching: find.byWidgetPredicate(
-          (w) =>
-              w is Padding &&
-              w.padding == const EdgeInsets.symmetric(horizontal: 11),
-        ),
+      final searchRect = tester.getRect(searchField);
+      expect(
+        searchRect.left,
+        closeTo((17 - 4.35) / 1.0925, 0.01),
+        reason: 'Search left edge must map to canonical comparison x17',
       );
-      expect(padding, findsOneWidget);
+      expect(
+        searchRect.right,
+        closeTo((384 - 4.35) / 1.0925, 0.01),
+        reason: 'Search right edge must map to canonical comparison x384',
+      );
     });
 
-    testWidgets('filter ListView has 16 logical px horizontal padding',
+    testWidgets('filter ListView has transformed 16px horizontal padding',
         (tester) async {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
@@ -906,11 +911,10 @@ void main() {
       final filterList = find.byKey(const ValueKey('ai-history-filters'));
       expect(filterList, findsOneWidget);
 
-      // The filter ListView has padding as a direct property, not a Padding ancestor.
       final listView = filterList.evaluate().first.widget as ListView;
       expect(
         listView.padding,
-        const EdgeInsets.symmetric(horizontal: 16),
+        const EdgeInsets.symmetric(horizontal: (16 - 4.35) / 1.0925),
       );
     });
 
@@ -938,23 +942,24 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Find an unselected filter chip's count text
       // The "Plan" chip is unselected by default
       final planChip = find.byKey(const ValueKey('ai-filter-Plan'));
       expect(planChip, findsOneWidget);
 
-      // The count text inside the chip should use the muted color passed from screen
-      // which is textSecondaryLight in light theme (not textSecondaryDark)
       final countText = find.descendant(
         of: planChip,
         matching: find.byWidgetPredicate(
-          (w) => w is Text && w.style?.fontSize == 9,
+          (w) => w is Text && w.data == '4',
         ),
       );
       expect(countText, findsOneWidget);
 
-      // Verify the text style uses the light theme muted color
       final textWidget = countText.evaluate().first.widget as Text;
+      expect(
+        textWidget.style?.fontSize,
+        closeTo(10 / 1.0925, 0.01),
+        reason: 'Filter count uses the transformed canonical 10px size',
+      );
       expect(
         textWidget.style?.color,
         AppColors.textSecondaryLight,

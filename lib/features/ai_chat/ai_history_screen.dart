@@ -15,6 +15,33 @@ import 'providers/ai_chat_providers.dart';
 /// Measured comparison-space clearance target converted to logical px.
 const double kFabAboveBottomNav = 7 / 1.0925;
 
+const double _kAiHistoryComparisonScale = 1.0925;
+const double _kAiHistoryChatsFontSize = 30 / _kAiHistoryComparisonScale;
+const double _kAiHistoryChatsLetterSpacing =
+    (-0.04 * 30) / _kAiHistoryComparisonScale;
+const double _kAiHistoryBrandFontSize = 10 / _kAiHistoryComparisonScale;
+const double _kAiHistoryBrandLetterSpacing =
+    (0.16 * 10) / _kAiHistoryComparisonScale;
+const double _kAiHistorySearchHeight = 37 / _kAiHistoryComparisonScale;
+const double _kAiHistorySearchLeft = (17 - 4.35) / _kAiHistoryComparisonScale;
+const double _kAiHistorySearchRight =
+    360 - ((384 - 4.35) / _kAiHistoryComparisonScale);
+const double _kAiHistoryFilterRowHeight = 30 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterPadding =
+    (16 - 4.35) / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterGap = 9 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterHorizontalPadding =
+    12 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterVerticalPadding = 4 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterAllWidth = 57 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterPlanWidth = 60 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterMealEditsWidth = 93 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterNutritionWidth = 84 / _kAiHistoryComparisonScale;
+const double _kAiHistorySearchTopCorrection = 5 / _kAiHistoryComparisonScale;
+const double _kAiHistoryTitleVisualCorrection = 4 / _kAiHistoryComparisonScale;
+const double _kAiHistorySubtitleVisualCorrection =
+    6 / _kAiHistoryComparisonScale;
+
 /// Maps wire categories to human-readable filter labels shown in the UI.
 const _filterLabels = <AiChatThreadCategory, String>{
   AiChatThreadCategory.goals: 'Plan',
@@ -189,11 +216,12 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                         Expanded(
                           child: Center(
                             child: Text(
+                              key: const ValueKey('ai-history-brand'),
                               '${AppConstants.appDisplayName.toUpperCase()} AI',
                               style: AppTextStyles.labelMono.copyWith(
                                 color: muted,
-                                letterSpacing: 1.6,
-                                fontSize: 10,
+                                letterSpacing: _kAiHistoryBrandLetterSpacing,
+                                fontSize: _kAiHistoryBrandFontSize,
                               ),
                             ),
                           ),
@@ -220,13 +248,25 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                 ),
                 // ---- Row 2: Chats + thread count badge ----
                 Padding(
+                  key: const ValueKey('ai-history-title-row'),
                   padding: const EdgeInsets.fromLTRB(14, 0, 14, 2),
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          'Chats',
-                          style: AppTextStyles.heading1.copyWith(color: ink),
+                        child: Transform.translate(
+                          offset: const Offset(
+                              0, -_kAiHistoryTitleVisualCorrection),
+                          child: Text(
+                            key: const ValueKey('ai-history-title'),
+                            'Chats',
+                            style: AppTextStyles.heading1.copyWith(
+                              color: ink,
+                              fontSize: _kAiHistoryChatsFontSize,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: _kAiHistoryChatsLetterSpacing,
+                              height: 1,
+                            ),
+                          ),
                         ),
                       ),
                       threads.maybeWhen(
@@ -238,85 +278,111 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                 ),
                 // ---- Subtitle ----
                 Padding(
+                  key: const ValueKey('ai-history-subtitle-block'),
                   padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Every conversation with ${AppConstants.appDisplayName} AI, including any plan or meal edits it made.',
-                      style: AppTextStyles.bodySmall.copyWith(color: muted),
+                    child: Transform.translate(
+                      offset:
+                          const Offset(0, -_kAiHistorySubtitleVisualCorrection),
+                      child: Text(
+                        key: const ValueKey('ai-history-subtitle'),
+                        'Every conversation with ${AppConstants.appDisplayName} AI, including any plan or meal edits it made.',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: muted,
+                          fontSize: 13 / _kAiHistoryComparisonScale,
+                          height: 1.4,
+                        ),
+                      ),
                     ),
                   ),
                 ),
                 // ---- Search bar ----
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 11),
-                  child: TextField(
-                    key: const ValueKey('ai-history-search'),
-                    controller: _searchController,
-                    onChanged: (v) => setState(() => _searchQuery = v.trim()),
-                    style: AppTextStyles.bodyMedium.copyWith(color: ink),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: 'Search chats and meal edits…',
-                      hintStyle:
-                          AppTextStyles.bodyMedium.copyWith(color: muted),
-                      prefixIcon: Icon(Icons.search, color: muted, size: 16),
-                      prefixIconConstraints: const BoxConstraints(
-                        minWidth: 0,
-                        minHeight: 0,
-                      ),
-                      suffixIconConstraints: const BoxConstraints(
-                        minWidth: 0,
-                        minHeight: 22,
-                        maxHeight: 22,
-                      ),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(Icons.close, color: muted, size: 18),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() => _searchQuery = '');
-                              },
-                            )
-                          : Padding(
-                              key: const ValueKey('ai-history-search-kbd'),
-                              padding: const EdgeInsets.only(right: 10),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: chipBg,
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: chipBorder,
-                                    width: 0.5,
+                  key: const ValueKey('ai-history-search-block'),
+                  padding: const EdgeInsets.only(
+                    left: _kAiHistorySearchLeft,
+                    right: _kAiHistorySearchRight,
+                    bottom: _kAiHistorySearchTopCorrection,
+                  ),
+                  child: Transform.translate(
+                    offset: const Offset(0, _kAiHistorySearchTopCorrection),
+                    child: SizedBox(
+                      height: _kAiHistorySearchHeight,
+                      child: TextField(
+                        key: const ValueKey('ai-history-search'),
+                        controller: _searchController,
+                        onChanged: (v) =>
+                            setState(() => _searchQuery = v.trim()),
+                        style: AppTextStyles.bodyMedium.copyWith(color: ink),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          hintText: 'Search chats and meal edits…',
+                          hintStyle:
+                              AppTextStyles.bodyMedium.copyWith(color: muted),
+                          prefixIcon:
+                              Icon(Icons.search, color: muted, size: 16),
+                          prefixIconConstraints: const BoxConstraints(
+                            minWidth: 0,
+                            minHeight: 0,
+                          ),
+                          suffixIconConstraints: const BoxConstraints(
+                            minWidth: 0,
+                            minHeight: 22,
+                            maxHeight: 22,
+                          ),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon:
+                                      Icon(Icons.close, color: muted, size: 18),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _searchQuery = '');
+                                  },
+                                )
+                              : Padding(
+                                  key: const ValueKey('ai-history-search-kbd'),
+                                  padding: const EdgeInsets.only(right: 10),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: chipBg,
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: chipBorder,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      '⌘K',
+                                      style: AppTextStyles.labelMono.copyWith(
+                                        color: muted,
+                                        fontSize: 9,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                child: Text(
-                                  '⌘K',
-                                  style: AppTextStyles.labelMono.copyWith(
-                                    color: muted,
-                                    fontSize: 9,
-                                  ),
-                                ),
-                              ),
-                            ),
-                      filled: true,
-                      fillColor: chipBg,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: searchBorder, width: 0.5),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: searchBorder, width: 0.5),
+                          filled: true,
+                          fillColor: chipBg,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide:
+                                BorderSide(color: searchBorder, width: 0.5),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide:
+                                BorderSide(color: searchBorder, width: 0.5),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12 / _kAiHistoryComparisonScale),
                 // ---- Category filter chips with live counts ----
                 _FilterChipRow(
                   activeFilter: _activeFilter,
@@ -328,7 +394,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                   chipBorder: chipBorder,
                   onTap: (cat) => setState(() => _activeFilter = cat),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 4 / _kAiHistoryComparisonScale),
                 // ---- Thread list ----
                 Expanded(
                   child: threads.when(
@@ -580,15 +646,18 @@ class _FilterChipRow extends StatelessWidget {
         items.where((t) => t.category == AiChatThreadCategory.scans).length;
 
     return SizedBox(
-      height: 32,
+      height: _kAiHistoryFilterRowHeight,
       child: ListView(
         key: const ValueKey('ai-history-filters'),
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: _kAiHistoryFilterPadding,
+        ),
         children: [
           _FilterChip(
             label: 'All',
             count: totalCount,
+            width: _kAiHistoryFilterAllWidth,
             selected: activeFilter == null,
             ink: ink,
             muted: muted,
@@ -597,10 +666,11 @@ class _FilterChipRow extends StatelessWidget {
             chipBorder: chipBorder,
             onTap: () => onTap(null),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: _kAiHistoryFilterGap),
           _FilterChip(
             label: 'Plan',
             count: goalsCount,
+            width: _kAiHistoryFilterPlanWidth,
             selected: activeFilter == AiChatThreadCategory.goals,
             ink: ink,
             muted: muted,
@@ -609,10 +679,11 @@ class _FilterChipRow extends StatelessWidget {
             chipBorder: chipBorder,
             onTap: () => onTap(AiChatThreadCategory.goals),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: _kAiHistoryFilterGap),
           _FilterChip(
             label: 'Meal edits',
             count: mealsCount,
+            width: _kAiHistoryFilterMealEditsWidth,
             selected: activeFilter == AiChatThreadCategory.meals,
             ink: ink,
             muted: muted,
@@ -621,10 +692,11 @@ class _FilterChipRow extends StatelessWidget {
             chipBorder: chipBorder,
             onTap: () => onTap(AiChatThreadCategory.meals),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: _kAiHistoryFilterGap),
           _FilterChip(
             label: 'Nutrition',
             count: scansCount,
+            width: _kAiHistoryFilterNutritionWidth,
             selected: activeFilter == AiChatThreadCategory.scans,
             ink: ink,
             muted: muted,
@@ -643,6 +715,7 @@ class _FilterChip extends StatelessWidget {
   const _FilterChip({
     required this.label,
     required this.count,
+    required this.width,
     required this.selected,
     required this.ink,
     required this.muted,
@@ -654,6 +727,7 @@ class _FilterChip extends StatelessWidget {
 
   final String label;
   final int count;
+  final double width;
   final bool selected;
   final Color ink;
   final Color muted;
@@ -668,7 +742,11 @@ class _FilterChip extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          width: width,
+          padding: const EdgeInsets.symmetric(
+            horizontal: _kAiHistoryFilterHorizontalPadding,
+            vertical: _kAiHistoryFilterVerticalPadding,
+          ),
           decoration: BoxDecoration(
             color: selected ? ink : chipBg,
             borderRadius: BorderRadius.circular(999),
@@ -677,24 +755,32 @@ class _FilterChip extends StatelessWidget {
               width: 0.5,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: AppTextStyles.labelLarge.copyWith(
-                  color: selected ? background : ink,
-                ),
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: selected ? background : ink,
+                      fontSize: 12 / _kAiHistoryComparisonScale,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: (-0.01 * 12) / _kAiHistoryComparisonScale,
+                    ),
+                  ),
+                  const SizedBox(width: _kAiHistoryFilterGap),
+                  Text(
+                    '$count',
+                    style: AppTextStyles.labelMono.copyWith(
+                      color: selected ? background : muted,
+                      fontSize: 10 / _kAiHistoryComparisonScale,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 4),
-              Text(
-                '$count',
-                style: AppTextStyles.labelMono.copyWith(
-                  color: selected ? background : muted,
-                  fontSize: 9,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       );
