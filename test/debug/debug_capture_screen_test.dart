@@ -358,8 +358,11 @@ void main() {
       }
 
       await pumpTarget('ai_history');
-      expect(find.text("Today's plan"), findsOneWidget);
-      expect(find.text('Your fixture plan is ready.'), findsOneWidget);
+      expect(find.text('Macro plan for 5×/week training'), findsOneWidget);
+      expect(
+        find.textContaining('Raised protein to 180 g/day'),
+        findsOneWidget,
+      );
 
       await pumpTarget('profile');
       expect(find.text('Elias Karlsson'), findsOneWidget);

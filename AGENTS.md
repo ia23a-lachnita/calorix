@@ -27,21 +27,27 @@ Source-of-truth order (read the relevant one before changing behavior, UI, data,
 
 ### Delegation Policy
 
-All repository file edits and token-heavy implementation work are performed through OpenCode headless mode using model `opencode/mimo-v2.5-free` while its quota is available. Canonical invocation:
+OpenCode headless mode using model `opencode/mimo-v2.5-free` is the **primary editor** for all repository file edits and token-heavy implementation work, while its quota is available. Canonical invocation:
 
 ```
 opencode run --model opencode/mimo-v2.5-free --auto --dir <repo> "<prompt>"
 ```
 
-OpenCode workers never commit or push; the main host reviews, verifies, commits, and pushes. If OpenCode explicitly reports quota exhaustion, is unavailable, or repeatedly stalls, record the exact failure; only then may the main host edit as fallback. This route is an explicit exception to the general do-not-shell-out rule.
+Only after OpenCode explicitly reports quota exhaustion, is unavailable, or repeatedly stalls (record the exact error/stall evidence in `docs/implementation-status.md` first) may **Claude Code headless** edit as fallback, invoked with `--dangerously-skip-permissions`:
 
-Codex host/child agents and other subagents remain allowed for read-only research, investigation, review, planning, and sub-orchestration.
+```
+claude -p --dangerously-skip-permissions --model <model> "<prompt>"
+```
+
+Codex host/child agents **never directly edit application code**; they remain allowed for read-only research, investigation, review, planning, and sub-orchestration.
+
+Workers (OpenCode and Claude Code headless) never commit or push; the main host reviews, verifies, commits, and pushes. This route is an explicit exception to the general do-not-shell-out rule.
 
 The main agent retains requirements interpretation, architecture and tradeoffs, synthesis, verification judgment, production-readiness decisions, and final reporting. Subagents never commit or push; the main agent reviews, verifies, commits, and pushes.
 
 | Capability | OpenCode (mimo-v2.5-free) | Claude Code / Codex CLI |
 |---|---|---|
-| File edits | `opencode run --auto` (token-heavy work) | Read-only under normal operation |
+| File edits | `opencode run --auto` (token-heavy work, primary) | Claude Code headless fallback only (recorded exhaustion/stall); Codex never edits |
 | Search | Read-only agents may search | `Grep`, `Glob`, `shell_command` (rg), MCP search |
 | Shell | `opencode run` invocation only | `Bash` / `PowerShell` / `shell_command` |
 | Subagents | N/A | `Agent` tool + agent dirs |

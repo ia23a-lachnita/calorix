@@ -137,7 +137,22 @@ void main() {
   });
 
   testWidgets('Today screen shows Recent scans header', (tester) async {
-    await tester.pumpWidget(_buildTodayScreen());
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        entries: [
+          _foodEntry(
+            id: 'scan1',
+            name: 'Grilled Salmon',
+            timestamp: DateTime(2026, 7, 22, 12),
+            kcal: 520,
+            protein: 42,
+            carbs: 8,
+            fat: 34,
+            confidence: 0.93,
+          ),
+        ],
+      ),
+    );
     await _pumpTodayScreen(tester);
     expect(find.text('Recent scans'), findsOneWidget);
   });
@@ -147,8 +162,9 @@ void main() {
     await _pumpTodayScreen(tester);
     // skipOffstage: false also finds widgets scrolled below the fold
     expect(
-        find.text('No meals logged yet', skipOffstage: false), findsOneWidget);
-    expect(find.text('Scan a meal', skipOffstage: false), findsOneWidget);
+        find.text('Nothing logged yet', skipOffstage: false), findsOneWidget);
+    expect(
+        find.text('Scan your first meal', skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('Today confidence badge uses amber review state below 80%',

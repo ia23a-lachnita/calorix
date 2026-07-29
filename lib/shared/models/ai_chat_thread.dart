@@ -4,6 +4,20 @@ enum AiChatRole { user, assistant }
 
 enum AiChatMessageStatus { processing, complete, failed }
 
+/// Synchronized set of valid thread categories.
+enum AiChatThreadCategory { meals, goals, scans, general }
+
+const _defaultCategory = AiChatThreadCategory.general;
+
+AiChatThreadCategory _parseCategory(Object? value) {
+  if (value is String) {
+    for (final c in AiChatThreadCategory.values) {
+      if (c.name == value) return c;
+    }
+  }
+  return _defaultCategory;
+}
+
 class AiChatTargetAction {
   const AiChatTargetAction({
     required this.field,
@@ -83,6 +97,10 @@ class AiChatThread {
     this.linkedMealId,
     this.title,
     this.preview,
+    this.pinned = false,
+    this.category = _defaultCategory,
+    this.unread = false,
+    this.appliedActionCount = 0,
   });
 
   final String id;
@@ -92,6 +110,10 @@ class AiChatThread {
   final String? linkedMealId;
   final String? title;
   final String? preview;
+  final bool pinned;
+  final AiChatThreadCategory category;
+  final bool unread;
+  final int appliedActionCount;
 
   factory AiChatThread.fromFirestore(
     String uid,
@@ -112,7 +134,24 @@ class AiChatThread {
         linkedMealId: data['linkedMealId'] as String?,
         title: data['title'] as String?,
         preview: data['preview'] as String?,
+        pinned: data['pinned'] as bool? ?? false,
+        category: _parseCategory(data['category']),
+        unread: data['unread'] as bool? ?? false,
+        appliedActionCount: (data['appliedActionCount'] as num?)?.toInt() ?? 0,
       );
+
+  Map<String, dynamic> toMap() => {
+        'uid': uid,
+        'createdAt': createdAt,
+        'updatedAt': updatedAt,
+        if (linkedMealId != null) 'linkedMealId': linkedMealId,
+        if (title != null) 'title': title,
+        if (preview != null) 'preview': preview,
+        'pinned': pinned,
+        'category': category.name,
+        'unread': unread,
+        'appliedActionCount': appliedActionCount,
+      };
 }
 
 DateTime _dateValue(Object? value) => switch (value) {

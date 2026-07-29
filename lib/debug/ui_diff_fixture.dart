@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../core/time/clock.dart';
+import '../shared/models/ai_chat_thread.dart';
 import '../shared/utils/date_key.dart';
 import 'debug_deep_links.dart';
 
@@ -39,6 +40,150 @@ class FixtureNutrition {
 
   @override
   int get hashCode => Object.hash(kcal, protein, carbs, fat);
+}
+
+/// Canonical 12-thread AI chat history fixture spanning pinned/today/
+/// yesterday/earlier date groups and all four thread categories. This is the
+/// single source of truth for the `populated` capture fixture's `aiThreads`
+/// content and for tests asserting the AI-history IA — never duplicate this
+/// list elsewhere. Dates are relative to [now] so grouping stays correct
+/// regardless of when a physical capture runs. Only ever written to the
+/// in-memory [UiDiffFixtureManifest]; never to cloud/network.
+List<AiChatThread> populatedAiThreadsFixture({
+  required String uid,
+  required DateTime now,
+}) {
+  DateTime at(int daysAgo, int hour, int minute) => DateTime.utc(
+        now.year,
+        now.month,
+        now.day - daysAgo,
+        hour,
+        minute,
+      );
+
+  return [
+    // Pinned
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}pinned',
+      uid: uid,
+      title: 'Macro plan for 5×/week training',
+      preview:
+          'Raised protein to 180 g/day, pulled carbs slightly to keep 2,400 kcal.',
+      pinned: true,
+      category: AiChatThreadCategory.goals,
+      createdAt: at(0, 8, 30),
+      updatedAt: at(0, 14, 10),
+      appliedActionCount: 1,
+    ),
+    // Today (3)
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}today_meal',
+      uid: uid,
+      title: 'Chicken Rice Bowl — wrong scan',
+      preview: 'Re-estimated 12:48 lunch to 620 kcal · 48P/72C/16F.',
+      category: AiChatThreadCategory.meals,
+      unread: true,
+      createdAt: at(0, 12, 48),
+      updatedAt: at(0, 13, 4),
+      appliedActionCount: 1,
+    ),
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}today_plan',
+      uid: uid,
+      title: 'What can I still eat tonight?',
+      preview: '980 kcal left, ~72 g protein. Try 200 g salmon, rice, veg.',
+      category: AiChatThreadCategory.goals,
+      createdAt: at(0, 10, 50),
+      updatedAt: at(0, 11, 20),
+    ),
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}today_scan',
+      uid: uid,
+      title: 'Espresso scan check',
+      preview: 'Verified 45 kcal · 1P/8C/1F.',
+      category: AiChatThreadCategory.scans,
+      createdAt: at(0, 8, 5),
+      updatedAt: at(0, 8, 15),
+    ),
+    // Yesterday (3)
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}yesterday_meal',
+      uid: uid,
+      title: 'Greek yogurt brand swap',
+      preview: 'Switched default to Fage 0% — saved as your usual breakfast.',
+      category: AiChatThreadCategory.meals,
+      createdAt: at(1, 19, 30),
+      updatedAt: at(1, 21, 42),
+      appliedActionCount: 1,
+    ),
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}yesterday_nutrition',
+      uid: uid,
+      title: 'Why are my carbs low?',
+      preview: 'Two skipped snacks. I added a 80 g carb suggestion to today.',
+      category: AiChatThreadCategory.goals,
+      createdAt: at(1, 17, 0),
+      updatedAt: at(1, 19, 8),
+    ),
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}yesterday_general',
+      uid: uid,
+      title: 'Travel day prep',
+      preview: 'Packed portable snacks for tomorrow.',
+      category: AiChatThreadCategory.general,
+      createdAt: at(1, 14, 0),
+      updatedAt: at(1, 15, 30),
+    ),
+    // Earlier (5)
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}earlier_plan',
+      uid: uid,
+      title: 'Cut vs. maintain — May plan',
+      preview: '14-day soft cut at −300 kcal. Auto-applied to weekday goals.',
+      category: AiChatThreadCategory.goals,
+      createdAt: at(3, 10, 0),
+      updatedAt: at(3, 10, 0),
+      appliedActionCount: 2,
+    ),
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}earlier_export',
+      uid: uid,
+      title: 'Grocery list from this week',
+      preview: 'Compiled 18 items from logged meals. Tap to export.',
+      category: AiChatThreadCategory.general,
+      createdAt: at(4, 14, 0),
+      updatedAt: at(4, 14, 0),
+    ),
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}earlier_nutrition',
+      uid: uid,
+      title: 'Travel day — eating out',
+      preview: 'Flagged 2 best options at JFK Terminal 5 under 700 kcal.',
+      category: AiChatThreadCategory.scans,
+      createdAt: at(5, 12, 0),
+      updatedAt: at(5, 12, 0),
+    ),
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}earlier_meal',
+      uid: uid,
+      title: 'Dinner prep suggestion',
+      preview: 'Batch-cook chicken thighs with roasted vegetables.',
+      category: AiChatThreadCategory.meals,
+      createdAt: at(6, 18, 0),
+      updatedAt: at(6, 18, 0),
+      linkedMealId: '${uiDiffFixtureDocumentPrefix}meal_ref',
+    ),
+    AiChatThread(
+      id: '${uiDiffFixtureDocumentPrefix}earlier_plan2',
+      uid: uid,
+      title: 'Protein target review',
+      preview: 'Evaluated current intake vs. recommended 1.6 g/kg.',
+      category: AiChatThreadCategory.goals,
+      createdAt: at(7, 9, 0),
+      updatedAt: at(7, 9, 0),
+      appliedActionCount: 1,
+    ),
+  ];
 }
 
 class UiDiffFixtureManifest {
@@ -293,14 +438,11 @@ class UiDiffFixtureManifest {
       'fat': 70,
       'isActive': true,
     });
-    const threadId = '${uiDiffFixtureDocumentPrefix}chat_thread';
-    add('aiThreads', threadId, {
-      'uid': uid,
-      'title': 'Today\'s plan',
-      'preview': 'Your fixture plan is ready.',
-      'createdAt': now.toUtc(),
-      'updatedAt': now.toUtc(),
-    });
+    final threads = populatedAiThreadsFixture(uid: uid, now: now);
+    for (final thread in threads) {
+      add('aiThreads', thread.id, thread.toMap());
+    }
+    const threadId = '${uiDiffFixtureDocumentPrefix}pinned';
     documents[
         '$root/aiThreads/$threadId/messages/${uiDiffFixtureDocumentPrefix}chat_user_1'] = {
       'role': 'user',

@@ -80,6 +80,19 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Delegation: `opencode/mimo-v2.5-free` timed out after 904 seconds with no output or edits. Its remaining process tree was terminated. Host fallback proceeded under the repository contract.
 - Next: correct and validate the MCP comparison transform, then implement AI-history density and the production profile information architecture; recapture affected states before broad/region/target diffs.
 
+### Task 17 AI-history parity checkpoint (2026-07-29)
+
+- AI-history code and deterministic populated fixture are implementation/test complete. Physical dark/light captures and ui-diff are explicitly pending; Task 17 Step 7 remains unchecked and Task 17 remains in progress.
+- Model: backward-compatible pinned/category(meals/goals/scans/general)/unread/appliedActionCount + `toMap` round trip.
+- Real populated capture manifest now has exactly 12 deterministic threads across pinned/today/yesterday/earlier, all categories, unread/read, linked meal, action counts.
+- Screen canonical IA: header/count, search, animated All/Plan/Meal edits/Nutrition/Chat filters, stable pinned/date groups, richer rows, privacy footer, New chat FAB above shared shell; distinct root/filtered empty states; stream/delete/open/new-chat preserved.
+- Date grouping anchor comes from full snapshot, not filtered subset; UTC/local midnight semantics tested.
+- TDD/verification: initial focused RED was 26/27 with missing Earlier this week; final focused history 39/39; focused history+capture earlier 113/113; isolated Today stale-contract correction 21/21; final `fvm flutter analyze` no issues; final full test 526 passed + 1 intentional live-contract skip, exit 0.
+- Two stale Today tests were corrected: nonempty fixture for Recent scans visibility; canonical empty copy `Nothing logged yet` / `Scan your first meal`. No Today production code changed.
+- Worker routing: OpenCode health probe READY; first edit call timed out after ~1204s leaving partial screen/model/test; second correction call timed out after ~904s leaving only fixture progress; both orphan process trees stopped. Claude headless fallback was available, edited the substantive fixture/docs-policy slice, then ended after ~1139s with exact monthly spend-limit message. OpenCode bounded corrections subsequently succeeded (date-anchor/filter coverage, stale Today tests, UTC fix). No Codex host/child application-code edits.
+- Antigravity review conversation `calorix-task17-ai-history-parity-20260728`: explicit `gemini-3.6-flash`, `gemini-3.1-pro`, `gemini-3.5-flash` selections failed because MCP omitted required effort; configured-default call timed out 300s. MCP-compatible `gemini-3.6-flash-high` alias then returned agree/no `MUST_FIX`, one UTC `SHOULD_FIX`; after adoption confirmation returned `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. First successful response duplicated its summary and concatenated headings; record as response-format noise, no repo mutation.
+- Next exact action: commit/push checkpoint, build/install fresh debug APK on explicit physical `R58R61161NA`, recapture `ai_history` dark/light from the production fixture, validate artifacts, run broad/region/target ui-diff, inspect results, then iterate or proceed to profile IA.
+
 ## Toolchain Health (Task 0)
 
 - `fvm flutter pub get`: succeeded; 82 newer incompatible package notices; no lockfile change.

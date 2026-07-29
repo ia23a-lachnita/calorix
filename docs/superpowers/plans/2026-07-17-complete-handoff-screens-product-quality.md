@@ -1795,7 +1795,7 @@ Each canonical state maps to a **fixture profile** that defines the expected Fir
 | Fixture profile | States | Seed contents |
 |---|---|---|
 | `empty` | `today_empty` | No food entries, no history, no weight logs, no active plan, empty chat |
-| `populated` | `today`, `food`, `food_edit`, `history_week`, `history_month`, `goals`, `goals_select`, `ai`, `ai_history`, `profile` | 3 food entries (high-conf, low-conf, editing), 7 days history, 2 weight logs, 1 active plan, 1 chat thread |
+| `populated` | `today`, `food`, `food_edit`, `history_week`, `history_month`, `goals`, `goals_select`, `ai`, `ai_history`, `profile` | 3 food entries (high-conf, low-conf, editing), 7 days history, 2 weight logs, 1 active plan, 12 chat-history threads (pinned/today/yesterday/earlier, all categories, unread/read, linked meal, action counts) |
 | `flow_permission` | `permission` | Camera permission denied state; no food entries |
 | `flow_scan` | `scan_idle`, `scan_capturing` | Camera ready; no food entries; scan_capturing shows mid-shutter state |
 | `flow_processing` | `processing` | Upload in progress; skeleton shimmer visible; no completed entries |
