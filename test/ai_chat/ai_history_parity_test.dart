@@ -259,17 +259,17 @@ void main() {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
 
-      // PLAN and MEAL tags are visible in the first two groups.
+      // PLAN and MEAL EDIT tags are visible in the first two groups.
       expect(find.text('PLAN'), findsWidgets);
-      expect(find.text('MEAL'), findsWidgets);
-      // SCAN tags may be below the fold — scroll down to reveal them.
+      expect(find.text('MEAL EDIT'), findsWidgets);
+      // NUTRITION tags may be below the fold — scroll down to reveal them.
       final scrollable = find.descendant(
         of: find.byKey(const ValueKey('ai-history-list')),
         matching: find.byType(Scrollable),
       );
       await tester.drag(scrollable, const Offset(0, -2000));
       await tester.pumpAndSettle();
-      expect(find.text('SCAN'), findsWidgets);
+      expect(find.text('NUTRITION'), findsWidgets);
     });
 
     testWidgets('renders APPLIED action count for threads with actions',

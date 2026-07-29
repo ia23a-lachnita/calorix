@@ -44,6 +44,23 @@ const double _kAiHistoryTitleVisualOffset = 3 / _kAiHistoryComparisonScale;
 // Measured comparison-space subtitle offset: move the subtitle down by 6px.
 const double _kAiHistorySubtitleVisualOffset = 6 / _kAiHistoryComparisonScale;
 
+const double _kAiHistoryAvatarSize = 42 / _kAiHistoryComparisonScale;
+const double _kAiHistoryAvatarRadius = 12 / _kAiHistoryComparisonScale;
+const double _kAiHistoryTitleFontSize = 14 / _kAiHistoryComparisonScale;
+const double _kAiHistoryTimestampFontSize = 10.5 / _kAiHistoryComparisonScale;
+const double _kAiHistoryPreviewFontSize = 12.5 / _kAiHistoryComparisonScale;
+const double _kAiHistoryTagDotSize = 5 / _kAiHistoryComparisonScale;
+const double _kAiHistoryTagFontSize = 9.5 / _kAiHistoryComparisonScale;
+const double _kAiHistoryStatusDotSize = 10 / _kAiHistoryComparisonScale;
+const double _kAiHistoryStatusBorderWidth = 2 / _kAiHistoryComparisonScale;
+const double _kAiHistoryChevronSize = 14 / _kAiHistoryComparisonScale;
+const double _kAiHistoryAppliedCheckSize = 11 / _kAiHistoryComparisonScale;
+const double _kAiHistoryAppliedFontSize = 10 / _kAiHistoryComparisonScale;
+const double _kAiHistoryPinnedShadowOffset = 6 / _kAiHistoryComparisonScale;
+const double _kAiHistoryPinnedShadowBlur = 14 / _kAiHistoryComparisonScale;
+const double _kAiHistoryPinnedIconSize = 20 / _kAiHistoryComparisonScale;
+const double _kAiHistoryNormalIconSize = 18 / _kAiHistoryComparisonScale;
+
 /// Maps wire categories to human-readable filter labels shown in the UI.
 const _filterLabels = <AiChatThreadCategory, String>{
   AiChatThreadCategory.goals: 'Plan',
@@ -54,8 +71,8 @@ const _filterLabels = <AiChatThreadCategory, String>{
 /// Maps wire categories to uppercase tag labels used in thread row chips.
 const _tagLabels = <AiChatThreadCategory, String>{
   AiChatThreadCategory.goals: 'PLAN',
-  AiChatThreadCategory.meals: 'MEAL',
-  AiChatThreadCategory.scans: 'SCAN',
+  AiChatThreadCategory.meals: 'MEAL EDIT',
+  AiChatThreadCategory.scans: 'NUTRITION',
   AiChatThreadCategory.general: 'CHAT',
 };
 
@@ -849,20 +866,24 @@ class _ThreadRow extends StatelessWidget {
 
   Color _tagColor(AiChatThreadCategory cat, bool isDark) => switch (cat) {
         AiChatThreadCategory.goals => AppColors.blue,
-        AiChatThreadCategory.meals => AppColors.green,
-        AiChatThreadCategory.scans => AppColors.cyan,
+        AiChatThreadCategory.meals => AppColors.cyan,
+        AiChatThreadCategory.scans => AppColors.green,
         AiChatThreadCategory.general =>
           isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
       };
 
-  String _relativeTimestamp(DateTime dt, DateTime anchor) {
+  String _relativeTimestamp(
+    DateTime dt,
+    DateTime anchor, {
+    required bool pinned,
+  }) {
     final todayStart = anchor.isUtc
         ? DateTime.utc(anchor.year, anchor.month, anchor.day)
         : DateTime(anchor.year, anchor.month, anchor.day);
     final yesterdayStart = todayStart.subtract(const Duration(days: 1));
 
     if (!dt.isBefore(todayStart)) {
-      return DateFormat('HH:mm').format(dt);
+      return pinned ? 'Today' : DateFormat('HH:mm').format(dt);
     } else if (!dt.isBefore(yesterdayStart)) {
       return 'Yesterday';
     } else {
@@ -887,8 +908,10 @@ class _ThreadRow extends StatelessWidget {
     if (pinned) {
       surfaceColor = isDark
           ? AppColors.cyan.withValues(alpha: 0.06)
-          : AppColors.cyan.withValues(alpha: 0.04);
-      borderColor = AppColors.cyan.withValues(alpha: 0.32);
+          : AppColors.cyan.withValues(alpha: 0.07);
+      borderColor = isDark
+          ? AppColors.cyan.withValues(alpha: 0.22)
+          : AppColors.cyan.withValues(alpha: 0.28);
       borderRadius = BorderRadius.circular(16.48);
     } else {
       surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
@@ -902,7 +925,7 @@ class _ThreadRow extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: borderRadius,
         side: BorderSide(
-          width: pinned ? 0.8 : 0.5,
+          width: 0.5,
           color: borderColor,
         ),
       ),
@@ -911,103 +934,145 @@ class _ThreadRow extends StatelessWidget {
         borderRadius: borderRadius,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ---- 38.44 x 38.44 avatar ----
-              _ThreadAvatar(
-                key: ValueKey('ai-thread-avatar-${thread.id}'),
-                thread: thread,
-                isDark: isDark,
-                tagColor: tagColor,
-                muted: muted,
-              ),
-              const SizedBox(width: 12),
-              // ---- Text block ----
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Title + unread dot + timestamp row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            thread.title?.trim().isNotEmpty == true
-                                ? thread.title!
-                                : 'Untitled conversation',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.labelLarge
-                                .copyWith(color: ink, fontSize: 14),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ---- 42/1.0925 transformed avatar ----
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: _ThreadAvatar(
+                    key: ValueKey('ai-thread-avatar-${thread.id}'),
+                    thread: thread,
+                    isDark: isDark,
+                    muted: muted,
+                    surfaceColor: surfaceColor,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // ---- Text block ----
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Title + timestamp only; unread state belongs to avatar.
+                      Row(
+                        key: ValueKey('ai-thread-title-row-${thread.id}'),
+                        children: [
+                          Expanded(
+                            child: Text(
+                              key: ValueKey('ai-thread-title-${thread.id}'),
+                              thread.title?.trim().isNotEmpty == true
+                                  ? thread.title!
+                                  : 'Untitled conversation',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.labelLarge.copyWith(
+                                color: ink,
+                                fontSize: _kAiHistoryTitleFontSize,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing:
+                                    (-0.01 * 14) / _kAiHistoryComparisonScale,
+                              ),
+                            ),
                           ),
-                        ),
-                        if (thread.unread) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: AppColors.cyan,
-                              shape: BoxShape.circle,
+                          const SizedBox(width: 8),
+                          Text(
+                            key: ValueKey('ai-thread-timestamp-${thread.id}'),
+                            _relativeTimestamp(
+                              thread.updatedAt,
+                              anchor,
+                              pinned: pinned,
+                            ),
+                            style: AppTextStyles.labelMono.copyWith(
+                              color: muted,
+                              fontSize: _kAiHistoryTimestampFontSize,
                             ),
                           ),
                         ],
-                        const SizedBox(width: 8),
-                        Text(
-                          _relativeTimestamp(thread.updatedAt, anchor),
-                          style: AppTextStyles.labelMono
-                              .copyWith(color: muted, fontSize: 10),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    // Two-line clamped preview
-                    Text(
-                      thread.preview?.trim().isNotEmpty == true
-                          ? thread.preview!
-                          : 'Open conversation',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bodySmall
-                          .copyWith(color: muted, height: 1.25),
-                    ),
-                    const SizedBox(height: 4),
-                    // Tag chips + chevron
-                    Row(
-                      children: [
-                        _TagChip(
-                          key: ValueKey('ai-thread-tag-${thread.id}'),
-                          label: _tagLabels[thread.category]!,
-                          color: tagColor,
-                        ),
-                        if (thread.linkedMealId != null) ...[
-                          const SizedBox(width: 4),
-                          const _TagChip(
-                            label: 'LINKED MEAL',
-                            color: AppColors.green,
-                          ),
-                        ],
-                        if (thread.appliedActionCount > 0) ...[
-                          const SizedBox(width: 4),
-                          _TagChip(
-                            label: '${thread.appliedActionCount}× APPLIED',
-                            color: AppColors.amber,
-                          ),
-                        ],
-                        const Spacer(),
-                        Icon(
-                          Icons.chevron_right,
-                          size: 18,
+                      ),
+                      const SizedBox(height: 2),
+                      // Two-line clamped preview
+                      Text(
+                        thread.preview?.trim().isNotEmpty == true
+                            ? thread.preview!
+                            : 'Open conversation',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        key: ValueKey('ai-thread-preview-${thread.id}'),
+                        style: AppTextStyles.bodySmall.copyWith(
                           color: muted,
+                          fontSize: _kAiHistoryPreviewFontSize,
+                          height: 1.4,
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(height: 4),
+                      // Tag chips + chevron
+                      Row(
+                        key: ValueKey('ai-thread-tag-row-${thread.id}'),
+                        children: [
+                          _TagChip(
+                            key: ValueKey('ai-thread-tag-${thread.id}'),
+                            threadId: thread.id,
+                            label: _tagLabels[thread.category]!,
+                            color: tagColor,
+                          ),
+                          if (thread.linkedMealId != null) ...[
+                            const SizedBox(width: 4),
+                            const _TagChip(
+                              label: 'LINKED MEAL',
+                              color: AppColors.green,
+                            ),
+                          ],
+                          if (thread.appliedActionCount > 0) ...[
+                            const SizedBox(width: 4),
+                            Row(
+                              key: ValueKey(
+                                'ai-thread-applied-row-${thread.id}',
+                              ),
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.check,
+                                  key: ValueKey(
+                                    'ai-thread-applied-check-${thread.id}',
+                                  ),
+                                  size: _kAiHistoryAppliedCheckSize,
+                                  color: AppColors.green,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  key: ValueKey(
+                                    'ai-thread-applied-${thread.id}',
+                                  ),
+                                  '${thread.appliedActionCount} APPLIED',
+                                  style: AppTextStyles.labelMono.copyWith(
+                                    color: AppColors.green,
+                                    fontSize: _kAiHistoryAppliedFontSize,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Align(
+                  alignment: Alignment.center,
+                  child: Icon(
+                    key: ValueKey('ai-thread-chevron-${thread.id}'),
+                    Icons.chevron_right,
+                    size: _kAiHistoryChevronSize,
+                    color: muted,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1022,14 +1087,14 @@ class _ThreadAvatar extends StatelessWidget {
     super.key,
     required this.thread,
     required this.isDark,
-    required this.tagColor,
     required this.muted,
+    required this.surfaceColor,
   });
 
   final AiChatThread thread;
   final bool isDark;
-  final Color tagColor;
   final Color muted;
+  final Color surfaceColor;
 
   @override
   Widget build(BuildContext context) {
@@ -1039,26 +1104,33 @@ class _ThreadAvatar extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Container(
-          width: 38.44,
-          height: 38.44,
+          key: ValueKey('ai-thread-avatar-surface-${thread.id}'),
+          width: _kAiHistoryAvatarSize,
+          height: _kAiHistoryAvatarSize,
           decoration: pinned
               ? BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(_kAiHistoryAvatarRadius),
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [AppColors.cyan, AppColors.blue],
                   ),
-                  border: Border.all(
-                    color: AppColors.cyan.withValues(alpha: 0.28),
-                    width: 0.8,
-                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.cyan.withValues(alpha: 0.20),
+                      offset: const Offset(
+                        0,
+                        _kAiHistoryPinnedShadowOffset,
+                      ),
+                      blurRadius: _kAiHistoryPinnedShadowBlur,
+                    ),
+                  ],
                 )
               : BoxDecoration(
                   color: isDark
                       ? AppColors.surfaceRaisedDark
                       : AppColors.surfaceRaisedLight,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(_kAiHistoryAvatarRadius),
                   border: Border.all(
                     color:
                         isDark ? AppColors.borderDark : AppColors.borderLight,
@@ -1067,24 +1139,31 @@ class _ThreadAvatar extends StatelessWidget {
                 ),
           child: Center(
             child: Icon(
+              key: ValueKey('ai-thread-avatar-icon-${thread.id}'),
               Icons.auto_awesome,
               color: pinned ? AppColors.backgroundDark : muted,
-              size: 18,
+              size: pinned
+                  ? _kAiHistoryPinnedIconSize
+                  : _kAiHistoryNormalIconSize,
             ),
           ),
         ),
-        // Category status dot at top-right (not shown for pinned)
-        if (!pinned)
+        // Unread state is a single green dot at the avatar corner.
+        if (thread.unread)
           Positioned(
-            top: -1,
-            right: -1,
+            top: -2 / _kAiHistoryComparisonScale,
+            right: -2 / _kAiHistoryComparisonScale,
             child: Container(
               key: ValueKey('ai-thread-avatar-status-${thread.id}'),
-              width: 6,
-              height: 6,
+              width: _kAiHistoryStatusDotSize,
+              height: _kAiHistoryStatusDotSize,
               decoration: BoxDecoration(
-                color: tagColor,
+                color: AppColors.green,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: surfaceColor,
+                  width: _kAiHistoryStatusBorderWidth,
+                ),
               ),
             ),
           ),
@@ -1094,23 +1173,49 @@ class _ThreadAvatar extends StatelessWidget {
 }
 
 class _TagChip extends StatelessWidget {
-  const _TagChip({super.key, required this.label, required this.color});
+  const _TagChip(
+      {super.key, this.threadId, required this.label, required this.color});
+  final String? threadId;
   final String label;
   final Color color;
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.fromLTRB(
+          6 / _kAiHistoryComparisonScale,
+          2 / _kAiHistoryComparisonScale,
+          7 / _kAiHistoryComparisonScale,
+          2 / _kAiHistoryComparisonScale,
+        ),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(
-          label,
-          style: AppTextStyles.labelMono.copyWith(
-            color: color,
-            fontSize: 8,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              key: threadId == null
+                  ? null
+                  : ValueKey('ai-thread-tag-dot-$threadId'),
+              width: _kAiHistoryTagDotSize,
+              height: _kAiHistoryTagDotSize,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 5 / _kAiHistoryComparisonScale),
+            Text(
+              key: threadId == null
+                  ? null
+                  : ValueKey('ai-thread-tag-label-$threadId'),
+              label,
+              style: AppTextStyles.labelMono.copyWith(
+                color: color,
+                fontSize: _kAiHistoryTagFontSize,
+                fontWeight: FontWeight.w600,
+                letterSpacing: (0.08 * 9.5) / _kAiHistoryComparisonScale,
+              ),
+            ),
+          ],
         ),
       );
 }

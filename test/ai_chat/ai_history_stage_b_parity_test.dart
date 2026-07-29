@@ -284,7 +284,7 @@ void main() {
     );
 
     testWidgets(
-      'pinned Material uses exact cyan surface alpha .04 light',
+      'pinned Material uses exact cyan surface alpha .07 light',
       (tester) async {
         await tester.pumpWidget(
           _app(_fixture, themeMode: ThemeMode.light),
@@ -300,14 +300,14 @@ void main() {
             pinnedSurface.evaluate().first.widget as Material;
         expect(
           materialWidget.color,
-          AppColors.cyan.withValues(alpha: 0.04),
-          reason: 'Pinned surface must be cyan alpha .04 in light',
+          AppColors.cyan.withValues(alpha: 0.07),
+          reason: 'Pinned surface must be cyan alpha .07 in light',
         );
       },
     );
 
     testWidgets(
-      'pinned Material border is cyan alpha .32 width .8',
+      'pinned Material border is cyan alpha .22 width .5',
       (tester) async {
         await tester.pumpWidget(_app(_fixture));
         await tester.pumpAndSettle();
@@ -325,11 +325,11 @@ void main() {
         final rRect = shape as RoundedRectangleBorder;
         expect(
           rRect.side.color,
-          AppColors.cyan.withValues(alpha: 0.32),
-          reason: 'Pinned border must be cyan alpha .32',
+          AppColors.cyan.withValues(alpha: 0.22),
+          reason: 'Pinned dark border must be cyan alpha .22',
         );
-        expect(rRect.side.width, 0.8,
-            reason: 'Pinned border width must be 0.8');
+        expect(rRect.side.width, 0.5,
+            reason: 'Pinned border width must be 0.5');
       },
     );
 
@@ -542,7 +542,7 @@ void main() {
     );
 
     testWidgets(
-      'meal thread has keyed 6x6 green category status dot',
+      'unread meal thread has keyed transformed green status dot',
       (tester) async {
         await tester.pumpWidget(_app(_fixture));
         await tester.pumpAndSettle();
@@ -553,12 +553,14 @@ void main() {
         expect(
           dot,
           findsOneWidget,
-          reason: 'Meal thread must have a keyed category status dot',
+          reason: 'Unread meal thread must have a keyed status dot',
         );
 
         final dotRect = tester.getRect(dot);
-        expect(dotRect.width, 6, reason: 'Category dot must be 6 wide');
-        expect(dotRect.height, 6, reason: 'Category dot must be 6 tall');
+        expect(dotRect.width, closeTo(10 / 1.0925, 0.01),
+            reason: 'Unread status dot must use the transformed 10px size');
+        expect(dotRect.height, closeTo(10 / 1.0925, 0.01),
+            reason: 'Unread status dot must use the transformed 10px size');
 
         final dotWidget = dot.evaluate().first.widget as Container;
         final dotDeco = dotWidget.decoration as BoxDecoration?;
@@ -566,8 +568,9 @@ void main() {
         expect(
           dotDeco!.color,
           AppColors.green,
-          reason: 'Meal category dot must be AppColors.green',
+          reason: 'Unread status dot must be AppColors.green',
         );
+        expect(dotDeco.border?.top.width, closeTo(2 / 1.0925, 0.01));
       },
     );
   });
