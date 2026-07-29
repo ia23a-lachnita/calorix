@@ -926,7 +926,7 @@ void main() {
       final listView = threadList.evaluate().first.widget as ListView;
       expect(
         listView.padding,
-        const EdgeInsets.fromLTRB(11, 0, 11, 96),
+        const EdgeInsets.fromLTRB(11, 4, 11, 96),
       );
     });
 

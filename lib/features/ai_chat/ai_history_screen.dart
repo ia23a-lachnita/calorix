@@ -360,7 +360,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                       }
                       return ListView.builder(
                         key: const ValueKey('ai-history-list'),
-                        padding: const EdgeInsets.fromLTRB(11, 0, 11, 96),
+                        padding: const EdgeInsets.fromLTRB(11, 4, 11, 96),
                         itemCount: groups.fold<int>(
                               0,
                               (sum, g) => sum + 1 + g.threads.length,
@@ -457,8 +457,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                           width: 120,
                           height: 46,
                           child: Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            padding: const EdgeInsets.fromLTRB(6, 0, 16, 0),
                             decoration: BoxDecoration(
                               color: chipBg,
                               borderRadius: BorderRadius.circular(999),
@@ -468,7 +467,6 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                               ),
                             ),
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Container(
                                   key: const ValueKey('ai-new-chat-gradient'),
@@ -487,8 +485,8 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                                     color: AppColors.backgroundDark,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                Flexible(
+                                const SizedBox(width: 10),
+                                Expanded(
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     alignment: Alignment.centerLeft,
@@ -825,7 +823,7 @@ class _ThreadRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: borderRadius,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -893,6 +891,7 @@ class _ThreadRow extends StatelessWidget {
                     Row(
                       children: [
                         _TagChip(
+                          key: ValueKey('ai-thread-tag-${thread.id}'),
                           label: _tagLabels[thread.category]!,
                           color: tagColor,
                         ),
@@ -1008,7 +1007,7 @@ class _ThreadAvatar extends StatelessWidget {
 }
 
 class _TagChip extends StatelessWidget {
-  const _TagChip({required this.label, required this.color});
+  const _TagChip({super.key, required this.label, required this.color});
   final String label;
   final Color color;
 
