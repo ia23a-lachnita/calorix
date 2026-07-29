@@ -10,7 +10,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**Task 17 is in progress. Stage G was committed and pushed as `829109a`, and its physical capture plus deterministic comparison are recorded below. The next exact step is to fix the stale projected-mismatch assertion in ui-diff-mcp, then continue the remaining AI History differences and full semantic audit as warranted. No visual-parity or Task 17 completion claim is made yet.**
+**Task 17 is in progress. Stage G remains retained, and the ui-diff deterministic gate fix `bf91813` is pushed with a passing rerun recorded below. The next work is the remaining AI History true visual/content differences and full semantic audit as warranted; contain-width signatures are not independent repairs. No visual-parity or Task 17 completion claim is made yet.**
 
 ### Task 17 Stage F bottom-navigation implementation checkpoint (2026-07-29)
 
@@ -34,10 +34,10 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Final Stage G Antigravity review in conversation `calorix-task17-nav-stage-f-20260729` returned `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. Response noise was limited to the response wrapper, model footer, and concatenated headings; no repository mutation occurred.
 - Independent host final verification confirmed analyzer clean and `629` tests passed with `1` intentional skip.
 - Stage G checkpoint `829109a` was committed and pushed. Exact physical device capture used dark/light builds with `buildHash 829109a` on `R58R61161NA`; the fingerprint was not stale, and both captures were visually inspected and coherent.
-- Deterministic comparison run `run-1785356405044-08ae95` completed with status `complete` and locator status `complete`. It checked `120` projected pairs, found `0` projected mismatches, and produced `6` `deterministic_geometry` records. Measurements were whole `9.976`, content `9.783`, bottom `11.708`, and lower third `9.888`; Stage F comparison was whole `10.333`, content `9.837`, bottom `13.714`, and lower third `10.959`.
+- The ui-diff deterministic gate fix `bf91813` was committed and pushed. Passing rerun `run-1785357103390-c261ca` completed with status `complete`, visual classification `not_run` as correct for deterministic mode, and locator status `complete`. It checked `139` projected pairs, found `0` deterministic projected mismatches, sent `139` pairs to VLM, produced `0` displacement/structural groups and `0` grouped pairs, and produced `20` `deterministic_geometry` records. Measurements were whole `9.976`, content `9.783`, and bottom `11.708`; these match the physical Stage G measurements.
 - All `6` records had `deltaY 0` and `deltaHeight 0`, with only width/inset signatures: two `+4/-9` full-width records and four `0/-4` near-full-width records. These are not six independent app repairs.
-- The gate command still exits `1` only because its stale assertion requires `projected mismatch > 0`. That is a ui-diff-mcp harness-contract defect, not a failed deterministic run.
-- Stage G remains retained as implemented and physically inspected, but no visual-parity or Task 17 completion claim is made. Next: fix the gate contract in ui-diff-mcp, then continue the remaining AI History differences and full semantic audit as warranted.
+- The former gate exit `1` was solely the stale assertion requiring `projected mismatch > 0`; `bf91813` removes that false-red condition while retaining pair conservation and integrity checks. It was a ui-diff-mcp harness-contract defect, not an app or deterministic-run failure.
+- Stage G remains retained as implemented and physically inspected, but no visual-parity or Task 17 completion claim is made. Next: address true AI History visual/content differences and continue the full semantic audit as warranted.
 
 ### Task 17 AI-history Stage D implementation checkpoint (2026-07-29)
 
