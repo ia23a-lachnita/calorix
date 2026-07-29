@@ -10,7 +10,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**Task 17 is in progress. AI-history Stage C's two physical-capture regressions (search `⌘K` badge expansion, New-chat label clipping) are repaired and verified in the working tree, with the required post-implementation review green. The immediate next step after commit/push is a fresh fingerprinted physical-device dark/light AI History capture, visual inspection, and a deterministic diff run.**
+**Task 17 is in progress. The Stage C physical-capture regression repair is committed and pushed as `3a12df5`, and fresh fingerprinted physical-device dark/light AI History captures on `R58R61161NA` confirm both repaired defects (search badge expansion, New-chat label clipping) are gone in both themes. A deterministic ui-diff run against this build found 3 deterministic diffs (down from 6 pre-repair) and 24 unresolved/not-classified regions; no VLM/auditor pass has run, so this is not a parity claim. The immediate next step is to define a bounded next correction slice from the residual findings and seek read-only Antigravity review before implementing it.**
 
 ### Task 17 deterministic capture-adapter checkpoint (2026-07-28)
 
@@ -152,6 +152,18 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Post-implementation review: Antigravity conversation `calorix-task17-ai-history-capture-repair-20260729` returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`.
 - Host re-verification: `fvm flutter analyze` clean (no issues); full `fvm flutter test` passed `615` tests plus `1` intentional live-contract skip.
 - Next step: commit and push this repair, then perform a fresh fingerprinted physical-device dark/light AI History capture on the explicit device, visually inspect it against the canonical reference images, and run a deterministic ui-diff comparison.
+
+### Task 17 AI-history Stage C physical-capture validation (2026-07-29)
+
+- Repair commit `3a12df5` (Repair chat history capture regressions) was pushed to `origin/main`.
+- Explicit physical device `R58R61161NA` / `SM-G780G` connected. `tool/ui_capture/capture_states.ps1 -Screens ai_history -Themes dark,light -Execute -DeviceId R58R61161NA` rebuilt the debug APK (did not reuse a prior build), installed successfully, and captured `ai_history--dark.png` and `ai_history--light.png` into `.ui-diff/captures/2026-07-29/`.
+- Capture metadata (both themes): `buildHash 3a12df58c463d22d2762f0e74d5f1c64126a21a5`; `staleBuildFingerprint false`; `sourceFingerprint 83db976a7919664a993fa0e644f7a06cd2cb202854cd49141d973a84e06c43e3`; `apkHash 6974a224738d8797a3da22d3f329b8c02b168358e4f3cb785368d12b580d755b`; viewport `1080x2400`; fixture hash `df7afaff51ed1866d2eeecb05be1d47aff60ee696cd2614538563f53cd7fc950`.
+- Exhaustive visual inspection of both fresh images confirmed the two repaired defects are gone in both themes: the search icon, complete hint, and compact right-aligned keyboard-shortcut badge are all visible, and the `New chat` label renders complete with no overlap/clipping.
+- Deterministic comparison `verify:calorix-deterministic-live` passed. Run `run-1785345181210-6a2d9f`: `status complete`; `locatorCoverageStatus complete`; `visualClassificationStatus not_run`; `auditLimited` absent/null; no provider/VLM models were used. Comparison space is `uniform_contain`, reference `402x874`, `scale 0.3641667`, valid rect `x=4.35 width=393.3`.
+- Report result: 3 final deterministic diffs (2 `deterministic_projected_mismatch`, 1 `deterministic_geometry`) and 24 unresolved/`not_classified` regions. Whole-screen changed pixels `11.576%`; edge changed `17.944%`. Prior comparable runs `run-1785314848442-f230c4` and `run-1785315404529-d18152` each had 6 deterministic diffs, 23 unresolved, `12.999%` changed pixels, `17.944%` edge change. The repair reduced final deterministic findings `6→3` and changed pixels `12.999%→11.576%`; unresolved count rose `23→24` because fewer components were covered by deterministic findings, not because a model run failed.
+- Remaining findings: (1) expected `PLAN` badge crop at expected-space `x89 y656 w35 h9` has 100% changed mass against an empty actual crop, a true lower-list positional/content mismatch; (2) expected dark-cross center of the New-chat plus at `x273 y738 w10 h10` versus a solid gradient actual crop, an 88% changed positional mismatch; (3) nav expected `x0 y704 w402 h126` versus actual normalized `x4 y704 w393 h126` (`dx4, dw-9`), tied to the uniform-contain 4px side insets and therefore not automatically an actionable app-width defect.
+- Deterministic mode did not classify the 24 residual regions; no VLM/auditor/reviewer calls occurred in this run. Do not imply exhaustive semantic diff validation from this checkpoint, and do not claim AI History parity yet.
+- Next step: use the canonical expected image, fresh actual image, group overlay, and residual regions to define the next bounded AI-history correction slice (global density/vertical placement, floating action/nav relationship, and true app-local mismatches, excluding comparison-inset-only geometry), then seek read-only Antigravity review before implementation.
 
 ## Toolchain Health (Task 0)
 
