@@ -13,6 +13,19 @@ const _comparisonToLogical = 1.0925;
 const _comparisonXOffset = 4.35;
 const _comparisonTolerance = 1.5 / _comparisonToLogical;
 
+// Render-box targets are empirically calibrated in the 360x800/DPR3 harness
+// to the canonical raster contours: title y91, subtitle y128, search
+// y180..223, filter y233, and first card y309. In this harness, getRect
+// reports the child render-box coordinates used for these constants rather
+// than applying the Transform translation; Transform offsets are asserted
+// independently below.
+const _titleWidgetTopForCanonicalY91 = 50.75;
+const _subtitleWidgetTopForCanonicalY128 = 82.5;
+const _searchWidgetTopForCanonicalY180 = 153.4;
+const _searchWidgetBottomForCanonicalY223 = 190.9;
+const _filterWidgetTopForCanonicalY233 = 201.0;
+const _firstCardWidgetTopForCanonicalY309 = 270.9;
+
 double _logicalX(double comparisonX) =>
     (comparisonX - _comparisonXOffset) / _comparisonToLogical;
 
@@ -164,7 +177,7 @@ void main() {
           );
           expect(
             titleTransform.transform.storage[13],
-            closeTo(-_logicalSize(4), 0.01),
+            closeTo(_logicalSize(3), 0.01),
           );
           final subtitleTransform = tester.widget<Transform>(
             find
@@ -176,18 +189,45 @@ void main() {
           );
           expect(
             subtitleTransform.transform.storage[13],
-            closeTo(-_logicalSize(6), 0.01),
+            closeTo(_logicalSize(6), 0.01),
+          );
+
+          final titleRect = tester.getRect(
+            find.byKey(const ValueKey('ai-history-title')),
+          );
+          final subtitleRect = tester.getRect(
+            find.byKey(const ValueKey('ai-history-subtitle')),
+          );
+          _expectClose(
+            titleRect.top,
+            _titleWidgetTopForCanonicalY91,
+            'Chats visual top mapped from canonical y91',
+          );
+          _expectClose(
+            subtitleRect.top,
+            _subtitleWidgetTopForCanonicalY128,
+            'subtitle visual top mapped from canonical y128',
           );
 
           final search = find.byKey(const ValueKey('ai-history-search'));
           final searchRect = tester.getRect(search);
           _expectClose(searchRect.left, _logicalX(17), 'search surface left');
           _expectClose(
-              searchRect.right, _logicalX(384), 'search surface right');
+              searchRect.right, _logicalX(387), 'search surface right');
           _expectClose(
             searchRect.height,
-            _logicalSize(37),
+            _logicalSize(41),
             'search height',
+          );
+          _expectClose(
+            searchRect.top,
+            _searchWidgetTopForCanonicalY180,
+            'search visual top mapped from canonical y180',
+          );
+          _expectClose(
+            searchRect.bottom,
+            _searchWidgetBottomForCanonicalY223,
+            'search visual bottom mapped from canonical y223',
           );
           final searchTransform = tester.widget<Transform>(
             find
@@ -207,8 +247,8 @@ void main() {
           );
           _expectClose(
             searchRect.top,
-            searchBlockRect.top + _logicalSize(5),
-            'search visual top after positive translation',
+            searchBlockRect.top + _logicalSize(14 + 5),
+            'search visual top after reserved padding and translation',
           );
           _expectClose(
             searchRect.bottom,
@@ -220,7 +260,7 @@ void main() {
                     .getRect(find.byKey(const ValueKey('ai-history-filters')))
                     .top -
                 searchRect.bottom,
-            _logicalSize(12),
+            _logicalSize(11),
             'filter row gap after translated search',
           );
 
@@ -230,6 +270,11 @@ void main() {
             filterRect.height,
             _logicalSize(30),
             'filter row height',
+          );
+          _expectClose(
+            filterRect.top,
+            _filterWidgetTopForCanonicalY233,
+            'filter row top mapped from canonical y233',
           );
           expect(
               filterRect.bottom,
@@ -241,9 +286,18 @@ void main() {
 
           _expectRect(
             tester,
+            find.byKey(const ValueKey('ai-filter-All')),
+            left: _logicalX(17),
+            right: _logicalX(75),
+            top: filterRect.top,
+            bottom: filterRect.bottom,
+            label: 'All filter',
+          );
+          _expectRect(
+            tester,
             find.byKey(const ValueKey('ai-filter-Plan')),
-            left: _logicalX(82),
-            right: _logicalX(142),
+            left: _logicalX(81),
+            right: _logicalX(145),
             top: filterRect.top,
             bottom: filterRect.bottom,
             label: 'Plan filter',
@@ -252,7 +306,7 @@ void main() {
             tester,
             find.byKey(const ValueKey('ai-filter-Meal edits')),
             left: _logicalX(151),
-            right: _logicalX(244),
+            right: _logicalX(248),
             top: filterRect.top,
             bottom: filterRect.bottom,
             label: 'Meal edits filter',
@@ -260,8 +314,8 @@ void main() {
           _expectRect(
             tester,
             find.byKey(const ValueKey('ai-filter-Nutrition')),
-            left: _logicalX(253),
-            right: _logicalX(337),
+            left: _logicalX(254),
+            right: _logicalX(342),
             top: filterRect.top,
             bottom: filterRect.bottom,
             label: 'Nutrition filter',
@@ -298,6 +352,16 @@ void main() {
           );
           expect(firstCard.top, greaterThanOrEqualTo(filterRect.bottom));
           expect(firstCard.bottom, lessThanOrEqualTo(listRect.bottom));
+          _expectClose(
+            listRect.top - filterRect.bottom,
+            _logicalSize(6),
+            'filter-to-list gap',
+          );
+          _expectClose(
+            firstCard.top,
+            _firstCardWidgetTopForCanonicalY309,
+            'first card top mapped from canonical y309',
+          );
           final groupHeaderRect = tester.getRect(
             find.byKey(const ValueKey('ai-history-group-Pinned')),
           );

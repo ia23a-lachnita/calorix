@@ -138,7 +138,7 @@ void main() {
 
   // ── 2. Search: card fill, radius 12, hairline border, dense field ────────
   group('Stage C search bar surface', () {
-    testWidgets('visible surface height is transformed 37px (dark)',
+    testWidgets('visible surface height is transformed 41px (dark)',
         (tester) async {
       await tester.pumpWidget(_app(_fixture));
       await tester.pumpAndSettle();
@@ -147,20 +147,20 @@ void main() {
           tester.getRect(find.byKey(const ValueKey('ai-history-search')));
       expect(
         rect.height,
-        closeTo(37 / 1.0925, 0.01),
-        reason: 'Search surface must use the transformed 37px height, '
+        closeTo(41 / 1.0925, 0.01),
+        reason: 'Search surface must use the transformed 41px height, '
             'got ${rect.height}',
       );
     });
 
-    testWidgets('visible surface height is transformed 37px (light)',
+    testWidgets('visible surface height is transformed 41px (light)',
         (tester) async {
       await tester.pumpWidget(_app(_fixture, themeMode: ThemeMode.light));
       await tester.pumpAndSettle();
 
       final rect =
           tester.getRect(find.byKey(const ValueKey('ai-history-search')));
-      expect(rect.height, closeTo(37 / 1.0925, 0.01));
+      expect(rect.height, closeTo(41 / 1.0925, 0.01));
     });
 
     testWidgets(
@@ -342,9 +342,9 @@ void main() {
     });
   });
 
-  // ── 3. Filters: 16 padding / 6 gap / ~30 tall / ink-selected ─────────────
+  // ── 3. Filters: 17px transformed padding / 6px gap / ~30 tall ───────────
   group('Stage C filter chip geometry and colors', () {
-    testWidgets('filter ListView has transformed 16px horizontal padding',
+    testWidgets('filter ListView has transformed 17px horizontal padding',
         (tester) async {
       await tester.pumpWidget(_app(_fixture));
       await tester.pumpAndSettle();
@@ -353,11 +353,11 @@ void main() {
       final listView = filterList.evaluate().first.widget as ListView;
       expect(
         listView.padding,
-        const EdgeInsets.symmetric(horizontal: (16 - 4.35) / 1.0925),
+        const EdgeInsets.symmetric(horizontal: (17 - 4.35) / 1.0925),
       );
     });
 
-    testWidgets('gap between adjacent filter chips is transformed 9px',
+    testWidgets('gap between adjacent filter chips is transformed 6px',
         (tester) async {
       await tester.pumpWidget(_app(_fixture));
       await tester.pumpAndSettle();
@@ -369,8 +369,8 @@ void main() {
 
       expect(
         planRect.left - allRect.right,
-        closeTo(9 / 1.0925, 0.01),
-        reason: 'Gap between All and Plan chips must be the transformed 9px, '
+        closeTo(6 / 1.0925, 0.01),
+        reason: 'Gap between All and Plan chips must be the transformed 6px, '
             'got ${planRect.left - allRect.right}',
       );
     });

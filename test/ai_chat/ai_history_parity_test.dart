@@ -898,12 +898,12 @@ void main() {
       );
       expect(
         searchRect.right,
-        closeTo((384 - 4.35) / 1.0925, 0.01),
-        reason: 'Search right edge must map to canonical comparison x384',
+        closeTo((387 - 4.35) / 1.0925, 0.01),
+        reason: 'Search right edge must map to canonical comparison x387',
       );
     });
 
-    testWidgets('filter ListView has transformed 16px horizontal padding',
+    testWidgets('filter ListView has transformed 17px horizontal padding',
         (tester) async {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
@@ -914,7 +914,7 @@ void main() {
       final listView = filterList.evaluate().first.widget as ListView;
       expect(
         listView.padding,
-        const EdgeInsets.symmetric(horizontal: (16 - 4.35) / 1.0925),
+        const EdgeInsets.symmetric(horizontal: (17 - 4.35) / 1.0925),
       );
     });
 

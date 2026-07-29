@@ -22,25 +22,27 @@ const double _kAiHistoryChatsLetterSpacing =
 const double _kAiHistoryBrandFontSize = 10 / _kAiHistoryComparisonScale;
 const double _kAiHistoryBrandLetterSpacing =
     (0.16 * 10) / _kAiHistoryComparisonScale;
-const double _kAiHistorySearchHeight = 37 / _kAiHistoryComparisonScale;
+const double _kAiHistorySearchHeight = 41 / _kAiHistoryComparisonScale;
 const double _kAiHistorySearchLeft = (17 - 4.35) / _kAiHistoryComparisonScale;
 const double _kAiHistorySearchRight =
-    360 - ((384 - 4.35) / _kAiHistoryComparisonScale);
+    360 - ((387 - 4.35) / _kAiHistoryComparisonScale);
 const double _kAiHistoryFilterRowHeight = 30 / _kAiHistoryComparisonScale;
 const double _kAiHistoryFilterPadding =
-    (16 - 4.35) / _kAiHistoryComparisonScale;
-const double _kAiHistoryFilterGap = 9 / _kAiHistoryComparisonScale;
+    (17 - 4.35) / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterGap = 6 / _kAiHistoryComparisonScale;
 const double _kAiHistoryFilterHorizontalPadding =
     12 / _kAiHistoryComparisonScale;
 const double _kAiHistoryFilterVerticalPadding = 4 / _kAiHistoryComparisonScale;
-const double _kAiHistoryFilterAllWidth = 57 / _kAiHistoryComparisonScale;
-const double _kAiHistoryFilterPlanWidth = 60 / _kAiHistoryComparisonScale;
-const double _kAiHistoryFilterMealEditsWidth = 93 / _kAiHistoryComparisonScale;
-const double _kAiHistoryFilterNutritionWidth = 84 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterAllWidth = 58 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterPlanWidth = 64 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterMealEditsWidth = 97 / _kAiHistoryComparisonScale;
+const double _kAiHistoryFilterNutritionWidth = 88 / _kAiHistoryComparisonScale;
+const double _kAiHistorySearchTopReservation = 14 / _kAiHistoryComparisonScale;
 const double _kAiHistorySearchTopCorrection = 5 / _kAiHistoryComparisonScale;
-const double _kAiHistoryTitleVisualCorrection = 4 / _kAiHistoryComparisonScale;
-const double _kAiHistorySubtitleVisualCorrection =
-    6 / _kAiHistoryComparisonScale;
+// Measured comparison-space title offset: move Chats down by 3px.
+const double _kAiHistoryTitleVisualOffset = 3 / _kAiHistoryComparisonScale;
+// Measured comparison-space subtitle offset: move the subtitle down by 6px.
+const double _kAiHistorySubtitleVisualOffset = 6 / _kAiHistoryComparisonScale;
 
 /// Maps wire categories to human-readable filter labels shown in the UI.
 const _filterLabels = <AiChatThreadCategory, String>{
@@ -254,8 +256,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                     children: [
                       Expanded(
                         child: Transform.translate(
-                          offset: const Offset(
-                              0, -_kAiHistoryTitleVisualCorrection),
+                          offset: const Offset(0, _kAiHistoryTitleVisualOffset),
                           child: Text(
                             key: const ValueKey('ai-history-title'),
                             'Chats',
@@ -283,8 +284,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Transform.translate(
-                      offset:
-                          const Offset(0, -_kAiHistorySubtitleVisualCorrection),
+                      offset: const Offset(0, _kAiHistorySubtitleVisualOffset),
                       child: Text(
                         key: const ValueKey('ai-history-subtitle'),
                         'Every conversation with ${AppConstants.appDisplayName} AI, including any plan or meal edits it made.',
@@ -303,6 +303,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                   padding: const EdgeInsets.only(
                     left: _kAiHistorySearchLeft,
                     right: _kAiHistorySearchRight,
+                    top: _kAiHistorySearchTopReservation,
                     bottom: _kAiHistorySearchTopCorrection,
                   ),
                   child: Transform.translate(
@@ -382,7 +383,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12 / _kAiHistoryComparisonScale),
+                const SizedBox(height: 11 / _kAiHistoryComparisonScale),
                 // ---- Category filter chips with live counts ----
                 _FilterChipRow(
                   activeFilter: _activeFilter,
@@ -394,7 +395,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                   chipBorder: chipBorder,
                   onTap: (cat) => setState(() => _activeFilter = cat),
                 ),
-                const SizedBox(height: 4 / _kAiHistoryComparisonScale),
+                const SizedBox(height: 6 / _kAiHistoryComparisonScale),
                 // ---- Thread list ----
                 Expanded(
                   child: threads.when(
