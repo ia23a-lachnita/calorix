@@ -10,7 +10,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**Task 17 is in progress. AI-history Stage C is committed at `b02a58d`; its fresh physical capture exposed two repair-blocking layout defects. Both authorized headless editors are currently unavailable, so the next step is the bounded test-first search/FAB-label repair before another capture and deterministic run.**
+**Task 17 is in progress. AI-history Stage C's two physical-capture regressions (search `⌘K` badge expansion, New-chat label clipping) are repaired and verified in the working tree, with the required post-implementation review green. The immediate next step after commit/push is a fresh fingerprinted physical-device dark/light AI History capture, visual inspection, and a deterministic diff run.**
 
 ### Task 17 deterministic capture-adapter checkpoint (2026-07-28)
 
@@ -139,6 +139,19 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Required next repair is already bounded: add rendered-position tests proving a left search icon, visible non-overlapping hint, compact right-aligned keyboard badge, and a fully laid-out `New chat` label; then use explicit prefix/suffix widths and a scale-down label wrapper without widening the source-derived pill.
 - Editor availability record: Claude Code Sonnet returned `You've hit your monthly spend limit` after 353.6 seconds. OpenCode `opencode/mimo-v2.5-free` then timed out after 604 seconds with no edits; its retained process produced no changes during a further six-minute observation and was terminated. A final no-tools `READY` probe timed out after 94 seconds. No app source/test edits were made after `b02a58d`.
 - Do not claim visual parity or rerun deterministic comparison until these two capture-discovered defects are repaired and recaptured.
+
+### Task 17 AI-history Stage C physical-capture regression repair (2026-07-29)
+
+- Scope: repair the two defects found by the fresh physical capture in the checkpoint above — the expanding `⌘K` suffix hiding the search icon/hint, and the 120×46 New-chat pill clipping its label to `New`. No other AI History layout, tokens, semantics, or capture infrastructure touched.
+- RED: strengthened `test/ai_chat/ai_history_stage_c_parity_test.dart` with 4 rendered-geometry assertions (1 already-passing containment check plus 3 new failing ones). Failures against `b02a58d`: search hint rect width `0.0` (expected `>0`); keyboard badge rect width `778.0` (expected `30..45`, i.e. stretched to the full field width instead of ~34-42px); New-chat label rendered aspect ratio `2.58` vs its natural (unclipped) aspect ratio, difference exceeded the `15%` tolerance (rendered `57×19` vs natural `106×19` — width alone had been clipped while height stayed full, proving truncation rather than scaling). Diagnostic instrumentation (deleted before commit) confirmed root causes: the suffix badge `Container(alignment: Alignment.center, ...)` had no explicit width, so Flutter's `Align`/`Container-with-alignment` sizing rule made it expand to fill the entire bounded suffix width offered by `suffixIconConstraints`, overlapping the prefix icon and hint; the New-chat `Flexible` correctly computed a 58px text budget (120 surface − 20 content padding − 34 disc − 8 gap) but `TextOverflow.clip` cut the label instead of shrinking it to fit.
+- GREEN: removed `alignment: Alignment.center` from the search-badge `Container` (`lib/features/ai_chat/ai_history_screen.dart`) so it shrink-wraps to its padded `⌘K` content instead of expanding; wrapped the New-chat `Text('New chat')` in `FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft)` inside the existing `Flexible`, preserving the 120×46 surface and 34px gradient disc geometry untouched.
+- Test results: `fvm flutter test test/ai_chat/ai_history_stage_c_parity_test.dart --reporter compact` → `32/32` (28 baseline + 4 strengthened/added). Focused command `fvm flutter test test/ai_chat test/debug test/debug_reseed_test.dart --reporter compact` → `240/240`. `fvm flutter analyze` (explicit global binary, `--no-pub`): `No issues found!`. Full `fvm flutter test --reporter compact`: `615` passed plus `1` intentional live-contract skip (net +4 over the prior `611` from the added/strengthened assertions).
+- Worker routing: an OpenCode health probe returned no output and timed out after 64 seconds; per the repository's documented fallback path (AGENTS.md §3), Claude Code headless proceeded as the editor for this repair. No opencode edits were made.
+- Files changed: `lib/features/ai_chat/ai_history_screen.dart` (production fix), `test/ai_chat/ai_history_stage_c_parity_test.dart` (strengthened RED-first assertions).
+- Not yet done: no fresh physical-device capture or visual inspection has been performed against this repair. Do not claim physical-capture or visual-parity validation until a new capture on the explicit device is taken, inspected, and compared against the canonical reference images.
+- Post-implementation review: Antigravity conversation `calorix-task17-ai-history-capture-repair-20260729` returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`.
+- Host re-verification: `fvm flutter analyze` clean (no issues); full `fvm flutter test` passed `615` tests plus `1` intentional live-contract skip.
+- Next step: commit and push this repair, then perform a fresh fingerprinted physical-device dark/light AI History capture on the explicit device, visually inspect it against the canonical reference images, and run a deterministic ui-diff comparison.
 
 ## Toolchain Health (Task 0)
 

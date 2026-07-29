@@ -7,6 +7,7 @@ import 'package:calorix/features/ai_chat/ai_history_screen.dart';
 import 'package:calorix/features/ai_chat/providers/ai_chat_providers.dart';
 import 'package:calorix/shared/models/ai_chat_thread.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -232,6 +233,85 @@ void main() {
         reason: 'Keyboard badge should be ~22 tall, got ${rect.height}. '
             'A stretched badge would report a height close to the full '
             'search field height.',
+      );
+    });
+
+    testWidgets(
+        'search icon sits inside the field rect, flush to the left edge',
+        (tester) async {
+      await tester.pumpWidget(_app(_fixture));
+      await tester.pumpAndSettle();
+
+      final fieldRect =
+          tester.getRect(find.byKey(const ValueKey('ai-history-search')));
+      final iconRect = tester.getRect(find.byIcon(Icons.search));
+
+      expect(iconRect.left, greaterThanOrEqualTo(fieldRect.left));
+      expect(iconRect.right, lessThanOrEqualTo(fieldRect.right));
+      expect(iconRect.top, greaterThanOrEqualTo(fieldRect.top));
+      expect(iconRect.bottom, lessThanOrEqualTo(fieldRect.bottom));
+      expect(
+        iconRect.center.dx,
+        lessThan(fieldRect.center.dx),
+        reason: 'search icon must sit left of the field center',
+      );
+    });
+
+    testWidgets('search hint is visible and lies left of the field center',
+        (tester) async {
+      await tester.pumpWidget(_app(_fixture));
+      await tester.pumpAndSettle();
+
+      final fieldRect =
+          tester.getRect(find.byKey(const ValueKey('ai-history-search')));
+      final hintRect =
+          tester.getRect(find.text('Search chats and meal edits…'));
+
+      expect(
+        hintRect.width,
+        greaterThan(0),
+        reason: 'search hint must render with nonzero width, not be '
+            'squeezed to zero by an expanding suffix badge',
+      );
+      expect(
+        hintRect.center.dx,
+        lessThan(fieldRect.center.dx),
+        reason: 'search hint must sit left of the field center, '
+            'got center ${hintRect.center.dx} vs field center '
+            '${fieldRect.center.dx}',
+      );
+    });
+
+    testWidgets(
+        'keyboard badge stays compact and right-aligned, not overlapping the hint',
+        (tester) async {
+      await tester.pumpWidget(_app(_fixture));
+      await tester.pumpAndSettle();
+
+      final fieldRect =
+          tester.getRect(find.byKey(const ValueKey('ai-history-search')));
+      final kbdRect = tester
+          .getRect(find.byKey(const ValueKey('ai-history-search-kbd')));
+      final hintRect =
+          tester.getRect(find.text('Search chats and meal edits…'));
+
+      expect(
+        kbdRect.width,
+        inInclusiveRange(30, 45),
+        reason: 'Keyboard badge must stay compact (roughly 34-42px), not '
+            'stretch to fill the field. Got width ${kbdRect.width}.',
+      );
+      expect(
+        fieldRect.right - kbdRect.right,
+        inInclusiveRange(0, 2),
+        reason: 'Keyboard badge must be right-aligned inside the field, '
+            'got right edge ${kbdRect.right} vs field right '
+            '${fieldRect.right}',
+      );
+      expect(
+        kbdRect.left,
+        greaterThanOrEqualTo(hintRect.right),
+        reason: 'Keyboard badge must not overlap the search hint',
       );
     });
 
@@ -520,6 +600,50 @@ void main() {
         find.descendant(of: surface, matching: find.text('New chat')),
       );
       expect(text.style!.color, AppColors.textPrimaryLight);
+    });
+
+    testWidgets(
+        'New chat label renders in full without clipping inside the surface',
+        (tester) async {
+      await tester.pumpWidget(_app(_fixture));
+      await tester.pumpAndSettle();
+
+      final surfaceRect =
+          tester.getRect(find.byKey(const ValueKey('ai-new-chat-surface')));
+      final textFinder = find.text('New chat');
+      final textRect = tester.getRect(textFinder);
+
+      expect(
+        surfaceRect.contains(textRect.topLeft),
+        isTrue,
+        reason: 'Label top-left ${textRect.topLeft} must sit inside the '
+            'surface $surfaceRect',
+      );
+      expect(
+        surfaceRect.contains(textRect.bottomRight),
+        isTrue,
+        reason: 'Label bottom-right ${textRect.bottomRight} must sit '
+            'inside the surface $surfaceRect',
+      );
+
+      final paragraph = tester.renderObject<RenderParagraph>(textFinder);
+      final naturalPainter = TextPainter(
+        text: paragraph.text as TextSpan,
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout();
+      final naturalRatio = naturalPainter.width / naturalPainter.height;
+      final renderedRatio = textRect.width / textRect.height;
+
+      expect(
+        (renderedRatio - naturalRatio).abs(),
+        lessThan(naturalRatio * 0.15),
+        reason: 'The label must be shown at full size or uniformly scaled '
+            'to fit — not horizontally clipped. Rendered '
+            '${textRect.width}x${textRect.height} (ratio $renderedRatio) '
+            'vs natural ${naturalPainter.width}x${naturalPainter.height} '
+            '(ratio $naturalRatio).',
+      );
     });
 
     testWidgets('gradient disc is 34x34 with a cyan-to-blue LinearGradient',

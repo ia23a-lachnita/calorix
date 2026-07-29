@@ -282,7 +282,6 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                               key: const ValueKey('ai-history-search-kbd'),
                               padding: const EdgeInsets.only(right: 10),
                               child: Container(
-                                alignment: Alignment.center,
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
@@ -490,14 +489,17 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Flexible(
-                                  child: Text(
-                                    'New chat',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.clip,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: ink,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'New chat',
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: ink,
+                                      ),
                                     ),
                                   ),
                                 ),
