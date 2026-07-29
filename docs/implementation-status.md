@@ -10,7 +10,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**Task 17 is in progress. Stage H measured top-stack correction code, tests, and post-implementation review are green in the working tree; physical correction validation remains pending. Stage G remains retained, and contain-width signatures are not independent repairs. No visual-parity or Task 17 completion claim is made yet.**
+**Task 17 is in progress. Stage H measured top-stack correction is retained and physically validated; whole-screen parity and semantic completion remain open. Stage G remains retained, and contain-width signatures are not independent repairs. The next Task 17 stage is true card/content discrepancy work from the full run below.**
 
 ### Task 17 Stage H AI History top-stack checkpoint (2026-07-29)
 
@@ -30,7 +30,11 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - The Stage H measured-plan Antigravity review in conversation `calorix-task17-ai-history-stage-h-20260729` was green with `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. Response noise was the wrapper, file links, and model footer. The review rationale's displayed chip arithmetic used nominal widget coordinates; source raster contour targets remain authoritative. No repository mutation occurred.
 - Post-implementation host verification: `fvm flutter test --reporter compact` exited `0` with `631` passed and `1` intentional skip; durable log: `C:\Users\xursc\AppData\Local\Temp\calorix-stage-h-correction-full-1785363183.log`. Focused Stage H passed `2/2`, `fvm flutter test test/ai_chat --reporter compact` passed `150/150`, and `fvm flutter analyze` returned `No issues found`.
 - Post-implementation Antigravity review in the same conversation `calorix-task17-ai-history-stage-h-20260729` using Gemini 3.6 Flash High returned `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. Response noise was the wrapper, file links, model footer, and concatenated numbered rationale; no repository mutation occurred.
-- Next exact step: host commit/push the measured Stage H correction, then install a fingerprinted build on `R58R61161NA`, capture dark/light AI History, inspect the artifacts, and run deterministic validation before claiming visual parity or starting the remaining semantic audit.
+- Stage H physical closure: correction pushed as `414fa02`; a fresh rebuild/install on `R58R61161NA` produced fresh dark/light captures with build hash `414fa02`, both inspected. Deterministic gate PASS run `run-1785363368754-e459df` reported `status complete`, visual `not_run`, locator `complete`, `74` pairs checked, `0` projected mismatches, `74` sent to VLM, `1` final known contain-width geometry record, and `25` unresolved deterministic-only records.
+- Stage H metrics baseline/regressed/corrected: whole `9.976/11.588/9.270`; header `9.145/9.144/7.880`; content `9.783/12.034/9.050`; nav `11.708/12.501/11.710`. Independent region metrics: search/filters `11.858/14.510/9.137`; top stack `11.480/12.584/9.602`; cards `11.736/13.837/11.533`; nav `13.673/14.412/13.674`.
+- Physical contour checks: search exactly `x15 y180 w372 h43`; first card top `y309`; All chip exact; remaining chips were within `1` px; title was `y90` versus canonical `y91`. This validates Stage H's measured top-stack correction, not whole-screen parity or semantic completion.
+- Final Antigravity evidence review in the same conversation/model remained green with `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. Noise was the wrapper, file links, model footer, and concatenated rationale; no repository mutation occurred.
+- Stage H is closed as retained and physically validated. Next exact Task 17 stage: address true card/content discrepancies from full run `run-1785357450973-d0eb47`.
 
 ### Task 17 Stage F bottom-navigation implementation checkpoint (2026-07-29)
 
