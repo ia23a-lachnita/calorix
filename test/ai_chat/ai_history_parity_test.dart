@@ -145,7 +145,9 @@ void main() {
       expect(ids, contains('ui_diff_fixture_earlier_plan'));
     });
 
-    test('covers every captured category: meals, goals, scans (general excluded from fixture)', () {
+    test(
+        'covers every captured category: meals, goals, scans (general excluded from fixture)',
+        () {
       final cats = _populatedFixture.map((t) => t.category).toSet();
       expect(
           cats,
@@ -686,7 +688,8 @@ void main() {
 
   // ---- Stage A: Visual parity contracts ----
   group('Stage A visual parity', () {
-    test('fixture has exact category counts: All 12, Plan 4, Meals 5, Scans 3, General 0',
+    test(
+        'fixture has exact category counts: All 12, Plan 4, Meals 5, Scans 3, General 0',
         () {
       final goalsCount = _populatedFixture
           .where((t) => t.category == AiChatThreadCategory.goals)
@@ -712,8 +715,7 @@ void main() {
       final todayStart = DateTime.utc(now.year, now.month, now.day);
       final yesterdayStart = todayStart.subtract(const Duration(days: 1));
 
-      final pinned =
-          _populatedFixture.where((t) => t.pinned).length;
+      final pinned = _populatedFixture.where((t) => t.pinned).length;
       final today = _populatedFixture
           .where((t) => !t.pinned && !t.updatedAt.isBefore(todayStart))
           .length;
@@ -733,9 +735,7 @@ void main() {
       expect(earlier, 7);
     });
 
-    testWidgets(
-        'count chip shows exact text "+ 12 THREADS"',
-        (tester) async {
+    testWidgets('count chip shows exact text "+ 12 THREADS"', (tester) async {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
 
@@ -848,8 +848,7 @@ void main() {
       );
     });
 
-    testWidgets('Pinned group header has push-pin icon',
-        (tester) async {
+    testWidgets('Pinned group header has push-pin icon', (tester) async {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
 
@@ -899,7 +898,7 @@ void main() {
       expect(padding, findsOneWidget);
     });
 
-    testWidgets('filter ListView has 11 logical px horizontal padding',
+    testWidgets('filter ListView has 16 logical px horizontal padding',
         (tester) async {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();
@@ -911,7 +910,7 @@ void main() {
       final listView = filterList.evaluate().first.widget as ListView;
       expect(
         listView.padding,
-        const EdgeInsets.symmetric(horizontal: 11),
+        const EdgeInsets.symmetric(horizontal: 16),
       );
     });
 
@@ -931,7 +930,8 @@ void main() {
       );
     });
 
-    testWidgets('light theme: unselected filter count text uses theme-aware muted color',
+    testWidgets(
+        'light theme: unselected filter count text uses theme-aware muted color',
         (tester) async {
       await tester.pumpWidget(
         _app(_populatedFixture, themeMode: ThemeMode.light),
@@ -948,9 +948,7 @@ void main() {
       final countText = find.descendant(
         of: planChip,
         matching: find.byWidgetPredicate(
-          (w) =>
-              w is Text &&
-              w.style?.fontSize == 9,
+          (w) => w is Text && w.style?.fontSize == 9,
         ),
       );
       expect(countText, findsOneWidget);
@@ -960,8 +958,7 @@ void main() {
       expect(
         textWidget.style?.color,
         AppColors.textSecondaryLight,
-        reason:
-            'Unselected filter count must use theme-aware muted color, '
+        reason: 'Unselected filter count must use theme-aware muted color, '
             'not hardcoded textSecondaryDark',
       );
     });
@@ -989,8 +986,7 @@ void main() {
       expect(find.byKey(const ValueKey('ai-filter-Chat')), findsNothing);
     });
 
-    testWidgets(
-        'groups sort threads descending by updatedAt within each group',
+    testWidgets('groups sort threads descending by updatedAt within each group',
         (tester) async {
       await tester.pumpWidget(_app(_populatedFixture));
       await tester.pumpAndSettle();

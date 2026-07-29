@@ -10,7 +10,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**Task 17 is in progress. Plan Steps 1–6 are complete; AI-history Stage B implementation is complete and awaiting commit/push before fresh physical captures and the Step 7 three-tier diff loop.**
+**Task 17 is in progress. Plan Steps 1–6 are complete; AI-history Stage C implementation is complete and awaiting commit/push before fresh physical captures and the Step 7 three-tier diff loop.**
 
 ### Task 17 deterministic capture-adapter checkpoint (2026-07-28)
 
@@ -126,6 +126,16 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - External review conversation `calorix-task17-ai-history-parity-20260728`, Gemini 3.6 Flash (High): `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. Response had minor formatting noise (concatenated headings), no repository mutation.
 - OpenCode history: large Stage B call timed out after 1,204 seconds and left usable partial edits; retained process ended. Bounded follow-up fixed compact FAB overflow and themed colors. Bounded assertion-strengthening follow-up completed; host verified final files and all tests.
 - Next step: commit/push Stage B, fresh physical captures of ai_history dark/light on explicit `R58R61161NA`, visually inspect, rerun deterministic diff against `run-1785309718570-9c3cb4`, then decide whether another correction slice is required. Do not claim visual parity yet.
+
+### Task 17 AI-history Stage C checkpoint (2026-07-29)
+
+- Baseline/current committed HEAD: `c982202` (Refine chat history visuals). Stage C changes are uncommitted: `lib/features/ai_chat/ai_history_screen.dart`, new `test/ai_chat/ai_history_stage_c_parity_test.dart`, and reconciled `test/ai_chat/ai_history_parity_test.dart` plus `test/ai_chat/ai_history_stage_b_parity_test.dart`.
+- Source-derived behavior: keyed 12px SafeArea header spacer with 8px row inset; 40px dense bordered search field with a compact command badge; filter row with 16px inset/6px gaps and theme-ink inverse selection; 120×46 neutral New-chat pill bottom-aligned within a 48px tap target with a 34px cyan-blue disc.
+- Test-first RED: Stage C suite totaled 28, with 5 passing and 23 expected failures matching the missing contracts above. GREEN: Stage C suite 28/28.
+- Reconciliation: stale assertions in the two prior parity files were corrected to match the new structure; combined three-file parity suite is 101/101. Focused history/capture command: 206/206. `fvm flutter analyze`: clean. Full `fvm flutter test`: 611 passed plus 1 intentional live-contract skip.
+- Worker routing: OpenCode's Stage C call timed out after 904 seconds with no edits and its retained process was stopped, following three earlier status-only timeouts during the ui-diff stage. Claude Code 2.1.220 (Sonnet) headless fallback was available; its first broad call timed out after 904 seconds and left only the clean RED test, with its retained process stopped. A bounded production-only retry completed after 778 seconds, editing only production code. A separate bounded stale-test retry completed and passed 101/101. Host inspected every diff and ran all verification.
+- Post-review: Antigravity conversation `calorix-task17-ai-history-stage-c-20260729`, `Gemini 3.6 Flash (High)`: `AGREEMENT_STATUS agree`, `MUST_FIX none`, `SHOULD_FIX none`, `QUESTIONS none`. Response appended an unrelated background-task completion line; recorded as response noise, no repository mutation.
+- Next: commit/push Stage C, then fresh physical `ai_history` dark/light capture on explicit `R58R61161NA`, visual inspection, and deterministic comparison against `run-1785314848442-f230c4`. Do not claim visual parity yet.
 
 ## Toolchain Health (Task 0)
 

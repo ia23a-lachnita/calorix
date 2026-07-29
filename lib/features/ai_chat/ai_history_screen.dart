@@ -151,7 +151,10 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
     final chipBg =
         isDark ? AppColors.surfaceDark : AppColors.surfaceRaisedLight;
     final chipBorder =
-        isDark ? AppColors.borderDark : AppColors.borderLightStrong;
+        isDark ? AppColors.borderDarkStrong : AppColors.borderLightStrong;
+    final searchBorder = isDark ? AppColors.borderDark : AppColors.borderLight;
+    final background =
+        isDark ? AppColors.backgroundDark : AppColors.backgroundLight;
 
     return Scaffold(
       body: SafeArea(
@@ -159,12 +162,16 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
           children: [
             Column(
               children: [
+                const SizedBox(
+                  key: ValueKey('ai-history-header-spacer'),
+                  height: 12,
+                ),
                 // ---- Row 1: Back · APPNAME AI brand · Settings ----
                 SizedBox(
                   key: const ValueKey('ai-history-header-row'),
                   height: 36,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Row(
                       children: [
                         SizedBox(
@@ -249,10 +256,20 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                     onChanged: (v) => setState(() => _searchQuery = v.trim()),
                     style: AppTextStyles.bodyMedium.copyWith(color: ink),
                     decoration: InputDecoration(
+                      isDense: true,
                       hintText: 'Search chats and meal edits…',
                       hintStyle:
                           AppTextStyles.bodyMedium.copyWith(color: muted),
-                      prefixIcon: Icon(Icons.search, color: muted, size: 20),
+                      prefixIcon: Icon(Icons.search, color: muted, size: 16),
+                      prefixIconConstraints: const BoxConstraints(
+                        minWidth: 0,
+                        minHeight: 0,
+                      ),
+                      suffixIconConstraints: const BoxConstraints(
+                        minWidth: 0,
+                        minHeight: 22,
+                        maxHeight: 22,
+                      ),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: Icon(Icons.close, color: muted, size: 18),
@@ -265,6 +282,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                               key: const ValueKey('ai-history-search-kbd'),
                               padding: const EdgeInsets.only(right: 10),
                               child: Container(
+                                alignment: Alignment.center,
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
@@ -287,10 +305,14 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                       filled: true,
                       fillColor: chipBg,
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                          horizontal: 12, vertical: 10),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: searchBorder, width: 0.5),
+                      ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: searchBorder, width: 0.5),
                       ),
                     ),
                   ),
@@ -302,6 +324,7 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                   threads: threads,
                   ink: ink,
                   muted: muted,
+                  background: background,
                   chipBg: chipBg,
                   chipBorder: chipBorder,
                   onTap: (cat) => setState(() => _activeFilter = cat),
@@ -429,47 +452,57 @@ class _AiHistoryScreenState extends ConsumerState<AiHistoryScreen> {
                       behavior: HitTestBehavior.opaque,
                       onTap: () => context.goNamed(RouteNames.aiChat),
                       child: Align(
-                        alignment: Alignment.topCenter,
+                        alignment: Alignment.bottomCenter,
                         child: SizedBox(
-                          width: 108,
-                          child: Builder(
-                            builder: (context) {
-                              final cs = Theme.of(context).colorScheme;
-                              return Container(
-                                key: const ValueKey('ai-new-chat-surface'),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: cs.primaryContainer,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.add,
-                                      size: 18,
-                                      color: cs.onPrimaryContainer,
+                          key: const ValueKey('ai-new-chat-surface'),
+                          width: 120,
+                          height: 46,
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: chipBg,
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                color: chipBorder,
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  key: const ValueKey('ai-new-chat-gradient'),
+                                  width: 34,
+                                  height: 34,
+                                  alignment: Alignment.center,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [AppColors.cyan, AppColors.blue],
                                     ),
-                                    const SizedBox(width: 5),
-                                    Flexible(
-                                      child: Text(
-                                        'New chat',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.clip,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: cs.onPrimaryContainer,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.add,
+                                    size: 16,
+                                    color: AppColors.backgroundDark,
+                                  ),
                                 ),
-                              );
-                            },
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    'New chat',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.clip,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: ink,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -520,6 +553,7 @@ class _FilterChipRow extends StatelessWidget {
     required this.threads,
     required this.ink,
     required this.muted,
+    required this.background,
     required this.chipBg,
     required this.chipBorder,
     required this.onTap,
@@ -529,6 +563,7 @@ class _FilterChipRow extends StatelessWidget {
   final AsyncValue<List<AiChatThread>> threads;
   final Color ink;
   final Color muted;
+  final Color background;
   final Color chipBg;
   final Color chipBorder;
   final ValueChanged<AiChatThreadCategory?> onTap;
@@ -549,7 +584,7 @@ class _FilterChipRow extends StatelessWidget {
       child: ListView(
         key: const ValueKey('ai-history-filters'),
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 11),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           _FilterChip(
             label: 'All',
@@ -557,39 +592,43 @@ class _FilterChipRow extends StatelessWidget {
             selected: activeFilter == null,
             ink: ink,
             muted: muted,
+            background: background,
             chipBg: chipBg,
             chipBorder: chipBorder,
             onTap: () => onTap(null),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           _FilterChip(
             label: 'Plan',
             count: goalsCount,
             selected: activeFilter == AiChatThreadCategory.goals,
             ink: ink,
             muted: muted,
+            background: background,
             chipBg: chipBg,
             chipBorder: chipBorder,
             onTap: () => onTap(AiChatThreadCategory.goals),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           _FilterChip(
             label: 'Meal edits',
             count: mealsCount,
             selected: activeFilter == AiChatThreadCategory.meals,
             ink: ink,
             muted: muted,
+            background: background,
             chipBg: chipBg,
             chipBorder: chipBorder,
             onTap: () => onTap(AiChatThreadCategory.meals),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           _FilterChip(
             label: 'Nutrition',
             count: scansCount,
             selected: activeFilter == AiChatThreadCategory.scans,
             ink: ink,
             muted: muted,
+            background: background,
             chipBg: chipBg,
             chipBorder: chipBorder,
             onTap: () => onTap(AiChatThreadCategory.scans),
@@ -607,6 +646,7 @@ class _FilterChip extends StatelessWidget {
     required this.selected,
     required this.ink,
     required this.muted,
+    required this.background,
     required this.chipBg,
     required this.chipBorder,
     required this.onTap,
@@ -617,6 +657,7 @@ class _FilterChip extends StatelessWidget {
   final bool selected;
   final Color ink;
   final Color muted;
+  final Color background;
   final Color chipBg;
   final Color chipBorder;
   final VoidCallback onTap;
@@ -629,13 +670,11 @@ class _FilterChip extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
-            color: selected ? AppColors.cyan.withValues(alpha: 0.14) : chipBg,
+            color: selected ? ink : chipBg,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: selected
-                  ? AppColors.cyan.withValues(alpha: 0.40)
-                  : chipBorder,
-              width: selected ? 1 : 0.5,
+              color: selected ? Colors.transparent : chipBorder,
+              width: 0.5,
             ),
           ),
           child: Row(
@@ -644,14 +683,14 @@ class _FilterChip extends StatelessWidget {
               Text(
                 label,
                 style: AppTextStyles.labelLarge.copyWith(
-                  color: selected ? AppColors.cyan : ink,
+                  color: selected ? background : ink,
                 ),
               ),
               const SizedBox(width: 4),
               Text(
                 '$count',
                 style: AppTextStyles.labelMono.copyWith(
-                  color: selected ? AppColors.cyan : muted,
+                  color: selected ? background : muted,
                   fontSize: 9,
                 ),
               ),

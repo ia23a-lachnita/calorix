@@ -549,10 +549,10 @@ void main() {
     );
   });
 
-  // ── 5. Compact New chat: visible surface 36..42 high, 92..112 wide ────────
-  group('Stage B compact New chat surface', () {
+  // ── 5. New chat surface geometry: 46px tall, 112..128 wide (Stage C canonical) ──
+  group('New chat surface geometry (Stage C canonical values)', () {
     testWidgets(
-      'new chat visible surface is 36..42 logical px high and 92..112 wide (dark)',
+      'new chat visible surface is 46 logical px high and 112..128 wide (dark)',
       (tester) async {
         await tester.pumpWidget(_productionShellApp(_fixture));
         await tester.pumpAndSettle();
@@ -563,29 +563,24 @@ void main() {
         final rect = tester.getRect(surface);
         expect(
           rect.height,
-          greaterThanOrEqualTo(36),
-          reason: 'New chat surface height must be >=36, got ${rect.height}',
-        );
-        expect(
-          rect.height,
-          lessThanOrEqualTo(42),
-          reason: 'New chat surface height must be <=42, got ${rect.height}',
+          46,
+          reason: 'New chat surface height must be 46, got ${rect.height}',
         );
         expect(
           rect.width,
-          greaterThanOrEqualTo(92),
-          reason: 'New chat surface width must be >=92, got ${rect.width}',
+          greaterThanOrEqualTo(112),
+          reason: 'New chat surface width must be >=112, got ${rect.width}',
         );
         expect(
           rect.width,
-          lessThanOrEqualTo(112),
-          reason: 'New chat surface width must be <=112, got ${rect.width}',
+          lessThanOrEqualTo(128),
+          reason: 'New chat surface width must be <=128, got ${rect.width}',
         );
       },
     );
 
     testWidgets(
-      'new chat visible surface is 36..42 high and 92..112 wide (light)',
+      'new chat visible surface is 46 high and 112..128 wide (light)',
       (tester) async {
         await tester.pumpWidget(
           _productionShellApp(_fixture, themeMode: ThemeMode.light),
@@ -598,27 +593,21 @@ void main() {
         final rect = tester.getRect(surface);
         expect(
           rect.height,
-          greaterThanOrEqualTo(36),
+          46,
           reason:
-              'New chat surface light height must be >=36, got ${rect.height}',
-        );
-        expect(
-          rect.height,
-          lessThanOrEqualTo(42),
-          reason:
-              'New chat surface light height must be <=42, got ${rect.height}',
+              'New chat surface light height must be 46, got ${rect.height}',
         );
         expect(
           rect.width,
-          greaterThanOrEqualTo(92),
+          greaterThanOrEqualTo(112),
           reason:
-              'New chat surface light width must be >=92, got ${rect.width}',
+              'New chat surface light width must be >=112, got ${rect.width}',
         );
         expect(
           rect.width,
-          lessThanOrEqualTo(112),
+          lessThanOrEqualTo(128),
           reason:
-              'New chat surface light width must be <=112, got ${rect.width}',
+              'New chat surface light width must be <=128, got ${rect.width}',
         );
       },
     );
