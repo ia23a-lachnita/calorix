@@ -42,6 +42,94 @@ jobs:
           dart pub global activate fvm
           echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
 
+      - name: Ensure Firebase options file exists
+        run: |
+          if [ ! -f lib/core/firebase/firebase_options.dart ]; then
+            mkdir -p lib/core/firebase
+            cat > lib/core/firebase/firebase_options.dart <<'EOF'
+          import 'package:firebase_core/firebase_core.dart';
+          import 'package:flutter/foundation.dart'
+              show TargetPlatform, defaultTargetPlatform, kIsWeb;
+
+          class DefaultFirebaseOptions {
+            static FirebaseOptions get currentPlatform {
+              if (kIsWeb) {
+                return web;
+              }
+              switch (defaultTargetPlatform) {
+                case TargetPlatform.android:
+                  return android;
+                case TargetPlatform.iOS:
+                  return ios;
+                case TargetPlatform.macOS:
+                  return macos;
+                case TargetPlatform.windows:
+                  return windows;
+                case TargetPlatform.linux:
+                  return linux;
+                default:
+                  throw UnsupportedError(
+                    'DefaultFirebaseOptions are not supported for this platform.',
+                  );
+              }
+            }
+
+            static const FirebaseOptions web = FirebaseOptions(
+              apiKey: 'ci-placeholder-api-key',
+              appId: '1:000000000000:web:0000000000000000',
+              messagingSenderId: '000000000000',
+              projectId: 'ci-placeholder-project',
+              authDomain: 'ci-placeholder-project.firebaseapp.com',
+              storageBucket: 'ci-placeholder-project.firebasestorage.app',
+            );
+
+            static const FirebaseOptions android = FirebaseOptions(
+              apiKey: 'ci-placeholder-api-key',
+              appId: '1:000000000000:android:0000000000000000',
+              messagingSenderId: '000000000000',
+              projectId: 'ci-placeholder-project',
+              storageBucket: 'ci-placeholder-project.firebasestorage.app',
+            );
+
+            static const FirebaseOptions ios = FirebaseOptions(
+              apiKey: 'ci-placeholder-api-key',
+              appId: '1:000000000000:ios:0000000000000000',
+              messagingSenderId: '000000000000',
+              projectId: 'ci-placeholder-project',
+              storageBucket: 'ci-placeholder-project.firebasestorage.app',
+              iosBundleId: 'com.calorix.calorix',
+            );
+
+            static const FirebaseOptions macos = FirebaseOptions(
+              apiKey: 'ci-placeholder-api-key',
+              appId: '1:000000000000:ios:0000000000000000',
+              messagingSenderId: '000000000000',
+              projectId: 'ci-placeholder-project',
+              storageBucket: 'ci-placeholder-project.firebasestorage.app',
+              iosBundleId: 'com.calorix.calorix',
+            );
+
+            static const FirebaseOptions windows = FirebaseOptions(
+              apiKey: 'ci-placeholder-api-key',
+              appId: '1:000000000000:web:0000000000000000',
+              messagingSenderId: '000000000000',
+              projectId: 'ci-placeholder-project',
+              authDomain: 'ci-placeholder-project.firebaseapp.com',
+              storageBucket: 'ci-placeholder-project.firebasestorage.app',
+            );
+
+            static const FirebaseOptions linux = FirebaseOptions(
+              apiKey: 'ci-placeholder-api-key',
+              appId: '1:000000000000:web:0000000000000000',
+              messagingSenderId: '000000000000',
+              projectId: 'ci-placeholder-project',
+              authDomain: 'ci-placeholder-project.firebaseapp.com',
+              storageBucket: 'ci-placeholder-project.firebasestorage.app',
+            );
+          }
+          EOF
+          fi
+
       - name: Build release APK
         run: |
           fvm install
