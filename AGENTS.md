@@ -67,6 +67,12 @@ The main agent retains requirements interpretation, architecture and tradeoffs, 
   - After implementation: any non-trivial diff (multi-file, behavior-changing, security-touching, or UI-parity-affecting).
   - Trivial single-file edits may skip the pre-review but record why.
 - If the MCP tool or model is unavailable, record the exact error; do not substitute a CLI review or count an empty/noisy response as green. Check `git status` after review calls; reviewer responses have previously contained wrapper noise and unexpected mutations.
+- Consultation is also mandatory, independent of the diff-based gates above, before the main agent presents any consequential recommendation or second opinion covering architecture, UX behavior, security/Firebase, production readiness, provider/model choice, research synthesis, or a nontrivial debugging conclusion with tradeoffs.
+- Consultation is mandatory whenever the user explicitly asks for a second opinion, external/research validation, or which nontrivial approach to take.
+- Exempt from this consultation gate: routine factual answers, command-output summaries, progress/status reports, and trivial typo/style choices.
+- This consultation gate is additive; it does not replace the pre-implementation and post-implementation review gates above.
+- Scope each persistent `conversationId` to one feature, bug, research question, or review workstream; start a new `conversationId` once the subject changes materially or the conversation becomes stale/unbounded.
+- On MCP timeout/failure, follow the model routing order above and record the exact errors. If every route fails, label the recommendation as not externally reviewed and do not make production-readiness or security approval claims from it; never count a failed, empty, or noisy response as agreement.
 
 ## 5. Product Rules
 
