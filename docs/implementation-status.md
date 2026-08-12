@@ -10,6 +10,10 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
+**The active current workstream (2026-08-12) is the Runtime Reliability And Virtual Android design: `docs/superpowers/specs/2026-08-12-runtime-reliability-and-virtual-android.md`. The design is verbally approved and external architecture consultation is green; the written spec is awaiting user review. No product fixes have been implemented yet. Key facts: local ReDroid is blocked (rootless Podman cgroup mount failure, exit 129; official ReDroid documents a privileged quickstart; only a root-owned systemd service would be accepted, and that needs host admin action); the selected immediate path is a GitHub-hosted x86_64 API 34 emulator via `reactivecircus/android-emulator-runner@v2`. The prior Task 17 historical work below remains recorded as-is and is not the active workstream.**
+
+### Historical: Task 17 (superseded as active workstream on 2026-08-12)
+
 **Task 17 is in progress. Stage I card/content implementation, focused tests, AI-chat suite, full suite, analyzer, and post-review are green in the working tree; whole-screen parity and semantic completion remain open. Stage H and Stage G remain retained and physically validated. Stage I physical capture and deterministic validation are pending.**
 
 ### Task 17 Stage I AI History card/content checkpoint (2026-07-30)
