@@ -1,0 +1,234 @@
+# Runtime Reliability And Virtual Android — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Establish Cuttlefish Android 17 (SDK 37) ARM64 as the primary local evidence gate, independent GitHub x86_64 CI, fail-closed production builds, and fix all five confirmed runtime/UI issues with immutable evidence metadata on every run.
+
+**Architecture:** TDD-first implementation against `docs/superpowers/specs/2026-08-12-runtime-reliability-and-virtual-android.md`. Evidence is compared to independent facts (actual APK hash, checked-out source SHA); declared metadata that does not match observed state is a hard failure. Hermetic workflow tests: each test case is self-contained with no shared mutable state.
+
+**Tech Stack:** Flutter/Dart, Firebase (Auth, Functions, Firestore), Android Cuttlefish (SDK 37, arm64-v8a), GitHub Actions, reactivecircus/android-emulator-runner@v2, integration_test, ui-diff MCP pipeline.
+
+---
+
+## Global Constraints
+
+- Use FVM for all Flutter/Dart commands (`fvm flutter …`). Plain `flutter`/`dart` only to diagnose global SDK setup.
+- Commit messages: plain imperative English. No AI/Bot/Claude/Gemini tokens. Never bypass pre-commit hook with `--no-verify`.
+- Workers never commit or push; the main host reviews, verifies, commits, and pushes.
+- No cloud deploy. No production data mutation. No signup wall for anonymous chat.
+- Production inputs are materialized only from `FIREBASE_OPTIONS_DART_BASE64`, `GOOGLE_SERVICES_JSON_BASE64`, `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`, and `RELEASE_CERT_SHA256`. Never placeholder/debug sign.
+- Explicit bash staged paths must never include `.mcp.json`.
+
+## Verification Contract
+
+- `fvm flutter analyze` must return `No issues found!` before any commit.
+- `fvm flutter test --reporter compact` must pass with no unexpected failures.
+- Local Cuttlefish: `android-vm start`, `android-vm wait`, run tests, `android-vm adb exec-out screencap -p > <path>.png`, capture logcat, emit metadata sidecar JSON, `android-vm stop`.
+- GitHub CI: push to branch, workflow runs `reactivecircus/android-emulator-runner@v2` targeting API 34, uploads artifacts with source SHA naming.
+- Metadata sidecar JSON: `sourceCommitSha`, `apkSha256`, `sdkVersion`, `deviceModel`, `viewportDimensions`, `timestamp`, `staleBuildFingerprint:false`. Mismatches fail.
+
+## File Map
+
+| File | Action | Purpose |
+|---|---|---|
+| `tool/runtime_evidence/run_cuttlefish_gate.sh` | Create | Cuttlefish build/install/test/evidence orchestrator |
+| `tool/runtime_evidence/write_metadata.py` | Create | Canonical sidecar generation and independent validation |
+| `test/tool/runtime_evidence_scripts_test.dart` | Create | Hermetic script/metadata contract tests |
+| `.github/workflows/android-emulator.yml` | Create | Independent x86_64 emulator CI |
+| `.github/workflows/android-build.yml` | Modify | Fail-closed Firebase + release keystore |
+| `android/app/build.gradle.kts` | Modify | signingConfigs.release via key.properties |
+| `lib/shared/services/ai_chat_service.dart` | Modify | Structured error diagnostics enum |
+| `lib/features/ai_chat/ai_chat_screen.dart` | Modify | Preserve Retry, add anonymous contract |
+| `test/ai_chat/anonymous_chat_retry_test.dart` | Create | RED/GREEN tests for chat retry |
+| `lib/features/scan/scan_screen.dart` | Modify | Durable enqueue then navigate |
+| `lib/features/scan/providers/scan_providers.dart` | Modify | Split ScanUploadGateway |
+| `test/scan/durable_enqueue_test.dart` | Create | RED/GREEN tests for enqueue |
+| `lib/features/food_detail/food_detail_sheet.dart` | Modify | Full-screen Scaffold, preserve PopScope |
+| `test/food_detail/full_screen_detail_test.dart` | Create | RED/GREEN tests for detail |
+| `lib/features/onboarding/login_screen.dart` | Modify | Fix _Field centering |
+| `test/onboarding/login_centering_test.dart` | Create | RED/GREEN tests for centering |
+
+---
+
+## Stage 0: Evidence Tooling Contract
+
+**Files:** Create `tool/runtime_evidence/write_metadata.py`, `test/tool/runtime_evidence_scripts_test.dart`
+
+- [ ] **Step 1: Write failing tests** — invoke the Python tool in temporary directories and assert the exact sidecar keys, SHA-256 calculation, `staleBuildFingerprint:false`, malformed input rejection, and source/APK mismatch exit failures. The expected source SHA and APK path are supplied independently by the test.
+- [ ] **Step 2: RED** — `fvm flutter test test/tool/runtime_evidence_scripts_test.dart --reporter compact` fails because the tool does not exist.
+- [ ] **Step 3: Implement** — a stdlib-only Python CLI with explicit `write` and `validate` commands. `validate` recomputes the APK SHA-256, reads the current checked-out SHA supplied by the caller, validates device facts, and rejects stale/missing/extra contract fields. Keep this tooling outside `lib/`; it is release evidence infrastructure, not app runtime code.
+- [ ] **Step 4: GREEN** — All 6 tests pass.
+- [ ] **Step 5: Verify** — `fvm flutter analyze` → `No issues found!`
+- [ ] **Step 6: HANDOFF**
+  ```bash
+  git add tool/runtime_evidence/write_metadata.py test/tool/runtime_evidence_scripts_test.dart
+  git commit -m "Add immutable runtime evidence contract"
+  git push
+  ```
+
+---
+
+## Stage 1: Local Cuttlefish Source-Build / E2e / Screenshot / Metadata Gate
+
+**Files:** Create `tool/runtime_evidence/run_cuttlefish_gate.sh`; extend `test/tool/runtime_evidence_scripts_test.dart`
+
+- [ ] **Step 1: Write failing tests** — inject fake `android-vm`, `fvm`, and `git` executables through `PATH`; assert command order, guaranteed stop via `trap`, independent metadata validation, and failure propagation. Include a fixture where source changes after build and one where the installed APK path differs.
+- [ ] **Step 2: RED** — `fvm flutter test test/tool/runtime_evidence_scripts_test.dart --reporter compact` fails on the missing gate.
+- [ ] **Step 3: Implement** — capture the full source SHA and build-relevant source fingerprint before build, build the debug APK, recompute both before install, hash the APK, start/wait Cuttlefish, install with `android-vm adb install -r`, run `fvm flutter test integration_test/e2e/e2e_matrix_test.dart -d 0.0.0.0:6520 --reporter compact`, query SDK/model/`wm size`, capture PNG and logcat, write the sidecar, then validate its declarations against those independently observed values. Always stop through `trap`. A changing source fingerprint, different APK hash, test failure, or metadata mismatch fails.
+- [ ] **Step 4: GREEN** — All 3 tests pass. `fvm flutter analyze` → clean.
+- [ ] **Step 5: HANDOFF**
+  ```bash
+  git add tool/runtime_evidence/run_cuttlefish_gate.sh tool/runtime_evidence/write_metadata.py test/tool/runtime_evidence_scripts_test.dart
+  git commit -m "Add local Cuttlefish runtime evidence gate"
+  git push
+  ```
+
+---
+
+## Stage 2: Independent GitHub x86_64 Emulator Workflow
+
+**Files:** Create `.github/workflows/android-emulator.yml`; extend `test/tool/runtime_evidence_scripts_test.dart`
+
+- [ ] **Step 1: Create workflow** — `on: workflow_dispatch + pull_request[main]`, concurrency group, permissions read. Job: checkout, Java 17, Flutter 3.41.9, FVM, build debug APK, `reactivecircus/android-emulator-runner@v2` (api-level 34, x86_64, Nexus 6), install APK + `fvm flutter test integration_test/e2e/e2e_matrix_test.dart`, capture logcat, upload artifacts as `emulator-run-${{ github.sha }}`, retention 30 days.
+- [ ] **Step 2: Test the contract** — parse the workflow as YAML in a hermetic test and assert trigger, API/architecture, exact integration target, source-SHA artifact naming, logcat/screenshot/evidence uploads, and that no release/publish step exists. Run `fvm flutter test test/tool/runtime_evidence_scripts_test.dart --reporter compact`.
+- [ ] **Step 3: HANDOFF**
+  ```bash
+  git add .github/workflows/android-emulator.yml
+  git commit -m "Add independent GitHub x86_64 emulator CI workflow"
+  git push
+  ```
+
+---
+
+## Stage 3: Fail-Closed Firebase + Gradle Signing + apksigner Cert Fingerprint
+
+**Files:** Modify `.github/workflows/android-build.yml`, `android/app/build.gradle.kts`; create `tool/ci/prepare_android_release.sh`, `test/tool/android_release_contract_test.dart`
+
+- [ ] **Step 1: RED hermetic tests** — run the preparation script in temporary directories with each secret/file missing, malformed base64, a placeholder Firebase payload, and a valid synthetic fixture. Parse the workflow and Gradle file to assert the production build can only consume the prepared real paths and release signing config. Run `fvm flutter test test/tool/android_release_contract_test.dart --reporter compact`.
+- [ ] **Step 2: Gradle signingConfigs** — Add `signingConfigs.release` block reading `android/key.properties` (storeFile, storePassword, keyAlias, keyPassword). Wire `buildTypes.release.signingConfig = signingConfigs.getByName("release")`.
+- [ ] **Step 3: Workflow fail-closed** — decode both Firebase files and the keystore from named base64 secrets through the tested preparation script, write ignored `android/key.properties`, build release, run `apksigner verify --print-certs`, normalize the printed signer SHA-256, and require exact equality with `RELEASE_CERT_SHA256`. Clean all materialized secrets with `if: always()`. No test-only config path is shared with this workflow.
+- [ ] **Step 4: GREEN** — contract tests pass; no `ci-placeholder`; no debug signing; all seven named inputs are required; a missing or wrong certificate fingerprint exits nonzero.
+- [ ] **Step 5: HANDOFF**
+  ```bash
+  git add .github/workflows/android-build.yml android/app/build.gradle.kts tool/ci/prepare_android_release.sh test/tool/android_release_contract_test.dart
+  git commit -m "Make production build fail-closed with Gradle signingConfigs and apksigner cert fingerprint"
+  git push
+  ```
+
+---
+
+## Stage 4: Anonymous Guest Chat — Structured Diagnostics, Preserved Retry, Anonymous Contract
+
+**Files:** Modify `lib/shared/services/ai_chat_service.dart`, `lib/features/ai_chat/ai_chat_screen.dart`, Create `test/ai_chat/anonymous_chat_retry_test.dart`
+
+**Current state:** the screen already renders an inline Retry action for failed messages. The callable accepts any authenticated Firebase principal, including anonymous users, and backend context loading has defaults. The missing piece is actionable classification/correlation and a runtime contract proving this path; no second retry surface or permanent guest label is needed.
+
+- [ ] **Step 1: Write failing tests** — map `FirebaseFunctionsException` codes into stable retryable/nonretryable categories with a sanitized user message and diagnostic correlation ID; preserve the original message/client ID on Retry; show no raw backend text and no signup wall. Add Functions tests proving an anonymous-auth-shaped request reaches the handler and missing profile data receives documented defaults.
+- [ ] **Step 2: RED** — `fvm flutter test test/ai_chat/anonymous_chat_retry_test.dart --reporter compact` (6 tests fail).
+- [ ] **Step 3: Implement** — add a structured failure value containing category, retryability, sanitized message, and correlation ID; preserve the existing failed-message Retry affordance and attach the diagnostic text there. Log category/code/correlation ID without tokens or request content. Do not change backend behavior unless the reproduction/contract test proves a defect.
+- [ ] **Step 4: GREEN** — All 6 tests pass. `fvm flutter analyze` → clean.
+- [ ] **Step 5: Verify no signup wall** — Grep for `signIn|login|signUp|navigate.*login` in ai_chat_screen.dart; confirm absent from error/retry paths.
+- [ ] **Step 6: HANDOFF**
+  ```bash
+  git add lib/shared/services/ai_chat_service.dart lib/features/ai_chat/ai_chat_screen.dart test/ai_chat/anonymous_chat_retry_test.dart
+  git commit -m "Add anonymous guest chat structured diagnostics with preserved retry and anonymous contract"
+  git push
+  ```
+
+---
+
+## Stage 5: Split ScanUploadGateway — Durable Enqueue Then Scheduled Drain
+
+**Files:** Modify `lib/features/scan/scan_screen.dart`, `lib/features/scan/providers/scan_providers.dart`, `test/scan/support/fake_scan_upload_gateway.dart`; create `test/scan/durable_enqueue_test.dart`, `test/scan/capture_morph_test.dart`
+
+**Current state:** `scan_screen.dart:212` calls `enqueueAndUpload()` which awaits `drainPending()` at `upload_queue_service.dart:233`. Navigation at line 218 blocks on upload.
+
+- [ ] **Step 1: Write failing tests** — durable enqueue completes before navigation; Processing is visible while an injected drain `Completer<void>` remains unresolved; scheduler is invoked once after enqueue; enqueue failure prevents navigation; short captured-photo morph is visible before/through route transition; reduced motion removes the nonessential duration. Use deterministic `pump` durations, not wall-clock timing.
+- [ ] **Step 2: RED** — `fvm flutter test test/scan/durable_enqueue_test.dart --reporter compact` (5 tests fail).
+- [ ] **Step 3: Implement** — replace the gateway's combined operation with exact responsibilities: `enqueue(...)` awaits `UploadQueueService.enqueue`; `scheduleDrain()` starts/injects the background drain without returning a transport future that the screen can await. In `_processImage`, await only durable enqueue, start the bounded morph/navigation, then schedule drain. Update all fakes/call sites and remove the combined gateway method so future UI code cannot regress to awaiting transport.
+- [ ] **Step 4: GREEN** — All 5 tests pass. `fvm flutter analyze` → clean.
+- [ ] **Step 5: HANDOFF**
+  ```bash
+  git add lib/features/scan/scan_screen.dart lib/features/scan/providers/scan_providers.dart test/scan/support/fake_scan_upload_gateway.dart test/scan/durable_enqueue_test.dart test/scan/capture_morph_test.dart
+  git commit -m "Split ScanUploadGateway: durable enqueue then separately scheduled drain"
+  git push
+  ```
+
+---
+
+## Stage 6: Full-Screen Food Detail Topology Preserving PopScope
+
+**Files:** Modify `lib/features/food_detail/food_detail_sheet.dart`, Create `test/food_detail/full_screen_detail_test.dart`
+
+**Current state:** `food_detail_sheet.dart:148-152` uses `DraggableScrollableSheet` with `maxChildSize: 0.95`, `expand: false`. `PopScope` at line 143 wraps the sheet.
+
+- [ ] **Step 1: Write failing tests** — Detail covers 100% viewport; PopScope preserves unsaved-edit confirmation; confirm discard dismisses; cancel discard keeps sheet; hero/macro/detected items all visible.
+- [ ] **Step 2: RED** — `fvm flutter test test/food_detail/full_screen_detail_test.dart --reporter compact` (at least full-viewport test fails).
+- [ ] **Step 3: Implement** — replace only the routed `DraggableScrollableSheet` topology with a full-constraint surface and one existing/controller-compatible scroll view from the first frame. Preserve `PopScope`, `_confirmExit`, `_requestExit`, save actions, and all existing content. Do not introduce a nested `Scaffold` unless route inspection proves it is required.
+- [ ] **Step 4: GREEN** — All 5 tests pass. `fvm flutter analyze` → clean.
+- [ ] **Step 5: HANDOFF**
+  ```bash
+  git add lib/features/food_detail/food_detail_sheet.dart test/food_detail/full_screen_detail_test.dart
+  git commit -m "Replace food detail DraggableScrollableSheet with full-screen topology preserving PopScope"
+  git push
+  ```
+
+---
+
+## Stage 7: Login Field Vertical Centering
+
+**Files:** Modify `lib/features/onboarding/login_screen.dart`, Create `test/onboarding/login_centering_test.dart`
+
+**Current state:** `_Field` (lines 557-636) uses `Stack`/`Positioned` with `contentPadding: const EdgeInsets.only(top: 16)` (line 618). Label at `top: 2` (line 583), TextField fills via `Positioned.fill` (line 599). Causes center drift.
+
+- [ ] **Step 1: Write failing tests** — Dark theme keyboard-closed centering (2px tolerance); light theme same; keyboard open centers in available space; text-scale 1.0 and 1.3 hold; no contentPadding drift.
+- [ ] **Step 2: RED** — `fvm flutter test test/onboarding/login_centering_test.dart --reporter compact` (at least dark-theme test fails).
+- [ ] **Step 3: Implement** — Replace `Stack`/`Positioned` in `_Field` with `Column`+`MainAxisAlignment.center` or `Align(alignment: Alignment.center)`. Replace `contentPadding: const EdgeInsets.only(top: 16)` with `contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4)`. Verify 48px height accommodates text-scale 1.3.
+- [ ] **Step 4: GREEN** — All 6 tests pass. `fvm flutter analyze` → clean.
+- [ ] **Step 5: HANDOFF**
+  ```bash
+  git add lib/features/onboarding/login_screen.dart test/onboarding/login_centering_test.dart
+  git commit -m "Fix login field vertical centering across keyboard/theme/text-scale"
+  git push
+  ```
+
+---
+
+## Stage 8: Combined Verification Gate and Physical-Only Boundary
+
+**Files:** Create `tool/runtime_evidence/run_all_software_gates.sh`; modify `docs/implementation-status.md`
+
+- [ ] **Step 1: Compose software gates** — run analyzer/tests, local Cuttlefish evidence, require the source-SHA-matching GitHub emulator run, and run ui-diff for the affected screens. Emit separate statuses for software gates and unevaluated physical-only claims. Exit nonzero only for a failed required software gate; physical-only claims are `NOT_EVALUATED`, never falsely passed and never used to turn a software pass into failure.
+- [ ] **Step 2: Verify** — `bash tool/runtime_evidence` (dry/partial run). Confirm structure valid.
+- [ ] **Step 3: HANDOFF**
+  ```bash
+  git add tool/runtime_evidence/run_all_software_gates.sh docs/implementation-status.md
+  git commit -m "Add combined local+CI+ui-diff verification gate with physical-only boundary"
+  git push
+  ```
+
+---
+
+## Self-Review
+
+- [x] Every spec section 2.1-2.5 finding has a corresponding plan stage with RED/GREEN evidence.
+- [x] Evidence metadata matches spec 3.5.
+- [x] Production inputs are fail-closed; no placeholder/debug release path.
+- [x] Gradle signing and exact release certificate verification are specified.
+- [x] Screenshot uses `android-vm adb exec-out screencap -p`.
+- [x] Evidence tooling remains outside app runtime code.
+- [x] All Flutter tests use `fvm flutter test`.
+- [x] Evidence is compared to independent facts; mismatch is a hard failure.
+- [x] Workflow/script tests are hermetic.
+- [x] Capture uses an unresolved drain completer and deterministic timing.
+- [x] Scan gateway durable enqueue and drain scheduling are separate.
+- [x] Existing Retry is preserved; structured diagnostics are added.
+- [x] No signup wall is introduced.
+- [x] Food detail starts full-screen and preserves existing exit semantics.
+- [x] Login field geometry is tested across theme/insets/text scale.
+- [x] No cloud deploy is planned.
+- [x] Physical-only claims are reported separately and never passed by emulators.
+- [x] File references were checked against the repository.
+- [x] No unresolved implementation placeholders remain.
+- [x] Every implementation checkbox remains unchecked.
+- [x] Bash staged paths exclude `.mcp.json`.

@@ -17,15 +17,24 @@ fvm dart --version
 
 Never use plain `flutter` or `dart` in project work unless diagnosing global SDK setup.
 
-## Emulator / Device Setup
+## Virtual Android / Device Setup
 
-The local system emulator is corrupted and must not be used directly. Always launch via AVD:
+The primary local Android target on the Raspberry Pi is the KVM-backed
+Cuttlefish Android 17 ARM64 VM:
 
-```powershell
-fvm flutter emulators --launch Api35_NoPlay
+```bash
+android-vm start
+android-vm wait
+android-vm adb devices
+android-vm adb install -r build/app/outputs/flutter-apk/app-debug.apk
+android-vm adb exec-out screencap -p > build/runtime-evidence/screen.png
+android-vm stop
 ```
 
-Wait for the device to appear in `adb devices` before `fvm flutter run --debug`.
+`android-vm wait` waits for `sys.boot_completed=1`; a cold first boot can
+take several minutes. The wrapper has no `screenshot` subcommand. ReDroid and
+the old desktop AVD are not local validation routes. GitHub's x86_64 API 34
+emulator workflow is an independent CI gate.
 
 ## MCP Servers (configured in `.mcp.json` / host configs)
 

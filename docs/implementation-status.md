@@ -10,7 +10,28 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**The active current workstream (2026-08-12) is the Runtime Reliability And Virtual Android design: `docs/superpowers/specs/2026-08-12-runtime-reliability-and-virtual-android.md`. The design is verbally approved and external architecture consultation is green; the written spec is awaiting user review. No product fixes have been implemented yet. Key facts: local ReDroid is blocked (rootless Podman cgroup mount failure, exit 129; official ReDroid documents a privileged quickstart; only a root-owned systemd service would be accepted, and that needs host admin action); the selected immediate path is a GitHub-hosted x86_64 API 34 emulator via `reactivecircus/android-emulator-runner@v2`. The prior Task 17 historical work below remains recorded as-is and is not the active workstream.**
+**Current task: Stage 0 evidence tooling contract on branch `main`, starting from planning baseline `dbe6733`. The runtime reliability spec and plan are externally reviewed and ready to execute. Cuttlefish Android 17 ARM64 is the primary local evidence gate; GitHub x86_64 API 34 is independent CI. Intended Stage 0 verification: `fvm flutter test test/tool/runtime_evidence_scripts_test.dart --reporter compact` plus `fvm flutter analyze`. No product implementation or production-readiness claim has been made.**
+
+### Runtime reliability planning checkpoint (2026-08-14)
+
+- Local Cuttlefish boot was verified on this host: SDK 37 / Android 17, arm64-v8a, 720x1280, `sys.boot_completed=1`, ADB online, and PNG capture through `android-vm adb exec-out screencap -p`.
+- Antigravity conversation `calorix-virtual-android-roadmap-20260812` reviewed the corrected plan/spec with Gemini 3.6 Flash High and returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`.
+- The review response contained only the requested review fields plus the normal MCP wrapper; no unrelated/injected content and no repository mutation were observed.
+- Planning verification: `git diff --check` passed. Product tests are intentionally deferred to the implementation stages.
+
+### Worker failures recorded (2026-08-14)
+
+- **claude-sonnet-5 broad documentation attempt**: no stdout and no repository mutation before interruption.
+- **grok-4.5 at 2026-08-14 before 13:00+02:00**: exact failure `Couldn't set model 'grok-4.5': Invalid params: "unknown model id". Run 'grok models' to see available models.`
+- **qwen3.7-max before 2026-08-14T13:00:00+02:00**: exact HTTP 403 free-tier quota-exhausted response; no mutation.
+- **opencode/nemotron-3-ultra-free before 2026-08-14T13:00:00+02:00**: only a one-line status mutation, then no progress; interrupted.
+- **opencode/mimo-v2.5-free before 2026-08-14T13:00:00+02:00**: drafted documentation but violated its explicit boundary by running `git restore .mcp.json`; stopped immediately. The exact pre-incident user diff was recovered from the durable session log and restored byte-for-byte.
+- **grok-4.6 at 2026-08-14T13:18:00+02:00**: exact failure after read-only inspection: `You've reached your free Grok Build usage limit for now.`; no mutation.
+- **qwen3.7-max at 2026-08-14T13:20:00+02:00**: exact failure `403 The free quota has been exhausted`; no mutation.
+- **opencode/nemotron-3-ultra-free at 2026-08-14T13:24:00+02:00**: inspected relevant files, then failed with `Streaming response failed: [504] Upstream idle timeout exceeded`; no mutation.
+- **opencode/mimo-v2.5-free at 2026-08-14T13:28:00+02:00**: rewrote only the plan file as requested. The main host reviewed and corrected the planning document; it did not edit application code.
+
+The user-owned `.mcp.json` diff remains intentionally dirty and is excluded from every stage/commit.
 
 ### Historical: Task 17 (superseded as active workstream on 2026-08-12)
 

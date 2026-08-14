@@ -27,17 +27,18 @@ Source-of-truth order (read the relevant one before changing behavior, UI, data,
 
 ### Delegation Policy
 
-OpenCode headless mode using model `opencode/mimo-v2.5-free` is the **primary editor** for all repository file edits and token-heavy implementation work, while its quota is available. Canonical invocation:
+Repository edits and token-heavy implementation work use this strongest-first route. The confirmed Grok model on this host is `grok-4.6`:
 
 ```
+~/.grok/bin/grok -p "<prompt>" --model grok-4.6 --reasoning-effort high --cwd <repo> --permission-mode bypassPermissions --output-format plain
+qwen -p "<prompt>" --model qwen3.7-max --output-format text
+opencode run --model opencode/nemotron-3-ultra-free --auto --dir <repo> "<prompt>"
 opencode run --model opencode/mimo-v2.5-free --auto --dir <repo> "<prompt>"
+opencode run --model opencode/deepseek-v4-flash-free --auto --dir <repo> "<prompt>"
+claude -p "<prompt>" --model claude-sonnet-5 --dangerously-skip-permissions --output-format text
 ```
 
-Only after OpenCode explicitly reports quota exhaustion, is unavailable, or repeatedly stalls (record the exact error/stall evidence in `docs/implementation-status.md` first) may **Claude Code headless** edit as fallback, invoked with `--dangerously-skip-permissions`:
-
-```
-claude -p --dangerously-skip-permissions --model <model> "<prompt>"
-```
+Before each fallback, record the ISO timestamp, exact model, category, and provider/tool message in `docs/implementation-status.md`. Claude is the paid last route.
 
 Codex host/child agents **never directly edit application code**; they remain allowed for read-only research, investigation, review, planning, and sub-orchestration.
 
@@ -45,9 +46,9 @@ Workers (OpenCode and Claude Code headless) never commit or push; the main host 
 
 The main agent retains requirements interpretation, architecture and tradeoffs, synthesis, verification judgment, production-readiness decisions, and final reporting. Subagents never commit or push; the main agent reviews, verifies, commits, and pushes.
 
-| Capability | OpenCode (mimo-v2.5-free) | Claude Code / Codex CLI |
+| Capability | Editing workers | Main host / read-only agents |
 |---|---|---|
-| File edits | `opencode run --auto` (token-heavy work, primary) | Claude Code headless fallback only (recorded exhaustion/stall); Codex never edits |
+| File edits | Strongest-first route above | Planning/tracking docs only; Codex never edits application code |
 | Search | Read-only agents may search | `Grep`, `Glob`, `shell_command` (rg), MCP search |
 | Shell | `opencode run` invocation only | `Bash` / `PowerShell` / `shell_command` |
 | Subagents | N/A | `Agent` tool + agent dirs |
@@ -56,6 +57,7 @@ The main agent retains requirements interpretation, architecture and tradeoffs, 
 
 - Google MCP connectors (`firebase`, `gcloud`) are **disabled by default** in this repo's Claude, Codex, and Gemini configs. Do not silently re-enable them. If a task genuinely needs Firebase/GCP tooling, state that and let the user enable the connector for the session; CLI fallbacks (`firebase`, `gcloud` commands) still require the safety gates in section 6.
 - Detailed tool/MCP policy, emulator setup, and the ui-diff workflow live in `.claude/tools.md`.
+- Primary local Android is KVM-backed Cuttlefish Android 17 ARM64: `android-vm start`, `android-vm wait`, `android-vm adb ...`, `android-vm stop`. Capture screenshots with `android-vm adb exec-out screencap -p > file.png`. ReDroid is retired historical context. GitHub x86_64 emulator CI remains an independent gate.
 
 ## 4. External Review Contract (Antigravity MCP)
 

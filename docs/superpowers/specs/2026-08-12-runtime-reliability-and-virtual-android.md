@@ -1,6 +1,12 @@
 # Runtime Reliability And Virtual Android Design
 
-Status: design verbally approved; external architecture consultation green; written spec awaiting user review. No product fixes implemented yet.
+Status: approved and externally reviewed on 2026-08-14. Cuttlefish verified on local host; no product implementation or production claims.
+
+Local virtual Android verified: KVM Cuttlefish Android 17 ARM64 via `android-vm start/wait/adb/stop` (SDK 37, arm64-v8a, 720x1280, ADB/screenshots, cold boot 4-5 min, nofile 65536). This is the primary local evidence gate. GitHub x86_64 API 34 emulator is an independent CI gate, not a substitute for local Cuttlefish evidence. ReDroid retained only as historical rejected-path context (rootless Podman cgroup mount failure, exit 129).
+
+Immutable metadata required on every run: `sourceCommitSha`, `apkSha256`, `sdkVersion`, `deviceModel`, `viewportDimensions`, `timestamp`, `staleBuildFingerprint:false`. Any mismatch between the declared metadata and the actual build/device state fails the gate. No exceptions.
+
+Preserve: fail-closed real Firebase/release signing, guest anonymous chat, durable nonblocking scan, full-screen detail, centered login requirements. No product fixes implemented yet.
 
 ## 1. Goal
 
@@ -52,17 +58,34 @@ Each item below is labeled confirmed or hypothesis. Do not treat hypotheses as s
 - Official ReDroid documentation uses a privileged quickstart; on this host the measured rootless attempts fail during Android init cgroup mounting.
 - Standard Android Studio / the standard Android Emulator is unsupported on Linux ARM hosts (this host's architecture).
 
-### 3.2 Selected immediate path: GitHub-hosted x86_64 emulator
+### 3.2 Primary local gate: Cuttlefish Android 17 ARM64
+
+Cuttlefish is the primary local verification gate. All behavior changes (Stages 3-6) must pass on local Cuttlefish before the independent CI gate is checked.
+
+- Start: `android-vm start` (creates a KVM-backed Cuttlefish AVD on the local host).
+- Wait: `android-vm wait` (blocks until Android reports `sys.boot_completed=1`).
+- Verify: `android-vm adb <command>` to run `adb` against the Cuttlefish instance.
+- Screenshot: `android-vm adb exec-out screencap -p > <path>.png` to capture full-screen PNGs for evidence. The wrapper has no `screenshot` subcommand.
+- Stop: `android-vm stop` (tears down the Cuttlefish instance and cleans up).
+- Target: SDK 37 (Android 17), arm64-v8a, 720x1280 viewport, ADB + screenshot capable.
+- Cold boot time: approximately 4-5 minutes. The `nofile` limit must be set to 65536.
+- Run the existing in-memory `integration_test/e2e/e2e_matrix_test.dart` suite unmodified as the baseline gate.
+- Add focused regression flows for the five confirmed findings in section 2 (see Stages 3-6 in the roadmap).
+- Every local Cuttlefish run must emit the immutable metadata block (section 3.5) into a sidecar JSON file alongside the screenshots. The metadata must match the actual build and device state; mismatches fail the gate.
+
+### 3.3 Independent CI gate: GitHub-hosted x86_64 emulator
+
+The GitHub emulator workflow is an independent CI signal, not a substitute for local Cuttlefish evidence.
 
 - Use `reactivecircus/android-emulator-runner@v2` on GitHub-hosted x86_64 runners, targeting API 34, with KVM acceleration, no window (headless), and software graphics rendering.
 - Run the existing in-memory `integration_test/e2e/e2e_matrix_test.dart` suite unmodified as the baseline gate.
-- Add focused regression flows for the five confirmed findings in section 2 (see Stage 3-6 in the roadmap).
-- Collect and upload as run artifacts: screenshots for each flow, video only where it adds diagnostic value beyond screenshots, `logcat` output, the test report, the source commit SHA, and the built test APK's SHA.
+- Collect and upload as run artifacts: screenshots for each flow, `logcat` output, the test report, the source commit SHA, and the built test APK's SHA.
 - Name the uploaded artifact using the source SHA so runs are traceable and immutable.
+- The GitHub workflow may run in parallel with or after local Cuttlefish verification; it does not replace it.
 
-### 3.3 Evidence scope limits (explicit, non-negotiable)
+### 3.4 Evidence scope limits (explicit, non-negotiable)
 
-Emulator evidence is functional/runtime evidence only. It must never be presented as proof of:
+Virtual Android evidence (Cuttlefish or GitHub emulator) is functional/runtime evidence only. It must never be presented as proof of:
 
 - final physical device performance (frame timing, thermal behavior, memory pressure under real hardware),
 - camera capture quality or OEM camera-stack behavior,
@@ -70,11 +93,31 @@ Emulator evidence is functional/runtime evidence only. It must never be presente
 - push notification delivery through real FCM/APNs infrastructure,
 - pixel-level visual parity sign-off against the mockups (that remains the ui-diff pipeline's job, run separately against emulator or physical captures per `.claude/tools.md`).
 
-### 3.4 Local future path (deferred, not this spec's implementation scope)
+### 3.5 Immutable evidence metadata (required on every run)
 
-- The only accepted local virtual-Android option is a narrowly scoped, root-owned ReDroid systemd service, started and stopped under explicit host administrator control.
-- Explicitly rejected: NOPASSWD sudo rules for any agent-invoked command, and adding the operating agent's user to a root-equivalent daemon group.
-- This path requires host administrator action outside agent scope and is not scheduled in the roadmap below; it is recorded here so it is not silently re-attempted via a rejected shortcut.
+Every Cuttlefish or GitHub emulator run must produce a sidecar JSON file containing:
+
+```json
+{
+  "sourceCommitSha": "<full 40-char SHA of the source commit used to build the APK>",
+  "apkSha256": "<SHA-256 hex of the built APK file>",
+  "sdkVersion": "<API level, e.g. 34 or 37>",
+  "deviceModel": "<emulator device model string, e.g. google/cuttlefish_phone_arm64>",
+  "viewportDimensions": "<WxH, e.g. 720x1280>",
+  "timestamp": "<ISO 8601 UTC>",
+  "staleBuildFingerprint": false
+}
+```
+
+`staleBuildFingerprint` must be `false`. If the APK SHA-256 in the metadata does not match the APK that was actually installed, or if `sourceCommitSha` does not match the checked-out source, the gate fails. A stale build fingerprint is a hard failure, not a warning.
+
+### 3.6 Historical rejected path: ReDroid
+
+ReDroid is retained as historical context only. It is not part of the active roadmap.
+
+- Rootless Podman on this host fails to mount cgroups; Android init exits with code 129.
+- Official ReDroid documentation requires a privileged quickstart.
+- The only accepted local ReDroid path would be a root-owned systemd service under explicit host administrator control; this requires host admin action outside agent scope and is not scheduled.
 
 ## 4. CI Split
 
@@ -98,41 +141,46 @@ Emulator evidence is functional/runtime evidence only. It must never be presente
 
 ## 5. Roadmap With Acceptance Gates
 
-Every stage: TDD (red before green), Antigravity pre/post review per AGENTS.md section 4 where the diff qualifies, Sonnet 5 as editing worker per the delegation policy, host verification of results, then commit and push by the main agent only.
+Every stage: TDD (red before green), Antigravity pre/post review per AGENTS.md section 4 where the diff qualifies, editing worker per the delegation policy, host verification of results, then commit and push by the main agent only.
 
-- **Stage 0** - Tracking, spec, and plan review. This document; await user review before Stage 1 begins.
-- **Stage 1** - GitHub-hosted emulator functional gate and artifact contract (section 3.2). Gate: emulator boots, `adb` reports the device online, the existing e2e matrix suite passes, and the artifact contains source SHA, APK SHA, screenshots, and logcat.
-- **Stage 2** - Fail-closed Firebase and release-signing build contract (section 4.1-4.2). Gate: production workflow cannot upload an APK built with placeholder Firebase options or debug signing; a deliberately misconfigured run fails the workflow instead of producing an artifact.
-- **Stage 3** - Guest chat diagnostics and user-visible retry/error UX (section 2.2). Gate: anonymous-auth chat is tested end to end; on failure the user sees an actionable retry/error state, never a silent failure. No signup wall is added unless a real trace proves a product restriction.
-- **Stage 4** - Durable nonblocking capture with a short reduced-motion-aware captured-photo-to-processing morph; upload runs in the background with queue retry (section 2.3). Gate: capture reaches the processing screen after a durable local enqueue and strictly before network upload completion.
-- **Stage 5** - Full-screen food detail scrolling with no exposed route background (section 2.4). Gate: the detail surface covers the full viewport through maximum scroll extent, and unsaved-edit protection on dismiss is preserved.
-- **Stage 6** - Centered login field geometry (section 2.5), tested across keyboard-open/closed states and accessibility settings, dark and light themes. Gate: text/input visual centers are asserted at supported viewports and keyboard states.
-- **Stage 7** - Run the full emulator matrix from Stage 1 plus all Stage 3-6 flows; inspect every generated screenshot, logcat, and report artifact; then run the ui-diff pipeline against the relevant screens per `.claude/tools.md`.
-- **Stage 8** - Physical device validation: real auth providers, camera, push notification delivery, and release APK validation, once hardware and real secrets exist (see section 8). Gate: each physical-only claim is validated on a physical device; none are satisfied by emulator evidence alone.
+- **Stage 0** - Tracking, spec, and plan review. Green on 2026-08-14 with explicit external agreement and no must-fix items.
+- **Stage 1** - Local Cuttlefish source-build, install, e2e, screenshot, logcat metadata gate (section 3.2). Gate: Cuttlefish boots via `android-vm start/wait`, `adb` reports the device online, the APK is built from the current source and installed, the existing e2e matrix suite passes, screenshots and logcat are captured, and the immutable metadata sidecar (section 3.5) contains correct `sourceCommitSha`, `apkSha256`, `sdkVersion`, `deviceModel`, `viewportDimensions`, `timestamp`, and `staleBuildFingerprint:false`. A metadata mismatch fails the gate.
+- **Stage 2** - Independent GitHub x86_64 emulator workflow (section 3.3). Gate: the GitHub workflow boots an x86_64 API 34 emulator, runs the e2e matrix suite, uploads screenshots/logcat/artifact with source SHA naming. This is an independent CI signal, not a substitute for Stage 1.
+- **Stage 3** - Fail-closed Firebase and real release signing workflow (section 4.1-4.2). Gate: production workflow materializes real Firebase files and signing material only from `FIREBASE_OPTIONS_DART_BASE64`, `GOOGLE_SERVICES_JSON_BASE64`, `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`, and `RELEASE_CERT_SHA256`; a deliberately misconfigured run fails instead of producing an artifact. Never placeholder/debug sign.
+- **Stage 4** - Guest chat diagnostics and actionable retry/error (section 2.2). Gate: anonymous-auth chat is tested end to end on Cuttlefish; on failure the user sees an actionable retry/error state, never a silent failure. No signup wall is added unless a real trace proves a product restriction.
+- **Stage 5** - Durable enqueue then background upload and short reduced-motion capture/morph animation (section 2.3). Gate: capture reaches the processing screen after a durable local enqueue and strictly before network upload completion. A reduced-motion test verifies the morph animation is short and does not block navigation.
+- **Stage 6** - Full-screen food detail preserving unsaved edits (section 2.4). Gate: the detail surface covers the full viewport through maximum scroll extent, and unsaved-edit protection on dismiss is preserved.
+- **Stage 7** - Centered login vertical centering for keyboard/theme/text-scale (section 2.5). Gate: text/input visual centers are asserted at supported viewports and keyboard states, across dark and light themes and text-scale variations.
+- **Stage 8** - Combined local Cuttlefish + GitHub CI + ui-diff verification and physical-only boundary. Gate: every Stage 3-6 flow passes on both local Cuttlefish and GitHub CI; ui-diff pipeline runs against the relevant screens per `.claude/tools.md`; physical-only claims (camera, real OAuth, push notifications) are labeled blocked until validated on real hardware.
 
 ## 6. Exact Acceptance Criteria
 
-- Emulator boots and `adb` reports it online; the e2e matrix passes; the run artifact includes source SHA, APK SHA, screenshots, and logcat.
-- The production workflow cannot upload an APK built with placeholder Firebase options or debug signing.
+- Local Cuttlefish boots via `android-vm start/wait`, `adb` reports it online; the e2e matrix passes; screenshots and logcat are captured; the immutable metadata sidecar (section 3.5) matches the actual build and device state with `staleBuildFingerprint:false`. A metadata mismatch is a hard failure.
+- The GitHub x86_64 emulator workflow boots, runs the e2e matrix, and uploads artifacts with source SHA naming. This is an independent CI signal, not a Cuttlefish substitute.
+- The production workflow requires all seven named encoded-config/signing inputs from Stage 3, materializes the real files only inside the job, verifies the exact signer certificate, and fails if any input is missing, malformed, placeholder, or mismatched.
 - Guest chat always produces either a real response or an actionable retry/error state; it never fails silently.
 - Capture reaches the processing screen after durable local enqueue and before network upload completion.
 - The food detail background covers the full viewport through maximum scroll extent.
 - Text/input visual centers are asserted at each supported viewport and keyboard state.
-- Physical-only gates (section 3.3, Stage 8) are labeled blocked until validated on real hardware; they are never marked passed by emulator evidence.
+- Physical-only gates (section 3.4, Stage 8) are labeled blocked until validated on real hardware; they are never marked passed by Cuttlefish or GitHub emulator evidence.
 
 ## 7. Explicit Blockers
 
 - Real Firebase client configuration inputs (`firebase_options.dart` and `google-services.json`) for the production workflow.
-- A real release keystore, plus its SHA-1/SHA-256 fingerprints registered in the Firebase console.
-- A physical Android phone for Stage 8 validation.
-- A root-owned ReDroid systemd service, only if local (non-CI) virtual Android is later desired; requires host administrator action and is not part of this roadmap.
+- A real release keystore, plus its base64-encoded form (`KEYSTORE_BASE64`), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD` as GitHub Actions secrets.
+- SHA-1 and SHA-256 fingerprints of the real release keystore registered in the Firebase console.
+- Auth providers enabled in Firebase console as applicable (anonymous, email, Google, Apple).
+- A physical Android phone for Stage 8 physical-only validation (camera, real OAuth, push notifications).
+- The `android-vm` CLI tool must be installed and functional on the local host (verified: yes, with KVM, BinderFS, and `nofile 65536`).
 
 ## 8. Non-Goals
 
 - No cloud deploy of any kind.
 - No production data mutation.
 - No broad redesign beyond the five confirmed findings in section 2.
-- No claim that emulator evidence proves physical device performance, camera quality, real OAuth sign-in, or push notification delivery (section 3.3).
+- No claim that Cuttlefish or GitHub emulator evidence proves physical device performance, camera quality, real OAuth sign-in, or push notification delivery (section 3.4).
+- No placeholder or debug signing for release builds. Production builds require real keystore inputs or the workflow fails.
+- No signup wall for anonymous/guest chat.
 
 ## 9. Research References
 
