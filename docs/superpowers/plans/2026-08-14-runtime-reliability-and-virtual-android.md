@@ -54,12 +54,12 @@
 
 **Files:** Create `tool/runtime_evidence/write_metadata.py`, `test/tool/runtime_evidence_scripts_test.dart`
 
-- [ ] **Step 1: Write failing tests** — invoke the Python tool in temporary directories and assert the exact sidecar keys, SHA-256 calculation, `staleBuildFingerprint:false`, malformed input rejection, and source/APK mismatch exit failures. The expected source SHA and APK path are supplied independently by the test.
-- [ ] **Step 2: RED** — `fvm flutter test test/tool/runtime_evidence_scripts_test.dart --reporter compact` fails because the tool does not exist.
-- [ ] **Step 3: Implement** — a stdlib-only Python CLI with explicit `write` and `validate` commands. `validate` recomputes the APK SHA-256, reads the current checked-out SHA supplied by the caller, validates device facts, and rejects stale/missing/extra contract fields. Keep this tooling outside `lib/`; it is release evidence infrastructure, not app runtime code.
-- [ ] **Step 4: GREEN** — All 6 tests pass.
-- [ ] **Step 5: Verify** — `fvm flutter analyze` → `No issues found!`
-- [ ] **Step 6: HANDOFF**
+- [x] **Step 1: Write failing tests** — invoke the Python tool in temporary directories and assert the exact sidecar keys, SHA-256 calculation, `staleBuildFingerprint:false`, malformed input rejection, and source/APK mismatch exit failures. The expected source SHA and APK path are supplied independently by the test.
+- [x] **Step 2: RED** — pinned FVM Flutter 3.41.9 runs first failed on unawaited async helpers, then exposed independent fixture-state leakage, then exposed the Pi-only 30-second subprocess-matrix timeout. Each failure was reproduced and corrected without weakening production assertions.
+- [x] **Step 3: Implement** — a stdlib-only Python CLI with explicit `write` and `validate` commands. `validate` recomputes the APK SHA-256, reads the current checked-out SHA supplied by the caller, validates device facts, and rejects stale/missing/extra contract fields. Keep this tooling outside `lib/`; it is release evidence infrastructure, not app runtime code.
+- [x] **Step 4: GREEN** — pinned FVM Flutter 3.41.9 `fvm flutter test test/tool/runtime_evidence_scripts_test.dart --reporter compact --no-pub` passed 29/29 with exit 0; the tests invoke the real Python CLI.
+- [x] **Step 5: Verify** — focused pinned analysis of `test/tool/runtime_evidence_scripts_test.dart` is clean. Full `fvm flutter analyze` is blocked by the pre-existing absent ignored/generated `lib/core/firebase/firebase_options.dart`; no placeholder was substituted. Antigravity conversation `calorix-runtime-evidence-stage0-20260814` returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, and ruled the bounded Stage 0 commit acceptable because the missing generated input is not a Stage 0 regression and Stage 3 owns fail-closed materialization.
+- [x] **Step 6: HANDOFF**
   ```bash
   git add tool/runtime_evidence/write_metadata.py test/tool/runtime_evidence_scripts_test.dart
   git commit -m "Add immutable runtime evidence contract"
