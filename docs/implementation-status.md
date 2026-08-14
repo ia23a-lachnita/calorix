@@ -10,7 +10,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**Current task: Stage 1 local Cuttlefish source-build/e2e/screenshot/evidence gate on branch `main`, based on pushed Stage 0 commit `ba2c5a9`. Implementation and hermetic verification are complete: the focused gate group passed 14/14, the complete runtime-evidence suite passed 43/43, focused analysis is clean, formatting is canonical, and final Antigravity review is green. The bounded implementation commit/push is next. Real app execution remains explicitly pending because the ignored generated Firebase input is absent; Stage 3 owns fail-closed materialization and no placeholder is allowed. No product implementation or production-readiness claim is made.**
+**Current task: Stage 2 independent GitHub x86_64 emulator workflow on branch `main`, based on pushed Stage 1 commit `2b680f0`. Stage 1 tooling is committed and pushed after 43/43 focused tests, clean focused analysis/formatting, and green final Antigravity review. Its real app/Cuttlefish execution remains explicitly pending because the ignored generated Firebase input is absent; Stage 3 owns fail-closed materialization and no placeholder is allowed. Stage 2 begins with hermetic workflow-contract RED tests. No product implementation or production-readiness claim is made.**
 
 ### Stage 1 local Cuttlefish runtime-evidence gate (2026-08-14)
 
@@ -21,6 +21,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Artifact/failure hardening: tests cover happy/default and custom-APK command order, build/e2e/source/HEAD/APK/metadata failures, malformed device facts, stale-APK removal followed by a false-success/no-output build, `git ls-files` and `git hash-object` failures, guaranteed shutdown, and empty/text/truncated/wrong-size screenshot rejection before logcat or metadata.
 - Fresh pinned verification (`ghcr.io/cirruslabs/flutter:3.41.9`, amd64 under ARM qemu): focused gate group passed **14/14**; the full runtime-evidence file passed **43/43**; `fvm dart analyze test/tool/runtime_evidence_scripts_test.dart` returned `No issues found!`; `fvm dart format --output=none --set-exit-if-changed ...` reported `0 changed`; `bash -n tool/runtime_evidence/run_cuttlefish_gate.sh` passed.
 - Final Antigravity review: conversation `calorix-runtime-evidence-stage1-20260814`, Gemini 3.6 Flash High, returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`, and ruled the bounded Stage 1 tooling checkpoint safe to commit while real Cuttlefish execution remains pending for Stage 3. The response contained only the requested review fields/ruling and normal MCP wrapper; `git status` confirmed no reviewer mutation.
+- Handoff: implementation/tracking commit `2b680f0` (`Add local runtime evidence gate`) pushed successfully to `origin/main`; only the five intended Stage 1 files were included and the user-owned `.mcp.json` remained unstaged.
 - Remaining Stage 1 runtime evidence: execute the gate against the real app after Stage 3 materializes the required ignored Firebase configuration fail-closed. Until then there is no real APK/Cuttlefish/e2e/screenshot sidecar claim and no production-readiness claim.
 
 ### Stage 0 evidence tooling contract implementation (2026-08-14)
