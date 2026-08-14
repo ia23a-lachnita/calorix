@@ -82,6 +82,7 @@
   git commit -m "Add local Cuttlefish runtime evidence gate"
   git push
   ```
+- [ ] **Step 6: Exact tested-APK identity correction** — RED tests reject the old `flutter test`/manual-install sequence and require a standard `test_driver/integration_test.dart`, target-specific `fvm flutter build apk --debug --target integration_test/e2e/e2e_matrix_test.dart`, followed by `fvm flutter drive --driver=test_driver/integration_test.dart --target=integration_test/e2e/e2e_matrix_test.dart -d 0.0.0.0:6520 --use-application-binary=<the hashed APK> --no-build`. Remove redundant `android-vm adb install`; the drive command owns installation of the supplied binary. Re-run focused/full runtime-evidence tests, analysis, format, and Antigravity review before committing/pushing the correction.
 
 ---
 
@@ -89,9 +90,10 @@
 
 **Files:** Create `.github/workflows/android-emulator.yml`; extend `test/tool/runtime_evidence_scripts_test.dart`
 
-- [ ] **Step 1: Create workflow** — `on: workflow_dispatch + pull_request[main]`, concurrency group, permissions read. Job: checkout, Java 17, Flutter 3.41.9, FVM, build debug APK, `reactivecircus/android-emulator-runner@v2` (api-level 34, x86_64, Nexus 6), install APK + `fvm flutter test integration_test/e2e/e2e_matrix_test.dart`, capture logcat, upload artifacts as `emulator-run-${{ github.sha }}`, retention 30 days.
-- [ ] **Step 2: Test the contract** — parse the workflow as YAML in a hermetic test and assert trigger, API/architecture, exact integration target, source-SHA artifact naming, logcat/screenshot/evidence uploads, and that no release/publish step exists. Run `fvm flutter test test/tool/runtime_evidence_scripts_test.dart --reporter compact`.
-- [ ] **Step 3: HANDOFF**
+- [ ] **Step 1: RED workflow contract** — parse the workflow as YAML in a hermetic test and fail because `.github/workflows/android-emulator.yml` is absent. Require `workflow_dispatch + pull_request[main]`, `contents: read`, concurrency/cancellation, pinned actions, API 34/x86_64/Nexus 6, exact target-build/drive commands, `--use-application-binary` plus `--no-build`, diagnostic exit-code preservation, source-SHA artifact naming, 30-day retention, and no release/publish/deploy, Firebase-options synthesis, `ci-placeholder`, or manual `adb install`.
+- [ ] **Step 2: Create workflow** — checkout, Java 17, Flutter 3.41.9, and FVM; build the exact e2e target APK before emulator launch; run `flutter drive` for that prebuilt APK inside `reactivecircus/android-emulator-runner@v2` (API 34, x86_64, Nexus 6, explicit `emulator-5554`). Inside the runner script, preserve the drive exit code while always collecting screenshot/logcat/evidence, then re-exit with that code. Upload with `if: ${{ !cancelled() }}` as `emulator-run-${{ github.sha }}`, retention 30 days. The credential-free test target does not import `lib/main.dart`; never generate a Firebase placeholder.
+- [ ] **Step 3: GREEN and review** — hermetic workflow contract and complete runtime-evidence suite pass; focused analysis/format are clean; mandatory Antigravity post-review is green. Remote GitHub execution remains a separately recorded gate and must not be claimed from YAML tests alone.
+- [ ] **Step 4: HANDOFF**
   ```bash
   git add .github/workflows/android-emulator.yml
   git commit -m "Add independent GitHub x86_64 emulator CI workflow"
