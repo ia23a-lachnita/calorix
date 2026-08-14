@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:yaml/yaml.dart';
 
 const _script = 'tool/runtime_evidence/write_metadata.py';
 
@@ -1348,6 +1349,192 @@ void main() {
         driver.readAsStringSync(),
         contains('package:integration_test/integration_test_driver.dart'),
       );
+    });
+  });
+
+  group('.github/workflows/android-emulator.yml contract', () {
+    const workflowPath = '.github/workflows/android-emulator.yml';
+
+    test(
+        'requires triggers, permissions, concurrency, single job, ordered '
+        'steps, runner-script diagnostics, and forbidden constructs', () {
+      final file = File(workflowPath);
+      expect(file.existsSync(), isTrue,
+          reason: '$workflowPath must exist but is absent');
+
+      final workflow = loadYaml(file.readAsStringSync()) as YamlMap;
+
+      // Workflow must declare a non-empty name.
+      final workflowName = workflow['name'];
+      expect(workflowName, isA<String>());
+      expect((workflowName as String).isNotEmpty, isTrue,
+          reason: 'workflow name must be a nonempty String');
+
+      // Triggers: only workflow_dispatch + pull_request(main).
+      final on = workflow['on'] as YamlMap;
+      expect(on.keys.toSet(), equals({'workflow_dispatch', 'pull_request'}));
+      final pullRequest = on['pull_request'] as YamlMap;
+      final branches = (pullRequest['branches'] as YamlList).cast<String>();
+      expect(branches, equals(['main']));
+
+      // Permissions: contents:read only.
+      final permissions = workflow['permissions'] as YamlMap;
+      expect(permissions.keys.toSet(), equals({'contents'}));
+      expect(permissions['contents'], equals('read'));
+
+      // Concurrency: workflow+ref scoped group, cancellable.
+      final concurrency = workflow['concurrency'] as YamlMap;
+      final group = concurrency['group'] as String;
+      expect(group, contains('github.workflow'));
+      expect(group, contains('github.ref'));
+      expect(concurrency['cancel-in-progress'], isTrue);
+
+      // Single ubuntu job with a 60-minute timeout.
+      final jobs = workflow['jobs'] as YamlMap;
+      expect(jobs.length, equals(1));
+      final job = jobs.values.first as YamlMap;
+      expect(job['runs-on'], equals('ubuntu-latest'));
+      expect(job['timeout-minutes'], equals(60));
+
+      final steps = (job['steps'] as YamlList).cast<YamlMap>();
+
+      int usesIndex(String action) =>
+          steps.indexWhere((step) => step['uses'] == action);
+      int runIndex(String needle) => steps.indexWhere(
+          (step) => (step['run'] as String?)?.contains(needle) ?? false);
+
+      final checkoutIndex = usesIndex('actions/checkout@v4');
+      final javaIndex = usesIndex('actions/setup-java@v4');
+      final flutterIndex = usesIndex('subosito/flutter-action@v2');
+      final emulatorIndex =
+          usesIndex('reactivecircus/android-emulator-runner@v2');
+      final uploadIndex = usesIndex('actions/upload-artifact@v4');
+      final fvmActivateIndex = runIndex('dart pub global activate fvm');
+      final pubGetIndex = runIndex('fvm flutter pub get');
+      final buildIndex = runIndex('fvm flutter build apk --debug --target '
+          'integration_test/e2e/e2e_matrix_test.dart');
+
+      expect(checkoutIndex, greaterThanOrEqualTo(0),
+          reason: 'actions/checkout@v4 step missing');
+      expect(javaIndex, greaterThanOrEqualTo(0),
+          reason: 'actions/setup-java@v4 step missing');
+      expect(flutterIndex, greaterThanOrEqualTo(0),
+          reason: 'subosito/flutter-action@v2 step missing');
+      expect(emulatorIndex, greaterThanOrEqualTo(0),
+          reason: 'reactivecircus/android-emulator-runner@v2 step missing');
+      expect(uploadIndex, greaterThanOrEqualTo(0),
+          reason: 'actions/upload-artifact@v4 step missing');
+      expect(fvmActivateIndex, greaterThanOrEqualTo(0),
+          reason: 'dart pub global activate fvm step missing');
+      expect(pubGetIndex, greaterThanOrEqualTo(0),
+          reason: 'fvm flutter pub get step missing');
+      expect(buildIndex, greaterThanOrEqualTo(0),
+          reason: 'exact fvm flutter build apk step missing');
+
+      // Exact order: checkout < java < flutter < FVM < pub get < build <
+      // emulator runner < upload.
+      expect(checkoutIndex, lessThan(javaIndex));
+      expect(javaIndex, lessThan(flutterIndex));
+      expect(flutterIndex, lessThan(fvmActivateIndex));
+      expect(fvmActivateIndex, lessThan(pubGetIndex));
+      expect(pubGetIndex, lessThan(buildIndex));
+      expect(buildIndex, lessThan(emulatorIndex));
+      expect(emulatorIndex, lessThan(uploadIndex));
+
+      // Java 17, Flutter 3.41.9.
+      final javaWith = steps[javaIndex]['with'] as YamlMap;
+      expect(javaWith['java-version'], equals('17'));
+      final flutterWith = steps[flutterIndex]['with'] as YamlMap;
+      expect(flutterWith['flutter-version'], equals('3.41.9'));
+
+      // Official emulator action with-map.
+      final emulatorWith = steps[emulatorIndex]['with'] as YamlMap;
+      expect(emulatorWith['api-level'], equals('34'));
+      expect(emulatorWith['target'], equals('google_apis'));
+      expect(emulatorWith['arch'], equals('x86_64'));
+      expect(emulatorWith['profile'], equals('Nexus 6'));
+      expect(emulatorWith['emulator-port'], equals('5554'));
+
+      // flutter drive and its runner-script diagnostics live in with.script.
+      final script = emulatorWith['script'] as String;
+      expect(script, contains('--driver=test_driver/integration_test.dart'));
+      expect(script,
+          contains('--target=integration_test/e2e/e2e_matrix_test.dart'));
+      expect(script, contains('-d emulator-5554'));
+      expect(
+          script,
+          contains('--use-application-binary='
+              'build/app/outputs/flutter-apk/app-debug.apk'));
+      expect(script, contains('--no-build'));
+
+      final setMinusEIndex = script.indexOf('set +e');
+      final driveIndex = script.indexOf('flutter drive');
+      final driveExitCaptureIndex = script.indexOf(r'DRIVE_EXIT=$?');
+      final mkdirIndex = script.indexOf('mkdir -p .runtime_evidence/github');
+      final screencapIndex =
+          script.indexOf('adb -s emulator-5554 exec-out screencap -p');
+      final logcatIndex = script.indexOf('adb -s emulator-5554 logcat -d');
+      final sdkIndex = script.indexOf('getprop ro.build.version.sdk');
+      final wmSizeIndex = script.indexOf('wm size');
+      final apkShaIndex = script
+          .indexOf('sha256sum build/app/outputs/flutter-apk/app-debug.apk');
+      final gitHeadIndex = script.indexOf('git rev-parse HEAD');
+      final finalExitIndex = script.indexOf(r'exit "$DRIVE_EXIT"');
+
+      expect(setMinusEIndex, greaterThanOrEqualTo(0),
+          reason: 'set +e missing before drive');
+      expect(driveIndex, greaterThanOrEqualTo(0),
+          reason: 'flutter drive missing from script');
+      expect(driveExitCaptureIndex, greaterThanOrEqualTo(0),
+          reason: 'DRIVE_EXIT capture missing after drive');
+      expect(mkdirIndex, greaterThanOrEqualTo(0),
+          reason: 'evidence directory creation missing');
+      expect(screencapIndex, greaterThanOrEqualTo(0),
+          reason: 'screencap diagnostic missing');
+      expect(logcatIndex, greaterThanOrEqualTo(0),
+          reason: 'logcat diagnostic missing');
+      expect(sdkIndex, greaterThanOrEqualTo(0),
+          reason: 'SDK getprop diagnostic missing');
+      expect(wmSizeIndex, greaterThanOrEqualTo(0),
+          reason: 'wm size diagnostic missing');
+      expect(apkShaIndex, greaterThanOrEqualTo(0),
+          reason: 'APK sha256 diagnostic missing');
+      expect(gitHeadIndex, greaterThanOrEqualTo(0),
+          reason: 'git rev-parse HEAD diagnostic missing');
+      expect(finalExitIndex, greaterThanOrEqualTo(0),
+          reason: 'final DRIVE_EXIT re-exit missing');
+
+      // set +e < drive < DRIVE_EXIT capture < mkdir < screencap < logcat <
+      // SDK getprop < wm size < APK sha256 < git rev-parse HEAD < final exit.
+      expect(setMinusEIndex, lessThan(driveIndex));
+      expect(driveIndex, lessThan(driveExitCaptureIndex));
+      expect(driveExitCaptureIndex, lessThan(mkdirIndex));
+      expect(mkdirIndex, lessThan(screencapIndex));
+      expect(screencapIndex, lessThan(logcatIndex));
+      expect(logcatIndex, lessThan(sdkIndex));
+      expect(sdkIndex, lessThan(wmSizeIndex));
+      expect(wmSizeIndex, lessThan(apkShaIndex));
+      expect(apkShaIndex, lessThan(gitHeadIndex));
+      expect(gitHeadIndex, lessThan(finalExitIndex));
+
+      // Upload artifact: exact condition, name, retention, path.
+      final uploadWith = steps[uploadIndex]['with'] as YamlMap;
+      expect(steps[uploadIndex]['if'], equals(r'${{ !cancelled() }}'));
+      expect(uploadWith['name'], equals(r'emulator-run-${{ github.sha }}'));
+      expect(uploadWith['retention-days'], equals(30));
+      expect(uploadWith['path'], equals('.runtime_evidence/github/'));
+
+      // Forbidden constructs; 'manual' and bare 'firebase' stay unforbidden.
+      final yamlStr = file.readAsStringSync().toLowerCase();
+      expect(yamlStr, isNot(contains('push:')));
+      expect(yamlStr, isNot(contains('schedule:')));
+      expect(yamlStr, isNot(contains('release:')));
+      expect(yamlStr, isNot(contains('publish:')));
+      expect(yamlStr, isNot(contains('deploy:')));
+      expect(yamlStr, isNot(contains('firebase_options')));
+      expect(yamlStr, isNot(contains('ci-placeholder')));
+      expect(yamlStr, isNot(contains('adb install')));
+      expect(yamlStr, isNot(contains('flutter test')));
     });
   });
 }
