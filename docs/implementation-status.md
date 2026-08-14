@@ -10,7 +10,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Current Task
 
-**Current task: Stage 2 independent GitHub x86_64 emulator workflow is implementation-complete and locally verified on branch `main`, based on Stage 1 commit `206daea`. Next is Stage 3 fail-closed Firebase/release signing. The new workflow has not yet executed on GitHub, so this checkpoint makes no remote-run or production-readiness claim.**
+**Current task: Stage 2 independent GitHub x86_64 emulator workflow is implementation-complete and locally verified in commit `b297dd4`, but handoff is blocked because the current GitHub HTTPS OAuth credential lacks permission to create/update workflow files. `origin/main` remains at `206daea`; SSH is not configured. Re-push after credential authorization, then continue Stage 3 fail-closed Firebase/release signing. The workflow has not executed on GitHub, so this checkpoint makes no remote-run or production-readiness claim.**
 
 ### Stage 1 local Cuttlefish runtime-evidence gate (2026-08-14)
 
@@ -37,6 +37,7 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 - Verification: targeted workflow contract passed **1/1**. Pinned `fvm flutter pub get` left `pubspec.lock` byte-identical. Formatter reported `0 changed`; focused analyzer returned `No issues found!`; the complete runtime-evidence file passed **45/45** in 11m44s.
 - Post-implementation review: the same conversation/model returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. MCP response noise: the identical four-field verdict was repeated three times in one response; it was treated as one green review. `git status` confirmed no reviewer mutation.
 - Remote gate: `.github/workflows/android-emulator.yml` has not yet run on GitHub. A local parsed-YAML contract proves workflow structure, not hosted-runner/emulator behavior; remote execution evidence remains open and no production-readiness claim is made.
+- Handoff blocker: local commit `b297dd4` was created successfully, but `git push origin main` was rejected with `refusing to allow an OAuth App to create or update workflow .github/workflows/android-emulator.yml without workflow scope`. The configured SSH route also failed with `git@github.com: Permission denied (publickey)`. The local commit is intact, one commit ahead of `origin/main`, and `.mcp.json` remains unstaged.
 
 ### Stage 0 evidence tooling contract implementation (2026-08-14)
 
