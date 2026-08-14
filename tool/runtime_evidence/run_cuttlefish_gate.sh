@@ -2,12 +2,13 @@
 #
 # run_cuttlefish_gate.sh - local Cuttlefish runtime evidence gate.
 #
-# Builds the debug APK from the current source, fingerprints the tracked build
-# inputs before and after the build, boots Cuttlefish, installs the exact built
-# APK, runs the in-memory e2e matrix on the device, captures a screenshot and
-# logcat, then writes and independently validates an immutable metadata sidecar
-# via write_metadata.py. The Cuttlefish VM is always stopped through an EXIT
-# trap, including on failure.
+# Builds the debug APK from the current source targeting the exact integration
+# test entry point, fingerprints the tracked build inputs before and after the
+# build, boots Cuttlefish, runs the integration test via flutter drive using the
+# pre-built APK (no separate manual install step; flutter drive owns
+# installation), captures a screenshot and logcat, then writes
+# and independently validates an immutable metadata sidecar via write_metadata.py.
+# The Cuttlefish VM is always stopped through an EXIT trap, including on failure.
 #
 # Deterministic tracked-source fingerprint: every tracked file (git ls-files
 # -s -z: NUL-delimited index mode + path records) is re-hashed from the
@@ -48,14 +49,14 @@ print_usage() {
   cat <<'EOF'
 usage: run_cuttlefish_gate.sh [options]
 
-Local Cuttlefish runtime evidence gate: build, fingerprint, install, e2e,
+Local Cuttlefish runtime evidence gate: build (--target), fingerprint, drive,
 screenshot, logcat, and immutable metadata validation. Stops the VM via trap.
 
 options:
   --root <dir>              repo root (default: current directory)
   --output-dir <dir>        evidence output directory (default: .runtime_evidence)
-  --device <addr>           device address for flutter test (default: 0.0.0.0:6520)
-  --integration-test <path> integration test to run
+  --device <addr>           device address for flutter drive (default: 0.0.0.0:6520)
+  --integration-test <path> integration test to run (and --target for build)
                             (default: integration_test/e2e/e2e_matrix_test.dart)
   --apk <path>              built APK path (default: build/app/outputs/flutter-apk/app-debug.apk);
                             a non-default path receives a byte-for-byte copy of the canonical build output
@@ -198,7 +199,7 @@ if [[ "$APK" != "$CANONICAL_APK" && -f "$APK" ]]; then
   rm -f -- "$APK"
 fi
 
-if ! run fvm flutter build apk --debug; then
+if ! run fvm flutter build apk --debug --target "$INTEGRATION_TEST"; then
   die 'fvm flutter build apk failed'
 fi
 
@@ -213,8 +214,8 @@ fi
 # fvm flutter build apk --debug always produces canonical Flutter APK output
 # (CANONICAL_APK), freshly asserted above. When a custom --apk path is
 # configured, stage a byte-for-byte copy of the canonical artifact now -- before
-# the post-build source checks, APK hashing, VM boot, or install -- so the gate
-# hashes, installs, and records exactly the artifact Flutter actually built, in
+# the post-build source checks, APK hashing, VM boot, or drive -- so the gate
+# hashes, drives, and records exactly the artifact Flutter actually built, in
 # parity with the default path.
 if [[ "$APK" != "$CANONICAL_APK" ]]; then
   mkdir -p "$(dirname "$APK")"
@@ -225,16 +226,16 @@ fi
 
 # Re-read HEAD and the worktree fingerprint immediately after the build. A
 # commit change or an unstaged edit after the build means the APK is stale, so
-# refuse before any APK hashing, VM start, or install.
+# refuse before any APK hashing, VM start, or drive.
 SOURCE_SHA_AFTER="$(run git rev-parse HEAD)" || die 'failed to re-read source commit after build'
 if [[ "$SOURCE_SHA_AFTER" != "$SOURCE_SHA" ]]; then
-  die "source commit changed after build ($SOURCE_SHA -> $SOURCE_SHA_AFTER); refusing to install a stale APK"
+  die "source commit changed after build ($SOURCE_SHA -> $SOURCE_SHA_AFTER); refusing to test a stale APK"
 fi
 
 log 'git ls-files -s -z | git hash-object | LC_ALL=C sort -z | sha256sum'
 FINGERPRINT_POST="$(fingerprint)" || die 'failed to recompute source fingerprint after build'
 if [[ "$FINGERPRINT_POST" != "$FINGERPRINT_PRE" ]]; then
-  die "source changed after build (fingerprint $FINGERPRINT_PRE -> $FINGERPRINT_POST); refusing to install a stale APK"
+  die "source changed after build (fingerprint $FINGERPRINT_PRE -> $FINGERPRINT_POST); refusing to test a stale APK"
 fi
 
 if [[ ! -f "$APK" ]]; then
@@ -244,9 +245,8 @@ APK_SHA="$(run sha256sum "$APK" | cut -d' ' -f1)" || die 'failed to hash built A
 
 run android-vm start
 run android-vm wait
-run android-vm adb install -r "$APK"
 
-if ! run fvm flutter test "$INTEGRATION_TEST" -d "$DEVICE" --reporter compact; then
+if ! run fvm flutter drive --driver=test_driver/integration_test.dart --target="$INTEGRATION_TEST" -d "$DEVICE" --use-application-binary="$APK" --no-build --keep-app-running; then
   die 'integration test failed'
 fi
 
@@ -273,8 +273,8 @@ LOGCAT_PATH="$OUTPUT_DIR/logcat.txt"
 log "android-vm adb logcat -d > $LOGCAT_PATH"
 android-vm adb logcat -d > "$LOGCAT_PATH"
 
-# The APK actually on disk must be byte-identical to the one that was built and
-# installed; a hash change before metadata recording is a hard failure.
+# The APK is re-hashed after flutter drive; the APK on disk must be byte-identical
+# to the one supplied to the drive; a hash change before metadata recording is a hard failure.
 APK_SHA_AFTER="$(run sha256sum "$APK" | cut -d' ' -f1)" || die 'failed to re-hash built APK'
 if [[ "$APK_SHA_AFTER" != "$APK_SHA" ]]; then
   die "APK hash changed after build ($APK_SHA -> $APK_SHA_AFTER); refusing to record metadata"

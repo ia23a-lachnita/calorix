@@ -301,14 +301,16 @@ state="${GATE_FAKE_STATE:?}"
 case "${2:-}" in
   build)
     # Always emit the canonical Flutter APK output, matching production
-    # `fvm flutter build apk --debug`. GATE_FAKE_APK is deliberately NOT
-    # honored: when the gate needs a different --apk path it must copy the
-    # canonical artifact itself, exactly like the real gate.
+    # `fvm flutter build apk --debug --target <integration test>`. The target
+    # changes which Dart entrypoint Gradle compiles into the APK but never the
+    # canonical output path. GATE_FAKE_APK is deliberately NOT honored: when
+    # the gate needs a different --apk path it must copy the canonical artifact
+    # itself, exactly like the real gate.
     apk='build/app/outputs/flutter-apk/app-debug.apk'
     if [[ -f "$state/build.nooutput" ]]; then
       # A build that reports success but produces no canonical output: the gate
       # must already have removed pre-created stale APKs, and its freshness
-      # assertion must then fail before any copy, VM boot, install, or metadata.
+      # assertion must then fail before any copy, VM boot, drive, or metadata.
       exit 0
     fi
     if [[ -f "$state/build.fail" ]]; then
@@ -327,10 +329,26 @@ case "${2:-}" in
       printf 'FAKE-APK-0123456789\n' > "$apk"
     fi
     ;;
-  test)
-    if [[ -f "$state/test.fail" ]]; then
-      cat "$state/test.fail" >&2
+  drive)
+    # flutter drive owns installation of --use-application-binary; the gate
+    # must never shell out to `android-vm adb install`. The APK path is read
+    # from the --use-application-binary= argument (the exact path the gate
+    # hashed), and a distinct drive.fail or drive.mutate state changes the
+    # drive outcome independently of the build.
+    apk=
+    for arg in "$@"; do
+      case "$arg" in
+        --use-application-binary=*) apk="${arg#--use-application-binary=}" ;;
+      esac
+    done
+    if [[ -f "$state/drive.fail" ]]; then
+      cat "$state/drive.fail" >&2
       exit 1
+    fi
+    if [[ -n "${apk}" && -f "$state/drive.mutate" ]]; then
+      # Simulate the test run rewriting the installed binary on disk: the
+      # gate's post-drive re-hash must then fail before any metadata write.
+      printf 'MUTATED\n' >> "$apk"
     fi
     ;;
 esac
@@ -347,13 +365,6 @@ case "${1:-}" in
   adb)
     shift
     case "${1:-}" in
-      install)
-        apk="${3:-}"
-        if [[ -f "$state/install.mutate" ]]; then
-          printf 'MUTATED\n' >> "$apk"
-        fi
-        echo "Success"
-        ;;
       shell)
         shift
         case "${1:-}" in
@@ -468,11 +479,10 @@ String _classifyGateLine(String line) {
   if (line.startsWith('git ls-files')) return 'git-fingerprint';
   if (line.startsWith('cp ')) return 'apk-copy';
   if (line.startsWith('fvm flutter build')) return 'build';
-  if (line.startsWith('fvm flutter test')) return 'e2e-test';
+  if (line.startsWith('fvm flutter drive')) return 'e2e-drive';
   if (line.startsWith('sha256sum')) return 'apk-hash';
   if (line.startsWith('android-vm start')) return 'vm-start';
   if (line.startsWith('android-vm wait')) return 'vm-wait';
-  if (line.startsWith('android-vm adb install')) return 'vm-install';
   if (line.startsWith('android-vm adb shell getprop ro.build.version.sdk')) {
     return 'sdk';
   }
@@ -890,6 +900,21 @@ void main() {
   });
 
   group('run_cuttlefish_gate.sh hermetic gate', () {
+    // The exact build and drive commands the gate must issue. The drive command
+    // references the standard test_driver/integration_test.dart driver, passes
+    // --use-application-binary=<the exact APK path that is hashed> and
+    // --no-build (drive owns install of the prebuilt binary), and keeps the app
+    // running so flutter drive remains attached to the launched app.
+    const buildCommand =
+        'fvm flutter build apk --debug --target integration_test/e2e/e2e_matrix_test.dart';
+
+    String driveCommand(String apk) =>
+        'fvm flutter drive --driver=test_driver/integration_test.dart '
+        '--target=integration_test/e2e/e2e_matrix_test.dart '
+        '-d 0.0.0.0:6520 '
+        '--use-application-binary=$apk '
+        '--no-build --keep-app-running';
+
     const happyOrder = [
       'git-sha',
       'git-fingerprint',
@@ -899,8 +924,7 @@ void main() {
       'apk-hash',
       'vm-start',
       'vm-wait',
-      'vm-install',
-      'e2e-test',
+      'e2e-drive',
       'sdk',
       'model',
       'wm',
@@ -928,8 +952,7 @@ void main() {
       'apk-hash',
       'vm-start',
       'vm-wait',
-      'vm-install',
-      'e2e-test',
+      'e2e-drive',
       'sdk',
       'model',
       'wm',
@@ -957,15 +980,13 @@ void main() {
       expect(classes(gate), happyOrder);
       expect(gate.log.last, 'android-vm stop');
 
-      expect(
-        gate.log,
-        contains('android-vm adb install -r $_apkRelativePath'),
-      );
-      expect(
-        gate.log,
-        contains('fvm flutter test integration_test/e2e/e2e_matrix_test.dart '
-            '-d 0.0.0.0:6520 --reporter compact'),
-      );
+      // The build targets the e2e matrix entrypoint, so the compiled APK is
+      // the instrumented integration-test binary.
+      expect(gate.log, contains(buildCommand));
+      // The drive command owns installation of the exact hashed APK; there is
+      // no manual `android-vm adb install`.
+      expect(gate.log, contains(driveCommand(_apkRelativePath)));
+      expect(gate.log, isNot(contains('android-vm adb install')));
 
       final out = '${fixture.root.path}/evidence';
       expect(File('$out/cuttlefish_evidence.png').readAsBytesSync(), _pngBytes);
@@ -1014,7 +1035,7 @@ void main() {
 
     test(
         'custom --apk: gate byte-copies the canonical build output, then '
-        'hashes and installs the custom path', () async {
+        'hashes and drives the custom path', () async {
       final fixture = _GateFixture();
       final gate = await _runGate(
         fixture,
@@ -1035,10 +1056,12 @@ void main() {
         gate.log,
         contains('cp $_apkRelativePath custom/debug.apk'),
       );
-      expect(gate.log, contains('android-vm adb install -r custom/debug.apk'));
+      // The drive command must reference the exact custom path that is hashed.
+      expect(gate.log, contains(driveCommand('custom/debug.apk')));
       expect(gate.log, contains('sha256sum custom/debug.apk'));
+      expect(gate.log, isNot(contains('android-vm adb install')));
       // Copy lands immediately after the build and before the post-build
-      // source checks, APK hashing, VM boot, and install.
+      // source checks, APK hashing, VM boot, and drive.
       expect(classes(gate), customHappyOrder);
 
       final sidecar =
@@ -1058,9 +1081,9 @@ void main() {
       expect(classes(gate), ['git-sha', 'git-fingerprint', 'build', 'vm-stop']);
     }, timeout: _multiProcessTimeout);
 
-    test('integration failure propagates and still stops the VM', () async {
+    test('drive failure propagates and still stops the VM', () async {
       final fixture = _GateFixture()
-        ..writeState('test.fail', 'e2e matrix broke\n');
+        ..writeState('drive.fail', 'e2e matrix broke\n');
       final gate = await _runGate(fixture);
 
       expect(gate.result.exitCode, isNot(0));
@@ -1075,13 +1098,12 @@ void main() {
         'apk-hash',
         'vm-start',
         'vm-wait',
-        'vm-install',
-        'e2e-test',
+        'e2e-drive',
         'vm-stop',
       ]);
     }, timeout: _multiProcessTimeout);
 
-    test('source changed after build fails before VM start and install',
+    test('source changed after build fails before VM start and drive',
         () async {
       final fixture = _GateFixture()
         ..writeState('ls.files.second', _changedLsFiles);
@@ -1090,7 +1112,7 @@ void main() {
       expect(gate.result.exitCode, isNot(0));
       expect(gate.result.stderr, contains('source changed after build'));
       expect(classes(gate), isNot(contains('vm-start')));
-      expect(classes(gate), isNot(contains('vm-install')));
+      expect(gate.log, isNot(contains('android-vm adb install')));
       expect(classes(gate), isNot(contains('write')));
       expect(classes(gate), [
         'git-sha',
@@ -1103,7 +1125,7 @@ void main() {
     }, timeout: _multiProcessTimeout);
 
     test(
-        'unstaged tracked-file edit during build fails before VM start and install',
+        'unstaged tracked-file edit during build fails before VM start and drive',
         () async {
       final fixture = _GateFixture()
         ..writeState('build.mutate.tracked', 'edit');
@@ -1112,7 +1134,7 @@ void main() {
       expect(gate.result.exitCode, isNot(0));
       expect(gate.result.stderr, contains('source changed after build'));
       expect(classes(gate), isNot(contains('vm-start')));
-      expect(classes(gate), isNot(contains('vm-install')));
+      expect(gate.log, isNot(contains('android-vm adb install')));
       expect(classes(gate), isNot(contains('write')));
       expect(
         classes(gate),
@@ -1127,7 +1149,7 @@ void main() {
       );
     }, timeout: _multiProcessTimeout);
 
-    test('source commit change after build fails before VM start and install',
+    test('source commit change after build fails before VM start and drive',
         () async {
       final fixture = _GateFixture()..writeState('head.second', _wrongSha1);
       final gate = await _runGate(fixture);
@@ -1135,7 +1157,7 @@ void main() {
       expect(gate.result.exitCode, isNot(0));
       expect(gate.result.stderr, contains('source commit changed after build'));
       expect(classes(gate), isNot(contains('vm-start')));
-      expect(classes(gate), isNot(contains('vm-install')));
+      expect(gate.log, isNot(contains('android-vm adb install')));
       expect(classes(gate), isNot(contains('write')));
       expect(
         classes(gate),
@@ -1143,8 +1165,8 @@ void main() {
       );
     }, timeout: _multiProcessTimeout);
 
-    test('APK changed after install fails before metadata write', () async {
-      final fixture = _GateFixture()..writeState('install.mutate', 'mutate');
+    test('APK changed during drive fails before metadata write', () async {
+      final fixture = _GateFixture()..writeState('drive.mutate', 'mutate');
       final gate = await _runGate(fixture);
 
       expect(gate.result.exitCode, isNot(0));
@@ -1182,8 +1204,7 @@ void main() {
         'apk-hash',
         'vm-start',
         'vm-wait',
-        'vm-install',
-        'e2e-test',
+        'e2e-drive',
         'sdk',
         'model',
         'wm',
@@ -1193,7 +1214,7 @@ void main() {
 
     test(
         'pre-existing stale canonical and custom APKs are removed, then a '
-        'build that produces no output fails before VM start or install',
+        'build that produces no output fails before VM start or drive',
         () async {
       final fixture = _GateFixture();
       final staleCanonical = File('${fixture.root.path}/$_apkRelativePath')
@@ -1217,9 +1238,9 @@ void main() {
       // Removals are logged and appear right before the build.
       expect(gate.log, contains('rm -f -- $_apkRelativePath'));
       expect(gate.log, contains('rm -f -- custom/debug.apk'));
-      // Fails before any VM boot, install, or metadata.
+      // Fails before any VM boot, drive, or metadata.
       expect(classes(gate), isNot(contains('vm-start')));
-      expect(classes(gate), isNot(contains('vm-install')));
+      expect(gate.log, isNot(contains('android-vm adb install')));
       expect(classes(gate), isNot(contains('write')));
       expect(classes(gate), isNot(contains('validate')));
       expect(classes(gate), [
@@ -1244,7 +1265,7 @@ void main() {
       expect(gate.result.stderr, contains('pre-build source fingerprint'));
       expect(classes(gate), isNot(contains('build')));
       expect(classes(gate), isNot(contains('vm-start')));
-      expect(classes(gate), isNot(contains('vm-install')));
+      expect(gate.log, isNot(contains('android-vm adb install')));
       expect(classes(gate), isNot(contains('write')));
       expect(classes(gate), isNot(contains('validate')));
       expect(classes(gate), ['git-sha', 'git-fingerprint', 'vm-stop']);
@@ -1261,7 +1282,7 @@ void main() {
       expect(gate.result.stderr, contains('pre-build source fingerprint'));
       expect(classes(gate), isNot(contains('build')));
       expect(classes(gate), isNot(contains('vm-start')));
-      expect(classes(gate), isNot(contains('vm-install')));
+      expect(gate.log, isNot(contains('android-vm adb install')));
       expect(classes(gate), isNot(contains('write')));
       expect(classes(gate), isNot(contains('validate')));
       expect(classes(gate), ['git-sha', 'git-fingerprint', 'vm-stop']);
@@ -1300,8 +1321,7 @@ void main() {
             'apk-hash',
             'vm-start',
             'vm-wait',
-            'vm-install',
-            'e2e-test',
+            'e2e-drive',
             'sdk',
             'model',
             'wm',
@@ -1313,5 +1333,21 @@ void main() {
         );
       }
     }, timeout: _multiProcessTimeout);
+  });
+
+  group('test_driver/integration_test.dart contract', () {
+    test('standard integration_test driver exists and wires the driver package',
+        () {
+      // The gate drives the e2e matrix through the standard flutter drive
+      // contract, so the committed driver must exist and hand off to
+      // package:integration_test/integration_test_driver.dart.
+      final driver = File('test_driver/integration_test.dart');
+      expect(driver.existsSync(), isTrue,
+          reason: 'test_driver/integration_test.dart must be committed');
+      expect(
+        driver.readAsStringSync(),
+        contains('package:integration_test/integration_test_driver.dart'),
+      );
+    });
   });
 }
