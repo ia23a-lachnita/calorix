@@ -42,99 +42,40 @@ jobs:
           dart pub global activate fvm
           echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
 
-      - name: Ensure Firebase options file exists
+      - name: Prepare release inputs
+        env:
+          FIREBASE_OPTIONS_DART_BASE64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          RELEASE_CERT_SHA256: ${{ secrets.RELEASE_CERT_SHA256 }}
         run: |
-          if [ ! -f lib/core/firebase/firebase_options.dart ]; then
-            mkdir -p lib/core/firebase
-            cat > lib/core/firebase/firebase_options.dart <<'EOF'
-          import 'package:firebase_core/firebase_core.dart';
-          import 'package:flutter/foundation.dart'
-              show TargetPlatform, defaultTargetPlatform, kIsWeb;
-
-          class DefaultFirebaseOptions {
-            static FirebaseOptions get currentPlatform {
-              if (kIsWeb) {
-                return web;
-              }
-              switch (defaultTargetPlatform) {
-                case TargetPlatform.android:
-                  return android;
-                case TargetPlatform.iOS:
-                  return ios;
-                case TargetPlatform.macOS:
-                  return macos;
-                case TargetPlatform.windows:
-                  return windows;
-                case TargetPlatform.linux:
-                  return linux;
-                default:
-                  throw UnsupportedError(
-                    'DefaultFirebaseOptions are not supported for this platform.',
-                  );
-              }
-            }
-
-            static const FirebaseOptions web = FirebaseOptions(
-              apiKey: 'ci-placeholder-api-key',
-              appId: '1:000000000000:web:0000000000000000',
-              messagingSenderId: '000000000000',
-              projectId: 'ci-placeholder-project',
-              authDomain: 'ci-placeholder-project.firebaseapp.com',
-              storageBucket: 'ci-placeholder-project.firebasestorage.app',
-            );
-
-            static const FirebaseOptions android = FirebaseOptions(
-              apiKey: 'ci-placeholder-api-key',
-              appId: '1:000000000000:android:0000000000000000',
-              messagingSenderId: '000000000000',
-              projectId: 'ci-placeholder-project',
-              storageBucket: 'ci-placeholder-project.firebasestorage.app',
-            );
-
-            static const FirebaseOptions ios = FirebaseOptions(
-              apiKey: 'ci-placeholder-api-key',
-              appId: '1:000000000000:ios:0000000000000000',
-              messagingSenderId: '000000000000',
-              projectId: 'ci-placeholder-project',
-              storageBucket: 'ci-placeholder-project.firebasestorage.app',
-              iosBundleId: 'com.calorix.calorix',
-            );
-
-            static const FirebaseOptions macos = FirebaseOptions(
-              apiKey: 'ci-placeholder-api-key',
-              appId: '1:000000000000:ios:0000000000000000',
-              messagingSenderId: '000000000000',
-              projectId: 'ci-placeholder-project',
-              storageBucket: 'ci-placeholder-project.firebasestorage.app',
-              iosBundleId: 'com.calorix.calorix',
-            );
-
-            static const FirebaseOptions windows = FirebaseOptions(
-              apiKey: 'ci-placeholder-api-key',
-              appId: '1:000000000000:web:0000000000000000',
-              messagingSenderId: '000000000000',
-              projectId: 'ci-placeholder-project',
-              authDomain: 'ci-placeholder-project.firebaseapp.com',
-              storageBucket: 'ci-placeholder-project.firebasestorage.app',
-            );
-
-            static const FirebaseOptions linux = FirebaseOptions(
-              apiKey: 'ci-placeholder-api-key',
-              appId: '1:000000000000:web:0000000000000000',
-              messagingSenderId: '000000000000',
-              projectId: 'ci-placeholder-project',
-              authDomain: 'ci-placeholder-project.firebaseapp.com',
-              storageBucket: 'ci-placeholder-project.firebasestorage.app',
-            );
-          }
-          EOF
-          fi
+          chmod +x tool/ci/prepare_android_release.sh
+          tool/ci/prepare_android_release.sh prepare --root "$GITHUB_WORKSPACE"
 
       - name: Build release APK
         run: |
           fvm install
           fvm flutter pub get
           fvm flutter build apk --release
+
+      - name: Verify release signing certificate
+        env:
+          RELEASE_CERT_SHA256: ${{ secrets.RELEASE_CERT_SHA256 }}
+        run: |
+          export PATH="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n1):$PATH"
+          APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+          RAW_CERT="$(apksigner verify --print-certs "$APK_PATH" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n1)"
+          NORMALIZED_ACTUAL="$(printf '%s' "$RAW_CERT" | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
+          NORMALIZED_EXPECTED="$(printf '%s' "$RELEASE_CERT_SHA256" | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
+          if [ -z "$NORMALIZED_ACTUAL" ] || [ "$NORMALIZED_ACTUAL" != "$NORMALIZED_EXPECTED" ]; then
+            echo "Release signing certificate fingerprint check failed" >&2
+            exit 1
+          fi
+          tool/ci/prepare_android_release.sh verify-fingerprint --expected "$NORMALIZED_EXPECTED" --actual "$NORMALIZED_ACTUAL"
 
       - name: Prepare distributable files
         run: |
@@ -150,6 +91,16 @@ jobs:
           name: android-apk-${{ github.sha }}
           path: dist/*
           retention-days: 30
+
+      - name: Clean up release inputs
+        if: always()
+        run: |
+          tool/ci/prepare_android_release.sh cleanup --root "$GITHUB_WORKSPACE" || true
+          rm -f android/key.properties
+          rm -f android/app/google-services.json
+          rm -f ios/Runner/GoogleService-Info.plist
+          rm -f lib/core/firebase/firebase_options.dart
+          rm -f android/app/release.jks
 
   publish-release:
     if: startsWith(github.ref, 'refs/tags/v')

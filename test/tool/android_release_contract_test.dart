@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -225,6 +226,7 @@ const _plist = r'''<?xml version="1.0" encoding="UTF-8"?>
   <key>PROJECT_ID</key><string>calorix-e2e-synthetic</string>
   <key>API_KEY</key><string>AIzaSyA9x1oNq4K0sYf_3MoXhZyFgLbPn8c7QwE</string>
   <key>GOOGLE_APP_ID</key><string>1:424242424242:ios:cccccccccccccccc</string>
+  <key>GCM_SENDER_ID</key><string>424242424242</string>
   <key>STORAGE_BUCKET</key><string>calorix-e2e-synthetic.appspot.com</string>
 </dict>
 </plist>
@@ -477,6 +479,28 @@ void main() {
     }, timeout: _multiProcessTimeout);
 
     test(
+        'rejects invalid UTF-8 for every Firebase text artifact before writing files',
+        () async {
+      expectScriptExists();
+
+      final invalidUtf8 = base64Encode(Uint8List.fromList([0xff, 0xfe, 0xfd]));
+      const textArtifacts = <String>[
+        'FIREBASE_OPTIONS_DART_BASE64',
+        'GOOGLE_SERVICES_JSON_BASE64',
+        'GOOGLE_SERVICE_INFO_PLIST_BASE64',
+      ];
+      for (final name in textArtifacts) {
+        final tmp = _tmp('badutf8-$name');
+        final env = Map<String, String>.of(_validEnv())..[name] = invalidUtf8;
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, name);
+        _expectNoPartialFiles(tmp);
+        _expectNoSecretOutput(result, env);
+      }
+    }, timeout: _multiProcessTimeout);
+
+    test(
         'rejects placeholder Firebase values in Dart options and google-services.json',
         () async {
       expectScriptExists();
@@ -503,6 +527,189 @@ void main() {
         _expectNoPartialFiles(tmp);
       }
     }, timeout: _multiProcessTimeout);
+
+    test(
+        'rejects incomplete or placeholder Firebase Dart options before '
+        'writing files', () async {
+      expectScriptExists();
+
+      String blankAssignment(String field) => _firebaseOptionsDart.replaceAll(
+          RegExp("$field: '[^']*'"), "$field: ''");
+
+      String markerInApiKey(String marker) => _firebaseOptionsDart.replaceAll(
+          RegExp("apiKey: '[^']*'"), "apiKey: '$marker'");
+
+      final cases = <String, String>{
+        'missing apiKey assignment': blankAssignment('apiKey'),
+        'missing appId assignment': blankAssignment('appId'),
+        'missing messagingSenderId assignment':
+            blankAssignment('messagingSenderId'),
+        'missing projectId assignment': blankAssignment('projectId'),
+        'missing DefaultFirebaseOptions':
+            _firebaseOptionsDart.replaceAll('DefaultFirebaseOptions', ''),
+        'missing FirebaseOptions(':
+            _firebaseOptionsDart.replaceAll('FirebaseOptions(', ''),
+        'marker ci-placeholder': markerInApiKey('ci-placeholder'),
+        'marker PLACEHOLDER': markerInApiKey('PLACEHOLDER'),
+        'marker ChangeMe': markerInApiKey('ChangeMe'),
+        'marker example': markerInApiKey('example'),
+      };
+
+      for (final entry in cases.entries) {
+        final label = entry.key.replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '-');
+        final tmp = _tmp('dart-invalid-$label');
+        final mutatedDart = entry.value;
+        final env = Map<String, String>.of(_validEnv())
+          ..['FIREBASE_OPTIONS_DART_BASE64'] = _b64(mutatedDart);
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, 'FIREBASE_OPTIONS_DART_BASE64');
+        _expectNoPartialFiles(tmp);
+        expect(result.all, isNot(contains(mutatedDart)),
+            reason:
+                '${entry.key}: decoded Dart content must not appear in output');
+      }
+    }, timeout: _matrixTimeout);
+
+    test('rejects unusable google-services JSON before writing files',
+        () async {
+      expectScriptExists();
+
+      String mutated(void Function(Map<String, dynamic> json) mutate) {
+        final json = jsonDecode(_googleServicesJson()) as Map<String, dynamic>;
+        mutate(json);
+        return jsonEncode(json);
+      }
+
+      Map<String, dynamic> firstClient(Map<String, dynamic> json) =>
+          (json['client'] as List).first as Map<String, dynamic>;
+
+      final cases = <String, String>{
+        'empty object': '{}',
+        'missing project_info.project_id': mutated((json) {
+          (json['project_info'] as Map<String, dynamic>).remove('project_id');
+        }),
+        'blank project_id': mutated((json) {
+          (json['project_info'] as Map<String, dynamic>)['project_id'] = '';
+        }),
+        'no clients': mutated((json) {
+          json['client'] = <Object>[];
+        }),
+        'wrong Android package': mutated((json) {
+          final clientInfo =
+              firstClient(json)['client_info'] as Map<String, dynamic>;
+          clientInfo['android_client_info'] = {
+            'package_name': 'com.wrong.package',
+          };
+        }),
+        'missing api_key current_key': mutated((json) {
+          firstClient(json)['api_key'] = <Object>[<String, Object>{}];
+        }),
+        'blank api_key current_key': mutated((json) {
+          firstClient(json)['api_key'] = <Object>[
+            <String, Object>{'current_key': ''}
+          ];
+        }),
+        'marker ci-placeholder in project_id': mutated((json) {
+          (json['project_info'] as Map<String, dynamic>)['project_id'] =
+              'ci-placeholder';
+        }),
+        'marker PLACEHOLDER in project_id': mutated((json) {
+          (json['project_info'] as Map<String, dynamic>)['project_id'] =
+              'PLACEHOLDER';
+        }),
+        'marker ChangeMe in project_id': mutated((json) {
+          (json['project_info'] as Map<String, dynamic>)['project_id'] =
+              'ChangeMe';
+        }),
+        'marker example in project_id': mutated((json) {
+          (json['project_info'] as Map<String, dynamic>)['project_id'] =
+              'example';
+        }),
+      };
+
+      for (final entry in cases.entries) {
+        final label = entry.key.replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '-');
+        final tmp = _tmp('services-invalid-$label');
+        final mutatedJson = entry.value;
+        final env = Map<String, String>.of(_validEnv())
+          ..['GOOGLE_SERVICES_JSON_BASE64'] = _b64(mutatedJson);
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, 'GOOGLE_SERVICES_JSON_BASE64');
+        _expectNoPartialFiles(tmp);
+        expect(result.all, isNot(contains(mutatedJson)),
+            reason: '${entry.key}: decoded JSON content must not appear '
+                'in output');
+      }
+    }, timeout: _matrixTimeout);
+
+    test('rejects unusable Firebase plist before writing files', () async {
+      expectScriptExists();
+
+      String removeField(String field) => _plist.replaceAll(
+          RegExp('  <key>$field</key><string>[^<]*</string>\n'), '');
+
+      String blankField(String field) => _plist.replaceAllMapped(
+          RegExp('(<key>$field</key><string>)[^<]*(</string>)'),
+          (m) => '${m[1]}${m[2]}');
+
+      String markerInApiKey(String marker) => _plist.replaceAllMapped(
+          RegExp('(<key>API_KEY</key><string>)[^<]*(</string>)'),
+          (m) => '${m[1]}$marker${m[2]}');
+
+      final cases = <String, String>{
+        'missing API_KEY': removeField('API_KEY'),
+        'blank API_KEY': blankField('API_KEY'),
+        'missing GOOGLE_APP_ID': removeField('GOOGLE_APP_ID'),
+        'blank GOOGLE_APP_ID': blankField('GOOGLE_APP_ID'),
+        'missing PROJECT_ID': removeField('PROJECT_ID'),
+        'blank PROJECT_ID': blankField('PROJECT_ID'),
+        'missing GCM_SENDER_ID': removeField('GCM_SENDER_ID'),
+        'blank GCM_SENDER_ID': blankField('GCM_SENDER_ID'),
+        'missing BUNDLE_ID': removeField('BUNDLE_ID'),
+        'wrong BUNDLE_ID': _plist.replaceAll(
+            '<string>com.calorix.calorix</string>',
+            '<string>com.wrong.bundle</string>'),
+        'marker ci-placeholder': markerInApiKey('ci-placeholder'),
+        'marker PLACEHOLDER': markerInApiKey('PLACEHOLDER'),
+        'marker ChangeMe': markerInApiKey('ChangeMe'),
+        'marker example': markerInApiKey('example'),
+        // Drops the closing </dict> tag only, leaving </plist> dangling:
+        // invalid XML nesting rather than an unusable-content case.
+        'syntactically malformed plist': _plist.replaceFirst('</dict>\n', ''),
+      };
+
+      for (final entry in cases.entries) {
+        if (entry.key == 'syntactically malformed plist') continue;
+        final value = entry.value;
+        expect(
+            value.startsWith('<?xml version="1.0" encoding="UTF-8"?>'), isTrue,
+            reason: '${entry.key}: fixture must remain valid plist XML');
+        expect('<dict>'.allMatches(value).length,
+            '</dict>'.allMatches(value).length,
+            reason: '${entry.key}: fixture must remain valid plist XML');
+        expect(value, contains('<plist version="1.0">'),
+            reason: '${entry.key}: fixture must remain valid plist XML');
+        expect(value, contains('</plist>'),
+            reason: '${entry.key}: fixture must remain valid plist XML');
+      }
+
+      for (final entry in cases.entries) {
+        final label = entry.key.replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '-');
+        final tmp = _tmp('plist-invalid-$label');
+        final mutatedPlist = entry.value;
+        final env = Map<String, String>.of(_validEnv())
+          ..['GOOGLE_SERVICE_INFO_PLIST_BASE64'] = _b64(mutatedPlist);
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, 'GOOGLE_SERVICE_INFO_PLIST_BASE64');
+        _expectNoPartialFiles(tmp);
+        expect(result.all, isNot(contains(mutatedPlist)),
+            reason: '${entry.key}: decoded plist content must not appear '
+                'in output');
+      }
+    }, timeout: _matrixTimeout);
 
     test('rejects unsafe newline and control characters in property values',
         () async {
@@ -674,6 +881,31 @@ void main() {
       final result = await _runCleanup(tmp);
       expect(result.exitCode, 0, reason: result.all);
       _expectNoPartialFiles(tmp);
+    }, timeout: _multiProcessTimeout);
+
+    test(
+        'cleanup removes exactly android/app/release.jks and leaves '
+        'unrelated .jks/.keystore files untouched', () async {
+      expectScriptExists();
+      final tmp = _tmp('cleanup-selective');
+      final appDir = Directory('${tmp.path}/android/app')
+        ..createSync(recursive: true);
+      final release = File('${appDir.path}/release.jks')
+        ..writeAsStringSync('release');
+      final keepJks = File('${appDir.path}/keep.jks')
+        ..writeAsStringSync('keep');
+      final keepKeystore = File('${appDir.path}/keep.keystore')
+        ..writeAsStringSync('keep');
+
+      final result = await _runCleanup(tmp);
+      expect(result.exitCode, 0, reason: result.all);
+
+      expect(release.existsSync(), isFalse,
+          reason: 'cleanup must remove android/app/release.jks');
+      expect(keepJks.existsSync(), isTrue,
+          reason: 'cleanup must not remove unrelated .jks files');
+      expect(keepKeystore.existsSync(), isTrue,
+          reason: 'cleanup must not remove unrelated .keystore files');
     }, timeout: _multiProcessTimeout);
   });
 
@@ -866,6 +1098,32 @@ void main() {
       expect(lower, isNot(contains('base64 -D')),
           reason: 'manual base64 decoding is forbidden');
     });
+
+    test(
+        'cleanup step removes the exact release.jks path and never a '
+        'wildcard keystore glob', () async {
+      final file = File(_workflow);
+      final workflow = loadYaml(file.readAsStringSync()) as YamlMap;
+      final job = ((workflow['jobs'] as YamlMap).values.first as YamlMap);
+      final steps = (job['steps'] as YamlList).cast<YamlMap>();
+
+      final cleanupIndex = steps.indexWhere((step) {
+        final cond = step['if'];
+        return cond is String &&
+            cond.contains('always') &&
+            runOf(step).contains('rm -f');
+      });
+      expect(cleanupIndex, greaterThanOrEqualTo(0),
+          reason: 'a cleanup step guarded by if always() is required');
+      final cleanup = runOf(steps[cleanupIndex]);
+
+      expect(cleanup, contains('android/app/release.jks'),
+          reason: 'cleanup must remove the exact materialized keystore path');
+      expect(cleanup, isNot(contains('*.jks')),
+          reason: 'cleanup must not wildcard-remove unrelated .jks files');
+      expect(cleanup, isNot(contains('*.keystore')),
+          reason: 'cleanup must not wildcard-remove unrelated .keystore files');
+    });
   });
 
   group('android/app/build.gradle.kts contract', () {
@@ -906,6 +1164,49 @@ void main() {
           reason: 'buildTypes.release must use the release signing config');
       expect(text, isNot(contains('signingConfigs.getByName("debug")')),
           reason: 'the release build may never fall back to debug signing');
+    });
+
+    test(
+        'guards release signing credentials with a case-insensitive '
+        'release-task check that throws GradleException for missing '
+        'key.properties, blank/missing storeFile/storePassword/keyAlias/'
+        'keyPassword, or a missing app-relative store file', () {
+      final file = File(_gradle);
+      expect(file.existsSync(), isTrue,
+          reason: '$_gradle must exist but is absent');
+      final text = file.readAsStringSync();
+
+      expect(text, contains('GradleException'),
+          reason: 'missing release inputs must fail the build, not '
+              'silently fall through');
+
+      // The guard is conditioned on the requested task names, matched
+      // case-insensitively, so debug/local tasks never require credentials.
+      expect(text, contains('gradle.startParameter.taskNames'),
+          reason: 'the guard must inspect the requested task names');
+      expect(
+          RegExp(r'ignoreCase\s*=\s*true|\.lowercase\(\)|\.uppercase\(\)')
+              .hasMatch(text),
+          isTrue,
+          reason: 'the release task-name match must be case-insensitive');
+      expect(text, contains('"release"'),
+          reason: 'the guard must key off a requested release task');
+
+      for (final field in const [
+        'storeFile',
+        'storePassword',
+        'keyAlias',
+        'keyPassword',
+      ]) {
+        expect(text, contains(field), reason: 'the guard must validate $field');
+      }
+      expect(
+          RegExp(r'isNullOrBlank\(\)|isNullOrEmpty\(\)').hasMatch(text), isTrue,
+          reason:
+              'blank credential values must be rejected, not just absent ones');
+      expect(text, contains('exists()'),
+          reason: 'an absent key.properties or missing store file must be '
+              'detected before signing proceeds');
     });
   });
 }
