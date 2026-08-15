@@ -1,0 +1,911 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:yaml/yaml.dart';
+
+/// Stage 3 fail-closed production release contract (RED).
+///
+/// The contract describes three production pieces that do not yet exist:
+///
+///  1. `tool/ci/prepare_android_release.sh` - a hermetic, fail-closed
+///     materializer of the eight release inputs into ignored app paths,
+///     exposed as three independently executable subcommands:
+///       prepare --root <dir>
+///       cleanup --root <dir>
+///       verify-fingerprint --expected <value> --actual <value>
+///     `prepare` requires these exact environment variables:
+///       FIREBASE_OPTIONS_DART_BASE64, GOOGLE_SERVICES_JSON_BASE64,
+///       GOOGLE_SERVICE_INFO_PLIST_BASE64, KEYSTORE_BASE64, KEYSTORE_PASSWORD,
+///       KEY_ALIAS, KEY_PASSWORD, RELEASE_CERT_SHA256.
+///     It rejects absent/empty inputs, malformed base64 or decoded content,
+///     placeholder Firebase values, and unsafe (newline/control) property
+///     values; it writes exactly these paths on success:
+///       lib/core/firebase/firebase_options.dart
+///       android/app/google-services.json
+///       ios/Runner/GoogleService-Info.plist
+///       android/app/<name>.jks
+///       android/key.properties   (Java-properties escaped, storeFile app-relative)
+///     It never prints secrets, is idempotent, and leaves no partial files on
+///     any failure (including after a prior success). `cleanup` removes those
+///     same exact materialized paths and is idempotent, independent of a
+///     `prepare` run failing or succeeding first. `verify-fingerprint`
+///     normalizes both values (strip colons/whitespace, uppercase), requires
+///     exactly 64 hex digits on each side, accepts exact equality, and exits
+///     nonzero on any mismatch or malformed value.
+///  2. `.github/workflows/android-build.yml` - must run the tested preparation
+///     script before `pub get`/build, build only the release APK, verify the
+///     signer cert SHA-256 with `apksigner verify --print-certs` against
+///     `RELEASE_CERT_SHA256` (separators/whitespace stripped, uppercased,
+///     exact equality, mismatch is a hard failure), and unconditionally clean
+///     every materialized secret. Placeholder values, debug signing, and
+///     manual `base64 -d` decoding are forbidden.
+///  3. `android/app/build.gradle.kts` - defines `signingConfigs.release`
+///     reading `android/key.properties` (android/app-relative `storeFile`)
+///     before `buildTypes` and wires the release buildType to that config only.
+///
+/// The file compiles cleanly and fails only because these production contracts
+/// are absent; no production file is touched.
+
+const _prepareScript = 'tool/ci/prepare_android_release.sh';
+const _workflow = '.github/workflows/android-build.yml';
+const _gradle = 'android/app/build.gradle.kts';
+
+/// The eight production inputs the preparation stage requires.
+const _inputs = <String>[
+  'FIREBASE_OPTIONS_DART_BASE64',
+  'GOOGLE_SERVICES_JSON_BASE64',
+  'GOOGLE_SERVICE_INFO_PLIST_BASE64',
+  'KEYSTORE_BASE64',
+  'KEYSTORE_PASSWORD',
+  'KEY_ALIAS',
+  'KEY_PASSWORD',
+  'RELEASE_CERT_SHA256',
+];
+
+/// ARM-host detection via /proc/cpuinfo - no subprocess spawned.
+final bool _isArmHost = () {
+  try {
+    final cpuinfo = File('/proc/cpuinfo').readAsStringSync();
+    return cpuinfo.contains('CPU architecture: 8') ||
+        cpuinfo.contains('CPU architecture: 7') ||
+        cpuinfo.contains('ARMv') ||
+        cpuinfo.contains('aarch64');
+  } catch (_) {
+    return false;
+  }
+}();
+
+/// Shared timeout for subprocess tests: 2 minutes under Pi qemu, 30s elsewhere.
+final Timeout _multiProcessTimeout =
+    Timeout(Duration(seconds: _isArmHost ? 120 : 30));
+
+/// Generous timeout for multi-subprocess matrix tests (8+ bash invocations).
+final Timeout _matrixTimeout = const Timeout(Duration(seconds: 180));
+
+const _projectId = 'calorix-e2e-synthetic';
+const _apiKey = 'AIzaSyA9x1oNq4K0sYf_3MoXhZyFgLbPn8c7QwE';
+const _ksPassword = 's3cret:pa#ss';
+const _ksAlias = 'alias#key:release';
+const _ksKeyPassword = 'pw:w0rd#!';
+
+final String _certSha256 =
+    sha256.convert(utf8.encode('calorix-release-cert')).toString();
+
+/// Byte-encoded synthetic keystore. The preparation script must accept it as
+/// decoded bytes and stage it; keystore integrity is enforced downstream by
+/// the workflow's apksigner audit, so no JKS structure is assumed here.
+final List<int> _keystoreBytes = utf8.encode('synthetic-keystore-001122334455');
+
+String _b64(String value) => base64Encode(utf8.encode(value));
+
+/// Renders a 64-hex fingerprint the way `apksigner verify --print-certs`
+/// does: uppercase pairs joined by colons, e.g. `AA:BB:CC:...`.
+String _colonize(String hex) {
+  final upper = hex.toUpperCase();
+  final pairs = <String>[
+    for (var i = 0; i < upper.length; i += 2) upper.substring(i, i + 2),
+  ];
+  return pairs.join(':');
+}
+
+const _firebaseOptionsDart = r'''
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
+
+class DefaultFirebaseOptions {
+  static FirebaseOptions get currentPlatform {
+    if (kIsWeb) {
+      return web;
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return android;
+      case TargetPlatform.iOS:
+        return ios;
+      case TargetPlatform.macOS:
+        return macos;
+      case TargetPlatform.windows:
+        return windows;
+      case TargetPlatform.linux:
+        return linux;
+      default:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions are not supported for this platform.',
+        );
+    }
+  }
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyA9x1oNq4K0sYf_3MoXhZyFgLbPn8c7QwE',
+    appId: '1:424242424242:web:aaaaaaaaaaaaaaaa',
+    messagingSenderId: '424242424242',
+    projectId: 'calorix-e2e-synthetic',
+    authDomain: 'calorix-e2e-synthetic.firebaseapp.com',
+    storageBucket: 'calorix-e2e-synthetic.firebasestorage.app',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyA9x1oNq4K0sYf_3MoXhZyFgLbPn8c7QwE',
+    appId: '1:424242424242:android:abcdefabcdefabcdef',
+    messagingSenderId: '424242424242',
+    projectId: 'calorix-e2e-synthetic',
+    storageBucket: 'calorix-e2e-synthetic.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyA9x1oNq4K0sYf_3MoXhZyFgLbPn8c7QwE',
+    appId: '1:424242424242:ios:cccccccccccccccc',
+    messagingSenderId: '424242424242',
+    projectId: 'calorix-e2e-synthetic',
+    storageBucket: 'calorix-e2e-synthetic.firebasestorage.app',
+    iosBundleId: 'com.calorix.calorix',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyA9x1oNq4K0sYf_3MoXhZyFgLbPn8c7QwE',
+    appId: '1:424242424242:ios:cccccccccccccccc',
+    messagingSenderId: '424242424242',
+    projectId: 'calorix-e2e-synthetic',
+    storageBucket: 'calorix-e2e-synthetic.firebasestorage.app',
+    iosBundleId: 'com.calorix.calorix',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyA9x1oNq4K0sYf_3MoXhZyFgLbPn8c7QwE',
+    appId: '1:424242424242:web:bbbbbbbbbbbbbbbb',
+    messagingSenderId: '424242424242',
+    projectId: 'calorix-e2e-synthetic',
+    authDomain: 'calorix-e2e-synthetic.firebaseapp.com',
+    storageBucket: 'calorix-e2e-synthetic.firebasestorage.app',
+  );
+
+  static const FirebaseOptions linux = FirebaseOptions(
+    apiKey: 'AIzaSyA9x1oNq4K0sYf_3MoXhZyFgLbPn8c7QwE',
+    appId: '1:424242424242:web:bbbbbbbbbbbbbbbb',
+    messagingSenderId: '424242424242',
+    projectId: 'calorix-e2e-synthetic',
+    authDomain: 'calorix-e2e-synthetic.firebaseapp.com',
+    storageBucket: 'calorix-e2e-synthetic.firebasestorage.app',
+  );
+}
+''';
+
+String _googleServicesJson() => jsonEncode({
+      'project_info': {
+        'project_number': '424242424242',
+        'project_id': _projectId,
+        'storage_bucket': '$_projectId.appspot.com',
+      },
+      'client': [
+        {
+          'client_info': {
+            'mobilesdk_app_id': '1:424242424242:android:abcdefabcdefabcdef',
+            'android_client_info': {'package_name': 'com.calorix.calorix'},
+          },
+          'oauth_client': <Object>[],
+          'api_key': [
+            {'current_key': _apiKey},
+          ],
+          'services': {
+            'appinvite_service': {
+              'other_platform_oauth_client': <Object>[],
+            },
+          },
+        },
+      ],
+    });
+
+const _plist = r'''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>BUNDLE_ID</key><string>com.calorix.calorix</string>
+  <key>PROJECT_ID</key><string>calorix-e2e-synthetic</string>
+  <key>API_KEY</key><string>AIzaSyA9x1oNq4K0sYf_3MoXhZyFgLbPn8c7QwE</string>
+  <key>GOOGLE_APP_ID</key><string>1:424242424242:ios:cccccccccccccccc</string>
+  <key>STORAGE_BUCKET</key><string>calorix-e2e-synthetic.appspot.com</string>
+</dict>
+</plist>
+''';
+
+Map<String, String> _validEnv() => {
+      'FIREBASE_OPTIONS_DART_BASE64': _b64(_firebaseOptionsDart),
+      'GOOGLE_SERVICES_JSON_BASE64': _b64(_googleServicesJson()),
+      'GOOGLE_SERVICE_INFO_PLIST_BASE64': _b64(_plist),
+      'KEYSTORE_BASE64': base64Encode(_keystoreBytes),
+      'KEYSTORE_PASSWORD': _ksPassword,
+      'KEY_ALIAS': _ksAlias,
+      'KEY_PASSWORD': _ksKeyPassword,
+      'RELEASE_CERT_SHA256': _certSha256,
+    };
+
+Directory _tmp(String prefix) {
+  final dir = Directory.systemTemp.createTempSync('release-$prefix-');
+  addTearDown(() => dir.deleteSync(recursive: true));
+  return dir;
+}
+
+class _PrepareResult {
+  _PrepareResult(this.result);
+  final ProcessResult result;
+  int get exitCode => result.exitCode;
+  String get stdout => result.stdout as String;
+  String get stderr => result.stderr as String;
+  String get all => '$stderr\n$stdout';
+}
+
+Future<_PrepareResult> _runPrepare(
+    Directory root, Map<String, String> env) async {
+  final script = File(_prepareScript).absolute.path;
+  final result = await Process.run(
+    'bash',
+    [script, 'prepare', '--root', root.path],
+    workingDirectory: Directory.current.path,
+    environment: <String, String>{...Platform.environment, ...env},
+  );
+  return _PrepareResult(result);
+}
+
+Future<_PrepareResult> _runCleanup(Directory root) async {
+  final script = File(_prepareScript).absolute.path;
+  final result = await Process.run(
+    'bash',
+    [script, 'cleanup', '--root', root.path],
+    workingDirectory: Directory.current.path,
+  );
+  return _PrepareResult(result);
+}
+
+Future<_PrepareResult> _runVerifyFingerprint(
+    String expected, String actual) async {
+  final script = File(_prepareScript).absolute.path;
+  final result = await Process.run(
+    'bash',
+    [script, 'verify-fingerprint', '--expected', expected, '--actual', actual],
+    workingDirectory: Directory.current.path,
+  );
+  return _PrepareResult(result);
+}
+
+void _expectRejected(_PrepareResult result, String messagePart) {
+  expect(result.exitCode, isNot(0),
+      reason: 'expected a nonzero exit, got ${result.all}');
+  expect(result.all, contains(messagePart),
+      reason: 'output must name "$messagePart"');
+}
+
+void _expectNoPartialFiles(Directory root) {
+  const paths = <String>[
+    'android/key.properties',
+    'android/app/google-services.json',
+    'ios/Runner/GoogleService-Info.plist',
+    'lib/core/firebase/firebase_options.dart',
+  ];
+  for (final path in paths) {
+    expect(File('${root.path}/$path').existsSync(), isFalse,
+        reason: 'partial artifact must not remain: $path');
+  }
+  final appDir = Directory('${root.path}/android/app');
+  if (appDir.existsSync()) {
+    final leftovers = appDir
+        .listSync()
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.jks') || f.path.endsWith('.keystore'));
+    expect(leftovers, isEmpty,
+        reason: 'a partial keystore artifact must not remain');
+  }
+}
+
+void _expectMaterialized(
+    Directory root, Map<String, String> env, _PrepareResult result) {
+  expect(result.exitCode, 0, reason: result.all);
+
+  final options = File('${root.path}/lib/core/firebase/firebase_options.dart');
+  final services = File('${root.path}/android/app/google-services.json');
+  final plist = File('${root.path}/ios/Runner/GoogleService-Info.plist');
+  final properties = File('${root.path}/android/key.properties');
+  expect(options.existsSync(), isTrue,
+      reason: 'firebase_options.dart must be materialized');
+  expect(services.existsSync(), isTrue,
+      reason: 'android/app/google-services.json must be materialized');
+  expect(plist.existsSync(), isTrue,
+      reason: 'ios/Runner/GoogleService-Info.plist must be materialized');
+  expect(properties.existsSync(), isTrue,
+      reason: 'android/key.properties must be written');
+
+  expect(options.readAsBytesSync(),
+      base64Decode(env['FIREBASE_OPTIONS_DART_BASE64']!));
+  expect(services.readAsBytesSync(),
+      base64Decode(env['GOOGLE_SERVICES_JSON_BASE64']!));
+  expect(plist.readAsBytesSync(),
+      base64Decode(env['GOOGLE_SERVICE_INFO_PLIST_BASE64']!));
+
+  final keystores = Directory('${root.path}/android/app')
+      .listSync()
+      .whereType<File>()
+      .where((f) => f.path.endsWith('.jks') || f.path.endsWith('.keystore'))
+      .toList();
+  expect(keystores.length, 1,
+      reason: 'exactly one release keystore artifact is expected');
+  expect(keystores.single.readAsBytesSync(),
+      base64Decode(env['KEYSTORE_BASE64']!));
+  final storeBase = keystores.single.uri.pathSegments.last;
+
+  final props = properties.readAsStringSync();
+  expect(props, contains('storeFile=$storeBase'));
+  expect(props, contains('storePassword=s3cret\\:pa\\#ss'));
+  expect(props, contains('keyAlias=alias\\#key\\:release'));
+  expect(props, contains('keyPassword=pw\\:w0rd\\#\\!'));
+}
+
+void _expectNoSecretOutput(_PrepareResult result, Map<String, String> env) {
+  final out = result.all;
+  expect(out, isNot(contains(env['KEYSTORE_PASSWORD']!)));
+  expect(out, isNot(contains(env['KEY_ALIAS']!)));
+  expect(out, isNot(contains(env['KEY_PASSWORD']!)));
+  expect(out, isNot(contains(env['RELEASE_CERT_SHA256']!)));
+  for (final name in const [
+    'FIREBASE_OPTIONS_DART_BASE64',
+    'GOOGLE_SERVICES_JSON_BASE64',
+    'GOOGLE_SERVICE_INFO_PLIST_BASE64',
+    'KEYSTORE_BASE64',
+  ]) {
+    expect(out, isNot(contains(env[name]!)), reason: '$name must not leak');
+  }
+  // Decoded content must not reach output either.
+  expect(out, isNot(contains(_projectId)));
+  expect(out, isNot(contains(_apiKey)));
+  expect(out, isNot(contains(_ksPassword)));
+  expect(out, isNot(contains(_ksAlias)));
+  expect(out, isNot(contains(_ksKeyPassword)));
+  expect(out, isNot(contains(_certSha256)));
+}
+
+void main() {
+  group('tool/ci/prepare_android_release.sh hermetic contract', () {
+    void expectScriptExists() {
+      expect(File(_prepareScript).existsSync(), isTrue,
+          reason: '$_prepareScript must be committed before these tests pass');
+    }
+
+    test('preparation script exists', expectScriptExists);
+
+    test('rejects fully absent inputs and names every required variable',
+        () async {
+      expectScriptExists();
+      final tmp = _tmp('absent');
+      final result = await _runPrepare(tmp, const {});
+
+      _expectRejected(result, 'FIREBASE_OPTIONS_DART_BASE64');
+      for (final name in _inputs) {
+        expect(result.all, contains(name),
+            reason: 'the absent input $name must be named');
+      }
+      _expectNoPartialFiles(tmp);
+    });
+
+    test('rejects each individually missing input, naming it', () async {
+      expectScriptExists();
+      for (final name in _inputs) {
+        final tmp = _tmp('missing-$name');
+        final env = Map<String, String>.of(_validEnv())..remove(name);
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, name);
+        _expectNoPartialFiles(tmp);
+      }
+    }, timeout: _matrixTimeout);
+
+    test('rejects each empty input, naming it', () async {
+      expectScriptExists();
+      for (final name in _inputs) {
+        final tmp = _tmp('empty-$name');
+        final env = Map<String, String>.of(_validEnv())..[name] = '';
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, name);
+        _expectNoPartialFiles(tmp);
+      }
+    }, timeout: _matrixTimeout);
+
+    test('rejects malformed base64 for every encoded input, naming it',
+        () async {
+      expectScriptExists();
+      const encoded = <String>[
+        'FIREBASE_OPTIONS_DART_BASE64',
+        'GOOGLE_SERVICES_JSON_BASE64',
+        'GOOGLE_SERVICE_INFO_PLIST_BASE64',
+        'KEYSTORE_BASE64',
+      ];
+      for (final name in encoded) {
+        final tmp = _tmp('bad64-$name');
+        final env = Map<String, String>.of(_validEnv())
+          ..[name] = '!!!this-is-not-base64!!!';
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, name);
+        _expectNoPartialFiles(tmp);
+      }
+    }, timeout: _multiProcessTimeout);
+
+    test(
+        'rejects decoded content that fails validation for each artifact class',
+        () async {
+      expectScriptExists();
+
+      final cases = <String, String>{
+        // Not JSON despite decoding cleanly.
+        'GOOGLE_SERVICES_JSON_BASE64': _b64('this is { not json'),
+        // Not a Dart FirebaseOptions definition.
+        'FIREBASE_OPTIONS_DART_BASE64': _b64('void nothing() {}'),
+        // Not a plist despite decoding cleanly.
+        'GOOGLE_SERVICE_INFO_PLIST_BASE64': _b64('<html></html>'),
+        // An encoded but empty keystore payload.
+        'KEYSTORE_BASE64': _b64(''),
+      };
+      for (final entry in cases.entries) {
+        final tmp = _tmp('badcontent-${entry.key}');
+        final env = Map<String, String>.of(_validEnv())
+          ..[entry.key] = entry.value;
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, entry.key);
+        _expectNoPartialFiles(tmp);
+      }
+    }, timeout: _multiProcessTimeout);
+
+    test(
+        'rejects placeholder Firebase values in Dart options and google-services.json',
+        () async {
+      expectScriptExists();
+
+      final placeholderDart = _firebaseOptionsDart
+          .replaceAll(_projectId, 'ci-placeholder-project')
+          .replaceAll('424242424242', '000000000000');
+      final placeholderServices = _googleServicesJson()
+          .replaceAll(_projectId, 'ci-placeholder-project');
+
+      final cases = <String, String>{
+        'FIREBASE_OPTIONS_DART_BASE64': _b64(placeholderDart),
+        'GOOGLE_SERVICES_JSON_BASE64': _b64(placeholderServices),
+      };
+      for (final entry in cases.entries) {
+        final tmp = _tmp('placeholder-${entry.key}');
+        final env = Map<String, String>.of(_validEnv())
+          ..[entry.key] = entry.value;
+        final result = await _runPrepare(tmp, env);
+
+        expect(result.exitCode, isNot(0),
+            reason: 'placeholder values must be rejected');
+        expect(result.all.toLowerCase(), contains('placeholder'));
+        _expectNoPartialFiles(tmp);
+      }
+    }, timeout: _multiProcessTimeout);
+
+    test('rejects unsafe newline and control characters in property values',
+        () async {
+      expectScriptExists();
+      final unsafe = <String, String>{
+        'KEYSTORE_PASSWORD': 'new\nline',
+        'KEY_ALIAS': 'carriage\rreturn',
+        'KEY_PASSWORD': 'tab\there',
+      };
+      for (final entry in unsafe.entries) {
+        final tmp = _tmp('unsafe-${entry.key}');
+        final env = Map<String, String>.of(_validEnv())
+          ..[entry.key] = entry.value;
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, entry.key);
+        _expectNoPartialFiles(tmp);
+      }
+    }, timeout: _multiProcessTimeout);
+
+    test(
+        'materializes every exact path with safely escaped key.properties '
+        'and app-relative storeFile', () async {
+      expectScriptExists();
+      final tmp = _tmp('happy');
+      final env = _validEnv();
+      final result = await _runPrepare(tmp, env);
+
+      _expectMaterialized(tmp, env, result);
+      _expectNoSecretOutput(result, env);
+    }, timeout: _multiProcessTimeout);
+
+    test('never prints secrets or decoded content to stdout or stderr',
+        () async {
+      expectScriptExists();
+      final tmp = _tmp('noleak');
+      final env = _validEnv();
+      final result = await _runPrepare(tmp, env);
+
+      expect(result.exitCode, 0, reason: result.all);
+      _expectNoSecretOutput(result, env);
+    }, timeout: _multiProcessTimeout);
+
+    test(
+        'accepts only an exact 64-hex RELEASE_CERT_SHA256 in either case '
+        '(normalization) and rejects mismatched lengths or non-hex', () async {
+      expectScriptExists();
+
+      final uppercase = _validEnv()
+        ..['RELEASE_CERT_SHA256'] = _certSha256.toUpperCase();
+      final upperTmp = _tmp('fingerprint-upper');
+      expect((await _runPrepare(upperTmp, uppercase)).exitCode, 0,
+          reason: 'uppercase fingerprint must be accepted');
+
+      final lowerTmp = _tmp('fingerprint-lower');
+      expect((await _runPrepare(lowerTmp, _validEnv())).exitCode, 0,
+          reason: 'lowercase fingerprint must be accepted');
+
+      final badLength = _validEnv()
+        ..['RELEASE_CERT_SHA256'] = _certSha256.substring(0, 63);
+      final shortTmp = _tmp('fingerprint-short');
+      _expectRejected(
+          await _runPrepare(shortTmp, badLength), 'RELEASE_CERT_SHA256');
+      _expectNoPartialFiles(shortTmp);
+
+      final nonHex = _validEnv()..['RELEASE_CERT_SHA256'] = 'z' * 64;
+      final nonHexTmp = _tmp('fingerprint-nonhex');
+      _expectRejected(
+          await _runPrepare(nonHexTmp, nonHex), 'RELEASE_CERT_SHA256');
+      _expectNoPartialFiles(nonHexTmp);
+    }, timeout: _multiProcessTimeout);
+
+    test(
+        'is idempotent: a second identical run leaves byte-identical artifacts',
+        () async {
+      expectScriptExists();
+      final tmp = _tmp('idempotent');
+      final env = _validEnv();
+
+      final first = await _runPrepare(tmp, env);
+      _expectMaterialized(tmp, env, first);
+
+      final keystore = Directory('${tmp.path}/android/app')
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.jks') || f.path.endsWith('.keystore'))
+          .single;
+
+      List<int> bytesOf(String relativePath) =>
+          File('${tmp.path}/$relativePath').readAsBytesSync();
+      final before = <String, List<int>>{
+        'lib/core/firebase/firebase_options.dart':
+            bytesOf('lib/core/firebase/firebase_options.dart'),
+        'android/app/google-services.json':
+            bytesOf('android/app/google-services.json'),
+        'ios/Runner/GoogleService-Info.plist':
+            bytesOf('ios/Runner/GoogleService-Info.plist'),
+        'android/key.properties': bytesOf('android/key.properties'),
+        keystore.path.substring(tmp.path.length + 1):
+            keystore.readAsBytesSync(),
+      };
+
+      final second = await _runPrepare(tmp, env);
+      expect(second.exitCode, 0, reason: second.all);
+      for (final entry in before.entries) {
+        expect(bytesOf(entry.key), entry.value,
+            reason: '${entry.key} must be identical after a second run');
+      }
+    }, timeout: _multiProcessTimeout);
+
+    test('cleans previously materialized secrets when a later attempt fails',
+        () async {
+      expectScriptExists();
+      final tmp = _tmp('cleanup');
+      final env = _validEnv();
+
+      final first = await _runPrepare(tmp, env);
+      _expectMaterialized(tmp, env, first);
+
+      final broken = Map<String, String>.of(env)..remove('KEY_ALIAS');
+      final second = await _runPrepare(tmp, broken);
+      expect(second.exitCode, isNot(0),
+          reason: 'a run missing a secret must fail');
+      _expectNoPartialFiles(tmp);
+    }, timeout: _multiProcessTimeout);
+  });
+
+  group('tool/ci/prepare_android_release.sh cleanup subcommand', () {
+    void expectScriptExists() {
+      expect(File(_prepareScript).existsSync(), isTrue,
+          reason: '$_prepareScript must be committed before these tests pass');
+    }
+
+    test(
+        'cleanup removes every exact materialized secret path independently '
+        'of prepare', () async {
+      expectScriptExists();
+      final tmp = _tmp('cleanup-direct');
+      final env = _validEnv();
+      final prepareResult = await _runPrepare(tmp, env);
+      _expectMaterialized(tmp, env, prepareResult);
+
+      final cleanupResult = await _runCleanup(tmp);
+      expect(cleanupResult.exitCode, 0, reason: cleanupResult.all);
+      _expectNoPartialFiles(tmp);
+    }, timeout: _multiProcessTimeout);
+
+    test(
+        'cleanup is idempotent: repeated runs on an already-clean root still '
+        'succeed and leave it clean', () async {
+      expectScriptExists();
+      final tmp = _tmp('cleanup-idempotent');
+      final env = _validEnv();
+      final prepareResult = await _runPrepare(tmp, env);
+      _expectMaterialized(tmp, env, prepareResult);
+
+      final first = await _runCleanup(tmp);
+      expect(first.exitCode, 0, reason: first.all);
+      _expectNoPartialFiles(tmp);
+
+      final second = await _runCleanup(tmp);
+      expect(second.exitCode, 0, reason: second.all);
+      _expectNoPartialFiles(tmp);
+    }, timeout: _multiProcessTimeout);
+
+    test('cleanup on a root that was never prepared exits cleanly', () async {
+      expectScriptExists();
+      final tmp = _tmp('cleanup-empty');
+      final result = await _runCleanup(tmp);
+      expect(result.exitCode, 0, reason: result.all);
+      _expectNoPartialFiles(tmp);
+    }, timeout: _multiProcessTimeout);
+  });
+
+  group('tool/ci/prepare_android_release.sh verify-fingerprint subcommand', () {
+    void expectScriptExists() {
+      expect(File(_prepareScript).existsSync(), isTrue,
+          reason: '$_prepareScript must be committed before these tests pass');
+    }
+
+    test(
+        'normalizes colons and surrounding whitespace, then uppercases '
+        'before accepting an equal fingerprint', () async {
+      expectScriptExists();
+      final expected = _certSha256.toUpperCase();
+      final actual = '  ${_colonize(_certSha256).toLowerCase()}  \n';
+      final result = await _runVerifyFingerprint(expected, actual);
+      expect(result.exitCode, 0, reason: result.all);
+    }, timeout: _multiProcessTimeout);
+
+    test('exits nonzero when normalized fingerprints do not match', () async {
+      expectScriptExists();
+      final expected = _certSha256.toUpperCase();
+      final actual = sha256.convert(utf8.encode('a-different-cert')).toString();
+      final result = await _runVerifyFingerprint(expected, actual);
+      expect(result.exitCode, isNot(0), reason: result.all);
+    }, timeout: _multiProcessTimeout);
+
+    test(
+        'rejects fingerprints that are not exactly 64 hex digits after '
+        'normalization, on either side', () async {
+      expectScriptExists();
+      final malformed = <String>[
+        _certSha256.substring(0, 63), // too short
+        '${_certSha256}ab', // too long
+        'z' * 64, // non-hex
+      ];
+      for (final bad in malformed) {
+        final asExpected = await _runVerifyFingerprint(bad, _certSha256);
+        expect(asExpected.exitCode, isNot(0),
+            reason:
+                'malformed expected value must be rejected: ${asExpected.all}');
+
+        final asActual = await _runVerifyFingerprint(_certSha256, bad);
+        expect(asActual.exitCode, isNot(0),
+            reason: 'malformed actual value must be rejected: ${asActual.all}');
+      }
+    }, timeout: _matrixTimeout);
+  });
+
+  group('.github/workflows/android-build.yml contract', () {
+    String runOf(YamlMap step) {
+      final run = step['run'];
+      return run is String ? run : '';
+    }
+
+    test(
+        'runs tool/ci/prepare_android_release.sh before pub get and the '
+        'release build, providing all eight inputs as secrets', () async {
+      final file = File(_workflow);
+      expect(file.existsSync(), isTrue,
+          reason: '$_workflow must exist but is absent');
+      final workflow = loadYaml(file.readAsStringSync()) as YamlMap;
+      final job = ((workflow['jobs'] as YamlMap).values.first as YamlMap);
+      final steps = (job['steps'] as YamlList).cast<YamlMap>();
+
+      int runIndex(bool Function(String) pred) =>
+          steps.indexWhere((step) => pred(runOf(step)));
+
+      final prepIndex =
+          runIndex((r) => r.contains('tool/ci/prepare_android_release.sh'));
+      final pubGetIndex = runIndex((r) => r.contains('fvm flutter pub get'));
+      final buildIndex =
+          runIndex((r) => r.contains('fvm flutter build apk --release'));
+
+      expect(prepIndex, greaterThanOrEqualTo(0),
+          reason: 'a step must invoke $_prepareScript');
+      expect(pubGetIndex, greaterThanOrEqualTo(0),
+          reason: 'a fvm flutter pub get step is required');
+      expect(buildIndex, greaterThanOrEqualTo(0),
+          reason: 'the exact release build step is required');
+      expect(prepIndex, lessThan(pubGetIndex),
+          reason: 'preparation must precede pub get');
+      expect(prepIndex, lessThan(buildIndex),
+          reason: 'preparation must precede the release build');
+
+      final raw = file.readAsStringSync();
+      for (final name in _inputs) {
+        expect(raw, contains('secrets.$name'),
+            reason: '$name must be injected from GitHub secrets');
+      }
+    });
+
+    test(
+        'builds and uploads only the release APK without inline placeholder '
+        'Firebase materialization', () async {
+      final file = File(_workflow);
+      final workflow = loadYaml(file.readAsStringSync()) as YamlMap;
+      final job = ((workflow['jobs'] as YamlMap).values.first as YamlMap);
+      final steps = (job['steps'] as YamlList).cast<YamlMap>();
+      final runs = steps.map(runOf).join('\n');
+
+      expect(runs, contains('fvm flutter build apk --release'));
+      expect(runs, isNot(contains('flutter build apk --debug')));
+      expect(runs, contains('app-release.apk'),
+          reason: 'only the release artifact may be distributed');
+
+      // The release build must consume the prepared real paths, so the
+      // workflow may never materialize a placeholder Dart options file inline.
+      final raw = file.readAsStringSync().toLowerCase();
+      expect(raw, isNot(contains('class defaultfirebaseoptions {')),
+          reason: 'inline Firebase options materialization is forbidden');
+      expect(raw, isNot(contains('ensure firebase options file exists')));
+    });
+
+    test(
+        'runs apksigner verify --print-certs and enforces normalized exact '
+        'fingerprint equality, failing hard on a mismatch', () async {
+      final file = File(_workflow);
+      final workflow = loadYaml(file.readAsStringSync()) as YamlMap;
+      final job = ((workflow['jobs'] as YamlMap).values.first as YamlMap);
+      final steps = (job['steps'] as YamlList).cast<YamlMap>();
+
+      final verifyIndex =
+          steps.indexWhere((step) => runOf(step).contains('apksigner verify'));
+      expect(verifyIndex, greaterThanOrEqualTo(0),
+          reason: 'an apksigner verification step is required');
+      final verify = runOf(steps[verifyIndex]);
+
+      expect(verify, contains('apksigner verify --print-certs'));
+      expect(verify, contains('app-release.apk'));
+      expect(verify, contains('RELEASE_CERT_SHA256'));
+      // The printed signer fingerprint is normalized before comparison:
+      // separators (':') and whitespace removed, then uppercased.
+      expect(verify, contains('tr -d \':\''));
+      expect(verify, contains('[:upper:]'));
+      // Exact equality, and a mismatch is a hard failure.
+      expect(verify, contains('!='));
+      expect(verify, contains('exit 1'));
+    });
+
+    test('unconditionally cleans every materialized secret with if: always()',
+        () async {
+      final file = File(_workflow);
+      final workflow = loadYaml(file.readAsStringSync()) as YamlMap;
+      final job = ((workflow['jobs'] as YamlMap).values.first as YamlMap);
+      final steps = (job['steps'] as YamlList).cast<YamlMap>();
+
+      int runIndex(bool Function(String) pred) =>
+          steps.indexWhere((step) => pred(runOf(step)));
+      final buildIndex =
+          runIndex((r) => r.contains('fvm flutter build apk --release'));
+
+      final cleanupIndex = steps.indexWhere((step) {
+        final cond = step['if'];
+        return cond is String &&
+            cond.contains('always') &&
+            runOf(step).contains('rm -f');
+      });
+      expect(cleanupIndex, greaterThanOrEqualTo(0),
+          reason: 'a cleanup step guarded by if always() is required');
+      expect(cleanupIndex, greaterThan(buildIndex),
+          reason: 'cleanup must come after the release build');
+      final cleanup = runOf(steps[cleanupIndex]);
+
+      expect(cleanup, contains('android/key.properties'));
+      expect(cleanup, contains('android/app/google-services.json'));
+      expect(cleanup, contains('ios/Runner/GoogleService-Info.plist'));
+      expect(cleanup, contains('lib/core/firebase/firebase_options.dart'));
+      expect(cleanup, contains('.jks'),
+          reason: 'the materialized keystore must be removed too');
+    });
+
+    test(
+        'forbids placeholder Firebase values, debug signing, and manual '
+        'base64 decoding', () async {
+      final file = File(_workflow);
+      final raw = file.readAsStringSync();
+      final lower = raw.toLowerCase();
+
+      expect(lower, isNot(contains('ci-placeholder')),
+          reason: 'placeholder Firebase values are forbidden');
+      expect(lower, isNot(contains('1:000000000000')),
+          reason: 'placeholder Firebase app IDs are forbidden');
+      expect(lower, isNot(contains('signingconfigs.getbyname("debug")')),
+          reason: 'debug signing of the release build is forbidden');
+      expect(lower, isNot(contains('base64 -d')),
+          reason: 'manual base64 decoding is forbidden');
+      expect(lower, isNot(contains('base64 --decode')),
+          reason: 'manual base64 decoding is forbidden');
+      expect(lower, isNot(contains('base64 -D')),
+          reason: 'manual base64 decoding is forbidden');
+    });
+  });
+
+  group('android/app/build.gradle.kts contract', () {
+    test(
+        'defines signingConfigs.release from android/key.properties before '
+        'buildTypes with an android/app-relative storeFile', () {
+      final file = File(_gradle);
+      expect(file.existsSync(), isTrue,
+          reason: '$_gradle must exist but is absent');
+      final text = file.readAsStringSync();
+
+      final signingStart = text.indexOf('signingConfigs');
+      final buildTypesStart = text.indexOf('buildTypes');
+      expect(signingStart, greaterThanOrEqualTo(0),
+          reason: 'a signingConfigs block is required');
+      expect(buildTypesStart, greaterThanOrEqualTo(0),
+          reason: 'a buildTypes block is required');
+      expect(signingStart, lessThan(buildTypesStart),
+          reason: 'signingConfigs must be declared before buildTypes');
+
+      expect(text, contains('create("release")'),
+          reason: 'a release signing config is required');
+      expect(text, contains('key.properties'),
+          reason:
+              'release credentials must be read from android/key.properties');
+      expect(text, contains('storeFile = file('),
+          reason: 'storeFile must resolve relative to android/app');
+      expect(text, isNot(contains('rootProject.file(')),
+          reason: 'storeFile must stay app-relative');
+    });
+
+    test('wires the release buildType to the release signing config only', () {
+      final file = File(_gradle);
+      final text = file.readAsStringSync();
+
+      expect(
+          text, contains('signingConfig = signingConfigs.getByName("release")'),
+          reason: 'buildTypes.release must use the release signing config');
+      expect(text, isNot(contains('signingConfigs.getByName("debug")')),
+          reason: 'the release build may never fall back to debug signing');
+    });
+  });
+}

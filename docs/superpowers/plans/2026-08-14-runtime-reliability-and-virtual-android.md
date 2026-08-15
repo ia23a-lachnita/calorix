@@ -106,10 +106,10 @@
 
 **Files:** Modify `.github/workflows/android-build.yml`, `android/app/build.gradle.kts`; create `tool/ci/prepare_android_release.sh`, `test/tool/android_release_contract_test.dart`
 
-- [ ] **Step 1: RED hermetic tests** — run the preparation script in temporary directories with each secret/file missing, malformed base64, a placeholder Firebase payload, and a valid synthetic fixture. Parse the workflow and Gradle file to assert the production build can only consume the prepared real paths and release signing config. Run `fvm flutter test test/tool/android_release_contract_test.dart --reporter compact`.
+- [x] **Step 1: RED hermetic tests** — `test/tool/android_release_contract_test.dart` defines 26 hermetic contract tests for all eight required inputs, atomic preparation, explicit cleanup, normalized fingerprint verification, workflow ordering/cleanup/signing, and release-only Gradle signing. The pinned Pi container run compiled and executed the suite, then failed **0 passed / 26 failed** solely on the absent preparation script and current placeholder/debug-signed production files; no syntax, dependency, or harness failure occurred.
 - [ ] **Step 2: Gradle signingConfigs** — Add `signingConfigs.release` block reading `android/key.properties` (storeFile, storePassword, keyAlias, keyPassword). Wire `buildTypes.release.signingConfig = signingConfigs.getByName("release")`.
 - [ ] **Step 3: Workflow fail-closed** — decode both Firebase files and the keystore from named base64 secrets through the tested preparation script, write ignored `android/key.properties`, build release, run `apksigner verify --print-certs`, normalize the printed signer SHA-256, and require exact equality with `RELEASE_CERT_SHA256`. Clean all materialized secrets with `if: always()`. No test-only config path is shared with this workflow.
-- [ ] **Step 4: GREEN** — contract tests pass; no `ci-placeholder`; no debug signing; all seven named inputs are required; a missing or wrong certificate fingerprint exits nonzero.
+- [ ] **Step 4: GREEN** — contract tests pass; no `ci-placeholder`; no debug signing; all eight named inputs are required; a missing or wrong certificate fingerprint exits nonzero.
 - [ ] **Step 5: HANDOFF**
   ```bash
   git add .github/workflows/android-build.yml android/app/build.gradle.kts tool/ci/prepare_android_release.sh test/tool/android_release_contract_test.dart

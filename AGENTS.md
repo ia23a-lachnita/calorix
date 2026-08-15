@@ -61,7 +61,7 @@ The main agent retains requirements interpretation, architecture and tradeoffs, 
 
 ## 4. External Review Contract (Antigravity MCP)
 
-- Do not use the deprecated Gemini CLI or the `agy` CLI for reviews. Use the Antigravity MCP `ask-ai` tool with `approvalMode: "yolo"`, and a persistent `conversationId` per work stream. Model routing order: (1) `"Gemini 3.6 Flash (High)"` primary, (2) `"Gemini 3.1 Pro (High)"` fallback, (3) `"Gemini 3.5 Flash (High)"` final fallback. All calls remain Antigravity MCP ask-ai with the existing strict read-only/no-mutation prompt. If one route fails before review, try the next in order and record the exact error.
+- Do not use the deprecated Gemini CLI or the `agy` CLI for reviews. Use the Antigravity MCP `ask-ai` tool with `approvalMode: "yolo"`, and a persistent `conversationId` per work stream. Model routing order: (1) `gemini-3.6-flash` primary, (2) `gemini-3.1-pro` fallback, (3) `gemini-3.5-flash` final fallback. The MCP/agy layer supplies High reasoning effort separately; display labels like "(High)" must not be passed in the model parameter. If one route fails before review, try the next in order and record the exact error.
 - Every review prompt must explicitly say: **Do not edit files, do not run write commands, and do not mutate the repository; only inspect, reason, review, and propose changes for the main agent to apply.**
 - A review is green only when the response explicitly reports `AGREEMENT_STATUS: agree` and `MUST_FIX: none`. Apply must-fix feedback and continue the same conversation until green.
 - Required review gates:
