@@ -1274,6 +1274,28 @@ void main() {
     });
 
     test(
+        'Flutter verification job runs pwsh --version before fvm flutter test '
+        'as a PowerShell cross-platform preflight', () {
+      final workflow = loadVerify();
+      final flutter = jobNamed(workflow, 'flutter');
+
+      final steps = (flutter['steps'] as YamlList?)?.cast<YamlMap>() ?? [];
+
+      int runIndex(bool Function(String) pred) =>
+          steps.indexWhere((step) => pred(step['run'] as String? ?? ''));
+
+      final pwshIndex = runIndex((r) => r.contains('pwsh --version'));
+      final flutterTestIndex = runIndex((r) => r.contains('fvm flutter test'));
+
+      expect(pwshIndex, greaterThanOrEqualTo(0),
+          reason: 'a pwsh --version preflight step is required');
+      expect(flutterTestIndex, greaterThanOrEqualTo(0),
+          reason: 'fvm flutter test must be called');
+      expect(pwshIndex, lessThan(flutterTestIndex),
+          reason: 'pwsh --version must precede fvm flutter test');
+    });
+
+    test(
         'Functions verification job uses Node 20 and working-directory '
         'functions for npm ci, npm run build, npm run lint, npm test', () {
       final workflow = loadVerify();

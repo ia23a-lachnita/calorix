@@ -5,7 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ProcessResult _runPowerShell(List<String> arguments) => Process.runSync(
-      'powershell',
+      Platform.isWindows ? 'powershell' : 'pwsh',
       ['-NoProfile', '-ExecutionPolicy', 'Bypass', ...arguments],
       workingDirectory: Directory.current.path,
       stdoutEncoding: utf8,

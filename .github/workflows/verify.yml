@@ -37,6 +37,9 @@ jobs:
       - name: Get dependencies
         run: fvm flutter pub get
 
+      - name: Verify PowerShell available
+        run: pwsh --version
+
       - name: Run tests
         run: fvm flutter test --reporter compact
 
