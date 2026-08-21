@@ -314,6 +314,148 @@ void main() {
     },
   );
 
+  test(
+    'valid threadId/reply with malformed nested action types maps to protocol_error',
+    () async {
+      const clientMessageId = 'client-malformed-action-1';
+
+      Future<void> expectProtocolFailureForAction(Object? actionData) async {
+        final service =
+            AiChatService.withInvoker((_) async => <String, Object?>{
+                  'threadId': 'thread-1',
+                  'reply': 'Here is my recommendation.',
+                  if (actionData != null) 'action': actionData,
+                });
+        try {
+          await service.sendMessage(
+            message: 'hello',
+            clientMessageId: clientMessageId,
+          );
+          fail('Expected AiChatFailure');
+        } on AiChatFailure catch (failure) {
+          expect(failure.category, 'protocol_error');
+          expect(failure.retryable, isFalse);
+          expect(failure.correlationId, clientMessageId);
+          expect(
+            failure.userMessage,
+            'The assistant returned an invalid response. Please try again.',
+          );
+        }
+      }
+
+      // old/new as Strings instead of ints
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'Protein',
+        'macro': 'protein',
+        'old': 'not-a-number',
+        'new': 190,
+      });
+
+      // macro not in enum set
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'Protein',
+        'macro': 'admin',
+        'old': 170,
+        'new': 190,
+      });
+
+      // field missing
+      await expectProtocolFailureForAction(<String, Object?>{
+        'macro': 'protein',
+        'old': 170,
+        'new': 190,
+      });
+
+      // non-integer num (float) rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'Protein',
+        'macro': 'protein',
+        'old': 1.5,
+        'new': 190,
+      });
+
+      // NaN rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'Protein',
+        'macro': 'protein',
+        'old': double.nan,
+        'new': 190,
+      });
+
+      // Infinity rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'Protein',
+        'macro': 'protein',
+        'old': double.infinity,
+        'new': 190,
+      });
+
+      // old negative rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'Protein',
+        'macro': 'protein',
+        'old': -1,
+        'new': 190,
+      });
+
+      // old > 20000 rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'Protein',
+        'macro': 'protein',
+        'old': 20001,
+        'new': 190,
+      });
+
+      // new <= 0 rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'Protein',
+        'macro': 'protein',
+        'old': 170,
+        'new': 0,
+      });
+
+      // new > 20000 rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'Protein',
+        'macro': 'protein',
+        'old': 170,
+        'new': 20001,
+      });
+
+      // non-kcal macro grams > 2000 rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'Protein',
+        'macro': 'protein',
+        'old': 170,
+        'new': 2001,
+      });
+
+      // empty field rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': '',
+        'macro': 'protein',
+        'old': 170,
+        'new': 190,
+      });
+
+      // whitespace-only field rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': '   ',
+        'macro': 'protein',
+        'old': 170,
+        'new': 190,
+      });
+
+      // field > 40 chars rejected
+      await expectProtocolFailureForAction(<String, Object?>{
+        'field': 'a' * 41,
+        'macro': 'protein',
+        'old': 170,
+        'new': 190,
+      });
+    },
+  );
+
   testWidgets(
     'nonretryable failure shows diagnostic and reference without Retry',
     (tester) async {

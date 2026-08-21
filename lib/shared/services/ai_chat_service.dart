@@ -108,6 +108,51 @@ class AiChatService {
     }
 
     final actionData = resultData['action'];
+    if (actionData != null && actionData is! Map) {
+      throw AiChatFailure(
+        category: 'protocol_error',
+        retryable: false,
+        userMessage:
+            'The assistant returned an invalid response. Please try again.',
+        correlationId: clientMessageId,
+      );
+    }
+
+    if (actionData is Map) {
+      final raw = actionData.cast<Object?, Object?>();
+      final fieldVal = raw['field'];
+      final macroVal = raw['macro'];
+      final oldVal = raw['old'];
+      final newVal = raw['new'];
+      const validMacros = ['kcal', 'protein', 'carbs', 'fat'];
+      final trimmedField = fieldVal is String ? fieldVal.trim() : '';
+      if (trimmedField.isEmpty ||
+          trimmedField.length > 40 ||
+          macroVal is! String ||
+          !validMacros.contains(macroVal) ||
+          oldVal is! num ||
+          oldVal.isNaN ||
+          oldVal.isInfinite ||
+          oldVal.isNegative ||
+          oldVal != oldVal.toInt() ||
+          oldVal > 20000 ||
+          newVal is! num ||
+          newVal.isNaN ||
+          newVal.isInfinite ||
+          newVal <= 0 ||
+          newVal != newVal.toInt() ||
+          newVal > 20000 ||
+          (macroVal != 'kcal' && (oldVal > 2000 || newVal > 2000))) {
+        throw AiChatFailure(
+          category: 'protocol_error',
+          retryable: false,
+          userMessage:
+              'The assistant returned an invalid response. Please try again.',
+          correlationId: clientMessageId,
+        );
+      }
+    }
+
     return AiChatServiceResponse(
       threadId: returnedThreadId,
       reply: reply,

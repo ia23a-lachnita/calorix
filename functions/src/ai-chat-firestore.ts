@@ -105,6 +105,72 @@ async function archiveDocuments(
   }
 }
 
+export interface BuildAiChatContextFromDataOptions {
+  profile: Record<string, unknown> | null | undefined;
+  plan: Record<string, unknown> | null | undefined;
+  consumed: Record<string, unknown> | null | undefined;
+  recentMeals: Array<Record<string, unknown>> | null | undefined;
+  history: Array<Record<string, unknown>> | null | undefined;
+  clientMessageId: string;
+}
+
+export function buildAiChatContextFromData(
+  options: BuildAiChatContextFromDataOptions,
+): AiChatContext {
+  const { profile, plan, consumed, recentMeals, history } = options;
+
+  const profileDisplayName =
+    profile && typeof profile.displayName === 'string'
+      ? profile.displayName
+      : undefined;
+
+  const planData = plan ?? {};
+  const consumedData = consumed ?? {};
+  const recentMealsList = recentMeals ?? [];
+  const historyList = history ?? [];
+
+  return {
+    profile: {
+      ...(profileDisplayName !== undefined
+        ? { displayName: profileDisplayName }
+        : {}),
+    },
+    plan: {
+      kcal: numberField(planData, 'kcal', 2400),
+      protein: numberField(planData, 'protein', 170),
+      carbs: numberField(planData, 'carbs', 250),
+      fat: numberField(planData, 'fat', 70),
+      planName: stringField(planData, 'planName', 'Custom'),
+    },
+    consumed: {
+      kcal: numberField(consumedData, 'kcal'),
+      protein: numberField(consumedData, 'protein'),
+      carbs: numberField(consumedData, 'carbs'),
+      fat: numberField(consumedData, 'fat'),
+    },
+    recentMeals: recentMealsList.map((document) => mealSummary(document)),
+    history: historyList
+      .filter(
+        (
+          data,
+        ): data is Record<string, unknown> & {
+          role: 'user' | 'assistant';
+          content: string;
+        } =>
+          (data.role === 'user' || data.role === 'assistant') &&
+          typeof data.content === 'string' &&
+          data.content.length > 0,
+      )
+      .reverse()
+      .slice(-12)
+      .map((data) => ({
+        role:
+          data.role === 'assistant' ? ('model' as const) : ('user' as const),
+        text: data.content,
+      })),
+  };
+}
+
 export function createFirestoreAiChatDeps(
   options: FirestoreAiChatOptions,
 ): AiChatDeps {
@@ -225,53 +291,21 @@ export function createFirestoreAiChatDeps(
         .collection('dailyLogs')
         .doc(dateKeyForTimeZone(nowMs(), timeZone))
         .get();
-      const plan = planSnapshot.docs[0]?.data();
-      const consumed = dailySnapshot.data();
-      const history = historySnapshot.docs
-        .filter((document) => document.id !== clientMessageId)
-        .map((document) => document.data())
-        .filter(
-          (
-            data,
-          ): data is Record<string, unknown> & {
-            role: 'user' | 'assistant';
-            content: string;
-          } =>
-            (data.role === 'user' || data.role === 'assistant') &&
-            typeof data.content === 'string' &&
-            data.content.length > 0,
-        )
-        .reverse()
-        .slice(-12)
-        .map((data) => ({
-          role: data.role === 'assistant' ? ('model' as const) : ('user' as const),
-          text: data.content,
-        }));
 
-      return {
-        profile: {
-          ...(typeof profile?.displayName === 'string'
-            ? { displayName: profile.displayName }
-            : {}),
-        },
-        plan: {
-          kcal: numberField(plan, 'kcal', 2400),
-          protein: numberField(plan, 'protein', 170),
-          carbs: numberField(plan, 'carbs', 250),
-          fat: numberField(plan, 'fat', 70),
-          planName: stringField(plan, 'planName', 'Custom'),
-        },
-        consumed: {
-          kcal: numberField(consumed, 'kcal'),
-          protein: numberField(consumed, 'protein'),
-          carbs: numberField(consumed, 'carbs'),
-          fat: numberField(consumed, 'fat'),
-        },
+      const rawHistory = historySnapshot.docs
+        .filter((document) => document.id !== clientMessageId)
+        .map((document) => document.data());
+
+      return buildAiChatContextFromData({
+        profile: profile ?? null,
+        plan: planSnapshot.docs[0]?.data() ?? null,
+        consumed: dailySnapshot.data() ?? null,
         recentMeals: recentMealsSnapshot.docs.map((document) =>
-          mealSummary(document.data()),
+          document.data(),
         ),
-        history,
-      };
+        history: rawHistory,
+        clientMessageId,
+      });
     },
 
     async completeExchange(

@@ -1,5 +1,5 @@
 import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { HttpsError, onCall } from 'firebase-functions/v2/https';
+import { onCall } from 'firebase-functions/v2/https';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { VertexAI } from '@google-cloud/vertexai';
@@ -7,14 +7,9 @@ import { APP_DISPLAY_NAME, LOCATION, PROJECT_ID } from './config';
 import { affectedDateKeys, summarizeCompleteEntries, type AggregatableEntry } from './aggregation';
 import { createModelConfigLoader } from './model-config';
 import { handleEntryCreated, type EntryData } from './analyze-entry';
-import {
-  AiChatBusyError,
-  AiChatInputError,
-  AiChatNotFoundError,
-  handleAiChat,
-  type ChatContent,
-} from './ai-chat';
+import { type ChatContent } from './ai-chat';
 import { createFirestoreAiChatDeps } from './ai-chat-firestore';
+import { createAiChatCallableHandler } from './ai-chat-callable';
 import {
   createRetryEntryAnalysisHandler,
   entriesCollection,
@@ -83,31 +78,21 @@ export const processEntry = onDocumentCreated(
  * Model selection stays in model_configs/default (same TTL-cached loader as
  * analysis); auth is required so usage is always attributable to a user.
  */
+const aiChatHandler = createAiChatCallableHandler({
+  coreDeps: aiChatDeps,
+  logger: {
+    log(entry) {
+      console.error(entry);
+    },
+  },
+});
+
 export const aiChat = onCall(
   {
     region: LOCATION,
     timeoutSeconds: 60,
   },
-  async (request) => {
-    if (!request.auth) {
-      throw new HttpsError('unauthenticated', 'Sign in to use the assistant.');
-    }
-    try {
-      return await handleAiChat(request.auth.uid, request.data, aiChatDeps);
-    } catch (error) {
-      if (error instanceof AiChatInputError) {
-        throw new HttpsError('invalid-argument', error.message);
-      }
-      if (error instanceof AiChatNotFoundError) {
-        throw new HttpsError('not-found', error.message);
-      }
-      if (error instanceof AiChatBusyError) {
-        throw new HttpsError('aborted', error.message);
-      }
-      console.error('aiChat error:', error);
-      throw new HttpsError('unavailable', 'The assistant is temporarily unavailable.');
-    }
-  },
+  (request) => aiChatHandler(request),
 );
 
 export const retryEntryAnalysis = onCall(
