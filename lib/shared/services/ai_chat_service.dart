@@ -1,5 +1,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
 
+typedef AiChatCallableInvoker = Future<Object?> Function(Map<String, Object?>);
+
 class AiChatServiceAction {
   const AiChatServiceAction({
     required this.field,
@@ -34,12 +36,36 @@ class AiChatServiceResponse {
   final AiChatServiceAction? action;
 }
 
+class AiChatFailure implements Exception {
+  const AiChatFailure({
+    required this.category,
+    required this.retryable,
+    required this.userMessage,
+    required this.correlationId,
+  });
+
+  final String category;
+  final bool retryable;
+  final String userMessage;
+  final String correlationId;
+
+  @override
+  String toString() =>
+      'AiChatFailure(category: $category, retryable: $retryable, '
+      'userMessage: $userMessage, correlationId: $correlationId)';
+}
+
 /// Client for the authenticated server-side assistant callable. Nutrition,
 /// profile, recent meals, and prior turns are always loaded by the server.
 class AiChatService {
-  AiChatService(this._functions);
+  AiChatService(this._functions) : _invoker = null;
 
-  final FirebaseFunctions _functions;
+  AiChatService.withInvoker(AiChatCallableInvoker invoker)
+      : _functions = null,
+        _invoker = invoker;
+
+  final FirebaseFunctions? _functions;
+  final AiChatCallableInvoker? _invoker;
 
   Future<AiChatServiceResponse> sendMessage({
     required String message,
@@ -47,26 +73,41 @@ class AiChatService {
     String? threadId,
     String? linkedMealId,
   }) async {
-    final callable = _functions.httpsCallable('aiChat');
-    final result = await callable.call<Object?>({
+    final data = <String, Object?>{
       'message': message,
       'clientMessageId': clientMessageId,
       if (threadId != null) 'threadId': threadId,
       if (linkedMealId != null) 'linkedMealId': linkedMealId,
-    });
-    final data = result.data;
-    if (data is! Map) {
-      throw const FormatException('Assistant returned an invalid response');
+    };
+
+    final resultData = await _callCallable(data);
+
+    if (resultData is! Map) {
+      throw AiChatFailure(
+        category: 'protocol_error',
+        retryable: false,
+        userMessage:
+            'The assistant returned an invalid response. Please try again.',
+        correlationId: clientMessageId,
+      );
     }
-    final returnedThreadId = data['threadId'];
-    final reply = data['reply'];
+
+    final returnedThreadId = resultData['threadId'];
+    final reply = resultData['reply'];
     if (returnedThreadId is! String ||
         returnedThreadId.isEmpty ||
         reply is! String ||
         reply.trim().isEmpty) {
-      throw const FormatException('Assistant returned an empty reply');
+      throw AiChatFailure(
+        category: 'protocol_error',
+        retryable: false,
+        userMessage:
+            'The assistant returned an invalid response. Please try again.',
+        correlationId: clientMessageId,
+      );
     }
-    final actionData = data['action'];
+
+    final actionData = resultData['action'];
     return AiChatServiceResponse(
       threadId: returnedThreadId,
       reply: reply,
@@ -74,5 +115,91 @@ class AiChatService {
           ? AiChatServiceAction.fromMap(actionData.cast<Object?, Object?>())
           : null,
     );
+  }
+
+  Future<Object?> _callCallable(Map<String, Object?> data) async {
+    try {
+      if (_invoker != null) {
+        return await _invoker(data);
+      }
+      final callable = _functions!.httpsCallable('aiChat');
+      final result = await callable.call<Object?>(data);
+      return result.data;
+    } on AiChatFailure {
+      rethrow;
+    } on FirebaseFunctionsException catch (e) {
+      throw _mapFunctionsException(e, data['clientMessageId'] as String);
+    } catch (e) {
+      throw AiChatFailure(
+        category: 'unknown',
+        retryable: false,
+        userMessage: 'An unexpected error occurred. Please try again.',
+        correlationId: data['clientMessageId'] as String,
+      );
+    }
+  }
+
+  AiChatFailure _mapFunctionsException(
+    FirebaseFunctionsException e,
+    String clientMessageId,
+  ) {
+    final details = e.details;
+    String correlationId = clientMessageId;
+    if (details is Map && details['correlationId'] is String) {
+      final candidate = details['correlationId'] as String;
+      if (_isSafeCorrelationId(candidate)) {
+        correlationId = candidate;
+      }
+    }
+
+    switch (e.code) {
+      case 'unavailable':
+        return AiChatFailure(
+          category: 'provider_unavailable',
+          retryable: true,
+          userMessage:
+              'The assistant is temporarily unavailable. Please try again.',
+          correlationId: correlationId,
+        );
+      case 'internal':
+      case 'deadline-exceeded':
+      case 'resource-exhausted':
+      case 'aborted':
+        return AiChatFailure(
+          category: 'provider_unavailable',
+          retryable: true,
+          userMessage:
+              'The assistant is temporarily unavailable. Please try again.',
+          correlationId: correlationId,
+        );
+      case 'invalid-argument':
+        return AiChatFailure(
+          category: 'invalid_request',
+          retryable: false,
+          userMessage: 'The request was invalid. Please check your message.',
+          correlationId: correlationId,
+        );
+      case 'not-found':
+      case 'failed-precondition':
+      case 'permission-denied':
+      case 'unauthenticated':
+        return AiChatFailure(
+          category: 'invalid_request',
+          retryable: false,
+          userMessage: 'The request was invalid. Please check your message.',
+          correlationId: correlationId,
+        );
+      default:
+        return AiChatFailure(
+          category: 'unknown',
+          retryable: false,
+          userMessage: 'An unexpected error occurred. Please try again.',
+          correlationId: correlationId,
+        );
+    }
+  }
+
+  bool _isSafeCorrelationId(String candidate) {
+    return RegExp(r'^[A-Za-z0-9_-]{1,128}$').hasMatch(candidate);
   }
 }

@@ -93,7 +93,13 @@ void main() {
       (tester) async {
     await tester.pumpWidget(_app(
       _StubAiChatService(
-        (_, __) async => throw Exception('boom-internal-detail'),
+        (_, clientMessageId) async => throw AiChatFailure(
+          category: 'provider_unavailable',
+          retryable: true,
+          userMessage:
+              'The assistant is temporarily unavailable. Please try again.',
+          correlationId: clientMessageId,
+        ),
       ),
     ));
     await tester.pump();
@@ -143,7 +149,15 @@ void main() {
       _StubAiChatService((_, id) async {
         ids.add(id);
         attempts++;
-        if (attempts == 1) throw Exception('offline');
+        if (attempts == 1) {
+          throw AiChatFailure(
+            category: 'provider_unavailable',
+            retryable: true,
+            userMessage:
+                'The assistant is temporarily unavailable. Please try again.',
+            correlationId: id,
+          );
+        }
         return _reply('Recovered.');
       }),
     ));

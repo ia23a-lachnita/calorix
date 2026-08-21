@@ -125,11 +125,11 @@
 
 **Current state:** the screen already renders an inline Retry action for failed messages. The callable accepts any authenticated Firebase principal, including anonymous users, and backend context loading has defaults. The missing piece is actionable classification/correlation and a runtime contract proving this path; no second retry surface or permanent guest label is needed.
 
-- [ ] **Step 1: Write failing tests** — map `FirebaseFunctionsException` codes into stable retryable/nonretryable categories with a sanitized user message and diagnostic correlation ID; preserve the original message/client ID on Retry; show no raw backend text and no signup wall. Add Functions tests proving an anonymous-auth-shaped request reaches the handler and missing profile data receives documented defaults.
-- [ ] **Step 2: RED** — `fvm flutter test test/ai_chat/anonymous_chat_retry_test.dart --reporter compact` (6 tests fail).
+- [x] **Step 1: Write failing tests** — map `FirebaseFunctionsException` codes into stable retryable/nonretryable categories with a sanitized user message and diagnostic correlation ID; preserve the original message/client ID on Retry; show no raw backend text and no signup wall. Add Functions tests proving an anonymous-auth-shaped request reaches the handler and missing profile data receives documented defaults.
+- [x] **Step 2: RED** — `fvm flutter test test/ai_chat/anonymous_chat_retry_test.dart --reporter compact` (6 tests fail).
 - [ ] **Step 3: Implement** — add a structured failure value containing category, retryability, sanitized message, and correlation ID; preserve the existing failed-message Retry affordance and attach the diagnostic text there. Log category/code/correlation ID without tokens or request content. Do not change backend behavior unless the reproduction/contract test proves a defect.
-- [ ] **Step 4: GREEN** — All 6 tests pass. `fvm flutter analyze` → clean.
-- [ ] **Step 5: Verify no signup wall** — Grep for `signIn|login|signUp|navigate.*login` in ai_chat_screen.dart; confirm absent from error/retry paths.
+- [x] **Step 4: GREEN** — All 6 tests pass. `fvm flutter analyze` → clean.
+- [x] **Step 5: Verify no signup wall** — Grep for `signIn|login|signUp|navigate.*login` in ai_chat_screen.dart; confirm absent from error/retry paths.
 - [ ] **Step 6: HANDOFF**
   ```bash
   git add lib/shared/services/ai_chat_service.dart lib/features/ai_chat/ai_chat_screen.dart test/ai_chat/anonymous_chat_retry_test.dart

@@ -23,6 +23,7 @@ class ChatMessage {
     this.action,
     this.status = ChatMessageStatus.complete,
     this.confirmationStatus = ConfirmationStatus.pending,
+    this.failure,
   });
 
   final String id;
@@ -32,12 +33,15 @@ class ChatMessage {
   final DateTime timestamp;
   final ChatMessageStatus status;
   final ConfirmationStatus confirmationStatus;
+  final AiChatFailure? failure;
 
   ChatMessage copyWith({
     AiAction? action,
     bool clearAction = false,
     ChatMessageStatus? status,
     ConfirmationStatus? confirmationStatus,
+    AiChatFailure? failure,
+    bool clearFailure = false,
   }) =>
       ChatMessage(
         id: id,
@@ -47,6 +51,7 @@ class ChatMessage {
         timestamp: timestamp,
         status: status ?? this.status,
         confirmationStatus: confirmationStatus ?? this.confirmationStatus,
+        failure: clearFailure ? null : (failure ?? this.failure),
       );
 
   factory ChatMessage.fromPersisted(AiChatMessage message) => ChatMessage(
@@ -167,17 +172,26 @@ class ChatMessagesNotifier extends StateNotifier<List<ChatMessage>> {
 
   void markSending(String id) => _replace(
         id,
-        (message) => message.copyWith(status: ChatMessageStatus.sending),
+        (message) => message.copyWith(
+          status: ChatMessageStatus.sending,
+          clearFailure: true,
+        ),
       );
 
   void markComplete(String id) => _replace(
         id,
-        (message) => message.copyWith(status: ChatMessageStatus.complete),
+        (message) => message.copyWith(
+          status: ChatMessageStatus.complete,
+          clearFailure: true,
+        ),
       );
 
-  void markFailed(String id) => _replace(
+  void markFailed(String id, {AiChatFailure? failure}) => _replace(
         id,
-        (message) => message.copyWith(status: ChatMessageStatus.failed),
+        (message) => message.copyWith(
+          status: ChatMessageStatus.failed,
+          failure: failure,
+        ),
       );
 
   void setConfirmationStatus(String id, ConfirmationStatus status) => _replace(

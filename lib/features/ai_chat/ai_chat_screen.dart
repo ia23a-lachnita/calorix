@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'providers/ai_chat_providers.dart';
+import '../../shared/services/ai_chat_service.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/router/route_names.dart';
 import '../../core/theme/app_colors.dart';
@@ -189,9 +190,18 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             ? null
             : AiAction.fromService(response.action!),
       );
-    } catch (e, stackTrace) {
-      debugPrint('aiChat failed: $e\n$stackTrace');
-      notifier.markFailed(clientMessageId);
+    } on AiChatFailure catch (failure) {
+      notifier.markFailed(clientMessageId, failure: failure);
+    } catch (e) {
+      notifier.markFailed(
+        clientMessageId,
+        failure: AiChatFailure(
+          category: 'unknown',
+          retryable: false,
+          userMessage: 'An unexpected error occurred. Please try again.',
+          correlationId: clientMessageId,
+        ),
+      );
     } finally {
       _sendInFlight = false;
       ref.read(isChatLoadingProvider.notifier).state = false;
@@ -429,7 +439,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                       onReject: msg.action != null
                           ? () => _rejectAction(msg.id)
                           : null,
-                      onRetry: msg.status == ChatMessageStatus.failed
+                      onRetry: msg.status == ChatMessageStatus.failed &&
+                              (msg.failure?.retryable ?? true)
                           ? () => _sendMessage(
                                 msg.content,
                                 existingClientMessageId: msg.id,
@@ -617,12 +628,35 @@ class _MessageBubble extends StatelessWidget {
           ),
           if (message.status == ChatMessageStatus.failed) ...[
             const SizedBox(height: 6),
-            TextButton.icon(
-              key: ValueKey('ai-retry-${message.id}'),
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh, size: 15),
-              label: const Text('Retry'),
+            Text(
+              message.failure?.userMessage ??
+                  'An unexpected error occurred. Please try again.',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
+              ),
             ),
+            const SizedBox(height: 2),
+            Text(
+              'Reference ID: ${message.failure?.correlationId ?? message.id}',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
+              ),
+            ),
+            if (message.failure?.retryable ?? true) ...[
+              const SizedBox(height: 4),
+              TextButton.icon(
+                key: ValueKey('ai-retry-${message.id}'),
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh, size: 15),
+                label: const Text('Retry'),
+              ),
+            ],
           ],
           if (message.action != null) ...[
             const SizedBox(height: 8),
