@@ -42,7 +42,12 @@
 | `test/ai_chat/anonymous_chat_retry_test.dart` | Create | RED/GREEN tests for chat retry |
 | `lib/features/scan/scan_screen.dart` | Modify | Durable enqueue then navigate |
 | `lib/features/scan/providers/scan_providers.dart` | Modify | Split ScanUploadGateway |
+| `lib/shared/services/upload_queue_service.dart` | Modify | Queue-owned enqueue-only API and concurrent-drain guard |
+| `test/scan/support/fake_scan_upload_gateway.dart` | Modify | Split enqueue/drain test control |
+| `test/scan/scan_upload_gateway_test.dart` | Modify | Migrate existing gateway behavior coverage |
+| `test/processing/upload_queue_test.dart` | Modify | Enqueue-only and concurrent-drain regression coverage |
 | `test/scan/durable_enqueue_test.dart` | Create | RED/GREEN tests for enqueue |
+| `test/scan/capture_morph_test.dart` | Create | Bounded and reduced-motion capture transition coverage |
 | `lib/features/food_detail/food_detail_sheet.dart` | Modify | Full-screen Scaffold, preserve PopScope |
 | `test/food_detail/full_screen_detail_test.dart` | Create | RED/GREEN tests for detail |
 | `lib/features/onboarding/login_screen.dart` | Modify | Fix _Field centering |
@@ -141,17 +146,18 @@
 
 ## Stage 5: Split ScanUploadGateway — Durable Enqueue Then Scheduled Drain
 
-**Files:** Modify `lib/features/scan/scan_screen.dart`, `lib/features/scan/providers/scan_providers.dart`, `test/scan/support/fake_scan_upload_gateway.dart`; create `test/scan/durable_enqueue_test.dart`, `test/scan/capture_morph_test.dart`
+**Files:** Modify `lib/features/scan/scan_screen.dart`, `lib/features/scan/providers/scan_providers.dart`, `lib/shared/services/upload_queue_service.dart`, `test/scan/support/fake_scan_upload_gateway.dart`, `test/scan/scan_upload_gateway_test.dart`, `test/processing/upload_queue_test.dart`; create `test/scan/durable_enqueue_test.dart`, `test/scan/capture_morph_test.dart`
 
 **Current state:** `scan_screen.dart:212` calls `enqueueAndUpload()` which awaits `drainPending()` at `upload_queue_service.dart:233`. Navigation at line 218 blocks on upload.
 
-- [ ] **Step 1: Write failing tests** — durable enqueue completes before navigation; Processing is visible while an injected drain `Completer<void>` remains unresolved; scheduler is invoked once after enqueue; enqueue failure prevents navigation; short captured-photo morph is visible before/through route transition; reduced motion removes the nonessential duration. Use deterministic `pump` durations, not wall-clock timing.
+- [ ] **Step 1: Write failing tests** — durable enqueue completes before navigation; Processing is visible while an injected drain `Completer<void>` remains unresolved; scheduler is invoked once after enqueue; enqueue failure prevents navigation; short captured-photo morph is visible before the route transition; reduced motion removes the nonessential duration; concurrent scheduler/coordinator drains never upload one queue entry twice. Use deterministic `pump` durations and completers, not wall-clock timing.
 - [ ] **Step 2: RED** — `fvm flutter test test/scan/durable_enqueue_test.dart --reporter compact` (5 tests fail).
-- [ ] **Step 3: Implement** — replace the gateway's combined operation with exact responsibilities: `enqueue(...)` awaits `UploadQueueService.enqueue`; `scheduleDrain()` starts/injects the background drain without returning a transport future that the screen can await. In `_processImage`, await only durable enqueue, start the bounded morph/navigation, then schedule drain. Update all fakes/call sites and remove the combined gateway method so future UI code cannot regress to awaiting transport.
-- [ ] **Step 4: GREEN** — All 5 tests pass. `fvm flutter analyze` → clean.
-- [ ] **Step 5: HANDOFF**
+- [ ] **Step 3: Implement queue ownership** — replace `UploadQueueService.enqueueAndUpload` with `enqueueScan(...)`, which owns entry-ID creation through `_entryIdFactory`, storage-path construction, durable copy, and KV persistence but never starts transport. Guard `drain` with per-entry in-flight state so an immediate scheduled drain and `UploadRetryCoordinator` cannot upload the same queue item concurrently; always clear the guard in `finally`.
+- [ ] **Step 4: Implement gateway and UI ordering** — replace the gateway's combined operation with exact responsibilities: `enqueue(...) -> Future<String>` delegates to `UploadQueueService.enqueueScan`; `scheduleDrain() -> void` starts `drainPending()` and consumes its Future errors so no unhandled zone error escapes while queue state remains authoritative. In `_processImage`, await only durable enqueue, show a Scan-screen-local captured-photo overlay for at most `MotionDurations.cardEntrance` (zero under reduced motion), navigate using only `/processing/:id`, then schedule drain exactly once. Do not pass local paths in route extras. Update every fake/call site and remove the combined gateway method so future UI code cannot regress to awaiting transport.
+- [ ] **Step 5: GREEN** — focused scan and queue tests pass. `fvm flutter analyze` → clean.
+- [ ] **Step 6: HANDOFF**
   ```bash
-  git add lib/features/scan/scan_screen.dart lib/features/scan/providers/scan_providers.dart test/scan/support/fake_scan_upload_gateway.dart test/scan/durable_enqueue_test.dart test/scan/capture_morph_test.dart
+  git add lib/features/scan/scan_screen.dart lib/features/scan/providers/scan_providers.dart lib/shared/services/upload_queue_service.dart test/scan/support/fake_scan_upload_gateway.dart test/scan/scan_upload_gateway_test.dart test/processing/upload_queue_test.dart test/scan/durable_enqueue_test.dart test/scan/capture_morph_test.dart
   git commit -m "Split ScanUploadGateway: durable enqueue then separately scheduled drain"
   git push
   ```
