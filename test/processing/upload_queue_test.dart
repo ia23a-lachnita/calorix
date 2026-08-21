@@ -143,8 +143,7 @@ void main() {
   });
 
   group('production handoff seam', () {
-    test('enqueueAndUpload persists metadata, hands off, and cleans up',
-        () async {
+    test('enqueueScan persists metadata and returns entryId', () async {
       final clock = makeFakeClock();
       final kv = InMemoryKvStore();
       final pending = FakePendingDir();
@@ -153,30 +152,27 @@ void main() {
       final image = File('${tmpDir.path}/meal.jpg');
       await image.writeAsBytes([1, 2, 3]);
       source.register(image.path, [1, 2, 3]);
-      UploadQueueEntry? handedOff;
       final queue = UploadQueueService(
         clock,
         kv,
         pending,
         source,
-        (entry) async {
-          handedOff = entry;
-        },
+        null,
         () => 'entry-prod',
       );
 
-      final entryId = await queue.enqueueAndUpload(
+      final entryId = await queue.enqueueScan(
         localPath: image.path,
         uid: 'user-1',
         scanMode: 'meal',
       );
 
       expect(entryId, 'entry-prod');
-      expect(handedOff?.uid, 'user-1');
-      expect(handedOff?.scanMode, 'meal');
-      expect(handedOff?.storagePath, 'scans/user-1/entry-prod.jpg');
-      expect(queue.entries, isEmpty);
-      expect(pending.existingCount, 0);
+      expect(queue.entries.length, 1);
+      expect(queue.entries.first.uid, 'user-1');
+      expect(queue.entries.first.scanMode, 'meal');
+      expect(queue.entries.first.storagePath, 'scans/user-1/entry-prod.jpg');
+      expect(pending.fileExists(queue.entries.first.queueId), isTrue);
       await tmpDir.delete(recursive: true);
     });
 

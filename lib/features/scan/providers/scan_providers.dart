@@ -73,11 +73,13 @@ final cameraLifecycleServiceProvider = Provider<CameraLifecycleService>((ref) {
 });
 
 abstract class ScanUploadGateway {
-  Future<String> enqueueAndUpload({
+  Future<String> enqueue({
     required String localPath,
     required String uid,
     required String scanMode,
   });
+
+  void scheduleDrain();
 }
 
 class _DeviceScanUploadGateway implements ScanUploadGateway {
@@ -86,16 +88,30 @@ class _DeviceScanUploadGateway implements ScanUploadGateway {
   final Future<UploadQueueService> _service;
 
   @override
-  Future<String> enqueueAndUpload({
+  Future<String> enqueue({
     required String localPath,
     required String uid,
     required String scanMode,
   }) async =>
-      (await _service).enqueueAndUpload(
+      (await _service).enqueueScan(
         localPath: localPath,
         uid: uid,
         scanMode: scanMode,
       );
+
+  @override
+  void scheduleDrain() {
+    unawaited(_drainSafely());
+  }
+
+  Future<void> _drainSafely() async {
+    try {
+      final service = await _service;
+      await service.drainPending();
+    } catch (_) {
+      // Service initialization or drain failed; errors are consumed.
+    }
+  }
 }
 
 final scanUploadGatewayProvider = Provider<ScanUploadGateway>(

@@ -29,6 +29,9 @@ void main() {
         // Processing where scheduleDrain is called.
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 240));
+        // GoRouter requires a following zero-time render frame to commit
+        // the route transition.
+        await tester.pump();
 
         expect(gateway.enqueueCallCount, 1);
         expect(gateway.lastEnqueueUid, 'uid-test');
@@ -81,6 +84,9 @@ void main() {
         // Microtask pump + 240ms cardEntrance to reach Processing.
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 240));
+        // GoRouter requires a following zero-time render frame to commit
+        // the route transition.
+        await tester.pump();
 
         // Enqueue has completed, drain is unresolved — Processing is visible.
         expect(gateway.enqueueCallCount, 1);

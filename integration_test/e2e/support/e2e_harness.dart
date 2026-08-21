@@ -377,9 +377,10 @@ class FakeE2EScanUploadGateway implements ScanUploadGateway {
   final Clock _clock;
   int callCount = 0;
   bool throwOnUpload = false;
+  int scheduleDrainCallCount = 0;
 
   @override
-  Future<String> enqueueAndUpload({
+  Future<String> enqueue({
     required String localPath,
     required String uid,
     required String scanMode,
@@ -423,6 +424,11 @@ class FakeE2EScanUploadGateway implements ScanUploadGateway {
       ),
     );
     return id;
+  }
+
+  @override
+  void scheduleDrain() {
+    scheduleDrainCallCount++;
   }
 }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +49,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   late final AnimationController _shimmerController;
   late final CameraLifecycleService _cameraLifecycle;
+  String? _capturedImagePath;
 
   @override
   void initState() {
@@ -209,13 +211,23 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     final uid = ref.read(currentUidProvider);
     if (uid == null) return;
     final scanMode = ref.read(scanModeProvider);
-    final entryId = await ref.read(scanUploadGatewayProvider).enqueueAndUpload(
-          localPath: path,
-          uid: uid,
-          scanMode: scanMode.name,
-        );
+    final gateway = ref.read(scanUploadGatewayProvider);
+    final entryId = await gateway.enqueue(
+      localPath: path,
+      uid: uid,
+      scanMode: scanMode.name,
+    );
     if (!mounted) return;
+    setState(() => _capturedImagePath = path);
+    final morphDuration =
+        AppMotion.durationOf(context, MotionDurations.cardEntrance);
+    if (morphDuration != Duration.zero) {
+      await Future<void>.delayed(morphDuration);
+    }
+    if (!mounted) return;
+    setState(() => _capturedImagePath = null);
     context.goNamed(RouteNames.processing, pathParameters: {'id': entryId});
+    gateway.scheduleDrain();
   }
 
   @override
@@ -273,6 +285,38 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
               ),
 
             _ReticleOverlay(glow: isCapturing),
+
+            // Captured-photo overlay bridging scan-to-processing transition.
+            if (_capturedImagePath != null)
+              Center(
+                key: const ValueKey('capture-morph-overlay'),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0, end: 1),
+                  duration: AppMotion.durationOf(
+                      context, MotionDurations.cardEntrance),
+                  builder: (context, value, child) => Opacity(
+                    opacity: value,
+                    child: Transform.scale(
+                      scale: 0.85 + 0.15 * value,
+                      child: child,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: SizedBox(
+                      width: 280,
+                      height: 280,
+                      child: Image.file(
+                        File(_capturedImagePath!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox.expand(
+                          child: ColoredBox(color: Colors.black26),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
 
             // Hint pill below the reticle.
             Positioned(

@@ -53,8 +53,10 @@ void main() {
         expect(gateway.scheduleDrainCallCount, 0);
 
         // Advance final 1ms to reach cardEntrance (240ms total).
-        // Processing appears, morph overlay is gone, scheduleDrain is called.
+        // GoRouter requires a following zero-time render frame to commit
+        // the route transition.
         await tester.pump(const Duration(milliseconds: 1));
+        await tester.pump();
         expect(find.byType(ProcessingScreen), findsOneWidget);
         expect(find.byKey(_morphKey), findsNothing);
         expect(gateway.scheduleDrainCallCount, 1);
@@ -90,6 +92,9 @@ void main() {
 
         await tester.tap(find.byKey(const ValueKey('capture-button')));
         // Microtask pump: enqueue future resolves.
+        await tester.pump();
+        // GoRouter requires a following zero-time render frame to commit
+        // the route transition.
         await tester.pump();
 
         // Under reduced motion Processing appears immediately — no 240ms wait.
@@ -129,6 +134,9 @@ void main() {
         // Reach cardEntrance boundary so Processing is visible.
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 240));
+        // GoRouter requires a following zero-time render frame to commit
+        // the route transition.
+        await tester.pump();
 
         expect(find.byType(ProcessingScreen), findsOneWidget);
         expect(gateway.isDrainPending, isTrue);

@@ -35,7 +35,9 @@ void main() {
       expect(fake.captureCount, 1);
 
       fake.completeCapture();
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 240));
+      await tester.pump();
     },
   );
 
@@ -63,7 +65,9 @@ void main() {
       expect(find.byKey(const ValueKey('stop-button')), findsNothing);
 
       fake.completeCapture();
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 240));
+      await tester.pump();
     },
   );
 }

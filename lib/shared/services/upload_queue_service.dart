@@ -122,6 +122,7 @@ class UploadQueueService {
   final _changes = StreamController<List<UploadQueueEntry>>.broadcast();
 
   List<UploadQueueEntry> _entries = [];
+  final Set<String> _inFlight = {};
 
   List<UploadQueueEntry> get entries => List.unmodifiable(_entries);
   Stream<List<UploadQueueEntry>> get changes => _changes.stream;
@@ -213,13 +214,13 @@ class UploadQueueService {
     return queueId;
   }
 
-  Future<String> enqueueAndUpload({
+  Future<String> enqueueScan({
     required String localPath,
     required String uid,
     required String scanMode,
   }) async {
     final createEntryId = _entryIdFactory;
-    if (createEntryId == null || _productionUpload == null) {
+    if (createEntryId == null) {
       throw StateError('Production upload dependencies are not configured.');
     }
     final entryId = createEntryId();
@@ -230,7 +231,6 @@ class UploadQueueService {
       scanMode: scanMode,
       storagePath: 'scans/$uid/$entryId.jpg',
     );
-    await drainPending();
     return entryId;
   }
 
@@ -312,7 +312,9 @@ class UploadQueueService {
       if (entry.nextRetryAt != null && entry.nextRetryAt!.isAfter(now)) {
         continue;
       }
+      if (_inFlight.contains(entry.queueId)) continue;
 
+      _inFlight.add(entry.queueId);
       try {
         await upload(entry.entryId, entry.imagePath);
         succeeded.add(entry.queueId);
@@ -342,6 +344,8 @@ class UploadQueueService {
         } else {
           await remove(entry.queueId);
         }
+      } finally {
+        _inFlight.remove(entry.queueId);
       }
     }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:calorix/features/scan/providers/scan_providers.dart';
 import 'package:calorix/shared/providers/auth_provider.dart';
@@ -27,6 +28,9 @@ void main() {
         // Microtask pump resolves enqueue; 240ms reaches Processing.
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 240));
+        // GoRouter requires a following zero-time render frame to commit
+        // the route transition.
+        await tester.pump();
 
         expect(gateway.enqueueCallCount, 1);
         expect(gateway.lastEnqueueUid, 'uid-split');
@@ -54,6 +58,9 @@ void main() {
         // Microtask pump resolves enqueue; 240ms reaches Processing.
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 240));
+        // GoRouter requires a following zero-time render frame to commit
+        // the route transition.
+        await tester.pump();
 
         // Drain error is consumed — no zone error.
         expect(tester.takeException(), isNull);
