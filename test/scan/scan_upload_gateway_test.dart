@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:calorix/features/scan/providers/scan_providers.dart';
 import 'package:calorix/shared/providers/auth_provider.dart';
@@ -8,96 +7,104 @@ import 'support/fake_scan_upload_gateway.dart';
 import 'support/pump_scan.dart';
 
 void main() {
-  testWidgets(
-    'successful capture uploads through the injected gateway, not a '
-    'real backend call, and passes uid/scanMode through',
-    (tester) async {
-      final camera = FakeCameraService();
-      final gateway = FakeScanUploadGateway();
-      await pumpScan(
-        tester,
-        camera: camera,
-        extraOverrides: [
-          currentUidProvider.overrideWithValue('uid-remediation'),
-          scanUploadGatewayProvider.overrideWithValue(gateway),
-        ],
-      );
+  group('ScanUploadGateway planned split API', () {
+    testWidgets(
+      'successful capture calls enqueue with uid and scanMode, '
+      'then scheduleDrain exactly once',
+      (tester) async {
+        final camera = FakeCameraService();
+        final gateway = FakeScanUploadGateway();
+        await pumpScan(
+          tester,
+          camera: camera,
+          extraOverrides: [
+            currentUidProvider.overrideWithValue('uid-split'),
+            scanUploadGatewayProvider.overrideWithValue(gateway),
+          ],
+        );
 
-      await tester.tap(find.byKey(const ValueKey('capture-button')));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('capture-button')));
+        // Microtask pump resolves enqueue; 240ms reaches Processing.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 240));
 
-      expect(gateway.callCount, 1);
-      expect(gateway.lastUid, 'uid-remediation');
-      expect(gateway.lastScanMode, isNotEmpty);
-    },
-  );
+        expect(gateway.enqueueCallCount, 1);
+        expect(gateway.lastEnqueueUid, 'uid-split');
+        expect(gateway.lastEnqueueScanMode, isNotEmpty);
+        expect(gateway.scheduleDrainCallCount, 1);
+      },
+    );
 
-  testWidgets(
-    'upload failure returns capture state to idle instead of staying '
-    'stuck',
-    (tester) async {
-      final camera = FakeCameraService();
-      final gateway = FakeScanUploadGateway()..throwOnUpload = true;
-      await pumpScan(
-        tester,
-        camera: camera,
-        extraOverrides: [
-          currentUidProvider.overrideWithValue('uid-remediation'),
-          scanUploadGatewayProvider.overrideWithValue(gateway),
-        ],
-      );
+    testWidgets(
+      'drain error is consumed internally — no unhandled exception escapes',
+      (tester) async {
+        final camera = FakeCameraService();
+        final gateway = FakeScanUploadGateway()
+          ..drainError = Exception('transport timeout');
+        await pumpScan(
+          tester,
+          camera: camera,
+          extraOverrides: [
+            currentUidProvider.overrideWithValue('uid-split'),
+            scanUploadGatewayProvider.overrideWithValue(gateway),
+          ],
+        );
 
-      await tester.tap(find.byKey(const ValueKey('capture-button')));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('capture-button')));
+        // Microtask pump resolves enqueue; 240ms reaches Processing.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 240));
 
-      expect(find.byKey(const Key('capture-core-idle')), findsOneWidget);
-    },
-  );
+        // Drain error is consumed — no zone error.
+        expect(tester.takeException(), isNull);
+      },
+    );
 
-  testWidgets(
-    'unmounting mid-upload does not throw when the upload later resolves',
-    (tester) async {
-      final camera = FakeCameraService();
-      final gateway = FakeScanUploadGateway()..holdUpload = true;
-      await pumpScan(
-        tester,
-        camera: camera,
-        extraOverrides: [
-          currentUidProvider.overrideWithValue('uid-remediation'),
-          scanUploadGatewayProvider.overrideWithValue(gateway),
-        ],
-      );
+    testWidgets(
+      'a null capture file never reaches the gateway',
+      (tester) async {
+        final camera = FakeCameraService()..returnNullFile = true;
+        final gateway = FakeScanUploadGateway();
+        await pumpScan(
+          tester,
+          camera: camera,
+          extraOverrides: [
+            currentUidProvider.overrideWithValue('uid-split'),
+            scanUploadGatewayProvider.overrideWithValue(gateway),
+          ],
+        );
 
-      await tester.tap(find.byKey(const ValueKey('capture-button')));
-      await tester.pump(const Duration(milliseconds: 50));
+        await tester.tap(find.byKey(const ValueKey('capture-button')));
+        await tester.pumpAndSettle();
 
-      await tester.pumpWidget(const SizedBox());
-      gateway.completeUpload('entry-after-unmount');
-      await tester.pump(const Duration(milliseconds: 50));
+        expect(gateway.enqueueCallCount, 0);
+        expect(find.byKey(const Key('capture-core-idle')), findsOneWidget);
+      },
+    );
 
-      expect(tester.takeException(), isNull);
-    },
-  );
+    testWidgets(
+      'unmounting mid-enqueue does not throw when enqueue later completes',
+      (tester) async {
+        final camera = FakeCameraService();
+        final gateway = FakeScanUploadGateway()..holdEnqueue = true;
+        await pumpScan(
+          tester,
+          camera: camera,
+          extraOverrides: [
+            currentUidProvider.overrideWithValue('uid-split'),
+            scanUploadGatewayProvider.overrideWithValue(gateway),
+          ],
+        );
 
-  testWidgets(
-    'a null capture file never reaches the upload gateway',
-    (tester) async {
-      final camera = FakeCameraService()..returnNullFile = true;
-      final gateway = FakeScanUploadGateway();
-      await pumpScan(
-        tester,
-        camera: camera,
-        extraOverrides: [
-          currentUidProvider.overrideWithValue('uid-remediation'),
-          scanUploadGatewayProvider.overrideWithValue(gateway),
-        ],
-      );
+        await tester.tap(find.byKey(const ValueKey('capture-button')));
+        await tester.pump(const Duration(milliseconds: 50));
 
-      await tester.tap(find.byKey(const ValueKey('capture-button')));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(const SizedBox());
+        gateway.completeEnqueue('entry-after-unmount');
+        await tester.pump(const Duration(milliseconds: 50));
 
-      expect(gateway.callCount, 0);
-      expect(find.byKey(const Key('capture-core-idle')), findsOneWidget);
-    },
-  );
+        expect(tester.takeException(), isNull);
+      },
+    );
+  });
 }

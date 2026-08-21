@@ -586,4 +586,49 @@ void main() {
       expect(state.phase, ProcessingPhase.firestoreComplete);
     });
   });
+
+  group('queue concurrency guard', () {
+    test('two simultaneous drain calls never upload the same queue entry twice',
+        () async {
+      final clock = makeFakeClock();
+      final kv = InMemoryKvStore();
+      final pending = FakePendingDir();
+      final source = FakeSourceReader();
+      final tmpDir = await Directory.systemTemp.createTemp('uq_conc_');
+      final imgFile = File('${tmpDir.path}/img.jpg');
+      await imgFile.writeAsBytes([0xFF, 0xD8, 0xFF, 0xE0]);
+      source.register(imgFile.path, [0xFF, 0xD8, 0xFF, 0xE0]);
+
+      final queue = UploadQueueService(clock, kv, pending, source);
+      await queue.enqueue(entryId: 'e1', imagePath: imgFile.path);
+
+      var uploadCount = 0;
+      final firstUploadStarted = Completer<void>();
+      final uploadCompleter = Completer<void>();
+
+      final firstDrain = queue.drain((entryId, imagePath) async {
+        uploadCount++;
+        firstUploadStarted.complete();
+        await uploadCompleter.future;
+      });
+
+      // Wait until the first upload callback has actually started.
+      await firstUploadStarted.future;
+      expect(uploadCount, 1);
+
+      // Start a second drain while the first is in-flight.
+      final secondDrain = queue.drain((entryId, imagePath) async {
+        uploadCount++;
+      });
+
+      // Release the held upload.
+      uploadCompleter.complete();
+      await Future.wait([firstDrain, secondDrain]);
+
+      // The entry must have been uploaded exactly once.
+      expect(uploadCount, 1);
+
+      await tmpDir.delete(recursive: true);
+    });
+  });
 }
