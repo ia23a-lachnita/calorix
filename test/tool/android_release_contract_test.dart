@@ -385,6 +385,15 @@ void _expectNoSecretOutput(_PrepareResult result, Map<String, String> env) {
   expect(out, isNot(contains(_certSha256)));
 }
 
+YamlMap? _stepWith(List<YamlMap> steps, String usesFragment) {
+  for (final step in steps) {
+    if ((step['uses'] as String? ?? '').contains(usesFragment)) {
+      return step['with'] as YamlMap?;
+    }
+  }
+  return null;
+}
+
 void main() {
   group('tool/ci/prepare_android_release.sh hermetic contract', () {
     void expectScriptExists() {
@@ -1123,6 +1132,210 @@ void main() {
           reason: 'cleanup must not wildcard-remove unrelated .jks files');
       expect(cleanup, isNot(contains('*.keystore')),
           reason: 'cleanup must not wildcard-remove unrelated .keystore files');
+    });
+
+    test(
+        'top-level on: triggers are exactly workflow_dispatch and push; '
+        'no extra, no missing', () async {
+      final file = File(_workflow);
+      expect(file.existsSync(), isTrue,
+          reason: '$_workflow must exist but is absent');
+      final raw = file.readAsStringSync();
+      final workflow = loadYaml(raw) as YamlMap;
+
+      final on = workflow['on'];
+      expect(on, isA<YamlMap>(), reason: 'on: must be a mapping');
+
+      final keys = (on as YamlMap).keys.cast<String>().toList()..sort();
+      expect(keys, ['push', 'workflow_dispatch'],
+          reason: 'on: must contain exactly workflow_dispatch and push; '
+              'found $keys');
+    });
+
+    test(
+        'push.tags is exactly ["v*"]; push must not contain branches '
+        'or branches-ignore', () async {
+      final file = File(_workflow);
+      expect(file.existsSync(), isTrue,
+          reason: '$_workflow must exist but is absent');
+      final raw = file.readAsStringSync();
+      final workflow = loadYaml(raw) as YamlMap;
+
+      final on = workflow['on'];
+      expect(on, isA<YamlMap>(), reason: 'on: must be a mapping');
+
+      final push = (on as YamlMap)['push'];
+      expect(push, isA<YamlMap>(),
+          reason: 'push must be a mapping with tags only');
+
+      final pushMap = push as YamlMap;
+      final pushKeys = pushMap.keys.cast<String>().toList()..sort();
+      expect(pushKeys, ['tags'],
+          reason: 'push must contain only tags; found $pushKeys');
+
+      final tags = pushMap['tags'];
+      expect(tags, isA<YamlList>(), reason: 'push.tags must be a list');
+      final tagList = (tags as YamlList).cast<String>();
+      expect(tagList, ['v*'],
+          reason: 'push.tags must be exactly ["v*"]; found $tagList');
+    });
+  });
+
+  group('.github/workflows/verify.yml contract', () {
+    const _verify = '.github/workflows/verify.yml';
+
+    void expectVerifyExists() {
+      expect(File(_verify).existsSync(), isTrue,
+          reason: '$_verify must exist but is absent');
+    }
+
+    YamlMap loadVerify() {
+      expectVerifyExists();
+      return loadYaml(File(_verify).readAsStringSync()) as YamlMap;
+    }
+
+    YamlMap jobNamed(YamlMap workflow, String name) {
+      final jobs = workflow['jobs'] as YamlMap?;
+      expect(jobs, isNotNull, reason: 'jobs: section is required');
+      expect(jobs!.containsKey(name), isTrue,
+          reason:
+              'jobs must contain a "$name" job; found ${jobs.keys.toList()}');
+      return jobs[name] as YamlMap;
+    }
+
+    List<String> stepRuns(YamlMap job) {
+      final steps = job['steps'] as YamlList?;
+      if (steps == null) return const [];
+      return steps
+          .cast<YamlMap>()
+          .map((s) => s['run'] as String? ?? '')
+          .toList();
+    }
+
+    test('file exists and parses as valid YAML', expectVerifyExists);
+
+    test(
+        'on: triggers are exactly push and pull_request, both with '
+        'branches exactly ["main"]', () {
+      final workflow = loadVerify();
+
+      final on = workflow['on'];
+      expect(on, isA<YamlMap>(), reason: 'on: must be a mapping');
+
+      final keys = (on as YamlMap).keys.cast<String>().toList()..sort();
+      expect(keys, ['pull_request', 'push'],
+          reason:
+              'on: must contain exactly push and pull_request; found $keys');
+
+      for (final trigger in ['push', 'pull_request']) {
+        final entry = on[trigger];
+        expect(entry, isA<YamlMap>(),
+            reason: '$trigger must be a mapping with branches');
+
+        final branches = (entry as YamlMap)['branches'];
+        expect(branches, isA<YamlList>(),
+            reason: '$trigger.branches must be a list');
+        expect((branches as YamlList).cast<String>(), ['main'],
+            reason: '$trigger.branches must be exactly ["main"]');
+      }
+    });
+
+    test('top-level permissions contents is read', () {
+      final workflow = loadVerify();
+
+      final permissions = workflow['permissions'];
+      expect(permissions, isA<YamlMap>(),
+          reason: 'top-level permissions is required');
+      expect((permissions as YamlMap)['contents'], 'read',
+          reason: 'permissions.contents must be read');
+    });
+
+    test(
+        'Flutter verification job pins 3.41.9, activates FVM, '
+        'runs fvm install, fvm flutter pub get, and fvm flutter test', () {
+      final workflow = loadVerify();
+      final flutter = jobNamed(workflow, 'flutter');
+
+      final steps = (flutter['steps'] as YamlList?)?.cast<YamlMap>() ?? [];
+      final runs = stepRuns(flutter);
+      final allRuns = runs.join('\n');
+
+      final flutterWith = _stepWith(steps, 'subosito/flutter-action');
+      expect(flutterWith, isNotNull,
+          reason: 'a subosito/flutter-action step is required');
+      expect(flutterWith!['flutter-version'], '3.41.9',
+          reason: 'Flutter version must be pinned via subosito/flutter-action');
+      expect(allRuns, contains('fvm install'),
+          reason: 'fvm install must be called');
+      expect(allRuns, contains('fvm flutter pub get'),
+          reason: 'fvm flutter pub get must be called');
+      expect(allRuns, contains('fvm flutter test'),
+          reason: 'fvm flutter test must be called');
+    });
+
+    test(
+        'Functions verification job uses Node 20 and working-directory '
+        'functions for npm ci, npm run build, npm run lint, npm test', () {
+      final workflow = loadVerify();
+      final functions = jobNamed(workflow, 'functions');
+
+      final runs = stepRuns(functions);
+      final allRuns = runs.join('\n');
+
+      final steps = (functions['steps'] as YamlList?)?.cast<YamlMap>() ?? [];
+      final nodeWith = _stepWith(steps, 'actions/setup-node');
+      expect(nodeWith, isNotNull,
+          reason: 'an actions/setup-node step is required');
+      expect(nodeWith!['node-version'], '20',
+          reason: 'Node version must be 20 via actions/setup-node');
+
+      for (final step in steps) {
+        final run = step['run'] as String? ?? '';
+        if (run.contains('npm')) {
+          expect(step['working-directory'], 'functions',
+              reason: 'npm commands must run in functions directory');
+        }
+      }
+
+      expect(allRuns, contains('npm ci'), reason: 'npm ci must be called');
+      expect(allRuns, contains('npm run build'),
+          reason: 'npm run build must be called');
+      expect(allRuns, contains('npm run lint'),
+          reason: 'npm run lint must be called');
+      expect(allRuns, contains('npm test'), reason: 'npm test must be called');
+    });
+
+    test(
+        'verify.yml forbids secrets.*, Firebase/release inputs, '
+        'flutter build apk, upload-artifact, deploy, publish, '
+        'release, and signing terms', () {
+      final verifyFile = File(_verify);
+      expect(verifyFile.existsSync(), isTrue,
+          reason: '$_verify must exist but is absent');
+      final raw = verifyFile.readAsStringSync().toLowerCase();
+
+      expect(raw, isNot(contains('secrets.')),
+          reason: 'secrets.* references are forbidden in verify.yml');
+      expect(raw, isNot(contains('flutter build apk')),
+          reason: 'flutter build apk is forbidden in verify.yml');
+      expect(raw, isNot(contains('upload-artifact')),
+          reason: 'upload-artifact is forbidden in verify.yml');
+      expect(raw, isNot(contains('deploy')),
+          reason: 'deploy is forbidden in verify.yml');
+      expect(raw, isNot(contains('publish')),
+          reason: 'publish is forbidden in verify.yml');
+      expect(raw, isNot(contains('release')),
+          reason: 'release is forbidden in verify.yml');
+      expect(raw, isNot(contains('signing')),
+          reason: 'signing terms are forbidden in verify.yml');
+      expect(raw, isNot(contains('keystore')),
+          reason: 'keystore references are forbidden in verify.yml');
+      expect(raw, isNot(contains('firebase_options')),
+          reason: 'Firebase input names are forbidden in verify.yml');
+      expect(raw, isNot(contains('google_services')),
+          reason: 'Google services input names are forbidden in verify.yml');
+      expect(raw, isNot(contains('key_alias')),
+          reason: 'key alias input names are forbidden in verify.yml');
     });
   });
 
