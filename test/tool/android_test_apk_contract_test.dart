@@ -162,6 +162,20 @@ class DefaultFirebaseOptions {
 }
 ''';
 
+/// Converts only the simple FirebaseOptions field literals (not import
+/// strings) from single-quoted to double-quoted Dart string literals, e.g.
+/// `apiKey: 'x'` -> `apiKey: "x"`. Real `flutterfire configure` output
+/// double-quotes these field values; the existing fixture above uses single
+/// quotes, matching what the preparation script's parser currently expects.
+String _toDoubleQuotedFields(String source) => source.replaceAllMapped(
+      RegExp(r"(apiKey|appId|messagingSenderId|projectId|authDomain|"
+          r"storageBucket|iosBundleId)(\s*:\s*)'([^']*)'"),
+      (match) => '${match[1]}${match[2]}"${match[3]}"',
+    );
+
+final String _testFirebaseOptionsDartDoubleQuoted =
+    _toDoubleQuotedFields(_testFirebaseOptionsDart);
+
 const _testApiKey = 'AIzaSyBrealKey1234567890abcdefg';
 const _testProjectNumber = '85048284883';
 
@@ -1401,7 +1415,115 @@ void main() {
       }
     });
   });
+
+  // =========================================================================
+  // Real FlutterFire output uses double-quoted field literals; the fixture
+  // above (and the validator's parser) use single quotes. These hermetic
+  // process tests exercise the double-quoted form directly against the
+  // real preparation script.
+  // =========================================================================
+
+  group(
+      'tool/ci/prepare_android_test_apk.sh double-quoted FirebaseOptions '
+      '(real FlutterFire output format)', () {
+    void expectScriptExists() {
+      expect(File(_prepareScript).existsSync(), isTrue,
+          reason: '$_prepareScript must be committed before these tests pass');
+    }
+
+    test(
+        'accepts a valid double-quoted FirebaseOptions literal, materializes '
+        'exact Dart bytes, and cross-matches against google-services.json',
+        () async {
+      expectScriptExists();
+      final tmp = _tmp('doublequote-happy');
+      final home = Directory.systemTemp.createTempSync('test-home-');
+      addTearDown(() => home.deleteSync(recursive: true));
+      final env = Map<String, String>.of(_validTestEnv())
+        ..['FIREBASE_OPTIONS_DART_BASE64'] =
+            _b64(_testFirebaseOptionsDartDoubleQuoted);
+      final result = await _runPrepare(tmp, env, home: home.path);
+
+      _expectMaterialized(tmp, env, result, homePath: home.path);
+    });
+
+    test('rejects blank double-quoted field values with no partial files',
+        () async {
+      expectScriptExists();
+      for (final field in _dartRequiredFieldsForTest) {
+        final tmp = _tmp('doublequote-blank-$field');
+        final blanked = _testFirebaseOptionsDartDoubleQuoted.replaceAll(
+            RegExp('$field: "[^"]*"'), '$field: ""');
+        final env = Map<String, String>.of(_validTestEnv())
+          ..['FIREBASE_OPTIONS_DART_BASE64'] = _b64(blanked);
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, 'FIREBASE_OPTIONS_DART_BASE64');
+        expect(result.all.toLowerCase(), contains('blank'),
+            reason: 'output must mention the blank reason for $field');
+        expect(result.all, contains(field),
+            reason: 'output must name the blanked field $field');
+        _expectNoPartialFiles(tmp);
+      }
+    }, timeout: _arm64ProcessTimeout);
+
+    test(
+        'rejects placeholder markers in double-quoted field values with no '
+        'partial files', () async {
+      expectScriptExists();
+      for (final marker in [
+        'ci-placeholder',
+        'PLACEHOLDER',
+        'ChangeMe',
+        'example'
+      ]) {
+        final tmp = _tmp(
+            'doublequote-marker-${marker.replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '-')}');
+        final markered = _testFirebaseOptionsDartDoubleQuoted.replaceAll(
+            RegExp('apiKey: "[^"]*"'), 'apiKey: "$marker"');
+        final env = Map<String, String>.of(_validTestEnv())
+          ..['FIREBASE_OPTIONS_DART_BASE64'] = _b64(markered);
+        final result = await _runPrepare(tmp, env);
+
+        _expectRejected(result, 'FIREBASE_OPTIONS_DART_BASE64');
+        expect(result.all.toLowerCase(), contains('placeholder'),
+            reason:
+                'output must mention the placeholder reason for marker $marker');
+        expect(result.all, isNot(contains(marker)),
+            reason: 'marker value "$marker" must not leak into output');
+        _expectNoPartialFiles(tmp);
+      }
+    }, timeout: _arm64ProcessTimeout);
+
+    test(
+        'rejects double-quoted field value followed by adjacent concatenation '
+        '(parser must not accept the literal prefix alone)', () async {
+      expectScriptExists();
+      final tmp = _tmp('doublequote-concat');
+      final home = Directory.systemTemp.createTempSync('test-home-');
+      addTearDown(() => home.deleteSync(recursive: true));
+
+      // Replace the apiKey double-quoted literal with a concatenation that
+      // keeps a valid literal prefix followed by an adjacent expression.
+      final concatenated = _testFirebaseOptionsDartDoubleQuoted.replaceFirst(
+          RegExp('apiKey: "[^"]*"'), 'apiKey: "$_testApiKey" + "suffix"');
+      final env = Map<String, String>.of(_validTestEnv())
+        ..['FIREBASE_OPTIONS_DART_BASE64'] = _b64(concatenated);
+      final result = await _runPrepare(tmp, env, home: home.path);
+
+      _expectRejected(result, 'FIREBASE_OPTIONS_DART_BASE64');
+      _expectNoPartialFiles(tmp);
+      _expectNoSecretOutput(result, env);
+    }, timeout: _arm64ProcessTimeout);
+  });
 }
+
+const _dartRequiredFieldsForTest = <String>[
+  'apiKey',
+  'appId',
+  'messagingSenderId',
+  'projectId',
+];
 
 /// Renders a 64-hex fingerprint the way `apksigner verify --print-certs`
 /// does: uppercase pairs joined by colons, e.g. `AA:BB:CC:...`.

@@ -123,8 +123,17 @@ def _strict_utf8_decode(name, data, errors):
 
 
 def _dart_field_values(text, field):
-    pattern = re.compile(r"%s\s*:\s*'([^']*)'" % re.escape(field))
-    return pattern.findall(text)
+    # Match simple single-quoted OR double-quoted Dart string literals.
+    # Each content class rejects its own quote, backslash, and dollar sign.
+    # A lookahead after the closing quote ensures the next token (ignoring
+    # optional whitespace) is a FirebaseOptions-argument delimiter: comma or
+    # closing parenthesis.  This rejects adjacent expressions like
+    # "valid" + "suffix" without parsing arbitrary Dart.
+    pattern = re.compile(
+        r'%s\s*:\s*(?:\'([^\'\\$]*)\'(?=\s*[,)])|"([^"\\$]*)"(?=\s*[,)]))'
+        % re.escape(field)
+    )
+    return [m.group(1) if m.group(1) is not None else m.group(2) for m in pattern.finditer(text)]
 
 
 def _dart_android_block(text):
@@ -144,6 +153,13 @@ def _dart_android_fields(text):
     return fields
 
 
+def _dart_field_occurrence_count(text, field):
+    pattern = re.compile(
+        r'\b%s\s*:' % re.escape(field)
+    )
+    return len(pattern.findall(text))
+
+
 def validate_dart(text):
     reasons = []
     if "DefaultFirebaseOptions" not in text:
@@ -155,9 +171,14 @@ def validate_dart(text):
 
     for field in DART_REQUIRED_FIELDS:
         values = _dart_field_values(text, field)
-        if not values:
+        occurrence_count = _dart_field_occurrence_count(text, field)
+        if occurrence_count == 0:
             reasons.append(f"missing {field} assignment")
             continue
+        if len(values) < occurrence_count:
+            reasons.append(
+                f"unsupported assignment syntax for {field}"
+            )
         for value in values:
             if not value:
                 reasons.append(f"blank {field} assignment")
