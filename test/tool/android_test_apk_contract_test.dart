@@ -41,11 +41,26 @@ import 'package:yaml/yaml.dart';
 ///     after every meaningful user-visible stage before any device/UI-diff
 ///     validation claim, and signed release builds only for release
 ///     candidates or tags.
-/// 13. The preparation script validates keystore integrity itself via
-///     `${KEYTOOL_BIN:-keytool} -list -alias androiddebugkey -storepass
-///     android`; tests exercise this hermetically through a `KEYTOOL_BIN`
-///     fake-executable seam (accept/reject fixtures) rather than depending
-///     on a real Java keystore or a real `keytool` binary being present.
+/// 13. The preparation script validates keystore integrity and certificate
+///     identity via `${KEYTOOL_BIN:-keytool}`: alias `androiddebugkey` /
+///     storepass `android`, and `-exportcert` so the future production call
+///     receives deterministic DER-like bytes whose SHA-256 must match
+///     `TEST_DEBUG_CERT_SHA256`. Tests exercise this hermetically through a
+///     `KEYTOOL_BIN` fake-executable seam (accept / reject / mismatched-cert
+///     fixtures) rather than depending on a real Java keystore or a real
+///     `keytool` binary being present.
+/// 14. After `Build debug APK` and before `Verify test signing certificate`,
+///     the workflow must `apksigner sign` the APK with the prepared debug
+///     keystore at `$HOME/.android/debug.keystore`, alias `androiddebugkey`,
+///     standard debug passwords, a temporary `--out` path, and replace
+///     `app-debug.apk` only after signing succeeds. Release secrets are
+///     forbidden.
+/// 15. The verify step must capture `apksigner verify --print-certs` output
+///     once and emit distinct failure messages for apksigner execution
+///     failure, missing SHA-256 digest parsing, and parsed fingerprint
+///     mismatch, without printing expected secrets or fingerprints.
+/// 16. Certificate verification remains before prepare-distributable/upload;
+///     cleanup remains `if: always()`.
 ///
 /// The file compiles cleanly and fails only because the production workflow,
 /// the `verify.yml` `workflow_call` trigger, the `AGENTS.md` cadence
@@ -204,8 +219,15 @@ String _testGoogleServicesJson() => jsonEncode({
       ],
     });
 
+/// Deterministic DER-like payload emitted by the accepting KEYTOOL_BIN fake
+/// when invoked with `-exportcert`. The expected TEST_DEBUG_CERT_SHA256
+/// fixture is the SHA-256 of these exact bytes so happy-path prepare and the
+/// future production identity check stay consistent.
+const _acceptedExportCertBytes = 'synthetic-debug-cert-der-v1';
+const _mismatchedExportCertBytes = 'synthetic-other-cert-der-v1';
+
 final String _testCertSha256 =
-    sha256.convert(utf8.encode('test-debug-cert-fingerprint')).toString();
+    sha256.convert(utf8.encode(_acceptedExportCertBytes)).toString();
 
 String _b64(String value) => base64Encode(utf8.encode(value));
 
@@ -218,10 +240,10 @@ Map<String, String> _validTestEnv() => {
     };
 
 // Synthetic keystore bytes — not a real Java keystore. The preparation
-// script validates keystore integrity itself via `keytool -list -alias
-// androiddebugkey -storepass android`; tests exercise that validation
-// hermetically through the KEYTOOL_BIN seam below rather than depending on
-// a real Java keystore or a real `keytool` binary.
+// script validates keystore integrity itself via `keytool` alias/storepass
+// checks and `keytool -exportcert` certificate identity; tests exercise
+// that validation hermetically through the KEYTOOL_BIN seam below rather
+// than depending on a real Java keystore or a real `keytool` binary.
 final List<int> _testKeystoreBytes =
     utf8.encode('synthetic-debug-keystore-00112233');
 
@@ -229,27 +251,34 @@ final List<int> _testKeystoreBytes =
 // KEYTOOL_BIN fake-executable seam
 //
 // The preparation script must validate the decoded keystore by invoking
-// `${KEYTOOL_BIN:-keytool} -list -v -keystore <path> -alias androiddebugkey
-// -storepass android`. Tests supply a fake executable via KEYTOOL_BIN so
-// this validation runs hermetically without a real Java keystore or the
-// `keytool` binary being present, and so invalid-keystore rejection can be
-// exercised deterministically.
+// `${KEYTOOL_BIN:-keytool}` with alias `androiddebugkey`, storepass
+// `android`, and `-exportcert` so production can receive deterministic
+// DER-like certificate bytes. Tests supply a fake executable via
+// KEYTOOL_BIN so this validation runs hermetically without a real Java
+// keystore or the `keytool` binary being present, and so invalid-keystore
+// and mismatched-certificate rejection can be exercised deterministically.
 // ---------------------------------------------------------------------------
 
-String _writeFakeKeytool({required bool accept}) {
+String _writeFakeKeytool({
+  required bool accept,
+  String exportCertPayload = _acceptedExportCertBytes,
+}) {
   final dir = Directory.systemTemp.createTempSync('fake-keytool-');
   final script = File('${dir.path}/keytool');
-  script.writeAsStringSync(accept
-      ? r'''#!/usr/bin/env bash
+  const acceptTemplate = r'''#!/usr/bin/env bash
 set -euo pipefail
 alias_name=""
 storepass=""
 keystore=""
+file_out=""
+exportcert=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -alias) alias_name="$2"; shift 2 ;;
     -storepass) storepass="$2"; shift 2 ;;
     -keystore) keystore="$2"; shift 2 ;;
+    -file) file_out="$2"; shift 2 ;;
+    -exportcert) exportcert=1; shift ;;
     *) shift ;;
   esac
 done
@@ -261,10 +290,20 @@ if [[ ! -s "$keystore" ]]; then
   echo "keytool error: keystore not found or empty" >&2
   exit 1
 fi
+if [[ "$exportcert" -eq 1 ]]; then
+  if [[ -n "$file_out" ]]; then
+    printf '%s' '__EXPORT_CERT_PAYLOAD__' > "$file_out"
+  else
+    printf '%s' '__EXPORT_CERT_PAYLOAD__'
+  fi
+  exit 0
+fi
 echo "Alias name: androiddebugkey"
 echo "Entry type: PrivateKeyEntry"
 exit 0
-'''
+''';
+  script.writeAsStringSync(accept
+      ? acceptTemplate.replaceAll('__EXPORT_CERT_PAYLOAD__', exportCertPayload)
       : r'''#!/usr/bin/env bash
 echo "keytool error: java.io.IOException: Invalid keystore format" >&2
 exit 1
@@ -275,6 +314,10 @@ exit 1
 
 late final String _fakeKeytoolAccept = _writeFakeKeytool(accept: true);
 late final String _fakeKeytoolReject = _writeFakeKeytool(accept: false);
+late final String _fakeKeytoolMismatchedCert = _writeFakeKeytool(
+  accept: true,
+  exportCertPayload: _mismatchedExportCertBytes,
+);
 
 Directory _tmp(String prefix) {
   final dir = Directory.systemTemp.createTempSync('test-apk-$prefix-');
@@ -459,6 +502,28 @@ List<String> _needsOf(YamlMap job) {
   if (needs is String) return [needs];
   if (needs is YamlList) return needs.cast<String>();
   return const [];
+}
+
+String _stepRun(YamlMap step) {
+  final run = step['run'];
+  return run is String ? run : '';
+}
+
+String _stepName(YamlMap step) {
+  final name = step['name'];
+  return name is String ? name : '';
+}
+
+String _stepUses(YamlMap step) {
+  final uses = step['uses'];
+  return uses is String ? uses : '';
+}
+
+List<YamlMap> _buildJobSteps(YamlMap workflow) {
+  final build = _jobNamed(workflow, 'build');
+  final steps = build['steps'] as YamlList?;
+  expect(steps, isNotNull, reason: 'jobs.build.steps is required');
+  return steps!.cast<YamlMap>();
 }
 
 void main() {
@@ -696,6 +761,158 @@ void main() {
           reason: 'the workflow or preparation script must perform strict '
               'base64 decoding (Python base64.b64decode with validate=True) '
               'to materialize Firebase inputs');
+    });
+  });
+
+  group('android-test-apk.yml deterministic signing and diagnostics', () {
+    YamlMap loadWorkflow() => _loadWorkflowFile(_workflow);
+
+    test(
+        'signs the debug APK with apksigner after Build debug APK and before '
+        'Verify test signing certificate, using the prepared debug keystore',
+        () {
+      final steps = _buildJobSteps(loadWorkflow());
+
+      final buildIndex = steps.indexWhere((step) =>
+          _stepName(step) == 'Build debug APK' ||
+          _stepRun(step).contains('fvm flutter build apk --debug'));
+      final signIndex =
+          steps.indexWhere((step) => _stepRun(step).contains('apksigner sign'));
+      final verifyIndex = steps.indexWhere((step) =>
+          _stepName(step) == 'Verify test signing certificate' ||
+          _stepRun(step).contains('apksigner verify'));
+
+      expect(buildIndex, greaterThanOrEqualTo(0),
+          reason: 'a Build debug APK step is required');
+      expect(signIndex, greaterThanOrEqualTo(0),
+          reason: 'an explicit apksigner sign step is required after the '
+              'debug APK build');
+      expect(verifyIndex, greaterThanOrEqualTo(0),
+          reason: 'a Verify test signing certificate step is required');
+      expect(buildIndex, lessThan(signIndex),
+          reason: 'apksigner sign must run after Build debug APK');
+      expect(signIndex, lessThan(verifyIndex),
+          reason: 'apksigner sign must run before Verify test signing '
+              'certificate');
+
+      final signRun = _stepRun(steps[signIndex]);
+      final usesPreparedDebugKeystore =
+          signRun.contains(r'$HOME/.android/debug.keystore') ||
+              signRun.contains(r'${HOME}/.android/debug.keystore');
+      expect(usesPreparedDebugKeystore, isTrue,
+          reason: 'apksigner sign must use the prepared debug keystore at '
+              r'$HOME/.android/debug.keystore');
+      expect(signRun, contains('androiddebugkey'),
+          reason: 'apksigner sign must use alias androiddebugkey');
+      expect(signRun, contains('--ks-pass'),
+          reason: 'apksigner sign must pass the standard debug store password');
+      expect(signRun, contains('--key-pass'),
+          reason: 'apksigner sign must pass the standard debug key password');
+      expect(signRun, contains('pass:android'),
+          reason: 'apksigner sign must use the standard debug password '
+              'android, not release secrets');
+      expect(signRun, contains('--out'),
+          reason: 'apksigner sign must write to a temporary --out path');
+      expect(
+        signRun.contains('mktemp') ||
+            signRun.contains('.tmp') ||
+            signRun.contains('/tmp/'),
+        isTrue,
+        reason: 'signed APK --out path must be temporary',
+      );
+      expect(signRun, contains('app-debug.apk'),
+          reason: 'signing must target the debug APK');
+      expect(
+        RegExp(r'\bmv\b').hasMatch(signRun) ||
+            RegExp(r'\bcp\b').hasMatch(signRun),
+        isTrue,
+        reason: 'app-debug.apk must be replaced with the signed --out file '
+            'only after signing succeeds',
+      );
+
+      for (final name in _productionReleaseSecrets) {
+        expect(signRun, isNot(contains(name)),
+            reason: 'apksigner sign must not use production release secret '
+                '$name');
+        expect(signRun, isNot(contains('secrets.$name')),
+            reason: 'apksigner sign must not reference secrets.$name');
+      }
+    });
+
+    test(
+        'disambiguates apksigner execution failure, missing SHA-256 digest '
+        'parsing, and parsed fingerprint mismatch without printing secrets',
+        () {
+      final steps = _buildJobSteps(loadWorkflow());
+      final verifyIndex = steps.indexWhere((step) =>
+          _stepName(step) == 'Verify test signing certificate' ||
+          _stepRun(step).contains('apksigner verify'));
+      expect(verifyIndex, greaterThanOrEqualTo(0),
+          reason: 'a Verify test signing certificate step is required');
+      final verifyRun = _stepRun(steps[verifyIndex]);
+
+      expect(
+        RegExp(r'apksigner\s+verify\s+--print-certs')
+            .allMatches(verifyRun)
+            .length,
+        1,
+        reason: 'apksigner verify --print-certs output must be captured once',
+      );
+
+      expect(verifyRun, contains('apksigner verify failed'),
+          reason: 'apksigner execution failure must have a distinct message');
+      expect(verifyRun, contains('missing SHA-256 digest'),
+          reason: 'failed SHA-256 digest parsing must have a distinct '
+              'message');
+      expect(verifyRun, contains('fingerprint mismatch'),
+          reason: 'parsed fingerprint mismatch must have a distinct message');
+
+      expect(verifyRun, isNot(contains(r'echo "$TEST_DEBUG_CERT_SHA256"')),
+          reason: 'the expected fingerprint secret must not be printed');
+      expect(verifyRun, isNot(contains(r'echo $TEST_DEBUG_CERT_SHA256')),
+          reason: 'the expected fingerprint secret must not be printed');
+      expect(verifyRun, isNot(contains(r'echo "$NORMALIZED_EXPECTED"')),
+          reason: 'the expected fingerprint must not be printed');
+      expect(verifyRun, isNot(contains(r'echo $NORMALIZED_EXPECTED')),
+          reason: 'the expected fingerprint must not be printed');
+    });
+
+    test(
+        'verifies the signing certificate before prepare-distributable/upload '
+        'and always cleans up', () {
+      final steps = _buildJobSteps(loadWorkflow());
+
+      final verifyIndex = steps.indexWhere((step) =>
+          _stepName(step) == 'Verify test signing certificate' ||
+          _stepRun(step).contains('apksigner verify'));
+      final distIndex = steps.indexWhere((step) =>
+          _stepName(step) == 'Prepare distributable files' ||
+          _stepRun(step).contains('mkdir -p dist'));
+      final uploadIndex = steps
+          .indexWhere((step) => _stepUses(step).contains('upload-artifact'));
+      final cleanupIndex = steps.indexWhere((step) {
+        final cond = step['if'];
+        return cond is String &&
+            cond.contains('always') &&
+            (_stepName(step).toLowerCase().contains('clean') ||
+                _stepRun(step).contains('cleanup'));
+      });
+
+      expect(verifyIndex, greaterThanOrEqualTo(0),
+          reason: 'a Verify test signing certificate step is required');
+      expect(distIndex, greaterThanOrEqualTo(0),
+          reason: 'a Prepare distributable files step is required');
+      expect(uploadIndex, greaterThanOrEqualTo(0),
+          reason: 'an upload-artifact step is required');
+      expect(cleanupIndex, greaterThanOrEqualTo(0),
+          reason: 'a cleanup step guarded by if: always() is required');
+      expect(verifyIndex, lessThan(distIndex),
+          reason:
+              'certificate verification must precede prepare-distributable');
+      expect(verifyIndex, lessThan(uploadIndex),
+          reason: 'certificate verification must precede artifact upload');
+      expect(cleanupIndex, greaterThan(uploadIndex),
+          reason: 'cleanup must remain after upload and run if: always()');
     });
   });
 
@@ -1276,7 +1493,44 @@ void main() {
       _expectNoKeystoreInHome(home.path);
     });
 
-    test('script defaults KEYTOOL_BIN to the literal "keytool" when unset', () {
+    test(
+        'rejects when keytool -exportcert exits 0 but emits bytes whose '
+        'SHA-256 does not match TEST_DEBUG_CERT_SHA256 (certificate identity '
+        'mismatch) before any files materialize', () async {
+      expectScriptExists();
+      final tmp = _tmp('keytool-mismatch');
+      final home = Directory.systemTemp.createTempSync('test-home-');
+      addTearDown(() => home.deleteSync(recursive: true));
+      final env = Map<String, String>.of(_validTestEnv())
+        ..['KEYTOOL_BIN'] = _fakeKeytoolMismatchedCert;
+      final result = await _runPrepare(tmp, env, home: home.path);
+
+      _expectRejected(result, 'TEST_DEBUG_KEYSTORE_BASE64');
+      _expectNoPartialFiles(tmp);
+      _expectNoKeystoreInHome(home.path);
+
+      // Generic mismatch reason — never print the cert payload, the expected
+      // digest, environment values, or decoded content.
+      expect(
+          result.all.toLowerCase(),
+          anyOf(
+            contains('mismatch'),
+            contains('certificate'),
+            contains('identity'),
+          ),
+          reason: 'error must name a generic certificate/fingerprint mismatch '
+              'without printing payload or digest values');
+      expect(result.all, isNot(contains(_mismatchedExportCertBytes)),
+          reason: 'export-cert payload must not leak into output');
+      expect(result.all, isNot(contains(_testCertSha256)),
+          reason: 'expected fingerprint digest must not leak into output');
+      expect(result.all, isNot(contains(_acceptedExportCertBytes)),
+          reason: 'accepted cert payload must not leak into output');
+    });
+
+    test(
+        'script defaults KEYTOOL_BIN to the literal "keytool" and uses -exportcert',
+        () {
       expectScriptExists();
       final raw = File(_prepareScript).readAsStringSync();
 
@@ -1289,6 +1543,9 @@ void main() {
           reason: 'script must validate alias androiddebugkey');
       expect(raw, contains('-storepass'),
           reason: 'script must validate storepass android via keytool');
+      expect(raw, contains('-exportcert'),
+          reason:
+              'script must use keytool -exportcert for certificate identity');
     });
   });
 
