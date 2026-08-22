@@ -97,6 +97,12 @@ The main agent retains requirements interpretation, architecture and tradeoffs, 
 - Firebase/GCP safety gates before any write/deploy: confirm active project/environment, read current Firestore/Storage rules first, run emulator/local tests where applicable, run a security review for auth/rules/user-data changes, and get explicit confirmation for destructive operations or deploys.
 - Keep large logs, search results, and command output out of the main conversation; summarize instead.
 
+### CI Cadence
+
+- Routine `Verify` runs on every push and every pull request to `main`.
+- An intermediate test APK build (`android-test-apk.yml`) is required after every meaningful user-visible stage, before any device, UI-diff, or completion validation claim.
+- Signed release builds (`android-build.yml`) are restricted to release-candidate or tagged builds only.
+
 ## 7. Definition of Done
 
 A task is done only when:

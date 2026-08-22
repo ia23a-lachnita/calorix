@@ -524,17 +524,27 @@ void main() {
 
     test(
         'validates project calorix-xurschnell, package com.calorix.calorix, '
-        'and app id 1:85048284883:android:d9ac439353e922ddf8a626', () {
-      final file = File(_workflow);
-      expect(file.existsSync(), isTrue,
+        'and app id 1:85048284883:android:d9ac439353e922ddf8a626 '
+        '(combined workflow + script implementation must contain each)', () {
+      final workflowFile = File(_workflow);
+      expect(workflowFile.existsSync(), isTrue,
           reason: '$_workflow must exist but is absent');
-      final raw = file.readAsStringSync();
+      final workflowRaw = workflowFile.readAsStringSync();
 
-      expect(raw, contains(_projectCalorix),
+      final scriptFile = File(_prepareScript);
+      expect(scriptFile.existsSync(), isTrue,
+          reason: '$_prepareScript must exist but is absent');
+      final scriptRaw = scriptFile.readAsStringSync();
+
+      // The workflow delegates validation to the preparation script; each
+      // constant must appear in at least one of the two sources (the
+      // combined workflow + script implementation), not in both separately.
+      final combined = '$workflowRaw\n$scriptRaw';
+      expect(combined, contains(_projectCalorix),
           reason: 'project calorix-xurschnell must be validated');
-      expect(raw, contains(_androidPackage),
+      expect(combined, contains(_androidPackage),
           reason: 'package com.calorix.calorix must be validated');
-      expect(raw, contains(_androidAppId),
+      expect(combined, contains(_androidAppId),
           reason:
               'app id 1:85048284883:android:d9ac439353e922ddf8a626 must be validated');
     });
@@ -646,21 +656,32 @@ void main() {
     });
 
     test(
-        'securely decodes three base64 inputs (base64 decoding itself is required, '
-        'not forbidden, since the workflow materializes Firebase inputs '
-        'directly without prepare_android_release.sh)', () {
-      final file = File(_workflow);
-      expect(file.existsSync(), isTrue,
+        'securely decodes three base64 inputs (strict base64 decoding is '
+        'required; the workflow passes encoded inputs to the preparation '
+        'script which decodes them via Python base64.b64decode with '
+        'validation, so base64 decoding itself is not forbidden)', () {
+      final workflowFile = File(_workflow);
+      expect(workflowFile.existsSync(), isTrue,
           reason: '$_workflow must exist but is absent');
-      final raw = file.readAsStringSync();
+      final workflowRaw = workflowFile.readAsStringSync();
 
-      expect(
-          raw.contains('base64 -d') ||
-              raw.contains('base64 --decode') ||
-              raw.contains('base64 -D'),
-          isTrue,
-          reason: 'the workflow must decode the base64-encoded secrets '
-              'somewhere to materialize Firebase inputs');
+      final scriptFile = File(_prepareScript);
+      expect(scriptFile.existsSync(), isTrue,
+          reason: '$_prepareScript must exist but is absent');
+      final scriptRaw = scriptFile.readAsStringSync();
+
+      // The workflow or the preparation script must perform strict base64
+      // decoding somewhere. The workflow decodes via the preparation script,
+      // and the script uses Python's base64.b64decode with validate=True.
+      final workflowHasDecode = workflowRaw.contains('base64 -d') ||
+          workflowRaw.contains('base64 --decode') ||
+          workflowRaw.contains('base64 -D');
+      final scriptHasStrictDecode = scriptRaw.contains('base64.b64decode') &&
+          scriptRaw.contains('validate=True');
+      expect(workflowHasDecode || scriptHasStrictDecode, isTrue,
+          reason: 'the workflow or preparation script must perform strict '
+              'base64 decoding (Python base64.b64decode with validate=True) '
+              'to materialize Firebase inputs');
     });
   });
 
@@ -705,16 +726,31 @@ void main() {
     test(
         'rejects workflow_run and other stale-run trigger patterns that '
         'could execute against a different, unrelated commit', () {
+      final workflow = _loadWorkflowFile(_workflow);
+
+      final on = workflow['on'] as YamlMap?;
+      expect(on, isA<YamlMap>(), reason: 'on: must be a mapping');
+      expect(on!.containsKey('workflow_run'), isFalse,
+          reason: 'workflow_run fires against whatever commit the upstream '
+              'workflow completed on, which can be stale relative to the '
+              'dispatched sha; use the in-run workflow_call/needs contract '
+              'instead');
+    });
+
+    test(
+        'raw workflow YAML does not contain a workflow_run: trigger line '
+        '(defensive: metadata keys must not cause false matches)', () {
       final file = File(_workflow);
       expect(file.existsSync(), isTrue,
           reason: '$_workflow must exist but is absent');
       final raw = file.readAsStringSync();
 
-      expect(raw, isNot(contains('workflow_run')),
-          reason: 'workflow_run fires against whatever commit the upstream '
-              'workflow completed on, which can be stale relative to the '
-              'dispatched sha; use the in-run workflow_call/needs contract '
-              'instead');
+      // Assert no standalone workflow_run: trigger key (with colon, at
+      // start-of-line indentation).  This prevents metadata keys such as
+      // workflow_run_id from being confused with the forbidden trigger.
+      expect(raw,
+          isNot(contains(RegExp(r'^\s+workflow_run\s*:', multiLine: true))),
+          reason: 'workflow_run: trigger must not appear in the raw YAML');
     });
   });
 
