@@ -9,6 +9,7 @@ export KEYTOOL_BIN="${KEYTOOL_BIN:-keytool}"
 
 exec python3 - "$@" <<'PYEOF'
 import base64
+import hashlib
 import json
 import os
 import re
@@ -338,7 +339,7 @@ def validate_cross_match(dart_text, json_text):
     return reasons
 
 
-def validate_keystore(keystore_bytes, errors):
+def validate_keystore(keystore_bytes, expected_fingerprint, errors):
     if len(keystore_bytes) == 0:
         errors.append("TEST_DEBUG_KEYSTORE_BASE64 decodes to an empty keystore")
         return
@@ -354,7 +355,7 @@ def validate_keystore(keystore_bytes, errors):
             result = subprocess.run(
                 [
                     keytool_bin,
-                    "-list",
+                    "-exportcert",
                     "-keystore",
                     staged_path,
                     "-storepass",
@@ -374,6 +375,14 @@ def validate_keystore(keystore_bytes, errors):
             errors.append(
                 "TEST_DEBUG_KEYSTORE_BASE64 failed keytool validation "
                 "(invalid alias, storepass, or keystore format)"
+            )
+            return
+        cert_sha256 = hashlib.sha256(result.stdout).hexdigest().upper()
+        normalized_expected = normalize_fingerprint(expected_fingerprint)
+        if normalized_expected is not None and cert_sha256 != normalized_expected:
+            errors.append(
+                "TEST_DEBUG_KEYSTORE_BASE64: certificate fingerprint mismatch "
+                "for env TEST_DEBUG_KEYSTORE_BASE64"
             )
     finally:
         shutil.rmtree(staging_dir, ignore_errors=True)
@@ -434,7 +443,11 @@ def cmd_prepare(root, home):
     if errors:
         fail(errors, root, home)
 
-    validate_keystore(decoded["TEST_DEBUG_KEYSTORE_BASE64"], errors)
+    validate_keystore(
+        decoded["TEST_DEBUG_KEYSTORE_BASE64"],
+        normalize_fingerprint(values["TEST_DEBUG_CERT_SHA256"]),
+        errors,
+    )
     if errors:
         fail(errors, root, home)
 
