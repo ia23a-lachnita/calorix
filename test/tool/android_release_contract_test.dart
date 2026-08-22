@@ -1215,17 +1215,18 @@ void main() {
     test('file exists and parses as valid YAML', expectVerifyExists);
 
     test(
-        'on: triggers are exactly push and pull_request, both with '
-        'branches exactly ["main"]', () {
+        'on: triggers are exactly push, pull_request, and workflow_call; '
+        'push/pull_request both have branches exactly ["main"]', () {
       final workflow = loadVerify();
 
       final on = workflow['on'];
       expect(on, isA<YamlMap>(), reason: 'on: must be a mapping');
 
       final keys = (on as YamlMap).keys.cast<String>().toList()..sort();
-      expect(keys, ['pull_request', 'push'],
-          reason:
-              'on: must contain exactly push and pull_request; found $keys');
+      expect(keys, ['pull_request', 'push', 'workflow_call'],
+          reason: 'on: must contain exactly push, pull_request, and '
+              'workflow_call (added so android-test-apk.yml can invoke '
+              'this workflow at the same commit sha); found $keys');
 
       for (final trigger in ['push', 'pull_request']) {
         final entry = on[trigger];

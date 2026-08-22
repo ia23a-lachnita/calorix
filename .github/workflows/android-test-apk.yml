@@ -1,0 +1,99 @@
+name: Test Android APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    uses: ./.github/workflows/verify.yml
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.9"
+          cache: true
+
+      - name: Install FVM
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Prepare test inputs
+        env:
+          FIREBASE_OPTIONS_DART_BASE64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          TEST_DEBUG_KEYSTORE_BASE64: ${{ secrets.TEST_DEBUG_KEYSTORE_BASE64 }}
+          TEST_DEBUG_CERT_SHA256: ${{ secrets.TEST_DEBUG_CERT_SHA256 }}
+        run: |
+          chmod +x tool/ci/prepare_android_test_apk.sh
+          tool/ci/prepare_android_test_apk.sh prepare --root "$GITHUB_WORKSPACE"
+
+      - name: Build debug APK
+        run: |
+          fvm install
+          fvm flutter pub get
+          fvm flutter build apk --debug
+
+      - name: Verify test signing certificate
+        env:
+          TEST_DEBUG_CERT_SHA256: ${{ secrets.TEST_DEBUG_CERT_SHA256 }}
+        run: |
+          export PATH="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n1):$PATH"
+          APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
+          RAW_CERT="$(apksigner verify --print-certs "$APK_PATH" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n1)"
+          NORMALIZED_ACTUAL="$(printf '%s' "$RAW_CERT" | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
+          NORMALIZED_EXPECTED="$(printf '%s' "$TEST_DEBUG_CERT_SHA256" | tr -d ':' | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')"
+          if [ -z "$NORMALIZED_ACTUAL" ] || [ "$NORMALIZED_ACTUAL" != "$NORMALIZED_EXPECTED" ]; then
+            echo "Test signing certificate fingerprint check failed" >&2
+            exit 1
+          fi
+          tool/ci/prepare_android_test_apk.sh verify-fingerprint --expected "$NORMALIZED_EXPECTED" --actual "$NORMALIZED_ACTUAL"
+          echo "NORMALIZED_ACTUAL=$NORMALIZED_ACTUAL" >> "$GITHUB_ENV"
+
+      - name: Prepare distributable files
+        run: |
+          mkdir -p dist
+          APP_VERSION="$(awk '/^version:/{print $2}' pubspec.yaml)"
+          APK_NAME="calorix-${APP_VERSION}-android-test.apk"
+          SOURCE_SHA="${{ github.sha }}"
+          cp build/app/outputs/flutter-apk/app-debug.apk "dist/${APK_NAME}"
+          sha256sum "dist/${APK_NAME}" > "dist/${APK_NAME}.sha256"
+          APK_SHA256="$(sha256sum "dist/${APK_NAME}" | cut -d' ' -f1)"
+          printf '{\n  "source_sha": "%s",\n  "source_ref": "%s",\n  "workflow_run_id": "%s",\n  "app_version": "%s",\n  "apk_filename": "%s",\n  "apk_sha256": "%s",\n  "signing_cert_sha256": "%s"\n}\n' \
+            "$SOURCE_SHA" "${{ github.ref }}" "${{ github.run_id }}" \
+            "$APP_VERSION" "$APK_NAME" "$APK_SHA256" "$NORMALIZED_ACTUAL" \
+            > dist/metadata.json
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-apk-${{ github.sha }}
+          path: dist/*
+          retention-days: 30
+
+      - name: Clean up test inputs
+        if: always()
+        run: |
+          tool/ci/prepare_android_test_apk.sh cleanup --root "$GITHUB_WORKSPACE" || true
+          rm -f android/app/google-services.json
+          rm -f lib/core/firebase/firebase_options.dart
+          rm -f "$HOME/.android/debug.keystore"
