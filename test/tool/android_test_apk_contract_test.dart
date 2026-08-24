@@ -914,6 +914,63 @@ void main() {
       expect(cleanupIndex, greaterThan(uploadIndex),
           reason: 'cleanup must remain after upload and run if: always()');
     });
+
+    test(
+        'workflow certificate parser supports numbered and v3.1 signer labels '
+        'while excluding source stamp', () async {
+      final steps = _buildJobSteps(_loadWorkflowFile(_workflow));
+      final verifyIndex = steps.indexWhere((step) =>
+          _stepName(step) == 'Verify test signing certificate' ||
+          _stepRun(step).contains('apksigner verify'));
+      expect(verifyIndex, greaterThanOrEqualTo(0),
+          reason: 'a Verify test signing certificate step is required');
+      final verifyRun = _stepRun(steps[verifyIndex]);
+
+      // Extract the actual sed program from the RAW_CERT command.
+      final sedMatch = RegExp(r"sed\s+-n\s+'([^']+)'").firstMatch(verifyRun);
+      expect(sedMatch, isNotNull,
+          reason:
+              'RAW_CERT command must contain a sed -n single-quoted program');
+      final sedProgram = sedMatch!.group(1)!;
+      expect(sedProgram.isNotEmpty, isTrue,
+          reason: 'extracted sed program must be non-empty');
+
+      // Numbered label + 64 a
+      final digestA = List.filled(64, 'a').join();
+      final numbered = 'Signer #1 certificate SHA-256 digest: $digestA';
+      // V3.1 label + 64 b
+      final digestB = List.filled(64, 'b').join();
+      final v31 =
+          'Signer (minSdkVersion=28, maxSdkVersion=35) certificate SHA-256 digest: $digestB';
+      // Source stamp label + 64 c
+      final digestC = List.filled(64, 'c').join();
+      final sourceStamp =
+          'Source Stamp Signer certificate SHA-256 digest: $digestC';
+
+      Future<String> sedOutput(String line) async {
+        final dir = _tmp('sed-parse');
+        final file = File('${dir.path}/cert.txt');
+        file.writeAsStringSync('$line\n');
+        final result = await Process.run('sed', ['-n', sedProgram, file.path]);
+        expect(result.exitCode, 0,
+            reason: 'sed must not fail: ${result.stderr}');
+        return (result.stdout as String).trim();
+      }
+
+      // 1. Numbered label: expect digest extracted.
+      expect(await sedOutput(numbered), digestA,
+          reason: 'sed must parse Signer #1 label');
+
+      // 2. V3.1 label: expect digest extracted.
+      //    This MUST FAIL on the current literal "Signer #1" sed program
+      //    because the workflow sed matches only ^Signer #1, not v3.1.
+      expect(await sedOutput(v31), digestB,
+          reason: 'sed must parse v3.1 Signer label');
+
+      // 3. Source stamp label: expect empty output (excluded by design).
+      expect(await sedOutput(sourceStamp), '',
+          reason: 'sed must exclude Source Stamp Signer label');
+    });
   });
 
   group('strict same-github.sha Verify-before-build contract', () {
