@@ -2,10 +2,13 @@
 # Fail-closed materializer for the four intermediate Android test-APK inputs.
 # Subcommands: prepare --root <dir> [--home <dir>] |
 #              cleanup --root <dir> [--home <dir>] |
-#              verify-fingerprint --expected <value> --actual <value>
+#              verify-fingerprint --expected <value> --actual <value> |
+#              verify-apk-certificate --apk <path> --expected <sha256> --output-env <path>
 set -euo pipefail
 
 export KEYTOOL_BIN="${KEYTOOL_BIN:-keytool}"
+export APKSIGNER_BIN="${APKSIGNER_BIN:-apksigner}"
+export OPENSSL_BIN="${OPENSSL_BIN:-openssl}"
 
 exec python3 - "$@" <<'PYEOF'
 import base64
@@ -512,6 +515,86 @@ def cmd_verify_fingerprint(expected, actual):
     sys.exit(0)
 
 
+def cmd_verify_apk_certificate(apk_path, expected_sha256, output_env):
+    apksigner_bin = os.environ["APKSIGNER_BIN"]
+    openssl_bin = os.environ["OPENSSL_BIN"]
+
+    normalized_expected = normalize_fingerprint(expected_sha256)
+    if normalized_expected is None:
+        print("error: --expected must be exactly 64 hexadecimal characters "
+              "after normalization", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        result = subprocess.run(
+            [apksigner_bin, "verify", "--print-certs-pem", apk_path],
+            capture_output=True,
+        )
+    except FileNotFoundError:
+        print("error: apksigner verify failed", file=sys.stderr)
+        sys.exit(1)
+    if result.returncode != 0:
+        print("error: apksigner verify failed", file=sys.stderr)
+        sys.exit(1)
+
+    output = result.stdout.decode("utf-8", errors="replace")
+
+    begin_marker = "-----BEGIN CERTIFICATE-----"
+    end_marker = "-----END CERTIFICATE-----"
+    begin_idx = output.find(begin_marker)
+    if begin_idx < 0:
+        print("error: missing signing certificate PEM", file=sys.stderr)
+        sys.exit(1)
+    end_idx = output.find(end_marker, begin_idx)
+    if end_idx < 0:
+        print("error: missing signing certificate PEM", file=sys.stderr)
+        sys.exit(1)
+    pem_block = output[begin_idx:end_idx + len(end_marker)]
+
+    staging_dir = tempfile.mkdtemp(prefix="verify-apk-cert-")
+    pem_path = os.path.join(staging_dir, "cert.pem")
+    der_path = os.path.join(staging_dir, "cert.der")
+    try:
+        with open(pem_path, "w") as f:
+            f.write(pem_block)
+
+        try:
+            conv = subprocess.run(
+                [openssl_bin, "x509", "-in", pem_path,
+                 "-outform", "DER", "-out", der_path],
+                capture_output=True,
+            )
+        except FileNotFoundError:
+            print("error: certificate DER conversion failed", file=sys.stderr)
+            sys.exit(1)
+        if conv.returncode != 0:
+            print("error: certificate DER conversion failed", file=sys.stderr)
+            sys.exit(1)
+
+        if not os.path.isfile(der_path) or os.path.getsize(der_path) == 0:
+            print("error: certificate DER conversion failed", file=sys.stderr)
+            sys.exit(1)
+
+        with open(der_path, "rb") as f:
+            der_bytes = f.read()
+        if not der_bytes:
+            print("error: certificate DER conversion failed", file=sys.stderr)
+            sys.exit(1)
+
+        actual_sha256 = hashlib.sha256(der_bytes).hexdigest().upper()
+
+        if actual_sha256 != normalized_expected:
+            print("error: fingerprint mismatch", file=sys.stderr)
+            sys.exit(1)
+
+        with open(output_env, "a") as f:
+            f.write(f"NORMALIZED_ACTUAL={actual_sha256}\n")
+        print("Certificate fingerprint verified.")
+        sys.exit(0)
+    finally:
+        shutil.rmtree(staging_dir, ignore_errors=True)
+
+
 def main():
     argv = sys.argv[1:]
     if not argv:
@@ -539,6 +622,20 @@ def main():
         expected = get_arg(rest, "--expected")
         actual = get_arg(rest, "--actual")
         cmd_verify_fingerprint(expected, actual)
+    elif command == "verify-apk-certificate":
+        apk = get_arg(rest, "--apk")
+        if not apk:
+            print("error: --apk is required", file=sys.stderr)
+            sys.exit(2)
+        expected = get_arg(rest, "--expected")
+        if not expected:
+            print("error: --expected is required", file=sys.stderr)
+            sys.exit(2)
+        output_env = get_arg(rest, "--output-env")
+        if not output_env:
+            print("error: --output-env is required", file=sys.stderr)
+            sys.exit(2)
+        cmd_verify_apk_certificate(apk, expected, output_env)
     else:
         print(f"error: unknown subcommand '{command}'", file=sys.stderr)
         sys.exit(2)

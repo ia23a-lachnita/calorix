@@ -27,8 +27,10 @@ import 'package:yaml/yaml.dart';
 ///  5. Strictly validate project `calorix-xurschnell`, package
 ///     `com.calorix.calorix`, app id `1:85048284883:android:d9ac439353e922ddf8a626`.
 ///  6. Reject placeholder values.
-///  7. Run `apksigner verify --print-certs` and enforce SHA-256 fingerprint
+///  7. Run `apksigner verify --print-certs-pem`, extract the first complete
+///     PEM certificate, convert it to DER, and enforce SHA-256 fingerprint
 ///     equality (normalized: strip separators/whitespace, uppercase).
+///     Human-readable signer-label parsing is forbidden.
 ///  8. Produce APK/checksum/source metadata, retain artifacts for 30 days,
 ///     and always clean up materialized secrets.
 ///  9. Never reference a production release key or iOS inputs.
@@ -55,17 +57,24 @@ import 'package:yaml/yaml.dart';
 ///     standard debug passwords, a temporary `--out` path, and replace
 ///     `app-debug.apk` only after signing succeeds. Release secrets are
 ///     forbidden.
-/// 15. The verify step must capture `apksigner verify --print-certs` output
-///     once and emit distinct failure messages for apksigner execution
-///     failure, missing SHA-256 digest parsing, and parsed fingerprint
-///     mismatch, without printing expected secrets or fingerprints.
+/// 15. The verify step must call `prepare_android_test_apk.sh
+///     verify-apk-certificate`, which uses `apksigner verify --print-certs-pem`
+///     once, extracts the first complete PEM, converts it with
+///     `${OPENSSL_BIN:-openssl} x509 -outform DER`, hashes the DER bytes,
+///     writes `NORMALIZED_ACTUAL=<uppercase 64 hex>` to an output-env file
+///     for workflow metadata, and emits distinct generic failure messages
+///     for apksigner execution failure, missing signing certificate PEM,
+///     certificate DER conversion failure, and fingerprint mismatch,
+///     without printing expected secrets, fingerprints, PEM bodies, or
+///     certificate subjects. Label parsing (`certificate SHA-256 digest:`,
+///     sed, head) is forbidden. Tool seams `APKSIGNER_BIN` and `OPENSSL_BIN`
+///     must be overridable.
 /// 16. Certificate verification remains before prepare-distributable/upload;
 ///     cleanup remains `if: always()`.
 ///
-/// The file compiles cleanly and fails only because the production workflow,
-/// the `verify.yml` `workflow_call` trigger, the `AGENTS.md` cadence
-/// language, and `tool/ci/prepare_android_test_apk.sh` are absent; no
-/// production file or `AGENTS.md` is touched by this test file.
+/// The PEM/DER `verify-apk-certificate` contract compiles cleanly and is
+/// expected to fail only because that subcommand and the `--print-certs-pem`
+/// workflow path are absent; no production file is touched by this RED.
 
 const _workflow = '.github/workflows/android-test-apk.yml';
 const _productionWorkflow = '.github/workflows/android-build.yml';
@@ -645,24 +654,35 @@ void main() {
     });
 
     test(
-        'runs apksigner verify --print-certs and enforces normalized '
-        'exact SHA-256 fingerprint equality', () {
-      final file = File(_workflow);
-      expect(file.existsSync(), isTrue,
+        'workflow delegates to verify-apk-certificate; helper requests '
+        '--print-certs-pem via APKSIGNER_BIN', () {
+      final workflowFile = File(_workflow);
+      expect(workflowFile.existsSync(), isTrue,
           reason: '$_workflow must exist but is absent');
-      final raw = file.readAsStringSync();
+      final workflowRaw = workflowFile.readAsStringSync();
 
-      expect(raw, contains('apksigner verify --print-certs'),
-          reason: 'apksigner verify --print-certs step is required');
-      expect(raw, contains('TEST_DEBUG_CERT_SHA256'),
+      final scriptFile = File(_prepareScript);
+      expect(scriptFile.existsSync(), isTrue,
+          reason: '$_prepareScript must exist but is absent');
+      final scriptRaw = scriptFile.readAsStringSync();
+
+      expect(workflowRaw, contains('verify-apk-certificate'),
+          reason: 'workflow must call verify-apk-certificate');
+      expect(scriptRaw, contains('--print-certs-pem'),
+          reason: 'helper script must contain --print-certs-pem');
+      expect(scriptRaw, contains('APKSIGNER_BIN'),
+          reason: 'helper script must use APKSIGNER_BIN variable');
+      expect(workflowRaw, contains('TEST_DEBUG_CERT_SHA256'),
           reason:
               'the test cert SHA-256 must be checked against the signature');
-      expect(raw, contains('tr -d'),
-          reason: 'fingerprint normalization must strip separators');
-      expect(raw, contains('[:upper:]'),
-          reason: 'fingerprint normalization must uppercase');
-      expect(raw, contains('!='),
-          reason: 'fingerprint mismatch must be detected');
+      expect(workflowRaw, isNot(contains('certificate SHA-256 digest:')),
+          reason: 'human-readable certificate SHA-256 digest labels are '
+              'forbidden');
+      expect(workflowRaw, isNot(contains(RegExp(r'\bsed\b'))),
+          reason: 'sed label parsing is forbidden in the test APK workflow');
+      expect(workflowRaw, isNot(contains(RegExp(r'\bhead\b'))),
+          reason: 'head-based label parsing is forbidden in the test APK '
+              'workflow');
     });
 
     test('produces APK checksum and source metadata', () {
@@ -840,32 +860,46 @@ void main() {
     });
 
     test(
-        'disambiguates apksigner execution failure, missing SHA-256 digest '
-        'parsing, and parsed fingerprint mismatch without printing secrets',
-        () {
+        'verify-apk-certificate disambiguates apksigner failure, missing '
+        'signing certificate PEM, DER conversion failure, and fingerprint '
+        'mismatch without printing secrets', () {
       final steps = _buildJobSteps(loadWorkflow());
       final verifyIndex = steps.indexWhere((step) =>
           _stepName(step) == 'Verify test signing certificate' ||
+          _stepRun(step).contains('verify-apk-certificate') ||
           _stepRun(step).contains('apksigner verify'));
       expect(verifyIndex, greaterThanOrEqualTo(0),
           reason: 'a Verify test signing certificate step is required');
       final verifyRun = _stepRun(steps[verifyIndex]);
+      final scriptRaw = File(_prepareScript).readAsStringSync();
+      final combined = '$verifyRun\n$scriptRaw';
 
-      expect(
-        RegExp(r'apksigner\s+verify\s+--print-certs')
-            .allMatches(verifyRun)
-            .length,
-        1,
-        reason: 'apksigner verify --print-certs output must be captured once',
-      );
+      expect(verifyRun, contains('verify-apk-certificate'),
+          reason: 'the verify step must call verify-apk-certificate');
+      expect(scriptRaw, contains('--print-certs-pem'),
+          reason: 'scriptRaw must reference --print-certs-pem');
+      expect(scriptRaw, contains('APKSIGNER_BIN'),
+          reason: 'scriptRaw must reference APKSIGNER_BIN');
+      expect(scriptRaw, contains('OPENSSL_BIN'),
+          reason: 'scriptRaw must reference OPENSSL_BIN');
 
-      expect(verifyRun, contains('apksigner verify failed'),
+      expect(combined, contains('apksigner verify failed'),
           reason: 'apksigner execution failure must have a distinct message');
-      expect(verifyRun, contains('missing SHA-256 digest'),
-          reason: 'failed SHA-256 digest parsing must have a distinct '
-              'message');
-      expect(verifyRun, contains('fingerprint mismatch'),
-          reason: 'parsed fingerprint mismatch must have a distinct message');
+      expect(combined, contains('missing signing certificate PEM'),
+          reason: 'a missing or incomplete first PEM must have a distinct '
+              'generic message');
+      expect(combined, contains('certificate DER conversion failed'),
+          reason: 'openssl DER conversion failure must have a distinct '
+              'generic message');
+      expect(combined, contains('fingerprint mismatch'),
+          reason: 'fingerprint mismatch must have a distinct generic message');
+
+      expect(verifyRun, isNot(contains('certificate SHA-256 digest:')),
+          reason: 'human-readable digest labels must not be parsed');
+      expect(verifyRun, isNot(contains(RegExp(r'\bsed\b'))),
+          reason: 'sed label parsing is forbidden in the verify step');
+      expect(verifyRun, isNot(contains(RegExp(r'\bhead\b'))),
+          reason: 'head-based label parsing is forbidden in the verify step');
 
       expect(verifyRun, isNot(contains(r'echo "$TEST_DEBUG_CERT_SHA256"')),
           reason: 'the expected fingerprint secret must not be printed');
@@ -875,6 +909,10 @@ void main() {
           reason: 'the expected fingerprint must not be printed');
       expect(verifyRun, isNot(contains(r'echo $NORMALIZED_EXPECTED')),
           reason: 'the expected fingerprint must not be printed');
+      expect(verifyRun, isNot(contains(r'echo "$NORMALIZED_ACTUAL"')),
+          reason: 'the actual fingerprint must not be printed to logs');
+      expect(verifyRun, isNot(contains(r'echo $NORMALIZED_ACTUAL')),
+          reason: 'the actual fingerprint must not be printed to logs');
     });
 
     test(
@@ -916,60 +954,36 @@ void main() {
     });
 
     test(
-        'workflow certificate parser supports numbered and v3.1 signer labels '
-        'while excluding source stamp', () async {
+        'verify-apk-certificate workflow does not parse Signer certificate '
+        'SHA-256 digest labels with sed or head', () {
       final steps = _buildJobSteps(_loadWorkflowFile(_workflow));
       final verifyIndex = steps.indexWhere((step) =>
           _stepName(step) == 'Verify test signing certificate' ||
+          _stepRun(step).contains('verify-apk-certificate') ||
           _stepRun(step).contains('apksigner verify'));
       expect(verifyIndex, greaterThanOrEqualTo(0),
           reason: 'a Verify test signing certificate step is required');
       final verifyRun = _stepRun(steps[verifyIndex]);
+      final scriptRaw = File(_prepareScript).readAsStringSync();
 
-      // Extract the actual sed program from the RAW_CERT command.
-      final sedMatch = RegExp(r"sed\s+-n\s+'([^']+)'").firstMatch(verifyRun);
-      expect(sedMatch, isNotNull,
-          reason:
-              'RAW_CERT command must contain a sed -n single-quoted program');
-      final sedProgram = sedMatch!.group(1)!;
-      expect(sedProgram.isNotEmpty, isTrue,
-          reason: 'extracted sed program must be non-empty');
-
-      // Numbered label + 64 a
-      final digestA = List.filled(64, 'a').join();
-      final numbered = 'Signer #1 certificate SHA-256 digest: $digestA';
-      // V3.1 label + 64 b
-      final digestB = List.filled(64, 'b').join();
-      final v31 =
-          'Signer (minSdkVersion=28, maxSdkVersion=35) certificate SHA-256 digest: $digestB';
-      // Source stamp label + 64 c
-      final digestC = List.filled(64, 'c').join();
-      final sourceStamp =
-          'Source Stamp Signer certificate SHA-256 digest: $digestC';
-
-      Future<String> sedOutput(String line) async {
-        final dir = _tmp('sed-parse');
-        final file = File('${dir.path}/cert.txt');
-        file.writeAsStringSync('$line\n');
-        final result = await Process.run('sed', ['-n', sedProgram, file.path]);
-        expect(result.exitCode, 0,
-            reason: 'sed must not fail: ${result.stderr}');
-        return (result.stdout as String).trim();
-      }
-
-      // 1. Numbered label: expect digest extracted.
-      expect(await sedOutput(numbered), digestA,
-          reason: 'sed must parse Signer #1 label');
-
-      // 2. V3.1 label: expect digest extracted.
-      //    This MUST FAIL on the current literal "Signer #1" sed program
-      //    because the workflow sed matches only ^Signer #1, not v3.1.
-      expect(await sedOutput(v31), digestB,
-          reason: 'sed must parse v3.1 Signer label');
-
-      // 3. Source stamp label: expect empty output (excluded by design).
-      expect(await sedOutput(sourceStamp), '',
-          reason: 'sed must exclude Source Stamp Signer label');
+      expect(verifyRun, contains('verify-apk-certificate'),
+          reason: 'the verify step must call verify-apk-certificate');
+      expect(scriptRaw, contains('--print-certs-pem'),
+          reason: 'helper script must contain --print-certs-pem');
+      expect(scriptRaw, contains('APKSIGNER_BIN'),
+          reason: 'helper script must use APKSIGNER_BIN variable');
+      expect(verifyRun, isNot(contains('--print-certs-pem')),
+          reason: '--print-certs-pem must not appear in verifyRun');
+      expect(verifyRun, isNot(contains('certificate SHA-256 digest:')),
+          reason: 'human-readable digest labels are forbidden');
+      expect(verifyRun, isNot(contains(RegExp(r'\bsed\b'))),
+          reason: 'sed label parsing is forbidden');
+      expect(verifyRun, isNot(contains(RegExp(r'\bhead\b'))),
+          reason: 'head-based label parsing is forbidden');
+      expect(verifyRun, isNot(contains('Signer #1')),
+          reason: 'numbered signer labels must not be parsed');
+      expect(verifyRun, isNot(contains('RAW_CERT')),
+          reason: 'human-readable RAW_CERT label extraction is forbidden');
     });
   });
 
@@ -1829,6 +1843,571 @@ void main() {
       _expectNoPartialFiles(tmp);
       _expectNoSecretOutput(result, env);
     }, timeout: _arm64ProcessTimeout);
+  });
+
+  // =========================================================================
+  // Behavioral RED tests for a future verify-apk-certificate subcommand
+  // of tool/ci/prepare_android_test_apk.sh.
+  //
+  // The subcommand signature:
+  //   verify-apk-certificate --apk PATH --expected SHA256 --output-env PATH
+  //
+  // It uses APKSIGNER_BIN and OPENSSL_BIN env seams, runs
+  //   apksigner verify --print-certs-pem APK
+  // to extract PEM certificate blocks, converts the primary (first) PEM
+  // to DER via openssl, hashes the DER bytes, and compares against the
+  // expected SHA-256 fingerprint.  On success it writes
+  //   NORMALIZED_ACTUAL=<uppercase hex> to --output-env.
+  //
+  // These tests generate two real self-signed certs at runtime using the
+  // system openssl, derive their DER hashes with Dart crypto, and exercise
+  // every diagnostic path hermetically through the APKSIGNER_BIN / OPENSSL_BIN
+  // seams.  No static PEM constants.  No production file is touched.
+  // =========================================================================
+
+  group('tool/ci/prepare_android_test_apk.sh verify-apk-certificate', () {
+    void expectScriptExists() {
+      expect(File(_prepareScript).existsSync(), isTrue,
+          reason: '$_prepareScript must be committed before these tests pass');
+    }
+
+    // --- Runtime-generated PEM fixtures (two distinct self-signed certs) ---
+
+    late final String _primaryPem;
+    late final String _secondaryPem;
+    late final String _primaryDerSha256;
+    late final String _secondaryDerSha256;
+    late final Directory _certDir;
+
+    setUpAll(() async {
+      _certDir = Directory.systemTemp.createTempSync('cert-gen-');
+
+      // Generate primary cert
+      final primaryKey = '${_certDir.path}/primary.key';
+      final primaryCrt = '${_certDir.path}/primary.crt';
+      final primaryDer = '${_certDir.path}/primary.der';
+      var r = await Process.run('openssl', [
+        'req',
+        '-x509',
+        '-newkey',
+        'rsa:2048',
+        '-keyout',
+        primaryKey,
+        '-out',
+        primaryCrt,
+        '-days',
+        '1',
+        '-nodes',
+        '-subj',
+        '/CN=TestPrimarySigner/O=CalorixTest',
+      ]);
+      expect(r.exitCode, 0,
+          reason: 'openssl primary cert gen failed: ${r.stderr}');
+      r = await Process.run('openssl', [
+        'x509',
+        '-in',
+        primaryCrt,
+        '-outform',
+        'DER',
+        '-out',
+        primaryDer,
+      ]);
+      expect(r.exitCode, 0, reason: 'openssl primary DER failed: ${r.stderr}');
+      _primaryPem = File(primaryCrt).readAsStringSync();
+      final primaryDerBytes = File(primaryDer).readAsBytesSync();
+      _primaryDerSha256 =
+          sha256.convert(primaryDerBytes).toString().toUpperCase();
+
+      // Generate secondary cert
+      final secondaryKey = '${_certDir.path}/secondary.key';
+      final secondaryCrt = '${_certDir.path}/secondary.crt';
+      final secondaryDer = '${_certDir.path}/secondary.der';
+      r = await Process.run('openssl', [
+        'req',
+        '-x509',
+        '-newkey',
+        'rsa:2048',
+        '-keyout',
+        secondaryKey,
+        '-out',
+        secondaryCrt,
+        '-days',
+        '1',
+        '-nodes',
+        '-subj',
+        '/CN=TestSecondarySigner/O=CalorixStamp',
+      ]);
+      expect(r.exitCode, 0,
+          reason: 'openssl secondary cert gen failed: ${r.stderr}');
+      r = await Process.run('openssl', [
+        'x509',
+        '-in',
+        secondaryCrt,
+        '-outform',
+        'DER',
+        '-out',
+        secondaryDer,
+      ]);
+      expect(r.exitCode, 0,
+          reason: 'openssl secondary DER failed: ${r.stderr}');
+      _secondaryPem = File(secondaryCrt).readAsStringSync();
+      final secondaryDerBytes = File(secondaryDer).readAsBytesSync();
+      _secondaryDerSha256 =
+          sha256.convert(secondaryDerBytes).toString().toUpperCase();
+    });
+
+    tearDownAll(() {
+      _certDir.deleteSync(recursive: true);
+    });
+
+    /// Writes a fake apksigner that validates exact invocation:
+    ///   verify --print-certs-pem <apk-path>
+    /// Exactly 3 arguments must be present. [expectedApkPath] is the path
+    /// the caller expects to be passed as `$3`.
+    /// On success emits the given PEM blocks on stdout.
+    /// If [exitCode] is non-zero, exits with that code and emits [stderrOutput].
+    String _writeFakeApksigner({
+      required String pemOutput,
+      required String expectedApkPath,
+      int exitCode = 0,
+      String stderrOutput = '',
+    }) {
+      final dir = Directory.systemTemp.createTempSync('fake-apksigner-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final script = File('${dir.path}/apksigner');
+      final escapedPem = pemOutput.replaceAll("'", "'\\''");
+      final escapedApk = expectedApkPath.replaceAll("'", "'\\''");
+      final buf = StringBuffer('#!/usr/bin/env bash\nset -euo pipefail\n');
+      if (exitCode == 0) {
+        // Validate exact arg count: verify --print-certs-pem <apk>
+        buf.writeln('if [ "\$#" -ne 3 ]; then');
+        buf.writeln('  echo "apksigner: expected exactly 3 arguments" >&2');
+        buf.writeln('  exit 1');
+        buf.writeln('fi');
+        buf.writeln('if [ "\$1" != "verify" ]; then');
+        buf.writeln('  echo "apksigner: expected \'verify\' subcommand" >&2');
+        buf.writeln('  exit 1');
+        buf.writeln('fi');
+        buf.writeln('if [ "\$2" != "--print-certs-pem" ]; then');
+        buf.writeln(
+            '  echo "apksigner: expected \'--print-certs-pem\' flag" >&2');
+        buf.writeln('  exit 1');
+        buf.writeln('fi');
+        buf.writeln('if [ "\$3" != \'$escapedApk\' ]; then');
+        buf.writeln('  echo "apksigner: unexpected APK path \'\$3\'" >&2');
+        buf.writeln('  exit 1');
+        buf.writeln('fi');
+        buf.writeln("printf '%s\\n' '$escapedPem'");
+        buf.writeln('exit 0');
+      } else {
+        final escapedStderr =
+            stderrOutput.replaceAll(r'\', r'\\').replaceAll("'", "'\\''");
+        buf.writeln("printf '%s\\n' '$escapedStderr'");
+        buf.writeln('exit $exitCode');
+      }
+      script.writeAsStringSync(buf.toString());
+      Process.runSync('chmod', ['+x', script.path]);
+      return script.path;
+    }
+
+    /// Writes a fake openssl that fails x509 DER conversion on purpose.
+    /// Used only for the deliberate-openssl-failure test.
+    String _writeFakeOpenSSLFail() {
+      final dir = Directory.systemTemp.createTempSync('fake-openssl-fail-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final script = File('${dir.path}/openssl');
+      script.writeAsStringSync('''#!/usr/bin/env bash
+echo "openssl: DER conversion failed" >&2
+exit 1
+''');
+      Process.runSync('chmod', ['+x', script.path]);
+      return script.path;
+    }
+
+    Future<_PrepareResult> _runVerifyApkCertificate(
+      String apkPath,
+      String expectedSha256,
+      String outputEnvPath, {
+      Map<String, String>? extraEnv,
+    }) async {
+      final script = File(_prepareScript).absolute.path;
+      final env = <String, String>{
+        ...Platform.environment,
+        ...?extraEnv,
+      };
+      final result = await Process.run(
+        'bash',
+        [
+          script,
+          'verify-apk-certificate',
+          '--apk',
+          apkPath,
+          '--expected',
+          expectedSha256,
+          '--output-env',
+          outputEnvPath,
+        ],
+        workingDirectory: Directory.current.path,
+        environment: env,
+      );
+      return _PrepareResult(result);
+    }
+
+    test(
+        'subcommand verify-apk-certificate is recognized and exits '
+        'nonzero with exact "--apk is required" when --apk is missing',
+        () async {
+      expectScriptExists();
+      final result = await Process.run(
+        'bash',
+        [File(_prepareScript).absolute.path, 'verify-apk-certificate'],
+        workingDirectory: Directory.current.path,
+      );
+      expect(result.exitCode, isNot(0),
+          reason: 'verify-apk-certificate with no args must fail: '
+              '${result.stderr}\n${result.stdout}');
+      final combined = '${result.stderr}\n${result.stdout}';
+      expect(combined, contains('--apk is required'),
+          reason: 'the script must emit the exact diagnostic '
+              '"--apk is required" when --apk is missing, not just exit nonzero');
+    });
+
+    test(
+        'happy path: primary certificate matches expected fingerprint, '
+        'writes NORMALIZED_ACTUAL uppercase to output-env', () async {
+      expectScriptExists();
+      final tmp = _tmp('verify-apk-happy');
+      final apk = File('${tmp.path}/dummy.apk')..writeAsStringSync('fake');
+      final outputEnv = File('${tmp.path}/app.env');
+      final fakeApksigner = _writeFakeApksigner(
+        pemOutput: '$_primaryPem\n$_secondaryPem',
+        expectedApkPath: apk.path,
+      );
+
+      final result = await _runVerifyApkCertificate(
+        apk.path,
+        _primaryDerSha256,
+        outputEnv.path,
+        extraEnv: {'APKSIGNER_BIN': fakeApksigner},
+      );
+
+      expect(result.exitCode, 0, reason: result.all);
+      expect(outputEnv.existsSync(), isTrue,
+          reason: 'output-env file must be created on success');
+      final envContent = outputEnv.readAsStringSync();
+      expect(envContent, contains('NORMALIZED_ACTUAL=$_primaryDerSha256'),
+          reason: 'output-env must contain NORMALIZED_ACTUAL with the '
+              'uppercase DER hash');
+    });
+
+    test(
+        'first-cert extraction: emits both primary and secondary PEMs, '
+        'expects secondary fingerprint which must mismatch because '
+        'the primary cert is authoritative → EXACT "fingerprint mismatch"',
+        () async {
+      expectScriptExists();
+      final tmp = _tmp('verify-apk-secondary');
+      final apk = File('${tmp.path}/dummy.apk')..writeAsStringSync('fake');
+      final outputEnv = File('${tmp.path}/app.env');
+      // Emit BOTH primary and secondary PEMs; expect the secondary fingerprint.
+      // The script must extract the first (primary) PEM, so it will mismatch.
+      final fakeApksigner = _writeFakeApksigner(
+        pemOutput: '$_primaryPem\n$_secondaryPem',
+        expectedApkPath: apk.path,
+      );
+
+      final result = await _runVerifyApkCertificate(
+        apk.path,
+        _secondaryDerSha256,
+        outputEnv.path,
+        extraEnv: {'APKSIGNER_BIN': fakeApksigner},
+      );
+
+      expect(result.exitCode, isNot(0),
+          reason: 'secondary fingerprint with two-cert output must fail: '
+              '${result.all}');
+      expect(result.all, contains('fingerprint mismatch'),
+          reason: 'error must contain exact "fingerprint mismatch" string');
+      expect(outputEnv.existsSync(), isFalse,
+          reason: 'output-env must not exist on failure');
+    });
+
+    test('apksigner nonzero exit: emits EXACT "apksigner verify failed"',
+        () async {
+      expectScriptExists();
+      final tmp = _tmp('verify-apk-apksigner-fail');
+      final apk = File('${tmp.path}/dummy.apk')..writeAsStringSync('fake');
+      final outputEnv = File('${tmp.path}/app.env');
+      final fakeApksigner = _writeFakeApksigner(
+        pemOutput: '',
+        expectedApkPath: apk.path,
+        exitCode: 1,
+        stderrOutput: 'apksigner: unable to locate jar',
+      );
+
+      final result = await _runVerifyApkCertificate(
+        apk.path,
+        _primaryDerSha256,
+        outputEnv.path,
+        extraEnv: {'APKSIGNER_BIN': fakeApksigner},
+      );
+
+      expect(result.exitCode, isNot(0),
+          reason: 'apksigner failure must cause nonzero exit');
+      expect(result.all, contains('apksigner verify failed'),
+          reason: 'diagnostic must contain exact "apksigner verify failed"');
+      expect(outputEnv.existsSync(), isFalse,
+          reason: 'output-env must not exist on failure');
+    });
+
+    test(
+        'apksigner emits no PEM blocks: emits EXACT '
+        '"missing signing certificate PEM"', () async {
+      expectScriptExists();
+      final tmp = _tmp('verify-apk-no-pem');
+      final apk = File('${tmp.path}/dummy.apk')..writeAsStringSync('fake');
+      final outputEnv = File('${tmp.path}/app.env');
+      final fakeApksigner = _writeFakeApksigner(
+        pemOutput: '',
+        expectedApkPath: apk.path,
+      );
+
+      final result = await _runVerifyApkCertificate(
+        apk.path,
+        _primaryDerSha256,
+        outputEnv.path,
+        extraEnv: {'APKSIGNER_BIN': fakeApksigner},
+      );
+
+      expect(result.exitCode, isNot(0),
+          reason: 'empty PEM output must cause nonzero exit');
+      expect(result.all, contains('missing signing certificate PEM'),
+          reason: 'diagnostic must contain exact '
+              '"missing signing certificate PEM"');
+      expect(outputEnv.existsSync(), isFalse,
+          reason: 'output-env must not exist on failure');
+    });
+
+    test(
+        'apksigner emits malformed PEM (no BEGIN marker): emits EXACT '
+        '"missing signing certificate PEM"', () async {
+      expectScriptExists();
+      final tmp = _tmp('verify-apk-malformed-pem');
+      final apk = File('${tmp.path}/dummy.apk')..writeAsStringSync('fake');
+      final outputEnv = File('${tmp.path}/app.env');
+      final fakeApksigner = _writeFakeApksigner(
+        pemOutput: 'THIS IS NOT A PEM BLOCK\nGARBAGE DATA\n',
+        expectedApkPath: apk.path,
+      );
+
+      final result = await _runVerifyApkCertificate(
+        apk.path,
+        _primaryDerSha256,
+        outputEnv.path,
+        extraEnv: {'APKSIGNER_BIN': fakeApksigner},
+      );
+
+      expect(result.exitCode, isNot(0),
+          reason: 'malformed PEM must cause nonzero exit');
+      expect(result.all, contains('missing signing certificate PEM'),
+          reason: 'diagnostic must contain exact '
+              '"missing signing certificate PEM"');
+      expect(outputEnv.existsSync(), isFalse,
+          reason: 'output-env must not exist on failure');
+    });
+
+    test(
+        'apksigner emits incomplete PEM (BEGIN but no END): emits EXACT '
+        '"missing signing certificate PEM"', () async {
+      expectScriptExists();
+      final tmp = _tmp('verify-apk-incomplete-pem');
+      final apk = File('${tmp.path}/dummy.apk')..writeAsStringSync('fake');
+      final outputEnv = File('${tmp.path}/app.env');
+      // Derive the non-marker base64 snippet from the runtime primary cert
+      // rather than hardcoding a specific certificate's body.
+      final primaryLines = _primaryPem.split('\n');
+      final bodyLine = primaryLines.firstWhere(
+        (l) =>
+            l.isNotEmpty &&
+            !l.contains('-----') &&
+            RegExp(r'^[A-Za-z0-9+/]').hasMatch(l),
+        orElse: () => 'NOBODYFOUND',
+      );
+      final incompletePem = '-----BEGIN CERTIFICATE-----\n$bodyLine\n';
+      final fakeApksigner = _writeFakeApksigner(
+        pemOutput: incompletePem,
+        expectedApkPath: apk.path,
+      );
+
+      final result = await _runVerifyApkCertificate(
+        apk.path,
+        _primaryDerSha256,
+        outputEnv.path,
+        extraEnv: {'APKSIGNER_BIN': fakeApksigner},
+      );
+
+      expect(result.exitCode, isNot(0),
+          reason: 'incomplete PEM must cause nonzero exit');
+      expect(result.all, contains('missing signing certificate PEM'),
+          reason: 'diagnostic must contain exact '
+              '"missing signing certificate PEM"');
+      expect(outputEnv.existsSync(), isFalse,
+          reason: 'output-env must not exist on failure');
+    });
+
+    test(
+        'openssl conversion failure: emits EXACT '
+        '"certificate DER conversion failed"', () async {
+      expectScriptExists();
+      final tmp = _tmp('verify-apk-openssl-fail');
+      final apk = File('${tmp.path}/dummy.apk')..writeAsStringSync('fake');
+      final outputEnv = File('${tmp.path}/app.env');
+      final fakeApksigner = _writeFakeApksigner(
+        pemOutput: _primaryPem,
+        expectedApkPath: apk.path,
+      );
+      final fakeOpenSSL = _writeFakeOpenSSLFail();
+
+      final result = await _runVerifyApkCertificate(
+        apk.path,
+        _primaryDerSha256,
+        outputEnv.path,
+        extraEnv: {
+          'APKSIGNER_BIN': fakeApksigner,
+          'OPENSSL_BIN': fakeOpenSSL,
+        },
+      );
+
+      expect(result.exitCode, isNot(0),
+          reason: 'openssl failure must cause nonzero exit');
+      expect(result.all, contains('certificate DER conversion failed'),
+          reason: 'diagnostic must contain exact '
+              '"certificate DER conversion failed"');
+      expect(outputEnv.existsSync(), isFalse,
+          reason: 'output-env must not exist on failure');
+    });
+
+    test('console output leaks no hashes, PEM blocks, subjects, or secrets',
+        () async {
+      expectScriptExists();
+      final tmp = _tmp('verify-apk-no-leak');
+      final apk = File('${tmp.path}/dummy.apk')..writeAsStringSync('fake');
+      final outputEnv = File('${tmp.path}/app.env');
+      final fakeApksigner = _writeFakeApksigner(
+        pemOutput: '$_primaryPem\n$_secondaryPem',
+        expectedApkPath: apk.path,
+      );
+
+      final result = await _runVerifyApkCertificate(
+        apk.path,
+        _primaryDerSha256,
+        outputEnv.path,
+        extraEnv: {'APKSIGNER_BIN': fakeApksigner},
+      );
+
+      expect(result.exitCode, 0, reason: result.all);
+      final combined = result.all;
+
+      // No DER hash leaks.
+      expect(combined, isNot(contains(_primaryDerSha256)),
+          reason: 'primary DER hash must not appear in console output');
+      expect(combined, isNot(contains(_secondaryDerSha256)),
+          reason: 'secondary DER hash must not appear in console output');
+
+      // No PEM block content leaks.
+      expect(combined, isNot(contains('BEGIN CERTIFICATE')),
+          reason: 'PEM markers must not leak to console output');
+      // Derive a non-marker base64 line from the runtime primary cert
+      // rather than hardcoding a specific certificate's body.
+      final _primaryBodyLine = _primaryPem.split('\n').firstWhere(
+            (l) =>
+                l.isNotEmpty &&
+                !l.contains('-----') &&
+                RegExp(r'^[A-Za-z0-9+/]').hasMatch(l),
+            orElse: () => 'NOBODYFOUND',
+          );
+      expect(combined, isNot(contains(_primaryBodyLine)),
+          reason: 'PEM body must not leak to console output');
+
+      // No DN/subject strings leak.
+      expect(combined, isNot(contains('TestPrimarySigner')),
+          reason: 'subject CN must not leak to console output');
+      expect(combined, isNot(contains('TestSecondarySigner')),
+          reason: 'subject CN must not leak to console output');
+      expect(combined, isNot(contains('CalorixTest')),
+          reason: 'subject O must not leak to console output');
+      expect(combined, isNot(contains('CalorixStamp')),
+          reason: 'subject O must not leak to console output');
+    });
+
+    test(
+        'workflow delegates to verify-apk-certificate; helper requests '
+        '--print-certs-pem (not --print-certs or label/sed/head parsing)', () {
+      final file = File(_workflow);
+      expect(file.existsSync(), isTrue,
+          reason: '$_workflow must exist but is absent');
+      final raw = file.readAsStringSync();
+
+      expect(raw, contains('verify-apk-certificate'),
+          reason: 'workflow must call verify-apk-certificate');
+
+      final scriptFile = File(_prepareScript);
+      expect(scriptFile.existsSync(), isTrue,
+          reason: '$_prepareScript must exist but is absent');
+      final scriptRaw = scriptFile.readAsStringSync();
+
+      expect(scriptRaw, contains('--print-certs-pem'),
+          reason: 'helper script must contain --print-certs-pem');
+      expect(
+        RegExp(r'--print-certs(?!-pem)').hasMatch(scriptRaw),
+        isFalse,
+        reason: '--print-certs without -pem suffix is the old brittle path '
+            'and must not appear in helper',
+      );
+    });
+
+    test(
+        'workflow contract: verify step forbids label parsing with '
+        'sed or head', () {
+      final file = File(_workflow);
+      expect(file.existsSync(), isTrue,
+          reason: '$_workflow must exist but is absent');
+      final workflow = _loadWorkflowFile(_workflow);
+      final steps = _buildJobSteps(workflow);
+
+      // Select the exact "Verify test signing certificate" step.
+      final verifyIndex = steps.indexWhere((step) =>
+          _stepName(step) == 'Verify test signing certificate' ||
+          _stepRun(step).contains('verify-apk-certificate') ||
+          _stepRun(step).contains('apksigner verify'));
+      expect(verifyIndex, greaterThanOrEqualTo(0),
+          reason: 'Verify test signing certificate step must exist');
+      final verifyRun = _stepRun(steps[verifyIndex]);
+
+      expect(verifyRun, isNot(contains(RegExp(r'\bsed\b'))),
+          reason: 'sed label parsing is forbidden in the verify step');
+      expect(verifyRun, isNot(contains(RegExp(r'\bhead\b'))),
+          reason: 'head-based label parsing is forbidden in the verify step');
+      expect(verifyRun, isNot(contains('certificate SHA-256 digest:')),
+          reason: 'human-readable digest labels are forbidden in verify step');
+      expect(verifyRun, isNot(contains('RAW_CERT')),
+          reason: 'RAW_CERT label extraction is forbidden in verify step');
+    });
+
+    test(
+        'workflow contract: verify step must call verify-apk-certificate '
+        'subcommand of the preparation script', () {
+      final file = File(_workflow);
+      expect(file.existsSync(), isTrue,
+          reason: '$_workflow must exist but is absent');
+      final raw = file.readAsStringSync();
+
+      expect(raw, contains('verify-apk-certificate'),
+          reason: 'workflow must delegate to prepare script '
+              'verify-apk-certificate subcommand');
+      expect(raw, contains('TEST_DEBUG_CERT_SHA256'),
+          reason: 'the test cert SHA-256 must be passed to verification');
+    });
   });
 }
 
