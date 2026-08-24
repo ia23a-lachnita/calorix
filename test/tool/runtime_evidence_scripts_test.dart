@@ -1537,4 +1537,159 @@ void main() {
       expect(yamlStr, isNot(contains('flutter test')));
     });
   });
+
+  group('.github/workflows/android-emulator.yml KVM contract', () {
+    const _kvmWorkflowPath = '.github/workflows/android-emulator.yml';
+
+    YamlMap _loadKvmWorkflow() {
+      final file = File(_kvmWorkflowPath);
+      expect(file.existsSync(), isTrue,
+          reason: '$_kvmWorkflowPath must exist but is absent');
+      return loadYaml(file.readAsStringSync()) as YamlMap;
+    }
+
+    List<YamlMap> _kvmJobSteps(YamlMap workflow) {
+      final job = workflow['jobs'] as YamlMap;
+      expect(job.length, equals(1), reason: 'exactly one job is required');
+      final jobValue = job.values.first as YamlMap;
+      final steps = jobValue['steps'] as YamlList;
+      expect(steps, isNotNull, reason: 'jobs.*.steps is required');
+      return steps.cast<YamlMap>();
+    }
+
+    String _kvmStepName(YamlMap step) {
+      final name = step['name'];
+      return name is String ? name : '';
+    }
+
+    String _kvmStepRun(YamlMap step) {
+      final run = step['run'];
+      return run is String ? run : '';
+    }
+
+    String _kvmStepUses(YamlMap step) {
+      final uses = step['uses'];
+      return uses is String ? uses : '';
+    }
+
+    Map<String, dynamic>? _kvmStepWith(YamlMap step) {
+      final withMap = step['with'];
+      return withMap is Map ? withMap.cast<String, dynamic>() : null;
+    }
+
+    test(
+        'has a named "Enable KVM group perms" run step before the emulator runner',
+        () {
+      final steps = _kvmJobSteps(_loadKvmWorkflow());
+
+      final kvmPermsIndex = steps.indexWhere((step) =>
+          _kvmStepName(step) == 'Enable KVM group perms' &&
+          _kvmStepRun(step).isNotEmpty);
+      final emulatorIndex = steps.indexWhere((step) =>
+          _kvmStepUses(step) == 'reactivecircus/android-emulator-runner@v2');
+
+      expect(kvmPermsIndex, greaterThanOrEqualTo(0),
+          reason: 'a named "Enable KVM group perms" run step is required');
+      expect(emulatorIndex, greaterThanOrEqualTo(0),
+          reason: 'reactivecircus/android-emulator-runner@v2 step is required');
+      expect(kvmPermsIndex, lessThan(emulatorIndex),
+          reason:
+              '"Enable KVM group perms" must run before the emulator runner');
+    });
+
+    test(
+        '"Enable KVM group perms" step writes the official udev rule file with '
+        'KERNEL=="kvm", GROUP="kvm", MODE="0666", and OPTIONS+="static_node=kvm"',
+        () {
+      final steps = _kvmJobSteps(_loadKvmWorkflow());
+
+      final kvmPermsIndex = steps.indexWhere((step) =>
+          _kvmStepName(step) == 'Enable KVM group perms' &&
+          _kvmStepRun(step).isNotEmpty);
+      expect(kvmPermsIndex, greaterThanOrEqualTo(0),
+          reason: 'Enable KVM group perms step must exist');
+      final run = _kvmStepRun(steps[kvmPermsIndex]);
+
+      expect(run, contains('/etc/udev/rules.d/99-kvm4all.rules'),
+          reason:
+              'must write the official udev rule file at /etc/udev/rules.d/99-kvm4all.rules');
+      expect(run, contains('KERNEL=="kvm"'),
+          reason: 'udev rule must match KERNEL=="kvm"');
+      expect(run, contains('GROUP="kvm"'),
+          reason: 'udev rule must set GROUP="kvm"');
+      expect(run, contains('MODE="0666"'),
+          reason: 'udev rule must set MODE="0666"');
+      expect(run, contains('OPTIONS+="static_node=kvm"'),
+          reason:
+              'udev rule must include OPTIONS+="static_node=kvm" (complete string, not just OPTIONS+="static_node")');
+    });
+
+    test(
+        '"Enable KVM group perms" step reloads udev rules and triggers kvm with sudo',
+        () {
+      final steps = _kvmJobSteps(_loadKvmWorkflow());
+
+      final kvmPermsIndex = steps.indexWhere((step) =>
+          _kvmStepName(step) == 'Enable KVM group perms' &&
+          _kvmStepRun(step).isNotEmpty);
+      expect(kvmPermsIndex, greaterThanOrEqualTo(0),
+          reason: 'Enable KVM group perms step must exist');
+      final run = _kvmStepRun(steps[kvmPermsIndex]);
+
+      expect(run, contains('sudo udevadm control --reload-rules'),
+          reason: 'must run sudo udevadm control --reload-rules');
+      expect(run, contains('sudo udevadm trigger --name-match=kvm'),
+          reason: 'must run sudo udevadm trigger --name-match=kvm');
+    });
+
+    test('ordering: build < KVM perms < emulator runner < upload artifact', () {
+      final steps = _kvmJobSteps(_loadKvmWorkflow());
+
+      final buildIndex = steps.indexWhere((step) =>
+          _kvmStepRun(step).contains('fvm flutter build apk --debug --target'));
+      final kvmPermsIndex = steps.indexWhere((step) =>
+          _kvmStepName(step) == 'Enable KVM group perms' &&
+          _kvmStepRun(step).isNotEmpty);
+      final emulatorIndex = steps.indexWhere((step) =>
+          _kvmStepUses(step) == 'reactivecircus/android-emulator-runner@v2');
+      final uploadIndex = steps.indexWhere(
+          (step) => _kvmStepUses(step) == 'actions/upload-artifact@v4');
+
+      expect(buildIndex, greaterThanOrEqualTo(0),
+          reason: 'Build debug APK step is required');
+      expect(kvmPermsIndex, greaterThanOrEqualTo(0),
+          reason: 'Enable KVM group perms step is required');
+      expect(emulatorIndex, greaterThanOrEqualTo(0),
+          reason: 'Emulator runner step is required');
+      expect(uploadIndex, greaterThanOrEqualTo(0),
+          reason: 'Upload artifact step is required');
+
+      expect(buildIndex, lessThan(kvmPermsIndex),
+          reason: 'Build must run before KVM perms');
+      expect(kvmPermsIndex, lessThan(emulatorIndex),
+          reason: 'KVM perms must run before emulator runner');
+      expect(emulatorIndex, lessThan(uploadIndex),
+          reason: 'Emulator runner must run before upload artifact');
+    });
+
+    test(
+        'emulator runner action inputs: disable-linux-hw-accel: false and '
+        'disable-animations: true', () {
+      final steps = _kvmJobSteps(_loadKvmWorkflow());
+
+      final emulatorIndex = steps.indexWhere((step) =>
+          _kvmStepUses(step) == 'reactivecircus/android-emulator-runner@v2');
+      expect(emulatorIndex, greaterThanOrEqualTo(0),
+          reason: 'Emulator runner step is required');
+
+      final withMap = _kvmStepWith(steps[emulatorIndex]);
+      expect(withMap, isNotNull,
+          reason: 'Emulator runner must have with: inputs');
+
+      expect(withMap!['disable-linux-hw-accel'], equals(false),
+          reason: 'disable-linux-hw-accel must be false (KVM enabled)');
+      expect(withMap['disable-animations'], equals(true),
+          reason: 'disable-animations must be true');
+    });
+  });
 }
