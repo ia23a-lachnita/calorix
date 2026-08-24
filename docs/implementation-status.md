@@ -14,7 +14,7 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Repository and protected state
 
-- Repository: `/home/agent-runner/projects/calorix`; branch `fix/test-apk-pem-verification`; handoff baseline HEAD `4870b0c` (the handoff commit will name this predecessor).
+- Repository: `/home/agent-runner/projects/calorix`; branch `fix/test-apk-pem-verification`; durable handoff commit `cadfa24` (the runtime-policy commit will name this predecessor).
 - The working tree contains a user-owned `.mcp.json` modification. Never stage, restore, rewrite, or discard it.
 - Every meaningful stage must update this file, commit, and push. Workers edit; the main host reviews, verifies, commits, and pushes. Antigravity MCP review is required before and after substantive work.
 - Swiss Shopping and Vid Gain have intentionally separate deployment/PWA install behavior. Do not change their deployment, hosting, manifest, service-worker, or install configuration while working on Calorix unless the user explicitly changes scope.
@@ -68,14 +68,15 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Exact next actions
 
-1. Update `AGENTS.md` and `.claude/tools.md` so the physical-phone rules above are active policy. Preserve the CI Cadence bullets byte-for-byte; `test/tool/android_test_apk_contract_test.dart` asserts them.
-2. Update ui-diff-mcp `AGENTS.md`, active README/operator guidance, `docs/release/production-readiness-checklist.md`, and top implementation status to use the Samsung and retire ReDroid/Cuttlefish as active routes while retaining history.
-3. Add and observe the accepted RED contracts for reduced-motion History and hidden runtime-evidence upload; then implement the complete runtime-gate repair plan.
-4. Run the focused contracts, analyzer/full verification, Antigravity post-review, commit/push, and rerun the real GitHub emulator gate.
-5. Install the exact verified APK on the Samsung with `/home/agent-runner/.local/bin/phone-adb install -r <apk>`, launch `com.calorix.calorix`, exercise guest/reseed flows, capture screenshot/logcat evidence, and record whether it works.
-6. Move to the five user-reported product findings only after runtime evidence is trustworthy.
+1. Install the exact verified APK on the Samsung with `/home/agent-runner/.local/bin/phone-adb install -r <apk>`, launch `com.calorix.calorix`, exercise guest/reseed flows, capture screenshot/logcat evidence, and record whether it works.
+2. Add and observe the accepted RED contracts for reduced-motion History and hidden runtime-evidence upload; then implement the complete runtime-gate repair plan.
+3. Run the focused contracts, analyzer/full verification, Antigravity post-review, commit/push, and rerun the real GitHub emulator gate.
+4. Update ui-diff-mcp active README/operator/release guidance to use the Samsung and retire ReDroid/Cuttlefish as active routes while retaining history. Add an implementation task for configurable ADB executable/serial isolation before treating MCP auto-capture as physical-phone evidence.
+5. Move to the five user-reported product findings only after runtime evidence is trustworthy.
 
 ## Current Task
+
+- **Physical-phone runtime policy activated at `2026-08-24`**: `AGENTS.md` and `.claude/tools.md` now make the dedicated Samsung `SM-G780G`, Android `13`, serial `R58R61161NA` the only default local Android target and require the absolute `/home/agent-runner/.local/bin/phone-adb` wrapper for every operation. Cuttlefish, `android-vm`, ReDroid, desktop AVDs, and local emulators are retired; GitHub's emulator remains an independent CI gate. The CI Cadence bullets were preserved byte-for-byte. `git diff --check` passed. The pinned Flutter `3.41.9` container ran `test/tool/android_test_apk_contract_test.dart` and passed **73/73** in `9m21s` on this ARM64 host. Antigravity conversation `physical-phone-fresh-session-handoff-20260824` using `gemini-3.6-flash` returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, and `SHOULD_FIX: none`; no response noise or repository mutation was observed. The user-owned `.mcp.json` remains untouched and unstaged. Next: commit/push these instruction and tracking files, then finish the corresponding ui-diff-mcp operator guidance.
 
 - **Worker fallback at `2026-08-24T20:07:50+02:00`**: `grok-4.6`, category `quota_exhausted/no_mutation`; exact response: `You’ve reached your free Grok Build usage limit for now. Get SuperGrok for much higher limits, or try again later: https://grok.com/supergrok?referrer=grok-build`. Continue the physical-phone handoff documentation stage with `qwen3.7-max`.
 - **Worker fallback at `2026-08-24T20:08:30+02:00`**: `qwen3.7-max`, category `quota_exhausted/no_mutation`; exact response: `[API Error: 403 The free quota has been exhausted. To continue accessing the model on a paid basis, please complete your payment information （or disable the "use free tier only" mode in the management console if already completed).]`. The OpenCode free pool remains user-confirmed exhausted from the `2026-08-24T18:29:28+02:00` attempt, so skip all three shared free routes and try the paid last route.

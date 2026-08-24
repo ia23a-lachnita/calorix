@@ -17,24 +17,49 @@ fvm dart --version
 
 Never use plain `flutter` or `dart` in project work unless diagnosing global SDK setup.
 
-## Virtual Android / Device Setup
+## Physical Samsung Device
 
-The primary local Android target on the Raspberry Pi is the KVM-backed
-Cuttlefish Android 17 ARM64 VM:
+The only default local Android target is the dedicated USB-connected Samsung
+`SM-G780G`, Android `13`, serial `R58R61161NA`. Every device command must use
+the absolute wrapper path below. The wrapper pins `adb -s R58R61161NA`; never
+use plain `adb` or rely on automatic device selection.
+
+Identity preflight:
 
 ```bash
-android-vm start
-android-vm wait
-android-vm adb devices
-android-vm adb install -r build/app/outputs/flutter-apk/app-debug.apk
-android-vm adb exec-out screencap -p > build/runtime-evidence/screen.png
-android-vm stop
+/home/agent-runner/.local/bin/phone-adb devices -l
+/home/agent-runner/.local/bin/phone-adb shell getprop ro.product.model
+/home/agent-runner/.local/bin/phone-adb shell getprop ro.build.version.release
+/home/agent-runner/.local/bin/phone-adb get-serialno
 ```
 
-`android-vm wait` waits for `sys.boot_completed=1`; a cold first boot can
-take several minutes. The wrapper has no `screenshot` subcommand. ReDroid and
-the old desktop AVD are not local validation routes. GitHub's x86_64 API 34
-emulator workflow is an independent CI gate.
+Install and launch a verified APK:
+
+```bash
+/home/agent-runner/.local/bin/phone-adb install -r /absolute/path/to/calorix.apk
+/home/agent-runner/.local/bin/phone-adb shell monkey -p com.calorix.calorix -c android.intent.category.LAUNCHER 1
+```
+
+Seed deterministic debug data and capture evidence:
+
+```bash
+/home/agent-runner/.local/bin/phone-adb shell am start -a android.intent.action.VIEW -d calorix://debug/reseed
+/home/agent-runner/.local/bin/phone-adb exec-out screencap -p > build/runtime-evidence/screen.png
+/home/agent-runner/.local/bin/phone-adb logcat -c
+# Exercise the bounded flow, then collect at most 2,000 lines.
+/home/agent-runner/.local/bin/phone-adb logcat -d -v threadtime -t 2000 > build/runtime-evidence/logcat.txt
+```
+
+Before installation, prove that the APK belongs to committed/pushed source and
+verify its recorded source SHA, checksum, and signer certificate. Follow the
+CI cadence in `AGENTS.md`; do not use an old local APK as evidence for current
+source. Do not uninstall the app, run `pm clear`, wipe device/app data, mutate
+accounts, or trigger production uploads/writes unless the current task
+explicitly requires and authorizes it.
+
+Cuttlefish, `android-vm`, ReDroid, desktop AVDs, and local emulators are
+retired. Do not start or troubleshoot them. GitHub's x86_64 API 34 emulator
+workflow remains an independent CI gate.
 
 ## MCP Servers (configured in `.mcp.json` / host configs)
 
@@ -54,7 +79,7 @@ Firebase/gcloud connectors stay off unless the user enables them for a session. 
 
 ## ui-diff MCP Workflow (UI parity)
 
-The `ui-diff` server (from `C:\Users\xursc\projects\ui-diff-mcp`) replaces the old `mobile-ui-diff` server; local-ollama VLM policies (`vlm_health`, qwen2.5vl/moondream models) are obsolete.
+The `ui-diff` server (from `/home/agent-runner/projects/ui-diff-mcp`) replaces the old `mobile-ui-diff` server; local-ollama VLM policies (`vlm_health`, qwen2.5vl/moondream models) are obsolete.
 
 Tools:
 
@@ -70,6 +95,7 @@ Rules:
 2. Do not claim design parity from a completed run alone: check `visualClassificationStatus: complete`, `auditLimited: false`, and inspect the final overlay artifacts for the areas you changed.
 3. Reference mockups live in `docs/design-handoff/placeholder-app/reference-images/`.
 4. Run evidence lands in `.ui-diff/runs/` (git-ignored); reference run IDs, not pasted logs.
+5. On this host, `capture_mobile_screen` currently invokes plain `adb` internally and cannot guarantee Samsung serial isolation. Until ui-diff-mcp adds a tested configurable ADB executable, capture with `/home/agent-runner/.local/bin/phone-adb exec-out screencap -p` and provide that exact image to the comparison run. Do not call the MCP capture tool as physical-phone evidence.
 
 ## External Docs Policy
 

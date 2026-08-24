@@ -15,6 +15,12 @@ Source-of-truth order (read the relevant one before changing behavior, UI, data,
 3. `.claude/design.md`
 4. `.claude/tools.md`
 
+At the start of every session, read `docs/implementation-status.md` before
+acting, then verify the recorded branch/HEAD with `git status` and
+`git log -1 --oneline`. Read `.claude/tools.md` before any build, device,
+runtime, or UI-diff operation. The top fresh-session handoff in the status file
+supersedes contradictory historical entries below it.
+
 ## 2. Non-Negotiables
 
 - Use FVM for all Flutter/Dart commands (`fvm flutter …`, `fvm dart …`). Plain `flutter`/`dart` only to diagnose global SDK setup.
@@ -56,8 +62,8 @@ The main agent retains requirements interpretation, architecture and tradeoffs, 
 | UI parity | `ui-diff` MCP server tools | `ui-diff` MCP server tools |
 
 - Google MCP connectors (`firebase`, `gcloud`) are **disabled by default** in this repo's Claude, Codex, and Gemini configs. Do not silently re-enable them. If a task genuinely needs Firebase/GCP tooling, state that and let the user enable the connector for the session; CLI fallbacks (`firebase`, `gcloud` commands) still require the safety gates in section 6.
-- Detailed tool/MCP policy, emulator setup, and the ui-diff workflow live in `.claude/tools.md`.
-- Primary local Android is KVM-backed Cuttlefish Android 17 ARM64: `android-vm start`, `android-vm wait`, `android-vm adb ...`, `android-vm stop`. Capture screenshots with `android-vm adb exec-out screencap -p > file.png`. ReDroid is retired historical context. GitHub x86_64 emulator CI remains an independent gate.
+- Detailed tool/MCP policy, physical-device setup, and the ui-diff workflow live in `.claude/tools.md`.
+- The only default local Android target is the USB-connected Samsung `SM-G780G`, Android `13`, serial `R58R61161NA`. Use `/home/agent-runner/.local/bin/phone-adb` for every device operation; it pins that serial. Never use plain `adb` or implicit device selection. Cuttlefish, `android-vm`, ReDroid, desktop AVDs, and local emulators are retired and must not be started or troubleshot unless the user explicitly changes this policy. GitHub x86_64 emulator CI remains an independent gate, not the default local target.
 
 ## 4. External Review Contract (Antigravity MCP)
 
