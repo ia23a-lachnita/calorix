@@ -8,7 +8,78 @@ Flutter: 3.41.9 stable, Dart 3.11.5, DevTools 2.54.2
 Functions scripts: test=vitest run, lint=eslint src test, build=tsc -p tsconfig.json, test:watch=vitest, test:rules=firebase emulators:exec --only firestore vitest rules config, deploy=out of scope
 Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-runs/, .gemini/settings.json.bak-20260517-220447, assets/calorix_icons/, docs/screenshots/today-screen-2026-06-17-adb-current.png, docs/screenshots/today-screen-2026-07-01-parity-fixes.png, docs/screenshots/today-screen-preflight-2026-06-05.png
 
+## Fresh Session Handoff (Authoritative)
+
+Read this section before acting. It supersedes contradictory runtime/device instructions in historical entries below. Historical evidence remains useful, but it is not current operating policy.
+
+### Repository and protected state
+
+- Repository: `/home/agent-runner/projects/calorix`; branch `fix/test-apk-pem-verification`; handoff baseline HEAD `4870b0c` (the handoff commit will name this predecessor).
+- The working tree contains a user-owned `.mcp.json` modification. Never stage, restore, rewrite, or discard it.
+- Every meaningful stage must update this file, commit, and push. Workers edit; the main host reviews, verifies, commits, and pushes. Antigravity MCP review is required before and after substantive work.
+- Swiss Shopping and Vid Gain have intentionally separate deployment/PWA install behavior. Do not change their deployment, hosting, manifest, service-worker, or install configuration while working on Calorix unless the user explicitly changes scope.
+- Never record secrets, API keys, Firebase login tokens, signing material, or user credentials here.
+
+### Default Android device
+
+- The user explicitly authorized autonomous testing on the dedicated physical Samsung `SM-G780G`, Android `13`, serial `R58R61161NA`, connected by USB to this Pi.
+- Use `/home/agent-runner/.local/bin/phone-adb` for every device operation. It is a wrapper for `adb -s R58R61161NA`; do not use plain `adb` or implicit device selection.
+- Identity preflight:
+  - `/home/agent-runner/.local/bin/phone-adb devices -l`
+  - `/home/agent-runner/.local/bin/phone-adb shell getprop ro.product.model`
+  - `/home/agent-runner/.local/bin/phone-adb shell getprop ro.build.version.release`
+  - `/home/agent-runner/.local/bin/phone-adb get-serialno`
+- Cuttlefish, `android-vm`, ReDroid, desktop AVDs, and local emulators are retired. Do not start, troubleshoot, or use them. The current authorization supersedes historical entries that prohibited touching the phone.
+- GitHub's x86_64 emulator remains an independent CI/runtime gate; it is not the default local device.
+- Do not uninstall the app, clear app data, wipe the device, mutate accounts, or trigger production uploads/writes unless the current task explicitly requires and authorizes that action.
+
+### First successful test APK
+
+- GitHub run `32743994270` at source `6b2462dc08327ae2c0245f350a8635a30252629b` passed reusable Functions/Flutter verification, APK build, explicit test signing, PEM/DER certificate verification, distributable preparation, upload, and cleanup.
+- Artifact: `android-test-apk-6b2462dc08327ae2c0245f350a8635a30252629b`; artifact ID `9526755553`.
+- Durable local copy: `/home/agent-runner/artifacts/calorix/run-32743994270/calorix-1.0.0+1-android-test.apk`.
+- Independent checks passed for source SHA, APK SHA-256, ZIP integrity, and the signer certificate extracted from embedded PKCS#7 data. Exact-artifact install, launch, guest flow, screenshot, and logcat validation on the Samsung remain pending.
+
+### Runtime gate state
+
+- GitHub emulator run `32742002688` proved KVM acceleration and full emulator boot; the suite executed `47` tests with `40` passing and `7` failing. The failures are product/test synchronization defects, not an emulator-start failure.
+- Manual flow: a fixed `300ms` wait raced route completion after camera-permission fallback; use a bounded frame-by-frame `pumpUntilVisible` for the manual-entry screen and `Add food`.
+- CRUD: the Protein editor was obscured by the sticky Save control, so the tap missed and `TextFormField.last` threw. Center it with `Scrollable.ensureVisible(alignment: 0.5)`, then require a hit-testable target and field precondition.
+- Goals: after scrolling to Protein and closing the modal, the sliver-header Save key was unmounted. Ensure it is visible again and hit-testable before tapping.
+- History/traversal/restart: CI disables animations, `AppMotion.durationOf` becomes zero, and `HistoryScreen` still wraps the changing week/month child in `AnimatedSize`. This raises `RenderAnimatedSize was mutated in its own performLayout`. Under reduced motion render the selected child directly; retain `AnimatedSize` only for normal motion.
+- Today empty state: tests still expect `No meals logged yet` / `Tap Scan to photograph your meal`; intentional product copy is `Nothing logged yet` / `Point the camera at your first meal - one tap and it's tracked.` Update only the stale test expectations.
+- Runtime evidence upload: `.runtime_evidence/github/` is hidden and `actions/upload-artifact` omitted it because `include-hidden-files` defaults false. Set `include-hidden-files: true` and retain an executable workflow contract test.
+- The externally reviewed RED/GREEN plan is accepted: focused failing contracts first, minimal production/workflow fixes, focused tests, complete runtime-evidence contracts, analyzer/full verification, Antigravity post-review, commit/push, then rerun the real GitHub emulator gate and inspect the downloaded evidence artifact.
+
+### Open user-reported product findings
+
+- Product detail shows a black void above content when scrolling downward.
+- Food capture still waits as though recording video. It should take an immediate still photo, briefly animate the shutter control, and morph the captured photo into its next position.
+- AI chat does not work. If authentication is required, guest users need an explicit sign-up/sign-in boundary instead of a broken chat surface.
+- The installed Actions build reported an internal server error / invalid API key, while Google and Apple sign-in reported a connection error. Diagnose build-time Firebase/backend configuration and auth wiring without exposing credentials.
+- Username/password fields on the sign-in screen are not visually centered.
+- These findings belong in the active product roadmap after the runtime gate is reliable; use test-first fixes, the Samsung for runtime evidence, and ui-diff for visual changes.
+
+### Related ui-diff-mcp state
+
+- Repository: `/home/agent-runner/projects/ui-diff-mcp`; master handoff HEAD `da1846e` and clean at this handoff.
+- The physical Samsung is now the only default Android capture source there as well; use `/home/agent-runner/.local/bin/phone-adb`. Cuttlefish/ReDroid are retired and must not be treated as current release evidence.
+- The Pi CPU LocateAnything path and sidecar work remain separate from Android capture. Production readiness is still blocked on later locator/live-evidence stages recorded in that repository's `docs/implementation-status.md`.
+
+### Exact next actions
+
+1. Update `AGENTS.md` and `.claude/tools.md` so the physical-phone rules above are active policy. Preserve the CI Cadence bullets byte-for-byte; `test/tool/android_test_apk_contract_test.dart` asserts them.
+2. Update ui-diff-mcp `AGENTS.md`, active README/operator guidance, `docs/release/production-readiness-checklist.md`, and top implementation status to use the Samsung and retire ReDroid/Cuttlefish as active routes while retaining history.
+3. Add and observe the accepted RED contracts for reduced-motion History and hidden runtime-evidence upload; then implement the complete runtime-gate repair plan.
+4. Run the focused contracts, analyzer/full verification, Antigravity post-review, commit/push, and rerun the real GitHub emulator gate.
+5. Install the exact verified APK on the Samsung with `/home/agent-runner/.local/bin/phone-adb install -r <apk>`, launch `com.calorix.calorix`, exercise guest/reseed flows, capture screenshot/logcat evidence, and record whether it works.
+6. Move to the five user-reported product findings only after runtime evidence is trustworthy.
+
 ## Current Task
+
+- **Worker fallback at `2026-08-24T20:07:50+02:00`**: `grok-4.6`, category `quota_exhausted/no_mutation`; exact response: `You’ve reached your free Grok Build usage limit for now. Get SuperGrok for much higher limits, or try again later: https://grok.com/supergrok?referrer=grok-build`. Continue the physical-phone handoff documentation stage with `qwen3.7-max`.
+- **Worker fallback at `2026-08-24T20:08:30+02:00`**: `qwen3.7-max`, category `quota_exhausted/no_mutation`; exact response: `[API Error: 403 The free quota has been exhausted. To continue accessing the model on a paid basis, please complete your payment information （or disable the "use free tier only" mode in the management console if already completed).]`. The OpenCode free pool remains user-confirmed exhausted from the `2026-08-24T18:29:28+02:00` attempt, so skip all three shared free routes and try the paid last route.
+- **Worker fallback at `2026-08-24T20:09:30+02:00`**: `claude-sonnet-5`, category `quota_exhausted/no_mutation`; exact response: `You've hit your weekly limit · resets 3am (Europe/Zurich)`. All editing worker routes are unavailable. The main host completed only this allowed tracking/handoff update; policy-file edits remain pending a worker reset or explicit user override.
 
 **Current task: complete runtime proof for the first successfully built and verified test APK. GitHub run `32743994270` at source `6b2462d` passed reusable Functions/Flutter verification plus APK build, explicit signing, PEM/DER signer verification, distributable preparation, and upload. Artifact `android-test-apk-6b2462dc08327ae2c0245f350a8635a30252629b` is downloaded durably at `/home/agent-runner/artifacts/calorix/run-32743994270/`; independent host checks pass for source SHA, APK SHA-256, ZIP integrity, and the embedded PKCS#7 signer certificate. Install/launch proof remains open: Cuttlefish is blocked after one unclean Pi reboot with the original 4-vCPU/4-GB profile and a second constrained 2-vCPU/2-GB launch that stayed alive but never produced guest kernel/ADB readiness. Do not launch Cuttlefish again in this workstream; repair the seven GitHub emulator runtime failures and use that KVM gate as authoritative runtime evidence. Swiss Shopping/Vid Gain deployment and PWA files remain explicitly out of scope and untouched.**
 
