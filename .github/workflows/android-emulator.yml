@@ -79,5 +79,6 @@ jobs:
         with:
           name: emulator-run-${{ github.sha }}
           path: .runtime_evidence/github/
+          include-hidden-files: true
           retention-days: 30
           if-no-files-found: warn

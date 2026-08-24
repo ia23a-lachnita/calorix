@@ -183,17 +183,21 @@ void main() {
     expect(previous.onTap, isNull);
   });
 
-  testWidgets('week-month transition honors normal and reduced motion',
+  testWidgets('week-month transition animates when motion is enabled',
       (tester) async {
     await tester.pumpWidget(_buildHistoryScreen());
     await _pump(tester);
+    expect(find.byType(AnimatedSize), findsOneWidget);
     expect(tester.widget<AnimatedSize>(find.byType(AnimatedSize)).duration,
         const Duration(milliseconds: 300));
+  });
 
+  testWidgets('reduced motion renders history without AnimatedSize',
+      (tester) async {
     await tester.pumpWidget(_buildHistoryScreen(disableAnimations: true));
     await _pump(tester);
-    expect(tester.widget<AnimatedSize>(find.byType(AnimatedSize)).duration,
-        Duration.zero);
+    expect(find.byType(AnimatedSize), findsNothing);
+    expect(find.text('THIS WEEK'), findsOneWidget);
   });
 
   testWidgets('month statuses show green and amber while future stays disabled',

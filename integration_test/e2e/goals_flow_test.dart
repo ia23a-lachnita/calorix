@@ -68,9 +68,26 @@ void main() {
     expect(find.text('180'), findsWidgets);
 
     // ── 6. Save the goals ─────────────────────────────────────────────
-    await tester.tap(find.byKey(const Key('goals-adjust-save')));
+    final saveGoals = find.byKey(const Key('goals-adjust-save'));
+    await tester.scrollUntilVisible(
+      saveGoals,
+      -300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await Scrollable.ensureVisible(
+      tester.element(saveGoals),
+      alignment: 0.5,
+    );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
+    expect(saveGoals.hitTestable(), findsOneWidget);
+    await tester.tap(saveGoals.hitTestable());
+    await pumpUntil(
+      tester,
+      () =>
+          harness.macroStore.activePlan?.kcal == 2200 &&
+          harness.macroStore.activePlan?.protein == 180,
+      description: 'persisted goal targets',
+    );
 
     // After saving, the draft resets from the new plan.
     // Verify the plan was persisted through the in-memory store.

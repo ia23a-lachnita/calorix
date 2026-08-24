@@ -21,9 +21,21 @@ void main() {
 
     await tester.tap(find.text('Edit'));
     await tester.pump();
-    await tester.ensureVisible(find.byKey(const Key('macro-editor-Protein')));
-    await tester.tap(find.byKey(const Key('macro-editor-Protein')));
+    final proteinEditor = find.byKey(const Key('macro-editor-Protein'));
+    expect(proteinEditor, findsOneWidget);
+    await Scrollable.ensureVisible(
+      tester.element(proteinEditor),
+      alignment: 0.5,
+    );
     await tester.pump();
+    expect(proteinEditor.hitTestable(), findsOneWidget);
+    await tester.tap(proteinEditor.hitTestable());
+    await pumpUntilVisible(
+      tester,
+      find.text('Edit Protein (g)'),
+      description: 'Protein editor sheet',
+    );
+    expect(find.byType(TextFormField), findsWidgets);
     await tester.enterText(find.byType(TextFormField).last, '55');
     await SystemChannels.textInput.invokeMethod<void>(
       'TextInput.hide',
@@ -36,16 +48,18 @@ void main() {
     await tester.pump();
     expect(doneFinder.hitTestable(), findsOneWidget);
     await tester.tap(doneFinder.hitTestable());
-    await tester.pump(const Duration(milliseconds: 300));
-
     final saveFinder = find.widgetWithText(ElevatedButton, 'Save to Today');
-    expect(saveFinder, findsOneWidget);
-    await tester.ensureVisible(saveFinder);
-    await tester.pump();
-    expect(saveFinder.hitTestable(), findsOneWidget);
+    await pumpUntilVisible(
+      tester,
+      saveFinder.hitTestable(),
+      description: 'hit-testable Save to Today control',
+    );
     await tester.tap(saveFinder.hitTestable());
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await pumpUntil(
+      tester,
+      () => harness.foodStore.entry('crud-entry')?.baseProtein == 55,
+      description: 'persisted Protein correction',
+    );
 
     expect(harness.foodStore.entry('crud-entry')?.baseProtein, 55);
 
@@ -61,8 +75,11 @@ void main() {
     await tester.pump();
     expect(find.text('Delete entry?'), findsOneWidget);
     await tester.tap(find.text('Delete'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await pumpUntil(
+      tester,
+      () => harness.foodStore.entry('crud-entry') == null,
+      description: 'entry deletion',
+    );
 
     expect(harness.foodStore.entry('crud-entry'), isNull);
     expect(harness.foodStore.allEntries, hasLength(1));

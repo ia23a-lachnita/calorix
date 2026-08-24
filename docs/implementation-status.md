@@ -12,6 +12,17 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 Read this section before acting. It supersedes contradictory runtime/device instructions in historical entries below. Historical evidence remains useful, but it is not current operating policy.
 
+### Continuation checkpoint — 2026-08-25
+
+- **Current task**: finish the Android runtime-gate repair on branch `fix/test-apk-pem-verification` from pushed predecessor `53af04ca55b2`. Intended remaining verification is the pinned Flutter analyzer/full tests, a fresh GitHub x86 emulator matrix run with downloaded evidence inspection, and a source-matching test-APK build/install/capture. The user-owned `.mcp.json` modification remains protected and must never be staged, restored, or rewritten.
+- **Explicit authorization**: the user confirmed the Samsung is a fully disposable second/development phone and authorized uninstall/app-data clearing when needed. The user also explicitly authorized the main Codex host to make the bounded repository edits in this runtime-gate workstream after all configured editing-worker routes were unavailable. This authorization does not permit production cloud writes, deployments, credential exposure, or changes to unrelated apps/projects.
+- **Exact-artifact physical proof complete**: `/home/agent-runner/.local/bin/phone-adb uninstall com.calorix.calorix` and installation of run `32743994270` APK succeeded. The exact APK remains `/home/agent-runner/artifacts/calorix/run-32743994270/calorix-1.0.0+1-android-test.apk`, source `6b2462dc08327ae2c0245f350a8635a30252629b`, APK SHA-256 `ec548f706654a7fc10e42f67d0be15081b39753dd5b7a0bff64fb349119924ac`, signer SHA-256 `38815FD37711F170E534CF3C8767DE7F0F7CA5F958E755D8A47B03FE2B764B7C`. On serial `R58R61161NA`, package launch, anonymous guest entry, camera-denial to manual-entry fallback, and `calorix://debug/reseed` all succeeded without a fatal app crash or invalid-API-key/internal-server-error log. Visually inspected 1080x2400 captures are `device-proof/screen.png` SHA-256 `6fae79f6d6210e6833bff260aec76c2076f3d65bd8993ac7f9254563069a8c8a`, `device-proof/guest-manual.png` SHA-256 `d19b088bf47e5f29a2abd2cdf70de9df33f1a13de864209736ef27e2f9d415b7`, and `device-proof/reseed-today.png` SHA-256 `79784fd8d3a57622e4479bad2baddc9fb930e08d98141e7800f0ccf2951de2c6`. Bounded logs are `device-proof/logcat.txt` (2,329 lines) and `device-proof/postflow-logcat.txt` (2,300 lines). These artifacts are outside the repository and are diagnostic physical proof for source `6b2462d`; they are not yet proof for the pending repair commit.
+- **Runtime-gate TDD checkpoint**: focused RED for reduced-motion History reproduced the hosted synchronous render stall for more than four minutes; a bounded retry also remained stuck inside layout past the requested 45-second framework timeout and was interrupted, matching run `32742002688`'s `RenderAnimatedSize` failure. The independent workflow RED failed only because `include-hidden-files` was null. GREEN now bypasses `AnimatedSize` under reduced motion while preserving the 300ms normal transition, enables hidden evidence upload, replaces affected fixed route waits with bounded frame/condition polling, centers and requires hit-testable CRUD/Goals controls, and updates only stale Today expectations. The selected normal History, reduced-motion History, and workflow contract command passed **3/3**. `dart format` completed with eight files checked and one formatted; `git diff --check` passed.
+- **Post-implementation review green**: Antigravity MCP conversation `calorix-runtime-gate-repair-20260825`, model `gemini-3.6-flash`, returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. The reviewer was explicitly read-only; `git status` confirmed no reviewer mutation.
+- **Full local analyzer result**: pinned Flutter `3.41.9` under ARM64-to-amd64 emulation completed in `1496.6s` and exited `1` with the known local generated-config blocker: missing `lib/core/firebase/firebase_options.dart` caused `uri_does_not_exist` and undefined `DefaultFirebaseOptions` in `lib/main.dart`. It also reported 23 pre-existing info-level lints in tool contract tests. It reported no diagnostic in the changed History, integration-harness, journey, or workflow-contract files. Treat this as a precisely recorded local blocker, not a clean analyzer pass; the source-configured GitHub verification workflow must provide the definitive full analyzer result.
+- **Complete affected-suite verification**: pinned Flutter `3.41.9` command `flutter test test/history_screen_test.dart test/tool/runtime_evidence_scripts_test.dart --reporter expanded --no-pub` passed **63/63** in `9m59s`, including both normal/reduced History behavior and the complete emulator/runtime-evidence workflow contract suite.
+- **Independent code review**: read-only reviewer checked the diff from `53af04ca55b2`, excluding protected `.mcp.json`, and reported `Critical: none`, `Important: none`, `Minor: none`; final readiness was commit/push followed by the fresh GitHub emulator and source-matching artifact gates. The reviewer made no repository mutation.
+
 ### Repository and protected state
 
 - Repository: `/home/agent-runner/projects/calorix`; branch `fix/test-apk-pem-verification`; durable handoff commit `cadfa24` (the runtime-policy commit will name this predecessor).
@@ -31,14 +42,14 @@ Read this section before acting. It supersedes contradictory runtime/device inst
   - `/home/agent-runner/.local/bin/phone-adb get-serialno`
 - Cuttlefish, `android-vm`, ReDroid, desktop AVDs, and local emulators are retired. Do not start, troubleshoot, or use them. The current authorization supersedes historical entries that prohibited touching the phone.
 - GitHub's x86_64 emulator remains an independent CI/runtime gate; it is not the default local device.
-- Do not uninstall the app, clear app data, wipe the device, mutate accounts, or trigger production uploads/writes unless the current task explicitly requires and authorizes that action.
+- Uninstalling this app and clearing its local app data are authorized for the current runtime-evidence workstream. Do not wipe the whole device, mutate unrelated accounts/apps, or trigger production uploads/writes without separate explicit scope.
 
 ### First successful test APK
 
 - GitHub run `32743994270` at source `6b2462dc08327ae2c0245f350a8635a30252629b` passed reusable Functions/Flutter verification, APK build, explicit test signing, PEM/DER certificate verification, distributable preparation, upload, and cleanup.
 - Artifact: `android-test-apk-6b2462dc08327ae2c0245f350a8635a30252629b`; artifact ID `9526755553`.
 - Durable local copy: `/home/agent-runner/artifacts/calorix/run-32743994270/calorix-1.0.0+1-android-test.apk`.
-- Independent checks passed for source SHA, APK SHA-256, ZIP integrity, and the signer certificate extracted from embedded PKCS#7 data. Exact-artifact install, launch, guest flow, screenshot, and logcat validation on the Samsung remain pending.
+- Independent checks passed for source SHA, APK SHA-256, ZIP integrity, and the signer certificate extracted from embedded PKCS#7 data. Exact-artifact install, launch, guest flow, camera-denial/manual fallback, reseed, screenshot inspection, and bounded logcat validation on the Samsung are complete as recorded in the continuation checkpoint above.
 
 ### Runtime gate state
 
@@ -68,9 +79,9 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Exact next actions
 
-1. Install the exact verified APK on the Samsung with `/home/agent-runner/.local/bin/phone-adb install -r <apk>`, launch `com.calorix.calorix`, exercise guest/reseed flows, capture screenshot/logcat evidence, and record whether it works.
-2. Add and observe the accepted RED contracts for reduced-motion History and hidden runtime-evidence upload; then implement the complete runtime-gate repair plan.
-3. Run the focused contracts, analyzer/full verification, Antigravity post-review, commit/push, and rerun the real GitHub emulator gate.
+1. Collect the running pinned Flutter analyzer result, run full verification, then update this checkpoint with exact counts/blockers.
+2. Commit and push the reviewed runtime-gate repair without staging `.mcp.json`; dispatch and inspect the real GitHub emulator gate, including its now-visible evidence artifact.
+3. Dispatch the source-matching Android test-APK workflow, verify/download/install the exact artifact on the Samsung, and capture fresh post-repair physical evidence.
 4. Update ui-diff-mcp active README/operator/release guidance to use the Samsung and retire ReDroid/Cuttlefish as active routes while retaining history. Add an implementation task for configurable ADB executable/serial isolation before treating MCP auto-capture as physical-phone evidence.
 5. Move to the five user-reported product findings only after runtime evidence is trustworthy.
 

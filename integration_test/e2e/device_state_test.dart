@@ -171,7 +171,11 @@ void main() {
     await tester.tap(
       find.byKey(const ValueKey('permission-add-manually-card')),
     );
-    await tester.pump(const Duration(milliseconds: 300));
+    await pumpUntilVisible(
+      tester,
+      find.text('Add food'),
+      description: 'manual entry after camera denial',
+    );
     expect(find.text('Add food'), findsOneWidget);
 
     await harness.go(tester, '/scan');
@@ -199,8 +203,13 @@ void main() {
     await harness.pump(tester, initialLocation: '/today');
     await _settle(tester);
     expect(find.byType(TodayScreen), findsOneWidget);
-    expect(find.text('No meals logged yet'), findsOneWidget);
-    expect(find.text('Tap Scan to photograph your meal'), findsOneWidget);
+    expect(find.text('Nothing logged yet'), findsOneWidget);
+    expect(
+      find.text(
+        "Point the camera at your first meal — one tap and it's tracked.",
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 

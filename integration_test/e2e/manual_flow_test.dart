@@ -18,7 +18,11 @@ void main() {
     await tester.tap(
       find.byKey(const ValueKey('permission-add-manually-card')),
     );
-    await tester.pump(const Duration(milliseconds: 300));
+    await pumpUntilVisible(
+      tester,
+      find.text('Add food'),
+      description: 'manual entry after permission denial',
+    );
 
     expect(find.text('Add food'), findsOneWidget);
   });
@@ -46,7 +50,11 @@ void main() {
     );
 
     await tester.tap(find.text('None of these'));
-    await tester.pump(const Duration(milliseconds: 300));
+    await pumpUntilVisible(
+      tester,
+      find.text('Add food'),
+      description: 'manual entry after rejecting review candidates',
+    );
 
     expect(find.text('Add food'), findsOneWidget);
   });
@@ -56,8 +64,11 @@ void main() {
     await harness.pump(tester, initialLocation: '/manual');
 
     await tester.tap(find.byTooltip('Add Chicken Rice Bowl'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await pumpUntilVisible(
+      tester,
+      find.byType(TodayScreen),
+      description: 'Today screen after adding recent food',
+    );
 
     expect(find.byType(TodayScreen), findsOneWidget);
     expect(

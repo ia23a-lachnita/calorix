@@ -589,6 +589,37 @@ class FakeE2EAiChatService implements AiChatService {
 
 const e2eTestUid = 'e2e-test-uid';
 
+Future<void> pumpUntil(
+  WidgetTester tester,
+  bool Function() condition, {
+  required String description,
+  int maxPumps = 100,
+  Duration step = const Duration(milliseconds: 50),
+}) async {
+  for (var pump = 0; pump < maxPumps; pump++) {
+    if (condition()) return;
+    await tester.pump(step);
+  }
+  if (condition()) return;
+  throw TestFailure(
+    'Timed out waiting for $description after '
+    '${step * maxPumps}.',
+  );
+}
+
+Future<void> pumpUntilVisible(
+  WidgetTester tester,
+  Finder finder, {
+  String? description,
+  int maxPumps = 100,
+}) =>
+    pumpUntil(
+      tester,
+      () => tester.any(finder),
+      description: description ?? finder.toString(),
+      maxPumps: maxPumps,
+    );
+
 FakeClock makeE2EClock([DateTime? initial]) {
   final dt = initial ?? DateTime(2026, 7, 28, 10, 0);
   return FakeClock(

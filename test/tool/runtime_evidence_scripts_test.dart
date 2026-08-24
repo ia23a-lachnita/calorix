@@ -1523,6 +1523,8 @@ void main() {
       expect(uploadWith['name'], equals(r'emulator-run-${{ github.sha }}'));
       expect(uploadWith['retention-days'], equals(30));
       expect(uploadWith['path'], equals('.runtime_evidence/github/'));
+      expect(uploadWith['include-hidden-files'], isTrue,
+          reason: 'the hidden runtime evidence directory must be uploaded');
 
       // Forbidden constructs; 'manual' and bare 'firebase' stay unforbidden.
       final yamlStr = file.readAsStringSync().toLowerCase();
