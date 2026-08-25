@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:calorix/features/food_detail/food_detail_sheet.dart';
 
 import 'support/e2e_harness.dart';
 
@@ -62,6 +63,11 @@ void main() {
     );
 
     expect(harness.foodStore.entry('crud-entry')?.baseProtein, 55);
+    await pumpUntil(
+      tester,
+      () => !tester.any(find.byType(FoodDetailSheet)),
+      description: 'save route pop completion',
+    );
 
     await harness.go(tester, '/today/food/crud-entry');
     final copyFinder = find.byIcon(Icons.copy_outlined).hitTestable();
@@ -71,8 +77,17 @@ void main() {
       description: 'hit-testable duplicate entry control',
     );
     await tester.tap(copyFinder);
-    await tester.pump();
+    await pumpUntil(
+      tester,
+      () => harness.foodStore.allEntries.length == 2,
+      description: 'persisted duplicate entry',
+    );
     expect(harness.foodStore.allEntries, hasLength(2));
+    await pumpUntil(
+      tester,
+      () => !tester.any(find.byType(FoodDetailSheet)),
+      description: 'duplicate route pop completion',
+    );
 
     await harness.go(tester, '/today/food/crud-entry');
     final deleteFinder = find.byIcon(Icons.delete_outline).hitTestable();
