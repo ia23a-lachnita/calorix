@@ -620,6 +620,33 @@ Future<void> pumpUntilVisible(
       maxPumps: maxPumps,
     );
 
+Future<void> dragUntilVisible(
+  WidgetTester tester, {
+  required Finder target,
+  required Finder scrollable,
+  required Offset moveStep,
+  required String description,
+  int maxDrags = 12,
+  Duration step = const Duration(milliseconds: 50),
+}) async {
+  for (var drag = 0; drag < maxDrags; drag++) {
+    if (tester.any(target)) return;
+    final hitTestableScrollable = scrollable.hitTestable();
+    if (!tester.any(hitTestableScrollable)) {
+      throw TestFailure(
+        'Cannot scroll while waiting for $description: '
+        'no hit-testable scrollable was found.',
+      );
+    }
+    await tester.drag(hitTestableScrollable.first, moveStep);
+    await tester.pump(step);
+  }
+  if (tester.any(target)) return;
+  throw TestFailure(
+    'Timed out waiting for $description after $maxDrags drag attempts.',
+  );
+}
+
 FakeClock makeE2EClock([DateTime? initial]) {
   final dt = initial ?? DateTime(2026, 7, 28, 10, 0);
   return FakeClock(

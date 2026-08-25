@@ -60,19 +60,7 @@ jobs:
           emulator-port: "5554"
           disable-linux-hw-accel: false
           disable-animations: true
-          script: |
-            set +e
-            fvm flutter drive --driver=test_driver/integration_test.dart --target=integration_test/e2e/e2e_matrix_test.dart -d emulator-5554 --use-application-binary=build/app/outputs/flutter-apk/app-debug.apk --no-build
-            DRIVE_EXIT=$?
-            mkdir -p .runtime_evidence/github
-            adb -s emulator-5554 exec-out screencap -p > .runtime_evidence/github/screenshot.png
-            adb -s emulator-5554 logcat -d > .runtime_evidence/github/logcat.txt
-            adb -s emulator-5554 shell getprop ro.build.version.sdk > .runtime_evidence/github/sdk-version.txt
-            adb -s emulator-5554 shell getprop ro.product.model > .runtime_evidence/github/device-model.txt
-            adb -s emulator-5554 shell wm size > .runtime_evidence/github/viewport.txt
-            sha256sum build/app/outputs/flutter-apk/app-debug.apk > .runtime_evidence/github/apk.sha256
-            git rev-parse HEAD > .runtime_evidence/github/source-commit.txt
-            exit "$DRIVE_EXIT"
+          script: bash tool/ci/run_android_emulator_evidence.sh
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}

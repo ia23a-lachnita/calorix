@@ -69,10 +69,12 @@ void main() {
 
     // ── 6. Save the goals ─────────────────────────────────────────────
     final saveGoals = find.byKey(const Key('goals-adjust-save'));
-    await tester.scrollUntilVisible(
-      saveGoals,
-      -300,
-      scrollable: find.byType(Scrollable).first,
+    await dragUntilVisible(
+      tester,
+      target: saveGoals,
+      scrollable: find.byType(CustomScrollView),
+      moveStep: const Offset(0, 600),
+      description: 'Goals Save control',
     );
     await Scrollable.ensureVisible(
       tester.element(saveGoals),

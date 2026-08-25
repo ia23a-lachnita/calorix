@@ -1455,67 +1455,18 @@ void main() {
       expect(emulatorWith['profile'], equals('Nexus 6'));
       expect(emulatorWith['emulator-port'], equals('5554'));
 
-      // flutter drive and its runner-script diagnostics live in with.script.
+      // The action executes each non-empty script line in a separate shell.
+      // Delegate the complete drive/diagnostic lifecycle to one Bash process.
       final script = emulatorWith['script'] as String;
-      expect(script, contains('--driver=test_driver/integration_test.dart'));
-      expect(script,
-          contains('--target=integration_test/e2e/e2e_matrix_test.dart'));
-      expect(script, contains('-d emulator-5554'));
+      final commands = script
+          .split('\n')
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList();
       expect(
-          script,
-          contains('--use-application-binary='
-              'build/app/outputs/flutter-apk/app-debug.apk'));
-      expect(script, contains('--no-build'));
-
-      final setMinusEIndex = script.indexOf('set +e');
-      final driveIndex = script.indexOf('flutter drive');
-      final driveExitCaptureIndex = script.indexOf(r'DRIVE_EXIT=$?');
-      final mkdirIndex = script.indexOf('mkdir -p .runtime_evidence/github');
-      final screencapIndex =
-          script.indexOf('adb -s emulator-5554 exec-out screencap -p');
-      final logcatIndex = script.indexOf('adb -s emulator-5554 logcat -d');
-      final sdkIndex = script.indexOf('getprop ro.build.version.sdk');
-      final wmSizeIndex = script.indexOf('wm size');
-      final apkShaIndex = script
-          .indexOf('sha256sum build/app/outputs/flutter-apk/app-debug.apk');
-      final gitHeadIndex = script.indexOf('git rev-parse HEAD');
-      final finalExitIndex = script.indexOf(r'exit "$DRIVE_EXIT"');
-
-      expect(setMinusEIndex, greaterThanOrEqualTo(0),
-          reason: 'set +e missing before drive');
-      expect(driveIndex, greaterThanOrEqualTo(0),
-          reason: 'flutter drive missing from script');
-      expect(driveExitCaptureIndex, greaterThanOrEqualTo(0),
-          reason: 'DRIVE_EXIT capture missing after drive');
-      expect(mkdirIndex, greaterThanOrEqualTo(0),
-          reason: 'evidence directory creation missing');
-      expect(screencapIndex, greaterThanOrEqualTo(0),
-          reason: 'screencap diagnostic missing');
-      expect(logcatIndex, greaterThanOrEqualTo(0),
-          reason: 'logcat diagnostic missing');
-      expect(sdkIndex, greaterThanOrEqualTo(0),
-          reason: 'SDK getprop diagnostic missing');
-      expect(wmSizeIndex, greaterThanOrEqualTo(0),
-          reason: 'wm size diagnostic missing');
-      expect(apkShaIndex, greaterThanOrEqualTo(0),
-          reason: 'APK sha256 diagnostic missing');
-      expect(gitHeadIndex, greaterThanOrEqualTo(0),
-          reason: 'git rev-parse HEAD diagnostic missing');
-      expect(finalExitIndex, greaterThanOrEqualTo(0),
-          reason: 'final DRIVE_EXIT re-exit missing');
-
-      // set +e < drive < DRIVE_EXIT capture < mkdir < screencap < logcat <
-      // SDK getprop < wm size < APK sha256 < git rev-parse HEAD < final exit.
-      expect(setMinusEIndex, lessThan(driveIndex));
-      expect(driveIndex, lessThan(driveExitCaptureIndex));
-      expect(driveExitCaptureIndex, lessThan(mkdirIndex));
-      expect(mkdirIndex, lessThan(screencapIndex));
-      expect(screencapIndex, lessThan(logcatIndex));
-      expect(logcatIndex, lessThan(sdkIndex));
-      expect(sdkIndex, lessThan(wmSizeIndex));
-      expect(wmSizeIndex, lessThan(apkShaIndex));
-      expect(apkShaIndex, lessThan(gitHeadIndex));
-      expect(gitHeadIndex, lessThan(finalExitIndex));
+        commands,
+        equals(<String>['bash tool/ci/run_android_emulator_evidence.sh']),
+      );
 
       // Upload artifact: exact condition, name, retention, path.
       final uploadWith = steps[uploadIndex]['with'] as YamlMap;

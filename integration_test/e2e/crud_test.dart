@@ -64,14 +64,24 @@ void main() {
     expect(harness.foodStore.entry('crud-entry')?.baseProtein, 55);
 
     await harness.go(tester, '/today/food/crud-entry');
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.tap(find.byIcon(Icons.copy_outlined));
+    final copyFinder = find.byIcon(Icons.copy_outlined).hitTestable();
+    await pumpUntilVisible(
+      tester,
+      copyFinder,
+      description: 'hit-testable duplicate entry control',
+    );
+    await tester.tap(copyFinder);
     await tester.pump();
     expect(harness.foodStore.allEntries, hasLength(2));
 
     await harness.go(tester, '/today/food/crud-entry');
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.tap(find.byIcon(Icons.delete_outline));
+    final deleteFinder = find.byIcon(Icons.delete_outline).hitTestable();
+    await pumpUntilVisible(
+      tester,
+      deleteFinder,
+      description: 'hit-testable delete entry control',
+    );
+    await tester.tap(deleteFinder);
     await tester.pump();
     expect(find.text('Delete entry?'), findsOneWidget);
     await tester.tap(find.text('Delete'));
