@@ -927,17 +927,17 @@ void main() {
       await tester.pump();
 
       // A generic post-frame readiness gate must not signal ready over data
-      // that went stale during its own settle window. Production
+      // that went stale during its own settle window. Pre-fix production
       // `_signalReady` (lib/debug/debug_capture_screen.dart:112-121) clears
       // the pending signal unconditionally once the settle elapses and never
       // re-reads reviewEntryProvider to confirm candidates are still
-      // present, so current production fails only this assertion.
+      // present, so pre-fix production failed only this assertion.
       expect(
         outerContainer.read(uiDiffPendingCaptureSignalProvider),
         same(signal),
       );
 
-      // Future GREEN behavior: once the corrected gate revalidates before
+      // Corrected GREEN behavior: once the corrected gate revalidates before
       // firing, restoring the candidate and letting the gate rebuild off its
       // own data dependency (never the outer pending signal, which this test
       // must never reset manually) must clear the signal and keep it clear.
