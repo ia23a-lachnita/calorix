@@ -421,6 +421,7 @@ class _CaptureReadinessGate extends ConsumerStatefulWidget {
 
 class _CaptureReadinessGateState extends ConsumerState<_CaptureReadinessGate> {
   bool _scheduled = false;
+  bool _readyEmitted = false;
   bool _profileHydrated = false;
   Future<void>? _profileHydration;
   Timer? _watchdog;
@@ -430,7 +431,7 @@ class _CaptureReadinessGateState extends ConsumerState<_CaptureReadinessGate> {
   void initState() {
     super.initState();
     _watchdog = Timer(widget.timeout, () {
-      if (!mounted || _scheduled) return;
+      if (!mounted || _readyEmitted) return;
       widget.onBlocked(
         'semantic_timeout_${widget.targetId}_$_missingSemantic',
       );
@@ -454,15 +455,23 @@ class _CaptureReadinessGateState extends ConsumerState<_CaptureReadinessGate> {
     final missingSemantic = _missingSemanticReason();
     _missingSemantic = missingSemantic ?? '';
     final ready = missingSemantic == null;
-    if (ready && !_scheduled) {
+    if (ready && !_scheduled && !_readyEmitted) {
       _scheduled = true;
-      _watchdog?.cancel();
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         for (var frame = 0; frame < 2; frame++) {
           WidgetsBinding.instance.scheduleFrame();
           await WidgetsBinding.instance.endOfFrame;
         }
-        if (mounted) widget.onReady();
+        if (!mounted) return;
+        final stillMissingSemantic = _missingSemanticReason();
+        _missingSemantic = stillMissingSemantic ?? '';
+        if (stillMissingSemantic != null) {
+          setState(() => _scheduled = false);
+          return;
+        }
+        _readyEmitted = true;
+        _watchdog?.cancel();
+        widget.onReady();
       });
     }
     return widget.child;

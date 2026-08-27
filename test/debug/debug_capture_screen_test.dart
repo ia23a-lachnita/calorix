@@ -11,6 +11,7 @@ import 'package:calorix/features/manual/manual_entry_screen.dart';
 import 'package:calorix/features/onboarding/loading_screen.dart';
 import 'package:calorix/features/onboarding/login_screen.dart';
 import 'package:calorix/features/processing/processing_screen.dart';
+import 'package:calorix/features/review/providers/review_providers.dart';
 import 'package:calorix/features/review/review_screen.dart';
 import 'package:calorix/features/scan/permission_screen.dart';
 import 'package:calorix/features/scan/scan_screen.dart';
@@ -856,6 +857,108 @@ void main() {
 
       // Should not crash or emit signals
       expect(true, isTrue);
+    });
+  });
+
+  group('DebugCaptureScreen - review pending signal settle', () {
+    testWidgets(
+        'review settle must not signal ready when candidates go stale mid-settle without revalidation',
+        (WidgetTester tester) async {
+      final manifest = _createManifest(
+        profile: UiDiffFixtureProfile.flowReview,
+      );
+      final signal = UiDiffCaptureSignal.ready(
+        nonce: 'review-settle-race-test',
+        screenId: 'review',
+        theme: UiDiffCaptureTheme.dark,
+        fixtureHash: manifest.fixtureHash,
+      );
+      final outerContainer = ProviderContainer(
+        overrides: [
+          uiDiffModeProvider.overrideWith((_) => true),
+          uiDiffFixtureEnabledProvider.overrideWith((_) => true),
+          uiDiffFixtureManifestProvider.overrideWith((_) => manifest),
+          uiDiffThemeOverrideProvider.overrideWith((_) => ThemeMode.dark),
+          uiDiffPendingCaptureSignalProvider.overrideWith((_) => signal),
+        ],
+      );
+      addTearDown(outerContainer.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: outerContainer,
+          child: const MaterialApp(
+            home: DebugCaptureScreen(targetId: 'review'),
+          ),
+        ),
+      );
+
+      // Frame 2: _verifyTarget's postFrameCallback flips _validated, mounting
+      // the inner fixture container and ReviewScreen; reviewEntryProvider is
+      // still AsyncLoading because Stream.value only resolves on a microtask.
+      await tester.pump();
+      // Frame 3: reviewEntryProvider resolves to AsyncData with candidates,
+      // so _CaptureReadinessGate reaches ready == true and schedules its
+      // two-frame settle (_scheduled = true; the postFrameCallback is
+      // registered and already suspended on its first endOfFrame await).
+      await tester.pump();
+
+      expect(find.byType(ReviewScreen), findsOneWidget);
+
+      final innerContainer = ProviderScope.containerOf(
+        tester.element(find.byType(ReviewScreen)),
+      );
+      final entry = innerContainer
+          .read(reviewEntryProvider('ui_diff_fixture_review_food'))
+          .valueOrNull;
+      expect(entry, isNotNull);
+      expect(entry!.candidates, isNotEmpty);
+      final savedCandidate = entry.candidates.first;
+
+      // Race the already-scheduled settle: clear the same FoodEntry's
+      // candidates list in place. This never goes through the provider
+      // notifier, so nothing marks _CaptureReadinessGate dirty and its
+      // pending settle callback runs unaware the data went stale.
+      entry.candidates.clear();
+
+      // Pump the exact two settle frames the gate's postFrameCallback awaits
+      // via WidgetsBinding.scheduleFrame()/endOfFrame before calling onReady.
+      await tester.pump();
+      await tester.pump();
+
+      // A generic post-frame readiness gate must not signal ready over data
+      // that went stale during its own settle window. Production
+      // `_signalReady` (lib/debug/debug_capture_screen.dart:112-121) clears
+      // the pending signal unconditionally once the settle elapses and never
+      // re-reads reviewEntryProvider to confirm candidates are still
+      // present, so current production fails only this assertion.
+      expect(
+        outerContainer.read(uiDiffPendingCaptureSignalProvider),
+        same(signal),
+      );
+
+      // Future GREEN behavior: once the corrected gate revalidates before
+      // firing, restoring the candidate and letting the gate rebuild off its
+      // own data dependency (never the outer pending signal, which this test
+      // must never reset manually) must clear the signal and keep it clear.
+      entry.candidates.add(savedCandidate);
+      innerContainer.invalidate(
+        reviewEntryProvider('ui_diff_fixture_review_food'),
+      );
+      await _pumpStableFrames(tester);
+      await _pumpStableFrames(tester);
+
+      expect(
+        outerContainer.read(uiDiffPendingCaptureSignalProvider),
+        isNull,
+      );
+
+      // Must remain null on subsequent pumps.
+      await _pumpStableFrames(tester);
+      expect(
+        outerContainer.read(uiDiffPendingCaptureSignalProvider),
+        isNull,
+      );
     });
   });
 
