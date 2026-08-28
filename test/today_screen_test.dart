@@ -11,6 +11,7 @@ import 'package:calorix/shared/models/macro_target_plan.dart';
 import 'package:calorix/shared/providers/ui_diff_provider.dart';
 import 'package:calorix/shared/widgets/macro_progress_bar.dart';
 import 'package:calorix/shared/widgets/macro_ring.dart';
+import 'package:calorix/debug/ui_diff/ui_diff_anchor.dart';
 
 Widget _buildTodayScreen({
   List<FoodEntry> entries = const [],
@@ -516,5 +517,53 @@ void main() {
       find.byKey(const ValueKey('today.mealThumbnailAsset.chicken')),
       findsOneWidget,
     );
+  });
+
+  testWidgets(
+      'Hero macro-card spacing matches cx-screen-today ring paddingBottom + outer gaps',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        themeMode: ThemeMode.dark,
+        summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+      ),
+    );
+    await _pumpTodayScreen(tester);
+
+    final ringBox = tester.renderObject<RenderBox>(
+      find.byType(AnimatedMacroRing),
+    );
+    final ringRect = ringBox.localToGlobal(Offset.zero) & ringBox.size;
+
+    final proteinBox = tester.renderObject<RenderBox>(
+      find.byWidgetPredicate(
+        (w) => w is UiDiffAnchor && w.id == 'today.proteinRow',
+      ),
+    );
+    final carbsBox = tester.renderObject<RenderBox>(
+      find.byWidgetPredicate(
+        (w) => w is UiDiffAnchor && w.id == 'today.carbsRow',
+      ),
+    );
+    final fatBox = tester.renderObject<RenderBox>(
+      find.byWidgetPredicate(
+        (w) => w is UiDiffAnchor && w.id == 'today.fatRow',
+      ),
+    );
+
+    final proteinRect = proteinBox.localToGlobal(Offset.zero) & proteinBox.size;
+    final carbsRect = carbsBox.localToGlobal(Offset.zero) & carbsBox.size;
+    final fatRect = fatBox.localToGlobal(Offset.zero) & fatBox.size;
+
+    final gapRingProtein = proteinRect.top - ringRect.bottom;
+    final gapProteinCarbs = carbsRect.top - proteinRect.bottom;
+    final gapCarbsFat = fatRect.top - carbsRect.bottom;
+
+    expect(gapRingProtein, closeTo(14.0, 0.01));
+    expect(gapProteinCarbs, closeTo(10.0, 0.01));
+    expect(gapCarbsFat, closeTo(10.0, 0.01));
   });
 }

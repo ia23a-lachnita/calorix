@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:calorix/features/food_detail/food_detail_sheet.dart';
 
 import 'support/e2e_harness.dart';
 
@@ -21,9 +22,21 @@ void main() {
 
     await tester.tap(find.text('Edit'));
     await tester.pump();
-    await tester.ensureVisible(find.byKey(const Key('macro-editor-Protein')));
-    await tester.tap(find.byKey(const Key('macro-editor-Protein')));
+    final proteinEditor = find.byKey(const Key('macro-editor-Protein'));
+    expect(proteinEditor, findsOneWidget);
+    await Scrollable.ensureVisible(
+      tester.element(proteinEditor),
+      alignment: 0.5,
+    );
     await tester.pump();
+    expect(proteinEditor.hitTestable(), findsOneWidget);
+    await tester.tap(proteinEditor.hitTestable());
+    await pumpUntilVisible(
+      tester,
+      find.text('Edit Protein (g)'),
+      description: 'Protein editor sheet',
+    );
+    expect(find.byType(TextFormField), findsWidgets);
     await tester.enterText(find.byType(TextFormField).last, '55');
     await SystemChannels.textInput.invokeMethod<void>(
       'TextInput.hide',
@@ -36,33 +49,62 @@ void main() {
     await tester.pump();
     expect(doneFinder.hitTestable(), findsOneWidget);
     await tester.tap(doneFinder.hitTestable());
-    await tester.pump(const Duration(milliseconds: 300));
-
     final saveFinder = find.widgetWithText(ElevatedButton, 'Save to Today');
-    expect(saveFinder, findsOneWidget);
-    await tester.ensureVisible(saveFinder);
-    await tester.pump();
-    expect(saveFinder.hitTestable(), findsOneWidget);
+    await pumpUntilVisible(
+      tester,
+      saveFinder.hitTestable(),
+      description: 'hit-testable Save to Today control',
+    );
     await tester.tap(saveFinder.hitTestable());
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await pumpUntil(
+      tester,
+      () => harness.foodStore.entry('crud-entry')?.baseProtein == 55,
+      description: 'persisted Protein correction',
+    );
 
     expect(harness.foodStore.entry('crud-entry')?.baseProtein, 55);
+    await pumpUntil(
+      tester,
+      () => !tester.any(find.byType(FoodDetailSheet)),
+      description: 'save route pop completion',
+    );
 
     await harness.go(tester, '/today/food/crud-entry');
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.tap(find.byIcon(Icons.copy_outlined));
-    await tester.pump();
+    final copyFinder = find.byIcon(Icons.copy_outlined).hitTestable();
+    await pumpUntilVisible(
+      tester,
+      copyFinder,
+      description: 'hit-testable duplicate entry control',
+    );
+    await tester.tap(copyFinder);
+    await pumpUntil(
+      tester,
+      () => harness.foodStore.allEntries.length == 2,
+      description: 'persisted duplicate entry',
+    );
     expect(harness.foodStore.allEntries, hasLength(2));
+    await pumpUntil(
+      tester,
+      () => !tester.any(find.byType(FoodDetailSheet)),
+      description: 'duplicate route pop completion',
+    );
 
     await harness.go(tester, '/today/food/crud-entry');
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.tap(find.byIcon(Icons.delete_outline));
+    final deleteFinder = find.byIcon(Icons.delete_outline).hitTestable();
+    await pumpUntilVisible(
+      tester,
+      deleteFinder,
+      description: 'hit-testable delete entry control',
+    );
+    await tester.tap(deleteFinder);
     await tester.pump();
     expect(find.text('Delete entry?'), findsOneWidget);
     await tester.tap(find.text('Delete'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await pumpUntil(
+      tester,
+      () => harness.foodStore.entry('crud-entry') == null,
+      description: 'entry deletion',
+    );
 
     expect(harness.foodStore.entry('crud-entry'), isNull);
     expect(harness.foodStore.allEntries, hasLength(1));

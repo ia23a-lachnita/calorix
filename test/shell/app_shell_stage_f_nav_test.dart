@@ -4,9 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-const _comparisonScale = 1.0925;
-const _stageGNavHeight = 101 / _comparisonScale;
-const _stageGScanRasterCorrection = 7 / _comparisonScale;
+const _jsxNavHeight = 101.0;
+const _jsxNavTopPadding = 14.0;
+const _jsxScanOuterSize = 60.0;
+const _jsxScanInnerSize = 48.0;
+const _jsxScanGlowSize = 76.0;
+const _jsxScanMarginTop = 28.0;
+const _jsxScanHitTargetSize = 60.0;
+const _jsxNavIconSize = 22.0;
+const _jsxNavLabelSize = 10.5;
+const _jsxNavLabelLetterSpacing = 0.21;
+const _jsxNavRowHeight = 51.0;
 
 Widget _app({
   required int currentIndex,
@@ -89,23 +97,31 @@ void main() {
 
           expect(
             tester.getSize(find.byKey(const Key('scan-fab-outer'))).width,
-            closeTo(60 / _comparisonScale, 0.01),
+            closeTo(_jsxScanOuterSize, 0.01),
           );
           expect(
             tester.getSize(find.byKey(const Key('scan-fab-inner'))).width,
-            closeTo(48 / _comparisonScale, 0.01),
+            closeTo(_jsxScanInnerSize, 0.01),
           );
           expect(
             tester.getSize(find.byKey(const Key('scan-glow'))).width,
-            closeTo(76 / _comparisonScale, 0.01),
+            closeTo(_jsxScanGlowSize, 0.01),
           );
           expect(
             tester.getSize(find.byKey(const Key('scan-hit-target'))).width,
-            greaterThanOrEqualTo(60),
+            greaterThanOrEqualTo(_jsxScanHitTargetSize),
           );
 
           final navRow = tester.getRect(
             find.byKey(const Key('nav-items-row')),
+          );
+          final navRowPosition = tester.getSize(
+            find.byKey(const Key('nav-items-row-position')),
+          );
+          expect(
+            navRowPosition.height,
+            closeTo(_jsxNavRowHeight, 0.01),
+            reason: 'JSX nav row band: 101 total − 14 top − 36 bottom = 51px',
           );
           final nav = tester.getRect(
             find.byKey(const Key('today-bottom-nav')),
@@ -120,11 +136,11 @@ void main() {
           expect(
             scanBranch.top - nav.top,
             closeTo(
-              (14 - 28) / _comparisonScale + _stageGScanRasterCorrection,
+              _jsxNavTopPadding - _jsxScanMarginTop,
               0.01,
             ),
-            reason: 'Stage G measured raster correction keeps the Scan branch '
-                'at the nav-relative target after the nav-height shift',
+            reason:
+                'Scan branch top relative to nav is -14px (14 - 28) per JSX',
           );
           final outerDecoration = tester
               .widget<Container>(find.byKey(const Key('scan-fab-outer')))
@@ -132,20 +148,39 @@ void main() {
           expect(outerDecoration.boxShadow, hasLength(2));
           expect(
             outerDecoration.boxShadow![0].offset.dy,
-            closeTo(8 / _comparisonScale, 0.01),
+            closeTo(8.0, 0.01),
           );
           expect(
             outerDecoration.boxShadow![1].offset.dy,
-            closeTo(2 / _comparisonScale, 0.01),
+            closeTo(2.0, 0.01),
           );
+
           final navElement = tester.element(
             find.byType(CalorixBottomNav),
           );
           final safeBottom = MediaQuery.viewPaddingOf(navElement).bottom;
           expect(
             tester.getSize(find.byKey(const Key('today-bottom-nav'))).height,
-            closeTo(_stageGNavHeight + safeBottom, 0.01),
+            closeTo(_jsxNavHeight + safeBottom, 0.01),
           );
+
+          final iconSize = tester.getSize(
+            find.byKey(const Key('nav-icon-today')),
+          );
+          expect(iconSize.width, closeTo(_jsxNavIconSize, 0.01));
+          expect(iconSize.height, closeTo(_jsxNavIconSize, 0.01));
+
+          final todayLabel = tester.widget<Text>(
+            find
+                .descendant(
+                  of: find.byKey(const Key('nav-item-today')),
+                  matching: find.byType(Text),
+                )
+                .first,
+          );
+          expect(todayLabel.style?.fontSize, closeTo(_jsxNavLabelSize, 0.01));
+          expect(todayLabel.style?.letterSpacing,
+              closeTo(_jsxNavLabelLetterSpacing, 0.01));
         },
       );
     }
@@ -172,7 +207,7 @@ void main() {
       expect(find.bySemanticsLabel('Scan'), findsOneWidget);
       expect(
         tester.getSize(find.byKey(const Key('scan-hit-target'))),
-        const Size(60, 60),
+        const Size(_jsxScanHitTargetSize, _jsxScanHitTargetSize),
       );
       expect(
         find.ancestor(

@@ -1455,67 +1455,18 @@ void main() {
       expect(emulatorWith['profile'], equals('Nexus 6'));
       expect(emulatorWith['emulator-port'], equals('5554'));
 
-      // flutter drive and its runner-script diagnostics live in with.script.
+      // The action executes each non-empty script line in a separate shell.
+      // Delegate the complete drive/diagnostic lifecycle to one Bash process.
       final script = emulatorWith['script'] as String;
-      expect(script, contains('--driver=test_driver/integration_test.dart'));
-      expect(script,
-          contains('--target=integration_test/e2e/e2e_matrix_test.dart'));
-      expect(script, contains('-d emulator-5554'));
+      final commands = script
+          .split('\n')
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList();
       expect(
-          script,
-          contains('--use-application-binary='
-              'build/app/outputs/flutter-apk/app-debug.apk'));
-      expect(script, contains('--no-build'));
-
-      final setMinusEIndex = script.indexOf('set +e');
-      final driveIndex = script.indexOf('flutter drive');
-      final driveExitCaptureIndex = script.indexOf(r'DRIVE_EXIT=$?');
-      final mkdirIndex = script.indexOf('mkdir -p .runtime_evidence/github');
-      final screencapIndex =
-          script.indexOf('adb -s emulator-5554 exec-out screencap -p');
-      final logcatIndex = script.indexOf('adb -s emulator-5554 logcat -d');
-      final sdkIndex = script.indexOf('getprop ro.build.version.sdk');
-      final wmSizeIndex = script.indexOf('wm size');
-      final apkShaIndex = script
-          .indexOf('sha256sum build/app/outputs/flutter-apk/app-debug.apk');
-      final gitHeadIndex = script.indexOf('git rev-parse HEAD');
-      final finalExitIndex = script.indexOf(r'exit "$DRIVE_EXIT"');
-
-      expect(setMinusEIndex, greaterThanOrEqualTo(0),
-          reason: 'set +e missing before drive');
-      expect(driveIndex, greaterThanOrEqualTo(0),
-          reason: 'flutter drive missing from script');
-      expect(driveExitCaptureIndex, greaterThanOrEqualTo(0),
-          reason: 'DRIVE_EXIT capture missing after drive');
-      expect(mkdirIndex, greaterThanOrEqualTo(0),
-          reason: 'evidence directory creation missing');
-      expect(screencapIndex, greaterThanOrEqualTo(0),
-          reason: 'screencap diagnostic missing');
-      expect(logcatIndex, greaterThanOrEqualTo(0),
-          reason: 'logcat diagnostic missing');
-      expect(sdkIndex, greaterThanOrEqualTo(0),
-          reason: 'SDK getprop diagnostic missing');
-      expect(wmSizeIndex, greaterThanOrEqualTo(0),
-          reason: 'wm size diagnostic missing');
-      expect(apkShaIndex, greaterThanOrEqualTo(0),
-          reason: 'APK sha256 diagnostic missing');
-      expect(gitHeadIndex, greaterThanOrEqualTo(0),
-          reason: 'git rev-parse HEAD diagnostic missing');
-      expect(finalExitIndex, greaterThanOrEqualTo(0),
-          reason: 'final DRIVE_EXIT re-exit missing');
-
-      // set +e < drive < DRIVE_EXIT capture < mkdir < screencap < logcat <
-      // SDK getprop < wm size < APK sha256 < git rev-parse HEAD < final exit.
-      expect(setMinusEIndex, lessThan(driveIndex));
-      expect(driveIndex, lessThan(driveExitCaptureIndex));
-      expect(driveExitCaptureIndex, lessThan(mkdirIndex));
-      expect(mkdirIndex, lessThan(screencapIndex));
-      expect(screencapIndex, lessThan(logcatIndex));
-      expect(logcatIndex, lessThan(sdkIndex));
-      expect(sdkIndex, lessThan(wmSizeIndex));
-      expect(wmSizeIndex, lessThan(apkShaIndex));
-      expect(apkShaIndex, lessThan(gitHeadIndex));
-      expect(gitHeadIndex, lessThan(finalExitIndex));
+        commands,
+        equals(<String>['bash tool/ci/run_android_emulator_evidence.sh']),
+      );
 
       // Upload artifact: exact condition, name, retention, path.
       final uploadWith = steps[uploadIndex]['with'] as YamlMap;
@@ -1523,6 +1474,8 @@ void main() {
       expect(uploadWith['name'], equals(r'emulator-run-${{ github.sha }}'));
       expect(uploadWith['retention-days'], equals(30));
       expect(uploadWith['path'], equals('.runtime_evidence/github/'));
+      expect(uploadWith['include-hidden-files'], isTrue,
+          reason: 'the hidden runtime evidence directory must be uploaded');
 
       // Forbidden constructs; 'manual' and bare 'firebase' stay unforbidden.
       final yamlStr = file.readAsStringSync().toLowerCase();
@@ -1535,6 +1488,161 @@ void main() {
       expect(yamlStr, isNot(contains('ci-placeholder')));
       expect(yamlStr, isNot(contains('adb install')));
       expect(yamlStr, isNot(contains('flutter test')));
+    });
+  });
+
+  group('.github/workflows/android-emulator.yml KVM contract', () {
+    const _kvmWorkflowPath = '.github/workflows/android-emulator.yml';
+
+    YamlMap _loadKvmWorkflow() {
+      final file = File(_kvmWorkflowPath);
+      expect(file.existsSync(), isTrue,
+          reason: '$_kvmWorkflowPath must exist but is absent');
+      return loadYaml(file.readAsStringSync()) as YamlMap;
+    }
+
+    List<YamlMap> _kvmJobSteps(YamlMap workflow) {
+      final job = workflow['jobs'] as YamlMap;
+      expect(job.length, equals(1), reason: 'exactly one job is required');
+      final jobValue = job.values.first as YamlMap;
+      final steps = jobValue['steps'] as YamlList;
+      expect(steps, isNotNull, reason: 'jobs.*.steps is required');
+      return steps.cast<YamlMap>();
+    }
+
+    String _kvmStepName(YamlMap step) {
+      final name = step['name'];
+      return name is String ? name : '';
+    }
+
+    String _kvmStepRun(YamlMap step) {
+      final run = step['run'];
+      return run is String ? run : '';
+    }
+
+    String _kvmStepUses(YamlMap step) {
+      final uses = step['uses'];
+      return uses is String ? uses : '';
+    }
+
+    Map<String, dynamic>? _kvmStepWith(YamlMap step) {
+      final withMap = step['with'];
+      return withMap is Map ? withMap.cast<String, dynamic>() : null;
+    }
+
+    test(
+        'has a named "Enable KVM group perms" run step before the emulator runner',
+        () {
+      final steps = _kvmJobSteps(_loadKvmWorkflow());
+
+      final kvmPermsIndex = steps.indexWhere((step) =>
+          _kvmStepName(step) == 'Enable KVM group perms' &&
+          _kvmStepRun(step).isNotEmpty);
+      final emulatorIndex = steps.indexWhere((step) =>
+          _kvmStepUses(step) == 'reactivecircus/android-emulator-runner@v2');
+
+      expect(kvmPermsIndex, greaterThanOrEqualTo(0),
+          reason: 'a named "Enable KVM group perms" run step is required');
+      expect(emulatorIndex, greaterThanOrEqualTo(0),
+          reason: 'reactivecircus/android-emulator-runner@v2 step is required');
+      expect(kvmPermsIndex, lessThan(emulatorIndex),
+          reason:
+              '"Enable KVM group perms" must run before the emulator runner');
+    });
+
+    test(
+        '"Enable KVM group perms" step writes the official udev rule file with '
+        'KERNEL=="kvm", GROUP="kvm", MODE="0666", and OPTIONS+="static_node=kvm"',
+        () {
+      final steps = _kvmJobSteps(_loadKvmWorkflow());
+
+      final kvmPermsIndex = steps.indexWhere((step) =>
+          _kvmStepName(step) == 'Enable KVM group perms' &&
+          _kvmStepRun(step).isNotEmpty);
+      expect(kvmPermsIndex, greaterThanOrEqualTo(0),
+          reason: 'Enable KVM group perms step must exist');
+      final run = _kvmStepRun(steps[kvmPermsIndex]);
+
+      expect(run, contains('/etc/udev/rules.d/99-kvm4all.rules'),
+          reason:
+              'must write the official udev rule file at /etc/udev/rules.d/99-kvm4all.rules');
+      expect(run, contains('KERNEL=="kvm"'),
+          reason: 'udev rule must match KERNEL=="kvm"');
+      expect(run, contains('GROUP="kvm"'),
+          reason: 'udev rule must set GROUP="kvm"');
+      expect(run, contains('MODE="0666"'),
+          reason: 'udev rule must set MODE="0666"');
+      expect(run, contains('OPTIONS+="static_node=kvm"'),
+          reason:
+              'udev rule must include OPTIONS+="static_node=kvm" (complete string, not just OPTIONS+="static_node")');
+    });
+
+    test(
+        '"Enable KVM group perms" step reloads udev rules and triggers kvm with sudo',
+        () {
+      final steps = _kvmJobSteps(_loadKvmWorkflow());
+
+      final kvmPermsIndex = steps.indexWhere((step) =>
+          _kvmStepName(step) == 'Enable KVM group perms' &&
+          _kvmStepRun(step).isNotEmpty);
+      expect(kvmPermsIndex, greaterThanOrEqualTo(0),
+          reason: 'Enable KVM group perms step must exist');
+      final run = _kvmStepRun(steps[kvmPermsIndex]);
+
+      expect(run, contains('sudo udevadm control --reload-rules'),
+          reason: 'must run sudo udevadm control --reload-rules');
+      expect(run, contains('sudo udevadm trigger --name-match=kvm'),
+          reason: 'must run sudo udevadm trigger --name-match=kvm');
+    });
+
+    test('ordering: build < KVM perms < emulator runner < upload artifact', () {
+      final steps = _kvmJobSteps(_loadKvmWorkflow());
+
+      final buildIndex = steps.indexWhere((step) =>
+          _kvmStepRun(step).contains('fvm flutter build apk --debug --target'));
+      final kvmPermsIndex = steps.indexWhere((step) =>
+          _kvmStepName(step) == 'Enable KVM group perms' &&
+          _kvmStepRun(step).isNotEmpty);
+      final emulatorIndex = steps.indexWhere((step) =>
+          _kvmStepUses(step) == 'reactivecircus/android-emulator-runner@v2');
+      final uploadIndex = steps.indexWhere(
+          (step) => _kvmStepUses(step) == 'actions/upload-artifact@v4');
+
+      expect(buildIndex, greaterThanOrEqualTo(0),
+          reason: 'Build debug APK step is required');
+      expect(kvmPermsIndex, greaterThanOrEqualTo(0),
+          reason: 'Enable KVM group perms step is required');
+      expect(emulatorIndex, greaterThanOrEqualTo(0),
+          reason: 'Emulator runner step is required');
+      expect(uploadIndex, greaterThanOrEqualTo(0),
+          reason: 'Upload artifact step is required');
+
+      expect(buildIndex, lessThan(kvmPermsIndex),
+          reason: 'Build must run before KVM perms');
+      expect(kvmPermsIndex, lessThan(emulatorIndex),
+          reason: 'KVM perms must run before emulator runner');
+      expect(emulatorIndex, lessThan(uploadIndex),
+          reason: 'Emulator runner must run before upload artifact');
+    });
+
+    test(
+        'emulator runner action inputs: disable-linux-hw-accel: false and '
+        'disable-animations: true', () {
+      final steps = _kvmJobSteps(_loadKvmWorkflow());
+
+      final emulatorIndex = steps.indexWhere((step) =>
+          _kvmStepUses(step) == 'reactivecircus/android-emulator-runner@v2');
+      expect(emulatorIndex, greaterThanOrEqualTo(0),
+          reason: 'Emulator runner step is required');
+
+      final withMap = _kvmStepWith(steps[emulatorIndex]);
+      expect(withMap, isNotNull,
+          reason: 'Emulator runner must have with: inputs');
+
+      expect(withMap!['disable-linux-hw-accel'], equals(false),
+          reason: 'disable-linux-hw-accel must be false (KVM enabled)');
+      expect(withMap['disable-animations'], equals(true),
+          reason: 'disable-animations must be true');
     });
   });
 }

@@ -304,6 +304,23 @@ class _CalendarCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final muted =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final calendar = isMonthView
+        ? _MonthGrid(
+            selectedDate: selectedDate,
+            logs: logs,
+            kcalTarget: kcalTarget,
+            isDark: isDark,
+            today: today,
+            onDateSelected: onDateSelected,
+          )
+        : _WeekStrip(
+            selectedDate: selectedDate,
+            logs: logs,
+            kcalTarget: kcalTarget,
+            isDark: isDark,
+            today: today,
+            onDateSelected: onDateSelected,
+          );
 
     return Container(
       decoration: BoxDecoration(
@@ -338,28 +355,14 @@ class _CalendarCard extends StatelessWidget {
               ],
             ),
           ),
-          AnimatedSize(
-            duration: AppMotion.durationOf(
-                context, MotionDurations.historyViewToggle),
-            curve: Curves.easeInOut,
-            child: isMonthView
-                ? _MonthGrid(
-                    selectedDate: selectedDate,
-                    logs: logs,
-                    kcalTarget: kcalTarget,
-                    isDark: isDark,
-                    today: today,
-                    onDateSelected: onDateSelected,
-                  )
-                : _WeekStrip(
-                    selectedDate: selectedDate,
-                    logs: logs,
-                    kcalTarget: kcalTarget,
-                    isDark: isDark,
-                    today: today,
-                    onDateSelected: onDateSelected,
-                  ),
-          ),
+          if (AppMotion.reducedOf(context))
+            calendar
+          else
+            AnimatedSize(
+              duration: MotionDurations.historyViewToggle,
+              curve: Curves.easeInOut,
+              child: calendar,
+            ),
           Padding(
             padding: const EdgeInsets.only(top: 14, bottom: 10),
             child: Center(

@@ -58,26 +58,21 @@ class CalorixBottomNav extends StatelessWidget {
   final bool isDark;
   final bool floating;
 
-  static const _comparisonScale = 1.0925;
-  static const _navTopPadding = 14 / _comparisonScale;
-  static const _navRowHeight = 48.0;
-  static const _navHeight = 101 / _comparisonScale;
-  static const _navBottomPadding = 36 / _comparisonScale;
-  static const _scanOuterSize = 60 / _comparisonScale;
-  static const _scanInnerSize = 48 / _comparisonScale;
-  static const _scanGlowSize = 76 / _comparisonScale;
-  static const _scanMarginTop = 28 / _comparisonScale;
-  // Measured physical-capture raster alignment correction. The nav top moves
-  // up by 3 comparison px with the 98 -> 101 height change; this +7px
-  // relative correction produces the observed net +4 comparison px target.
-  static const _scanRasterAlignmentCorrection = 7 / _comparisonScale;
-  static const _scanGlowOffset = 6 / _comparisonScale;
+  static const _navTopPadding = 14.0;
+  static const _navRowHeight = 51.0;
+  static const _navHeight = 101.0;
+  static const _navBottomPadding = 36.0;
+  static const _scanOuterSize = 60.0;
+  static const _scanInnerSize = 48.0;
+  static const _scanGlowSize = 76.0;
+  static const _scanMarginTop = 28.0;
+  static const _scanGlowOffset = 6.0;
   static const _scanHitTargetSize = 60.0;
-  static const _scanLabelSize = 9.5 / _comparisonScale;
-  static const _scanLabelLetterSpacing = 9.5 * 0.17 / _comparisonScale;
-  static const _navIconSize = 22 / _comparisonScale;
-  static const _navLabelSize = 10.5 / _comparisonScale;
-  static const _navLabelLetterSpacing = 0.21 / _comparisonScale;
+  static const _scanLabelSize = 9.5;
+  static const _scanLabelLetterSpacing = 9.5 * 0.17;
+  static const _navIconSize = 22.0;
+  static const _navLabelSize = 10.5;
+  static const _navLabelLetterSpacing = 0.21;
 
   static const _items = [
     _NavItem(icon: _NavIconType.today, label: 'Today', key: 'nav-item-today'),
@@ -190,9 +185,7 @@ class CalorixBottomNav extends StatelessWidget {
             ),
             Positioned(
               key: const Key('scan-branch'),
-              top: _navTopPadding -
-                  _scanMarginTop +
-                  _scanRasterAlignmentCorrection,
+              top: _navTopPadding - _scanMarginTop,
               left: 0,
               right: 0,
               height: _scanOuterSize + 32,
@@ -281,8 +274,8 @@ class _NavButton extends StatelessWidget {
               Opacity(
                 opacity: isActive ? 1.0 : 0.0,
                 child: Container(
-                  width: 4 / CalorixBottomNav._comparisonScale,
-                  height: 4 / CalorixBottomNav._comparisonScale,
+                  width: 4.0,
+                  height: 4.0,
                   decoration: const BoxDecoration(
                     color: AppColors.cyan,
                     shape: BoxShape.circle,
@@ -390,18 +383,12 @@ class _ScanNavButton extends StatelessWidget {
                         BoxShadow(
                           color: Color(0x5919D3D9),
                           blurRadius: 24,
-                          offset: Offset(
-                            0,
-                            8 / CalorixBottomNav._comparisonScale,
-                          ),
+                          offset: Offset(0, 8),
                         ),
                         BoxShadow(
                           color: Color(0x4D3A5BFF),
                           blurRadius: 6,
-                          offset: Offset(
-                            0,
-                            2 / CalorixBottomNav._comparisonScale,
-                          ),
+                          offset: Offset(0, 2),
                         ),
                       ],
                     ),
@@ -422,7 +409,7 @@ class _ScanNavButton extends StatelessWidget {
                             color: isDark
                                 ? AppColors.textPrimaryDark
                                 : AppColors.textPrimaryLight,
-                            dimension: 24 / CalorixBottomNav._comparisonScale,
+                            dimension: 24.0,
                             strokeWidth: 1.6,
                           ),
                         ),
@@ -455,11 +442,9 @@ class _ScanNavButton extends StatelessWidget {
                 if (isActive)
                   Container(
                     key: const Key('scan-active-pip'),
-                    width: 4 / CalorixBottomNav._comparisonScale,
-                    height: 4 / CalorixBottomNav._comparisonScale,
-                    margin: const EdgeInsets.only(
-                      top: 4 / CalorixBottomNav._comparisonScale,
-                    ),
+                    width: 4.0,
+                    height: 4.0,
+                    margin: const EdgeInsets.only(top: 4.0),
                     decoration: const BoxDecoration(
                       color: AppColors.green,
                       shape: BoxShape.circle,

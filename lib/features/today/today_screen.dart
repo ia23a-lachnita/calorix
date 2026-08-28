@@ -487,7 +487,7 @@ class _HeroMacroCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
                   UiDiffAnchor(
                     id: 'today.proteinRow',
                     label: 'Protein macro row',
@@ -499,7 +499,7 @@ class _HeroMacroCard extends StatelessWidget {
                         isDark: isDark,
                         animation: animation),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   UiDiffAnchor(
                     id: 'today.carbsRow',
                     label: 'Carbs macro row',
@@ -511,7 +511,7 @@ class _HeroMacroCard extends StatelessWidget {
                         isDark: isDark,
                         animation: animation),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   UiDiffAnchor(
                     id: 'today.fatRow',
                     label: 'Fat macro row',
