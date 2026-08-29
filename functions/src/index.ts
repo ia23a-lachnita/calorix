@@ -2,14 +2,13 @@ import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/fire
 import { onCall } from 'firebase-functions/v2/https';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { VertexAI } from '@google-cloud/vertexai';
 import { APP_DISPLAY_NAME, LOCATION, PROJECT_ID } from './config';
 import { affectedDateKeys, summarizeCompleteEntries, type AggregatableEntry } from './aggregation';
 import { createModelConfigLoader } from './model-config';
 import { handleEntryCreated, type EntryData } from './analyze-entry';
-import { type ChatContent } from './ai-chat';
 import { createFirestoreAiChatDeps } from './ai-chat-firestore';
 import { createAiChatCallableHandler } from './ai-chat-callable';
+import { createGenAIAdapter } from './genai-adapter';
 import {
   createRetryEntryAnalysisHandler,
   entriesCollection,
@@ -18,7 +17,7 @@ import {
 initializeApp();
 
 const db = getFirestore();
-const vertexAI = new VertexAI({ project: PROJECT_ID, location: LOCATION });
+const genAIAdapter = createGenAIAdapter({ project: PROJECT_ID, location: LOCATION });
 
 const getModelConfig = createModelConfigLoader(async () => {
   const doc = await db.doc('model_configs/default').get();
@@ -29,12 +28,7 @@ const aiChatDeps = createFirestoreAiChatDeps({
   db,
   getModelConfig,
   appDisplayName: APP_DISPLAY_NAME,
-  generateChat: async (model: string, contents: ChatContent[]) => {
-    const generativeModel = vertexAI.getGenerativeModel({ model });
-    const result = await generativeModel.generateContent({ contents });
-    const parts = result.response.candidates?.[0]?.content?.parts ?? [];
-    return parts.map((part) => part.text ?? '').join('');
-  },
+  generateChat: (model, contents) => genAIAdapter.generateChat(model, contents),
 });
 
 function dailyLogDoc(uid: string, dateKey: string) {

@@ -219,6 +219,134 @@ describe('handleAiChat', () => {
   });
 });
 
+describe('AiChatInputError carries sanitized Zod issues', () => {
+  it('exposes issues as path/code pairs only, no private/raw fields', async () => {
+    const claimExchange = vi.fn();
+    const result = await handleAiChat(
+      'user-1',
+      { message: '   ', clientMessageId: 'msg_01VALID' },
+      deps({ claimExchange }),
+    ).catch((e) => e as AiChatInputError);
+
+    expect(result).toBeInstanceOf(AiChatInputError);
+    expect(result.issues).toBeDefined();
+    expect(Array.isArray(result.issues)).toBe(true);
+    expect(result.issues.length).toBeGreaterThan(0);
+
+    for (const issue of result.issues) {
+      expect(Object.keys(issue).sort()).toEqual(['code', 'path'].sort());
+      expect(typeof issue.path).toBe('string');
+      expect(typeof issue.code).toBe('string');
+      expect(issue).not.toHaveProperty('message');
+      expect(issue).not.toHaveProperty('received');
+      expect(issue).not.toHaveProperty('expected');
+    }
+
+    // Verify path points to the correct field
+    expect(result.issues.some((i) => i.path === 'message')).toBe(true);
+  });
+
+  it('includes path/code for all validation failures including nested identifiers', async () => {
+    const claimExchange = vi.fn();
+    const result = await handleAiChat(
+      'user-1',
+      {
+        message: 'valid message',
+        clientMessageId: '../unsafe',
+        threadId: 'also/unsafe',
+      },
+      deps({ claimExchange }),
+    ).catch((e) => e as AiChatInputError);
+
+    expect(result).toBeInstanceOf(AiChatInputError);
+    expect(result.issues.length).toBeGreaterThanOrEqual(2);
+
+    const clientMsgIssue = result.issues.find((i) => i.path === 'clientMessageId');
+    const threadIdIssue = result.issues.find((i) => i.path === 'threadId');
+    expect(clientMsgIssue).toBeDefined();
+    expect(threadIdIssue).toBeDefined();
+    expect(clientMsgIssue?.code).toBeTruthy();
+    expect(threadIdIssue?.code).toBeTruthy();
+  });
+});
+
+describe('input validation: current vs obsolete payload', () => {
+  it('accepts current payload with message, clientMessageId, optional threadId, linkedMealId', async () => {
+    const claimExchange = vi.fn(async () => ({
+      status: 'claimed' as const,
+      threadId: 'thread-1',
+    }));
+    const generateChat = vi.fn(async () => 'Reply');
+
+    await expect(
+      handleAiChat(
+        'user-1',
+        {
+          message: 'Hello',
+          clientMessageId: 'msg_01VALID',
+          threadId: 'thread-1',
+          linkedMealId: 'meal-1',
+        },
+        deps({ claimExchange, generateChat }),
+      ),
+    ).resolves.toBeDefined();
+
+    expect(claimExchange).toHaveBeenCalled();
+    expect(generateChat).toHaveBeenCalled();
+  });
+
+  it('rejects obsolete history field', async () => {
+    const claimExchange = vi.fn();
+    const result = await handleAiChat(
+      'user-1',
+      {
+        message: 'Hello',
+        clientMessageId: 'msg_01VALID',
+        history: [{ role: 'user', text: 'old' }],
+      },
+      deps({ claimExchange }),
+    ).catch((e) => e as AiChatInputError);
+
+    expect(result).toBeInstanceOf(AiChatInputError);
+    expect(result.issues.some((i) => i.path === 'history')).toBe(true);
+    expect(claimExchange).not.toHaveBeenCalled();
+  });
+
+  it('rejects obsolete plan field', async () => {
+    const claimExchange = vi.fn();
+    const result = await handleAiChat(
+      'user-1',
+      {
+        message: 'Hello',
+        clientMessageId: 'msg_01VALID',
+        plan: { kcal: 2000, protein: 150, carbs: 200, fat: 65, planName: 'Test' },
+      },
+      deps({ claimExchange }),
+    ).catch((e) => e as AiChatInputError);
+
+    expect(result).toBeInstanceOf(AiChatInputError);
+    expect(result.issues.some((i) => i.path === 'plan')).toBe(true);
+    expect(claimExchange).not.toHaveBeenCalled();
+  });
+
+  it('rejects obsolete consumed field', async () => {
+    const claimExchange = vi.fn();
+    const result = await handleAiChat(
+      'user-1',
+      {
+        message: 'Hello',
+        clientMessageId: 'msg_01VALID',
+        consumed: { kcal: 500, protein: 30, carbs: 50, fat: 15 },
+      },
+      deps({ claimExchange }),
+    ).catch((e) => e as AiChatInputError);
+
+    expect(result).toBeInstanceOf(AiChatInputError);
+    expect(result.issues.some((i) => i.path === 'consumed')).toBe(true);
+    expect(claimExchange).not.toHaveBeenCalled();
+  });
+});
+
 describe('response and retention helpers', () => {
   it('parses only a valid structured target action', () => {
     expect(

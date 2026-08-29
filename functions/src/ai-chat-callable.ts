@@ -56,6 +56,16 @@ export function createAiChatCallableHandler(
       return await handler(uid, request.data);
     } catch (error) {
       if (error instanceof AiChatInputError) {
+        const logEntry: Record<string, unknown> = {
+          category: 'invalid_request',
+          code: 'invalid-argument',
+          errorName: 'AiChatInputError',
+          issues: error.issues,
+        };
+        if (isSafeCorrelationId(clientMessageId)) {
+          logEntry.correlationId = clientMessageId;
+        }
+        logger.log(logEntry);
         throw new HttpsError('invalid-argument', error.message);
       }
       if (error instanceof AiChatNotFoundError) {

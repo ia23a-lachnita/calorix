@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HttpsError } from 'firebase-functions/v2/https';
 import type { AiChatDeps, AiChatResponse } from '../src/ai-chat';
+import { AiChatInputError } from '../src/ai-chat';
 import { createAiChatCallableHandler } from '../src/ai-chat-callable';
 
 const coreDeps = {} as AiChatDeps;
@@ -182,5 +183,78 @@ describe('createAiChatCallableHandler', () => {
     expect(missingLogs).not.toMatch(/"correlationId"\s*:\s*(""|null)/);
     expect(missingDetails).not.toContain('undefined');
     expect(missingLogs).not.toContain('undefined');
+  });
+
+  it('AiChatInputError logs structured invalid_request with sanitized issues and safe correlationId', async () => {
+    const clientMessageId = 'msg_01SAFE_CORR';
+    const { entries, logger } = capturingLogger();
+    const inputError = new AiChatInputError('validation failed', [
+      { path: 'message', code: 'too_small' },
+      { path: 'clientMessageId', code: 'invalid_string' },
+    ]);
+
+    const handler = createAiChatCallableHandler({
+      coreDeps,
+      coreHandler: async () => {
+        throw inputError;
+      },
+      logger,
+    });
+
+    const error = await expectHttpsError(() =>
+      handler({
+        auth: anonymousAuth,
+        data: { message: '', clientMessageId },
+      }),
+    );
+
+    expect(error.code).toBe('invalid-argument');
+    expect(entries).toHaveLength(1);
+    const entry = entries[0];
+    expect(Object.keys(entry).sort()).toEqual(
+      ['category', 'code', 'correlationId', 'errorName', 'issues'].sort(),
+    );
+    expect(entry).toEqual({
+      category: 'invalid_request',
+      code: 'invalid-argument',
+      correlationId: clientMessageId,
+      errorName: 'AiChatInputError',
+      issues: [
+        { path: 'message', code: 'too_small' },
+        { path: 'clientMessageId', code: 'invalid_string' },
+      ],
+    });
+  });
+
+  it('AiChatInputError with unsafe correlationId logs without correlationId', async () => {
+    const unsafeId = '../unsafe-id';
+    const { entries, logger } = capturingLogger();
+    const inputError = new AiChatInputError('validation failed', [
+      { path: 'message', code: 'too_small' },
+    ]);
+
+    const handler = createAiChatCallableHandler({
+      coreDeps,
+      coreHandler: async () => {
+        throw inputError;
+      },
+      logger,
+    });
+
+    const error = await expectHttpsError(() =>
+      handler({
+        auth: anonymousAuth,
+        data: { message: '', clientMessageId: unsafeId },
+      }),
+    );
+
+    expect(error.code).toBe('invalid-argument');
+    expect(entries).toHaveLength(1);
+    const entry = entries[0];
+    expect(entry.category).toBe('invalid_request');
+    expect(entry.code).toBe('invalid-argument');
+    expect(entry).not.toHaveProperty('correlationId');
+    expect(entry.errorName).toBe('AiChatInputError');
+    expect(entry.issues).toEqual([{ path: 'message', code: 'too_small' }]);
   });
 });

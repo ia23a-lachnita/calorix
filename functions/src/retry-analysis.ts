@@ -1,7 +1,6 @@
 import type { DocumentReference, Transaction } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 import { getStorage } from 'firebase-admin/storage';
-import { VertexAI } from '@google-cloud/vertexai';
 import { APP_DISPLAY_NAME, LOCATION, PROJECT_ID } from './config';
 import {
   BARCODE_ANALYSIS_PROMPT,
@@ -12,6 +11,7 @@ import { fetchOffProduct } from './off-client';
 import { createModelConfigLoader } from './model-config';
 import { handleEntryCreated, type AnalyzeEntryDeps, type EntryData } from './analyze-entry';
 import { getFirestore } from 'firebase-admin/firestore';
+import { createGenAIAdapter, type GenAIAdapter } from './genai-adapter';
 
 // ---------------------------------------------------------------------------
 // Typed error
@@ -55,10 +55,12 @@ function getDb() {
   return _db;
 }
 
-let _vertexAI: InstanceType<typeof VertexAI> | null = null;
-function getVertexAI() {
-  if (!_vertexAI) _vertexAI = new VertexAI({ project: PROJECT_ID, location: LOCATION });
-  return _vertexAI;
+let _genAIAdapter: GenAIAdapter | null = null;
+function getGenAIAdapter() {
+  if (!_genAIAdapter) {
+    _genAIAdapter = createGenAIAdapter({ project: PROJECT_ID, location: LOCATION });
+  }
+  return _genAIAdapter;
 }
 
 let _getModelConfig: ReturnType<typeof createModelConfigLoader> | null = null;
@@ -105,25 +107,8 @@ export function buildAnalyzeEntryDepsFactory(
       }
       throw new Error('Entry has neither storagePath nor imageUrl');
     },
-    generateVision: async (model: string, prompt: string, imageBase64: string) => {
-      const generativeModel = getVertexAI().getGenerativeModel({ model });
-      const result = await generativeModel.generateContent({
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: prompt },
-              { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } },
-            ],
-          },
-        ],
-      });
-      const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (typeof text !== 'string' || text.length === 0) {
-        throw new Error('Empty model response');
-      }
-      return text;
-    },
+    generateVision: (model: string, prompt: string, imageBase64: string) =>
+      getGenAIAdapter().generateVision(model, prompt, imageBase64),
     sendPush: async (message) => {
       await getMessaging().send(message);
     },

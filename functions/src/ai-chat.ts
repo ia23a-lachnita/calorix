@@ -92,8 +92,41 @@ export interface AiChatDeps {
   enforceMessageCap(uid: string, threadId: string): Promise<void>;
 }
 
+export interface AiChatInputIssue {
+  readonly path: string;
+  readonly code: string;
+}
+
 /** Raised for malformed client payloads; mapped to invalid-argument. */
-export class AiChatInputError extends Error {}
+export class AiChatInputError extends Error {
+  readonly issues: readonly AiChatInputIssue[];
+
+  constructor(message: string, issues: readonly AiChatInputIssue[] = []) {
+    super(message);
+    this.name = 'AiChatInputError';
+    this.issues = issues;
+  }
+}
+
+function sanitizeZodIssues(issues: z.ZodIssue[]): AiChatInputIssue[] {
+  const sanitized: AiChatInputIssue[] = [];
+  for (const issue of issues) {
+    if (issue.code === 'unrecognized_keys') {
+      for (const key of issue.keys) {
+        sanitized.push({
+          path: [...issue.path, key].map(String).join('.'),
+          code: issue.code,
+        });
+      }
+    } else {
+      sanitized.push({
+        path: issue.path.map(String).join('.'),
+        code: issue.code,
+      });
+    }
+  }
+  return sanitized;
+}
 
 /** Raised while another invocation owns the same idempotency key. */
 export class AiChatBusyError extends Error {}
@@ -184,9 +217,8 @@ export async function handleAiChat(
   const parsed = aiChatInputSchema.safeParse(rawInput);
   if (!parsed.success) {
     throw new AiChatInputError(
-      parsed.error.issues
-        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
-        .join('; '),
+      'Request payload is invalid',
+      sanitizeZodIssues(parsed.error.issues),
     );
   }
 
