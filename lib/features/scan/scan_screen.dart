@@ -18,6 +18,8 @@ import '../../shared/providers/auth_provider.dart';
 import '../../shared/providers/ui_diff_provider.dart';
 import '../../shared/services/camera_service.dart';
 import '../../debug/debug_deep_links.dart';
+import '../processing/processing_screen.dart'
+    show ProcessingCaptureTransition, processingCaptureHeroTag;
 
 /// Camera chrome tint per cx-screen-scan.jsx (dark liquid-glass).
 const _chipBg = Color(0x8C14181E); // rgba(20,24,30,0.55)
@@ -184,21 +186,45 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     if (uid == null) return;
     final scanMode = ref.read(scanModeProvider);
     final gateway = ref.read(scanUploadGatewayProvider);
-    final entryId = await gateway.enqueue(
-      localPath: path,
-      uid: uid,
-      scanMode: scanMode.name,
-    );
+    final reducedMotion = AppMotion.reducedOf(context);
+    // Show the full-viewport source photo immediately so it's on screen
+    // rasterizing while enqueue (below) is in flight; reduced motion skips
+    // the Hero source entirely since there is no morph to prepare for.
+    Future<void>? sourceFrame;
+    if (!reducedMotion) {
+      setState(() => _capturedImagePath = path);
+      sourceFrame = WidgetsBinding.instance.endOfFrame;
+    }
+
+    String entryId;
+    try {
+      entryId = await gateway.enqueue(
+        localPath: path,
+        uid: uid,
+        scanMode: scanMode.name,
+      );
+    } catch (_) {
+      if (mounted && !reducedMotion) {
+        setState(() => _capturedImagePath = null);
+      }
+      rethrow;
+    }
+
     if (!mounted) return;
-    setState(() => _capturedImagePath = path);
-    final morphDuration =
-        AppMotion.durationOf(context, MotionDurations.cardEntrance);
-    if (morphDuration != Duration.zero) {
-      await Future<void>.delayed(morphDuration);
+    if (sourceFrame != null) {
+      // Let the source frame actually rasterize before starting the Hero
+      // flight, so the morph has a real starting frame to fly from.
+      await sourceFrame;
     }
     if (!mounted) return;
-    setState(() => _capturedImagePath = null);
-    context.goNamed(RouteNames.processing, pathParameters: {'id': entryId});
+    context.goNamed(
+      RouteNames.processing,
+      pathParameters: {'id': entryId},
+      extra: ProcessingCaptureTransition(
+        localImagePath: path,
+        animate: !reducedMotion,
+      ),
+    );
     gateway.scheduleDrain();
   }
 
@@ -240,38 +266,6 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             )
           else
             const _CameraPlaceholder(),
-
-          // Captured-photo overlay bridging scan-to-processing transition.
-          if (_capturedImagePath != null)
-            Center(
-              key: const ValueKey('capture-morph-overlay'),
-              child: TweenAnimationBuilder<double>(
-                tween: Tween<double>(begin: 0, end: 1),
-                duration:
-                    AppMotion.durationOf(context, MotionDurations.cardEntrance),
-                builder: (context, value, child) => Opacity(
-                  opacity: value,
-                  child: Transform.scale(
-                    scale: 0.85 + 0.15 * value,
-                    child: child,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: SizedBox(
-                    width: 280,
-                    height: 280,
-                    child: Image.file(
-                      File(_capturedImagePath!),
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox.expand(
-                        child: ColoredBox(color: Colors.black26),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
 
           // Top chrome: flash pill + profile chip, then the mode selector.
           Positioned(
@@ -329,6 +323,22 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
               ],
             ),
           ),
+
+          // Full-viewport captured photo, above all camera chrome, while
+          // enqueue is in flight. Hero-tagged so it morphs into the
+          // Processing skeleton's rounded frame.
+          if (_capturedImagePath != null)
+            Hero(
+              tag: processingCaptureHeroTag,
+              child: Image.file(
+                File(_capturedImagePath!),
+                key: const ValueKey('capture-photo-source'),
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox.expand(
+                  child: ColoredBox(color: Colors.black26),
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -13,13 +14,33 @@ import '../../core/router/route_names.dart';
 import '../../core/motion/app_motion.dart';
 import '../../shared/models/processing_state.dart';
 
+/// Stable Hero tag shared by the Scan capture source and the Processing
+/// skeleton's captured-photo frame, so the two morph via one Hero flight.
+const String processingCaptureHeroTag = 'capture-photo-hero';
+
+/// Typed `GoRouter` route `extra` carrying the just-captured local photo
+/// from Scan into Processing, plus whether the route should animate the
+/// Hero morph (false under reduced motion).
+@immutable
+class ProcessingCaptureTransition {
+  const ProcessingCaptureTransition({
+    required this.localImagePath,
+    required this.animate,
+  });
+
+  final String localImagePath;
+  final bool animate;
+}
+
 class ProcessingScreen extends ConsumerWidget {
   final String entryId;
   final String? fixtureBackgroundAsset;
+  final ProcessingCaptureTransition? captureTransition;
   const ProcessingScreen({
     super.key,
     required this.entryId,
     this.fixtureBackgroundAsset,
+    this.captureTransition,
   });
 
   @override
@@ -55,7 +76,8 @@ class ProcessingScreen extends ConsumerWidget {
           const SizedBox(height: 10),
           Expanded(
             child: stateAsync.when(
-              loading: () => const _ProcessingSkeleton(),
+              loading: () =>
+                  _ProcessingSkeleton(captureTransition: captureTransition),
               error: (error, _) => _ErrorState(
                 message: error.toString(),
                 onRetry: () {},
@@ -83,8 +105,9 @@ class ProcessingScreen extends ConsumerWidget {
                         phase: state.phase,
                       ),
                     ),
-                  _ => const _ProcessingSkeleton(
-                      key: ValueKey('processing-skeleton'),
+                  _ => _ProcessingSkeleton(
+                      key: const ValueKey('processing-skeleton'),
+                      captureTransition: captureTransition,
                     ),
                 },
               ),
@@ -267,106 +290,163 @@ class _GlassBannerState extends State<_GlassBanner>
 }
 
 class _ProcessingSkeleton extends StatelessWidget {
-  const _ProcessingSkeleton({super.key});
+  const _ProcessingSkeleton({super.key, this.captureTransition});
+
+  final ProcessingCaptureTransition? captureTransition;
 
   @override
   Widget build(BuildContext context) {
-    return SkeletonShimmer(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final transition = captureTransition;
+    if (transition == null) {
+      return SkeletonShimmer(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image skeleton
+              Container(
+                height: 220,
+                decoration: BoxDecoration(
+                  color: AppColors.skeletonBase,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.skeletonShine,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text('AI',
+                            style: TextStyle(
+                                fontSize: 10,
+                                fontFamily: 'Inter Tight',
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondaryLight)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              ..._skeletonDetails,
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // The real captured photo lives outside SkeletonShimmer so its
+          // colors are never shader-masked by the shimmer gradient.
+          _CapturedPhotoFrame(transition: transition),
+          const SizedBox(height: 16),
+          SkeletonShimmer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _skeletonDetails,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static List<Widget> get _skeletonDetails => [
+        // Title skeleton
+        const SkeletonLine(widthFraction: 0.6, height: 18),
+        const SizedBox(height: 8),
+        const SkeletonLine(widthFraction: 0.4, height: 14),
+        const SizedBox(height: 24),
+
+        // Step counter
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Image skeleton
             Container(
-              height: 220,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: AppColors.skeletonBase,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.skeletonShine,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text('AI',
-                          style: TextStyle(
-                              fontSize: 10,
-                              fontFamily: 'Inter Tight',
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textSecondaryLight)),
-                    ),
-                  ),
-                ],
-              ),
+              child: const Text('3 / 4',
+                  style: TextStyle(
+                      fontFamily: 'Inter Tight',
+                      fontSize: 12,
+                      color: AppColors.textSecondaryLight)),
             ),
-            const SizedBox(height: 16),
-
-            // Title skeleton
-            const SkeletonLine(widthFraction: 0.6, height: 18),
-            const SizedBox(height: 8),
-            const SkeletonLine(widthFraction: 0.4, height: 14),
-            const SizedBox(height: 24),
-
-            // Step counter
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.skeletonBase,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text('3 / 4',
-                      style: TextStyle(
-                          fontFamily: 'Inter Tight',
-                          fontSize: 12,
-                          color: AppColors.textSecondaryLight)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Macro bars skeleton
-            for (int i = 0; i < 3; i++) ...[
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.skeletonShine,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                      child: SkeletonLine(widthFraction: 0.3, height: 12)),
-                  const SizedBox(width: 8),
-                  const SizedBox(
-                    width: 48,
-                    child: SkeletonLine(height: 12),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              const SkeletonLine(widthFraction: 1.0, height: 4),
-              const SizedBox(height: 16),
-            ],
-            const SizedBox(height: 16),
           ],
+        ),
+        const SizedBox(height: 24),
+
+        // Macro bars skeleton
+        for (int i = 0; i < 3; i++) ...[
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: AppColors.skeletonShine,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                  child: SkeletonLine(widthFraction: 0.3, height: 12)),
+              const SizedBox(width: 8),
+              const SizedBox(
+                width: 48,
+                child: SkeletonLine(height: 12),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const SkeletonLine(widthFraction: 1.0, height: 4),
+          const SizedBox(height: 16),
+        ],
+        const SizedBox(height: 16),
+      ];
+}
+
+/// The just-captured local photo, filling the same 220px rounded frame the
+/// skeleton reserves for it. Wrapped in the shared Hero tag only when
+/// [ProcessingCaptureTransition.animate] is true; reduced motion renders the
+/// plain clipped image so no Hero flight is attempted.
+class _CapturedPhotoFrame extends StatelessWidget {
+  const _CapturedPhotoFrame({required this.transition});
+
+  final ProcessingCaptureTransition transition;
+
+  @override
+  Widget build(BuildContext context) {
+    final clipped = ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Image.file(
+        File(transition.localImagePath),
+        key: const ValueKey('processing-captured-photo'),
+        width: double.infinity,
+        height: 220,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: AppColors.skeletonBase,
+          width: double.infinity,
+          height: 220,
         ),
       ),
     );
+    if (!transition.animate) return clipped;
+    return Hero(tag: processingCaptureHeroTag, child: clipped);
   }
 }
 

@@ -223,9 +223,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/processing/:id',
         name: RouteNames.processing,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final id = state.pathParameters['id']!;
-          return ProcessingScreen(entryId: id);
+          final extra = state.extra;
+          if (extra is ProcessingCaptureTransition) {
+            return CustomTransitionPage(
+              key: state.pageKey,
+              child: ProcessingScreen(entryId: id, captureTransition: extra),
+              transitionDuration:
+                  extra.animate ? MotionDurations.cardExpansion : Duration.zero,
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) =>
+                      FadeTransition(opacity: animation, child: child),
+            );
+          }
+          // Absent/wrong extra preserves the direct/deep-link skeleton
+          // behavior: plain construction, default platform page transition.
+          return MaterialPage(
+            key: state.pageKey,
+            child: ProcessingScreen(entryId: id),
+          );
         },
       ),
       GoRoute(

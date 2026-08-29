@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:calorix/core/theme/app_theme.dart';
+import 'package:calorix/core/motion/app_motion.dart';
 import 'package:calorix/core/router/route_names.dart';
 import 'package:calorix/features/scan/providers/scan_providers.dart';
 import 'package:calorix/features/scan/scan_screen.dart';
@@ -49,9 +50,25 @@ Future<void> pumpScan(
       GoRoute(
         path: '/processing/:id',
         name: RouteNames.processing,
-        builder: (_, state) => ProcessingScreen(
-          entryId: state.pathParameters['id']!,
-        ),
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final extra = state.extra;
+          if (extra is ProcessingCaptureTransition) {
+            return CustomTransitionPage(
+              key: state.pageKey,
+              child: ProcessingScreen(entryId: id, captureTransition: extra),
+              transitionDuration:
+                  extra.animate ? MotionDurations.cardExpansion : Duration.zero,
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) =>
+                      FadeTransition(opacity: animation, child: child),
+            );
+          }
+          return MaterialPage(
+            key: state.pageKey,
+            child: ProcessingScreen(entryId: id),
+          );
+        },
       ),
     ],
   );
