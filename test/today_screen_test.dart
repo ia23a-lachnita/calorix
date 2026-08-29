@@ -12,6 +12,9 @@ import 'package:calorix/shared/providers/ui_diff_provider.dart';
 import 'package:calorix/shared/widgets/macro_progress_bar.dart';
 import 'package:calorix/shared/widgets/macro_ring.dart';
 import 'package:calorix/debug/ui_diff/ui_diff_anchor.dart';
+import 'package:calorix/core/time/clock_provider.dart';
+import 'package:calorix/core/time/clock.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 Widget _buildTodayScreen({
   List<FoodEntry> entries = const [],
@@ -24,9 +27,12 @@ Widget _buildTodayScreen({
   ThemeMode themeMode = ThemeMode.light,
   bool uiDiffMode = false,
   bool disableAnimations = false,
+  Clock? clock,
 }) {
+  final testClock = clock ?? FakeClock(tz.TZDateTime.utc(2026, 8, 29, 12));
   return ProviderScope(
     overrides: [
+      clockProvider.overrideWithValue(testClock),
       uiDiffModeProvider.overrideWith((_) => uiDiffMode),
       todayEntriesProvider.overrideWith((_) => Stream.value(entries)),
       todayDisplaySummaryProvider.overrideWith(
@@ -529,6 +535,7 @@ void main() {
       _buildTodayScreen(
         themeMode: ThemeMode.dark,
         summary: (kcal: 1420.0, protein: 96.0, carbs: 132.0, fat: 38.0),
+        clock: FakeClock(tz.TZDateTime.utc(2026, 8, 29, 12)),
       ),
     );
     await _pumpTodayScreen(tester);
@@ -565,5 +572,22 @@ void main() {
     expect(gapRingProtein, closeTo(14.0, 0.01));
     expect(gapProteinCarbs, closeTo(10.0, 0.01));
     expect(gapCarbsFat, closeTo(10.0, 0.01));
+  });
+
+  testWidgets('Today header shows exact SATURDAY · AUGUST 29 at 360x800',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      _buildTodayScreen(
+        themeMode: ThemeMode.dark,
+        clock: FakeClock(tz.TZDateTime.utc(2026, 8, 29, 12)),
+      ),
+    );
+    await _pumpTodayScreen(tester);
+
+    expect(find.text('SATURDAY · AUGUST 29'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

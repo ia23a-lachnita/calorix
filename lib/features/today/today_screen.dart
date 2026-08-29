@@ -117,26 +117,34 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            headerDate,
-                            style: AppTextStyles.labelMono.copyWith(
-                              fontSize: 10,
-                              letterSpacing: 1.6,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                headerDate,
+                                maxLines: 1,
+                                softWrap: false,
+                                style: AppTextStyles.labelMono.copyWith(
+                                  fontSize: 10,
+                                  letterSpacing: 1.6,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Today',
-                            style: AppTextStyles.todayTitle
-                                .copyWith(color: textColor),
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            Text(
+                              'Today',
+                              style: AppTextStyles.todayTitle
+                                  .copyWith(color: textColor),
+                            ),
+                          ],
+                        ),
                       ),
                       Row(
                         children: [
