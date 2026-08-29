@@ -29,6 +29,31 @@ void main() {
 
       expect(find.text('Camera initializing…'), findsNothing);
       expect(find.byKey(const ValueKey('fake-camera-preview')), findsOneWidget);
+
+      final finder = find.byKey(const ValueKey('fake-camera-preview'));
+
+      // FittedBox(cover, center) wrapping the preview.
+      expect(
+        find.ancestor(
+            of: finder,
+            matching: find.byWidgetPredicate(
+              (w) =>
+                  w is FittedBox &&
+                  w.fit == BoxFit.cover &&
+                  w.alignment == Alignment.center,
+            )),
+        findsOneWidget,
+      );
+
+      // SizedBox with portrait-derived swap: previewSize(100,200) → 200×100.
+      expect(
+        find.ancestor(
+            of: finder,
+            matching: find.byWidgetPredicate(
+              (w) => w is SizedBox && w.width == 200 && w.height == 100,
+            )),
+        findsOneWidget,
+      );
     },
   );
 

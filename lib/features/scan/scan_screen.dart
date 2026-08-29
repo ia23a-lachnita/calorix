@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show DeviceOrientation;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'providers/scan_providers.dart';
@@ -46,8 +47,7 @@ class ScanScreen extends ConsumerStatefulWidget {
 }
 
 class _ScanScreenState extends ConsumerState<ScanScreen>
-    with WidgetsBindingObserver, TickerProviderStateMixin {
-  late final AnimationController _shimmerController;
+    with WidgetsBindingObserver {
   late final CameraLifecycleService _cameraLifecycle;
   String? _capturedImagePath;
 
@@ -56,33 +56,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _cameraLifecycle = ref.read(cameraLifecycleServiceProvider);
-    _shimmerController = AnimationController(
-      vsync: this,
-      duration: MotionDurations.scanShimmer,
-    );
-    final initialCaptureState = widget.initialCaptureState;
-    if (initialCaptureState != null) {
-      if (initialCaptureState == CaptureState.capturing) {
-        _shimmerController.repeat();
-      }
-    }
     if (widget.initializeCamera) {
       _checkPermission();
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final captureState =
-        widget.initialCaptureState ?? ref.read(captureStateProvider);
-    if (MediaQuery.disableAnimationsOf(context)) {
-      _shimmerController
-        ..stop()
-        ..value = captureState == CaptureState.capturing ? 0.5 : 0;
-    } else if (captureState == CaptureState.capturing &&
-        !_shimmerController.isAnimating) {
-      _shimmerController.repeat();
     }
   }
 
@@ -172,7 +147,6 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_cameraLifecycle.dispose());
-    _shimmerController.dispose();
     super.dispose();
   }
 
@@ -183,7 +157,6 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   ) async {
     if (ref.read(captureStateProvider) != CaptureState.idle) return;
     ref.read(captureStateProvider.notifier).state = CaptureState.capturing;
-    _shimmerController.repeat();
     try {
       final service = ref.read(cameraServiceProvider);
       final file = await captureFn(service);
@@ -199,7 +172,6 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   void _resetToIdle() {
     if (!mounted) return;
     ref.read(captureStateProvider.notifier).state = CaptureState.idle;
-    _shimmerController.stop();
   }
 
   Future<void> _capture() => _runCapture((service) => service.captureStill());
@@ -254,153 +226,110 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      body: LayoutBuilder(
-        builder: (context, constraints) => Stack(
-          fit: StackFit.expand,
-          children: [
-            if (previewController != null &&
-                previewController.value.isInitialized)
-              CameraPreview(previewController)
-            else if (widget.fixturePreviewAsset != null)
-              Image.asset(
-                widget.fixturePreviewAsset!,
-                key: const ValueKey('capture-meal-preview'),
-                fit: BoxFit.cover,
-              )
-            else
-              const _CameraPlaceholder(),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (previewController != null &&
+              previewController.value.isInitialized)
+            _CoverCameraPreview(controller: previewController)
+          else if (widget.fixturePreviewAsset != null)
+            Image.asset(
+              widget.fixturePreviewAsset!,
+              key: const ValueKey('capture-meal-preview'),
+              fit: BoxFit.cover,
+            )
+          else
+            const _CameraPlaceholder(),
 
-            // Analyzing sweep, confined to the reticle box per the handoff.
-            if (isCapturing)
-              Center(
+          // Captured-photo overlay bridging scan-to-processing transition.
+          if (_capturedImagePath != null)
+            Center(
+              key: const ValueKey('capture-morph-overlay'),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0, end: 1),
+                duration:
+                    AppMotion.durationOf(context, MotionDurations.cardEntrance),
+                builder: (context, value, child) => Opacity(
+                  opacity: value,
+                  child: Transform.scale(
+                    scale: 0.85 + 0.15 * value,
+                    child: child,
+                  ),
+                ),
                 child: ClipRRect(
-                  key: const ValueKey('capture-shimmer'),
                   borderRadius: BorderRadius.circular(16),
                   child: SizedBox(
                     width: 280,
                     height: 280,
-                    child: _ScanShimmer(controller: _shimmerController),
-                  ),
-                ),
-              ),
-
-            _ReticleOverlay(glow: isCapturing),
-
-            // Captured-photo overlay bridging scan-to-processing transition.
-            if (_capturedImagePath != null)
-              Center(
-                key: const ValueKey('capture-morph-overlay'),
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(begin: 0, end: 1),
-                  duration: AppMotion.durationOf(
-                      context, MotionDurations.cardEntrance),
-                  builder: (context, value, child) => Opacity(
-                    opacity: value,
-                    child: Transform.scale(
-                      scale: 0.85 + 0.15 * value,
-                      child: child,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: SizedBox(
-                      width: 280,
-                      height: 280,
-                      child: Image.file(
-                        File(_capturedImagePath!),
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const SizedBox.expand(
-                          child: ColoredBox(color: Colors.black26),
-                        ),
+                    child: Image.file(
+                      File(_capturedImagePath!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.expand(
+                        child: ColoredBox(color: Colors.black26),
                       ),
-                    ),
-                  ),
-                ),
-              ),
-
-            // Hint pill below the reticle.
-            Positioned(
-              left: 0,
-              right: 0,
-              top: constraints.maxHeight / 2 + 160,
-              child: Center(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.28),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    isCapturing ? 'ANALYZING…' : 'FRAME YOUR MEAL · TAP ONCE',
-                    style: AppTextStyles.labelMono.copyWith(
-                      fontSize: 10,
-                      letterSpacing: 10 * 0.20,
-                      color: Colors.white.withValues(alpha: 0.80),
                     ),
                   ),
                 ),
               ),
             ),
 
-            // Top chrome: flash pill + profile chip, then the mode selector.
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _FlashChip(service: deviceService),
-                          const _ProfileChip(),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      ScanModeSelector(
-                        mode: scanMode,
-                        onChanged: (m) =>
-                            ref.read(scanModeProvider.notifier).state = m,
-                      ),
-                    ],
-                  ),
+          // Top chrome: flash pill + profile chip, then the mode selector.
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _FlashChip(service: deviceService),
+                        const _ProfileChip(),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    ScanModeSelector(
+                      mode: scanMode,
+                      onChanged: (m) =>
+                          ref.read(scanModeProvider.notifier).state = m,
+                    ),
+                  ],
                 ),
               ),
             ),
+          ),
 
-            // Capture controls above the floating nav.
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: navHeight + 40,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _RoundChipWithLabel(
-                    label: 'LIBRARY',
-                    icon: Icons.photo_library_outlined,
-                    onTap: _pickFromLibrary,
-                  ),
-                  const SizedBox(width: 48),
-                  CaptureButton(isCapturing: isCapturing, onTap: _capture),
-                  const SizedBox(width: 48),
-                  _RoundChipWithLabel(
-                    label: 'RECENT',
-                    icon: Icons.history_outlined,
-                    onTap: widget.onRecentRequested ??
-                        () => context.goNamed(RouteNames.history),
-                  ),
-                ],
-              ),
+          // Capture controls above the floating nav.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: navHeight + 40,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _RoundChipWithLabel(
+                  label: 'LIBRARY',
+                  icon: Icons.photo_library_outlined,
+                  onTap: _pickFromLibrary,
+                ),
+                const SizedBox(width: 48),
+                CaptureButton(isCapturing: isCapturing, onTap: _capture),
+                const SizedBox(width: 48),
+                _RoundChipWithLabel(
+                  label: 'RECENT',
+                  icon: Icons.history_outlined,
+                  onTap: widget.onRecentRequested ??
+                      () => context.goNamed(RouteNames.history),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -425,6 +354,38 @@ class _CameraPlaceholder extends StatelessWidget {
           ),
         ),
       );
+}
+
+/// Fills the screen with the live camera feed, cropping to cover per
+/// `BoxFit.cover` instead of the device's native letterboxed aspect ratio.
+/// `previewSize` is reported in the sensor's landscape frame, so portrait
+/// device orientations need width/height swapped before fitting.
+class _CoverCameraPreview extends StatelessWidget {
+  const _CoverCameraPreview({required this.controller});
+
+  final CameraController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final previewSize = controller.value.previewSize ?? Size.zero;
+    final isPortrait = controller.value.deviceOrientation ==
+            DeviceOrientation.portraitUp ||
+        controller.value.deviceOrientation == DeviceOrientation.portraitDown;
+    final width = isPortrait ? previewSize.height : previewSize.width;
+    final height = isPortrait ? previewSize.width : previewSize.height;
+
+    return ClipRect(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        alignment: Alignment.center,
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: CameraPreview(controller),
+        ),
+      ),
+    );
+  }
 }
 
 // ─── Glass chrome ─────────────────────────────────────────────────────────────
@@ -588,121 +549,4 @@ class _RoundChipWithLabel extends StatelessWidget {
       ),
     );
   }
-}
-
-// ─── Reticle + shimmer ────────────────────────────────────────────────────────
-
-class _ReticleOverlay extends StatelessWidget {
-  const _ReticleOverlay({required this.glow});
-
-  final bool glow;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: CustomPaint(
-        size: const Size(280, 280),
-        painter: _ReticlePainter(glow: glow),
-      ),
-    );
-  }
-}
-
-class _ReticlePainter extends CustomPainter {
-  _ReticlePainter({required this.glow});
-
-  final bool glow;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFF2F3F5).withValues(alpha: 0.95)
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    if (glow) {
-      paint.maskFilter = const MaskFilter.blur(BlurStyle.solid, 3);
-    }
-
-    const arm = 32.0;
-    const r = 6.0;
-    final w = size.width;
-    final h = size.height;
-
-    // Four rounded corner brackets per cx-screen-scan.jsx.
-    Path corner(Offset origin, double sx, double sy) {
-      // Draw in a local frame where the corner is top-left, then mirror.
-      final path = Path()
-        ..moveTo(0, arm)
-        ..lineTo(0, r)
-        ..arcToPoint(const Offset(r, 0), radius: const Radius.circular(r))
-        ..lineTo(arm, 0);
-      final m = Matrix4.identity()
-        ..translateByDouble(origin.dx, origin.dy, 0, 1)
-        ..scaleByDouble(sx, sy, 1, 1);
-      return path.transform(m.storage);
-    }
-
-    canvas.drawPath(corner(Offset.zero, 1, 1), paint);
-    canvas.drawPath(corner(Offset(w, 0), -1, 1), paint);
-    canvas.drawPath(corner(Offset(0, h), 1, -1), paint);
-    canvas.drawPath(corner(Offset(w, h), -1, -1), paint);
-  }
-
-  @override
-  bool shouldRepaint(_ReticlePainter old) => old.glow != glow;
-}
-
-class _ScanShimmer extends StatelessWidget {
-  const _ScanShimmer({required this.controller});
-
-  final AnimationController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) => CustomPaint(
-        painter: _ShimmerPainter(progress: controller.value),
-      ),
-    );
-  }
-}
-
-class _ShimmerPainter extends CustomPainter {
-  _ShimmerPainter({required this.progress});
-
-  final double progress;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final y = size.height * progress;
-    final band = Rect.fromLTWH(0, y - 60, size.width, 120);
-    canvas.drawRect(
-      band,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.transparent,
-            AppColors.cyan.withValues(alpha: 0.55),
-            Colors.transparent,
-          ],
-        ).createShader(band),
-    );
-    // Leading glow line.
-    canvas.drawLine(
-      Offset(0, y),
-      Offset(size.width, y),
-      Paint()
-        ..color = AppColors.cyan.withValues(alpha: 0.95)
-        ..strokeWidth = 2
-        ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 6),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_ShimmerPainter old) => old.progress != progress;
 }

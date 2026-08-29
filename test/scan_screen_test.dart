@@ -34,10 +34,21 @@ void main() {
     expect(find.text('Meal'), findsOneWidget);
     expect(find.text('Barcode'), findsOneWidget);
     expect(find.text('Label'), findsOneWidget);
-    expect(find.text('FRAME YOUR MEAL · TAP ONCE'), findsOneWidget);
     expect(find.text('LIBRARY'), findsOneWidget);
     expect(find.text('RECENT'), findsOneWidget);
     expect(find.byKey(const Key('capture-core-idle')), findsOneWidget);
+
+    // Hint pill and analyzing text are removed for unobstructed live camera.
+    expect(find.text('FRAME YOUR MEAL · TAP ONCE'), findsNothing);
+    expect(find.text('ANALYZING…'), findsNothing);
+
+    // Reticle overlay removed — no 280×280 CustomPaint remains.
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.size == const Size(280, 280),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets('flash chip cycles modes', (tester) async {

@@ -371,7 +371,7 @@ void main() {
       expect(find.text('Guest'), findsNothing);
     });
 
-    testWidgets('scan_capturing shows stable capturing shimmer',
+    testWidgets('scan_capturing shows only the capture-button spinner',
         (WidgetTester tester) async {
       final manifest = _createManifest(
         profile: UiDiffFixtureProfile.flowScan,
@@ -410,8 +410,9 @@ void main() {
           'assets/images/chicken_rice_bowl_highformat.jpg',
         ),
       );
-      expect(find.byKey(const ValueKey('capture-shimmer')), findsOneWidget);
-      expect(find.text('ANALYZING…'), findsOneWidget);
+      expect(find.byKey(const ValueKey('capture-spinner')), findsOneWidget);
+      expect(find.byKey(const ValueKey('capture-shimmer')), findsNothing);
+      expect(find.text('ANALYZING…'), findsNothing);
     });
 
     testWidgets('permission and idle scan use the canonical capture meal',

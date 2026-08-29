@@ -42,8 +42,8 @@ void main() {
   );
 
   testWidgets(
-    'capturing state shows conic spinner, shimmer, and ANALYZING hint — '
-    'and no stop/cancel control',
+    'capturing state shows only the capture-button conic spinner — '
+    'no full-screen shimmer, ANALYZING hint, or stop/cancel control',
     (tester) async {
       final fake = FakeCameraService()..holdCapture = true;
       final gateway = FakeScanUploadGateway();
@@ -60,8 +60,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       expect(find.byKey(const ValueKey('capture-spinner')), findsOneWidget);
-      expect(find.byKey(const ValueKey('capture-shimmer')), findsOneWidget);
-      expect(find.text('ANALYZING…'), findsOneWidget);
+      expect(find.byKey(const ValueKey('capture-shimmer')), findsNothing);
+      expect(find.text('ANALYZING…'), findsNothing);
       expect(find.byKey(const ValueKey('stop-button')), findsNothing);
 
       fake.completeCapture();
