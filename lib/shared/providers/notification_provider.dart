@@ -36,9 +36,9 @@ Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 }
 
-/// One-shot setup: permission, token persistence, foreground display and
-/// notification-tap deep linking. Safe to call once after the user is signed
-/// in; subsequent calls are ignored.
+/// One-shot setup: permission, token persistence, and notification-tap deep
+/// linking. Safe to call once after the user is signed in; subsequent calls
+/// are ignored.
 bool _initialized = false;
 
 Future<void> initNotifications(WidgetRef ref) async {
@@ -64,12 +64,8 @@ Future<void> initNotifications(WidgetRef ref) async {
     router.go(await handler.resolve({'entryId': docId}));
   }
 
-  service.onNotificationTap = (docId) => unawaited(deepLink(docId));
-
   final granted = await service.requestPermission();
   ref.read(fcmPermissionProvider.notifier).state = granted;
-
-  await service.initLocalNotifications();
 
   Future<void> writeToken(String token) {
     return firestore.collection(AppConstants.usersCollection).doc(uid).set(
@@ -86,7 +82,6 @@ Future<void> initNotifications(WidgetRef ref) async {
   }
   service.onTokenRefresh.listen(writeToken);
 
-  service.onMessage.listen(service.showForeground);
   service.onMessageOpenedApp.listen(
     (message) => unawaited(deepLink(service.docIdOf(message))),
   );
