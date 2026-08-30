@@ -292,4 +292,77 @@ void main() {
       expect(find.text('Save to Today'), findsNothing);
     });
   }
+
+  testWidgets(
+      'tapping asset hero image opens full-screen viewer with same AssetImage',
+      (tester) async {
+    await tester.pumpWidget(
+      _app(_entry(imageUrl: 'assets/images/chicken_rice_bowl_square.jpg')),
+    );
+    await _pump(tester);
+
+    final heroImage = tester.widget<Image>(find.byType(Image).first);
+    expect(heroImage.image, isA<AssetImage>());
+    final assetName = (heroImage.image as AssetImage).assetName;
+
+    expect(find.byKey(const Key('food-image-viewer')), findsNothing);
+    await tester.tap(find.byType(Image).first);
+    await _pump(tester);
+
+    expect(find.byKey(const Key('food-image-viewer')), findsOneWidget);
+
+    final viewerImage =
+        tester.widget<Image>(find.byKey(const Key('food-image-viewer')));
+    expect(viewerImage.image, isA<AssetImage>());
+    expect((viewerImage.image as AssetImage).assetName, assetName);
+    expect(viewerImage.fit, BoxFit.contain);
+
+    final interactive =
+        tester.widget<InteractiveViewer>(find.byType(InteractiveViewer));
+    expect(interactive.minScale, 1.0);
+    expect(interactive.maxScale, 4.0);
+
+    expect(find.byKey(const Key('food-image-viewer-close')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('food-image-viewer-close')));
+    await _pump(tester);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byKey(const Key('food-image-viewer')), findsNothing);
+    expect(find.text('Chicken Rice Bowl'), findsOneWidget);
+  });
+
+  testWidgets('fallback hero for entry with no image is not tappable',
+      (tester) async {
+    await tester.pumpWidget(_app(_entry()));
+    await _pump(tester);
+
+    expect(find.byType(Image), findsNothing);
+    expect(find.byKey(const Key('food-image-viewer')), findsNothing);
+
+    await tester.tapAt(const Offset(180, 160));
+    await _pump(tester);
+
+    expect(find.byKey(const Key('food-image-viewer')), findsNothing);
+  });
+
+  testWidgets(
+      'original scan precedence: storagePath wins over product imageUrl',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      _entry(
+        imageUrl: 'https://product-catalog.example.com/chicken_rice.jpg',
+        storagePath: 'scans/u1/e1.jpg',
+      ),
+    ));
+    await _pump(tester);
+
+    // Regression: current production picks imageUrl first, but real scans
+    // must render the resolved storage path (the user's actual photo).
+    expect(find.byType(CachedNetworkImage), findsOneWidget);
+    final cachedImage =
+        tester.widget<CachedNetworkImage>(find.byType(CachedNetworkImage));
+    expect(
+        cachedImage.imageUrl, 'https://example.com/resolved/scans/u1/e1.jpg');
+    tester.takeException();
+  });
 }

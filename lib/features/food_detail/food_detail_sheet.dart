@@ -909,9 +909,71 @@ Widget _rowDivider(bool isDark) => Padding(
       ),
     );
 
-/// Hero image resolution order: bundled asset (seed fixtures), direct URL,
-/// then the scan's Cloud Storage path — real photos must never fall back to
-/// a preset while a photo exists.
+class _ResolvedHeroImage extends StatelessWidget {
+  const _ResolvedHeroImage({required this.imageProvider});
+
+  final ImageProvider imageProvider;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        key: const Key('food-image-hero'),
+        onTap: () => Navigator.of(context, rootNavigator: true).push(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => _FoodImageViewer(imageProvider: imageProvider),
+          ),
+        ),
+        child: Image(
+          image: imageProvider,
+          fit: BoxFit.cover,
+        ),
+      );
+}
+
+class _FoodImageViewer extends StatelessWidget {
+  const _FoodImageViewer({required this.imageProvider});
+
+  final ImageProvider imageProvider;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: const Color(0xFF0E1117),
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: InteractiveViewer(
+                minScale: 1.0,
+                maxScale: 4.0,
+                child: Center(
+                  child: Image(
+                    key: const Key('food-image-viewer'),
+                    image: imageProvider,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 12,
+              left: 18,
+              child: SafeArea(
+                bottom: false,
+                child: IconButton(
+                  key: const Key('food-image-viewer-close'),
+                  icon: const Icon(Icons.close, color: Color(0xFFF2F3F5)),
+                  tooltip: 'Close image viewer',
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+/// Hero image resolution order: bundled asset (seed fixtures), then the scan's
+/// Cloud Storage path (original photo), then a direct non-asset imageUrl.
+/// Real photos must never fall back to a preset while a photo exists.
 class _HeroImage extends ConsumerWidget {
   const _HeroImage({required this.entry});
 
@@ -921,14 +983,7 @@ class _HeroImage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final url = entry.imageUrl;
     if (url != null && url.startsWith('assets/')) {
-      return Image.asset(url, fit: BoxFit.cover);
-    }
-    if (url != null && url.isNotEmpty) {
-      return CachedNetworkImage(
-        imageUrl: url,
-        fit: BoxFit.cover,
-        errorWidget: (_, __, ___) => const _HeroFallback(),
-      );
+      return _ResolvedHeroImage(imageProvider: AssetImage(url));
     }
     final path = entry.storagePath;
     if (path != null && path.isNotEmpty) {
@@ -936,11 +991,22 @@ class _HeroImage extends ConsumerWidget {
             data: (resolved) => CachedNetworkImage(
               imageUrl: resolved,
               fit: BoxFit.cover,
+              imageBuilder: (_, imageProvider) =>
+                  _ResolvedHeroImage(imageProvider: imageProvider),
               errorWidget: (_, __, ___) => const _HeroFallback(),
             ),
             loading: () => const ColoredBox(color: Color(0xFF2A221D)),
             error: (_, __) => const _HeroFallback(),
           );
+    }
+    if (url != null && url.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: url,
+        fit: BoxFit.cover,
+        imageBuilder: (_, imageProvider) =>
+            _ResolvedHeroImage(imageProvider: imageProvider),
+        errorWidget: (_, __, ___) => const _HeroFallback(),
+      );
     }
     return const _HeroFallback();
   }
