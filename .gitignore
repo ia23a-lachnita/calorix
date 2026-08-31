@@ -104,3 +104,6 @@ Thumbs.db
 
 # FVM Version Cache
 .fvm/
+
+# Nutrition evaluation runtime artifacts
+.nutrition-eval/

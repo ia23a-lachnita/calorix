@@ -56,7 +56,7 @@
 - Produces `NutritionEvalCase`, `NutritionTruth`, `NutritionPrediction`, `NutritionCaseResult`, and `NutritionEvalReport`.
 - Manifest version is exactly `1`; scan modes are `meal | barcode | label`; basis values are `portion | package | per100g`; units are `portion | g | ml`.
 
-- [ ] **Step 1: Write the failing schema test.**
+- [x] **Step 1: Write the failing schema test.**
 
   Create a valid minimal meal and package case, then mutate one field at a time. The test must require unique IDs, a lowercase 64-character SHA-256, positive dimensions/amounts, finite non-negative nutrition, public cases without local paths, private cases without public URLs, and a declared tolerance class.
 
@@ -86,13 +86,13 @@
   expect(() => parseNutritionEvalManifest({...valid, cases: [valid.cases[0], valid.cases[0]]})).toThrow(/duplicate/i);
   ```
 
-- [ ] **Step 2: Run the focused test and witness RED.**
+- [x] **Step 2: Run the focused test and witness RED.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/schema.test.ts`
 
   Expected: FAIL because `src/nutrition-eval/schema.ts` does not exist.
 
-- [ ] **Step 3: Implement the minimum schema and types.**
+- [x] **Step 3: Implement the minimum schema and types.**
 
   Define `NutritionVectorSchema` once and reuse it for truth/prediction. Represent unavailable prediction fields as omitted optional fields, not zero. Include these result fields from the beginning so later tasks do not invent parallel report types:
 
@@ -117,13 +117,13 @@
 
   Add `.nutrition-eval/` to the repository root `.gitignore`; do not add a broad image extension rule.
 
-- [ ] **Step 4: Run GREEN and repository checks.**
+- [x] **Step 4: Run GREEN and repository checks.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/schema.test.ts && npm run build && npm run lint`
 
   Expected: PASS with no network access.
 
-- [ ] **Step 5: Record and commit the schema stage.**
+- [x] **Step 5: Record and commit the schema stage.**
 
   Update the status file with RED/GREEN command output and the next task. Commit `schema.ts`, its test, `.gitignore`, and tracking with message `Define nutrition evaluation contracts`, then push.
 
