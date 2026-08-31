@@ -1,7 +1,7 @@
 # Nutrition Analysis Correctness and Real-Image Evaluation Design
 
 Date: 2026-08-31
-Status: proposed for user review
+Status: approved for implementation
 Branch: `fix/scan-photo-flow-viewer`
 
 ## 1. Purpose
@@ -298,6 +298,8 @@ After the backend contract is proven, Flutter displays the declared basis and am
 
 The default consumed amount is the entire scanned package/portion. The user can choose an exact amount or exact unit count. Multipack controls compute exact fractions such as `1/6` without forcing them through 0.25 increments. UI formatting shows friendly unit counts/amounts while persistence retains sufficient floating-point precision.
 
+Review must make correction fast when the analysis is uncertain. It presents one-tap suggestions only when they can be derived from observed or catalog metadata, for example `Whole package · 500 ml`, `1 serving · 250 ml`, `1 unit`, or `1 of 6 · 250 ml`, followed by `Custom amount`. Each suggestion displays its source (`package label`, `serving metadata`, or `pack metadata`); suggestions are mutually exclusive amount choices, not independent multipliers. A missing or contradictory package amount leaves every suggestion unselected, and Calorix requires the user to choose or enter an amount before confirmation. Manufacturer serving remains an offered reference choice and never silently replaces the whole-package default.
+
 Review confirmation writes the chosen consumed amount and transitions the entry to `complete` atomically. An unresolved per-100 draft cannot enter daily totals.
 
 ## 11. Captured-Still Barcode Extraction
@@ -391,3 +393,5 @@ The workstream is complete only when:
 Antigravity MCP conversation `calorix-nutrition-eval-20260830`, model `gemini-3.6-flash`, reviewed the initial proposal and returned `AGREEMENT_STATUS: revise` with four required clarifications: deterministic package normalization, decoupled client barcode scope, deterministic CI versus stochastic live benchmarks, and dataset licensing/EXIF hygiene.
 
 After the user established whole scanned package as the default, the revised contract formalized whole-package arithmetic, Review fallback, serving-as-reference, later exact multipack amount controls, and Stages A–G. The continued review returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. Its two accepted recommendations are legacy Flutter defaults for missing basis/amount and friendly precision-safe formatting for fractions such as `1/6`.
+
+After user approval, the Review correction flow was clarified to offer source-labeled one-tap choices derived from package, serving, and pack metadata plus a custom amount, while leaving contradictory or uncertain choices unselected. The same conversation reviewed that amendment and the detailed Stage A/B plan and returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`.
