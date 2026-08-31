@@ -1,0 +1,30 @@
+{
+  "status": "success",
+  "result": {
+    "id": "product_found",
+    "lc_name": "Product found",
+    "name": "Product found"
+  },
+  "product": {
+    "code": "3228857000166",
+    "product_name": "100% mie complet 500g",
+    "quantity": "500 g",
+    "product_quantity": 500,
+    "product_quantity_unit": "g",
+    "serving_size": "25 g (1 tranche)",
+    "serving_quantity": 25,
+    "serving_quantity_unit": "g",
+    "image_front_url": "https://images.openfoodfacts.org/images/products/322/885/700/0166/front_fr.1869.400.jpg",
+    "image_nutrition_url": "https://images.openfoodfacts.org/images/products/322/885/700/0166/nutrition_fr.1840.400.jpg",
+    "nutriments": {
+      "energy-kcal_100g": 250,
+      "proteins_100g": 7.5,
+      "carbohydrates_100g": 42,
+      "fat_100g": 4.3,
+      "energy-kcal_serving": 62.5,
+      "proteins_serving": 1.88,
+      "carbohydrates_serving": 10.5,
+      "fat_serving": 1.07
+    }
+  }
+}

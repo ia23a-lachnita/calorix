@@ -1,0 +1,23 @@
+{
+  "status": "success",
+  "result": {
+    "id": "product_found",
+    "lc_name": "Product found",
+    "name": "Product found"
+  },
+  "product": {
+    "code": "3017624010701",
+    "product_name": "Nutella",
+    "quantity": "400.0 g",
+    "product_quantity": 400,
+    "product_quantity_unit": "g",
+    "image_front_url": "https://images.openfoodfacts.org/images/products/301/762/401/0701/front_en.100.400.jpg",
+    "image_nutrition_url": "https://images.openfoodfacts.org/images/products/301/762/401/0701/nutrition_en.63.400.jpg",
+    "nutriments": {
+      "energy-kcal_100g": 539,
+      "proteins_100g": 6.3,
+      "carbohydrates_100g": 57.5,
+      "fat_100g": 30.9
+    }
+  }
+}

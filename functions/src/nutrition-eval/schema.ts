@@ -43,7 +43,7 @@ const PublicImageSchema = z
       .string()
       .length(64)
       .regex(/^[0-9a-f]{64}$/),
-    mediaType: z.string().min(1),
+    mediaType: z.enum(['image/png', 'image/jpeg']),
     width: z.number().int().positive(),
     height: z.number().int().positive(),
   })
@@ -69,7 +69,7 @@ const PrivateImageSchema = z
       .string()
       .length(64)
       .regex(/^[0-9a-f]{64}$/),
-    mediaType: z.string().min(1),
+    mediaType: z.enum(['image/png', 'image/jpeg']),
     width: z.number().int().positive(),
     height: z.number().int().positive(),
   })
@@ -85,6 +85,7 @@ const NutritionTruthSchema = NutritionVectorSchema.extend({
   basis: BasisSchema,
   amount: z.number().positive(),
   unit: UnitSchema,
+  referenceMassG: z.number().finite().positive().optional(),
 });
 
 // ── Prediction ───────────────────────────────────────────────────────────────
@@ -118,6 +119,10 @@ const EvalCaseSchema = z
     truth: NutritionTruthSchema,
     toleranceClass: ToleranceClassSchema,
     attributionId: z.string().min(1),
+    expectedBarcode: z.string().regex(/^\d{8,14}$/, 'barcode must be 8-14 digits').optional(),
+    expectedDecision: z.enum(['complete', 'needs_review']).optional(),
+    packageUnitCount: z.number().int().positive().optional(),
+    unitAmount: z.number().finite().positive().optional(),
   })
   .refine(
     (c) => {

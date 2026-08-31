@@ -1,0 +1,30 @@
+{
+  "status": "success",
+  "result": {
+    "id": "product_found",
+    "lc_name": "Product found",
+    "name": "Product found"
+  },
+  "product": {
+    "code": "7622210449283",
+    "product_name": "Prince",
+    "quantity": "300 g e",
+    "product_quantity": 300,
+    "product_quantity_unit": "g",
+    "serving_size": "250g",
+    "serving_quantity": 250,
+    "serving_quantity_unit": "g",
+    "image_front_url": "https://images.openfoodfacts.org/images/products/762/221/044/9283/front_en.605.400.jpg",
+    "image_nutrition_url": "https://images.openfoodfacts.org/images/products/762/221/044/9283/nutrition_fr.689.400.jpg",
+    "nutriments": {
+      "energy-kcal_100g": 466,
+      "proteins_100g": 6.3,
+      "carbohydrates_100g": 68,
+      "fat_100g": 17,
+      "energy-kcal_serving": 1165,
+      "proteins_serving": 15.75,
+      "carbohydrates_serving": 170,
+      "fat_serving": 42.5
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "status": "success",
+  "result": {
+    "id": "product_found",
+    "lc_name": "Product found",
+    "name": "Product found"
+  },
+  "product": {
+    "code": "8000500310427",
+    "product_name": "Biscuits NUTELLA Biscuits Noisettes et Cacao x22 - 304g",
+    "quantity": "304 g",
+    "product_quantity": 304,
+    "product_quantity_unit": "g",
+    "serving_size": "13.8 g",
+    "serving_quantity": 13.8,
+    "serving_quantity_unit": "g",
+    "image_front_url": "https://images.openfoodfacts.org/images/products/800/050/031/0427/front_fr.558.400.jpg",
+    "image_nutrition_url": "https://images.openfoodfacts.org/images/products/800/050/031/0427/nutrition_fr.457.400.jpg",
+    "nutriments": {
+      "energy-kcal_100g": 515,
+      "proteins_100g": 7.9,
+      "carbohydrates_100g": 64,
+      "fat_100g": 24.8,
+      "energy-kcal_serving": 71.1,
+      "proteins_serving": 1.09,
+      "carbohydrates_serving": 8.83,
+      "fat_serving": 3.42
+    }
+  }
+}

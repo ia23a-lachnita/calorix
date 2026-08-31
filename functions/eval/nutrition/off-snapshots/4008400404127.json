@@ -1,0 +1,30 @@
+{
+  "status": "success",
+  "result": {
+    "id": "product_found",
+    "lc_name": "Product found",
+    "name": "Product found"
+  },
+  "product": {
+    "code": "4008400404127",
+    "product_name": "Nutella Nuss-Nugat-Creme",
+    "quantity": "750 g",
+    "product_quantity": 750,
+    "product_quantity_unit": "g",
+    "serving_size": "15 g",
+    "serving_quantity": 15,
+    "serving_quantity_unit": "g",
+    "image_front_url": "https://images.openfoodfacts.org/images/products/400/840/040/4127/front_en.251.400.jpg",
+    "image_nutrition_url": "https://images.openfoodfacts.org/images/products/400/840/040/4127/nutrition_en.184.400.jpg",
+    "nutriments": {
+      "energy-kcal_100g": 538,
+      "proteins_100g": 6.3,
+      "carbohydrates_100g": 57.5,
+      "fat_100g": 30.9,
+      "energy-kcal_serving": 80.7,
+      "proteins_serving": 0.945,
+      "carbohydrates_serving": 8.62,
+      "fat_serving": 4.63
+    }
+  }
+}

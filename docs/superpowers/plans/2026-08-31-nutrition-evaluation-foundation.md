@@ -152,7 +152,7 @@
 - Produces `loadVerifiedCaseImage(evalCase, options): Promise<Uint8Array>` with injected `fetchFn`, `cacheRoot`, and optional private-root resolution.
 - Atomic cache key is `<sha256>.<png|jpg>`; a partial or mismatched download is deleted and returned as a typed `dataset_integrity` failure.
 
-- [ ] **Step 1: Write failing byte-integrity and public-manifest tests.**
+- [x] **Step 1: Write failing byte-integrity and public-manifest tests.**
 
   Build tiny in-memory PNG and JPEG fixtures. Assert correct media/dimensions, hash mismatch rejection, HTTP failure separation, cache reuse without a second request, and rejection when declared MIME or dimensions disagree.
 
@@ -169,17 +169,17 @@
   })).rejects.toMatchObject({code: 'dataset_checksum_mismatch'});
   ```
 
-- [ ] **Step 2: Run the asset and manifest tests and witness RED.**
+- [x] **Step 2: Run the asset and manifest tests and witness RED.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/assets.test.ts test/nutrition-eval/public-manifest.test.ts`
 
   Expected: FAIL because the image/asset modules and public manifest do not exist.
 
-- [ ] **Step 3: Implement PNG/JPEG inspection and atomic verified caching.**
+- [x] **Step 3: Implement PNG/JPEG inspection and atomic verified caching.**
 
   PNG parsing reads the signature and IHDR width/height. JPEG parsing walks markers until a SOF0/SOF1/SOF2 marker and reads height/width; it must reject truncated segments. Write a fetched file to `<target>.partial-<pid>`, verify bytes before rename, and remove the partial in `finally` on failure.
 
-- [ ] **Step 4: Add the twelve exact Nutrition5k depth-test cases.**
+- [x] **Step 4: Add the twelve exact Nutrition5k depth-test cases.**
 
   Use the official overhead `rgb.png`, all `640x480`, and encode CSV columns as `kcal, massG, fatG, carbsG, proteinG`. The manifest must contain these exact truths and hashes:
 
@@ -198,17 +198,17 @@
   | `dish_1560456326` | 206.872757 | 138 | 7.522188 | 3.791613 | 29.742077 | `b545d87192f92951a94a51bfe67573cefaf6605523676f9efc118125234c96cd` |
   | `dish_1564427430` | 345.620026 | 170 | 23.860001 | 2.340 | 30.790001 | `1a353b0de279f264bbbf48e613948b83291d99e50d9d19910732d1d7ef02baeb` |
 
-- [ ] **Step 5: Add eight exact Open Food Facts cases and minimal snapshots.**
+- [x] **Step 5: Add eight exact Open Food Facts cases and minimal snapshots.**
 
   Use barcode/front-image mode for `3017624010701`, `5449000000996`, `4056489686941`, and `7622210449283`; use label/nutrition-image mode for `8076809513753`, `8000500310427`, `4008400404127`, and `3228857000166`. Fetch each v3 record with only the fields enumerated in the spec, remove unrelated nutrient keys, and commit the stable response used as truth. Pin the selected `.400.jpg` URL, downloaded SHA-256, actual JPEG dimensions, and package-total nutrition calculated from `_100g * product_quantity / 100`.
 
   The multipack case `4056489686941` must preserve the contradiction between product name `6x330ml cans` and catalog `quantity/product_quantity=330 ml`. Its truth is the scanned outer package (`1980 ml`, `19.8 kcal`, zero macros) and its expected safe decision is `needs_review` until the conflict is resolved; do not normalize it as a single can. The malformed serving-metadata case `7622210449283` preserves `quantity=300 g` and `serving_size=250g` so serving metadata cannot silently control the default.
 
-- [ ] **Step 6: Complete attribution and manifest integrity coverage.**
+- [x] **Step 6: Complete attribution and manifest integrity coverage.**
 
   The manifest test must assert exactly 20 public cases (12 meal, 4 barcode, 4 label), every object ID unique, all Nutrition5k cases belong to the official `depth_test_ids.txt` snapshot, every OFF case has a committed minimal snapshot, and every attribution ID is defined. Network fetch is a separate opt-in test command; the default test reads committed truth only.
 
-- [ ] **Step 7: Run GREEN and perform the one-time public fetch verification.**
+- [x] **Step 7: Run GREEN and perform the one-time public fetch verification.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/assets.test.ts test/nutrition-eval/public-manifest.test.ts`
 
@@ -216,7 +216,7 @@
 
   Expected: both PASS; the second command downloads only into `../.nutrition-eval/cache`, verifies all 20 hashes, and reports zero skipped cases.
 
-- [ ] **Step 8: Record and commit the corpus stage.**
+- [x] **Step 8: Record and commit the corpus stage.**
 
   Update tracking with case counts, source IDs, fetch outcome, and licenses. Commit with message `Pin nutrition evaluation corpus`, then push. Do not stage `.nutrition-eval/`.
 

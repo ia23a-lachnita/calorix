@@ -1,0 +1,30 @@
+{
+  "status": "success",
+  "result": {
+    "id": "product_found",
+    "lc_name": "Product found",
+    "name": "Product found"
+  },
+  "product": {
+    "code": "8076809513753",
+    "product_name": "PESTO alla GENOVESE",
+    "quantity": "190 g",
+    "product_quantity": 190,
+    "product_quantity_unit": "g",
+    "serving_size": "1 serving (47.5 g)",
+    "serving_quantity": 47.5,
+    "serving_quantity_unit": "g",
+    "image_front_url": "https://images.openfoodfacts.org/images/products/807/680/951/3753/front_en.347.400.jpg",
+    "image_nutrition_url": "https://images.openfoodfacts.org/images/products/807/680/951/3753/nutrition_en.436.400.jpg",
+    "nutriments": {
+      "energy-kcal_100g": 492,
+      "proteins_100g": 4.7,
+      "carbohydrates_100g": 11,
+      "fat_100g": 47,
+      "energy-kcal_serving": 234,
+      "proteins_serving": 2.23,
+      "carbohydrates_serving": 5.22,
+      "fat_serving": 22.3
+    }
+  }
+}
