@@ -234,7 +234,7 @@
 - Catastrophic calorie miss is strictly `prediction.kcal < 0.5 * truth.kcal || prediction.kcal > 2.0 * truth.kcal`.
 - Unsafe completion is catastrophic miss plus `decision=complete`, or any case whose expected decision is `needs_review` but prediction is `complete`.
 
-- [ ] **Step 1: Write hand-derived failing scorer tests.**
+- [x] **Step 1: Write hand-derived failing scorer tests.**
 
   Cover exact match, over/under prediction, zero macro truth, missing parse fields, barcode mismatch, basis mismatch, required-Review override, percentile interpolation, and catastrophic boundary values at exactly `0.5x` and `2.0x` (not catastrophic) versus just outside (catastrophic).
 
@@ -249,17 +249,17 @@
   expect(result.safety.unsafeCompletion).toBe(true);
   ```
 
-- [ ] **Step 2: Run the scorer test and witness RED.**
+- [x] **Step 2: Run the scorer test and witness RED.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/scorer.test.ts`
 
   Expected: FAIL because `scorer.ts` does not exist.
 
-- [ ] **Step 3: Implement pure per-case and aggregate scoring.**
+- [x] **Step 3: Implement pure per-case and aggregate scoring.**
 
   Sort copies before median/percentile calculations; never mutate input results. Aggregate fields include total/run/parse counts, basis and barcode accuracy denominators, median/p90 absolute and relative calorie error, mean macro relative error, Review rate, catastrophic count, unsafe-completion count, and failure counts by category/code.
 
-- [ ] **Step 4: Run GREEN and mutation/determinism checks.**
+- [x] **Step 4: Run GREEN and mutation/determinism checks.**
 
   Run once: `cd functions && npx vitest run test/nutrition-eval/scorer.test.ts`
 
@@ -267,7 +267,7 @@
 
   Expected: PASS twice with byte-equivalent serialized summaries.
 
-- [ ] **Step 5: Record and commit the scorer stage.**
+- [x] **Step 5: Record and commit the scorer stage.**
 
   Update tracking with the exact RED/GREEN result. Commit with message `Score nutrition evaluation results`, then push.
 

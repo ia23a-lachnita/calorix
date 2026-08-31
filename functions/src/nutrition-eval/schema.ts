@@ -134,11 +134,34 @@ const EvalCaseSchema = z
     'public cases must include a url and no path in image; private cases must include a path and no url in image',
   );
 
+// ── Numeric metric ───────────────────────────────────────────────────────────
+
+const NumericMetricSchema = z.object({
+  ratioToTruth: z.number().finite().nonnegative(),
+  absoluteError: z.number().finite().nonnegative(),
+  relativeError: z.number().finite().nonnegative(),
+});
+
 // ── Case result ──────────────────────────────────────────────────────────────
 
-const NutritionCaseResultSchema = z.object({
+export const NutritionCaseResultSchema = z.object({
   caseId: z.string(),
   prediction: NutritionPredictionSchema,
+  numeric: z.object({
+    kcal: NumericMetricSchema.optional(),
+    proteinG: NumericMetricSchema.optional(),
+    carbsG: NumericMetricSchema.optional(),
+    fatG: NumericMetricSchema.optional(),
+  }),
+  safety: z.object({
+    catastrophicCalorieMiss: z.boolean(),
+    unsafeCompletion: z.boolean(),
+  }),
+  booleans: z.object({
+    barcodeExactMatch: z.boolean().optional(),
+    basisExactMatch: z.boolean().optional(),
+    unitExactMatch: z.boolean().optional(),
+  }),
 });
 
 // ── Aggregate report ─────────────────────────────────────────────────────────
