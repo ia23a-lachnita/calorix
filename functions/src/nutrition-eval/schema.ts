@@ -123,6 +123,7 @@ const EvalCaseSchema = z
     toleranceClass: ToleranceClassSchema,
     attributionId: z.string().min(1),
     expectedBarcode: z.string().regex(/^\d{8,14}$/, 'barcode must be 8-14 digits').optional(),
+    suppliedBarcode: z.string().regex(/^\d{8,14}$/, 'barcode must be 8-14 digits').optional(),
     expectedDecision: z.enum(['complete', 'needs_review']).optional(),
     packageUnitCount: z.number().int().positive().optional(),
     unitAmount: z.number().finite().positive().optional(),
@@ -171,7 +172,15 @@ export const NutritionCaseResultSchema = z.object({
 
 export const NutritionEvalReportSchema = z.object({
   version: z.literal(1),
-  datasetId: z.string(),
+  runId: z.string().trim().min(1),
+  timestamp: z.string().datetime({ offset: true }),
+  datasetId: z.string().trim().min(1),
+  datasetHash: z.string().regex(/^[0-9a-f]{64}$/),
+  adapterModelId: z.string().trim().min(1),
+  promptHash: z.string().regex(/^[0-9a-f]{64}$/),
+  codeSha: z.string().trim().min(1),
+  samples: z.number().int().min(1).max(10),
+  baselineOnly: z.boolean(),
   summary: z.object({
     totalCases: z.number().int().nonnegative(),
     runCases: z.number().int().nonnegative(),
@@ -188,6 +197,12 @@ export const NutritionEvalReportSchema = z.object({
     unsafeCompletionCount: z.number().int().nonnegative(),
     failuresByCategory: z.record(FailureCategorySchema, z.number().int().nonnegative()),
     failuresByCode: z.record(z.string(), z.number().int().nonnegative()),
+    latencyMs: z.object({
+      min: z.number().finite().nonnegative(),
+      max: z.number().finite().nonnegative(),
+      median: z.number().finite().nonnegative(),
+      p90: z.number().finite().nonnegative(),
+    }).optional(),
   }),
   cases: z.array(NutritionCaseResultSchema),
 });

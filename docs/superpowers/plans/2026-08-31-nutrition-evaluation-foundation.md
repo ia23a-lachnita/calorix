@@ -327,6 +327,7 @@
 ## Task 5: Add the production-boundary live adapter and privacy-safe reports
 
 **Files:**
+- Modify: `functions/src/nutrition-eval/schema.ts`
 - Create: `functions/src/nutrition-eval/live-adapter.ts`
 - Create: `functions/src/nutrition-eval/report.ts`
 - Create: `functions/src/nutrition-eval/cli.ts`
@@ -337,29 +338,33 @@
 - Modify: `docs/implementation-status.md`
 
 **Interfaces:**
+- Extend `NutritionEvalCase` with optional `suppliedBarcode`, which represents observed client input and is never inferred from truth-only `expectedBarcode`.
+- Extend `NutritionEvalReportSchema` with validated run/timestamp, dataset/model/prompt/code identity, sample count, `baselineOnly`, and optional latency-summary metadata; the existing scorer metrics remain unchanged.
 - `createLiveNutritionEvalAdapter(options)` consumes the existing `createGenAIAdapter`, `MEAL_ANALYSIS_PROMPT`, `LABEL_ANALYSIS_PROMPT`, `BARCODE_ANALYSIS_PROMPT`, `parseNutritionResponse`, and `fetchOffProduct` boundaries.
 - `renderNutritionEvalMarkdown(report): string` and `writeNutritionEvalReport(report, outputDir)` emit stable JSON/Markdown.
 - CLI modes are `fixtures`, `baseline`, and `release`; live modes require `RUN_NUTRITION_EVAL_LIVE=1` plus explicit project/location/model arguments or their documented environment variables.
 
-- [ ] **Step 1: Write failing adapter route tests.**
+- [x] **Step 1: Write failing adapter route tests.**
 
   Inject spies rather than real SDK/network calls. Assert meal/label cases call the matching existing prompt and parser; a barcode with supplied barcode calls OFF first; an OFF miss calls the barcode image prompt; the current known-product prediction stays per-100 and lacks basis fields so the baseline exposes the bug.
 
-- [ ] **Step 2: Write failing report/CLI safety tests.**
+- [x] **Step 2: Write failing report/CLI safety tests.**
 
   Assert JSON and Markdown contain dataset/model/prompt/code hashes, case/aggregate metrics, failure categories, and `baselineOnly: true`. Assert they do not contain image bytes, private absolute paths, environment values, access tokens, raw provider messages, or stack traces. Assert `baseline` refuses to start without the live opt-in and `fixtures` never constructs the live adapter.
 
-- [ ] **Step 3: Run focused tests and witness RED.**
+- [x] **Step 3: Run focused tests and witness RED.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/live-adapter.test.ts test/nutrition-eval/report.test.ts test/nutrition-eval/cli.test.ts`
 
   Expected: FAIL because the adapter/report/CLI modules do not exist.
 
-- [ ] **Step 4: Implement the live adapter without Firebase imports.**
+- [x] **Step 4: Implement the live adapter without Firebase imports.**
 
-  Convert the verified image bytes to base64 only at the existing `generateVision` call. Map successful current parser output into `NutritionPrediction`. For OFF hits, map the current `OffProduct` per-100 fields exactly; do not add desired package multiplication in this plan. Convert known failure classes to stable codes (`model_response_invalid`, `off_product_not_found`, `provider_request_failed`) and discard raw error bodies.
+  Convert the verified image bytes to base64 only at the existing `generateVision` call. Map successful current parser output into `NutritionPrediction`. For OFF hits, map the current `OffProduct` per-100 fields exactly; do not add desired package multiplication in this plan. Convert final failure classes to stable codes (`model_response_invalid`, `provider_request_failed`) and discard raw error bodies.
 
-- [ ] **Step 5: Implement stable reports and explicit CLI gates.**
+  `expectedBarcode` remains scoring truth only. An optional validated `suppliedBarcode` represents observed client input: query OFF first, fall back to barcode vision on a miss, and query a distinct vision-read barcode once. An OFF `null` is a route miss rather than a final prediction failure; it must not replace a usable vision prediction. Map invalid vision output to `schema/model_response_invalid` and thrown provider/OFF dependencies to `provider/provider_request_failed`, with no raw error serialization.
+
+- [x] **Step 5: Implement stable reports and explicit CLI gates.**
 
   Add these scripts:
 
@@ -373,7 +378,7 @@
 
   `baseline` always exits zero for measured quality failures but nonzero for manifest/integrity/runner failures. `release` exits nonzero for any schema/privacy/safety failure or configured enforced threshold. Both write a report even when individual cases fail.
 
-- [ ] **Step 6: Run GREEN and prove there is no Firebase coupling.**
+- [x] **Step 6: Run GREEN and prove there is no Firebase coupling.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/live-adapter.test.ts test/nutrition-eval/report.test.ts test/nutrition-eval/cli.test.ts && npm run build && npm run lint`
 
@@ -390,6 +395,8 @@
 **Files:**
 - Create: `functions/src/nutrition-eval/private-overlay.ts`
 - Create: `functions/test/nutrition-eval/private-overlay.test.ts`
+- Modify: `functions/src/nutrition-eval/cli.ts`
+- Modify: `functions/test/nutrition-eval/cli.test.ts`
 - Create locally only: `.nutrition-eval/private/manifest.json`
 - Create locally only: `.nutrition-eval/private/vitamin-well-reload.jpg`
 - Modify: `docs/implementation-status.md`
@@ -397,6 +404,7 @@
 **Interfaces:**
 - `loadPrivateOverlay(path): NutritionEvalManifest` requires every case to use `visibility=private` and a relative image path below the overlay directory.
 - `mergePrivateOverlay(publicManifest, overlay): NutritionEvalManifest` rejects duplicate IDs/object IDs and never serializes local paths into reports.
+- Task 6 wires `--private-manifest` / `CALORIX_NUTRITION_EVAL_PRIVATE_MANIFEST` into the CLI; a requested but missing/invalid overlay returns `private_case_unavailable` and never silently skips the case.
 - Private case ID is `vitamin-well-reload-7350042716380`; truth is package `500 ml`, `85 kcal`, `0 g protein`, `21 g carbs`, `0 g fat`, barcode `7350042716380`, expected decision `needs_review` while OFF remains unconfirmed.
 
 - [ ] **Step 1: Write failing traversal/privacy tests.**
@@ -472,6 +480,7 @@
   CALORIX_NUTRITION_EVAL_PROJECT=calorix-xurschnell \
   CALORIX_NUTRITION_EVAL_LOCATION=us-central1 \
   CALORIX_NUTRITION_EVAL_MODEL=gemini-2.5-flash \
+  CALORIX_NUTRITION_EVAL_CODE_SHA="$(git rev-parse HEAD)" \
   CALORIX_NUTRITION_EVAL_PRIVATE_MANIFEST=../.nutrition-eval/private/manifest.json \
   npm run eval:nutrition:baseline -- --samples 1
   ```

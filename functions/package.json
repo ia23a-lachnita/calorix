@@ -12,6 +12,9 @@
     "test:data-emulators": "firebase emulators:exec --only auth,firestore,storage \"npm run test:rules:attached && npm run test:emulator\"",
     "test:functions-load": "firebase emulators:exec --only functions \"node test/noop-load.js\"",
     "test:verify": "npm run build && npm run lint && npm test && npm run test:data-emulators && npm run test:functions-load",
+    "eval:nutrition:fixtures": "vitest run test/nutrition-eval",
+    "eval:nutrition:baseline": "npm run build && node lib/nutrition-eval/cli.js baseline",
+    "eval:nutrition:release": "npm run build && node lib/nutrition-eval/cli.js release",
     "deploy": "firebase deploy --only functions"
   },
   "engines": {
