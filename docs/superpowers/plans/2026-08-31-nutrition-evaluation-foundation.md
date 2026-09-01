@@ -386,7 +386,7 @@
 
   Expected: tests/build/lint PASS and the search returns no matches.
 
-- [ ] **Step 7: Record and commit the live harness stage.**
+- [x] **Step 7: Record and commit the live harness stage.**
 
   Update tracking and commit with message `Add live nutrition baseline runner`, then push.
 
