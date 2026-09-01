@@ -282,10 +282,13 @@
 **Interfaces:**
 - Consumes `NutritionEvalCase`, verified bytes, and `NutritionEvalDependencies`.
 - Produces `runNutritionEval(cases, deps, options): Promise<NutritionCaseResult[]>` in manifest order.
-- `NutritionEvalDependencies` exposes `loadImage`, `analyzeCase`, and `nowMs`; deterministic tests inject all three.
+- `NutritionEvalDependencies` exposes `loadImage`, untrusted `analyzeCase(evalCase, bytes, {sampleIndex})`, `nowMs`, and an optional string cache store; deterministic tests inject every used dependency.
+- `RunNutritionEvalOptions` requires explicit `datasetId`, `adapterModelId`, `promptHash`, and `codeSha`; `samples` defaults to `1` and must be an integer in `1..10`.
+- A run returns `cases.length * samples` scored results in case-major/sample-minor order. Optional prediction metadata records measured `latencyMs`, one-indexed `sampleIndex`, and `cached` without storing those runtime fields in cached prediction JSON.
+- Cache keys hash a JSON tuple of dataset ID, image SHA, adapter/model ID, prompt hash, code SHA, and sample index. Valid hits bypass image/analyzer work; malformed or failed cache operations produce sanitized `runner` failures.
 - One failed case becomes one result with a typed failure; it never aborts or silently removes later cases.
 
-- [ ] **Step 1: Write failing runner accounting tests.**
+- [x] **Step 1: Write failing runner accounting tests.**
 
   Use three cases and injected results: success, schema failure, and thrown provider error. Assert three ordered outputs, zero remote SDK initialization, stable latency from `nowMs`, and sanitized error codes without raw exception text.
 
@@ -297,27 +300,27 @@
   expect(JSON.stringify(results)).not.toContain('secret-provider-body');
   ```
 
-- [ ] **Step 2: Run the runner test and witness RED.**
+- [x] **Step 2: Run the runner test and witness RED.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/runner.test.ts`
 
   Expected: FAIL because `runner.ts` does not exist.
 
-- [ ] **Step 3: Implement ordered, resumable case execution.**
+- [x] **Step 3: Implement ordered, resumable case execution.**
 
   Validate `samples` as integer `1..10`. Compute cache identity from dataset ID, image SHA, adapter/model ID, prompt hash, and code SHA. Cache only sanitized prediction JSON. A malformed cache is a `runner/cache_invalid` result and is not silently accepted.
 
-- [ ] **Step 4: Add deterministic current-contract fixture predictions.**
+- [x] **Step 4: Add deterministic current-contract fixture predictions.**
 
   Feed existing `parseNutritionResponse`-shaped meal/label JSON and existing `OffProduct`-shaped barcode values through the runner adapter seam. Deliberately retain current missing `basis/amount/unit` and per-100 barcode values: this stage measures the defect and must not rewrite predictions into the desired contract.
 
-- [ ] **Step 5: Run GREEN and all nutrition-eval unit tests.**
+- [x] **Step 5: Run GREEN and all nutrition-eval unit tests.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/schema.test.ts test/nutrition-eval/assets.test.ts test/nutrition-eval/public-manifest.test.ts test/nutrition-eval/scorer.test.ts test/nutrition-eval/runner.test.ts`
 
   Expected: PASS without network or model credentials.
 
-- [ ] **Step 6: Record and commit the deterministic runner.**
+- [x] **Step 6: Record and commit the deterministic runner.**
 
   Update tracking and commit with message `Run deterministic nutrition evaluations`, then push.
 

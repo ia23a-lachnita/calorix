@@ -90,7 +90,7 @@ const NutritionTruthSchema = NutritionVectorSchema.extend({
 
 // ── Prediction ───────────────────────────────────────────────────────────────
 
-const NutritionPredictionSchema = z.object({
+export const NutritionPredictionSchema = z.object({
   parseStatus: z.enum(['success', 'failure']),
   source: ScanModeSchema,
   kcal: z.number().finite().nonnegative().optional(),
@@ -105,6 +105,9 @@ const NutritionPredictionSchema = z.object({
   decision: z.enum(['complete', 'needs_review', 'error']).optional(),
   failureCategory: FailureCategorySchema.optional(),
   failureCode: z.string().optional(),
+  latencyMs: z.number().finite().nonnegative().optional(),
+  sampleIndex: z.number().int().positive().optional(),
+  cached: z.boolean().optional(),
 });
 
 // ── Case ─────────────────────────────────────────────────────────────────────
