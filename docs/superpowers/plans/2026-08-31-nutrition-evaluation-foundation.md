@@ -447,7 +447,7 @@
 
   Expected: test PASS; both private files are ignored by the root `.gitignore` rule.
 
-- [ ] **Step 6: Record and commit only code/tests/tracking.**
+- [x] **Step 6: Record and commit only code/tests/tracking.**
 
   State whether the private case is ready or the exact missing-source blocker. Commit no private bytes or manifest. Commit code/tests/status with message `Protect private nutrition fixtures`, then push.
 
