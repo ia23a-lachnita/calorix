@@ -464,6 +464,8 @@
 
 - [ ] **Step 1: Verify the exact pre-change source and credentials without mutation.**
 
+  Execution note (2026-09-01): source `963877364a6051d5a5a6a72938b899c715e7f12e` is pushed with remote equality and `.mcp.json` is the only dirty path. The intended run is public-only (20 public / 0 private, no Vitamin Well coverage). One active gcloud CLI account has project read access, but the configured project and both application-default environment variables are unset, and ADC fails with `Your default credentials were not found.` No live inference can begin until the user authenticates ADC; after that, rerun the ADC check, fixtures/build/lint, then the explicit public-only baseline without a private-manifest environment variable.
+
   Run: `git status --short && git rev-parse HEAD && gcloud config get-value project && gcloud auth list --filter=status:ACTIVE --format='value(account)'`
 
   Expected: branch/source recorded; project is `calorix-xurschnell`; account identity may be recorded but no token/credential output. `.mcp.json` remains the only unrelated dirty path.
