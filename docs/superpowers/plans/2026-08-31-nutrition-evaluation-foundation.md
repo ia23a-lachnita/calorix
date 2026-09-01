@@ -404,26 +404,28 @@
 - Modify: `docs/implementation-status.md`
 
 **Interfaces:**
-- `loadPrivateOverlay(path): NutritionEvalManifest` requires every case to use `visibility=private` and a relative image path below the overlay directory.
+- `loadPrivateOverlay(path): {root: string; manifest: NutritionEvalManifest}` requires every case to use `visibility=private` and a portable relative image path below the overlay directory; `root` is the canonical trusted root used by the CLI-created private image closure, while the runner remains on its one-argument `loadImage(case)` API.
 - `mergePrivateOverlay(publicManifest, overlay): NutritionEvalManifest` rejects duplicate IDs/object IDs and never serializes local paths into reports.
 - Task 6 wires `--private-manifest` / `CALORIX_NUTRITION_EVAL_PRIVATE_MANIFEST` into the CLI; a requested but missing/invalid overlay returns `private_case_unavailable` and never silently skips the case.
 - Private case ID is `vitamin-well-reload-7350042716380`; truth is package `500 ml`, `85 kcal`, `0 g protein`, `21 g carbs`, `0 g fat`, barcode `7350042716380`, expected decision `needs_review` while OFF remains unconfirmed.
 
-- [ ] **Step 1: Write failing traversal/privacy and CLI integration tests.**
+- [x] **Step 1: Write failing traversal/privacy and CLI integration tests.**
 
   Reject POSIX/Windows absolute paths, `..`, symlink escape, public visibility, duplicate IDs/object IDs, mismatched hash, and output serialization containing the overlay root. Accept a valid relative path whose bytes match. Prove both overlay preflight and the actual `loadVerifiedCaseImage` private path re-resolve canonical containment and verify the bytes used. Assert an absent overlay stays public-only, while a requested missing/invalid overlay returns `private_case_unavailable` before adapter/model construction and a valid overlay root reaches private image loading.
 
-- [ ] **Step 2: Run the private-overlay test and witness RED.**
+- [x] **Step 2: Run the private-overlay test and witness RED.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/private-overlay.test.ts test/nutrition-eval/assets.test.ts test/nutrition-eval/cli.test.ts`
 
   Expected: FAIL because `private-overlay.ts` does not exist and the existing asset/CLI boundaries do not yet implement the strict private-overlay contract.
 
-- [ ] **Step 3: Implement strict private overlay loading.**
+- [x] **Step 3: Implement strict private overlay loading.**
 
   Resolve with `realpath`, require the resolved asset to start with the resolved overlay directory plus path separator, reuse public image SHA/media/dimension verification, and replace the path in all results with the stable private case ID. Extend the existing private branch in `loadVerifiedCaseImage` so every actual inference load independently re-resolves root and asset realpaths, rechecks containment, and verifies the exact bytes it returns; overlay preflight and runtime loading must share this safe boundary.
 
 - [ ] **Step 4: Re-encode the authorized source image and verify metadata removal.**
+
+  Execution note (2026-09-01): `CALORIX_VITAMIN_WELL_SOURCE_IMAGE` was unset, so no private directory, image, or manifest was created and metadata, hash, and dimensions could not be produced.
 
   Provision the already authorized read-only Vitamin Well source into a temporary path outside the repository. Run:
 
@@ -437,7 +439,7 @@
 
   Expected: `ffprobe` reports no EXIF/device/location tags. Record only the sanitized image SHA/dimensions in the local overlay; never record the source path or original metadata.
 
-- [ ] **Step 5: Run GREEN and prove ignore coverage.**
+- [x] **Step 5: Run GREEN and prove ignore coverage.**
 
   Run: `cd functions && npx vitest run test/nutrition-eval/private-overlay.test.ts test/nutrition-eval/assets.test.ts test/nutrition-eval/cli.test.ts`
 

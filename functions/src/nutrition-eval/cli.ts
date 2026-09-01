@@ -4,6 +4,7 @@ import { resolve } from 'path';
 
 import { loadVerifiedCaseImage } from './assets';
 import { createLiveNutritionEvalAdapter } from './live-adapter';
+import { loadPrivateOverlay, mergePrivateOverlay } from './private-overlay';
 import { buildNutritionEvalReport, writeNutritionEvalReport } from './report';
 import { runNutritionEval } from './runner';
 import { parseNutritionEvalManifest } from './schema';
@@ -15,12 +16,14 @@ import {
 
 import type { LiveNutritionEvalAdapter } from './live-adapter';
 import type { NutritionEvalManifest, NutritionCaseResult, NutritionEvalReport } from './schema';
+import type { PrivateOverlay } from './private-overlay';
 
 export type CliFailureCode =
   | 'invalid_command'
   | 'opt_in_missing'
   | 'missing_config'
   | 'manifest_invalid'
+  | 'private_case_unavailable'
   | 'dataset_failure'
   | 'runner_failure'
   | 'privacy_leak'
@@ -41,7 +44,11 @@ interface CliDependencies {
     model: string;
   }) => LiveNutritionEvalAdapter;
   loadManifest?: () => Promise<unknown>;
-  loadImage?: (evalCase: NutritionEvalManifest['cases'][number]) => Promise<Uint8Array>;
+  loadImage?: (
+    evalCase: NutritionEvalManifest['cases'][number],
+    options?: { privateRoot?: string },
+  ) => Promise<Uint8Array>;
+  loadPrivateOverlay?: (manifestPath: string) => Promise<PrivateOverlay>;
   runNutritionEval?: typeof runNutritionEval;
   writeReport?: typeof writeNutritionEvalReport;
   getCodeSha?: () => string | undefined;
@@ -63,6 +70,7 @@ interface ParsedArgs {
   maxMeanMacroRelativeError?: string | undefined;
   maxUnsafeCount?: string | undefined;
   maxCatastrophicCount?: string | undefined;
+  privateManifest?: string | undefined;
   invalidCommand: boolean;
 }
 
@@ -104,6 +112,7 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     '--max-mean-macro-relative-error': 'maxMeanMacroRelativeError',
     '--max-unsafe-count': 'maxUnsafeCount',
     '--max-catastrophic-count': 'maxCatastrophicCount',
+    '--private-manifest': 'privateManifest',
   };
   const seenFlags = new Set<string>();
   for (let index = 1; index < argv.length; index++) {
@@ -151,10 +160,12 @@ async function defaultLoadManifest(paths: NutritionEvalRuntimePaths): Promise<un
 function defaultLoadImage(
   evalCase: NutritionEvalManifest['cases'][number],
   paths: NutritionEvalRuntimePaths,
+  options: { privateRoot?: string } = {},
 ): Promise<Uint8Array> {
   return loadVerifiedCaseImage(evalCase, {
     cacheRoot: paths.cacheRoot,
     fetchFn: fetch,
+    ...(options.privateRoot ? { privateRoot: options.privateRoot } : {}),
   });
 }
 
@@ -272,6 +283,20 @@ export async function runNutritionEvalCli(
   } catch {
     return fail('manifest_invalid');
   }
+  const requestedPrivateManifest = args.privateManifest === undefined
+    ? nonblank(env.CALORIX_NUTRITION_EVAL_PRIVATE_MANIFEST)
+    : nonblank(args.privateManifest);
+  if (args.privateManifest !== undefined && !requestedPrivateManifest) return fail('private_case_unavailable');
+  let privateRoot: string | undefined;
+  if (requestedPrivateManifest) {
+    try {
+      const overlay = await (deps.loadPrivateOverlay ?? loadPrivateOverlay)(requestedPrivateManifest);
+      manifest = mergePrivateOverlay(manifest, overlay.manifest);
+      privateRoot = overlay.root;
+    } catch {
+      return fail('private_case_unavailable');
+    }
+  }
   const codeSha = nonblank(firstDefined(args.codeSha, (deps.getCodeSha ?? (() => defaultCodeSha(env)))()));
   if (!codeSha) return fail('missing_config');
 
@@ -282,10 +307,17 @@ export async function runNutritionEvalCli(
   );
   const datasetHash = hashNutritionEvalManifest(manifest);
   const adapter = (deps.createLiveAdapter ?? createLiveNutritionEvalAdapter)({ project, location, model });
+  const internalLoadImage = deps.loadImage
+    ?? ((evalCase: NutritionEvalManifest['cases'][number], options?: { privateRoot?: string }) =>
+      defaultLoadImage(evalCase, paths, options));
   let results: NutritionCaseResult[];
   try {
     results = await (deps.runNutritionEval ?? runNutritionEval)(manifest.cases, {
-      loadImage: deps.loadImage ?? ((evalCase) => defaultLoadImage(evalCase, paths)),
+      loadImage: (evalCase) => evalCase.visibility === 'private'
+        ? privateRoot
+          ? internalLoadImage(evalCase, { privateRoot })
+          : internalLoadImage(evalCase)
+        : internalLoadImage(evalCase),
       analyzeCase: (evalCase, bytes, options) => adapter.analyzeCase(evalCase, bytes, options),
       nowMs: () => Date.now(),
     }, {

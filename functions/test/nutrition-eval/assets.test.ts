@@ -1,7 +1,7 @@
 import { afterEach, describe, it, expect, beforeEach, vi } from 'vitest';
 import { tmpdir } from 'os';
-import { join } from 'path';
-import { mkdtemp, rm } from 'fs/promises';
+import { dirname, join } from 'path';
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'fs/promises';
 
 // These imports will fail until implementation exists - that's the RED phase
 import { inspectImage } from '../../src/nutrition-eval/image-metadata';
@@ -272,9 +272,8 @@ describe('nutrition-eval/assets', () => {
     });
 
     it('private case support: resolves from privateRoot when visibility is private', async () => {
-      const { writeFile } = await import('fs/promises');
       const privateRoot = join(cacheRoot, 'private');
-      await import('fs/promises').then(fs => fs.mkdir(privateRoot, { recursive: true }));
+      await mkdir(privateRoot, { recursive: true });
       const privatePath = join(privateRoot, 'test.jpg');
       await writeFile(privatePath, validJpeg);
 
@@ -293,6 +292,163 @@ describe('nutrition-eval/assets', () => {
       const result = await loadVerifiedCaseImage(testCase, { cacheRoot, fetchFn, privateRoot });
 
       expect(result).toEqual(validJpeg);
+      expect(fetchFn).not.toHaveBeenCalled();
+    });
+
+    it('rejects every private traversal and never calls the network or leaks local roots', async () => {
+      const privateRoot = join(cacheRoot, 'private');
+      const outsideRoot = join(cacheRoot, 'outside');
+      await Promise.all([
+        mkdir(privateRoot, { recursive: true }),
+        mkdir(outsideRoot, { recursive: true }),
+      ]);
+      await writeFile(join(outsideRoot, 'image.png'), validPng);
+      await symlink(join(outsideRoot, 'image.png'), join(privateRoot, 'linked.png'));
+
+      for (const path of ['../outside/image.png', 'linked.png']) {
+        const testCase = makeTestCase({
+          visibility: 'private',
+          image: {
+            path,
+            sha256: sha256Hex(validPng),
+            mediaType: 'image/png',
+            width: 1,
+            height: 1,
+          },
+        });
+        const fetchFn = vi.fn();
+
+        const failure = await loadVerifiedCaseImage(testCase, { cacheRoot, fetchFn, privateRoot }).then(
+          () => undefined,
+          (error: unknown) => error,
+        );
+        expect(failure).toMatchObject({ code: 'dataset_private_asset_unavailable' });
+        const message = failure instanceof Error ? failure.message : String(failure);
+        expect(message).not.toContain(privateRoot);
+        expect(message).not.toContain(outsideRoot);
+        expect(fetchFn).not.toHaveBeenCalled();
+      }
+    });
+
+    it.each(['C:foo.png', 'C:dir/foo.png'])(
+      'rejects a Windows drive-relative private path %s without fetching',
+      async (path) => {
+        const privateRoot = join(cacheRoot, 'private');
+        const assetPath = join(privateRoot, path);
+        await mkdir(dirname(assetPath), { recursive: true });
+        await writeFile(assetPath, validPng);
+        const testCase = makeTestCase({
+          visibility: 'private',
+          image: {
+            path,
+            sha256: sha256Hex(validPng),
+            mediaType: 'image/png',
+            width: 1,
+            height: 1,
+          },
+        });
+        const fetchFn = vi.fn();
+
+        const failure = await loadVerifiedCaseImage(testCase, { cacheRoot, fetchFn, privateRoot }).then(
+          () => undefined,
+          (error: unknown) => error,
+        );
+        expect(failure).toMatchObject({ code: 'dataset_private_asset_unavailable' });
+        expect(fetchFn).not.toHaveBeenCalled();
+      },
+    );
+
+    it('rechecks canonical private containment and exact bytes on each load after a safe preflight', async () => {
+      const privateRoot = join(cacheRoot, 'private');
+      const outsideRoot = join(cacheRoot, 'outside');
+      await Promise.all([
+        mkdir(privateRoot, { recursive: true }),
+        mkdir(outsideRoot, { recursive: true }),
+      ]);
+      const assetPath = join(privateRoot, 'asset.png');
+      await writeFile(assetPath, validPng);
+      await writeFile(join(outsideRoot, 'replacement.png'), validPng);
+      const testCase = makeTestCase({
+        visibility: 'private',
+        image: {
+          path: 'asset.png',
+          sha256: sha256Hex(validPng),
+          mediaType: 'image/png',
+          width: 1,
+          height: 1,
+        },
+      });
+      const fetchFn = vi.fn();
+
+      const preflightBytes = await loadVerifiedCaseImage(testCase, { cacheRoot, fetchFn, privateRoot });
+      expect(preflightBytes).toEqual(validPng);
+
+      await rm(assetPath);
+      await symlink(join(outsideRoot, 'replacement.png'), assetPath);
+
+      await expect(loadVerifiedCaseImage(testCase, { cacheRoot, fetchFn, privateRoot }))
+        .rejects.toMatchObject({ code: 'dataset_private_asset_unavailable' });
+      expect(fetchFn).not.toHaveBeenCalled();
+    });
+
+    it('rechecks private exact bytes on each actual load after an in-root regular-file replacement', async () => {
+      const privateRoot = join(cacheRoot, 'private');
+      await mkdir(privateRoot, { recursive: true });
+      const assetPath = join(privateRoot, 'asset.png');
+      await writeFile(assetPath, validPng);
+      const testCase = makeTestCase({
+        visibility: 'private',
+        image: {
+          path: 'asset.png',
+          sha256: sha256Hex(validPng),
+          mediaType: 'image/png',
+          width: 1,
+          height: 1,
+        },
+      });
+      const fetchFn = vi.fn();
+
+      expect(await loadVerifiedCaseImage(testCase, { cacheRoot, fetchFn, privateRoot })).toEqual(validPng);
+      await writeFile(assetPath, new Uint8Array([...validPng, 0x00]));
+
+      const failure = await loadVerifiedCaseImage(testCase, { cacheRoot, fetchFn, privateRoot }).then(
+        () => undefined,
+        (error: unknown) => error,
+      );
+      expect(failure).toMatchObject({ code: 'dataset_checksum_mismatch' });
+      const message = failure instanceof Error ? failure.message : String(failure);
+      expect(message).not.toContain(privateRoot);
+      expect(message).not.toContain(assetPath);
+      expect(fetchFn).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['checksum', { sha256: '0'.repeat(64) }],
+      ['media type', { mediaType: 'image/jpeg' as const }],
+      ['dimensions', { width: 2 }],
+    ])('verifies private exact bytes for a %s mismatch without fetching', async (_label, imageOverride) => {
+      const privateRoot = join(cacheRoot, 'private');
+      await mkdir(privateRoot, { recursive: true });
+      await writeFile(join(privateRoot, 'asset.png'), validPng);
+      const testCase = makeTestCase({
+        visibility: 'private',
+        image: {
+          path: 'asset.png',
+          sha256: sha256Hex(validPng),
+          mediaType: 'image/png',
+          width: 1,
+          height: 1,
+          ...imageOverride,
+        },
+      });
+      const fetchFn = vi.fn();
+
+      await expect(loadVerifiedCaseImage(testCase, { cacheRoot, fetchFn, privateRoot }))
+        .rejects.toMatchObject({
+          code: _label === 'checksum'
+            ? 'dataset_checksum_mismatch'
+            : _label === 'media type' ? 'dataset_media_mismatch' : 'dataset_dimension_mismatch',
+        });
       expect(fetchFn).not.toHaveBeenCalled();
     });
   });

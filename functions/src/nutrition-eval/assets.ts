@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
-import { readFile, writeFile, rename, unlink, mkdir } from 'fs/promises';
-import { dirname, join } from 'path';
+import { readFile, writeFile, rename, unlink, mkdir, realpath } from 'fs/promises';
+import { dirname, join, resolve, sep, win32 } from 'path';
 
 import { inspectImage } from './image-metadata';
 
@@ -29,6 +29,20 @@ export interface LoadCaseImageOptions {
   privateRoot?: string;
 }
 
+function isPortablePrivateAssetPath(value: string): boolean {
+  if (!value || value === '.' || value.includes('\\')) return false;
+  if (value.startsWith('file:') || value.startsWith('/') || win32.isAbsolute(value) || /^[a-z]:/i.test(value)) return false;
+  const segments = value.split('/');
+  return segments.every((segment) => segment.length > 0 && segment !== '.' && segment !== '..');
+}
+
+function privateAssetUnavailable(): DatasetError {
+  return new DatasetError(
+    'dataset_private_asset_unavailable',
+    'Private evaluation asset is unavailable.',
+  );
+}
+
 export async function loadVerifiedCaseImage(
   evalCase: NutritionEvalCase,
   options: LoadCaseImageOptions,
@@ -38,15 +52,20 @@ export async function loadVerifiedCaseImage(
   const cachePath = join(cacheRoot, `${evalCase.image.sha256}.${ext}`);
 
   if (evalCase.visibility === 'private') {
-    if (!privateRoot) throw new DatasetError('dataset_invalid_config', 'privateRoot required for private cases');
+    if (!privateRoot) throw privateAssetUnavailable();
     const img = evalCase.image as { path: string };
-    const filePath = join(privateRoot, img.path);
+    if (!isPortablePrivateAssetPath(img.path)) throw privateAssetUnavailable();
     let bytes: Uint8Array;
     try {
-      const buf = await readFile(filePath);
+      const canonicalRoot = await realpath(privateRoot);
+      const candidate = resolve(canonicalRoot, ...img.path.split('/'));
+      const canonicalAsset = await realpath(candidate);
+      if (!canonicalAsset.startsWith(`${canonicalRoot}${sep}`)) throw privateAssetUnavailable();
+      const buf = await readFile(canonicalAsset);
       bytes = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
-    } catch {
-      throw new DatasetError('dataset_fetch_failed', `Cannot read private file: ${img.path}`);
+    } catch (error) {
+      if (error instanceof DatasetError) throw error;
+      throw privateAssetUnavailable();
     }
     verifyBytes(bytes, evalCase);
     return bytes;

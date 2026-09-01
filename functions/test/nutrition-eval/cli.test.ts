@@ -54,6 +54,21 @@ const secondCase: NutritionEvalCase = {
   image: { ...evalCase.image, sha256: 'b'.repeat(64) },
 };
 
+const privateEvalCase: NutritionEvalCase = {
+  ...evalCase,
+  id: 'private-cli-case',
+  visibility: 'private',
+  source: { dataset: 'private', objectId: 'private-cli-object' },
+  image: {
+    path: 'asset.png',
+    sha256: 'c'.repeat(64),
+    mediaType: 'image/png',
+    width: 1,
+    height: 1,
+  },
+  truth: { basis: 'package', amount: 500, unit: 'ml', kcal: 85, proteinG: 0, carbsG: 21, fatG: 0 },
+};
+
 const reverseOrderedManifest = {
   version: 1 as const,
   datasetId: 'cli-test-dataset',
@@ -354,6 +369,138 @@ describe('runNutritionEvalCli', () => {
     expect(loadManifest).not.toHaveBeenCalled();
     expect(loadImage).not.toHaveBeenCalled();
     expect(writeReport).not.toHaveBeenCalled();
+  });
+
+  it('keeps an absent private overlay public-only', async () => {
+    const deps = makeLiveDeps();
+    const loadPrivateOverlay = vi.fn();
+
+    const result = await runNutritionEvalCli(['baseline'], liveEnv, { ...deps, loadPrivateOverlay });
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(loadPrivateOverlay).not.toHaveBeenCalled();
+    expect(deps.adapter.analyzeCase).toHaveBeenCalledWith(evalCase, expect.any(Uint8Array), { sampleIndex: 1 });
+  });
+
+  it.each([
+    ['missing flag value', ['baseline', '--private-manifest'], 'invalid_command'],
+    ['duplicate flag', ['baseline', '--private-manifest', 'one.json', '--private-manifest', 'two.json'], 'invalid_command'],
+  ])('rejects a %s before any live work', async (_label, argv, failureCode) => {
+    const deps = makeLiveDeps();
+    const loadPrivateOverlay = vi.fn();
+
+    const result = await runNutritionEvalCli(argv, liveEnv, { ...deps, loadPrivateOverlay });
+
+    expect(result).toMatchObject({ exitCode: 1, failureCode });
+    expect(loadPrivateOverlay).not.toHaveBeenCalled();
+    expect(deps.loadManifest).not.toHaveBeenCalled();
+    expect(deps.createLiveAdapter).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['flag', ['baseline', '--private-manifest', 'missing-overlay.json'], liveEnv, 'missing-overlay.json'],
+    ['environment', ['baseline'], { ...liveEnv, CALORIX_NUTRITION_EVAL_PRIVATE_MANIFEST: 'missing-overlay.json' }, 'missing-overlay.json'],
+  ])('returns private_case_unavailable for a requested missing overlay from %s before adapter construction', async (_source, argv, env, requestedPath) => {
+    const deps = makeLiveDeps();
+    const loadPrivateOverlay = vi.fn(async () => {
+      throw new Error('private overlay is unavailable');
+    });
+
+    const result = await runNutritionEvalCli(argv, env, { ...deps, loadPrivateOverlay });
+
+    expect(result).toMatchObject({ exitCode: 1, failureCode: 'private_case_unavailable' });
+    expect(loadPrivateOverlay).toHaveBeenCalledWith(requestedPath);
+    expect(deps.createLiveAdapter).not.toHaveBeenCalled();
+    expect(deps.loadImage).not.toHaveBeenCalled();
+    expect(deps.writeReport).not.toHaveBeenCalled();
+  });
+
+  it('prefers a trimmed private-manifest flag over the environment fallback', async () => {
+    const deps = makeLiveDeps();
+    const loadPrivateOverlay = vi.fn(async () => {
+      throw new Error('private overlay is unavailable');
+    });
+
+    const result = await runNutritionEvalCli(
+      ['baseline', '--private-manifest', '  from-flag.json  '],
+      { ...liveEnv, CALORIX_NUTRITION_EVAL_PRIVATE_MANIFEST: 'from-environment.json' },
+      { ...deps, loadPrivateOverlay },
+    );
+
+    expect(result).toMatchObject({ exitCode: 1, failureCode: 'private_case_unavailable' });
+    expect(loadPrivateOverlay).toHaveBeenCalledWith('from-flag.json');
+    expect(deps.createLiveAdapter).not.toHaveBeenCalled();
+  });
+
+  it('loads a valid overlay before hashing and runner work, then passes only its canonical root to private image loading', async () => {
+    const deps = makeLiveDeps();
+    const canonicalPrivateRoot = '/private-overlay-root';
+    const privateManifest = {
+      version: 1 as const,
+      datasetId: 'private-overlay-dataset',
+      cases: [privateEvalCase],
+    };
+    const mergedManifest = {
+      version: 1 as const,
+      datasetId: 'cli-test-dataset',
+      cases: [evalCase, privateEvalCase],
+    };
+    const loadPrivateOverlay = vi.fn(async () => {
+      deps.events.push('overlay');
+      return { root: canonicalPrivateRoot, manifest: privateManifest };
+    });
+    const loadImage = vi.fn(async () => new Uint8Array([1]));
+    const runNutritionEval = vi.fn(async (
+      cases: readonly NutritionEvalCase[],
+      runtime: { loadImage: (testCase: NutritionEvalCase) => Promise<Uint8Array> },
+    ) => {
+      deps.events.push('runner');
+      await runtime.loadImage(privateEvalCase);
+      return cases.map((testCase) => scoreNutritionCase(testCase, providerFailure));
+    });
+
+    const result = await runNutritionEvalCli(
+      ['baseline', '--private-manifest', 'requested-overlay.json'],
+      liveEnv,
+      { ...deps, loadPrivateOverlay, loadImage, runNutritionEval },
+    );
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(loadPrivateOverlay).toHaveBeenCalledWith('requested-overlay.json');
+    expect(deps.events.indexOf('overlay')).toBeLessThan(deps.events.indexOf('adapter'));
+    expect(deps.events.indexOf('overlay')).toBeLessThan(deps.events.indexOf('runner'));
+    expect(runNutritionEval.mock.calls[0]?.[0].map((testCase) => testCase.id))
+      .toEqual(['cli-case', 'private-cli-case']);
+    expect(runNutritionEval.mock.calls[0]?.[2]).toMatchObject({ datasetId: 'cli-test-dataset' });
+    expect(loadImage).toHaveBeenCalledWith(privateEvalCase, { privateRoot: canonicalPrivateRoot });
+    const writtenReport = deps.writeReport.mock.calls[0]?.[0];
+    if (!writtenReport) throw new Error('valid overlay did not produce a report');
+    expect(writtenReport.datasetHash).toBe(hashNutritionEvalManifest(mergedManifest));
+    expect(JSON.stringify(writtenReport)).not.toContain(canonicalPrivateRoot);
+    expect(JSON.stringify(writtenReport)).not.toContain('asset.png');
+    expect(JSON.stringify(writtenReport)).not.toContain('requested-overlay.json');
+    expect(JSON.stringify(result)).not.toContain(canonicalPrivateRoot);
+    expect(JSON.stringify(result)).not.toContain('asset.png');
+    expect(JSON.stringify(result)).not.toContain('requested-overlay.json');
+  });
+
+  it('sanitizes an invalid requested overlay before any adapter, model, report, or result serialization work', async () => {
+    const deps = makeLiveDeps();
+    const privateRoot = '/do-not-report-private-overlay';
+    const loadPrivateOverlay = vi.fn(async () => {
+      throw new Error(`invalid overlay at ${privateRoot}`);
+    });
+
+    const result = await runNutritionEvalCli(
+      ['baseline', '--private-manifest', 'invalid-overlay.json'],
+      liveEnv,
+      { ...deps, loadPrivateOverlay },
+    );
+
+    expect(result).toMatchObject({ exitCode: 1, failureCode: 'private_case_unavailable' });
+    expect(JSON.stringify(result)).not.toContain(privateRoot);
+    expect(deps.createLiveAdapter).not.toHaveBeenCalled();
+    expect(deps.writeReport).not.toHaveBeenCalled();
   });
 
   it('resolves manifest, cache, and report roots from either source or compiled module locations', () => {
