@@ -14,11 +14,11 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Nutrition package contract Task 1 closure checkpoint — 2026-09-02
 
-- **Current task**: Task 1 of `docs/superpowers/plans/2026-09-01-nutrition-package-contract-and-review-controls.md` is implementation, verification, and review complete in the working tree. It started from pushed/remote-equal commit `2840867500f94b87def4f4bf716a01f35cd357e6`; the Task 1 closure commit has not yet been created. The protected user-owned `.mcp.json` remains untouched, and the private Vitamin fixture is unavailable.
+- **Task 1 closed / current task**: Task 1 of `docs/superpowers/plans/2026-09-01-nutrition-package-contract-and-review-controls.md` is closed at commit `4c0b7571643cb963c989542258beef3a01400c1a` (`Define canonical nutrition scaling`), pushed to `origin/fix/scan-photo-flow-viewer` with local/remote exact equality. It started from pushed/remote-equal commit `2840867500f94b87def4f4bf716a01f35cd357e6`. Current task: Task 2, OFF parsing and deterministic package/multipack normalization. The protected user-owned `.mcp.json` remains untouched, and the private Vitamin fixture is unavailable.
 - **TDD / verification evidence**: initial focused RED found the missing `nutrition-contract` module, incorrect canonical full values, and malformed complete entries accepted. Expanded RED covered invalid types/enums/basis-units, unresolved/reviewed cases, deterministic review-reason ordering, and Atwater boundaries/overflow. GREEN: `cd functions && npx vitest run test/nutrition-contract.test.ts test/aggregation.test.ts` passed **72/72** (**54** contract, **18** aggregation); build and lint passed; the full offline `npm test` passed **377** with **1** intentional skip; and `git diff --check` passed.
 - **Review evidence**: internal spec/code reviews reported `MUST_FIX: none`. Read-only Antigravity conversation `calorix-nutrition-package-contract-20260902`, model `gemini-3.6-flash`, returned exact `AGREEMENT_STATUS: agree` and `MUST_FIX: none`; it made no repository mutation.
-- **Scope**: no live/provider/Firebase/device/deploy activity occurred. No private fixture was created or accessed.
-- **Next**: the host must commit and push Task 1, then begin Task 2 RED. Do not infer or record a Task 1 completion commit hash until that host action occurs.
+- **Scope**: no live/provider/Firebase/device/deploy activity occurred. No private fixture was created or accessed; Task 2 focused tests must likewise use no live/network path.
+- **Next**: begin Task 2 RED with `cd functions && npx vitest run test/off-client.test.ts test/package-nutrition.test.ts`; then complete GREEN build/lint and post-task Antigravity review.
 
 ### Macro-card closeout checkpoint — 2026-08-28
 
