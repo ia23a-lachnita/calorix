@@ -462,21 +462,21 @@
 - Consumes the pushed source SHA, public manifest, optional private overlay, explicit Vertex project/location/model, and sample count.
 - Produces a report whose `runId` is stable metadata plus UTC timestamp, never a claim that production behavior passed.
 
-- [ ] **Step 1: Verify the exact pre-change source and credentials without mutation.**
+- [x] **Step 1: Verify the exact pre-change source and credentials without mutation.**
 
-  Execution note (2026-09-01): source `963877364a6051d5a5a6a72938b899c715e7f12e` is pushed with remote equality and `.mcp.json` is the only dirty path. The intended run is public-only (20 public / 0 private, no Vitamin Well coverage). One active gcloud CLI account has project read access, but the configured project and both application-default environment variables are unset, and ADC fails with `Your default credentials were not found.` No live inference can begin until the user authenticates ADC; after that, rerun the ADC check, fixtures/build/lint, then the explicit public-only baseline without a private-manifest environment variable.
+  Execution note (2026-09-02): ADC is authenticated and quota project `calorix-xurschnell` is set; token verification was suppressed. The gcloud default project remained unset, so the baseline used an explicit project. The run was public-only (20 public / 0 private, no Vitamin Well coverage) with no private-manifest environment variable.
 
   Run: `git status --short && git rev-parse HEAD && gcloud config get-value project && gcloud auth list --filter=status:ACTIVE --format='value(account)'`
 
   Expected: branch/source recorded; project is `calorix-xurschnell`; account identity may be recorded but no token/credential output. `.mcp.json` remains the only unrelated dirty path.
 
-- [ ] **Step 2: Run deterministic fixtures immediately before live inference.**
+- [x] **Step 2: Run deterministic fixtures immediately before live inference.**
 
   Run: `cd functions && npm run eval:nutrition:fixtures && npm run build && npm run lint`
 
   Expected: PASS with zero network/model calls in the fixture suite.
 
-- [ ] **Step 3: Run one baseline sample over all available cases.**
+- [x] **Step 3: Run one baseline sample over all available cases.**
 
   Run:
 
@@ -493,11 +493,11 @@
 
   Expected: 20 public plus one private case when the overlay is present; every case is counted. A missing private overlay is an explicit `private_case_unavailable` blocker, never a silent skip. Numeric/safety failures are expected baseline evidence and do not authorize production changes.
 
-- [ ] **Step 4: Inspect every case row and aggregate invariant.**
+- [x] **Step 4: Inspect every case row and aggregate invariant.**
 
   Confirm case count, parse count, selected adapter/model, prompt hash, dataset hash, code SHA, basis/barcode denominators, catastrophic/unsafe counts, and failure categories. Confirm the known-barcode cases expose current per-100-as-package behavior and the Vitamin result is compared with `85 kcal / 500 ml`.
 
-- [ ] **Step 5: Record only privacy-safe baseline summary.**
+- [x] **Step 5: Record only privacy-safe baseline summary.**
 
   Add the run ID, exact source SHA, provider/model route, public/private case counts, parse rate, median/p90 calorie errors, macro error, basis accuracy, barcode accuracy, Review rate, catastrophic and unsafe-completion counts, latency summary, and every failure category/code to `docs/implementation-status.md`. Do not commit generated reports or private paths.
 
