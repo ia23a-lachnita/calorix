@@ -12,6 +12,14 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 Read this section before acting. It supersedes contradictory runtime/device instructions in historical entries below. Historical evidence remains useful, but it is not current operating policy.
 
+### Nutrition package contract Task 1 closure checkpoint — 2026-09-02
+
+- **Current task**: Task 1 of `docs/superpowers/plans/2026-09-01-nutrition-package-contract-and-review-controls.md` is implementation, verification, and review complete in the working tree. It started from pushed/remote-equal commit `2840867500f94b87def4f4bf716a01f35cd357e6`; the Task 1 closure commit has not yet been created. The protected user-owned `.mcp.json` remains untouched, and the private Vitamin fixture is unavailable.
+- **TDD / verification evidence**: initial focused RED found the missing `nutrition-contract` module, incorrect canonical full values, and malformed complete entries accepted. Expanded RED covered invalid types/enums/basis-units, unresolved/reviewed cases, deterministic review-reason ordering, and Atwater boundaries/overflow. GREEN: `cd functions && npx vitest run test/nutrition-contract.test.ts test/aggregation.test.ts` passed **72/72** (**54** contract, **18** aggregation); build and lint passed; the full offline `npm test` passed **377** with **1** intentional skip; and `git diff --check` passed.
+- **Review evidence**: internal spec/code reviews reported `MUST_FIX: none`. Read-only Antigravity conversation `calorix-nutrition-package-contract-20260902`, model `gemini-3.6-flash`, returned exact `AGREEMENT_STATUS: agree` and `MUST_FIX: none`; it made no repository mutation.
+- **Scope**: no live/provider/Firebase/device/deploy activity occurred. No private fixture was created or accessed.
+- **Next**: the host must commit and push Task 1, then begin Task 2 RED. Do not infer or record a Task 1 completion commit hash until that host action occurs.
+
 ### Macro-card closeout checkpoint — 2026-08-28
 
 - **Current task / decision**: the bounded Today hero macro-card spacing correction is closed at pushed source `2c882b09180283329bcc7dee2791c0f3eba66e2c` (`Restore Today macro card spacing`). Do not make another Calorix UI adjustment from this run's remaining model-generated color/chart/icon findings: the changed card boundary is now exact, no retained finding identifies the card-bottom/Recent boundary as a geometry defect, and mandatory Antigravity review found no further app-code correction. The user-owned `.mcp.json` modification remains protected and must never be staged, restored, or rewritten.

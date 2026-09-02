@@ -34,6 +34,143 @@ describe('affectedDateKeys', () => {
 });
 
 describe('summarizeCompleteEntries', () => {
+  it('uses canonical consumed amounts for complete entries while preserving legacy multiplier totals', () => {
+    const totals = summarizeCompleteEntries([
+      {
+        status: 'complete',
+        baseKcal: 85,
+        baseProtein: 10,
+        baseCarbs: 21,
+        baseFat: 4,
+        nutritionBasis: 'package',
+        nutritionAmount: 500,
+        nutritionUnit: 'ml',
+        consumedAmount: 250,
+      },
+      {
+        status: 'complete',
+        baseKcal: 100,
+        baseProtein: 20,
+        baseCarbs: 30,
+        baseFat: 10,
+        servingMultiplier: 1.5,
+      },
+    ]);
+
+    expect(totals).toEqual({
+      kcal: 192.5,
+      protein: 35,
+      carbs: 55.5,
+      fat: 17,
+      entryCount: 2,
+    });
+  });
+
+  it('excludes unresolved needs_review canonical drafts rather than inventing a per-100 consumption ratio', () => {
+    const totals = summarizeCompleteEntries([
+      {
+        status: 'needs_review',
+        baseKcal: 17,
+        baseProtein: 0,
+        baseCarbs: 4.2,
+        baseFat: 0,
+        nutritionBasis: 'per100g',
+        nutritionAmount: 100,
+        nutritionUnit: 'ml',
+      },
+      {
+        status: 'complete',
+        baseKcal: 100,
+        baseProtein: 10,
+        baseCarbs: 20,
+        baseFat: 5,
+      },
+    ]);
+
+    expect(totals).toEqual({
+      kcal: 100,
+      protein: 10,
+      carbs: 20,
+      fat: 5,
+      entryCount: 1,
+    });
+  });
+
+  it('scales a complete established per100g entry by its exact consumed amount despite retained review reasons', () => {
+    const totals = summarizeCompleteEntries([
+      {
+        status: 'complete',
+        baseKcal: 17,
+        baseProtein: 0,
+        baseCarbs: 4.2,
+        baseFat: 0,
+        nutritionBasis: 'per100g',
+        nutritionAmount: 100,
+        nutritionUnit: 'ml',
+        consumedAmount: 250,
+        reviewReasons: ['barcode_unconfirmed'],
+      },
+    ]);
+
+    expect(totals).toEqual({
+      kcal: 42.5,
+      protein: 0,
+      carbs: 10.5,
+      fat: 0,
+      entryCount: 1,
+    });
+  });
+
+  it.each([
+    ['partial canonical tuple', { nutritionBasis: 'package' }],
+    ['missing consumed amount', {
+      nutritionBasis: 'package',
+      nutritionAmount: 500,
+      nutritionUnit: 'ml',
+    }],
+    ['nonfinite canonical amount', {
+      nutritionBasis: 'package',
+      nutritionAmount: Infinity,
+      nutritionUnit: 'ml',
+      consumedAmount: 500,
+    }],
+    ['invalid canonical basis', {
+      nutritionBasis: 'serving',
+      nutritionAmount: 500,
+      nutritionUnit: 'ml',
+      consumedAmount: 500,
+    }],
+    ['incompatible package unit', {
+      nutritionBasis: 'package',
+      nutritionAmount: 500,
+      nutritionUnit: 'portion',
+      consumedAmount: 500,
+    }],
+    ['zero consumed amount', {
+      nutritionBasis: 'package',
+      nutritionAmount: 500,
+      nutritionUnit: 'ml',
+      consumedAmount: 0,
+    }],
+    ['negative consumed amount', {
+      nutritionBasis: 'package',
+      nutritionAmount: 500,
+      nutritionUnit: 'ml',
+      consumedAmount: -1,
+    }],
+  ])('fails closed for a complete entry with %s', (_label, canonical) => {
+    expect(() => summarizeCompleteEntries([
+      {
+        status: 'complete',
+        baseKcal: 85,
+        baseProtein: 0,
+        baseCarbs: 21,
+        baseFat: 0,
+        ...canonical,
+      },
+    ])).toThrow();
+  });
+
   it('sums only complete entries, scaled by servingMultiplier', () => {
     const totals = summarizeCompleteEntries([
       { status: 'complete', baseKcal: 620, baseProtein: 48, baseCarbs: 72, baseFat: 16 },

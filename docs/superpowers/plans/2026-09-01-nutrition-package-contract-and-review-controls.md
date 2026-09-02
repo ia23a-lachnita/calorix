@@ -49,7 +49,7 @@
 - `NutritionDraft` is `{baseKcal:number;baseProtein:number;baseCarbs:number;baseFat:number;nutritionBasis:NutritionBasis;nutritionAmount:number;nutritionUnit:NutritionUnit;consumedAmount?:number;packageUnitCount?:number;unitAmount?:number;per100Reference?:NutritionReference;servingReference?:NutritionReference;reviewReasons:ReviewReason[];rawBarcode?:string;modelBarcode?:string;confirmedBarcode?:string}`. A draft is unresolved and non-aggregatable when `consumedAmount` is absent; only a complete canonical tuple plus consumed amount is accepted by scaling/aggregation.
 - `atwaterMismatch` is `abs(kcal - atwater) > max(50, 0.20 * max(kcal, atwater, 1))` where `atwater = 4*proteinG + 4*carbsG + 9*fatG`.
 
-- [ ] **Step 1: Write RED contract/scaling tests**
+- [x] **Step 1: Write RED contract/scaling tests**
 
 ```ts
 expect(scaleCanonicalNutrition({ nutritionBasis: 'package', nutritionAmount: 500, nutritionUnit: 'ml', consumedAmount: 250, baseKcal: 85 })).toMatchObject({ kcal: 42.5 });
@@ -58,13 +58,13 @@ expect(() => consumptionRatio({ nutritionBasis: 'package', baseKcal: 85 })).toTh
 expect(orderedReviewReasons(new Set(['atwater_mismatch', 'barcode_unconfirmed']))).toEqual(['barcode_unconfirmed', 'atwater_mismatch']);
 ```
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `cd functions && npx vitest run test/nutrition-contract.test.ts test/aggregation.test.ts`
 
 Expected: FAIL because canonical contract helpers and consumed-amount aggregation do not exist.
 
-- [ ] **Step 3: Implement the minimal shared helpers**
+- [x] **Step 3: Implement the minimal shared helpers**
 
 ```ts
 export function consumptionRatio(entry: CanonicalNutritionInput | LegacyNutritionInput): number {
@@ -78,13 +78,13 @@ export function consumptionRatio(entry: CanonicalNutritionInput | LegacyNutritio
 
 Use `servingMultiplier` only in the no-canonical-key branch and make `aggregation.ts` call `scaleCanonicalNutrition`; a persisted per-100 safe draft cannot enter aggregation until Review establishes `consumedAmount`.
 
-- [ ] **Step 4: Verify GREEN and contract review**
+- [x] **Step 4: Verify GREEN and contract review**
 
 Run: `cd functions && npx vitest run test/nutrition-contract.test.ts test/aggregation.test.ts && npm run build && npm run lint`
 
 Expected: PASS; ordered reasons, legacy one-time scaling, and Atwater predicate are deterministic. Request Antigravity review before committing because this is the shared data contract.
 
-- [ ] **Step 5: Record, commit, and push**
+- [x] **Step 5: Record, commit, and push**
 
 Update status with RED/GREEN/review evidence. Commit `Define canonical nutrition scaling`, push `origin/fix/scan-photo-flow-viewer`, and verify remote equality.
 
