@@ -501,7 +501,7 @@
 
   Add the run ID, exact source SHA, provider/model route, public/private case counts, parse rate, median/p90 calorie errors, macro error, basis accuracy, barcode accuracy, Review rate, catastrophic and unsafe-completion counts, latency summary, and every failure category/code to `docs/implementation-status.md`. Do not commit generated reports or private paths.
 
-- [ ] **Step 6: Commit and push the baseline checkpoint.**
+- [x] **Step 6: Commit and push the baseline checkpoint.**
 
   Commit tracking with message `Record nutrition evaluation baseline`, then push. This commit is the immutable comparison point for the later nutrition-contract plan.
 
