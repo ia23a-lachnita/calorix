@@ -511,7 +511,7 @@
 - Modify: `docs/implementation-status.md`
 - Modify: this plan's checkboxes during execution
 
-- [ ] **Step 1: Run the complete local verification.**
+- [x] **Step 1: Run the complete local verification.**
 
   Run: `cd functions && npm run test:verify`
 
@@ -519,19 +519,19 @@
 
   Expected: all PASS. If a pre-existing unrelated failure remains, record the exact command/output and demonstrate the focused nutrition suites still pass; do not call the stage complete without resolving or explicitly accepting that blocker.
 
-- [ ] **Step 2: Request mandatory post-implementation review.**
+- [x] **Step 2: Request mandatory post-implementation review.**
 
   Continue Antigravity conversation `calorix-nutrition-eval-20260830` using `gemini-3.6-flash`, `approvalMode: yolo`, and this exact restriction: `Do not edit files, do not run write commands, and do not mutate the repository; only inspect, reason, review, and propose changes for the main agent to apply.` Ask it to inspect the pushed Stage A/B diff, deterministic test evidence, corpus licensing/privacy, report contract, and live baseline accounting.
 
   Expected green response: `AGREEMENT_STATUS: agree` and `MUST_FIX: none`. Address every must-fix in the same conversation and rerun affected checks before continuing.
 
-- [ ] **Step 3: Run secret/private-artifact and working-tree checks.**
+- [x] **Step 3: Run secret/private-artifact and working-tree checks.**
 
   Run: `git status --short && git diff --check && git ls-files .nutrition-eval && git grep -nE '(ya29\.|AIza|BEGIN PRIVATE KEY|vitamin-well-reload\.jpg)' -- ':!docs/implementation-status.md' || true`
 
   Expected: `.nutrition-eval` has no tracked files; no credential/private image leakage; `.mcp.json` remains untouched.
 
-- [ ] **Step 4: Record the handoff to the nutrition-contract plan.**
+- [x] **Step 4: Record the handoff to the nutrition-contract plan.**
 
   Mark every genuinely complete checkbox, record exact verification/review results and pushed HEAD, and name the next artifact: `docs/superpowers/plans/2026-09-01-nutrition-package-contract-and-review-controls.md`. Commit with message `Close nutrition evaluation foundation`, then push.
 
