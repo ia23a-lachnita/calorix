@@ -102,7 +102,7 @@ Update status with RED/GREEN/review evidence. Commit `Define canonical nutrition
 - `normalizeOffPackage(product): NutritionDraft` returns package totals when complete quantity is `g|ml`; otherwise a `per100g/100` draft with `consumedAmount` absent and a blocking quantity reason.
 - `parseMultipackQuantity(text): { packageUnitCount?: number; unitAmount?: number; inferredTotal?: number }` accepts only whole positive count/unit values; a disagreement with structured quantity adds `nutrition_basis_ambiguous`.
 
-- [ ] **Step 1: Write RED OFF/package tests**
+- [x] **Step 1: Write RED OFF/package tests**
 
 ```ts
 expect(normalizeOffPackage(bottle500)).toMatchObject({ nutritionBasis: 'package', nutritionAmount: 500, baseKcal: 85, consumedAmount: 500 });
@@ -111,23 +111,23 @@ expect(normalizeOffPackage(conflictingSixPack).reviewReasons).toContain('nutriti
 expect(normalizeOffPackage(structured330WithReliableSixBy330)).toMatchObject({ nutritionAmount: 1980, packageUnitCount: 6, unitAmount: 330, consumedAmount: undefined, reviewReasons: ['nutrition_basis_ambiguous'] });
 ```
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `cd functions && npx vitest run test/off-client.test.ts test/package-nutrition.test.ts`
 
 Expected: FAIL because OFF lacks reference fields and package normalization/multipack parsing is absent.
 
-- [ ] **Step 3: Implement strict parse and normalization**
+- [x] **Step 3: Implement strict parse and normalization**
 
 Fetch only product name/barcode, quantity/product quantity/unit, serving fields, `nutrition_data_per`, and normalized nutrient fields. Multiply complete per-100 references by full package quantity/100; retain serving reference without using it as default. For reliable `6x330` text conflicting with structured `330`, use inferred outer `1980` for canonical package amount and base totals, preserve count/unit, add `nutrition_basis_ambiguous`, omit `consumedAmount`, and force Review rather than auto-completing. When multipack inference is unreliable, use the safe per-100 draft. Reject non-finite nutrients and unsupported units into ordered reasons.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `cd functions && npx vitest run test/off-client.test.ts test/package-nutrition.test.ts && npm run build && npm run lint`
 
 Expected: PASS with no HTTP call in tests; package totals, safe per-100 drafts, and strict multipack disagreement are covered. Request Antigravity post-task review before committing because OFF parsing and package-default semantics change together.
 
-- [ ] **Step 5: Record, commit, and push**
+- [x] **Step 5: Record, commit, and push**
 
 Commit `Normalize package nutrition`, push, and record the focused result and remote equality.
 

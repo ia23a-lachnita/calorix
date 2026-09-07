@@ -1,9 +1,20 @@
+import type { NutritionReference } from './nutrition-contract';
+
+type PackageUnit = 'g' | 'ml';
+
 export interface OffProduct {
   name: string;
   kcalPer100g: number;
   proteinPer100g: number;
   carbsPer100g: number;
   fatPer100g: number;
+  barcode?: string;
+  rawQuantity?: string;
+  productQuantity?: { amount: number; unit: PackageUnit };
+  productQuantityIssue?: 'invalid' | 'unsupported_unit';
+  servingReference?: NutritionReference;
+  per100Reference?: NutritionReference;
+  nutritionDataPer?: '100g' | 'serving';
 }
 
 export interface OffClientOptions {
@@ -16,8 +27,40 @@ const DEFAULT_USER_AGENT =
   'Calorix/1.0 (https://github.com/ia23a-lachnita/calorix)';
 
 function finiteNutrition(value: unknown): number | null {
-  const number = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(number) && number >= 0 ? number : null;
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function finitePositive(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function packageUnit(value: unknown): PackageUnit | null {
+  return value === 'g' || value === 'ml' ? value : null;
+}
+
+function reference(
+  nutrients: Record<string, unknown>,
+  suffix: '100g' | 'serving',
+  amount: unknown,
+  unit: unknown,
+): NutritionReference | null {
+  const kcal = finiteNutrition(nutrients[`energy-kcal_${suffix}`]);
+  const proteinG = finiteNutrition(nutrients[`proteins_${suffix}`]);
+  const carbsG = finiteNutrition(nutrients[`carbohydrates_${suffix}`]);
+  const fatG = finiteNutrition(nutrients[`fat_${suffix}`]);
+  const validAmount = finitePositive(amount);
+  const validUnit = packageUnit(unit);
+  if (
+    kcal === null ||
+    proteinG === null ||
+    carbsG === null ||
+    fatG === null ||
+    validAmount === null ||
+    validUnit === null
+  ) {
+    return null;
+  }
+  return { kcal, proteinG, carbsG, fatG, amount: validAmount, unit: validUnit };
 }
 
 export async function fetchOffProduct(
@@ -31,7 +74,10 @@ export async function fetchOffProduct(
     options.timeoutMs ?? 5000,
   );
   try {
-    const fields = encodeURIComponent('product_name,nutriments');
+    const fields = encodeURIComponent(
+      'code,product_name,quantity,product_quantity,product_quantity_unit,' +
+        'serving_size,serving_quantity,serving_quantity_unit,nutrition_data_per,nutriments',
+    );
     const response = await (options.fetchFn ?? fetch)(
       `https://world.openfoodfacts.org/api/v3/product/${encodeURIComponent(barcode)}?fields=${fields}`,
       {
@@ -55,20 +101,52 @@ export async function fetchOffProduct(
     if (typeof name !== 'string' || name.trim().length === 0 || !nutrients) {
       return null;
     }
-    const kcal = finiteNutrition(nutrients['energy-kcal_100g']);
-    const protein = finiteNutrition(nutrients.proteins_100g);
-    const carbs = finiteNutrition(nutrients.carbohydrates_100g);
-    const fat = finiteNutrition(nutrients.fat_100g);
-    if (kcal === null || protein === null || carbs === null || fat === null) {
+    const productBarcode = product.code;
+    if (typeof productBarcode !== 'string' || !/^\d{8,14}$/.test(productBarcode)) {
       return null;
     }
-    return {
+    const unit = packageUnit(product.product_quantity_unit);
+    const per100Reference = reference(nutrients, '100g', 100, unit ?? 'g');
+    if (!per100Reference) {
+      return null;
+    }
+    const quantity = finitePositive(product.product_quantity);
+    const servingReference = reference(
+      nutrients,
+      'serving',
+      product.serving_quantity,
+      product.serving_quantity_unit,
+    );
+    const rawQuantity = product.quantity;
+    const parsed: OffProduct = {
       name: name.trim(),
-      kcalPer100g: kcal,
-      proteinPer100g: protein,
-      carbsPer100g: carbs,
-      fatPer100g: fat,
+      barcode: productBarcode,
+      kcalPer100g: per100Reference.kcal,
+      proteinPer100g: per100Reference.proteinG,
+      carbsPer100g: per100Reference.carbsG,
+      fatPer100g: per100Reference.fatG,
+      per100Reference,
     };
+    if (typeof rawQuantity === 'string' && rawQuantity.trim().length > 0) {
+      parsed.rawQuantity = rawQuantity.trim();
+    }
+    const hasStructuredQuantity = Object.prototype.hasOwnProperty.call(product, 'product_quantity');
+    const hasStructuredUnit = Object.prototype.hasOwnProperty.call(
+      product,
+      'product_quantity_unit',
+    );
+    if (unit !== null && quantity !== null) {
+      parsed.productQuantity = { amount: quantity, unit };
+    } else if (typeof product.product_quantity_unit === 'string' && unit === null) {
+      parsed.productQuantityIssue = 'unsupported_unit';
+    } else if (hasStructuredQuantity || hasStructuredUnit) {
+      parsed.productQuantityIssue = 'invalid';
+    }
+    if (servingReference) parsed.servingReference = servingReference;
+    if (product.nutrition_data_per === '100g' || product.nutrition_data_per === 'serving') {
+      parsed.nutritionDataPer = product.nutrition_data_per;
+    }
+    return parsed;
   } catch {
     return null;
   } finally {
