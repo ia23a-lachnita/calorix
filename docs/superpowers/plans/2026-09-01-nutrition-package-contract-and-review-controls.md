@@ -135,18 +135,22 @@ Commit `Normalize package nutrition`, push, and record the focused result and re
 
 **Files:**
 - Modify: `functions/src/nutrition.ts`
+- Modify: `functions/src/prompts.ts`
 - Modify: `functions/src/analyze-entry.ts`
 - Modify: `functions/test/nutrition.test.ts`
 - Modify: `functions/test/analyze-entry.test.ts`
 - Modify: `functions/test/nutrition-eval/fixtures/model-responses.ts`
 - Modify: `functions/test/nutrition-eval/runner.test.ts`
+- Modify: `functions/test/nutrition-eval/cli.test.ts`
 - Modify: `docs/implementation-status.md`
+
+**File-map correction (2026-09-07):** `functions/src/prompts.ts` is required because this task's strict parser cannot accept production output unless the meal, label, and barcode prompts request the same basis-aware contract. The already-listed `functions/test/nutrition.test.ts` owns the compact prompt-contract regression. `functions/test/nutrition-eval/cli.test.ts` is included only to synchronize its two deterministic prompt-checksum literals with the required Task 3 prompt text; no CLI implementation or live-adapter behavior moves forward from Task 6. Read-only Antigravity conversation `calorix-nutrition-package-contract-20260902`, model `gemini-3.8-flash`, reviewed both corrections before GREEN and returned `AGREEMENT_STATUS: agree`; for the checksum correction it required exactly those two literal updates and keeping `live-adapter.ts` plus `live-adapter.test.ts` deferred.
 
 **Interfaces:**
 - `parseNutritionResponse(response, scanMode)` strictly requires raw nutrient fields, declared basis/amount/unit, observed package amount/unit, model barcode, candidates, and declared per-100 or package values needed to recompute arithmetic; old fixture JSON is updated rather than accepted through compatibility mode.
 - `normalizeVisionNutrition(parsed, rawBarcode, confirmedBarcode): NormalizationResult` recomputes package totals. `NormalizationResult` is either `{kind:'draft'; status:'complete'|'needs_review'; draft: NutritionDraft}` or `{kind:'error'; status:'error'; failureCode:'model_schema_invalid'; reviewReasons:['model_schema_invalid']}`; callers never treat an error result as canonical nutrition.
 
-- [ ] **Step 1: Write RED vision/arithmetic tests**
+- [x] **Step 1: Write RED vision/arithmetic tests**
 
 ```ts
 expect(normalizeVisionNutrition(vitaminVision, '7350042716380', undefined)).toMatchObject({ kind: 'draft', status: 'needs_review', draft: { baseKcal: 85, baseCarbs: 21, consumedAmount: 500, reviewReasons: ['barcode_unconfirmed'] } });
@@ -154,17 +158,17 @@ expect(normalizeVisionNutrition(badPortionAmount)).toMatchObject({ kind: 'draft'
 expect(normalizeVisionNutrition(unusableVision).status).toBe('error');
 ```
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `cd functions && npx vitest run test/nutrition.test.ts test/analyze-entry.test.ts`
 
 Expected: FAIL because parser prompts omit basis/amount and server code trusts model totals.
 
-- [ ] **Step 3: Implement schema, prompt, and recomputation**
+- [x] **Step 3: Implement schema, prompt, and recomputation**
 
 Require `portion` amount `1`, `per100g` amount `100`, and package observed/declaration agreement within `max(1 unit, 1%)`. Recompute package values from declared raw per-100 density or package totals, add `nutrition_arithmetic_mismatch` or `atwater_mismatch`, retain reported calories, and force Review for every blocking reason. Keep raw, model, and confirmed barcodes separate; update runner fixtures/tests to prove strict schema results remain deterministic.
 
-- [ ] **Step 4: Verify GREEN and review**
+- [x] **Step 4: Verify GREEN and review**
 
 Run: `cd functions && npx vitest run test/nutrition.test.ts test/analyze-entry.test.ts && npm run build && npm run lint`
 

@@ -220,12 +220,12 @@ describe('runNutritionEvalCli', () => {
       .not.toBe(hashNutritionEvalManifest(reverseOrderedManifest));
     expect(hashNutritionEvalPrompts(
       MEAL_ANALYSIS_PROMPT, LABEL_ANALYSIS_PROMPT, BARCODE_ANALYSIS_PROMPT,
-    )).toBe('294ea620c053db3687704a7b589c824776d138817b10c4d71f29abb734e6be49');
+    )).toBe('205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263');
     const writtenReport = deps.writeReport.mock.calls[0]?.[0];
     if (!writtenReport) throw new Error('baseline did not supply a report to the writer');
     expect(writtenReport).toMatchObject({
       datasetHash: '5f503b1996c52c0a1b6be97cf76527caf10d83953832180fcacd1748295e9faf',
-      promptHash: '294ea620c053db3687704a7b589c824776d138817b10c4d71f29abb734e6be49',
+      promptHash: '205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263',
       codeSha: '4444444444444444444444444444444444444444',
       cases: [{ caseId: 'cli-case-second' }, { caseId: 'cli-case' }],
     });

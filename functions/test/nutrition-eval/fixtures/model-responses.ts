@@ -100,6 +100,13 @@ export const MEAL_RESPONSE_TEXT = JSON.stringify({
   carbsG: 9.01,
   fatG: 0.369,
   confidence: 0.92,
+  nutritionBasis: 'portion',
+  nutritionAmount: 1,
+  nutritionUnit: 'portion',
+  barcode: null,
+  candidates: [],
+  detectedItems: [],
+  boundingBox: null,
 });
 
 export const LABEL_RESPONSE_TEXT = JSON.stringify({
@@ -109,7 +116,34 @@ export const LABEL_RESPONSE_TEXT = JSON.stringify({
   carbsG: 34.98,
   fatG: 0,
   confidence: 0.88,
+  nutritionBasis: 'package',
+  nutritionAmount: 330,
+  nutritionUnit: 'ml',
+  observedPackageAmount: 330,
+  observedPackageUnit: 'ml',
+  barcode: '5449000000996',
+  candidates: [],
+  detectedItems: [],
+  boundingBox: null,
+  per100Reference: {
+    kcal: 42,
+    proteinG: 0,
+    carbsG: 10.6,
+    fatG: 0,
+    amount: 100,
+    unit: 'ml',
+  },
+  packageReference: {
+    kcal: 138.6,
+    proteinG: 0,
+    carbsG: 34.98,
+    fatG: 0,
+    amount: 330,
+    unit: 'ml',
+  },
 });
+
+export const BARCODE_RESPONSE_TEXT = LABEL_RESPONSE_TEXT;
 
 // ── OffProduct fixture (for barcode mapping) ─────────────────────────────────
 
@@ -121,7 +155,7 @@ export const OFF_BARCODE_PRODUCT: OffProduct = {
   fatPer100g: 0,
 };
 
-// ── Prediction fixtures (derived from raw fixtures, missing basis/amount/unit) ─
+// ── Prediction fixtures (derived from strict, public raw response fixtures) ───
 
 export const okMealPrediction: NutritionPrediction = {
   parseStatus: 'success',
@@ -131,6 +165,9 @@ export const okMealPrediction: NutritionPrediction = {
   carbsG: 9.01,
   fatG: 0.369,
   confidence: 0.92,
+  basis: 'portion',
+  amount: 1,
+  unit: 'portion',
   decision: 'complete',
 };
 
@@ -142,17 +179,24 @@ export const okLabelPrediction: NutritionPrediction = {
   carbsG: 34.98,
   fatG: 0,
   confidence: 0.88,
+  basis: 'package',
+  amount: 330,
+  unit: 'ml',
+  barcode: '5449000000996',
   decision: 'complete',
 };
 
 export const okBarcodePrediction: NutritionPrediction = {
   parseStatus: 'success',
   source: 'barcode',
-  kcal: 42,
+  kcal: 138.6,
   proteinG: 0,
-  carbsG: 10.6,
+  carbsG: 34.98,
   fatG: 0,
   confidence: 0.95,
+  basis: 'package',
+  amount: 330,
+  unit: 'ml',
   barcode: '5449000000996',
   decision: 'complete',
 };

@@ -8,7 +8,6 @@ import { sha256Hex } from '../../src/nutrition-eval/assets';
 import { scoreNutritionCase } from '../../src/nutrition-eval/scorer';
 import { runNutritionEval, buildCacheKey } from '../../src/nutrition-eval/runner';
 import { parseNutritionResponse } from '../../src/nutrition';
-import type { OffProduct } from '../../src/off-client';
 import {
   mealCase,
   labelCase,
@@ -20,7 +19,7 @@ import {
   SHA,
   MEAL_RESPONSE_TEXT,
   LABEL_RESPONSE_TEXT,
-  OFF_BARCODE_PRODUCT,
+  BARCODE_RESPONSE_TEXT,
 } from './fixtures/model-responses';
 
 // ── Dependency injection helpers ─────────────────────────────────────────────
@@ -48,57 +47,86 @@ function makeCacheStore(overrides: { get?: CacheStore['get']; set?: CacheStore['
   };
 }
 
+type StrictParsedNutrition = {
+  kcal: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  confidence: number;
+  nutritionBasis: 'portion' | 'package' | 'per100g';
+  nutritionAmount: number;
+  nutritionUnit: 'portion' | 'g' | 'ml';
+  modelBarcode?: string;
+};
+
+function strictParsedNutrition(value: unknown): StrictParsedNutrition {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('strict parsed nutrition must be an object');
+  }
+  const record = value as Record<string, unknown>;
+  const finite = (candidate: unknown): candidate is number =>
+    typeof candidate === 'number' && Number.isFinite(candidate) && candidate >= 0;
+  if (
+    !finite(record.kcal) ||
+    !finite(record.proteinG) ||
+    !finite(record.carbsG) ||
+    !finite(record.fatG) ||
+    !finite(record.confidence) ||
+    (record.nutritionBasis !== 'portion' &&
+      record.nutritionBasis !== 'package' &&
+      record.nutritionBasis !== 'per100g') ||
+    typeof record.nutritionAmount !== 'number' ||
+    !Number.isFinite(record.nutritionAmount) ||
+    record.nutritionAmount <= 0 ||
+    (record.nutritionUnit !== 'portion' && record.nutritionUnit !== 'g' && record.nutritionUnit !== 'ml') ||
+    (record.modelBarcode !== undefined && typeof record.modelBarcode !== 'string')
+  ) {
+    throw new Error('strict parsed nutrition fields are missing');
+  }
+  return {
+    kcal: record.kcal,
+    proteinG: record.proteinG,
+    carbsG: record.carbsG,
+    fatG: record.fatG,
+    confidence: record.confidence,
+    nutritionBasis: record.nutritionBasis,
+    nutritionAmount: record.nutritionAmount,
+    nutritionUnit: record.nutritionUnit,
+    ...(typeof record.modelBarcode === 'string' ? { modelBarcode: record.modelBarcode } : {}),
+  };
+}
+
 // ── Test-owned analyzeCase adapter ───────────────────────────────────────────
-// Feeds raw fixture TEXT through parseNutritionResponse or OFF mapping into
-// runner predictions, deliberately retaining missing basis/amount/unit and
-// per-100 barcode values.
+// Feeds strict public fixture TEXT through parseNutritionResponse into runner
+// predictions. It deliberately has no provider, Firebase, image, or private
+// fixture dependency.
 
 function testAnalyzeAdapter(
   mealText: string,
   labelText: string,
-  offProduct: OffProduct,
-  barcode: string,
+  barcodeText: string,
 ) {
   return vi.fn(async (c: NutritionEvalCase, _img: Uint8Array) => {
-    if (c.scanMode === 'meal') {
-      const outcome = parseNutritionResponse(mealText, 'meal');
-      if (!outcome.ok) throw new Error(`parse failed: ${outcome.reason}`);
-      const r = outcome.result;
-      return {
-        parseStatus: 'success' as const,
-        source: 'meal' as const,
-        kcal: r.kcal,
-        proteinG: r.proteinG,
-        carbsG: r.carbsG,
-        fatG: r.fatG,
-        confidence: r.confidence,
-        decision: 'complete' as const,
-      } satisfies NutritionPrediction;
-    }
-    if (c.scanMode === 'barcode') {
-      return {
-        parseStatus: 'success' as const,
-        source: 'barcode' as const,
-        kcal: offProduct.kcalPer100g,
-        proteinG: offProduct.proteinPer100g,
-        carbsG: offProduct.carbsPer100g,
-        fatG: offProduct.fatPer100g,
-        confidence: 0.95,
-        barcode,
-        decision: 'complete' as const,
-      } satisfies NutritionPrediction;
-    }
-    const outcome = parseNutritionResponse(labelText, 'label');
+    const text = c.scanMode === 'meal'
+      ? mealText
+      : c.scanMode === 'label'
+        ? labelText
+        : barcodeText;
+    const outcome = parseNutritionResponse(text, c.scanMode);
     if (!outcome.ok) throw new Error(`parse failed: ${outcome.reason}`);
-    const r = outcome.result;
+    const r = strictParsedNutrition(outcome.result);
     return {
       parseStatus: 'success' as const,
-      source: 'label' as const,
+      source: c.scanMode,
       kcal: r.kcal,
       proteinG: r.proteinG,
       carbsG: r.carbsG,
       fatG: r.fatG,
       confidence: r.confidence,
+      basis: r.nutritionBasis,
+      amount: r.nutritionAmount,
+      unit: r.nutritionUnit,
+      ...(r.modelBarcode ? { barcode: r.modelBarcode } : {}),
       decision: 'complete' as const,
     } satisfies NutritionPrediction;
   });
@@ -817,27 +845,25 @@ describe('runner output through scorer', () => {
   });
 });
 
-// ── Static fixtures: missing basis/amount/unit & per-100 ────────────────────
+// ── Static fixtures: strict basis/amount/unit and package totals ─────────────
 
 describe('runner static fixtures', () => {
-  it('meal fixture retains missing basis/amount/unit', () => {
-    expect(okMealPrediction.basis).toBeUndefined();
-    expect(okMealPrediction.amount).toBeUndefined();
-    expect(okMealPrediction.unit).toBeUndefined();
+  it('meal fixture declares a complete portion tuple', () => {
+    expect(okMealPrediction).toMatchObject({ basis: 'portion', amount: 1, unit: 'portion' });
   });
 
-  it('label fixture retains missing basis/amount/unit', () => {
-    expect(okLabelPrediction.basis).toBeUndefined();
-    expect(okLabelPrediction.amount).toBeUndefined();
-    expect(okLabelPrediction.unit).toBeUndefined();
+  it('label fixture declares a complete package tuple', () => {
+    expect(okLabelPrediction).toMatchObject({ basis: 'package', amount: 330, unit: 'ml' });
   });
 
-  it('barcode fixture retains per-100g values and missing basis/amount/unit', () => {
-    expect(okBarcodePrediction.basis).toBeUndefined();
-    expect(okBarcodePrediction.amount).toBeUndefined();
-    expect(okBarcodePrediction.unit).toBeUndefined();
-    expect(okBarcodePrediction.kcal).toBe(42);
-    expect(okBarcodePrediction.carbsG).toBe(10.6);
+  it('barcode fixture retains the declared whole-package nutrition', () => {
+    expect(okBarcodePrediction).toMatchObject({
+      basis: 'package',
+      amount: 330,
+      unit: 'ml',
+      kcal: 138.6,
+      carbsG: 34.98,
+    });
   });
 
   it('meal case scored through scorer with fixture prediction', () => {
@@ -846,10 +872,10 @@ describe('runner static fixtures', () => {
     expect(r.numeric.kcal).toBeDefined();
   });
 
-  it('barcode case scored: per-100 values produce expected error vs package truth', () => {
+  it('barcode case scored from package totals matches package truth', () => {
     const r = scoreNutritionCase(barcodeCase, okBarcodePrediction);
     expect(r.prediction.parseStatus).toBe('success');
-    expect(r.numeric.kcal!.absoluteError).toBeCloseTo(Math.abs(42 - 138.6), 8);
+    expect(r.numeric.kcal!.absoluteError).toBeCloseTo(0, 8);
   });
 });
 
@@ -857,7 +883,7 @@ describe('runner static fixtures', () => {
 
 describe('test-owned analyzeCase adapter', () => {
   it('meal adapter parses raw TEXT through parseNutritionResponse', async () => {
-    const adapter = testAnalyzeAdapter(MEAL_RESPONSE_TEXT, LABEL_RESPONSE_TEXT, OFF_BARCODE_PRODUCT, '5449000000996');
+    const adapter = testAnalyzeAdapter(MEAL_RESPONSE_TEXT, LABEL_RESPONSE_TEXT, BARCODE_RESPONSE_TEXT);
     const deps = makeDeps({ analyzeCase: adapter });
 
     const results = await runNutritionEval(
@@ -869,13 +895,11 @@ describe('test-owned analyzeCase adapter', () => {
     expect(results[0]?.prediction.parseStatus).toBe('success');
     expect(results[0]?.prediction.source).toBe('meal');
     expect(results[0]?.prediction.kcal).toBeCloseTo(43.099998);
-    expect(results[0]?.prediction.basis).toBeUndefined();
-    expect(results[0]?.prediction.amount).toBeUndefined();
-    expect(results[0]?.prediction.unit).toBeUndefined();
+    expect(results[0]?.prediction).toMatchObject({ basis: 'portion', amount: 1, unit: 'portion' });
   });
 
-  it('barcode adapter maps OffProduct into prediction with per-100 values', async () => {
-    const adapter = testAnalyzeAdapter(MEAL_RESPONSE_TEXT, LABEL_RESPONSE_TEXT, OFF_BARCODE_PRODUCT, '5449000000996');
+  it('barcode adapter parses a strict public package response deterministically', async () => {
+    const adapter = testAnalyzeAdapter(MEAL_RESPONSE_TEXT, LABEL_RESPONSE_TEXT, BARCODE_RESPONSE_TEXT);
     const deps = makeDeps({ analyzeCase: adapter });
 
     const results = await runNutritionEval(
@@ -886,8 +910,8 @@ describe('test-owned analyzeCase adapter', () => {
 
     expect(results[0]?.prediction.parseStatus).toBe('success');
     expect(results[0]?.prediction.source).toBe('barcode');
-    expect(results[0]?.prediction.kcal).toBe(42);
+    expect(results[0]?.prediction.kcal).toBe(138.6);
     expect(results[0]?.prediction.barcode).toBe('5449000000996');
-    expect(results[0]?.prediction.basis).toBeUndefined();
+    expect(results[0]?.prediction).toMatchObject({ basis: 'package', amount: 330, unit: 'ml' });
   });
 });
