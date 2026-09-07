@@ -174,7 +174,7 @@ Run: `cd functions && npx vitest run test/nutrition.test.ts test/analyze-entry.t
 
 Expected: PASS; Vitamin fixture data is synthetic and contains no private image. Request Antigravity review for prompt/schema/arithmetic behavior before committing.
 
-- [ ] **Step 5: Record, commit, and push**
+- [x] **Step 5: Record, commit, and push**
 
 Commit `Validate nutrition basis drafts`, push, and record no provider/network call during tests.
 
