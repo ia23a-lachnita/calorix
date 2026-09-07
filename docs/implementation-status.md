@@ -12,6 +12,12 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 Read this section before acting. It supersedes contradictory runtime/device instructions in historical entries below. Historical evidence remains useful, but it is not current operating policy.
 
+### Antigravity review-route instruction update — 2026-09-07
+
+- **Instruction-only**: `AGENTS.md` Section 4 now follows the live Antigravity `list-models` strongest-first order. Routine agy review route: (1) `gemini-3.8-flash` primary, (2) `gemini-3.7-flash` fallback, (3) `gemini-3.6-flash` final. Authoritative list: `gemini-3.8-flash` (default), `gemini-3.7-flash`, `gemini-3.6-flash`, then SDK/OpenRouter-only `gemini-3.5-flash` / `gemini-3.5-flash-lite`, opt-in `gemini-3.1-pro`, then SDK/OpenRouter-only `gemini-2.5-pro` / `gemini-2.5-flash`. `gemini-3.1-pro` is opt-in maximum-reasoning only, not routine fallback; on its failure, routine fallback starts at `gemini-3.8-flash`. `gemini-3.5-flash` is SDK/OpenRouter-only and is removed from the agy review route. MCP/agy supplies High reasoning separately; display labels like `(High)` must not be passed in the model parameter. `approvalMode: "yolo"`, persistent `conversationId`, and exact error recording are unchanged. The read-only clause now includes debug.
+- **Review evidence**: read-only Antigravity conversation `antigravity-model-routing-20260907`, model `gemini-3.8-flash`, returned exact `AGREEMENT_STATUS: agree` and `MUST_FIX: none`; it made no repository mutation.
+- **Scope**: instruction-only. No runtime, provider, or Task 2 application/test behavior changed. Protected user-owned `.mcp.json` and existing Task 2 working-tree files remain untouched.
+
 ### Nutrition package contract Task 1 closure checkpoint — 2026-09-02
 
 - **Task 1 closed / current task**: Task 1 of `docs/superpowers/plans/2026-09-01-nutrition-package-contract-and-review-controls.md` is closed at commit `4c0b7571643cb963c989542258beef3a01400c1a` (`Define canonical nutrition scaling`), pushed to `origin/fix/scan-photo-flow-viewer` with local/remote exact equality. It started from pushed/remote-equal commit `2840867500f94b87def4f4bf716a01f35cd357e6`. Current task: Task 2, OFF parsing and deterministic package/multipack normalization. The protected user-owned `.mcp.json` remains untouched, and the private Vitamin fixture is unavailable.
