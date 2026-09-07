@@ -1,4 +1,4 @@
-import type { DocumentReference, Transaction } from 'firebase-admin/firestore';
+import { FieldValue, getFirestore, type DocumentReference, type Transaction } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 import { getStorage } from 'firebase-admin/storage';
 import { APP_DISPLAY_NAME, LOCATION, PROJECT_ID } from './config';
@@ -10,7 +10,6 @@ import {
 import { fetchOffProduct } from './off-client';
 import { createModelConfigLoader } from './model-config';
 import { handleEntryCreated, type AnalyzeEntryDeps, type EntryData } from './analyze-entry';
-import { getFirestore } from 'firebase-admin/firestore';
 import { createGenAIAdapter, type GenAIAdapter } from './genai-adapter';
 
 // ---------------------------------------------------------------------------
@@ -119,6 +118,7 @@ export function buildAnalyzeEntryDepsFactory(
     labelPrompt: LABEL_ANALYSIS_PROMPT,
     barcodePrompt: BARCODE_ANALYSIS_PROMPT,
     log: (message: string, error?: unknown) => console.error(message, error),
+    analysisFieldDeletion: FieldValue.delete(),
   };
 }
 

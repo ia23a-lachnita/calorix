@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  buildAnalyzeEntryDepsFactory,
   handleRetryEntryAnalysis,
   RetryAnalysisError,
   type RetryAnalysisDeps,
@@ -9,6 +10,16 @@ import {
   type AnalyzeEntryDeps,
   type EntryData,
 } from '../src/analyze-entry';
+
+const firestoreFactoryMock = vi.hoisted(() => ({
+  deleteField: vi.fn(),
+  getFirestore: vi.fn(),
+}));
+
+vi.mock('firebase-admin/firestore', () => ({
+  FieldValue: { delete: firestoreFactoryMock.deleteField },
+  getFirestore: firestoreFactoryMock.getFirestore,
+}));
 
 // ---------------------------------------------------------------------------
 // Fake Firestore snapshot (exposes exists + data() like Firestore)
@@ -149,11 +160,51 @@ function makeDeps(overrides: Partial<RetryAnalysisDeps> = {}): {
   return { deps, recorded };
 }
 
+function successfulPackageResponse(): string {
+  return JSON.stringify({
+    name: 'Vitamin Well Reload',
+    kcal: 85,
+    proteinG: 0,
+    carbsG: 21,
+    fatG: 0,
+    confidence: 0.99,
+    nutritionBasis: 'package',
+    nutritionAmount: 500,
+    nutritionUnit: 'ml',
+    observedPackageAmount: 500,
+    observedPackageUnit: 'ml',
+    packageReference: { kcal: 85, proteinG: 0, carbsG: 21, fatG: 0, amount: 500, unit: 'ml' },
+    candidates: [{ name: 'Vitamin Well Reload', confidence: 0.99, kcal: 85, proteinG: 0, carbsG: 21, fatG: 0 }],
+    barcode: null,
+    detectedItems: [],
+    boundingBox: null,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 describe('handleRetryEntryAnalysis', () => {
+  it('factory injects the mocked FieldValue.delete sentinel without Firebase initialization', () => {
+    const deletionSentinel = Object.freeze({ firestore: 'delete' });
+    const entryRef = { update: vi.fn() };
+    const entries = { doc: vi.fn(() => entryRef) };
+    const userDoc = { collection: vi.fn(() => entries) };
+    const users = { doc: vi.fn(() => userDoc) };
+    const db = { collection: vi.fn(() => users) };
+    firestoreFactoryMock.deleteField.mockReset();
+    firestoreFactoryMock.deleteField.mockReturnValue(deletionSentinel);
+    firestoreFactoryMock.getFirestore.mockReset();
+    firestoreFactoryMock.getFirestore.mockReturnValue(db);
+
+    const deps = buildAnalyzeEntryDepsFactory('uid-1', 'entry-1');
+
+    expect(firestoreFactoryMock.getFirestore).toHaveBeenCalledTimes(1);
+    expect(firestoreFactoryMock.deleteField).toHaveBeenCalledTimes(1);
+    expect((deps as unknown as Record<string, unknown>).analysisFieldDeletion).toBe(deletionSentinel);
+  });
+
   describe('typed error conditions', () => {
     it('rejects unauthenticated request with RetryAnalysisError code unauthenticated', async () => {
       const { deps } = makeDeps();
@@ -363,7 +414,7 @@ describe('handleRetryEntryAnalysis', () => {
   });
 
   describe('analysis failure recovery', () => {
-    it('retry handler delegates to handleEntryCreated which writes status error with errorMessage on generateVision failure', async () => {
+    it('retry handler delegates to handleEntryCreated which writes the safe provider error on generateVision failure', async () => {
       const docs = new Map<string, FakeDocState>([
         ['users/uid-1/entries/entry-1', {
           exists: true,
@@ -372,6 +423,7 @@ describe('handleRetryEntryAnalysis', () => {
       ]);
 
       const writtenStatuses: unknown[] = [];
+      const log = vi.fn();
 
       const { deps } = makeDeps({
         runTransaction: fakeTransactionRunner(docs, {
@@ -403,7 +455,7 @@ describe('handleRetryEntryAnalysis', () => {
             labelPrompt: 'label prompt',
             barcodePrompt: 'barcode prompt',
             fetchOffProduct: async () => null,
-            log: () => {},
+            log,
           } as unknown as AnalyzeEntryDeps;
         },
       });
@@ -413,8 +465,223 @@ describe('handleRetryEntryAnalysis', () => {
       expect(writtenStatuses).toContain('pending');
 
       const doc = docs.get('users/uid-1/entries/entry-1');
-      expect(doc?.fields.status).toBe('error');
-      expect(doc?.fields.errorMessage).toBe('Vision model unavailable');
+      expect(doc?.fields).toMatchObject({
+        status: 'error',
+        errorCode: 'provider_request_failed',
+        errorMessage: 'Analysis provider request failed',
+      });
+      expect(log).toHaveBeenCalledWith('processEntry error:', expect.objectContaining({ message: 'Vision model unavailable' }));
+    });
+
+    it('replaces stale analysis with a safe error after retry while preserving source-owned inputs', async () => {
+      const deletionSentinel = Object.freeze({ firestore: 'delete' });
+      const entryPath = 'users/uid-1/entries/entry-1';
+      const analysisUpdates: Record<string, unknown>[] = [];
+      const docs = new Map<string, FakeDocState>([
+        [entryPath, {
+          exists: true,
+          fields: {
+            status: 'error',
+            imageUrl: 'https://storage.example/scan.jpg',
+            storagePath: 'scans/uid-1/entry-1.jpg',
+            scanMode: 'label',
+            rawBarcode: '7350042719011',
+            foodName: 'Old drink',
+            baseKcal: 85,
+            nutritionBasis: 'package',
+            nutritionAmount: 500,
+            nutritionUnit: 'ml',
+            consumedAmount: 500,
+            barcode: '3333333333333',
+            servingMultiplier: 2,
+            errorCode: 'old_error',
+            errorMessage: 'Old error',
+          },
+        }],
+      ]);
+
+      const { deps } = makeDeps({
+        runTransaction: fakeTransactionRunner(docs),
+        analyzeEntry: handleEntryCreated,
+        buildAnalyzeDeps: (_uid: string, _entryId: string) => {
+          const analyzeDeps = {
+            updateEntry: async (fields: Record<string, unknown>) => {
+              analysisUpdates.push(fields);
+              const doc = docs.get(entryPath);
+              if (!doc) throw new Error('entry disappeared');
+              for (const [key, value] of Object.entries(fields)) {
+                if (value === deletionSentinel) {
+                  delete doc.fields[key];
+                } else {
+                  doc.fields[key] = value;
+                }
+              }
+            },
+            loadImageBase64: async () => 'base64data',
+            generateVision: async () => {
+              throw new Error('provider trace must not persist');
+            },
+            getFcmToken: async () => undefined,
+            sendPush: async () => {},
+            getModelConfig: async () => ({
+              visionModel: 'test-model',
+              confidenceThreshold: 0.8,
+            }),
+            appDisplayName: 'Calorix',
+            mealPrompt: 'meal prompt',
+            labelPrompt: 'label prompt',
+            barcodePrompt: 'barcode prompt',
+            fetchOffProduct: async () => null,
+            log: () => {},
+          } as unknown as AnalyzeEntryDeps;
+          Reflect.set(analyzeDeps, 'analysisFieldDeletion', deletionSentinel);
+          return analyzeDeps;
+        },
+      });
+
+      await handleRetryEntryAnalysis('uid-1', 'entry-1', deps);
+
+      const doc = docs.get(entryPath);
+      expect(analysisUpdates[1]?.barcode).toBe(deletionSentinel);
+      expect(doc?.fields).toMatchObject({
+        status: 'error',
+        errorCode: 'provider_request_failed',
+        errorMessage: 'Analysis provider request failed',
+        imageUrl: 'https://storage.example/scan.jpg',
+        storagePath: 'scans/uid-1/entry-1.jpg',
+        scanMode: 'label',
+        rawBarcode: '7350042719011',
+      });
+      expect(doc?.fields).not.toHaveProperty('baseKcal');
+      expect(doc?.fields).not.toHaveProperty('nutritionBasis');
+      expect(doc?.fields).not.toHaveProperty('consumedAmount');
+      expect(doc?.fields).not.toHaveProperty('barcode');
+      expect(doc?.fields).not.toHaveProperty('servingMultiplier');
+      expect(JSON.stringify(doc?.fields)).not.toContain('provider trace must not persist');
+    });
+
+    it('retries stale error analysis to a canonical complete result and sends only the complete push route', async () => {
+      const deletionSentinel = Object.freeze({ firestore: 'delete' });
+      const entryPath = 'users/uid-1/entries/entry-1';
+      const docs = new Map<string, FakeDocState>([
+        [entryPath, {
+          exists: true,
+          fields: {
+            uid: 'uid-1',
+            date: '2026-09-07',
+            status: 'error',
+            imageUrl: 'https://storage.example/scan.jpg',
+            storagePath: 'scans/uid-1/entry-1.jpg',
+            scanMode: 'label',
+            foodName: 'Stale drink',
+            baseKcal: 170,
+            baseProtein: 2,
+            baseCarbs: 42,
+            baseFat: 4,
+            confidence: 0.4,
+            atwaterKcal: 180,
+            candidates: [{ name: 'Stale drink' }],
+            nutritionBasis: 'package',
+            nutritionAmount: 500,
+            nutritionUnit: 'ml',
+            consumedAmount: 500,
+            packageUnitCount: 2,
+            unitAmount: 250,
+            per100Reference: { kcal: 17, proteinG: 0, carbsG: 4.2, fatG: 0, amount: 100, unit: 'ml' },
+            servingReference: { kcal: 42.5, proteinG: 0, carbsG: 10.5, fatG: 0, amount: 250, unit: 'ml' },
+            reviewReasons: ['barcode_unconfirmed'],
+            modelBarcode: '1111111111111',
+            confirmedBarcode: '2222222222222',
+            barcode: '3333333333333',
+            detectedItems: [{ label: 'stale' }],
+            boundingBox: { x: 1, y: 2, width: 3, height: 4 },
+            analysisModel: 'old-model',
+            servingMultiplier: 2,
+            kcal: 170,
+            protein: 2,
+            carbs: 42,
+            fat: 4,
+            errorCode: 'old_error',
+            errorMessage: 'Old error',
+          },
+        }],
+      ]);
+      const pushes: Array<{ data: { entryId: string }; notification: { title: string } }> = [];
+      const analysisUpdates: Record<string, unknown>[] = [];
+      let imageEntry: EntryData | undefined;
+
+      const { deps } = makeDeps({
+        runTransaction: fakeTransactionRunner(docs),
+        analyzeEntry: handleEntryCreated,
+        buildAnalyzeDeps: (_uid: string, _entryId: string) => {
+          const analyzeDeps = {
+            updateEntry: async (fields: Record<string, unknown>) => {
+              analysisUpdates.push(fields);
+              const doc = docs.get(entryPath);
+              if (!doc) throw new Error('entry disappeared');
+              for (const [key, value] of Object.entries(fields)) {
+                if (value === deletionSentinel) delete doc.fields[key];
+                else doc.fields[key] = value;
+              }
+            },
+            loadImageBase64: async (entry: EntryData) => {
+              imageEntry = entry;
+              return 'base64data';
+            },
+            generateVision: async () => successfulPackageResponse(),
+            getFcmToken: async () => 'token-1',
+            sendPush: async (message: { data: { entryId: string }; notification: { title: string } }) => {
+              pushes.push(message);
+            },
+            getModelConfig: async () => ({ visionModel: 'test-model', confidenceThreshold: 0.8 }),
+            appDisplayName: 'Calorix',
+            mealPrompt: 'meal prompt',
+            labelPrompt: 'label prompt',
+            barcodePrompt: 'barcode prompt',
+            fetchOffProduct: async () => null,
+            log: () => {},
+          } as unknown as AnalyzeEntryDeps;
+          Reflect.set(analyzeDeps, 'analysisFieldDeletion', deletionSentinel);
+          return analyzeDeps;
+        },
+      });
+
+      await handleRetryEntryAnalysis('uid-1', 'entry-1', deps);
+
+      expect(imageEntry).toMatchObject({
+        uid: 'uid-1',
+        status: 'pending',
+        imageUrl: 'https://storage.example/scan.jpg',
+        storagePath: 'scans/uid-1/entry-1.jpg',
+        scanMode: 'label',
+      });
+      const doc = docs.get(entryPath);
+      expect(analysisUpdates[1]?.per100Reference).toBe(deletionSentinel);
+      expect(analysisUpdates[1]?.barcode).toBe(deletionSentinel);
+      expect(doc?.fields).toMatchObject({
+        uid: 'uid-1',
+        date: '2026-09-07',
+        status: 'complete',
+        imageUrl: 'https://storage.example/scan.jpg',
+        storagePath: 'scans/uid-1/entry-1.jpg',
+        scanMode: 'label',
+        foodName: 'Vitamin Well Reload',
+        baseKcal: 85,
+        baseProtein: 0,
+        baseCarbs: 21,
+        baseFat: 0,
+        nutritionBasis: 'package',
+        nutritionAmount: 500,
+        nutritionUnit: 'ml',
+        consumedAmount: 500,
+      });
+      for (const key of [
+        'packageUnitCount', 'unitAmount', 'per100Reference', 'servingReference', 'modelBarcode', 'confirmedBarcode', 'barcode',
+        'errorCode', 'errorMessage', 'servingMultiplier', 'kcal', 'protein', 'carbs', 'fat',
+      ]) expect(doc?.fields).not.toHaveProperty(key);
+      expect(pushes).toHaveLength(1);
+      expect(pushes[0]!.notification.title).toBe('Calorix finished your meal scan');
+      expect(pushes[0]!.data).toEqual({ entryId: 'entry-1' });
     });
   });
 });

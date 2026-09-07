@@ -193,33 +193,37 @@ Commit `Validate nutrition basis drafts`, push, and record no provider/network c
 - Retry preserves source-owned inputs (`rawBarcode`, image/storage identity, scan mode) but, on successful recomputation, replaces every analysis-owned canonical field, references, model/confirmed barcode, review reason, status, and failure metadata rather than retaining stale analysis. A retry recomputation failure replaces analysis with stable error metadata while preserving source-owned inputs; complete push occurs only when status is complete, otherwise Review push carries the review state.
 - `analysisFieldDeletion` is an injected `FieldValue.delete()` sentinel used for every analysis-owned key absent from the latest result. Error records persist only allowlisted `errorCode` and a safe user message, never a raw provider error/body/stack.
 
-- [ ] **Step 1: Write RED persistence/retry tests**
+**Task 4 persistence ruling (2026-09-07):** source-owned `rawBarcode`, `imageUrl`, `storagePath`, and `scanMode` are never deleted. Successful analysis deletes absent optional/current-error/legacy analysis fields; error replacement deletes every prior analysis result field. Persistence uses `model_schema_invalid` for parse/schema/normalization failures and `provider_request_failed` for thrown provider/storage/OFF dependencies; `model_response_invalid` remains Task 6 evaluation-report vocabulary only. With no injected deletion sentinel, absent keys are omitted for hermetic test compatibility. Read-only Antigravity conversation `calorix-nutrition-persistence-20260907`, model `gemini-3.8-flash`, reviewed this matrix before RED and returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`.
+
+- [x] **Step 1: Write RED persistence/retry tests**
 
 ```ts
 expect(saved).toMatchObject({ nutritionBasis: 'package', nutritionAmount: 500, consumedAmount: 500, reviewReasons: ['barcode_unconfirmed'] });
 expect(retried).toMatchObject({ nutritionBasis: 'package', nutritionAmount: 500 });
 expect(unknownAfterKnown).not.toHaveProperty('consumedAmount');
 expect(reviewPush).toMatchObject({ title: expect.any(String), body: expect.any(String), data: { entryId: 'e1' } });
-expect(savedError).toMatchObject({ errorCode: 'model_response_invalid', errorMessage: expect.any(String) });
+expect(savedError).toMatchObject({ errorCode: 'model_schema_invalid', errorMessage: 'Invalid model response' });
 ```
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `cd functions && npx vitest run test/analyze-entry.test.ts test/retry-analysis.test.ts`
 
 Expected: FAIL because persisted analysis only stores legacy base values and retry loses canonical context.
 
-- [ ] **Step 3: Implement minimal field mapping**
+- [x] **Step 3: Implement minimal field mapping**
 
 Build one sanitized persistence map from normalized output. Never write `consumedAmount` for unknown/unsupported quantity drafts; status is `error` with stable schema metadata when no safe draft exists. On successful retry overwrite the entire analysis-owned field set and emit `analysisFieldDeletion` for every stale absent key; test a known-package-to-unknown-package retry removes stale totals/consumption/reference fields. On failed retry overwrite it with allowlisted error code and safe user message; never persist raw provider diagnostics, revive stale totals/reasons, or double-multiply.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `cd functions && npx vitest run test/analyze-entry.test.ts test/retry-analysis.test.ts && npm run build && npm run lint`
 
 Expected: PASS; no Firebase emulator, provider, or push service is contacted by focused tests. Request Antigravity post-task review before committing because retry replacement and persisted failure behavior change together.
 
-- [ ] **Step 5: Record, commit, and push**
+**Actual (2026-09-07):** corrected RED was **15 failed / 27 passed**. Implementation review added notification-isolation, OFF-normalization, historical-`barcode`, and persistence-propagation regressions; the review RED was **13 failed / 32 passed**, and disabling the persistence guard made its named regression fail before restoration. Final GREEN is **46/46**; build, lint, and diff-check pass. Full offline remains **497 passed / 6 failed / 1 skipped**, with all six failures confined to Task 6's deferred legacy live-adapter fixtures. Internal review returned `APPROVED: yes`, `MUST_FIX: none`; Antigravity conversation `calorix-nutrition-persistence-20260907`, model `gemini-3.8-flash`, returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`.
+
+- [x] **Step 5: Record, commit, and push**
 
 Commit `Persist canonical nutrition analysis`, push, and record status/push coverage.
 

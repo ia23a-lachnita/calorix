@@ -33,6 +33,55 @@ export interface AnalyzeEntryDeps {
   labelPrompt: string;
   barcodePrompt: string;
   log: (message: string, error?: unknown) => void;
+  /** Optional Firestore FieldValue.delete() sentinel for stale analysis fields. */
+  analysisFieldDeletion?: unknown;
+}
+
+const ANALYSIS_OWNED_FIELDS = [
+  'foodName',
+  'baseKcal',
+  'baseProtein',
+  'baseCarbs',
+  'baseFat',
+  'confidence',
+  'atwaterKcal',
+  'candidates',
+  'nutritionBasis',
+  'nutritionAmount',
+  'nutritionUnit',
+  'consumedAmount',
+  'packageUnitCount',
+  'unitAmount',
+  'per100Reference',
+  'servingReference',
+  'reviewReasons',
+  'modelBarcode',
+  'confirmedBarcode',
+  'barcode',
+  'detectedItems',
+  'boundingBox',
+  'analysisModel',
+  'errorCode',
+  'errorMessage',
+  // Legacy fields owned by historical analysis records.
+  'servingMultiplier',
+  'kcal',
+  'protein',
+  'carbs',
+  'fat',
+] as const;
+
+function replaceAnalysisFields(
+  current: Record<string, unknown>,
+  analysisFieldDeletion: unknown | undefined,
+): Record<string, unknown> {
+  const replacement: Record<string, unknown> = { ...current };
+  for (const field of ANALYSIS_OWNED_FIELDS) {
+    if (!(field in replacement) && analysisFieldDeletion !== undefined) {
+      replacement[field] = analysisFieldDeletion;
+    }
+  }
+  return replacement;
 }
 
 function analysisSource(value: string | undefined): AnalysisSource {
@@ -97,8 +146,9 @@ export function analysisEntryFields(
   draft: NutritionDraft,
   status: 'complete' | 'needs_review',
   model: string,
+  analysisFieldDeletion?: unknown,
 ): Record<string, unknown> {
-  return {
+  return replaceAnalysisFields({
     status,
     foodName: analysis.name,
     baseKcal: draft.baseKcal,
@@ -124,15 +174,19 @@ export function analysisEntryFields(
     detectedItems: analysis.detectedItems,
     boundingBox: analysis.boundingBox,
     analysisModel: model,
-  };
+  }, analysisFieldDeletion);
 }
 
-function modelSchemaError(reason: string): Record<string, unknown> {
-  return {
+function analysisErrorFields(
+  errorCode: 'model_schema_invalid' | 'provider_request_failed',
+  errorMessage: 'Invalid model response' | 'Analysis provider request failed',
+  analysisFieldDeletion?: unknown,
+): Record<string, unknown> {
+  return replaceAnalysisFields({
     status: 'error',
-    errorCode: 'model_schema_invalid',
-    errorMessage: `Invalid model response (${reason})`,
-  };
+    errorCode,
+    errorMessage,
+  }, analysisFieldDeletion);
 }
 
 /** Analyze one pending entry and persist the canonical client wire contract. */
@@ -145,6 +199,16 @@ export async function handleEntryCreated(
 
   await deps.updateEntry({ status: 'processing' });
 
+  let persistenceFailed = false;
+  const persist = async (fields: Record<string, unknown>): Promise<void> => {
+    try {
+      await deps.updateEntry(fields);
+    } catch (error) {
+      persistenceFailed = true;
+      throw error;
+    }
+  };
+
   try {
     const source = analysisSource(data.scanMode);
     const config = await deps.getModelConfig();
@@ -153,12 +217,25 @@ export async function handleEntryCreated(
     let draft: NutritionDraft | null = null;
     let analysisModel = config.visionModel;
 
-    const lookupOff = async (barcode: string | undefined, modelBarcode?: string): Promise<boolean> => {
-      if (!barcode || attemptedBarcodes.has(barcode)) return false;
+    const lookupOff = async (
+      barcode: string | undefined,
+      modelBarcode?: string,
+    ): Promise<'found' | 'not_found' | 'invalid'> => {
+      if (!barcode || attemptedBarcodes.has(barcode)) return 'not_found';
       attemptedBarcodes.add(barcode);
       const product = await deps.fetchOffProduct(barcode);
-      if (!product) return false;
-      draft = withOffProvenance(normalizeOffPackage(product), data.rawBarcode, modelBarcode);
+      if (!product) return 'not_found';
+      try {
+        draft = withOffProvenance(normalizeOffPackage(product), data.rawBarcode, modelBarcode);
+      } catch (error) {
+        deps.log('processEntry invalid OFF product:', error);
+        await persist(analysisErrorFields(
+          'model_schema_invalid',
+          'Invalid model response',
+          deps.analysisFieldDeletion,
+        ));
+        return 'invalid';
+      }
       const visionAnalysis = analysis;
       analysis = modelBarcode === undefined || visionAnalysis === null
         ? offAnalysis(product)
@@ -166,29 +243,43 @@ export async function handleEntryCreated(
           ...visionAnalysis,
           name: product.name,
           atwaterKcal: atwaterKcal(draft.baseProtein, draft.baseCarbs, draft.baseFat),
-        };
+      };
       analysisModel = 'open-food-facts-v3';
-      return true;
+      return 'found';
     };
 
-    if (source === 'barcode') await lookupOff(data.rawBarcode);
+    if (source === 'barcode' && await lookupOff(data.rawBarcode) === 'invalid') return;
 
     if (!analysis || !draft) {
       const imageBase64 = await deps.loadImageBase64(data);
       const responseText = await deps.generateVision(config.visionModel, promptFor(source, deps), imageBase64);
       const parsed = parseNutritionResponse(responseText, source);
       if (!parsed.ok) {
-        await deps.updateEntry(modelSchemaError(parsed.reason));
+        deps.log('processEntry invalid model response:', parsed.reason);
+        await persist(analysisErrorFields(
+          'model_schema_invalid',
+          'Invalid model response',
+          deps.analysisFieldDeletion,
+        ));
         return;
       }
       analysis = parsed.result;
 
-      if (source === 'barcode' && await lookupOff(analysis.modelBarcode, analysis.modelBarcode)) {
+      const offLookup = source === 'barcode'
+        ? await lookupOff(analysis.modelBarcode, analysis.modelBarcode)
+        : 'not_found';
+      if (offLookup === 'invalid') return;
+      if (offLookup === 'found') {
         // The catalog draft replaces vision nutrients, retaining vision provenance.
       } else {
         const normalized = normalizeVisionNutrition(analysis, data.rawBarcode, undefined);
         if (normalized.kind === 'error') {
-          await deps.updateEntry(modelSchemaError(normalized.failureCode));
+          deps.log('processEntry invalid model response:', normalized.failureCode);
+          await persist(analysisErrorFields(
+            'model_schema_invalid',
+            'Invalid model response',
+            deps.analysisFieldDeletion,
+          ));
           return;
         }
         draft = normalized.draft;
@@ -199,24 +290,38 @@ export async function handleEntryCreated(
     const status = analysis.confidence >= config.confidenceThreshold && draft.reviewReasons.length === 0
       ? 'complete'
       : 'needs_review';
-    await deps.updateEntry(analysisEntryFields(analysis, draft, status, analysisModel));
+    await persist(analysisEntryFields(
+      analysis,
+      draft,
+      status,
+      analysisModel,
+      deps.analysisFieldDeletion,
+    ));
 
-    const token = await deps.getFcmToken(data.uid);
-    if (token) {
-      const push = status === 'complete'
-        ? buildScanCompletePush({
-          appDisplayName: deps.appDisplayName,
-          foodName: analysis.name,
-          kcal: draft.baseKcal,
-          entryId,
-          token,
-        })
-        : buildScanReviewPush({ appDisplayName: deps.appDisplayName, foodName: analysis.name, entryId, token });
-      await deps.sendPush(push);
+    try {
+      const token = await deps.getFcmToken(data.uid);
+      if (token) {
+        const push = status === 'complete'
+          ? buildScanCompletePush({
+            appDisplayName: deps.appDisplayName,
+            foodName: analysis.name,
+            kcal: draft.baseKcal,
+            entryId,
+            token,
+          })
+          : buildScanReviewPush({ appDisplayName: deps.appDisplayName, foodName: analysis.name, entryId, token });
+        await deps.sendPush(push);
+      }
+    } catch (error) {
+      deps.log('processEntry notification error:', error);
     }
   } catch (error) {
+    if (persistenceFailed) throw error;
     deps.log('processEntry error:', error);
-    const message = error instanceof Error ? error.message : String(error);
-    await deps.updateEntry({ status: 'error', errorMessage: message });
+    await deps.updateEntry(analysisErrorFields(
+      'provider_request_failed',
+      'Analysis provider request failed',
+      deps.analysisFieldDeletion,
+    ));
   }
 }
