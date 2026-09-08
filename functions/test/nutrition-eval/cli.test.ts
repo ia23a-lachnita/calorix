@@ -15,7 +15,31 @@ import {
   LABEL_ANALYSIS_PROMPT,
   MEAL_ANALYSIS_PROMPT,
 } from '../../src/prompts';
-import type { NutritionEvalCase, NutritionPrediction } from '../../src/nutrition-eval/schema';
+import type {
+  NutritionEvalCase,
+  NutritionEvalReport,
+  NutritionPrediction,
+} from '../../src/nutrition-eval/schema';
+
+const HISTORICAL_RUN_ID = 'run-2026-09-02T04-44-02-551Z';
+
+interface BaselineComparison {
+  baselineRunId: string;
+  baselineTimestamp?: string;
+  baselineCodeSha?: string;
+  baselinePromptHash?: string;
+  baselineModelId?: string;
+  compatible: boolean;
+  compatibilityReason?: string;
+  compatibilityReasons: string[];
+  deltas?: Record<string, number>;
+}
+
+type LoadBaselineComparison = (
+  reportRoot: string,
+  runId: string,
+  currentReport: NutritionEvalReport,
+) => Promise<BaselineComparison>;
 
 const liveEnv = {
   RUN_NUTRITION_EVAL_LIVE: '1',
@@ -149,6 +173,45 @@ describe('runNutritionEvalCli', () => {
     expect(createLiveAdapter).not.toHaveBeenCalled();
   });
 
+  it('rejects a traversal compare-baseline run ID as invalid_command before live work', async () => {
+    const deps = makeLiveDeps();
+    const loadBaselineComparison = vi.fn<LoadBaselineComparison>();
+
+    const result = await runNutritionEvalCli(
+      ['baseline', '--compare-baseline', '../escape'],
+      liveEnv,
+      { ...deps, loadBaselineComparison },
+    );
+
+    expect(result).toMatchObject({ exitCode: 1, failureCode: 'invalid_command' });
+    expect(loadBaselineComparison).not.toHaveBeenCalled();
+    expect(deps.loadManifest).not.toHaveBeenCalled();
+    expect(deps.createLiveAdapter).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['blank value', ['baseline', '--compare-baseline', '   ']],
+    ['duplicate flag', [
+      'baseline',
+      '--compare-baseline', HISTORICAL_RUN_ID,
+      '--compare-baseline', 'run-second',
+    ]],
+  ])('rejects a %s for compare-baseline before live work', async (_label, argv) => {
+    const deps = makeLiveDeps();
+    const loadBaselineComparison = vi.fn<LoadBaselineComparison>();
+
+    const result = await runNutritionEvalCli(
+      argv,
+      liveEnv,
+      { ...deps, loadBaselineComparison },
+    );
+
+    expect(result).toMatchObject({ exitCode: 1, failureCode: 'invalid_command' });
+    expect(loadBaselineComparison).not.toHaveBeenCalled();
+    expect(deps.loadManifest).not.toHaveBeenCalled();
+    expect(deps.createLiveAdapter).not.toHaveBeenCalled();
+  });
+
   it('refuses baseline before constructing the live adapter when live opt-in is absent', async () => {
     const deps = makeLiveDeps();
 
@@ -198,6 +261,7 @@ describe('runNutritionEvalCli', () => {
       failuresByCategory: { provider: 1 },
       failuresByCode: { provider_request_failed: 1 },
     });
+    expect(writtenReport).toMatchObject({ publicCases: 1, privateCases: 0 });
   });
 
   it('writes hand-derived canonical dataset and prompt identities while preserving manifest case order', async () => {
@@ -415,6 +479,30 @@ describe('runNutritionEvalCli', () => {
     expect(deps.writeReport).not.toHaveBeenCalled();
   });
 
+  it('fails closed on a missing requested private overlay before adapter or baseline comparison work', async () => {
+    const deps = makeLiveDeps();
+    const loadPrivateOverlay = vi.fn(async () => {
+      throw new Error('private overlay is unavailable');
+    });
+    const loadBaselineComparison = vi.fn<LoadBaselineComparison>();
+
+    const result = await runNutritionEvalCli(
+      [
+        'baseline',
+        '--private-manifest', 'missing-overlay.json',
+        '--compare-baseline', HISTORICAL_RUN_ID,
+      ],
+      liveEnv,
+      { ...deps, loadPrivateOverlay, loadBaselineComparison },
+    );
+
+    expect(result).toMatchObject({ exitCode: 1, failureCode: 'private_case_unavailable' });
+    expect(loadPrivateOverlay).toHaveBeenCalledWith('missing-overlay.json');
+    expect(loadBaselineComparison).not.toHaveBeenCalled();
+    expect(deps.createLiveAdapter).not.toHaveBeenCalled();
+    expect(deps.writeReport).not.toHaveBeenCalled();
+  });
+
   it('prefers a trimmed private-manifest flag over the environment fallback', async () => {
     const deps = makeLiveDeps();
     const loadPrivateOverlay = vi.fn(async () => {
@@ -476,6 +564,7 @@ describe('runNutritionEvalCli', () => {
     const writtenReport = deps.writeReport.mock.calls[0]?.[0];
     if (!writtenReport) throw new Error('valid overlay did not produce a report');
     expect(writtenReport.datasetHash).toBe(hashNutritionEvalManifest(mergedManifest));
+    expect(writtenReport).toMatchObject({ publicCases: 1, privateCases: 1 });
     expect(JSON.stringify(writtenReport)).not.toContain(canonicalPrivateRoot);
     expect(JSON.stringify(writtenReport)).not.toContain('asset.png');
     expect(JSON.stringify(writtenReport)).not.toContain('requested-overlay.json');
@@ -550,6 +639,139 @@ describe('runNutritionEvalCli', () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(runNutritionEval.mock.calls[0]?.[2]).toMatchObject({ samples: 3, codeSha: 'b'.repeat(40) });
     expect(deps.writeReport.mock.calls[0]?.[1]).toBe('/tmp/from-env');
+  });
+
+  it('attaches an explicit baseline comparison before writing the report', async () => {
+    const deps = makeLiveDeps();
+    const events = deps.events;
+    const runNutritionEval = vi.fn(async () => {
+      events.push('runner');
+      return [scoreNutritionCase(evalCase, providerFailure)];
+    });
+    const comparison: BaselineComparison = {
+      baselineRunId: HISTORICAL_RUN_ID,
+      compatible: false,
+      compatibilityReason: 'prompt_hash_mismatch',
+      compatibilityReasons: ['prompt_hash_mismatch'],
+    };
+    const loadBaselineComparison = vi.fn<LoadBaselineComparison>(async () => {
+      events.push('comparison');
+      return comparison;
+    });
+
+    const result = await runNutritionEvalCli(
+      ['baseline', '--compare-baseline', HISTORICAL_RUN_ID],
+      liveEnv,
+      { ...deps, runNutritionEval, loadBaselineComparison },
+    );
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(loadBaselineComparison).toHaveBeenCalledWith(
+      expect.stringContaining('.nutrition-eval/reports'),
+      HISTORICAL_RUN_ID,
+      expect.objectContaining({
+        runId: 'run-2026-09-01T12-00-00-000Z',
+        publicCases: 1,
+        privateCases: 0,
+      }),
+    );
+    expect(events.indexOf('comparison')).toBeGreaterThan(events.indexOf('runner'));
+    expect(events.indexOf('comparison')).toBeLessThan(events.indexOf('report'));
+    expect(deps.writeReport.mock.calls[0]?.[0]).toMatchObject({
+      comparison,
+    });
+  });
+
+  it('uses the trimmed compare-baseline flag in preference to the environment fallback', async () => {
+    const deps = makeLiveDeps();
+    const loadBaselineComparison = vi.fn<LoadBaselineComparison>(async () => ({
+      baselineRunId: HISTORICAL_RUN_ID,
+      compatible: true,
+      compatibilityReasons: [],
+      deltas: {},
+    }));
+
+    const result = await runNutritionEvalCli(
+      ['baseline', '--compare-baseline', `  ${HISTORICAL_RUN_ID}  `],
+      { ...liveEnv, CALORIX_NUTRITION_EVAL_BASELINE_RUN: 'run-from-environment' },
+      { ...deps, loadBaselineComparison },
+    );
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(loadBaselineComparison).toHaveBeenCalledWith(
+      expect.stringContaining('.nutrition-eval/reports'),
+      HISTORICAL_RUN_ID,
+      expect.anything(),
+    );
+    expect(deps.writeReport.mock.calls[0]?.[0]).toMatchObject({
+      comparison: expect.objectContaining({ baselineRunId: HISTORICAL_RUN_ID }),
+    });
+  });
+
+  it('uses the compare-baseline environment fallback when the flag is absent', async () => {
+    const deps = makeLiveDeps();
+    const loadBaselineComparison = vi.fn<LoadBaselineComparison>(async () => ({
+      baselineRunId: HISTORICAL_RUN_ID,
+      compatible: true,
+      compatibilityReasons: [],
+      deltas: {},
+    }));
+
+    const result = await runNutritionEvalCli(
+      ['baseline'],
+      { ...liveEnv, CALORIX_NUTRITION_EVAL_BASELINE_RUN: `  ${HISTORICAL_RUN_ID}  ` },
+      { ...deps, loadBaselineComparison },
+    );
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(loadBaselineComparison).toHaveBeenCalledWith(
+      expect.stringContaining('.nutrition-eval/reports'),
+      HISTORICAL_RUN_ID,
+      expect.anything(),
+    );
+    expect(deps.writeReport.mock.calls[0]?.[0]).toMatchObject({
+      comparison: expect.objectContaining({ baselineRunId: HISTORICAL_RUN_ID }),
+    });
+  });
+
+  it('ignores a blank compare-baseline environment fallback', async () => {
+    const deps = makeLiveDeps();
+    const loadBaselineComparison = vi.fn<LoadBaselineComparison>();
+
+    const result = await runNutritionEvalCli(
+      ['baseline'],
+      { ...liveEnv, CALORIX_NUTRITION_EVAL_BASELINE_RUN: '   ' },
+      { ...deps, loadBaselineComparison },
+    );
+
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(loadBaselineComparison).not.toHaveBeenCalled();
+    expect(deps.writeReport).toHaveBeenCalledOnce();
+  });
+
+  it('fails closed when comparison loading fails after runner work and before report writing', async () => {
+    const deps = makeLiveDeps();
+    const runNutritionEval = vi.fn(async () => {
+      deps.events.push('runner');
+      return [scoreNutritionCase(evalCase, providerFailure)];
+    });
+    const loadBaselineComparison = vi.fn<LoadBaselineComparison>(async () => {
+      deps.events.push('comparison');
+      throw Object.assign(new Error('synthetic baseline unavailable'), {
+        code: 'baseline_not_found',
+      });
+    });
+
+    const result = await runNutritionEvalCli(
+      ['baseline', '--compare-baseline', HISTORICAL_RUN_ID],
+      liveEnv,
+      { ...deps, runNutritionEval, loadBaselineComparison },
+    );
+
+    expect(result).toMatchObject({ exitCode: 1 });
+    expect(deps.events.indexOf('comparison')).toBeGreaterThan(deps.events.indexOf('runner'));
+    expect(deps.writeReport).not.toHaveBeenCalled();
+    expect(JSON.stringify(result)).not.toContain('synthetic baseline unavailable');
   });
 
   it('resolves relative output directories against repo root while retaining absolute output directories', async () => {

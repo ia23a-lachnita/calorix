@@ -300,7 +300,7 @@ Commit `Aggregate canonical nutrition amounts`, push, and verify remote equality
 
 **Task 6 pre-implementation ruling (2026-09-08):** the historical baseline remains loadable and renderable but is not silently treated as like-for-like: its prompt hash `294ea620...` differs from the current post-Task-3 hash `205b635a...`, so a real current comparison is `compatible: false`, includes ordered `compatibilityReasons` with primary `prompt_hash_mismatch` (and any later model mismatch), and omits deltas. A self-comparison fixture alone proves zero compatible deltas and delta directionality. The loader takes an explicit current report, rejects traversal/missing/malformed input with stable codes, validates the historical report without rewriting it, and derives its 20 public / 0 private partition in memory from the public dataset identity and summary because the v1 artifact predates explicit count fields. New reports serialize explicit counts. Production normalizer typed outcomes—not message matching—separate schema, normalization, product, and thrown-provider failures. Scorer files remain unchanged. Read-only Antigravity conversation `calorix-nutrition-eval-normalizer-task6-20260908`, current primary `gemini-3.8-flash`, returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none` after correcting the stale delta example.
 
-- [ ] **Step 1: Write RED adapter/report tests**
+- [x] **Step 1: Write RED adapter/report tests**
 
 ```ts
 expect(await adapter.analyzeCase(knownPackageCase, bytes, { sampleIndex: 1 })).toMatchObject({ basis: 'package', amount: 500, unit: 'ml' });
@@ -309,11 +309,13 @@ expect(renderNutritionEvalMarkdown(report)).not.toContain('Vitamin Well coverage
 expect(loadBaselineComparison(reportRoot, 'run-2026-09-02T04-44-02-551Z', currentReport)).toMatchObject({ compatible: false, compatibilityReason: 'prompt_hash_mismatch', deltas: undefined });
 ```
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `cd functions && npx vitest run test/nutrition-eval/live-adapter.test.ts test/nutrition-eval/report.test.ts`
 
 Expected: FAIL because the adapter duplicates pre-contract interpretation and report lacks post-change comparison metadata.
+
+**Actual (2026-09-08):** corrected frozen RED is **33 failed / 77 passed (110 total)** across `live-adapter.test.ts`, `report.test.ts`, and `cli.test.ts`; all failures map to absent Task 6 production behavior. Direct test-file ESLint and `git diff --check` pass. Independent read-only review verified the schema-category normalization failure, loader/current-report validation boundary, comparison-provenance privacy cases, and the remaining contract, then returned `MUST_FIX: none`.
 
 - [ ] **Step 3: Implement production-boundary reuse**
 

@@ -1,19 +1,25 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { GenAIAdapter } from '../../src/genai-adapter';
+import type { OffProduct } from '../../src/off-client';
+import { normalizeOffPackage } from '../../src/package-nutrition';
+import { normalizeVisionNutrition } from '../../src/nutrition';
 import { createLiveNutritionEvalAdapter } from '../../src/nutrition-eval/live-adapter';
+import {
+  NutritionPredictionSchema,
+  parseNutritionEvalManifest,
+  type NutritionEvalCase,
+  type NutritionPrediction,
+} from '../../src/nutrition-eval/schema';
 import {
   BARCODE_ANALYSIS_PROMPT,
   LABEL_ANALYSIS_PROMPT,
   MEAL_ANALYSIS_PROMPT,
 } from '../../src/prompts';
-import type { GenAIAdapter } from '../../src/genai-adapter';
-import {
-  parseNutritionEvalManifest,
-  type NutritionEvalCase,
-} from '../../src/nutrition-eval/schema';
-import type { OffProduct } from '../../src/off-client';
 
 const imageBytes = new Uint8Array([0, 255, 1]);
+const rawBarcode = '5449000000996';
+const modelBarcode = '12345678';
 
 const mealCase: NutritionEvalCase = {
   id: 'meal-route',
@@ -27,7 +33,9 @@ const mealCase: NutritionEvalCase = {
     width: 1,
     height: 1,
   },
-  truth: { basis: 'portion', amount: 1, unit: 'portion', kcal: 100, proteinG: 1, carbsG: 2, fatG: 3 },
+  truth: {
+    basis: 'portion', amount: 1, unit: 'portion', kcal: 100, proteinG: 1, carbsG: 2, fatG: 3,
+  },
   toleranceClass: 'test',
   attributionId: 'test',
 };
@@ -42,32 +50,117 @@ const barcodeCase: NutritionEvalCase = {
   ...mealCase,
   id: 'barcode-route',
   scanMode: 'barcode',
-  expectedBarcode: '5449000000996',
+  expectedBarcode: rawBarcode,
 };
 
-const offProduct: OffProduct = {
-  name: 'Coca-Cola',
-  kcalPer100g: 42,
+const vitaminPer100 = {
+  kcal: 17,
+  proteinG: 0,
+  carbsG: 4.2,
+  fatG: 0,
+  amount: 100,
+  unit: 'ml' as const,
+};
+
+const vitaminPackage = {
+  kcal: 85,
+  proteinG: 0,
+  carbsG: 21,
+  fatG: 0,
+  amount: 500,
+  unit: 'ml' as const,
+};
+
+const vitaminNutrients = {
+  kcal: vitaminPackage.kcal,
+  proteinG: vitaminPackage.proteinG,
+  carbsG: vitaminPackage.carbsG,
+  fatG: vitaminPackage.fatG,
+};
+
+const knownOffProduct: OffProduct = {
+  name: 'Vitamin Well Reload',
+  barcode: rawBarcode,
+  rawQuantity: '500 ml',
+  kcalPer100g: 17,
   proteinPer100g: 0,
-  carbsPer100g: 10.6,
+  carbsPer100g: 4.2,
   fatPer100g: 0,
+  productQuantity: { amount: 500, unit: 'ml' },
+  per100Reference: vitaminPer100,
 };
 
-function modelText(overrides: Record<string, unknown> = {}): string {
-  return JSON.stringify({
+const missingQuantityOffProduct: OffProduct = {
+  name: 'Vitamin Well Reload',
+  barcode: rawBarcode,
+  kcalPer100g: 17,
+  proteinPer100g: 0,
+  carbsPer100g: 4.2,
+  fatPer100g: 0,
+  per100Reference: vitaminPer100,
+};
+
+type ModelPayloadKind = 'meal' | 'package' | 'per100';
+
+function modelText(
+  kind: ModelPayloadKind = 'meal',
+  overrides: Record<string, unknown> = {},
+): string {
+  const base = {
     name: 'Test food',
-    kcal: 100,
-    proteinG: 1,
-    carbsG: 2,
-    fatG: 3,
     confidence: 0.9,
-    ...overrides,
-  });
+    candidates: [],
+    detectedItems: [],
+    boundingBox: null,
+  };
+  const payload = kind === 'meal'
+    ? {
+      ...base,
+      kcal: 100,
+      proteinG: 1,
+      carbsG: 2,
+      fatG: 3,
+      barcode: null,
+      nutritionBasis: 'portion',
+      nutritionAmount: 1,
+      nutritionUnit: 'portion',
+    }
+    : kind === 'package'
+      ? {
+        ...base,
+        ...vitaminNutrients,
+        barcode: null,
+        nutritionBasis: 'package',
+        nutritionAmount: 500,
+        nutritionUnit: 'ml',
+        observedPackageAmount: 500,
+        observedPackageUnit: 'ml',
+        packageReference: vitaminPackage,
+      }
+      : {
+        ...base,
+        kcal: vitaminPer100.kcal,
+        proteinG: vitaminPer100.proteinG,
+        carbsG: vitaminPer100.carbsG,
+        fatG: vitaminPer100.fatG,
+        barcode: null,
+        nutritionBasis: 'per100g',
+        nutritionAmount: 100,
+        nutritionUnit: 'ml',
+        observedPackageAmount: 500,
+        observedPackageUnit: 'ml',
+        per100Reference: vitaminPer100,
+      };
+  return JSON.stringify({ ...payload, ...overrides });
 }
 
 function makeAdapter(
   responseText = modelText(),
   fetchOffProductFn: (barcode: string) => Promise<OffProduct | null> = async () => null,
+  normalizers: {
+    normalizeOffPackageFn?: typeof normalizeOffPackage;
+    normalizeVisionNutritionFn?: typeof normalizeVisionNutrition;
+  } = {},
 ) {
   const generateVision = vi.fn(async () => responseText);
   const genAIAdapter: GenAIAdapter = {
@@ -81,6 +174,7 @@ function makeAdapter(
       model: 'gemini-test-model',
       genAIAdapter,
       fetchOffProductFn,
+      ...normalizers,
     }),
     generateVision,
   };
@@ -92,6 +186,13 @@ function caseWithSuppliedBarcode(suppliedBarcode: string): NutritionEvalCase {
     datasetId: 'test-dataset',
     cases: [{ ...barcodeCase, suppliedBarcode }],
   }).cases[0]!;
+}
+
+function expectReviewPrediction(
+  prediction: NutritionPrediction,
+  reasons: string[],
+): void {
+  expect(prediction).toMatchObject({ reviewReasons: reasons });
 }
 
 describe('createLiveNutritionEvalAdapter', () => {
@@ -107,133 +208,396 @@ describe('createLiveNutritionEvalAdapter', () => {
     },
   );
 
-  it('uses the meal prompt and real parser so a valid meal response becomes a complete prediction', async () => {
-    const { adapter, generateVision } = makeAdapter();
+  it('retains optional canonical Review reasons in the prediction schema and rejects unknown reasons', () => {
+    const normalizedSuccess = {
+      parseStatus: 'success',
+      source: 'label',
+      kcal: 85,
+      proteinG: 0,
+      carbsG: 21,
+      fatG: 0,
+      confidence: 0.9,
+      basis: 'package',
+      amount: 500,
+      unit: 'ml',
+      decision: 'needs_review',
+      reviewReasons: ['barcode_unconfirmed'],
+    };
+
+    expect(NutritionPredictionSchema.safeParse(normalizedSuccess)).toMatchObject({
+      success: true,
+      data: { reviewReasons: ['barcode_unconfirmed'] },
+    });
+    expect(NutritionPredictionSchema.safeParse({
+      ...normalizedSuccess,
+      reviewReasons: ['not_a_review_reason'],
+    }).success).toBe(false);
+    expect(NutritionPredictionSchema.safeParse({
+      ...normalizedSuccess,
+      reviewReasons: undefined,
+    }).success).toBe(true);
+    expect(NutritionPredictionSchema.safeParse({
+      parseStatus: 'failure',
+      source: 'label',
+      decision: 'error',
+      failureCategory: 'schema',
+      failureCode: 'model_response_invalid',
+    }).success).toBe(true);
+  });
+
+  it('keeps nutrition normalization failures inside the stable schema category', () => {
+    expect(NutritionPredictionSchema.safeParse({
+      parseStatus: 'failure',
+      source: 'label',
+      decision: 'error',
+      failureCategory: 'normalization',
+      failureCode: 'nutrition_normalization_invalid',
+    }).success).toBe(false);
+    expect(NutritionPredictionSchema.safeParse({
+      parseStatus: 'failure',
+      source: 'label',
+      decision: 'error',
+      failureCategory: 'schema',
+      failureCode: 'nutrition_normalization_invalid',
+    })).toMatchObject({
+      success: true,
+      data: {
+        failureCategory: 'schema',
+        failureCode: 'nutrition_normalization_invalid',
+      },
+    });
+  });
+
+  it('uses the strict meal payload and exposes its canonical portion contract', async () => {
+    const { adapter, generateVision } = makeAdapter(modelText('meal'));
 
     const prediction = await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
 
     expect(prediction).toMatchObject({
-      parseStatus: 'success', source: 'meal', kcal: 100, confidence: 0.9, decision: 'complete',
+      parseStatus: 'success',
+      source: 'meal',
+      kcal: 100,
+      confidence: 0.9,
+      basis: 'portion',
+      amount: 1,
+      unit: 'portion',
+      decision: 'complete',
     });
-    expect(prediction).not.toHaveProperty('basis');
+    expectReviewPrediction(prediction, []);
     expect(generateVision).toHaveBeenCalledWith(
       'gemini-test-model', MEAL_ANALYSIS_PROMPT, 'AP8B',
     );
   });
 
-  it('uses the label prompt and real parser so a valid label response retains label source', async () => {
-    const { adapter, generateVision } = makeAdapter(modelText({ confidence: 0.79 }));
+  it('uses the strict label payload and keeps a low-confidence result in Review', async () => {
+    const { adapter, generateVision } = makeAdapter(
+      modelText('package', { confidence: 0.79 }),
+    );
 
     const prediction = await adapter.analyzeCase(labelCase, imageBytes, { sampleIndex: 1 });
 
     expect(prediction).toMatchObject({
-      parseStatus: 'success', source: 'label', kcal: 100, confidence: 0.79, decision: 'needs_review',
+      parseStatus: 'success',
+      source: 'label',
+      kcal: 85,
+      basis: 'package',
+      amount: 500,
+      unit: 'ml',
+      confidence: 0.79,
+      decision: 'needs_review',
     });
+    expectReviewPrediction(prediction, []);
     expect(generateVision).toHaveBeenCalledWith(
       'gemini-test-model', LABEL_ANALYSIS_PROMPT, 'AP8B',
     );
   });
 
-  it('looks up supplied barcode before vision and preserves OFF per-100 values without basis fields', async () => {
-    const fetchOffProductFn = vi.fn(async () => offProduct);
-    const { adapter, generateVision } = makeAdapter(modelText(), fetchOffProductFn);
-    const suppliedBarcodeCase = caseWithSuppliedBarcode('5449000000996');
-
-    const prediction = await adapter.analyzeCase(suppliedBarcodeCase, imageBytes, { sampleIndex: 1 });
-
-    expect(prediction).toEqual({
-      parseStatus: 'success',
-      source: 'barcode',
-      kcal: 42,
-      proteinG: 0,
-      carbsG: 10.6,
-      fatG: 0,
-      confidence: 1,
-      barcode: '5449000000996',
-      decision: 'complete',
-    });
-    expect(fetchOffProductFn).toHaveBeenCalledTimes(1);
-    expect(fetchOffProductFn).toHaveBeenCalledWith('5449000000996');
-    expect(generateVision).not.toHaveBeenCalled();
-  });
-
-  it('falls back from an OFF miss to barcode vision and keeps a usable vision prediction after the distinct read barcode misses', async () => {
-    const fetchOffProductFn = vi.fn(async () => null);
+  it('normalizes a 500ml OFF product into the canonical package total', async () => {
+    const fetchOffProductFn = vi.fn(async () => knownOffProduct);
+    const normalizeOffPackageFn = vi.fn(normalizeOffPackage);
     const { adapter, generateVision } = makeAdapter(
-      modelText({ barcode: '12345678', confidence: 0.97 }),
+      modelText(),
       fetchOffProductFn,
+      { normalizeOffPackageFn },
     );
-    const suppliedBarcodeCase = caseWithSuppliedBarcode('5449000000996');
 
-    const prediction = await adapter.analyzeCase(suppliedBarcodeCase, imageBytes, { sampleIndex: 1 });
+    const prediction = await adapter.analyzeCase(
+      caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
+    );
 
     expect(prediction).toMatchObject({
       parseStatus: 'success',
       source: 'barcode',
-      barcode: '12345678',
-      confidence: 0.79,
+      kcal: 85,
+      proteinG: 0,
+      carbsG: 21,
+      fatG: 0,
+      basis: 'package',
+      amount: 500,
+      unit: 'ml',
+      confidence: 1,
+      barcode: rawBarcode,
+      decision: 'complete',
+    });
+    expectReviewPrediction(prediction, []);
+    expect(normalizeOffPackageFn).toHaveBeenCalledOnce();
+    expect(normalizeOffPackageFn).toHaveBeenCalledWith(knownOffProduct);
+    expect(fetchOffProductFn).toHaveBeenCalledTimes(1);
+    expect(fetchOffProductFn).toHaveBeenCalledWith(rawBarcode);
+    expect(generateVision).not.toHaveBeenCalled();
+  });
+
+  it('keeps an OFF product with no quantity as a per-100 Review result', async () => {
+    const { adapter } = makeAdapter(
+      modelText(),
+      async () => missingQuantityOffProduct,
+    );
+
+    const prediction = await adapter.analyzeCase(
+      caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
+    );
+
+    expect(prediction).toMatchObject({
+      parseStatus: 'success',
+      source: 'barcode',
+      kcal: 17,
+      basis: 'per100g',
+      amount: 100,
+      unit: 'ml',
       decision: 'needs_review',
     });
-    expect(fetchOffProductFn).toHaveBeenNthCalledWith(1, '5449000000996');
-    expect(fetchOffProductFn).toHaveBeenNthCalledWith(2, '12345678');
-    expect(generateVision).toHaveBeenCalledWith(
-      'gemini-test-model', BARCODE_ANALYSIS_PROMPT, 'AP8B',
+    expectReviewPrediction(prediction, ['package_quantity_missing']);
+    expect(prediction).not.toHaveProperty('consumedAmount');
+  });
+
+  it('maps invalid OFF normalization input to product/off_product_invalid', async () => {
+    const invalidOffProduct = {
+      ...knownOffProduct,
+      per100Reference: undefined,
+      kcalPer100g: Number.POSITIVE_INFINITY,
+    } as unknown as OffProduct;
+    const normalizeOffPackageFn = vi.fn(normalizeOffPackage);
+    const { adapter } = makeAdapter(
+      modelText(),
+      async () => invalidOffProduct,
+      { normalizeOffPackageFn },
+    );
+
+    const prediction = await adapter.analyzeCase(
+      caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
+    );
+
+    expect(prediction).toEqual({
+      parseStatus: 'failure',
+      source: 'barcode',
+      decision: 'error',
+      failureCategory: 'product',
+      failureCode: 'off_product_invalid',
+    });
+    expect(normalizeOffPackageFn).toHaveBeenCalledWith(invalidOffProduct);
+  });
+
+  it('canonicalizes a strict per-100 vision response to the observed package total', async () => {
+    const normalizeVisionNutritionFn = vi.fn(normalizeVisionNutrition);
+    const { adapter } = makeAdapter(
+      modelText('per100'),
+      async () => null,
+      { normalizeVisionNutritionFn },
+    );
+
+    const prediction = await adapter.analyzeCase(labelCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toMatchObject({
+      parseStatus: 'success',
+      source: 'label',
+      kcal: 85,
+      proteinG: 0,
+      carbsG: 21,
+      fatG: 0,
+      basis: 'package',
+      amount: 500,
+      unit: 'ml',
+      decision: 'complete',
+    });
+    expectReviewPrediction(prediction, []);
+    expect(normalizeVisionNutritionFn).toHaveBeenCalledOnce();
+    expect(normalizeVisionNutritionFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'label',
+        nutritionBasis: 'per100g',
+        nutritionAmount: 100,
+        nutritionUnit: 'ml',
+      }),
+      undefined,
+      undefined,
     );
   });
 
+  it('returns arithmetic disagreement as a Review reason instead of trusting model totals', async () => {
+    const { adapter } = makeAdapter(modelText('per100', {
+      kcal: 16,
+      packageReference: vitaminPackage,
+    }));
+
+    const prediction = await adapter.analyzeCase(labelCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toMatchObject({
+      parseStatus: 'success',
+      source: 'label',
+      kcal: 85,
+      basis: 'package',
+      amount: 500,
+      unit: 'ml',
+      decision: 'needs_review',
+    });
+    expectReviewPrediction(prediction, ['nutrition_arithmetic_mismatch']);
+  });
+
   it('does not treat scoring-only expectedBarcode as observed input for an OFF lookup', async () => {
-    const fetchOffProductFn = vi.fn(async () => offProduct);
-    const { adapter, generateVision } = makeAdapter(modelText(), fetchOffProductFn);
+    const fetchOffProductFn = vi.fn(async () => knownOffProduct);
+    const { adapter, generateVision } = makeAdapter(modelText('per100'), fetchOffProductFn);
 
     const prediction = await adapter.analyzeCase(barcodeCase, imageBytes, { sampleIndex: 1 });
 
-    expect(prediction).toMatchObject({ parseStatus: 'success', source: 'barcode', decision: 'needs_review' });
+    expect(prediction).toMatchObject({
+      parseStatus: 'success',
+      source: 'barcode',
+      basis: 'package',
+      amount: 500,
+      unit: 'ml',
+      decision: 'complete',
+    });
+    expectReviewPrediction(prediction, []);
     expect(fetchOffProductFn).not.toHaveBeenCalled();
     expect(generateVision).toHaveBeenCalledWith(
       'gemini-test-model', BARCODE_ANALYSIS_PROMPT, 'AP8B',
     );
   });
 
+  it('falls back from an OFF miss to strict barcode vision and retains the selected vision barcode', async () => {
+    const fetchOffProductFn = vi.fn(async () => null);
+    const { adapter, generateVision } = makeAdapter(
+      modelText('per100', { barcode: modelBarcode, confidence: 0.97 }),
+      fetchOffProductFn,
+    );
+
+    const prediction = await adapter.analyzeCase(
+      caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
+    );
+
+    expect(fetchOffProductFn).toHaveBeenNthCalledWith(1, rawBarcode);
+    expect(fetchOffProductFn).toHaveBeenNthCalledWith(2, modelBarcode);
+    expect(generateVision).toHaveBeenCalledWith(
+      'gemini-test-model', BARCODE_ANALYSIS_PROMPT, 'AP8B',
+    );
+    expect(prediction).toMatchObject({
+      parseStatus: 'success',
+      source: 'barcode',
+      barcode: modelBarcode,
+      confidence: 0.97,
+      basis: 'package',
+      amount: 500,
+      unit: 'ml',
+      decision: 'needs_review',
+    });
+    expectReviewPrediction(prediction, ['barcode_unconfirmed']);
+  });
+
   it('rejects a non-8-to-14-digit supplied barcode before it can become an OFF query', () => {
     expect(() => caseWithSuppliedBarcode('1234567')).toThrow(/8-14 digits/);
   });
 
-  it('does not query OFF twice when vision reads the same barcode already supplied by the client', async () => {
+  it('deduplicates a repeated barcode lookup and retains the selected unconfirmed barcode', async () => {
     const fetchOffProductFn = vi.fn(async () => null);
     const { adapter } = makeAdapter(
-      modelText({ barcode: '5449000000996', confidence: 0.97 }),
+      modelText('per100', { barcode: rawBarcode, confidence: 0.97 }),
       fetchOffProductFn,
     );
 
     const prediction = await adapter.analyzeCase(
-      caseWithSuppliedBarcode('5449000000996'), imageBytes, { sampleIndex: 1 },
+      caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
     );
 
     expect(fetchOffProductFn).toHaveBeenCalledTimes(1);
-    expect(fetchOffProductFn).toHaveBeenCalledWith('5449000000996');
-    expect(prediction).toMatchObject({ barcode: '5449000000996', confidence: 0.79, decision: 'needs_review' });
+    expect(fetchOffProductFn).toHaveBeenCalledWith(rawBarcode);
+    expect(prediction).toMatchObject({
+      barcode: rawBarcode,
+      confidence: 0.97,
+      decision: 'needs_review',
+    });
+    expectReviewPrediction(prediction, ['barcode_unconfirmed']);
   });
 
-  it('replaces a barcode vision prediction with an OFF hit for a distinct barcode read from the image', async () => {
+  it('selects a distinct vision barcode after that barcode resolves to a canonical OFF result', async () => {
     const fetchOffProductFn = vi.fn(async (barcode: string) =>
-      barcode === '12345678' ? offProduct : null,
+      barcode === modelBarcode ? { ...knownOffProduct, barcode: modelBarcode } : null,
     );
     const { adapter } = makeAdapter(
-      modelText({ barcode: '12345678', confidence: 0.97 }),
+      modelText('per100', { barcode: modelBarcode, confidence: 0.97 }),
       fetchOffProductFn,
     );
 
     const prediction = await adapter.analyzeCase(
-      caseWithSuppliedBarcode('5449000000996'), imageBytes, { sampleIndex: 1 },
+      caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
     );
 
-    expect(fetchOffProductFn).toHaveBeenNthCalledWith(1, '5449000000996');
-    expect(fetchOffProductFn).toHaveBeenNthCalledWith(2, '12345678');
-    expect(prediction).toMatchObject({ kcal: 42, barcode: '12345678', confidence: 1, decision: 'complete' });
-    expect(prediction).not.toHaveProperty('basis');
+    expect(fetchOffProductFn).toHaveBeenNthCalledWith(1, rawBarcode);
+    expect(fetchOffProductFn).toHaveBeenNthCalledWith(2, modelBarcode);
+    expect(prediction).toMatchObject({
+      kcal: 85,
+      basis: 'package',
+      amount: 500,
+      unit: 'ml',
+      barcode: modelBarcode,
+      confidence: 1,
+      decision: 'complete',
+    });
+    expectReviewPrediction(prediction, []);
   });
 
-  it('converts invalid model text into a stable schema failure without raw provider diagnostics', async () => {
+  it('keeps a valid unconfirmed barcode vision confidence rather than clamping it', async () => {
+    const { adapter } = makeAdapter(
+      modelText('per100', { barcode: modelBarcode, confidence: 0.97 }),
+      async () => null,
+    );
+
+    const prediction = await adapter.analyzeCase(barcodeCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toMatchObject({
+      parseStatus: 'success',
+      source: 'barcode',
+      barcode: modelBarcode,
+      confidence: 0.97,
+      decision: 'needs_review',
+    });
+    expectReviewPrediction(prediction, ['barcode_unconfirmed']);
+  });
+
+  it('maps an overflow rejected by vision normalization to schema/nutrition_normalization_invalid', async () => {
+    const overflowReference = { ...vitaminPer100, kcal: Number.MAX_VALUE };
+    const normalizeVisionNutritionFn = vi.fn(normalizeVisionNutrition);
+    const { adapter } = makeAdapter(modelText('per100', {
+      kcal: overflowReference.kcal,
+      proteinG: overflowReference.proteinG,
+      carbsG: overflowReference.carbsG,
+      fatG: overflowReference.fatG,
+      observedPackageAmount: Number.MAX_VALUE,
+      per100Reference: overflowReference,
+    }), async () => null, { normalizeVisionNutritionFn });
+
+    const prediction = await adapter.analyzeCase(labelCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toEqual({
+      parseStatus: 'failure',
+      source: 'label',
+      decision: 'error',
+      failureCategory: 'schema',
+      failureCode: 'nutrition_normalization_invalid',
+    });
+    expect(normalizeVisionNutritionFn).toHaveBeenCalledOnce();
+  });
+
+  it('maps malformed model text to schema/model_response_invalid without raw diagnostics', async () => {
     const { adapter } = makeAdapter('not JSON: bearer secret-token');
 
     const prediction = await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
@@ -247,7 +611,7 @@ describe('createLiveNutritionEvalAdapter', () => {
     });
   });
 
-  it('converts a thrown provider dependency into a stable failure without its message or stack', async () => {
+  it('maps a thrown vision dependency to provider/provider_request_failed', async () => {
     const generateVision = vi.fn(async () => {
       throw new Error('Bearer test-token at /private/model.ts:42');
     });
@@ -274,16 +638,17 @@ describe('createLiveNutritionEvalAdapter', () => {
     });
   });
 
-  it('converts a thrown OFF dependency into a stable failure without its message or stack', async () => {
+  it('maps a thrown OFF dependency to provider/provider_request_failed', async () => {
     const { adapter } = makeAdapter(
       modelText(),
       async () => {
         throw new Error('Bearer test-token at /private/off-client.ts:42');
       },
     );
-    const suppliedBarcodeCase = caseWithSuppliedBarcode('5449000000996');
 
-    const prediction = await adapter.analyzeCase(suppliedBarcodeCase, imageBytes, { sampleIndex: 1 });
+    const prediction = await adapter.analyzeCase(
+      caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
+    );
 
     expect(prediction).toEqual({
       parseStatus: 'failure',
