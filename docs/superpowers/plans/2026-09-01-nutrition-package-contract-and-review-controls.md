@@ -295,8 +295,10 @@ Commit `Aggregate canonical nutrition amounts`, push, and verify remote equality
 
 **Interfaces:**
 - Adapter calls `normalizeOffPackage` and `normalizeVisionNutrition`; prediction includes basis/amount/unit and Review result from production code. Existing `scorer.ts` / `scorer.test.ts` remain unchanged because the scorer consumes normalized `NutritionPrediction` and already scores basis, barcode, Review, and safety metrics; Task 6 tests prove the adapter supplies those values.
-- `loadBaselineComparison(reportRoot, runId)` loads the ignored report for exact run ID `run-2026-09-02T04-44-02-551Z`, validates dataset/prompt/model/sample compatibility, and returns metric deltas. Report schema serializes baseline provenance, compatibility result, and metric deltas for the 20/0 public comparison without implying Vitamin coverage.
+- `loadBaselineComparison(reportRoot, runId, currentReport)` loads the ignored report for exact run ID `run-2026-09-02T04-44-02-551Z`, validates dataset/prompt/model/sample compatibility, and returns metric deltas only for a like-for-like comparison. Report schema serializes baseline provenance, compatibility result, all ordered mismatch reasons, and compatible metric deltas for the 20/0 public comparison without implying Vitamin coverage.
 - Stable failures remain distinct: `model_response_invalid` for schema, `off_product_invalid` for product normalization input, `nutrition_normalization_invalid` for a rejected arithmetic draft, and `provider_request_failed` only for thrown provider transport/dependency errors.
+
+**Task 6 pre-implementation ruling (2026-09-08):** the historical baseline remains loadable and renderable but is not silently treated as like-for-like: its prompt hash `294ea620...` differs from the current post-Task-3 hash `205b635a...`, so a real current comparison is `compatible: false`, includes ordered `compatibilityReasons` with primary `prompt_hash_mismatch` (and any later model mismatch), and omits deltas. A self-comparison fixture alone proves zero compatible deltas and delta directionality. The loader takes an explicit current report, rejects traversal/missing/malformed input with stable codes, validates the historical report without rewriting it, and derives its 20 public / 0 private partition in memory from the public dataset identity and summary because the v1 artifact predates explicit count fields. New reports serialize explicit counts. Production normalizer typed outcomes—not message matching—separate schema, normalization, product, and thrown-provider failures. Scorer files remain unchanged. Read-only Antigravity conversation `calorix-nutrition-eval-normalizer-task6-20260908`, current primary `gemini-3.8-flash`, returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none` after correcting the stale delta example.
 
 - [ ] **Step 1: Write RED adapter/report tests**
 
@@ -304,7 +306,7 @@ Commit `Aggregate canonical nutrition amounts`, push, and verify remote equality
 expect(await adapter.analyzeCase(knownPackageCase, bytes, { sampleIndex: 1 })).toMatchObject({ basis: 'package', amount: 500, unit: 'ml' });
 expect(renderNutritionEvalMarkdown(report)).toContain('Public cases: 20');
 expect(renderNutritionEvalMarkdown(report)).not.toContain('Vitamin Well coverage complete');
-expect(loadBaselineComparison(reportRoot, 'run-2026-09-02T04-44-02-551Z').deltas.parseRate).toBeDefined();
+expect(loadBaselineComparison(reportRoot, 'run-2026-09-02T04-44-02-551Z', currentReport)).toMatchObject({ compatible: false, compatibilityReason: 'prompt_hash_mismatch', deltas: undefined });
 ```
 
 - [ ] **Step 2: Witness RED**
