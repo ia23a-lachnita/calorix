@@ -329,9 +329,11 @@ Expected: PASS with no live call. When ADC and provider access are available, re
 
 **Actual (2026-09-08):** initial GREEN passed **110/110** but independent review rejected production Review divergence, weak historical validation/comparison states, and message-matched provider classification. Review-fix round 1 witnessed **11 failed / 110 passed** then **122/122**; round 2 witnessed **3 failed / 41 passed** then final focused **125/125**. Fresh full Functions is **562 passed / 1 skipped**; build, lint, and diff-check pass. The exact historical artifact is read-only and real current-vs-historical comparison remains fail-closed incompatible on prompt/model identity. Final independent review returned `MUST_FIX: none`; continued read-only Antigravity conversation `calorix-nutrition-eval-normalizer-task6-20260908`, model `gemini-3.8-flash`, returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. The opt-in live provider comparison was intentionally not run in this hermetic stage; no private coverage, provider inference, Firebase/deploy, device call, or baseline rewrite is claimed.
 
-- [ ] **Step 5: Record, commit, and push**
+- [x] **Step 5: Record, commit, and push**
 
 Commit `Evaluate canonical nutrition contract`, push, and record whether the opt-in comparison ran or its exact credential/quota blocker.
+
+**Actual (2026-09-08):** committed as `e6ff6e15c11f8a413ff81b797f8c6b93f0ef78fe` (`Evaluate canonical nutrition contract`) and pushed with exact local/remote equality. The opt-in provider comparison did not run in this hermetic stage; the exact historical artifact was validated/read without rewrite, and no private/provider/Firebase/device/deploy coverage is claimed.
 
 ### Task 7: Parse canonical entries in Dart and preserve exact legacy scaling
 
