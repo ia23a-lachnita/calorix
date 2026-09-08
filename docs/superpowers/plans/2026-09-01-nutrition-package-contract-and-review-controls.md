@@ -273,9 +273,11 @@ Expected: PASS. Direct lint is required because `npm run lint` does not include 
 
 **Actual (2026-09-08):** final frozen RED was Functions **8 failed / 22 passed** and rules **77 failed / 48 passed**, with every failure bound to an absent Task 5 behavior; direct lint and diff checks passed. GREEN is Functions **30/30** and Firestore rules **125/125** with zero exact `maximum of 1000 expressions` diagnostics after selective affected-field validation removed evaluator-budget false positives. Build, Functions lint, direct rules-test ESLint, and `git diff --check` pass. Full offline is **513 passed / 6 failed / 1 skipped**; all six failures remain confined to Task 6's deferred `nutrition-eval/live-adapter.test.ts`. Independent implementation review found no Critical or Important issue and `MUST_FIX: none`; its only minor note is the deliberate expression-budget/backward-compatibility choice to trust unchanged canonical fields on unrelated edits to a pre-existing malformed server document. Mandatory read-only Antigravity conversation `calorix-nutrition-aggregation-rules-20260907`, model `gemini-3.8-flash`, returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. No rules deployment, Firebase production write, provider inference, or device operation occurred.
 
-- [ ] **Step 5: Record, commit, and push**
+- [x] **Step 5: Record, commit, and push**
 
 Commit `Aggregate canonical nutrition amounts`, push, and verify remote equality.
+
+**Closure (2026-09-08):** commit `74d75e965b9c5fcdffe9f61b1c3cd6dc62eafe59` (`Aggregate canonical nutrition amounts`) is pushed to `origin/fix/scan-photo-flow-viewer`; `git rev-parse HEAD` and `git ls-remote --heads origin fix/scan-photo-flow-viewer` matched exactly. Protected `.mcp.json` remained unstaged and untouched.
 
 ### Task 6: Reuse production normalizers in evaluation and compare public baseline
 
