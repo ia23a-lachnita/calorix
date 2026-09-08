@@ -245,7 +245,7 @@ Commit `Persist canonical nutrition analysis`, push, and record status/push cove
 
 **Task 5 pre-implementation ruling (2026-09-07):** export pure `toAggregatableEntry` and preserve each own aggregation field verbatim (including malformed/partial values) so downstream validation cannot be bypassed; never inject `servingMultiplier: 1`. Export `toEntryData` and source `rawBarcode` only from the raw field, never model/confirmed/legacy barcode. A valid canonical tuple without `consumedAmount` is unresolved and skipped by aggregation; partial/invalid canonical records throw, and canonical values always ignore legacy multiplier. Rule triggers are tuple/consumption/package/reference/reason fields, not barcode/Atwater metadata. Complete canonical client records require finite positive consumption; Review may omit it. Preserve kcal <=10000, bound other numerics at 1e9, require exact six-key reference maps, seven allowed reasons, all-or-none multipack metadata with integer count and ±0.01 product agreement, and forbid canonical-to-legacy downgrade on update. Read-only Antigravity conversation `calorix-nutrition-aggregation-rules-20260907`, model `gemini-3.8-flash`, accepted these refinements with exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. No rules deployment is authorized.
 
-- [ ] **Step 1: Write RED aggregation/rules tests**
+- [x] **Step 1: Write RED aggregation/rules tests**
 
 ```ts
 expect(summarizeCompleteEntries([packageHalf, legacyOnePointFive]).kcal).toBeCloseTo(42.5 + 150);
@@ -253,7 +253,7 @@ await assertSucceeds(setDoc(canonicalEntry));
 await assertFails(setDoc({ ...canonicalEntry, packageUnitCount: 1.5 }));
 ```
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `cd functions && npx vitest run test/aggregation.test.ts && npm run test:rules`
 
@@ -261,15 +261,17 @@ Run: `cd functions && npx eslint test-rules/firestore-rules.test.ts && npm run b
 
 Expected: FAIL because aggregation uses `servingMultiplier` for every entry and rules lack canonical validation.
 
-- [ ] **Step 3: Implement compatibility mapping and rules**
+- [x] **Step 3: Implement compatibility mapping and rules**
 
 Use `summarizeCompleteEntries` with canonical ratio only for a valid complete tuple with established `consumedAmount`; use legacy multiplier only when every canonical key is absent. Add rules requiring only declared `ReviewReason` enum values, complete `NutritionReference` maps, all-or-none canonical tuple fields, finite bounded numeric values, and the stated basis/unit/count cross-field invariants while accepting old documents. Do not deploy rules.
 
-- [ ] **Step 4: Verify GREEN and security review**
+- [x] **Step 4: Verify GREEN and security review**
 
 Run: `cd functions && npx vitest run test/aggregation.test.ts test/index.test.ts && npm run test:rules && npx eslint test-rules/firestore-rules.test.ts && npm run build && npm run lint`
 
 Expected: PASS. Direct lint is required because `npm run lint` does not include `test-rules`; `npm run build` type-checks Functions source. Request Antigravity review for the data/rules boundary; record that this plan does not deploy it.
+
+**Actual (2026-09-08):** final frozen RED was Functions **8 failed / 22 passed** and rules **77 failed / 48 passed**, with every failure bound to an absent Task 5 behavior; direct lint and diff checks passed. GREEN is Functions **30/30** and Firestore rules **125/125** with zero exact `maximum of 1000 expressions` diagnostics after selective affected-field validation removed evaluator-budget false positives. Build, Functions lint, direct rules-test ESLint, and `git diff --check` pass. Full offline is **513 passed / 6 failed / 1 skipped**; all six failures remain confined to Task 6's deferred `nutrition-eval/live-adapter.test.ts`. Independent implementation review found no Critical or Important issue and `MUST_FIX: none`; its only minor note is the deliberate expression-budget/backward-compatibility choice to trust unchanged canonical fields on unrelated edits to a pre-existing malformed server document. Mandatory read-only Antigravity conversation `calorix-nutrition-aggregation-rules-20260907`, model `gemini-3.8-flash`, returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. No rules deployment, Firebase production write, provider inference, or device operation occurred.
 
 - [ ] **Step 5: Record, commit, and push**
 

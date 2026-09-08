@@ -46,6 +46,7 @@ describe('summarizeCompleteEntries', () => {
         nutritionAmount: 500,
         nutritionUnit: 'ml',
         consumedAmount: 250,
+        servingMultiplier: 9,
       },
       {
         status: 'complete',
@@ -123,11 +124,7 @@ describe('summarizeCompleteEntries', () => {
 
   it.each([
     ['partial canonical tuple', { nutritionBasis: 'package' }],
-    ['missing consumed amount', {
-      nutritionBasis: 'package',
-      nutritionAmount: 500,
-      nutritionUnit: 'ml',
-    }],
+    ['consumedAmount-only canonical tuple', { consumedAmount: 250 }],
     ['nonfinite canonical amount', {
       nutritionBasis: 'package',
       nutritionAmount: Infinity,
@@ -169,6 +166,43 @@ describe('summarizeCompleteEntries', () => {
         ...canonical,
       },
     ])).toThrow();
+  });
+
+  it('skips a valid complete canonical tuple whose consumed amount is unresolved', () => {
+    const totals = summarizeCompleteEntries([
+      {
+        status: 'complete',
+        baseKcal: 85,
+        baseProtein: 10,
+        baseCarbs: 21,
+        baseFat: 4,
+        nutritionBasis: 'package',
+        nutritionAmount: 500,
+        nutritionUnit: 'ml',
+      },
+    ]);
+
+    expect(totals).toEqual({ kcal: 0, protein: 0, carbs: 0, fat: 0, entryCount: 0 });
+  });
+
+  it.each([
+    ['baseKcal', { baseKcal: Number.NaN }],
+    ['baseProtein', { baseProtein: Number.POSITIVE_INFINITY }],
+    ['baseCarbs', { baseCarbs: Number.NaN }],
+    ['baseFat', { baseFat: Number.POSITIVE_INFINITY }],
+  ])('rejects nonfinite canonical nutrient %s', (_label, invalid) => {
+    expect(() => summarizeCompleteEntries([{
+      status: 'complete',
+      baseKcal: 85,
+      baseProtein: 10,
+      baseCarbs: 21,
+      baseFat: 4,
+      nutritionBasis: 'package',
+      nutritionAmount: 500,
+      nutritionUnit: 'ml',
+      consumedAmount: 250,
+      ...invalid,
+    }])).toThrow();
   });
 
   it('sums only complete entries, scaled by servingMultiplier', () => {

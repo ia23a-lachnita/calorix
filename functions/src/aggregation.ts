@@ -1,16 +1,16 @@
-import {scaleCanonicalNutrition} from './nutrition-contract';
+import {hasResolvedConsumption, scaleCanonicalNutrition} from './nutrition-contract';
 
 export interface AggregatableEntry {
   status: string;
-  baseKcal?: number;
-  baseProtein?: number;
-  baseCarbs?: number;
-  baseFat?: number;
-  kcal?: number;
-  protein?: number;
-  carbs?: number;
-  fat?: number;
-  servingMultiplier?: number;
+  baseKcal?: unknown;
+  baseProtein?: unknown;
+  baseCarbs?: unknown;
+  baseFat?: unknown;
+  kcal?: unknown;
+  protein?: unknown;
+  carbs?: unknown;
+  fat?: unknown;
+  servingMultiplier?: unknown;
   nutritionBasis?: unknown;
   nutritionAmount?: unknown;
   nutritionUnit?: unknown;
@@ -53,6 +53,7 @@ export function summarizeCompleteEntries(entries: AggregatableEntry[]): DailyTot
   const totals: DailyTotals = { kcal: 0, protein: 0, carbs: 0, fat: 0, entryCount: 0 };
   for (const entry of entries) {
     if (entry.status !== 'complete') continue;
+    if (!hasResolvedConsumption(entry)) continue;
     const scaled = scaleCanonicalNutrition(entry);
     totals.kcal += scaled.kcal;
     totals.protein += scaled.proteinG;

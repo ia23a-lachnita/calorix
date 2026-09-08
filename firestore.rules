@@ -11,16 +11,214 @@ service cloud.firestore {
     }
 
     function validMacros(data) {
-      return (!('baseKcal' in data) || (data.baseKcal is number && data.baseKcal >= 0 && data.baseKcal <= 10000))
-        && (!('baseProtein' in data) || (data.baseProtein is number && data.baseProtein >= 0))
-        && (!('baseCarbs' in data) || (data.baseCarbs is number && data.baseCarbs >= 0))
-        && (!('baseFat' in data) || (data.baseFat is number && data.baseFat >= 0))
-        && (!('kcal' in data) || (data.kcal is number && data.kcal >= 0 && data.kcal <= 10000))
-        && (!('protein' in data) || (data.protein is number && data.protein >= 0))
-        && (!('carbs' in data) || (data.carbs is number && data.carbs >= 0))
-        && (!('fat' in data) || (data.fat is number && data.fat >= 0))
+      return (!('baseKcal' in data) || validNutrientKcal(data.baseKcal))
+        && (!('baseProtein' in data) || validNutrient(data.baseProtein))
+        && (!('baseCarbs' in data) || validNutrient(data.baseCarbs))
+        && (!('baseFat' in data) || validNutrient(data.baseFat))
+        && (!('kcal' in data) || validNutrientKcal(data.kcal))
+        && (!('protein' in data) || validNutrient(data.protein))
+        && (!('carbs' in data) || validNutrient(data.carbs))
+        && (!('fat' in data) || validNutrient(data.fat))
         && (!('foodName' in data) || (data.foodName is string && data.foodName.size() < 500))
-        && (!('confidence' in data) || (data.confidence is number && data.confidence >= 0.0 && data.confidence <= 1.0));
+        && (!('confidence' in data) || validNumberInRange(data.confidence, 0.0, 1.0));
+    }
+
+    function validUpdatedMacros(before, after) {
+      let affectedKeys = after.diff(before).affectedKeys();
+      return !affectedKeys.hasAny([
+        'baseKcal',
+        'baseProtein',
+        'baseCarbs',
+        'baseFat',
+        'kcal',
+        'protein',
+        'carbs',
+        'fat',
+        'foodName',
+        'confidence',
+      ]) || validMacros(after);
+    }
+
+    function validNumberInRange(value, minimum, maximum) {
+      return value is number && value == value && value >= minimum && value <= maximum;
+    }
+
+    function validNutrient(value) {
+      return validNumberInRange(value, 0, 1000000000);
+    }
+
+    function validNutrientKcal(value) {
+      return validNumberInRange(value, 0, 10000);
+    }
+
+    function validPositiveAmount(value) {
+      return value is number && value == value && value > 0 && value <= 1000000000;
+    }
+
+    function hasCanonicalTrigger(keys) {
+      return keys.hasAny([
+        'nutritionBasis',
+        'nutritionAmount',
+        'nutritionUnit',
+        'consumedAmount',
+        'packageUnitCount',
+        'unitAmount',
+        'per100Reference',
+        'servingReference',
+        'reviewReasons',
+      ]);
+    }
+
+    function hasCanonicalTuple(keys) {
+      return keys.hasAll([
+        'nutritionBasis',
+        'nutritionAmount',
+        'nutritionUnit',
+        'reviewReasons',
+      ]);
+    }
+
+    function validReviewReasons(value) {
+      return value is list && value.hasOnly([
+        'package_quantity_missing',
+        'package_unit_unsupported',
+        'barcode_unconfirmed',
+        'nutrition_basis_ambiguous',
+        'nutrition_arithmetic_mismatch',
+        'atwater_mismatch',
+        'model_schema_invalid',
+      ]);
+    }
+
+    function validReference(value) {
+      let keys = value.keys();
+      return value is map
+        && keys.size() == 6
+        && keys.hasOnly(['kcal', 'proteinG', 'carbsG', 'fatG', 'amount', 'unit'])
+        && validNutrientKcal(value.kcal)
+        && validNutrient(value.proteinG)
+        && validNutrient(value.carbsG)
+        && validNutrient(value.fatG)
+        && validPositiveAmount(value.amount)
+        && value.unit in ['portion', 'g', 'ml'];
+    }
+
+    function validPer100Reference(data, basis, unit) {
+      return !('per100Reference' in data)
+        || (validReference(data.per100Reference)
+          && data.per100Reference.amount == 100
+          && data.per100Reference.unit in ['g', 'ml']
+          && (basis == 'portion' || data.per100Reference.unit == unit));
+    }
+
+    function validServingReference(data, basis, unit) {
+      return !('servingReference' in data)
+        || (validReference(data.servingReference)
+          && (basis == 'portion' || data.servingReference.unit == unit));
+    }
+
+    function validMultipack(data, basis, amount) {
+      return (!('packageUnitCount' in data) && !('unitAmount' in data))
+        || ('packageUnitCount' in data
+          && 'unitAmount' in data
+          && validPresentMultipack(data, basis, amount));
+    }
+
+    function validPresentMultipack(data, basis, amount) {
+      let count = data.packageUnitCount;
+      let unitAmount = data.unitAmount;
+      let product = count * unitAmount;
+      return basis == 'package'
+        && count is int
+        && validPositiveAmount(count)
+        && validPositiveAmount(unitAmount)
+        && product - amount >= -0.01
+        && product - amount <= 0.01;
+    }
+
+    function validConsumption(data) {
+      let isComplete = data.status == 'complete';
+      let hasConsumedAmount = 'consumedAmount' in data;
+      return (isComplete && hasConsumedAmount && validPositiveAmount(data.consumedAmount))
+        || (!isComplete && (!hasConsumedAmount || validPositiveAmount(data.consumedAmount)));
+    }
+
+    function validCanonicalNutrition(data, keys) {
+      return hasCanonicalTuple(keys)
+        && validCanonicalTuple(data)
+        && validConsumption(data)
+        && validReviewReasons(data.reviewReasons)
+        && validMultipack(data, data.nutritionBasis, data.nutritionAmount)
+        && validPer100Reference(data, data.nutritionBasis, data.nutritionUnit)
+        && validServingReference(data, data.nutritionBasis, data.nutritionUnit);
+    }
+
+    function validCanonicalTuple(data) {
+      let basis = data.nutritionBasis;
+      let amount = data.nutritionAmount;
+      let unit = data.nutritionUnit;
+      return basis in ['portion', 'package', 'per100g']
+        && validPositiveAmount(amount)
+        && unit in ['portion', 'g', 'ml']
+        && (basis != 'portion' || (amount == 1 && unit == 'portion'))
+        && (basis != 'per100g' || (amount == 100 && unit in ['g', 'ml']))
+        && (basis != 'package' || unit in ['g', 'ml']);
+    }
+
+    function validNutritionContract(data) {
+      let keys = data.keys();
+      return !hasCanonicalTrigger(keys) || validCanonicalNutrition(data, keys);
+    }
+
+    function validStatusTransition(before, after) {
+      return (before.status in ['complete', 'needs_review']
+          && before.status == after.status)
+        || (before.status == 'needs_review' && after.status == 'complete')
+        || (before.status == 'error' && after.status == 'pending');
+    }
+
+    function validCanonicalNutritionUpdate(after, keys, affectedKeys) {
+      return hasCanonicalTuple(keys)
+        && (!affectedKeys.hasAny([
+          'nutritionBasis',
+          'nutritionAmount',
+          'nutritionUnit',
+        ]) || validCanonicalTuple(after))
+        && (!affectedKeys.hasAny([
+          'status',
+          'consumedAmount',
+        ]) || validConsumption(after))
+        && (!affectedKeys.hasAny([
+          'reviewReasons',
+        ]) || validReviewReasons(after.reviewReasons))
+        && (!affectedKeys.hasAny([
+          'packageUnitCount',
+          'unitAmount',
+          'nutritionBasis',
+          'nutritionAmount',
+          'nutritionUnit',
+        ]) || validMultipack(after, after.nutritionBasis, after.nutritionAmount))
+        && (!affectedKeys.hasAny([
+          'per100Reference',
+          'nutritionBasis',
+          'nutritionUnit',
+        ]) || validPer100Reference(after, after.nutritionBasis, after.nutritionUnit))
+        && (!affectedKeys.hasAny([
+          'servingReference',
+          'nutritionBasis',
+          'nutritionUnit',
+        ]) || validServingReference(after, after.nutritionBasis, after.nutritionUnit));
+    }
+
+    function validNutritionUpdate(before, after) {
+      let beforeKeys = before.keys();
+      let afterKeys = after.keys();
+      let affectedKeys = after.diff(before).affectedKeys();
+      let beforeCanonical = hasCanonicalTuple(beforeKeys);
+      let afterCanonical = hasCanonicalTrigger(afterKeys);
+      return beforeCanonical
+        ? validCanonicalNutritionUpdate(after, afterKeys, affectedKeys)
+        : (!afterCanonical || validCanonicalNutrition(after, afterKeys));
     }
 
     match /users/{uid} {
@@ -35,25 +233,22 @@ service cloud.firestore {
           && validDateKey(request.resource.data.date)
           && request.resource.data.status in ['pending', 'complete']
           && validMacros(request.resource.data)
+          && validNutritionContract(request.resource.data)
           && (request.resource.data.status != 'complete' || (
-                request.resource.data.foodName is string
-                && request.resource.data.baseKcal is number
-                && request.resource.data.baseProtein is number
-                && request.resource.data.baseCarbs is number
-                && request.resource.data.baseFat is number));
+                'foodName' in request.resource.data
+                && 'baseKcal' in request.resource.data
+                && 'baseProtein' in request.resource.data
+                && 'baseCarbs' in request.resource.data
+                && 'baseFat' in request.resource.data));
 
         // 'processing', 'needs_review', and 'error' are server-assigned.
         // Clients may confirm a review (needs_review -> complete) or retry a
         // failed scan (error -> pending); everything else keeps its status.
         allow update: if isOwner(uid)
           && validDateKey(request.resource.data.date)
-          && validMacros(request.resource.data)
-          && (
-            (resource.data.status in ['complete', 'needs_review']
-              && resource.data.status == request.resource.data.status)
-            || (resource.data.status == 'needs_review' && request.resource.data.status == 'complete')
-            || (resource.data.status == 'error' && request.resource.data.status == 'pending')
-          );
+          && validStatusTransition(resource.data, request.resource.data)
+          && validUpdatedMacros(resource.data, request.resource.data)
+          && validNutritionUpdate(resource.data, request.resource.data);
 
         allow delete: if isOwner(uid);
       }
