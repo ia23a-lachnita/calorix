@@ -34,7 +34,7 @@ const mealCase: NutritionEvalCase = {
     height: 1,
   },
   truth: {
-    basis: 'portion', amount: 1, unit: 'portion', kcal: 100, proteinG: 1, carbsG: 2, fatG: 3,
+    basis: 'portion', amount: 1, unit: 'portion', kcal: 100, proteinG: 1, carbsG: 15, fatG: 4,
   },
   toleranceClass: 'test',
   attributionId: 'test',
@@ -118,8 +118,8 @@ function modelText(
       ...base,
       kcal: 100,
       proteinG: 1,
-      carbsG: 2,
-      fatG: 3,
+      carbsG: 15,
+      fatG: 4,
       barcode: null,
       nutritionBasis: 'portion',
       nutritionAmount: 1,
@@ -287,6 +287,22 @@ describe('createLiveNutritionEvalAdapter', () => {
     expect(generateVision).toHaveBeenCalledWith(
       'gemini-test-model', MEAL_ANALYSIS_PROMPT, 'AP8B',
     );
+  });
+
+  it('retains an Atwater mismatch from production vision normalization in Review', async () => {
+    const { adapter } = makeAdapter(modelText('meal', {
+      proteinG: 1,
+      carbsG: 2,
+      fatG: 3,
+    }));
+
+    const prediction = await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toMatchObject({
+      parseStatus: 'success',
+      decision: 'needs_review',
+      reviewReasons: ['atwater_mismatch'],
+    });
   });
 
   it('uses the strict label payload and keeps a low-confidence result in Review', async () => {
@@ -549,10 +565,29 @@ describe('createLiveNutritionEvalAdapter', () => {
       amount: 500,
       unit: 'ml',
       barcode: modelBarcode,
-      confidence: 1,
-      decision: 'complete',
+      confidence: 0.97,
+      decision: 'needs_review',
     });
-    expectReviewPrediction(prediction, []);
+    expectReviewPrediction(prediction, ['barcode_unconfirmed']);
+  });
+
+  it('keeps a low-confidence vision-led OFF hit in Review even when barcode provenance agrees', async () => {
+    const fetchOffProductFn = vi.fn(async (barcode: string) =>
+      barcode === modelBarcode ? { ...knownOffProduct, barcode: modelBarcode } : null,
+    );
+    const { adapter } = makeAdapter(
+      modelText('per100', { barcode: modelBarcode, confidence: 0.79 }),
+      fetchOffProductFn,
+    );
+
+    const prediction = await adapter.analyzeCase(barcodeCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toMatchObject({
+      barcode: modelBarcode,
+      confidence: 0.79,
+      decision: 'needs_review',
+      reviewReasons: [],
+    });
   });
 
   it('keeps a valid unconfirmed barcode vision confidence rather than clamping it', async () => {

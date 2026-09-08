@@ -3,6 +3,7 @@ import { readFile } from 'fs/promises';
 import { resolve } from 'path';
 
 import { loadVerifiedCaseImage } from './assets';
+import { isSafeBaselineRunId, loadBaselineComparison } from './baseline-comparison';
 import { createLiveNutritionEvalAdapter } from './live-adapter';
 import { loadPrivateOverlay, mergePrivateOverlay } from './private-overlay';
 import { buildNutritionEvalReport, writeNutritionEvalReport } from './report';
@@ -15,7 +16,12 @@ import {
 } from '../prompts';
 
 import type { LiveNutritionEvalAdapter } from './live-adapter';
-import type { NutritionEvalManifest, NutritionCaseResult, NutritionEvalReport } from './schema';
+import type {
+  BaselineComparison,
+  NutritionEvalManifest,
+  NutritionCaseResult,
+  NutritionEvalReport,
+} from './schema';
 import type { PrivateOverlay } from './private-overlay';
 
 export type CliFailureCode =
@@ -49,6 +55,11 @@ interface CliDependencies {
     options?: { privateRoot?: string },
   ) => Promise<Uint8Array>;
   loadPrivateOverlay?: (manifestPath: string) => Promise<PrivateOverlay>;
+  loadBaselineComparison?: (
+    reportRoot: string,
+    runId: string,
+    currentReport: NutritionEvalReport,
+  ) => Promise<BaselineComparison>;
   runNutritionEval?: typeof runNutritionEval;
   writeReport?: typeof writeNutritionEvalReport;
   getCodeSha?: () => string | undefined;
@@ -71,6 +82,7 @@ interface ParsedArgs {
   maxUnsafeCount?: string | undefined;
   maxCatastrophicCount?: string | undefined;
   privateManifest?: string | undefined;
+  compareBaseline?: string | undefined;
   invalidCommand: boolean;
 }
 
@@ -113,18 +125,21 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     '--max-unsafe-count': 'maxUnsafeCount',
     '--max-catastrophic-count': 'maxCatastrophicCount',
     '--private-manifest': 'privateManifest',
+    '--compare-baseline': 'compareBaseline',
+    '--baseline-run': 'compareBaseline',
   };
-  const seenFlags = new Set<string>();
+  const seenFields = new Set<string>();
   for (let index = 1; index < argv.length; index++) {
     const flag = argv[index];
     const value = argv[index + 1];
     const field = typeof flag === 'string' ? fields[flag] : undefined;
-    if (typeof flag !== 'string' || !field || seenFlags.has(flag)
+    if (typeof flag !== 'string' || !field || seenFields.has(field)
       || value === undefined || value.startsWith('--')) {
       parsed.invalidCommand = true;
       break;
     }
-    seenFlags.add(flag);
+    seenFields.add(flag);
+    seenFields.add(field);
     parsed[field] = value;
     index++;
   }
@@ -276,6 +291,14 @@ export async function runNutritionEvalCli(
   const model = nonblank(args.model) ?? nonblank(env.CALORIX_NUTRITION_EVAL_MODEL);
   if (!project || !location || !model) return fail('missing_config');
 
+  const flagBaseline = args.compareBaseline === undefined ? undefined : nonblank(args.compareBaseline);
+  if (args.compareBaseline !== undefined && flagBaseline === undefined) return fail('invalid_command');
+  const envBaseline = nonblank(env.CALORIX_NUTRITION_EVAL_BASELINE_RUN);
+  const requestedBaselineRun = flagBaseline ?? envBaseline;
+  if (requestedBaselineRun !== undefined && !isSafeBaselineRunId(requestedBaselineRun)) {
+    return fail('invalid_command');
+  }
+
   let manifest: NutritionEvalManifest;
   const paths = resolveNutritionEvalRuntimePaths();
   try {
@@ -331,6 +354,9 @@ export async function runNutritionEvalCli(
     return fail('runner_failure');
   }
 
+  const publicCases = manifest.cases.filter((evalCase) => evalCase.visibility === 'public').length;
+  const privateCases = manifest.cases.filter((evalCase) => evalCase.visibility === 'private').length;
+
   const report = buildNutritionEvalReport(results, {
     runId: `run-${started.toISOString().replace(/[:.]/g, '-')}`,
     timestamp: started.toISOString(),
@@ -341,7 +367,56 @@ export async function runNutritionEvalCli(
     codeSha,
     samples: thresholds.samples,
     baselineOnly: args.command === 'baseline',
+    publicCases,
+    privateCases,
   });
+  if (requestedBaselineRun !== undefined) {
+    let comparison: BaselineComparison;
+    try {
+      comparison = await (deps.loadBaselineComparison ?? loadBaselineComparison)(
+        paths.reportsRoot,
+        requestedBaselineRun,
+        report,
+      );
+    } catch {
+      return fail('runner_failure');
+    }
+    const compared = buildNutritionEvalReport(results, {
+      runId: report.runId,
+      timestamp: report.timestamp,
+      datasetId: report.datasetId,
+      datasetHash: report.datasetHash,
+      adapterModelId: report.adapterModelId,
+      promptHash: report.promptHash,
+      codeSha: report.codeSha,
+      samples: report.samples,
+      baselineOnly: report.baselineOnly,
+      publicCases: report.publicCases,
+      privateCases: report.privateCases,
+      comparison,
+    });
+    let comparedPaths: CliResult['reportPaths'];
+    try {
+      comparedPaths = await (deps.writeReport ?? writeNutritionEvalReport)(
+        compared,
+        resolveNutritionEvalOutputDir(
+          started,
+          nonblank(args.outDir) ?? nonblank(env.CALORIX_NUTRITION_EVAL_OUTPUT_DIR) ?? deps.outputDir,
+          paths,
+        ),
+      );
+    } catch (error) {
+      return fail(error instanceof Error && error.message === 'privacy_leak' ? 'privacy_leak' : 'report_write_failed');
+    }
+
+    if (hasFailure(results, 'dataset')) return fail('dataset_failure', comparedPaths);
+    if (hasFailure(results, 'runner')) return fail('runner_failure', comparedPaths);
+    if (args.command === 'release') {
+      if (thresholdsExceeded(compared.summary, thresholds)) return fail('threshold_violation', comparedPaths);
+      if (releaseUnsafe(results)) return fail('safety_violation', comparedPaths);
+    }
+    return { exitCode: 0, reportPaths: comparedPaths };
+  }
   let reportPaths: CliResult['reportPaths'];
   try {
     reportPaths = await (deps.writeReport ?? writeNutritionEvalReport)(

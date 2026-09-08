@@ -32,8 +32,30 @@ interface BaselineComparison {
   compatible: boolean;
   compatibilityReason?: string;
   compatibilityReasons: string[];
-  deltas?: Record<string, number>;
+  deltas?: {
+    parseRate: number;
+    medianAbsoluteCalorieError: number;
+    medianRelativeCalorieError: number;
+    p90AbsoluteCalorieError: number;
+    p90RelativeCalorieError: number;
+    meanMacroRelativeError: number;
+    reviewRate: number;
+    catastrophicCount: number;
+    unsafeCompletionCount: number;
+  };
 }
+
+const zeroDeltas = {
+  parseRate: 0,
+  medianAbsoluteCalorieError: 0,
+  medianRelativeCalorieError: 0,
+  p90AbsoluteCalorieError: 0,
+  p90RelativeCalorieError: 0,
+  meanMacroRelativeError: 0,
+  reviewRate: 0,
+  catastrophicCount: 0,
+  unsafeCompletionCount: 0,
+};
 
 type LoadBaselineComparison = (
   reportRoot: string,
@@ -605,7 +627,10 @@ describe('runNutritionEvalCli', () => {
 
   it('passes validated samples and code-SHA flags into the runner and report and returns report paths', async () => {
     const deps = makeLiveDeps();
-    const runNutritionEval = vi.fn(async () => [scoreNutritionCase(evalCase, providerFailure)]);
+    const runNutritionEval = vi.fn(async () => [
+      scoreNutritionCase(evalCase, providerFailure),
+      scoreNutritionCase(evalCase, providerFailure),
+    ]);
 
     const result = await runNutritionEvalCli(
       ['baseline', '--samples', '2', '--code-sha', 'a'.repeat(40), '--out-dir', '/tmp/out'],
@@ -628,7 +653,11 @@ describe('runNutritionEvalCli', () => {
 
   it('uses explicit samples, code-SHA, and output-directory environment fallbacks', async () => {
     const deps = makeLiveDeps();
-    const runNutritionEval = vi.fn(async () => [scoreNutritionCase(evalCase, providerFailure)]);
+    const runNutritionEval = vi.fn(async () => [
+      scoreNutritionCase(evalCase, providerFailure),
+      scoreNutritionCase(evalCase, providerFailure),
+      scoreNutritionCase(evalCase, providerFailure),
+    ]);
     const result = await runNutritionEvalCli(['baseline'], {
       ...liveEnv,
       CALORIX_NUTRITION_EVAL_SAMPLES: '3',
@@ -688,7 +717,7 @@ describe('runNutritionEvalCli', () => {
       baselineRunId: HISTORICAL_RUN_ID,
       compatible: true,
       compatibilityReasons: [],
-      deltas: {},
+      deltas: zeroDeltas,
     }));
 
     const result = await runNutritionEvalCli(
@@ -714,7 +743,7 @@ describe('runNutritionEvalCli', () => {
       baselineRunId: HISTORICAL_RUN_ID,
       compatible: true,
       compatibilityReasons: [],
-      deltas: {},
+      deltas: zeroDeltas,
     }));
 
     const result = await runNutritionEvalCli(

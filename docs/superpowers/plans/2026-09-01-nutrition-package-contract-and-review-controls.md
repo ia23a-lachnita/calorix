@@ -317,15 +317,17 @@ Expected: FAIL because the adapter duplicates pre-contract interpretation and re
 
 **Actual (2026-09-08):** corrected frozen RED is **33 failed / 77 passed (110 total)** across `live-adapter.test.ts`, `report.test.ts`, and `cli.test.ts`; all failures map to absent Task 6 production behavior. Direct test-file ESLint and `git diff --check` pass. Independent read-only review verified the schema-category normalization failure, loader/current-report validation boundary, comparison-provenance privacy cases, and the remaining contract, then returned `MUST_FIX: none`.
 
-- [ ] **Step 3: Implement production-boundary reuse**
+- [x] **Step 3: Implement production-boundary reuse**
 
 Route fixture responses through the same normalizers, emit the stated stable failure codes, load/validate exact ignored baseline provenance, calculate compatible metric deltas, and report public/private counts. Do not add Firebase imports or a private fallback; missing requested overlay remains `private_case_unavailable`.
 
-- [ ] **Step 4: Verify GREEN and opt-in comparison procedure**
+- [x] **Step 4: Verify GREEN and opt-in comparison procedure**
 
 Run: `cd functions && npm run eval:nutrition:fixtures && npm run build && npm run lint`
 
 Expected: PASS with no live call. When ADC and provider access are available, require `unset CALORIX_NUTRITION_EVAL_PRIVATE_MANIFEST` then one explicit `RUN_NUTRITION_EVAL_LIVE=1` 20/0 public-only comparison with project/location/model/code SHA; retain its ignored report locally. If either is unavailable, record the exact ADC, credential, quota, or provider blocker instead; never claim private coverage. Request Antigravity post-task review before committing.
+
+**Actual (2026-09-08):** initial GREEN passed **110/110** but independent review rejected production Review divergence, weak historical validation/comparison states, and message-matched provider classification. Review-fix round 1 witnessed **11 failed / 110 passed** then **122/122**; round 2 witnessed **3 failed / 41 passed** then final focused **125/125**. Fresh full Functions is **562 passed / 1 skipped**; build, lint, and diff-check pass. The exact historical artifact is read-only and real current-vs-historical comparison remains fail-closed incompatible on prompt/model identity. Final independent review returned `MUST_FIX: none`; continued read-only Antigravity conversation `calorix-nutrition-eval-normalizer-task6-20260908`, model `gemini-3.8-flash`, returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. The opt-in live provider comparison was intentionally not run in this hermetic stage; no private coverage, provider inference, Firebase/deploy, device call, or baseline rewrite is claimed.
 
 - [ ] **Step 5: Record, commit, and push**
 

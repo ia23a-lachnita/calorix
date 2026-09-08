@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as fsPromises from 'fs/promises';
-import { chmod, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, readdir, rm, stat, symlink, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join, resolve } from 'path';
 
@@ -17,6 +17,7 @@ import {
 } from '../../src/nutrition-eval/report';
 import { scoreNutritionCase } from '../../src/nutrition-eval/scorer';
 import {
+  BaselineComparisonSchema,
   NutritionEvalReportSchema,
   type NutritionEvalCase,
   type NutritionCaseResult,
@@ -199,13 +200,13 @@ describe('nutrition evaluation reports', () => {
         parseStatus: 'failure', source: 'meal', decision: 'error',
         failureCategory: 'provider', failureCode: 'Bearer secret-token',
       }),
-    ], metadata);
+    ], { ...metadata, publicCases: 1 });
     const stackReport = buildNutritionEvalReport([
       scoreNutritionCase({ ...reportCase, id: 'Error: boom\n    at private.ts:42:7' }, {
         parseStatus: 'success', source: 'meal', kcal: 100, proteinG: 1, carbsG: 2, fatG: 3,
         confidence: 0.9, decision: 'complete',
       }),
-    ], metadata);
+    ], { ...metadata, publicCases: 1 });
 
     const embeddedPathReport = buildNutritionEvalReport(results(), { ...metadata, runId: 'note path=/tmp/private-report.json' });
     const slashPathReport = buildNutritionEvalReport(results(), { ...metadata, runId: 'note /var/private/report.json' });
@@ -215,7 +216,7 @@ describe('nutrition evaluation reports', () => {
         scoreNutritionCase({ ...reportCase, id: `private-${failureCode}` }, {
           parseStatus: 'failure', source: 'meal', decision: 'error', failureCategory: 'provider', failureCode,
         }),
-      ], metadata));
+      ], { ...metadata, publicCases: 1 }));
 
     for (const tainted of [
       posixPathReport, fileUrlReport, windowsPathReport, uncPathReport, embeddedPathReport,
@@ -242,7 +243,7 @@ describe('nutrition evaluation reports', () => {
           parseStatus: 'failure', source: 'meal', decision: 'error',
           failureCategory: 'provider', failureCode: value,
         }),
-      ], metadata);
+      ], { ...metadata, publicCases: 1 });
       expect(() => renderNutritionEvalJson(report), value).toThrow(/privacy_leak/);
       expect(() => renderNutritionEvalMarkdown(report), value).toThrow(/privacy_leak/);
     }
@@ -256,6 +257,7 @@ describe('nutrition evaluation reports', () => {
       }),
     ], {
       ...metadata,
+      publicCases: 1,
       adapterModelId: 'google/gemini-2.5-flash',
     });
 
@@ -273,7 +275,7 @@ describe('nutrition evaluation reports', () => {
   it('serializes explicit public/private coverage and baseline provenance without claiming private Vitamin coverage', () => {
     const report = buildNutritionEvalReport(results(), {
       ...metadata,
-      publicCases: 20,
+      publicCases: 2,
       privateCases: 0,
       comparison: {
         baselineRunId: HISTORICAL_RUN_ID,
@@ -291,7 +293,7 @@ describe('nutrition evaluation reports', () => {
     const markdown = renderNutritionEvalMarkdown(report);
 
     expect(JSON.parse(json)).toMatchObject({
-      publicCases: 20,
+      publicCases: 2,
       privateCases: 0,
       comparison: {
         baselineRunId: HISTORICAL_RUN_ID,
@@ -303,7 +305,7 @@ describe('nutrition evaluation reports', () => {
         compatibilityReasons: ['prompt_hash_mismatch', 'model_mismatch'],
       },
     });
-    expect(markdown).toContain('Public cases: 20');
+    expect(markdown).toContain('Public cases: 2');
     expect(markdown).toContain('Private cases: 0');
     expect(markdown).toContain(`Baseline run: ${HISTORICAL_RUN_ID}`);
     expect(markdown).toContain('Baseline compatibility: incompatible');
@@ -367,6 +369,93 @@ describe('nutrition evaluation reports', () => {
     }
   });
 
+  it.each([
+    ['compatible complete', {
+      baselineRunId: HISTORICAL_RUN_ID,
+      compatible: true,
+      compatibilityReasons: [],
+      deltas: {
+        parseRate: 0,
+        medianAbsoluteCalorieError: 0,
+        medianRelativeCalorieError: 0,
+        p90AbsoluteCalorieError: 0,
+        p90RelativeCalorieError: 0,
+        meanMacroRelativeError: 0,
+        reviewRate: 0,
+        catastrophicCount: 0,
+        unsafeCompletionCount: 0,
+      },
+    }, true],
+    ['compatible missing delta', {
+      baselineRunId: HISTORICAL_RUN_ID,
+      compatible: true,
+      compatibilityReasons: [],
+      deltas: {},
+    }, false],
+    ['compatible with reason', {
+      baselineRunId: HISTORICAL_RUN_ID,
+      compatible: true,
+      compatibilityReasons: ['model_mismatch'],
+    }, false],
+    ['incompatible with deltas', {
+      baselineRunId: HISTORICAL_RUN_ID,
+      compatible: false,
+      compatibilityReasons: ['model_mismatch'],
+      deltas: {
+        parseRate: 0,
+        medianAbsoluteCalorieError: 0,
+        medianRelativeCalorieError: 0,
+        p90AbsoluteCalorieError: 0,
+        p90RelativeCalorieError: 0,
+        meanMacroRelativeError: 0,
+        reviewRate: 0,
+        catastrophicCount: 0,
+        unsafeCompletionCount: 0,
+      },
+    }, false],
+    ['incompatible with unordered reason', {
+      baselineRunId: HISTORICAL_RUN_ID,
+      compatible: false,
+      compatibilityReasons: ['model_mismatch', 'prompt_hash_mismatch'],
+    }, false],
+    ['incompatible with mismatched primary reason', {
+      baselineRunId: HISTORICAL_RUN_ID,
+      compatible: false,
+      compatibilityReason: 'model_mismatch',
+      compatibilityReasons: ['prompt_hash_mismatch', 'model_mismatch'],
+    }, false],
+  ])('enforces baseline comparison schema invariants: %s', (_label, comparison, expected) => {
+    expect(BaselineComparisonSchema.safeParse(comparison).success).toBe(expected);
+  });
+
+  it('enforces report count invariants across cases, visibility coverage, samples, and parse count', async () => {
+    const { report } = await readHistoricalReport();
+    const exactHistorical = currentReportFromHistorical(report);
+    const variants: Array<[string, unknown, boolean]> = [
+      ['exact enriched historical report', exactHistorical, true],
+      ['summary total not equal to cases', {
+        ...exactHistorical,
+        summary: { ...exactHistorical.summary, totalCases: exactHistorical.cases.length - 1 },
+      }, false],
+      ['summary run count not equal to cases', {
+        ...exactHistorical,
+        summary: { ...exactHistorical.summary, runCases: exactHistorical.cases.length - 1 },
+      }, false],
+      ['public and private coverage not equal to samples times cases', {
+        ...exactHistorical,
+        publicCases: exactHistorical.publicCases - 1,
+      }, false],
+      ['parse count greater than run count', {
+        ...exactHistorical,
+        summary: { ...exactHistorical.summary, parseCases: exactHistorical.summary.runCases + 1 },
+      }, false],
+    ];
+
+    for (const [_label, candidate, expected] of variants) {
+      expect(NutritionEvalReportSchema.safeParse(candidate).success).toBe(expected);
+    }
+  });
+
   it('loads the historical v1 report without rewriting it and derives 20 public and 0 private cases in memory', async () => {
     const load = await loadBaselineComparison();
     const { report, source } = await readHistoricalReport();
@@ -411,6 +500,78 @@ describe('nutrition evaluation reports', () => {
     await expect(load(malformedRoot, HISTORICAL_RUN_ID, current)).rejects.toMatchObject({
       code: 'malformed_baseline',
     });
+  });
+
+  it.each([
+    ['embedded run mismatch', HISTORICAL_RUN_ID, (report: Record<string, unknown>) => ({ ...report, runId: 'run-other' })],
+    ['count-less nonhistorical run', 'run-other', (report: Record<string, unknown>) => ({ ...report, runId: 'run-other' })],
+    ['null case', HISTORICAL_RUN_ID, (report: Record<string, unknown>) => ({ ...report, cases: report.cases.map(() => null) })],
+  ])('rejects an invalid historical baseline shape: %s', async (_label, requestedRunId, mutate) => {
+    const load = await loadBaselineComparison();
+    const parent = await mkdtemp(join(tmpdir(), 'nutrition-eval-baseline-'));
+    directories.push(parent);
+    const root = join(parent, 'reports');
+    const runDir = join(root, requestedRunId);
+    await mkdir(runDir, { recursive: true });
+    const { report } = await readHistoricalReport();
+    await writeFile(join(runDir, 'report.json'), JSON.stringify(mutate(report)));
+
+    await expect(load(root, requestedRunId, currentReportFromHistorical(report))).rejects.toMatchObject({
+      code: 'malformed_baseline',
+    });
+  });
+
+  it('rejects a symlinked baseline report rather than reading outside the report root', async () => {
+    const load = await loadBaselineComparison();
+    const parent = await mkdtemp(join(tmpdir(), 'nutrition-eval-baseline-'));
+    directories.push(parent);
+    const root = join(parent, 'reports');
+    const runDir = join(root, HISTORICAL_RUN_ID);
+    const outside = join(parent, 'outside.json');
+    const { report } = await readHistoricalReport();
+    await mkdir(runDir, { recursive: true });
+    await writeFile(outside, JSON.stringify(report));
+    await symlink(outside, join(runDir, 'report.json'));
+
+    await expect(load(root, HISTORICAL_RUN_ID, currentReportFromHistorical(report))).rejects.toMatchObject({
+      code: 'path_traversal_detected',
+    });
+  });
+
+  it('rejects an inconsistent already-counted baseline as malformed', async () => {
+    const load = await loadBaselineComparison();
+    const parent = await mkdtemp(join(tmpdir(), 'nutrition-eval-baseline-'));
+    directories.push(parent);
+    const root = join(parent, 'reports');
+    const runDir = join(root, HISTORICAL_RUN_ID);
+    const { report } = await readHistoricalReport();
+    await mkdir(runDir, { recursive: true });
+    await writeFile(join(runDir, 'report.json'), JSON.stringify({
+      ...report,
+      publicCases: 20,
+      privateCases: 0,
+      summary: { ...report.summary, totalCases: 19 },
+    }));
+
+    await expect(load(root, HISTORICAL_RUN_ID, currentReportFromHistorical(report))).rejects.toMatchObject({
+      code: 'malformed_baseline',
+    });
+  });
+
+  it('sanitizes an unexpected filesystem code while loading a baseline', async () => {
+    const load = await loadBaselineComparison();
+    const { report } = await readHistoricalReport();
+    const accessFailure = Object.assign(new Error('EACCES /private/nutrition-eval/report.json'), {
+      code: 'EACCES',
+    });
+    const lstatSpy = vi.spyOn(fsPromises, 'lstat').mockRejectedValueOnce(accessFailure);
+    try {
+      await expect(load(reportsRoot, HISTORICAL_RUN_ID, currentReportFromHistorical(report))).rejects.toMatchObject({
+        code: 'baseline_not_found',
+      });
+    } finally {
+      lstatSpy.mockRestore();
+    }
   });
 
   it('returns compatible zero deltas for a self-comparison and computes current minus baseline deltas', async () => {
@@ -473,14 +634,14 @@ describe('nutrition evaluation reports', () => {
       promptHash: CURRENT_PROMPT_HASH,
       adapterModelId: 'gemini-current-model',
       samples: 2,
-      publicCases: 19,
+      publicCases: 9,
       privateCases: 2,
       summary: {
         ...baselineCurrent.summary,
-        totalCases: 21,
-        runCases: 21,
+        totalCases: 22,
+        runCases: 22,
       },
-      cases: [...baselineCurrent.cases, baselineCurrent.cases[0]!],
+      cases: [...baselineCurrent.cases, baselineCurrent.cases[0]!, baselineCurrent.cases[1]!],
     });
 
     const comparison = await load(reportsRoot, HISTORICAL_RUN_ID, current);
@@ -510,7 +671,7 @@ describe('nutrition evaluation reports', () => {
         parseStatus: 'success', source: 'meal', kcal: 110, proteinG: 2, carbsG: 4, fatG: 6,
         confidence: 0.9, basis: 'portion', amount: 1, unit: 'portion', barcode: '12345678', decision: 'complete',
       }),
-    ], metadata);
+    ], { ...metadata, publicCases: 1 });
     const markdown = renderNutritionEvalMarkdown(report);
 
     expect(markdown).toContain('kcalRatioToTruth | kcalAbsoluteError | kcalRelativeError');
@@ -529,7 +690,7 @@ describe('nutrition evaluation reports', () => {
         parseStatus: 'failure', source: 'meal', decision: 'error',
         failureCategory: 'provider', failureCode: 'bad|code\r\nnext',
       }),
-    ], metadata);
+    ], { ...metadata, publicCases: 1 });
     const markdown = renderNutritionEvalMarkdown(report);
 
     expect(markdown).toContain('| case\\|id next | meal | failure |');

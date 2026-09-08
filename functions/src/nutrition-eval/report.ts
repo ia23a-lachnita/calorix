@@ -5,7 +5,11 @@ import { join } from 'path';
 import { aggregateNutritionResults } from './scorer';
 import { NutritionEvalReportSchema } from './schema';
 
-import type { NutritionCaseResult, NutritionEvalReport } from './schema';
+import type {
+  BaselineComparison,
+  NutritionCaseResult,
+  NutritionEvalReport,
+} from './schema';
 
 export interface NutritionEvalReportMetadata {
   runId: string;
@@ -17,6 +21,9 @@ export interface NutritionEvalReportMetadata {
   codeSha: string;
   samples: number;
   baselineOnly: boolean;
+  publicCases: number;
+  privateCases: number;
+  comparison?: BaselineComparison;
 }
 
 function percentile(sorted: readonly number[], percentileValue: number): number {
@@ -140,6 +147,29 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
   const latency = summary.latencyMs
     ? `min=${summary.latencyMs.min}, max=${summary.latencyMs.max}, median=${summary.latencyMs.median}, p90=${summary.latencyMs.p90}`
     : 'none';
+  const comparison = report.comparison;
+  const baselineSection = comparison
+    ? [
+      '',
+      '## Baseline comparison',
+      `Baseline run: ${comparison.baselineRunId}`,
+      `Baseline compatibility: ${comparison.compatible ? 'compatible' : 'incompatible'}`,
+      ...(comparison.baselineTimestamp ? [`Baseline timestamp: ${comparison.baselineTimestamp}`] : []),
+      ...(comparison.baselineCodeSha ? [`Baseline code SHA: ${comparison.baselineCodeSha}`] : []),
+      ...(comparison.baselinePromptHash ? [`Baseline prompt hash: ${comparison.baselinePromptHash}`] : []),
+      ...(comparison.baselineModelId ? [`Baseline model: ${comparison.baselineModelId}`] : []),
+      ...(comparison.compatibilityReasons.length > 0
+        ? [`Baseline reasons: ${comparison.compatibilityReasons.join(', ')}`]
+        : []),
+    ]
+    : [];
+  const deltasSection = comparison?.deltas
+    ? [
+      '',
+      '## Baseline metric deltas',
+      ...Object.entries(comparison.deltas).map(([metric, delta]) => `${metric}: ${delta}`),
+    ]
+    : [];
   return [
     '# Nutrition evaluation report', '',
     `runId: ${report.runId}`,
@@ -151,6 +181,8 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
     `codeSha: ${report.codeSha}`,
     `samples: ${report.samples}`,
     `baselineOnly: ${report.baselineOnly}`,
+    `Public cases: ${report.publicCases}`,
+    `Private cases: ${report.privateCases}`,
     '', '## Aggregate metrics',
     `totalCases: ${summary.totalCases}`,
     `runCases: ${summary.runCases}`,
@@ -168,6 +200,8 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
     `latencyMs: ${latency}`,
     `failuresByCategory: ${failureCategories}`,
     `failuresByCode: ${failureCodes}`,
+    ...baselineSection,
+    ...deltasSection,
     '', '## Cases',
     '| caseId | source | parse | kcal | proteinG | carbsG | fatG | basis | amount | unit | barcode | decision | failure | latencyMs | catastrophic | unsafe | kcalRatioToTruth | kcalAbsoluteError | kcalRelativeError | proteinGRatioToTruth | proteinGAbsoluteError | proteinGRelativeError | carbsGRatioToTruth | carbsGAbsoluteError | carbsGRelativeError | fatGRatioToTruth | fatGAbsoluteError | fatGRelativeError | barcodeExactMatch | basisExactMatch | unitExactMatch |',
     '| --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | --- | --- | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |',

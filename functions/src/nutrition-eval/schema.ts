@@ -90,6 +90,16 @@ const NutritionTruthSchema = NutritionVectorSchema.extend({
 
 // ── Prediction ───────────────────────────────────────────────────────────────
 
+const ReviewReasonSchema = z.enum([
+  'package_quantity_missing',
+  'package_unit_unsupported',
+  'barcode_unconfirmed',
+  'nutrition_basis_ambiguous',
+  'nutrition_arithmetic_mismatch',
+  'atwater_mismatch',
+  'model_schema_invalid',
+]);
+
 export const NutritionPredictionSchema = z.object({
   parseStatus: z.enum(['success', 'failure']),
   source: ScanModeSchema,
@@ -103,6 +113,7 @@ export const NutritionPredictionSchema = z.object({
   unit: UnitSchema.optional(),
   barcode: z.string().optional(),
   decision: z.enum(['complete', 'needs_review', 'error']).optional(),
+  reviewReasons: z.array(ReviewReasonSchema).optional(),
   failureCategory: FailureCategorySchema.optional(),
   failureCode: z.string().optional(),
   latencyMs: z.number().finite().nonnegative().optional(),
@@ -170,6 +181,80 @@ export const NutritionCaseResultSchema = z.object({
 
 // ── Aggregate report ─────────────────────────────────────────────────────────
 
+const CompatibilityReasonSchema = z.enum([
+  'dataset_id_mismatch',
+  'dataset_hash_mismatch',
+  'case_count_mismatch',
+  'public_cases_mismatch',
+  'private_coverage_unsupported',
+  'samples_mismatch',
+  'prompt_hash_mismatch',
+  'model_mismatch',
+]);
+
+export const BASELINE_COMPATIBILITY_REASON_ORDER = [
+  'dataset_id_mismatch',
+  'dataset_hash_mismatch',
+  'case_count_mismatch',
+  'public_cases_mismatch',
+  'private_coverage_unsupported',
+  'samples_mismatch',
+  'prompt_hash_mismatch',
+  'model_mismatch',
+] as const;
+
+const BaselineDeltasSchema = z.object({
+  parseRate: z.number().finite(),
+  medianAbsoluteCalorieError: z.number().finite(),
+  medianRelativeCalorieError: z.number().finite(),
+  p90AbsoluteCalorieError: z.number().finite(),
+  p90RelativeCalorieError: z.number().finite(),
+  meanMacroRelativeError: z.number().finite(),
+  reviewRate: z.number().finite(),
+  catastrophicCount: z.number().int(),
+  unsafeCompletionCount: z.number().int(),
+});
+
+export const BaselineComparisonSchema = z.object({
+  baselineRunId: z.string().trim().min(1),
+  baselineTimestamp: z.string().datetime({ offset: true }).optional(),
+  baselineCodeSha: z.string().trim().min(1).optional(),
+  baselinePromptHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+  baselineModelId: z.string().trim().min(1).optional(),
+  compatible: z.boolean(),
+  compatibilityReason: CompatibilityReasonSchema.optional(),
+  compatibilityReasons: z.array(CompatibilityReasonSchema),
+  deltas: BaselineDeltasSchema.optional(),
+}).superRefine((comparison, context) => {
+  const reasons = comparison.compatibilityReasons;
+  const indexes = reasons.map((reason) => BASELINE_COMPATIBILITY_REASON_ORDER.indexOf(reason));
+  const ordered = indexes.every((index, position) => position === 0 || index > indexes[position - 1]!);
+  if (!ordered) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['compatibilityReasons'], message: 'compatibility reasons must be canonical and unique' });
+  }
+  if (comparison.compatible) {
+    if (reasons.length !== 0) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['compatibilityReasons'], message: 'compatible comparison has no mismatch reasons' });
+    }
+    if (comparison.compatibilityReason !== undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['compatibilityReason'], message: 'compatible comparison has no primary mismatch reason' });
+    }
+    if (comparison.deltas === undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['deltas'], message: 'compatible comparison requires complete deltas' });
+    }
+    return;
+  }
+  if (reasons.length === 0) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['compatibilityReasons'], message: 'incompatible comparison requires mismatch reasons' });
+  }
+  if (comparison.compatibilityReason !== reasons[0]) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['compatibilityReason'], message: 'primary mismatch reason must be first' });
+  }
+  if (comparison.deltas !== undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['deltas'], message: 'incompatible comparison cannot include deltas' });
+  }
+});
+
 export const NutritionEvalReportSchema = z.object({
   version: z.literal(1),
   runId: z.string().trim().min(1),
@@ -181,6 +266,9 @@ export const NutritionEvalReportSchema = z.object({
   codeSha: z.string().trim().min(1),
   samples: z.number().int().min(1).max(10),
   baselineOnly: z.boolean(),
+  publicCases: z.number().int().nonnegative(),
+  privateCases: z.number().int().nonnegative(),
+  comparison: BaselineComparisonSchema.optional(),
   summary: z.object({
     totalCases: z.number().int().nonnegative(),
     runCases: z.number().int().nonnegative(),
@@ -205,6 +293,20 @@ export const NutritionEvalReportSchema = z.object({
     }).optional(),
   }),
   cases: z.array(NutritionCaseResultSchema),
+}).superRefine((report, context) => {
+  const caseCount = report.cases.length;
+  if (report.summary.totalCases !== caseCount) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'totalCases'], message: 'total cases must equal serialized cases' });
+  }
+  if (report.summary.runCases !== caseCount) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'runCases'], message: 'run cases must equal serialized cases' });
+  }
+  if (caseCount !== (report.publicCases + report.privateCases) * report.samples) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['cases'], message: 'serialized cases must equal visibility coverage times samples' });
+  }
+  if (report.summary.parseCases > report.summary.runCases) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'parseCases'], message: 'parse cases cannot exceed run cases' });
+  }
 });
 
 // ── Manifest ─────────────────────────────────────────────────────────────────
@@ -232,6 +334,8 @@ export type NutritionTruth = z.infer<typeof NutritionTruthSchema>;
 export type NutritionPrediction = z.infer<typeof NutritionPredictionSchema>;
 export type NutritionCaseResult = z.infer<typeof NutritionCaseResultSchema>;
 export type NutritionEvalReport = z.infer<typeof NutritionEvalReportSchema>;
+export type BaselineComparison = z.infer<typeof BaselineComparisonSchema>;
+export type BaselineDeltas = z.infer<typeof BaselineDeltasSchema>;
 
 export function parseNutritionEvalManifest(
   value: unknown,
