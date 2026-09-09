@@ -50,4 +50,139 @@ void main() {
     expect(map.containsKey('kcal'), isFalse);
     expect(map.containsKey('protein'), isFalse);
   });
+
+  test('canonical consumption ratio ignores the legacy serving multiplier', () {
+    final dynamic canonical = FoodEntry.fromData(
+      id: 'canonical-half',
+      data: {
+        'uid': 'u1',
+        'timestamp': DateTime.utc(2026, 9, 8),
+        'date': '2026-09-08',
+        'scanMode': 'barcode',
+        'status': 'complete',
+        'baseKcal': 85.0,
+        'baseProtein': 0.0,
+        'baseCarbs': 21.0,
+        'baseFat': 0.0,
+        'servingMultiplier': 9.0,
+        'nutritionBasis': 'package',
+        'nutritionAmount': 500.0,
+        'nutritionUnit': 'ml',
+        'consumedAmount': 250.0,
+      },
+    );
+
+    expect(canonical.hasCanonicalNutrition, isTrue);
+    expect(canonical.hasResolvedConsumption, isTrue);
+    expect(canonical.scaledKcal, 42.5);
+    expect(canonical.scaledCarbs, 10.5);
+  });
+
+  test(
+      'pure legacy multipliers remain finite and nonnegative while malformed values fail closed',
+      () {
+    final zero = FoodEntry.fromData(
+      id: 'legacy-zero',
+      data: {
+        'uid': 'u1',
+        'timestamp': DateTime.utc(2026, 9, 8),
+        'date': '2026-09-08',
+        'scanMode': 'meal',
+        'status': 'complete',
+        'baseKcal': 100.0,
+        'servingMultiplier': 0.0,
+      },
+    );
+    final negative = FoodEntry.fromData(
+      id: 'legacy-negative',
+      data: {
+        'uid': 'u1',
+        'timestamp': DateTime.utc(2026, 9, 8),
+        'date': '2026-09-08',
+        'scanMode': 'meal',
+        'status': 'complete',
+        'baseKcal': 100.0,
+        'servingMultiplier': -1.0,
+      },
+    );
+    final nan = FoodEntry.fromData(
+      id: 'legacy-nan',
+      data: {
+        'uid': 'u1',
+        'timestamp': DateTime.utc(2026, 9, 8),
+        'date': '2026-09-08',
+        'scanMode': 'meal',
+        'status': 'complete',
+        'baseKcal': 100.0,
+        'servingMultiplier': double.nan,
+      },
+    );
+
+    expect((zero as dynamic).usesLegacyServingMultiplier, isTrue);
+    expect((zero as dynamic).hasResolvedConsumption, isTrue);
+    expect(zero.scaledKcal, 0.0);
+    expect((negative as dynamic).usesLegacyServingMultiplier, isTrue);
+    expect((negative as dynamic).hasResolvedConsumption, isFalse);
+    expect(negative.scaledKcal, 0.0);
+    expect((nan as dynamic).usesLegacyServingMultiplier, isTrue);
+    expect((nan as dynamic).hasResolvedConsumption, isFalse);
+    expect(nan.scaledKcal, 0.0);
+  });
+
+  test(
+      'pure legacy multiplier omission defaults to one but explicit null and nonnumeric values fail closed',
+      () {
+    FoodEntry legacy(String id, Map<String, dynamic> multiplier) =>
+        FoodEntry.fromData(
+          id: id,
+          data: {
+            'uid': 'u1',
+            'timestamp': DateTime.utc(2026, 9, 8),
+            'date': '2026-09-08',
+            'scanMode': 'meal',
+            'status': 'complete',
+            'baseKcal': 100.0,
+            ...multiplier,
+          },
+        );
+
+    final absent = legacy('legacy-absent', const {});
+    final explicitNull =
+        legacy('legacy-null', const {'servingMultiplier': null});
+    final wrongType =
+        legacy('legacy-string', const {'servingMultiplier': 'two'});
+
+    expect(absent.usesLegacyServingMultiplier, isTrue);
+    expect(absent.hasResolvedConsumption, isTrue);
+    expect(absent.scaledKcal, 100.0);
+
+    for (final entry in [explicitNull, wrongType]) {
+      expect(entry.usesLegacyServingMultiplier, isTrue);
+      expect(entry.hasResolvedConsumption, isFalse);
+      expect(entry.scaledKcal, 0.0);
+
+      final serialized = entry.toMap();
+      expect(serialized.containsKey('servingMultiplier'), isTrue);
+      expect(serialized['servingMultiplier'], isNull);
+
+      final roundTrip = FoodEntry.fromData(
+        id: '${entry.id}-round-trip',
+        data: serialized,
+      );
+      expect(roundTrip.usesLegacyServingMultiplier, isTrue);
+      expect(roundTrip.hasResolvedConsumption, isFalse);
+      expect(roundTrip.scaledKcal, 0.0);
+    }
+  });
+
+  test('Review candidates preserve fractional kcal estimates', () {
+    final candidate = ReviewCandidate.fromMap({
+      'name': 'Vitamin Well Reload',
+      'confidence': 0.7,
+      'kcal': 85.5,
+    });
+
+    expect(candidate.kcal, 85.5);
+    expect(candidate.kcal, isA<double>());
+  });
 }

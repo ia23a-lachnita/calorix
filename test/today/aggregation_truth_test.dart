@@ -28,6 +28,52 @@ FoodEntry _entry({
       servingMultiplier: multiplier,
     );
 
+FoodEntry _canonicalEntry({
+  required String id,
+  required FoodEntryStatus status,
+  required double kcal,
+  required double consumedAmount,
+}) =>
+    FoodEntry.fromData(
+      id: id,
+      data: {
+        'uid': 'user-1',
+        'timestamp': DateTime.utc(2026, 7, 22, 12),
+        'date': '2026-07-22',
+        'scanMode': 'barcode',
+        'status': status.wireName,
+        'baseKcal': kcal,
+        'baseProtein': 10.0,
+        'baseCarbs': 20.0,
+        'baseFat': 5.0,
+        'servingMultiplier': 9.0,
+        'nutritionBasis': 'package',
+        'nutritionAmount': 500.0,
+        'nutritionUnit': 'ml',
+        'consumedAmount': consumedAmount,
+      },
+    );
+
+FoodEntry _unresolvedOrMalformedCanonicalEntry({
+  required String id,
+  required bool malformed,
+}) =>
+    FoodEntry.fromData(
+      id: id,
+      data: {
+        'uid': 'user-1',
+        'timestamp': DateTime.utc(2026, 7, 22, 12),
+        'date': '2026-07-22',
+        'scanMode': 'barcode',
+        'status': 'complete',
+        'baseKcal': 900.0,
+        'servingMultiplier': 9.0,
+        'nutritionBasis': 'package',
+        if (!malformed) 'nutritionAmount': 500.0,
+        if (!malformed) 'nutritionUnit': 'ml',
+      },
+    );
+
 MacroTargetPlan _plan({int kcal = 2400}) => MacroTargetPlan(
       id: 'plan',
       planName: 'Plan',
@@ -127,5 +173,57 @@ void main() {
 
     expect(container.read(todaySummaryProvider).kcal, 845);
     expect(container.read(todayDisplaySummaryProvider).kcal, 1420);
+  });
+
+  test('Today aggregates only complete resolved entries with canonical ratios',
+      () async {
+    final container = _container(
+      entries: [
+        _canonicalEntry(
+          id: 'half-package',
+          status: FoodEntryStatus.complete,
+          kcal: 85,
+          consumedAmount: 250,
+        ),
+        _entry(
+          id: 'legacy',
+          kcal: 150,
+          protein: 15,
+          carbs: 30,
+          fat: 7.5,
+        ),
+        _canonicalEntry(
+          id: 'review',
+          status: FoodEntryStatus.needsReview,
+          kcal: 900,
+          consumedAmount: 500,
+        ),
+        _entry(
+          id: 'pending',
+          kcal: 700,
+          protein: 70,
+          carbs: 70,
+          fat: 70,
+          status: FoodEntryStatus.pending,
+        ),
+        _unresolvedOrMalformedCanonicalEntry(
+          id: 'unresolved',
+          malformed: false,
+        ),
+        _unresolvedOrMalformedCanonicalEntry(
+          id: 'malformed',
+          malformed: true,
+        ),
+      ],
+      targetKcal: 2400,
+    );
+    addTearDown(container.dispose);
+    await _settle(container);
+
+    final summary = container.read(todaySummaryProvider);
+    expect(summary.kcal, 193);
+    expect(summary.proteinG, 20);
+    expect(summary.carbsG, 40);
+    expect(summary.fatG, 10);
   });
 }

@@ -40,9 +40,10 @@ final todaySummaryProvider = Provider<TodaySummary>((ref) {
   final targetKcal = activePlan?.kcal ?? 2400;
   double kcal = 0, protein = 0, carbs = 0, fat = 0;
   for (final e in entries) {
-    // Low-confidence scans awaiting review stay visible in the list but never
-    // count toward totals until the user confirms them.
-    if (e.needsReview) continue;
+    // Only complete entries with a resolved amount may affect diary totals.
+    if (e.status != FoodEntryStatus.complete || !e.hasResolvedConsumption) {
+      continue;
+    }
     kcal += e.scaledKcal;
     protein += e.scaledProtein;
     carbs += e.scaledCarbs;

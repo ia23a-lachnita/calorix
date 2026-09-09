@@ -120,6 +120,49 @@ FoodEntry _entry({String id = 'entry-1'}) => FoodEntry(
       servingMultiplier: 1.5,
     );
 
+FoodEntry _canonicalEntry({String id = 'canonical-entry'}) =>
+    FoodEntry.fromData(
+      id: id,
+      data: {
+        'uid': 'user-1',
+        'timestamp': DateTime.utc(2026, 7, 22, 12),
+        'date': '2026-07-22',
+        'scanMode': 'barcode',
+        'status': 'needs_review',
+        'foodName': 'Vitamin Well Reload',
+        'baseKcal': 85.0,
+        'baseProtein': 0.0,
+        'baseCarbs': 21.0,
+        'baseFat': 0.0,
+        'servingMultiplier': 9.0,
+        'nutritionBasis': 'package',
+        'nutritionAmount': 500.0,
+        'nutritionUnit': 'ml',
+        'consumedAmount': 250.0,
+        'packageUnitCount': 6,
+        'unitAmount': 83.3333333333,
+        'per100Reference': {
+          'kcal': 17.0,
+          'proteinG': 0.0,
+          'carbsG': 4.2,
+          'fatG': 0.0,
+          'amount': 100.0,
+          'unit': 'ml',
+        },
+        'servingReference': {
+          'kcal': 42.5,
+          'proteinG': 0.0,
+          'carbsG': 10.5,
+          'fatG': 0.0,
+          'amount': 250.0,
+          'unit': 'ml',
+        },
+        'reviewReasons': ['barcode_unconfirmed'],
+        'rawBarcode': '7350042716380',
+        'modelBarcode': '7350042716380',
+      },
+    );
+
 void main() {
   test('correction fields use deterministic timestamps and mark corrected', () {
     final now = DateTime.utc(2026, 7, 22, 12, 30);
@@ -200,6 +243,81 @@ void main() {
           .isAtSameMomentAs(DateTime.utc(2026, 7, 22, 14)),
       isTrue,
     );
+  });
+
+  test(
+      'duplicate preserves canonical nutrition, references, reasons, and barcode provenance',
+      () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final repository = FoodEntryRepository.withStore(
+      store,
+      _FixedClock(DateTime.utc(2026, 7, 22, 14)),
+    );
+
+    final id = await repository.duplicate(_canonicalEntry());
+
+    final copy = store.documents['users/user-1/entries/$id']!;
+    expect(copy['nutritionBasis'], 'package');
+    expect(copy['nutritionAmount'], 500.0);
+    expect(copy['nutritionUnit'], 'ml');
+    expect(copy['consumedAmount'], 250.0);
+    expect(copy['packageUnitCount'], 6);
+    expect(copy['unitAmount'], 83.3333333333);
+    expect(copy['per100Reference'], {
+      'kcal': 17.0,
+      'proteinG': 0.0,
+      'carbsG': 4.2,
+      'fatG': 0.0,
+      'amount': 100.0,
+      'unit': 'ml',
+    });
+    expect(copy['servingReference'], {
+      'kcal': 42.5,
+      'proteinG': 0.0,
+      'carbsG': 10.5,
+      'fatG': 0.0,
+      'amount': 250.0,
+      'unit': 'ml',
+    });
+    expect(copy['reviewReasons'], ['barcode_unconfirmed']);
+    expect(copy['rawBarcode'], '7350042716380');
+    expect(copy['modelBarcode'], '7350042716380');
+    expect(copy.containsKey('confirmedBarcode'), isFalse);
+    expect(copy['confirmedBarcode'], isNull);
+  });
+
+  test('duplicate preserves a malformed legacy multiplier as unresolved',
+      () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final repository = FoodEntryRepository.withStore(
+      store,
+      _FixedClock(DateTime.utc(2026, 7, 22, 14)),
+    );
+    final malformed = FoodEntry.fromData(
+      id: 'malformed-legacy',
+      data: {
+        'uid': 'user-1',
+        'timestamp': DateTime.utc(2026, 7, 22, 12),
+        'date': '2026-07-22',
+        'scanMode': 'meal',
+        'status': 'complete',
+        'baseKcal': 100.0,
+        'servingMultiplier': 'invalid',
+      },
+    );
+    expect(malformed.hasResolvedConsumption, isFalse);
+
+    final id = await repository.duplicate(malformed);
+
+    final copy = store.documents['users/user-1/entries/$id']!;
+    expect(copy.containsKey('servingMultiplier'), isTrue);
+    expect(copy['servingMultiplier'], isNull);
+    final roundTrip = FoodEntry.fromData(id: id, data: copy);
+    expect(roundTrip.usesLegacyServingMultiplier, isTrue);
+    expect(roundTrip.hasResolvedConsumption, isFalse);
+    expect(roundTrip.scaledKcal, 0.0);
   });
 
   test('saveCorrection is scoped and writes deterministic metadata', () async {

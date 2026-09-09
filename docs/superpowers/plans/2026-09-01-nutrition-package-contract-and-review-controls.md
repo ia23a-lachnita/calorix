@@ -352,7 +352,7 @@ Commit `Evaluate canonical nutrition contract`, push, and record whether the opt
 - `hasCanonicalNutrition` derives only from a complete valid raw basis/amount/unit tuple; `usesLegacyServingMultiplier` is true only when zero canonical wire keys are present; `hasResolvedConsumption` is true only for valid canonical plus finite positive consumed amount or a pure legacy entry. Partial canonical tuples fail closed.
 - `ReviewCandidate.kcal` is `double`; `FoodEntry.scaledKcal` uses canonical ratio only with resolved canonical consumption and legacy multiplier only for `usesLegacyServingMultiplier`.
 
-- [ ] **Step 1: Write RED Dart parsing/scaling tests**
+- [x] **Step 1: Write RED Dart parsing/scaling tests**
 
 ```dart
 expect(entry.scaledKcal, 42.5);
@@ -378,21 +378,23 @@ expect(partialCanonical.hasResolvedConsumption, isFalse);
 
 In `test/food_detail/food_crud_test.dart`, use the fake store to call `repository.duplicate(canonical)` and assert the created document preserves every canonical/reference/reason/barcode/package field above; that duplicate assertion belongs to this repository test, not the three model/Today tests alone.
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `fvm flutter test test/contracts/analysis_result_contract_test.dart test/today/aggregation_truth_test.dart test/food_detail/serving_multiplier_test.dart test/food_detail/food_crud_test.dart`
 
 Expected: FAIL because Dart models only parse base values and quarter-step multiplier scaling.
 
-- [ ] **Step 3: Implement backward-compatible parsing**
+- [x] **Step 3: Implement backward-compatible parsing**
 
 Keep absent canonical wire fields null through `fromData`, `toMap`, `copyWith`, repository duplicate, and stream parsing. Derived arithmetic may use `portion/1/portion` and legacy multiplier only when `usesLegacyServingMultiplier`; partial canonical input is invalid rather than silently converted. Parse references defensively and keep manual-entry canonical fields explicit.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `fvm flutter test test/contracts/analysis_result_contract_test.dart test/today/aggregation_truth_test.dart test/food_detail/serving_multiplier_test.dart test/food_detail/food_crud_test.dart`
 
 Expected: PASS. Request an Antigravity post-task review before committing because model, repository, and Today aggregation wire contracts change together. The newer nutrition spec overrides quarter steps only for canonical package amounts.
+
+**Actual (2026-09-09):** final pinned Flutter 3.41.9 container verification passed **35/35** across the four listed files. A review-driven malformed-legacy round-trip regression first failed **0/2** because `toMap` and repository duplication emitted the internal `1.0` fallback, then passed **2/2** after invalid legacy state serialized as an explicit null marker. Focused analysis of the six changed Dart/test files reported `No issues found` in `1548.1s`; formatting and `git diff --check` passed. Independent review returned `APPROVED: yes`, `MUST_FIX: none`. Mandatory read-only Antigravity post-review used `gemini-3.8-flash` in conversation `calorix-dart-canonical-entry-task7-20260908` and returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. No live provider, Firebase, device, deployment, or LocateAnything operation occurred.
 
 - [ ] **Step 5: Record, commit, and push**
 
