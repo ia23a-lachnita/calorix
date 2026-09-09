@@ -396,9 +396,11 @@ Expected: PASS. Request an Antigravity post-task review before committing becaus
 
 **Actual (2026-09-09):** final pinned Flutter 3.41.9 container verification passed **35/35** across the four listed files. A review-driven malformed-legacy round-trip regression first failed **0/2** because `toMap` and repository duplication emitted the internal `1.0` fallback, then passed **2/2** after invalid legacy state serialized as an explicit null marker. Focused analysis of the six changed Dart/test files reported `No issues found` in `1548.1s`; formatting and `git diff --check` passed. Independent review returned `APPROVED: yes`, `MUST_FIX: none`. Mandatory read-only Antigravity post-review used `gemini-3.8-flash` in conversation `calorix-dart-canonical-entry-task7-20260908` and returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. No live provider, Firebase, device, deployment, or LocateAnything operation occurred.
 
-- [ ] **Step 5: Record, commit, and push**
+- [x] **Step 5: Record, commit, and push**
 
 Commit `Parse canonical food entries`, push, and record focused Flutter evidence.
+
+**Actual (2026-09-09):** committed as `ba10e004ce4034b6d396559139ca160a4925ea75` (`Parse canonical food entries`) and pushed to `origin/fix/scan-photo-flow-viewer`. The scoped commit contains the two production files, four focused test files, and same-stage tracking; protected `.mcp.json` was not staged.
 
 ### Task 8: Confirm Review atomically through the repository
 
