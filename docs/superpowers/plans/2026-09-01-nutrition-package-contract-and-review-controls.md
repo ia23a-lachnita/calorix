@@ -474,8 +474,13 @@ Commit `Confirm reviewed nutrition amounts`, push, and record the single-update 
 - Modify: `docs/implementation-status.md`
 
 **Interfaces:**
-- `AmountPresentation` renders `500 ml bottle`, `6 × 250 ml · whole pack`, `full visible portion`, or `100 g reference · amount required` from canonical fields.
-- Canonical entries edit `consumedAmount`; only legacy entries retain the existing `servingMultiplier` stepper.
+- Pure `AmountPresentation` formatting trusts only a valid canonical tuple and valid optional multipack metadata: package ml renders `500 ml bottle`, package g renders `250 g pack`, an agreeing multipack renders `6 × 250 ml · whole pack`, portion renders `full visible portion`, and per-100 renders `100 g reference` with `· amount required` while unresolved. Invalid/partial canonical-trigger entries render `Amount unavailable`; they never fall back to a serving multiplier or invented amount. Whole numbers omit `.0` and decimal values retain their exact concise form.
+- In Food Detail edit mode, valid canonical entries expose `Key('canonical-amount-control')` and never serving `+`/`−`; pure legacy entries expose `Key('legacy-serving-stepper')` and retain the quarter-step clamp. In view mode these controls are absent and static text shows the canonical consumed amount/unit, `Amount required`, or the legacy serving amount. Invalid canonical-trigger entries remain fail-closed with no legacy controls.
+- Canonical displayed calories/macros and displayed-to-base edit conversion use only the effective ratio `consumedAmount / nutritionAmount`, ignoring any retained legacy `servingMultiplier`; unresolved consumption blocks base-nutrition editing until a valid amount is supplied. Legacy display/edit conversion remains multiplier-based.
+- `PendingEdits` keeps `consumedAmount` separate from `servingMultiplier`, validates finite-positive canonical amounts, and serializes only the field applicable to the entry kind. Repository `update` revalidates any present `consumedAmount` before the datastore touch; a malformed caller cannot bypass the UI boundary.
+- Manual drafts require finite `kcal`/macros in the Firestore bounds and a finite-positive quantity. New custom and quick-add entries persist canonical `portion/1/portion`, `consumedAmount=quantity`, and `reviewReasons=[]`, with descriptive `servingSize` retained and no `servingMultiplier`. Repository creation repeats the numeric validation before its one datastore add.
+
+**Task 9 pre-review ruling (2026-09-09):** read-only Antigravity conversation `calorix-canonical-amount-task9-20260909`, primary `gemini-3.8-flash`, first returned `AGREEMENT_STATUS: revise`. It required the explicit g/package and resolved per-100 formatting, invalid-canonical fallback, edit-versus-view key contract, repository numeric guards, non-finite draft rejection, canonical-ratio base-edit conversion, and mutually exclusive pending fields now specified above. The continued review returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none` before RED.
 
 - [ ] **Step 1: Write RED Food Detail/manual tests**
 
@@ -499,7 +504,7 @@ Expected: FAIL because canonical entries still expose the multiplier stepper and
 
 - [ ] **Step 3: Implement canonical display/edit branches**
 
-Create presentation from canonical amount/unit; use exact numeric amount editing for canonical records. Show the old quarter-step control only for `usesLegacyServingMultiplier`. Manual entries write `portion/1/portion` and `consumedAmount` equal to the entered existing quantity (for example `1.5`), through manual providers and repository persistence rather than hard-coding 1.
+Create the fail-closed presentation and static amount text from canonical amount/unit metadata. In edit mode, use exact finite-positive consumed-amount editing for valid canonical records and the old quarter-step control only for `usesLegacyServingMultiplier`; unresolved canonical records accept amount editing before base-nutrition editing, while invalid canonical tuples expose neither edit mechanism. Scale canonical display and displayed-to-base edits by the effective canonical ratio, never a retained multiplier. Make `PendingEdits.toUpdateMap` entry-kind-aware so canonical and legacy amount fields are mutually exclusive. Revalidate present `consumedAmount` in repository updates. Manual draft/provider/repository validation rejects non-finite or out-of-bound numbers; manual entries write `portion/1/portion`, `consumedAmount` equal to the entered quantity (for example `1.5`), `reviewReasons=[]`, and no `servingMultiplier`.
 
 - [ ] **Step 4: Verify GREEN**
 
