@@ -454,9 +454,11 @@ Expected: PASS with a single in-memory datastore update witness. Request Antigra
 
 **Actual (2026-09-09):** the corrected frozen RED failed before test execution with the expected 14 compiler diagnostics across the two focused files because `ReviewConfirmation`, the three-argument repository/gateway contract, and nullable candidate macros did not yet exist. Initial GREEN passed **19/19** and exposed a stale-selection callback race, which was fixed by reading the current selection at invocation. Independent review then required a visible retry path and canonical Review E2E fixtures; the new failure/retry test witnessed **0/1 RED**, then **1/1 GREEN**. Final focused unit/widget verification passed **20/20**. After lint-only test/harness cleanup, the adversarial repository-boundary test passed **1/1**, formatting changed zero files, `git diff --check` passed, and focused analysis of all eight Dart/test files reported `No issues found` in `1289.8s`. The integration test could not execute because the pinned container had no supported device: Flutter found only unsupported Linux desktop and reported `No devices are connected`; this is an environment blocker, not E2E runtime proof. Independent final review returned `APPROVED: yes`, `MUST_FIX: none`. Mandatory read-only Antigravity post-review reused `calorix-review-confirmation-task8-20260909` with `gemini-3.8-flash` and returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. No Firebase production access/write, deployment, live provider, phone/device, or LocateAnything operation occurred.
 
-- [ ] **Step 5: Record, commit, and push**
+- [x] **Step 5: Record, commit, and push**
 
 Commit `Confirm reviewed nutrition amounts`, push, and record the single-update contract.
+
+**Actual (2026-09-09):** committed as `e05f1f4c6ec6cb66109512c19d7fc80fd8f8aa57` (`Confirm reviewed nutrition amounts`) and pushed to `origin/fix/scan-photo-flow-viewer`; local and remote equality was verified. The scoped commit contains the four production files, two focused test files, two Review E2E fixture files, and same-stage tracking. Protected `.mcp.json` was not staged.
 
 ### Task 9: Display and edit canonical amounts in Food Detail
 
