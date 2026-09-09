@@ -18,10 +18,24 @@ class _FixedClock implements Clock {
   DateTime now() => value;
 }
 
+class _UncheckedReviewConfirmation implements ReviewConfirmation {
+  const _UncheckedReviewConfirmation({
+    required this.consumedAmount,
+  });
+
+  @override
+  final double consumedAmount;
+
+  @override
+  ReviewCandidate? get selectedCandidate => null;
+}
+
 class _MemoryFoodEntryStore implements FoodEntryDataStore {
   final Map<String, Map<String, dynamic>> documents = {};
   final Map<String, StreamController<FoodEntryDocument?>> controllers = {};
   final List<String> touchedPaths = [];
+  int updateCalls = 0;
+  Map<String, dynamic>? lastUpdate;
   int nextId = 1;
 
   String _path(String uid, String id) => 'users/$uid/entries/$id';
@@ -79,6 +93,8 @@ class _MemoryFoodEntryStore implements FoodEntryDataStore {
   ) async {
     final path = _path(uid, id);
     touchedPaths.add(path);
+    updateCalls += 1;
+    lastUpdate = Map.of(fields);
     documents[path] = {...?documents[path], ...fields};
     controllers[path]?.add((id: id, data: documents[path]!));
   }
@@ -342,6 +358,209 @@ void main() {
       isTrue,
     );
     expect(saved.keys.where((key) => key == 'protein'), isEmpty);
-    expect(store.touchedPaths.last, 'users/user-1/entries/entry-1');
+    expect(store.touchedPaths, ['users/user-1/entries/entry-1']);
+  });
+
+  test('ReviewConfirmation rejects every non-positive or non-finite amount',
+      () {
+    for (final amount in <double>[
+      0,
+      -1,
+      double.nan,
+      double.infinity,
+      double.negativeInfinity,
+    ]) {
+      expect(
+        () => ReviewConfirmation(consumedAmount: amount),
+        throwsArgumentError,
+        reason: 'consumedAmount $amount must be rejected at runtime',
+      );
+    }
+  });
+
+  test('confirmReview writes one complete candidate confirmation update',
+      () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final now = DateTime.utc(2026, 9, 9, 10, 30);
+    final repository = FoodEntryRepository.withStore(store, _FixedClock(now));
+    const candidate = ReviewCandidate(
+      name: 'Chicken Rice Bowl',
+      confidence: 0.62,
+      kcal: 620,
+      proteinG: 38,
+      carbsG: 72,
+      fatG: 18,
+    );
+
+    await repository.confirmReview(
+      'user-1',
+      'entry-1',
+      ReviewConfirmation(
+        consumedAmount: 250,
+        selectedCandidate: candidate,
+      ),
+    );
+
+    expect(store.updateCalls, 1);
+    final update = store.lastUpdate!;
+    expect(store.touchedPaths, ['users/user-1/entries/entry-1']);
+    expect(update.keys, {
+      'foodName',
+      'confidence',
+      'baseKcal',
+      'baseProtein',
+      'baseCarbs',
+      'baseFat',
+      'consumedAmount',
+      'status',
+      'corrected',
+      'correctedAt',
+      'updatedAt',
+    });
+    expect(update['foodName'], 'Chicken Rice Bowl');
+    expect(update['confidence'], 0.62);
+    expect(update['baseKcal'], 620);
+    expect(update['baseProtein'], 38);
+    expect(update['baseCarbs'], 72);
+    expect(update['baseFat'], 18);
+    expect(update['consumedAmount'], 250);
+    expect(update['status'], FoodEntryStatus.complete.wireName);
+    expect(update['corrected'], isTrue);
+    expect(
+      (update['correctedAt'] as Timestamp).toDate().isAtSameMomentAs(now),
+      isTrue,
+    );
+    expect(
+      (update['updatedAt'] as Timestamp).toDate().isAtSameMomentAs(now),
+      isTrue,
+    );
+  });
+
+  test('amount-only confirmation omits every candidate-owned field', () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final repository = FoodEntryRepository.withStore(
+      store,
+      _FixedClock(DateTime.utc(2026, 9, 9, 10, 30)),
+    );
+
+    await repository.confirmReview(
+      'user-1',
+      'entry-1',
+      ReviewConfirmation(consumedAmount: 250),
+    );
+
+    expect(store.updateCalls, 1);
+    expect(store.touchedPaths, ['users/user-1/entries/entry-1']);
+    final update = store.lastUpdate!;
+    expect(update.keys, {
+      'consumedAmount',
+      'status',
+      'corrected',
+      'correctedAt',
+      'updatedAt',
+    });
+    expect(update['consumedAmount'], 250);
+    expect(update['status'], FoodEntryStatus.complete.wireName);
+    expect(update['corrected'], isTrue);
+    final expectedTime = DateTime.utc(2026, 9, 9, 10, 30);
+    expect(
+      (update['correctedAt'] as Timestamp)
+          .toDate()
+          .isAtSameMomentAs(expectedTime),
+      isTrue,
+    );
+    expect(
+      (update['updatedAt'] as Timestamp)
+          .toDate()
+          .isAtSameMomentAs(expectedTime),
+      isTrue,
+    );
+    for (final key in <String>[
+      'foodName',
+      'confidence',
+      'baseKcal',
+      'baseProtein',
+      'baseCarbs',
+      'baseFat',
+    ]) {
+      expect(store.lastUpdate!.containsKey(key), isFalse, reason: key);
+    }
+  });
+
+  test(
+      'nullable candidate macros round-trip and each absent edit is omitted independently',
+      () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final repository = FoodEntryRepository.withStore(
+      store,
+      _FixedClock(DateTime.utc(2026, 9, 9, 10, 30)),
+    );
+    const candidate = ReviewCandidate(
+      name: 'Fruit smoothie',
+      confidence: 0.72,
+      kcal: 310,
+      proteinG: null,
+      carbsG: 42,
+      fatG: 7,
+    );
+
+    final restored = ReviewCandidate.fromMap(candidate.toMap());
+
+    expect(restored.proteinG, isNull);
+    expect(restored.carbsG, 42);
+    expect(restored.fatG, 7);
+    expect(candidate.toMap().containsKey('proteinG'), isFalse);
+    expect(candidate.toMap()['carbsG'], 42);
+    expect(candidate.toMap()['fatG'], 7);
+
+    await repository.confirmReview(
+      'user-1',
+      'entry-1',
+      ReviewConfirmation(
+        consumedAmount: 250,
+        selectedCandidate: candidate,
+      ),
+    );
+
+    expect(store.updateCalls, 1);
+    expect(store.lastUpdate!['baseKcal'], 310);
+    expect(store.lastUpdate!.containsKey('baseProtein'), isFalse);
+    expect(store.lastUpdate!['baseCarbs'], 42);
+    expect(store.lastUpdate!['baseFat'], 7);
+  });
+
+  test('confirmReview revalidates an adversarial confirmation at its boundary',
+      () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final repository = FoodEntryRepository.withStore(
+      store,
+      _FixedClock(DateTime.utc(2026, 9, 9, 10, 30)),
+    );
+
+    for (final amount in <double>[
+      0,
+      -1,
+      double.nan,
+      double.infinity,
+      double.negativeInfinity,
+    ]) {
+      await expectLater(
+        repository.confirmReview(
+          'user-1',
+          'entry-1',
+          _UncheckedReviewConfirmation(consumedAmount: amount),
+        ),
+        throwsArgumentError,
+        reason: 'repository must reject consumedAmount $amount',
+      );
+    }
+
+    expect(store.updateCalls, 0);
+    expect(store.lastUpdate, isNull);
+    expect(store.touchedPaths, isEmpty);
   });
 }

@@ -168,35 +168,59 @@ class ReviewCandidate {
     required this.name,
     required this.confidence,
     required this.kcal,
-    required this.proteinG,
-    required this.carbsG,
-    required this.fatG,
+    this.proteinG,
+    this.carbsG,
+    this.fatG,
   });
 
   final String name;
   final double confidence;
   final double kcal;
-  final double proteinG;
-  final double carbsG;
-  final double fatG;
+  final double? proteinG;
+  final double? carbsG;
+  final double? fatG;
 
   factory ReviewCandidate.fromMap(Map<String, dynamic> map) => ReviewCandidate(
         name: map['name'] as String,
         confidence: (map['confidence'] as num).toDouble(),
         kcal: (map['kcal'] as num).toDouble(),
-        proteinG: (map['proteinG'] ?? map['protein'] as num?)?.toDouble() ?? 0,
-        carbsG: (map['carbsG'] ?? map['carbs'] as num?)?.toDouble() ?? 0,
-        fatG: (map['fatG'] ?? map['fat'] as num?)?.toDouble() ?? 0,
+        proteinG: map.containsKey('proteinG')
+            ? _asDouble(map['proteinG'])
+            : _asDouble(map['protein']),
+        carbsG: map.containsKey('carbsG')
+            ? _asDouble(map['carbsG'])
+            : _asDouble(map['carbs']),
+        fatG: map.containsKey('fatG')
+            ? _asDouble(map['fatG'])
+            : _asDouble(map['fat']),
       );
 
   Map<String, dynamic> toMap() => {
         'name': name,
         'confidence': confidence,
         'kcal': kcal,
-        'proteinG': proteinG,
-        'carbsG': carbsG,
-        'fatG': fatG,
+        if (proteinG != null) 'proteinG': proteinG,
+        if (carbsG != null) 'carbsG': carbsG,
+        if (fatG != null) 'fatG': fatG,
       };
+}
+
+class ReviewConfirmation {
+  ReviewConfirmation({
+    required this.consumedAmount,
+    this.selectedCandidate,
+  }) {
+    if (!consumedAmount.isFinite || consumedAmount <= 0) {
+      throw ArgumentError.value(
+        consumedAmount,
+        'consumedAmount',
+        'must be finite and positive',
+      );
+    }
+  }
+
+  final double consumedAmount;
+  final ReviewCandidate? selectedCandidate;
 }
 
 class FoodEntry {

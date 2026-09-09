@@ -405,41 +405,54 @@ Commit `Parse canonical food entries`, push, and record focused Flutter evidence
 ### Task 8: Confirm Review atomically through the repository
 
 **Files:**
+- Modify: `lib/shared/models/food_entry.dart`
 - Modify: `lib/shared/repositories/food_entry_repository.dart`
 - Modify: `lib/features/review/providers/review_providers.dart`
+- Modify: `lib/features/review/review_screen.dart`
 - Modify: `test/food_detail/food_crud_test.dart`
 - Modify: `test/review/review_screen_test.dart`
+- Modify: `integration_test/e2e/review_flow_test.dart`
+- Modify: `integration_test/e2e/support/e2e_harness.dart`
 - Modify: `docs/implementation-status.md`
 
 **Interfaces:**
-- `ReviewConfirmation` contains an optional selected candidate and its optional nutrition edits plus a required finite positive `double consumedAmount`; no candidate is required for amount-only Review.
-- `confirmReview(uid, id, confirmation)` validates finite-positive `consumedAmount` unconditionally and issues one document update with optional selected-candidate edits, `consumedAmount`, `status=complete`, `corrected=true`, `correctedAt`, and `updatedAt`; it does not claim a Firestore transaction.
+- Non-const `ReviewConfirmation` contains an optional selected candidate and a required finite positive `double consumedAmount`; its constructor validates at runtime and throws `ArgumentError` for zero, negative, NaN, or either infinity. No candidate is required for amount-only Review.
+- `ReviewCandidate` preserves optional macro edits as nullable values through parsing/serialization instead of inventing zeroes. Candidate-null fields are omitted from confirmation updates.
+- `confirmReview(uid, id, confirmation)` revalidates finite-positive `consumedAmount` at the repository boundary and issues exactly one Firestore document update with optional selected-candidate edits, `consumedAmount`, `status=complete`, `corrected=true`, `correctedAt`, and `updatedAt`; it is not a Firestore transaction.
+- The Review gateway forwards the complete confirmation. Until Task 10 supplies explicit amount choices, the screen forwards only an already-valid `entry.consumedAmount` and disables confirmation when it is absent or invalid; it never invents an amount.
+- A failed gateway call keeps the user on Review, shows stable safe retry guidance, preserves the selection, and re-enables confirmation. Review integration fixtures that exercise confirmation carry a valid canonical tuple and consumed amount; production never invents a legacy fallback.
 
-- [ ] **Step 1: Write RED repository/Review gateway tests**
+**Task 8 pre-review ruling (2026-09-09):** read-only Antigravity conversation `calorix-review-confirmation-task8-20260909`, primary `gemini-3.8-flash`, required the runtime/non-const validation, nullable candidate macros, explicit screen file scope, fail-closed button state, fake-store call capture, and precise single-document-update wording above. The corrected contract then returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none` before RED.
+
+- [x] **Step 1: Write RED repository/Review gateway tests**
 
 ```dart
-await repository.confirmReview('u1', 'e1', const ReviewConfirmation(consumedAmount: 250));
+await repository.confirmReview('u1', 'e1', ReviewConfirmation(consumedAmount: 250));
 expect(store.lastUpdate['consumedAmount'], 250);
 expect(store.lastUpdate['status'], 'complete');
 expect(store.updateCalls, 1);
-expect(() => ReviewConfirmation(consumedAmount: double.nan), throwsArgumentError);
+for (final value in [0.0, -1.0, double.nan, double.infinity, double.negativeInfinity]) {
+  expect(() => ReviewConfirmation(consumedAmount: value), throwsArgumentError);
+}
 ```
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `fvm flutter test test/food_detail/food_crud_test.dart test/review/review_screen_test.dart`
 
 Expected: FAIL because Review confirmation only sets status or rewrites a candidate without consumed amount/timestamps.
 
-- [ ] **Step 3: Implement one-update confirmation**
+- [x] **Step 3: Implement one-update confirmation**
 
-Keep the one-update/field assertions in `food_crud_test.dart`; the Review widget fake only forwards the constructed `ReviewConfirmation` to its gateway. Require finite-positive consumed amount unconditionally, merge candidate fields only when selected, set correction timestamps from injected clock, and keep candidate choice independent from amount choice.
+Keep the one-update/field assertions in `food_crud_test.dart`; augment its fake store with exact update-count/last-map capture. The Review widget fake only forwards the constructed `ReviewConfirmation` to its gateway. Require finite-positive consumed amount both at construction and the repository boundary, merge candidate fields only when selected, omit nullable candidate macros, set correction timestamps from the injected clock, and keep candidate choice independent from amount choice. The screen disables confirmation for absent/non-positive/non-finite existing amounts, prevents duplicate submissions while saving, and surfaces a safe retryable failure without navigating. Update only Review-specific E2E fixtures to carry a canonical tuple/consumed amount. Task 10 remains responsible for the amount-choice UI.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `fvm flutter test test/food_detail/food_crud_test.dart test/review/review_screen_test.dart`
 
 Expected: PASS with a single in-memory datastore update witness. Request Antigravity post-task review before committing because the Review state transition changes persisted user data.
+
+**Actual (2026-09-09):** the corrected frozen RED failed before test execution with the expected 14 compiler diagnostics across the two focused files because `ReviewConfirmation`, the three-argument repository/gateway contract, and nullable candidate macros did not yet exist. Initial GREEN passed **19/19** and exposed a stale-selection callback race, which was fixed by reading the current selection at invocation. Independent review then required a visible retry path and canonical Review E2E fixtures; the new failure/retry test witnessed **0/1 RED**, then **1/1 GREEN**. Final focused unit/widget verification passed **20/20**. After lint-only test/harness cleanup, the adversarial repository-boundary test passed **1/1**, formatting changed zero files, `git diff --check` passed, and focused analysis of all eight Dart/test files reported `No issues found` in `1289.8s`. The integration test could not execute because the pinned container had no supported device: Flutter found only unsupported Linux desktop and reported `No devices are connected`; this is an environment blocker, not E2E runtime proof. Independent final review returned `APPROVED: yes`, `MUST_FIX: none`. Mandatory read-only Antigravity post-review reused `calorix-review-confirmation-task8-20260909` with `gemini-3.8-flash` and returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. No Firebase production access/write, deployment, live provider, phone/device, or LocateAnything operation occurred.
 
 - [ ] **Step 5: Record, commit, and push**
 

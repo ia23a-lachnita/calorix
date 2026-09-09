@@ -409,6 +409,10 @@ class FakeE2EScanUploadGateway implements ScanUploadGateway {
         baseCarbs: 68,
         baseFat: 18,
         confidence: needsReview ? 0.62 : 0.94,
+        nutritionBasis: needsReview ? 'portion' : null,
+        nutritionAmount: needsReview ? 1 : null,
+        nutritionUnit: needsReview ? 'portion' : null,
+        consumedAmount: needsReview ? 1 : null,
         candidates: needsReview
             ? const [
                 ReviewCandidate(
@@ -442,14 +446,12 @@ class FakeE2EConnectivityMonitor implements ConnectivityMonitor {
 }
 
 class FakeE2ENotificationService implements NotificationService {
-  @override
   void Function(String docId)? onNotificationTap;
   String? lastTappedDocId;
 
   @override
   Future<bool> requestPermission() async => true;
 
-  @override
   Future<void> initLocalNotifications() async {}
 
   @override
@@ -458,7 +460,6 @@ class FakeE2ENotificationService implements NotificationService {
   @override
   Stream<String> get onTokenRefresh => const Stream.empty();
 
-  @override
   Stream<RemoteMessage> get onMessage => const Stream.empty();
 
   @override
@@ -470,7 +471,6 @@ class FakeE2ENotificationService implements NotificationService {
   @override
   String? docIdOf(RemoteMessage message) => message.data['entryId'] as String?;
 
-  @override
   Future<void> showForeground(RemoteMessage message) async {}
 
   void simulateTap(String entryId) {
@@ -1137,6 +1137,10 @@ FoodEntry makeFixtureEntry({
   MealType mealType = MealType.lunch,
   String scanMode = 'meal',
   List<ReviewCandidate> candidates = const [],
+  String? nutritionBasis,
+  double? nutritionAmount,
+  String? nutritionUnit,
+  double? consumedAmount,
   DateTime? timestamp,
   tz.TZDateTime? nowTZ,
 }) {
@@ -1156,6 +1160,10 @@ FoodEntry makeFixtureEntry({
     baseFat: baseFat ?? 18,
     confidence: confidence,
     candidates: candidates,
+    nutritionBasis: nutritionBasis,
+    nutritionAmount: nutritionAmount,
+    nutritionUnit: nutritionUnit,
+    consumedAmount: consumedAmount,
     mealType: mealType,
   );
 }

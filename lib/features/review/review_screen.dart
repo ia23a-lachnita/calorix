@@ -22,6 +22,33 @@ class ReviewScreen extends ConsumerStatefulWidget {
 class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   int _selected = 0;
   bool _saving = false;
+  String? _confirmationError;
+
+  Future<void> _confirm(ReviewConfirmation confirmation) async {
+    if (_saving) return;
+    setState(() {
+      _saving = true;
+      _confirmationError = null;
+    });
+    try {
+      await ref
+          .read(reviewEntryGatewayProvider)
+          .confirm(widget.entryId, confirmation);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _confirmationError = 'Could not confirm. Please try again.';
+        });
+      }
+      return;
+    }
+    if (!mounted) return;
+    context.goNamed(
+      RouteNames.foodDetail,
+      pathParameters: {'id': widget.entryId},
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +63,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           }
           final candidates = value.candidates;
           final confidence = ((value.confidence ?? 0) * 100).round();
+          final consumedAmount = value.consumedAmount;
+          final canConfirm = consumedAmount != null &&
+              consumedAmount.isFinite &&
+              consumedAmount > 0 &&
+              !_saving;
           if (_selected >= candidates.length) _selected = 0;
           return Stack(
             children: [
@@ -153,24 +185,20 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                                 Expanded(
                                   flex: 2,
                                   child: FilledButton(
-                                    onPressed: candidates.isEmpty || _saving
+                                    key: const ValueKey<String>(
+                                      'review-confirm-button',
+                                    ),
+                                    onPressed: !canConfirm
                                         ? null
-                                        : () async {
-                                            setState(() => _saving = true);
-                                            await ref
-                                                .read(
-                                                    reviewEntryGatewayProvider)
-                                                .confirm(widget.entryId,
-                                                    candidates[_selected]);
-                                            if (context.mounted) {
-                                              context.goNamed(
-                                                RouteNames.foodDetail,
-                                                pathParameters: {
-                                                  'id': widget.entryId
-                                                },
-                                              );
-                                            }
-                                          },
+                                        : () => _confirm(
+                                              ReviewConfirmation(
+                                                consumedAmount: consumedAmount,
+                                                selectedCandidate:
+                                                    candidates.isEmpty
+                                                        ? null
+                                                        : candidates[_selected],
+                                              ),
+                                            ),
                                     child: Text(candidates.isEmpty
                                         ? 'Confirm'
                                         : 'Confirm · ${candidates[_selected].kcal} kcal'),
@@ -178,6 +206,18 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                                 ),
                               ],
                             ),
+                            if (_confirmationError != null) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                _confirmationError!,
+                                key: const ValueKey<String>(
+                                  'review-confirm-error',
+                                ),
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                            ],
                             Center(
                               child: TextButton(
                                 onPressed: () => context.pushNamed(

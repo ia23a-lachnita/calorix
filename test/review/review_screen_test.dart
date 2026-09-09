@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:calorix/features/review/providers/review_providers.dart';
 import 'package:calorix/features/review/review_screen.dart';
 import 'package:calorix/shared/models/food_entry.dart';
@@ -7,15 +9,52 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 class _Gateway implements ReviewEntryGateway {
-  ReviewCandidate? confirmed;
+  _Gateway({this.completion, this.failuresRemaining = 0});
+
+  final Completer<void>? completion;
+  int failuresRemaining;
+  final List<String> entryIds = [];
+  final List<ReviewConfirmation> confirmations = [];
 
   @override
-  Future<void> confirm(String entryId, ReviewCandidate candidate) async {
-    confirmed = candidate;
+  Future<void> confirm(
+    String entryId,
+    ReviewConfirmation confirmation,
+  ) async {
+    entryIds.add(entryId);
+    confirmations.add(confirmation);
+    if (failuresRemaining > 0) {
+      failuresRemaining -= 1;
+      throw StateError('simulated confirmation failure');
+    }
+    await completion?.future;
   }
 }
 
-FoodEntry _entry() => FoodEntry(
+const _candidates = <ReviewCandidate>[
+  ReviewCandidate(
+    name: 'Chicken Rice Bowl',
+    confidence: 0.62,
+    kcal: 620,
+    proteinG: 38,
+    carbsG: 72,
+    fatG: 18,
+  ),
+  ReviewCandidate(
+    name: 'Teriyaki Chicken Bowl',
+    confidence: 0.54,
+    kcal: 655,
+    proteinG: 36,
+    carbsG: 81,
+    fatG: 19,
+  ),
+];
+
+FoodEntry _entry({
+  double? consumedAmount = 250,
+  List<ReviewCandidate> candidates = _candidates,
+}) =>
+    FoodEntry(
       id: 'e1',
       uid: 'u1',
       timestamp: DateTime(2026),
@@ -24,28 +63,22 @@ FoodEntry _entry() => FoodEntry(
       scanMode: 'meal',
       status: FoodEntryStatus.needsReview,
       confidence: 0.62,
-      candidates: const [
-        ReviewCandidate(
-          name: 'Chicken Rice Bowl',
-          confidence: 0.62,
-          kcal: 620,
-          proteinG: 38,
-          carbsG: 72,
-          fatG: 18,
-        ),
-        ReviewCandidate(
-          name: 'Teriyaki Chicken Bowl',
-          confidence: 0.54,
-          kcal: 655,
-          proteinG: 36,
-          carbsG: 81,
-          fatG: 19,
-        ),
-      ],
+      candidates: candidates,
+      nutritionBasis: 'package',
+      nutritionAmount: 500,
+      nutritionUnit: 'ml',
+      consumedAmount: consumedAmount,
     );
 
-Future<({GoRouter router, _Gateway gateway})> _pump(WidgetTester tester) async {
-  final gateway = _Gateway();
+Finder _confirmButton() =>
+    find.byKey(const ValueKey<String>('review-confirm-button'));
+
+Future<({GoRouter router, _Gateway gateway})> _pump(
+  WidgetTester tester, {
+  FoodEntry? entry,
+  _Gateway? gateway,
+}) async {
+  final resolvedGateway = gateway ?? _Gateway();
   final router = GoRouter(initialLocation: '/review/e1', routes: [
     GoRoute(
       path: '/review/:id',
@@ -68,11 +101,12 @@ Future<({GoRouter router, _Gateway gateway})> _pump(WidgetTester tester) async {
         builder: (_, state) => Text('Food ${state.pathParameters['id']}')),
   ]);
   await tester.pumpWidget(ProviderScope(overrides: [
-    reviewEntryProvider('e1').overrideWith((ref) => Stream.value(_entry())),
-    reviewEntryGatewayProvider.overrideWithValue(gateway),
+    reviewEntryProvider('e1')
+        .overrideWith((ref) => Stream.value(entry ?? _entry())),
+    reviewEntryGatewayProvider.overrideWithValue(resolvedGateway),
   ], child: MaterialApp.router(routerConfig: router)));
   await tester.pumpAndSettle();
-  return (router: router, gateway: gateway);
+  return (router: router, gateway: resolvedGateway);
 }
 
 void main() {
@@ -106,13 +140,90 @@ void main() {
     expect(find.textContaining('Ask'), findsOneWidget);
   });
 
-  testWidgets('confirm applies selected candidate and opens food detail',
+  testWidgets(
+      'confirm forwards the complete selection and amount then opens food detail',
       (tester) async {
     final result = await _pump(tester);
     await tester.tap(find.text('Teriyaki Chicken Bowl'));
     await tester.tap(find.textContaining('Confirm'));
     await tester.pumpAndSettle();
-    expect(result.gateway.confirmed?.name, 'Teriyaki Chicken Bowl');
+    expect(result.gateway.entryIds, ['e1']);
+    expect(result.gateway.confirmations, hasLength(1));
+    expect(result.gateway.confirmations.single.consumedAmount, 250);
+    expect(
+      result.gateway.confirmations.single.selectedCandidate?.name,
+      'Teriyaki Chicken Bowl',
+    );
+    expect(result.router.state.uri.path, '/today/food/e1');
+  });
+
+  testWidgets('valid amount can confirm without selecting a candidate',
+      (tester) async {
+    final result = await _pump(
+      tester,
+      entry: _entry(candidates: const <ReviewCandidate>[]),
+    );
+
+    await tester.tap(_confirmButton());
+    await tester.pumpAndSettle();
+
+    expect(result.gateway.entryIds, ['e1']);
+    expect(result.gateway.confirmations, hasLength(1));
+    expect(result.gateway.confirmations.single.consumedAmount, 250);
+    expect(result.gateway.confirmations.single.selectedCandidate, isNull);
+    expect(result.router.state.uri.path, '/today/food/e1');
+  });
+
+  testWidgets('confirm is disabled without a finite positive existing amount',
+      (tester) async {
+    for (final amount in <double?>[
+      null,
+      0,
+      -1,
+      double.nan,
+      double.infinity,
+      double.negativeInfinity,
+    ]) {
+      await _pump(tester, entry: _entry(consumedAmount: amount));
+
+      final button = tester.widget<FilledButton>(_confirmButton());
+      expect(button.onPressed, isNull, reason: 'consumedAmount $amount');
+    }
+  });
+
+  testWidgets('duplicate confirmation tap while saving forwards only one call',
+      (tester) async {
+    final completion = Completer<void>();
+    final gateway = _Gateway(completion: completion);
+    final result = await _pump(tester, gateway: gateway);
+
+    final onPressed = tester.widget<FilledButton>(_confirmButton()).onPressed!;
+    onPressed();
+    onPressed();
+    await tester.pump();
+
+    expect(result.gateway.confirmations, hasLength(1));
+    completion.complete();
+    await tester.pumpAndSettle();
+    expect(result.router.state.uri.path, '/today/food/e1');
+  });
+
+  testWidgets('confirmation failure stays on Review and permits retry',
+      (tester) async {
+    final gateway = _Gateway(failuresRemaining: 1);
+    final result = await _pump(tester, gateway: gateway);
+
+    await tester.tap(_confirmButton());
+    await tester.pumpAndSettle();
+
+    expect(result.router.state.uri.path, '/review/e1');
+    expect(find.text('Could not confirm. Please try again.'), findsOneWidget);
+    expect(tester.widget<FilledButton>(_confirmButton()).onPressed, isNotNull);
+
+    await tester.tap(_confirmButton());
+    await tester.pumpAndSettle();
+
+    expect(result.gateway.confirmations, hasLength(2));
     expect(result.router.state.uri.path, '/today/food/e1');
   });
 

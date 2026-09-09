@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/food_entry.dart';
 import '../../../shared/providers/auth_provider.dart';
 
-export '../../../shared/models/food_entry.dart' show ReviewCandidate;
+export '../../../shared/models/food_entry.dart'
+    show ReviewCandidate, ReviewConfirmation;
 
 final reviewEntryProvider =
     StreamProvider.autoDispose.family<FoodEntry?, String>((ref, entryId) {
@@ -13,7 +14,7 @@ final reviewEntryProvider =
 });
 
 abstract class ReviewEntryGateway {
-  Future<void> confirm(String entryId, ReviewCandidate candidate);
+  Future<void> confirm(String entryId, ReviewConfirmation confirmation);
 }
 
 class _RepositoryReviewEntryGateway implements ReviewEntryGateway {
@@ -21,22 +22,16 @@ class _RepositoryReviewEntryGateway implements ReviewEntryGateway {
   final Ref _ref;
 
   @override
-  Future<void> confirm(String entryId, ReviewCandidate candidate) async {
+  Future<void> confirm(
+    String entryId,
+    ReviewConfirmation confirmation,
+  ) async {
     final uid = _ref.read(currentUidProvider);
     if (uid == null) throw StateError('Authentication required.');
-    await _ref.read(foodEntryRepositoryProvider).update(
+    await _ref.read(foodEntryRepositoryProvider).confirmReview(
           uid,
           entryId,
-          {
-            'foodName': candidate.name,
-            'confidence': candidate.confidence,
-            'baseKcal': candidate.kcal,
-            'baseProtein': candidate.proteinG,
-            'baseCarbs': candidate.carbsG,
-            'baseFat': candidate.fatG,
-            'status': FoodEntryStatus.complete.wireName,
-          },
-          markCorrected: true,
+          confirmation,
         );
   }
 }

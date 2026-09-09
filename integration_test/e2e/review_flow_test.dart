@@ -17,6 +17,10 @@ void main() {
       foodName: 'Unknown bowl',
       status: FoodEntryStatus.needsReview,
       confidence: 0.62,
+      nutritionBasis: 'portion',
+      nutritionAmount: 1,
+      nutritionUnit: 'portion',
+      consumedAmount: 1,
       candidates: const [
         ReviewCandidate(
           name: 'Teriyaki Chicken Bowl',
@@ -70,6 +74,10 @@ FoodEntry _reviewEntry(String id) => makeFixtureEntry(
       foodName: 'Unknown meal',
       status: FoodEntryStatus.needsReview,
       confidence: 0.65,
+      nutritionBasis: 'portion',
+      nutritionAmount: 1,
+      nutritionUnit: 'portion',
+      consumedAmount: 1,
       candidates: const [
         ReviewCandidate(
           name: 'Pasta',

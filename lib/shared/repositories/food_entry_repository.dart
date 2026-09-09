@@ -203,8 +203,41 @@ class FoodEntryRepository {
       update(uid, id, correction.toMap(), markCorrected: true);
 
   /// Confirms a low-confidence scan; the aggregation trigger then counts it.
-  Future<void> confirmReview(String uid, String id) =>
-      update(uid, id, {'status': FoodEntryStatus.complete.wireName});
+  Future<void> confirmReview(
+    String uid,
+    String id,
+    ReviewConfirmation confirmation,
+  ) {
+    final consumedAmount = confirmation.consumedAmount;
+    if (!consumedAmount.isFinite || consumedAmount <= 0) {
+      return Future<void>.error(
+        ArgumentError.value(
+          consumedAmount,
+          'consumedAmount',
+          'must be finite and positive',
+        ),
+      );
+    }
+
+    final candidate = confirmation.selectedCandidate;
+    return update(
+      uid,
+      id,
+      {
+        if (candidate != null) ...{
+          'foodName': candidate.name,
+          'confidence': candidate.confidence,
+          'baseKcal': candidate.kcal,
+          if (candidate.proteinG != null) 'baseProtein': candidate.proteinG,
+          if (candidate.carbsG != null) 'baseCarbs': candidate.carbsG,
+          if (candidate.fatG != null) 'baseFat': candidate.fatG,
+        },
+        'consumedAmount': consumedAmount,
+        'status': FoodEntryStatus.complete.wireName,
+      },
+      markCorrected: true,
+    );
+  }
 
   Future<String> createManualEntry({
     required String uid,
