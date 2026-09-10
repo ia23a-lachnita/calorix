@@ -529,15 +529,17 @@ Commit `Edit canonical nutrition amounts`, push, and record focused UI tests.
 
 The user approved this ordering on 2026-09-10 because food/calorie tracking is the product's core functionality. This gate is now blocking for Task 10 even though the evaluation runner itself was implemented under Task 6. It is a public-only, side-effect-free live provider evaluation: no Firebase read/write, deployment, notification, production account, device action, or private-fixture fabrication is permitted.
 
-- [ ] **Step 1: Record source, credentials, and public-only scope**
+- [x] **Step 1: Record source, credentials, and public-only scope**
 
 Require branch `fix/scan-photo-flow-viewer`, record the pushed source SHA, preserve the user-owned `.mcp.json`, verify ADC without printing a token, and leave `CALORIX_NUTRITION_EVAL_PRIVATE_MANIFEST` unset. Use source-default `gemini-2.5-flash`, project `calorix-xurschnell`, location `us-central1`, and exactly one sample across 20 public cases.
 
-- [ ] **Step 2: Re-run deterministic evaluation gates**
+- [x] **Step 2: Re-run deterministic evaluation gates**
 
 Run: `cd functions && npm run eval:nutrition:fixtures && npm run build && npm run lint`
 
 Expected: all deterministic evaluation fixtures, TypeScript build, and lint pass before paid/quota-consuming inference.
+
+**Actual (2026-09-10):** branch/source/remote were exactly `fix/scan-photo-flow-viewer` / `c7643adf37b489af1c389b2a886ceff953fefd45`; ADC and read-only project access succeeded without exposing a token; the private-manifest environment variable was unset; the manifest contained exactly 20 public / 0 private cases (12 meal, 4 barcode, 4 label). The deterministic gate passed **281 tests / 1 intentional skip** across nine files, followed by clean TypeScript build and ESLint. Protected `.mcp.json` remained the sole dirty path and no provider/Firebase/device operation occurred.
 
 - [ ] **Step 3: Run the post-change public live evaluation**
 
