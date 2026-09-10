@@ -519,9 +519,11 @@ Expected: PASS; presentation does not persist any UI suggestion list. Request An
 
 **Actual (2026-09-10):** initial serial GREEN passed **73/73** and the first eight-item analyzer reported `No issues found` in `1375.6s`. Independent review then found that detected-item metadata hid the canonical package/reference label and malformed persisted `consumedAmount` values could display invalid text or throw on infinity. The bounded review-fix RED was **0 passed / 7 failed**, including the exact `Infinity or NaN toInt` crash; the same seven tests then passed **7/7** after sanitizing the effective consumed amount and rendering item metadata plus canonical amount as separate rows. Final pinned Flutter 3.41.9 verification ran serially with `--concurrency=1` and passed **80/80** in `15m51s`; final focused analysis reported `No issues found` in `917.2s`; formatter changed zero files after the final source correction and `git diff --check` passed. One earlier consolidated verifier was intentionally stopped and excluded when the host observed two parallel `flutter_tester` isolates; the authoritative reruns were serial to protect the Pi. Final independent review returned `MUST_FIX: none`. Mandatory Antigravity review conversation `calorix-canonical-amount-task9-20260909` had a primary `gemini-3.8-flash` timeout at `2026-09-10T08:16:19+02:00`; fallback `gemini-3.7-flash` returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. After the defensive review fixes, `gemini-3.8-flash` returned the same exact green verdict. Its wrapper claimed it launched a Flutter-location command despite the read-only prompt; this is recorded as response noise, not verification evidence, and independent `git status` found no reviewer mutation. No Firebase production access/write/deploy, provider inference, phone/device action, or LocateAnything call occurred.
 
-- [ ] **Step 5: Record, commit, and push**
+- [x] **Step 5: Record, commit, and push**
 
 Commit `Edit canonical nutrition amounts`, push, and record focused UI tests.
+
+**Actual (2026-09-10):** implementation and same-stage verification/tracking were committed as `030620aa84e0bda85aa6f2cd56a3665c22830e94` (`Edit canonical nutrition amounts`) and pushed to `origin/fix/scan-photo-flow-viewer`; exact local/remote equality was verified. The commit contains the four production files, four focused test files, and the two authoritative tracking files. Protected `.mcp.json` was not staged.
 
 ### Task 10: Build source-labeled Review amount selection and bounded evidence
 
