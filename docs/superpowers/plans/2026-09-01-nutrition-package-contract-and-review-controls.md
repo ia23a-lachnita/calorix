@@ -541,19 +541,30 @@ Expected: all deterministic evaluation fixtures, TypeScript build, and lint pass
 
 **Actual (2026-09-10):** branch/source/remote were exactly `fix/scan-photo-flow-viewer` / `c7643adf37b489af1c389b2a886ceff953fefd45`; ADC and read-only project access succeeded without exposing a token; the private-manifest environment variable was unset; the manifest contained exactly 20 public / 0 private cases (12 meal, 4 barcode, 4 label). The deterministic gate passed **281 tests / 1 intentional skip** across nine files, followed by clean TypeScript build and ESLint. Protected `.mcp.json` remained the sole dirty path and no provider/Firebase/device operation occurred.
 
-- [ ] **Step 3: Run the post-change public live evaluation**
+- [x] **Step 3: Run the post-change public live evaluation**
 
 Run from `functions/` with `RUN_NUTRITION_EVAL_LIVE=1`, explicit project/location/model/current pushed code SHA, no private manifest, and `npm run eval:nutrition:baseline -- --samples 1`.
 
 Expected: one ignored local report containing exactly 20 public / 0 private cases. The report is evidence, not a release claim and not a replacement for the historical pre-change baseline.
 
-- [ ] **Step 4: Inspect every case and apply the safety gate**
+**Actual (2026-09-10):** run `run-2026-09-10T16-11-10-437Z` completed over exactly 20 public / 0 private cases, one uncached sample each, with `gemini-2.5-flash`, prompt hash `205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263`, dataset hash `ca5c9e3bd552fcf30311c9de558519a24a7bad1f934b5f77ee2e1285e9462d4e`, and pushed code SHA `3bbfc8d35fa48ceccc0e07851d2f038a74b7e9df`. It wrote only the ignored local report/cache and made no Firebase/deployment/device change.
+
+- [x] **Step 4: Inspect every case and apply the safety gate**
 
 Require 20/20 accounted cases, inspect every case row, and record parse/failure categories, calorie and macro errors, basis/barcode accuracy, Review rate/reasons, catastrophic cases, unsafe completions, latency, prompt/model/dataset/code identity, and privacy status. Target interpretation is 20/20 parse, zero model/schema/normalization failures, zero unsafe completions, and every catastrophic error routed to `needs_review`; aggregate accuracy must improve directionally over the 2026-09-02 pre-change run. Because the prompt hash changed, any formal comparison remains incompatible rather than inventing numeric deltas.
+
+**Actual (2026-09-10):** gate failed. All 20 rows were inspected: 15 parsed, 5 failed as `schema/model_response_invalid`, median/p90 absolute kcal error `44.127243/271.448156`, median/p90 relative kcal error `42.80%/101.26%`, mean macro relative error `52.39%`, Review rate `20%`, catastrophic count `4`, unsafe-completion count `2`, and latency min/median/p90/max `5283/12857/19914/24833` ms. Median and macro error improved over the pre-change run, but parse count and catastrophics did not improve, p90 relative error slightly worsened, and unsafe completions increased from one to two. Formal comparison is incompatible because the prompt hash changed. One unsafe case was a catastrophic rice mass overestimate (`234` vs `97.5` kcal) auto-completed at confidence `0.9`; the other was a label-only image whose ungrounded model-asserted `750 g` package total auto-completed. Three of four barcode cases contain no visible barcode and all four lacked `suppliedBarcode`, so they tested phantom vision OCR rather than the intended OFF/catalog path. Raw diagnostic probes were not persisted; privacy-safe reasons showed missing/null package evidence and a null detected-item weight, while one initially failed label case parsed on retry.
 
 - [ ] **Step 5: Correct accuracy/safety failures before continuing**
 
 If the gate exposes a product defect, create a bounded test-first correction slice, obtain the required pre/post reviews, rerun affected offline tests and the same public live evaluation, and do not start Task 10 until the safety contract is green or an exact external blocker is recorded. Vitamin Well remains a required private regression and later physical end-to-end case; never claim it is covered by these 20 public cases.
+
+Mandatory read-only Antigravity conversation `calorix-postchange-live-eval-correction-20260910`, primary `gemini-3.8-flash`, initially returned `AGREEMENT_STATUS: revise` with five plan corrections. The continued review accepted strict detected-item weights, null-to-absent package evidence, per-source structured schemas, label and temporary meal Review fail-safe behavior, explicit catalog-only barcode scope, and the separated TDD slices; final verdict was `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. Implement independently and verify each slice:
+
+- [ ] **Slice A — evaluation semantics and diagnostics:** RED then GREEN privacy-safe parse reason/path reporting; mark the four existing OFF barcode fixtures as supplied-barcode catalog/package cases and explicitly exclude them from OCR proof. Preserve strict normalization and add no raw model text to reports.
+- [ ] **Slice B — structured provider output:** RED then GREEN distinct top-level meal versus package/label/barcode JSON schemas through `responseMimeType: application/json`, `responseJsonSchema`, and `temperature: 0`; retain strict Zod/source validation after the provider. Unknown detected-item weight means omit the item, never null or fabricated zero.
+- [ ] **Slice C — unresolved label safety:** RED then GREEN canonicalization of null package observation pairs to absent; allow non-meal per-100 results without independently observed package quantity to remain unresolved with no `consumedAmount` and `package_quantity_missing`; route all vision-derived label results to Review using the production normalizer as the single source of truth.
+- [ ] **Slice D — meal calibration and fail-safe:** measure structured-output behavior over the 12 meals; until a validated uncertainty signal exists, route vision meal drafts to Review with `nutrition_basis_ambiguous`, retain numeric error visibility, update push-state tests, and do not claim this improves estimate accuracy.
 
 - [ ] **Step 6: Record, commit, and push the evaluation checkpoint**
 
