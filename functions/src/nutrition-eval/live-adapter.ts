@@ -56,6 +56,7 @@ function failure(
     | 'nutrition_normalization_invalid'
     | 'off_product_invalid'
     | 'provider_request_failed',
+  failureDetail?: string,
 ): NutritionPrediction {
   return {
     parseStatus: 'failure',
@@ -63,6 +64,7 @@ function failure(
     decision: 'error',
     failureCategory,
     failureCode,
+    ...(failureDetail === undefined ? {} : { failureDetail }),
   };
 }
 
@@ -207,7 +209,7 @@ export function createLiveNutritionEvalAdapter(
         return failure(evalCase, 'provider', 'provider_request_failed');
       }
       const parsed = parseNutritionResponse(response, evalCase.scanMode);
-      if (!parsed.ok) return failure(evalCase, 'schema', 'model_response_invalid');
+      if (!parsed.ok) return failure(evalCase, 'schema', 'model_response_invalid', parsed.reason);
 
       const result = parsed.result;
       if (evalCase.scanMode === 'barcode') {

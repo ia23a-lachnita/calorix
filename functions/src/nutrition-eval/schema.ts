@@ -100,6 +100,77 @@ const ReviewReasonSchema = z.enum([
   'model_schema_invalid',
 ]);
 
+const VisionResponseFieldNames = [
+  'name',
+  'kcal',
+  'proteinG',
+  'carbsG',
+  'fatG',
+  'confidence',
+  'candidates',
+  'barcode',
+  'detectedItems',
+  'boundingBox',
+  'nutritionBasis',
+  'nutritionAmount',
+  'nutritionUnit',
+  'observedPackageAmount',
+  'observedPackageUnit',
+  'packageReference',
+  'per100Reference',
+  'servingReference',
+] as const;
+
+const NutritionReferenceFieldNames = [
+  'kcal',
+  'proteinG',
+  'carbsG',
+  'fatG',
+  'amount',
+  'unit',
+] as const;
+
+const CandidateFieldNames = [
+  'name',
+  'confidence',
+  'kcal',
+  'proteinG',
+  'carbsG',
+  'fatG',
+] as const;
+
+const BoundingBoxFieldNames = ['x', 'y', 'width', 'height'] as const;
+
+const topLevelPath = new Set<string>(VisionResponseFieldNames);
+const referenceFieldPath = new Set<string>(NutritionReferenceFieldNames);
+const candidateFieldPath = new Set<string>(CandidateFieldNames);
+const boundingBoxFieldPath = new Set<string>(BoundingBoxFieldNames);
+
+function isSafeParserFailureDetail(value: string): boolean {
+  if (value === 'no_json_object_in_response' || value === 'invalid_json') return true;
+  if (!value.startsWith('schema_violation:')) return false;
+
+  const path = value.slice('schema_violation:'.length);
+  if (path === '(root)') return true;
+  if (topLevelPath.has(path)) return true;
+
+  const referenceMatch = /^(packageReference|per100Reference|servingReference)\.([A-Za-z0-9]+)$/.exec(path);
+  if (referenceMatch) return referenceFieldPath.has(referenceMatch[2]!);
+
+  const candidateMatch = /^candidates\.(0|[1-9]\d*)(?:\.([A-Za-z0-9]+))?$/.exec(path);
+  if (candidateMatch) return candidateMatch[2] === undefined || candidateFieldPath.has(candidateMatch[2]);
+
+  const detectedItemMatch = /^detectedItems\.(0|[1-9]\d*)(?:\.(name|weight))?$/.exec(path);
+  if (detectedItemMatch) return true;
+
+  const boundingBoxMatch = /^boundingBox\.([A-Za-z0-9]+)$/.exec(path);
+  return boundingBoxMatch !== null && boundingBoxFieldPath.has(boundingBoxMatch[1]!);
+}
+
+const FailureDetailSchema = z.string().refine(isSafeParserFailureDetail, {
+  message: 'failure detail must be an allowlisted parser diagnostic',
+});
+
 export const NutritionPredictionSchema = z.object({
   parseStatus: z.enum(['success', 'failure']),
   source: ScanModeSchema,
@@ -116,9 +187,22 @@ export const NutritionPredictionSchema = z.object({
   reviewReasons: z.array(ReviewReasonSchema).optional(),
   failureCategory: FailureCategorySchema.optional(),
   failureCode: z.string().optional(),
+  failureDetail: FailureDetailSchema.optional(),
   latencyMs: z.number().finite().nonnegative().optional(),
   sampleIndex: z.number().int().positive().optional(),
   cached: z.boolean().optional(),
+}).superRefine((prediction, context) => {
+  if (prediction.failureDetail !== undefined && (
+    prediction.parseStatus !== 'failure' ||
+    prediction.failureCategory !== 'schema' ||
+    prediction.failureCode !== 'model_response_invalid'
+  )) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['failureDetail'],
+      message: 'failure detail is reserved for model response parser failures',
+    });
+  }
 });
 
 // ── Case ─────────────────────────────────────────────────────────────────────

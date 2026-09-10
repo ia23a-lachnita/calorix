@@ -326,6 +326,7 @@
       "toleranceClass": "package-strict",
       "attributionId": "open-food-facts-odbl",
       "expectedBarcode": "3017624010701",
+      "suppliedBarcode": "3017624010701",
       "expectedDecision": "complete"
     },
     {
@@ -352,6 +353,7 @@
       "toleranceClass": "package-strict",
       "attributionId": "open-food-facts-odbl",
       "expectedBarcode": "5449000000996",
+      "suppliedBarcode": "5449000000996",
       "expectedDecision": "complete"
     },
     {
@@ -378,6 +380,7 @@
       "toleranceClass": "package-strict",
       "attributionId": "open-food-facts-odbl",
       "expectedBarcode": "4056489686941",
+      "suppliedBarcode": "4056489686941",
       "expectedDecision": "needs_review",
       "packageUnitCount": 6,
       "unitAmount": 330
@@ -406,6 +409,7 @@
       "toleranceClass": "package-strict",
       "attributionId": "open-food-facts-odbl",
       "expectedBarcode": "7622210449283",
+      "suppliedBarcode": "7622210449283",
       "expectedDecision": "complete"
     },
     {
