@@ -525,6 +525,38 @@ Commit `Edit canonical nutrition amounts`, push, and record focused UI tests.
 
 **Actual (2026-09-10):** implementation and same-stage verification/tracking were committed as `030620aa84e0bda85aa6f2cd56a3665c22830e94` (`Edit canonical nutrition amounts`) and pushed to `origin/fix/scan-photo-flow-viewer`; exact local/remote equality was verified. The commit contains the four production files, four focused test files, and the two authoritative tracking files. Protected `.mcp.json` was not staged.
 
+### Immediate priority gate: Evaluate current food-tracking accuracy before Task 10
+
+The user approved this ordering on 2026-09-10 because food/calorie tracking is the product's core functionality. This gate is now blocking for Task 10 even though the evaluation runner itself was implemented under Task 6. It is a public-only, side-effect-free live provider evaluation: no Firebase read/write, deployment, notification, production account, device action, or private-fixture fabrication is permitted.
+
+- [ ] **Step 1: Record source, credentials, and public-only scope**
+
+Require branch `fix/scan-photo-flow-viewer`, record the pushed source SHA, preserve the user-owned `.mcp.json`, verify ADC without printing a token, and leave `CALORIX_NUTRITION_EVAL_PRIVATE_MANIFEST` unset. Use source-default `gemini-2.5-flash`, project `calorix-xurschnell`, location `us-central1`, and exactly one sample across 20 public cases.
+
+- [ ] **Step 2: Re-run deterministic evaluation gates**
+
+Run: `cd functions && npm run eval:nutrition:fixtures && npm run build && npm run lint`
+
+Expected: all deterministic evaluation fixtures, TypeScript build, and lint pass before paid/quota-consuming inference.
+
+- [ ] **Step 3: Run the post-change public live evaluation**
+
+Run from `functions/` with `RUN_NUTRITION_EVAL_LIVE=1`, explicit project/location/model/current pushed code SHA, no private manifest, and `npm run eval:nutrition:baseline -- --samples 1`.
+
+Expected: one ignored local report containing exactly 20 public / 0 private cases. The report is evidence, not a release claim and not a replacement for the historical pre-change baseline.
+
+- [ ] **Step 4: Inspect every case and apply the safety gate**
+
+Require 20/20 accounted cases, inspect every case row, and record parse/failure categories, calorie and macro errors, basis/barcode accuracy, Review rate/reasons, catastrophic cases, unsafe completions, latency, prompt/model/dataset/code identity, and privacy status. Target interpretation is 20/20 parse, zero model/schema/normalization failures, zero unsafe completions, and every catastrophic error routed to `needs_review`; aggregate accuracy must improve directionally over the 2026-09-02 pre-change run. Because the prompt hash changed, any formal comparison remains incompatible rather than inventing numeric deltas.
+
+- [ ] **Step 5: Correct accuracy/safety failures before continuing**
+
+If the gate exposes a product defect, create a bounded test-first correction slice, obtain the required pre/post reviews, rerun affected offline tests and the same public live evaluation, and do not start Task 10 until the safety contract is green or an exact external blocker is recorded. Vitamin Well remains a required private regression and later physical end-to-end case; never claim it is covered by these 20 public cases.
+
+- [ ] **Step 6: Record, commit, and push the evaluation checkpoint**
+
+Commit only privacy-safe tracking and any reviewed source/tests from correction slices. Never commit `.nutrition-eval`, private images/manifests, credentials, provider payloads, or the protected `.mcp.json`.
+
 ### Task 10: Build source-labeled Review amount selection and bounded evidence
 
 **Files:**
