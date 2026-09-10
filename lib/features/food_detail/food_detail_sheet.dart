@@ -119,12 +119,99 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
 
   double get _multiplier =>
       _pending.servingMultiplier ?? entry.servingMultiplier;
-  double get _displayKcal => (_pending.kcal ?? entry.kcal ?? 0) * _multiplier;
+
+  /// Effective consumed amount: prefer the pending edit, fall back to the
+  /// persisted value, but only if it passes validation. Malformed persisted
+  /// NaN / infinities / out-of-range values degrade to null so downstream
+  /// ratio, control, and editor code never throws.
+  double? get _effectiveConsumedAmount =>
+      effectiveConsumedAmount(_pending.consumedAmount ?? entry.consumedAmount);
+
+  /// Canonical consumption ratio for the effective (pending or persisted)
+  /// consumed amount; null when the tuple is invalid or unresolved.
+  double? get _canonicalRatio {
+    if (!entry.hasCanonicalNutrition) return null;
+    final consumed = _effectiveConsumedAmount;
+    final nutritionAmount = entry.nutritionAmount;
+    if (consumed == null ||
+        nutritionAmount == null ||
+        !nutritionAmount.isFinite ||
+        nutritionAmount <= 0) {
+      return null;
+    }
+    final ratio = consumed / nutritionAmount;
+    return ratio.isFinite ? ratio : null;
+  }
+
+  double get _effectiveMultiplier =>
+      entry.usesLegacyServingMultiplier ? _multiplier : (_canonicalRatio ?? 0);
+
+  /// Base-nutrition (kcal/macro) edits stay blocked until a canonical entry
+  /// has a resolved amount; legacy entries are always editable.
+  bool get _canEditBaseNutrition =>
+      entry.usesLegacyServingMultiplier || _canonicalRatio != null;
+
+  AmountPresentation? get _amountPresentation =>
+      entry.usesLegacyServingMultiplier
+          ? null
+          : AmountPresentation.fromEntry(entry,
+              consumedAmount: _pending.consumedAmount);
+
+  String _subtitleText(int detectedWeight) {
+    if (detectedWeight > 0) {
+      return '${_detectedItems.length} items · ≈ ${detectedWeight}g';
+    }
+    final presentation = _amountPresentation;
+    if (presentation != null) return presentation.label;
+    return '${_fmtMultiplier(_multiplier)} serving';
+  }
+
+  double get _displayKcal =>
+      (_pending.kcal ?? entry.kcal ?? 0) * _effectiveMultiplier;
   double get _displayProtein =>
-      (_pending.protein ?? entry.protein ?? 0) * _multiplier;
+      (_pending.protein ?? entry.protein ?? 0) * _effectiveMultiplier;
   double get _displayCarbs =>
-      (_pending.carbs ?? entry.carbs ?? 0) * _multiplier;
-  double get _displayFat => (_pending.fat ?? entry.fat ?? 0) * _multiplier;
+      (_pending.carbs ?? entry.carbs ?? 0) * _effectiveMultiplier;
+  double get _displayFat =>
+      (_pending.fat ?? entry.fat ?? 0) * _effectiveMultiplier;
+
+  /// Edit-mode control (canonical/legacy/none) or view-mode static amount
+  /// text; canonical and legacy controls are mutually exclusive per entry.
+  Widget _buildAmountTrailing(bool isDark, Color muted) {
+    if (_isEditMode && _canEdit) {
+      if (entry.hasCanonicalNutrition) {
+        return _CanonicalAmountControl(
+          key: const Key('canonical-amount-control'),
+          amount: _effectiveConsumedAmount,
+          unit: entry.nutritionUnit!,
+          isDark: isDark,
+          onTap: _editConsumedAmount,
+        );
+      }
+      if (entry.usesLegacyServingMultiplier) {
+        return _ServingStepper(
+          key: const Key('legacy-serving-stepper'),
+          multiplier: _multiplier,
+          isDark: isDark,
+          onChanged: (v) => ref
+              .read(pendingEditsProvider(entry.id).notifier)
+              .state = _pending.copyWith(servingMultiplier: v),
+        );
+      }
+      return const SizedBox.shrink();
+    }
+    final presentation = _amountPresentation;
+    if (presentation != null) {
+      return Text(
+        presentation.consumedLabel,
+        style: AppTextStyles.bodySmall.copyWith(color: muted),
+      );
+    }
+    return Text(
+      '${_fmtMultiplier(_multiplier)} serving',
+      style: AppTextStyles.bodySmall.copyWith(color: muted),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -338,14 +425,24 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
-                                              detectedWeight > 0
-                                                  ? '${_detectedItems.length} items · ≈ ${detectedWeight}g'
-                                                  : '${_fmtMultiplier(_multiplier)} serving',
+                                              _subtitleText(detectedWeight),
                                               style: AppTextStyles.bodySmall
                                                   .copyWith(
                                                       fontSize: 13,
                                                       color: muted),
                                             ),
+                                            if (detectedWeight > 0 &&
+                                                _amountPresentation !=
+                                                    null) ...[
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                _amountPresentation!.label,
+                                                style: AppTextStyles.bodySmall
+                                                    .copyWith(
+                                                        fontSize: 13,
+                                                        color: muted),
+                                              ),
+                                            ],
                                           ],
                                         ),
                                       ),
@@ -371,15 +468,12 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                               child: _KcalBanner(
                                 kcal: _displayKcal,
-                                multiplier: _multiplier,
                                 isEditing: _isEditMode && _canEdit,
                                 isDark: isDark,
-                                onKcalEdit: _editCalories,
-                                onMultiplierChanged: (v) => ref
-                                        .read(pendingEditsProvider(entry.id)
-                                            .notifier)
-                                        .state =
-                                    _pending.copyWith(servingMultiplier: v),
+                                onKcalEdit: _canEditBaseNutrition
+                                    ? _editCalories
+                                    : null,
+                                trailing: _buildAmountTrailing(isDark, muted),
                               ),
                             ),
                             Padding(
@@ -404,14 +498,15 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                       value: _displayProtein,
                                       color: AppColors.protein,
                                       target: plan.protein.toDouble(),
-                                      isEditing: _isEditMode,
+                                      isEditing:
+                                          _isEditMode && _canEditBaseNutrition,
                                       isDark: isDark,
                                       onEdit: (v) => ref
                                           .read(pendingEditsProvider(entry.id)
                                               .notifier)
                                           .state = _pending.copyWith(
-                                        protein:
-                                            baseFromDisplayed(v, _multiplier),
+                                        protein: baseFromDisplayed(
+                                            v, _effectiveMultiplier),
                                       ),
                                     ),
                                     _rowDivider(isDark),
@@ -420,14 +515,15 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                       value: _displayCarbs,
                                       color: AppColors.carbs,
                                       target: plan.carbs.toDouble(),
-                                      isEditing: _isEditMode,
+                                      isEditing:
+                                          _isEditMode && _canEditBaseNutrition,
                                       isDark: isDark,
                                       onEdit: (v) => ref
                                           .read(pendingEditsProvider(entry.id)
                                               .notifier)
                                           .state = _pending.copyWith(
-                                        carbs:
-                                            baseFromDisplayed(v, _multiplier),
+                                        carbs: baseFromDisplayed(
+                                            v, _effectiveMultiplier),
                                       ),
                                     ),
                                     _rowDivider(isDark),
@@ -436,13 +532,15 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                                       value: _displayFat,
                                       color: AppColors.fat,
                                       target: plan.fat.toDouble(),
-                                      isEditing: _isEditMode,
+                                      isEditing:
+                                          _isEditMode && _canEditBaseNutrition,
                                       isDark: isDark,
                                       onEdit: (v) => ref
                                           .read(pendingEditsProvider(entry.id)
                                               .notifier)
                                           .state = _pending.copyWith(
-                                        fat: baseFromDisplayed(v, _multiplier),
+                                        fat: baseFromDisplayed(
+                                            v, _effectiveMultiplier),
                                       ),
                                     ),
                                   ],
@@ -592,7 +690,7 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
                   isDark: isDark,
                   onUndo: () {
                     ref.read(pendingEditsProvider(entry.id).notifier).state =
-                        const PendingEdits();
+                        PendingEdits();
                   },
                   onSave: () => _save(context, ref),
                 )
@@ -656,7 +754,22 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
     );
     if (value == null || !mounted) return;
     ref.read(pendingEditsProvider(entry.id).notifier).state =
-        _pending.copyWith(kcal: baseFromDisplayed(value, _multiplier));
+        _pending.copyWith(kcal: baseFromDisplayed(value, _effectiveMultiplier));
+  }
+
+  Future<void> _editConsumedAmount() async {
+    final unit = entry.nutritionUnit;
+    if (unit == null) return;
+    final initial = _effectiveConsumedAmount;
+    final value = await _showAmountEditor(
+      context,
+      title: 'Edit amount',
+      initialValue: initial,
+      unit: unit,
+    );
+    if (value == null || !mounted) return;
+    ref.read(pendingEditsProvider(entry.id).notifier).state =
+        _pending.copyWith(consumedAmount: value);
   }
 
   Future<void> _editDetectedItem(int? index) async {
@@ -678,12 +791,11 @@ class _FoodDetailContentState extends ConsumerState<_FoodDetailContent> {
     setState(() => _isSaving = true);
     try {
       final repo = ref.read(foodEntryRepositoryProvider);
-      await repo.update(entry.uid, entry.id, _pending.toUpdateMap(),
+      await repo.update(entry.uid, entry.id, _pending.toUpdateMap(entry),
           markCorrected: true);
       if (!mounted) return;
       ref.read(foodEditModeProvider(entry.id).notifier).state = false;
-      ref.read(pendingEditsProvider(entry.id).notifier).state =
-          const PendingEdits();
+      ref.read(pendingEditsProvider(entry.id).notifier).state = PendingEdits();
       setState(() => _allowPop = true);
       router.pop();
     } finally {
@@ -814,6 +926,65 @@ Future<double?> _showNumberEditor(
                 onPressed: () {
                   final value = double.tryParse(text);
                   if (value != null && value >= 0) {
+                    Navigator.pop(sheetContext, value);
+                  }
+                },
+                child: const Text('Done'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// Fail-closed canonical amount editor: only an exact finite, positive value
+/// within the Firestore-safe bound is accepted; anything else leaves the
+/// sheet open without mutating pending edits.
+Future<double?> _showAmountEditor(
+  BuildContext context, {
+  required String title,
+  required double? initialValue,
+  required String unit,
+}) async {
+  var text =
+      initialValue == null ? '' : AmountPresentation.formatAmount(initialValue);
+  return showModalBottomSheet<double>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (sheetContext) => ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.85,
+      ),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          24,
+          24,
+          24,
+          MediaQuery.viewInsetsOf(sheetContext).bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title, style: AppTextStyles.heading3),
+            const SizedBox(height: 16),
+            TextFormField(
+              initialValue: text,
+              onChanged: (next) => text = next,
+              autofocus: true,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(suffixText: unit),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  final value = tryParseConsumedAmount(text);
+                  if (value != null) {
                     Navigator.pop(sheetContext, value);
                   }
                 },
@@ -1206,19 +1377,17 @@ class _EditChip extends StatelessWidget {
 
 class _KcalBanner extends StatelessWidget {
   final double kcal;
-  final double multiplier;
   final bool isEditing;
   final bool isDark;
-  final VoidCallback onKcalEdit;
-  final ValueChanged<double> onMultiplierChanged;
+  final VoidCallback? onKcalEdit;
+  final Widget trailing;
 
   const _KcalBanner({
     required this.kcal,
-    required this.multiplier,
     required this.isEditing,
     required this.isDark,
     required this.onKcalEdit,
-    required this.onMultiplierChanged,
+    required this.trailing,
   });
 
   @override
@@ -1258,7 +1427,9 @@ class _KcalBanner extends StatelessWidget {
                         fontSize: 28,
                         fontWeight: FontWeight.w600,
                         color: ink,
-                        decoration: isEditing ? TextDecoration.underline : null,
+                        decoration: isEditing && onKcalEdit != null
+                            ? TextDecoration.underline
+                            : null,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -1270,18 +1441,56 @@ class _KcalBanner extends StatelessWidget {
               ),
             ],
           ),
-          if (isEditing)
-            _ServingStepper(
-              multiplier: multiplier,
-              isDark: isDark,
-              onChanged: onMultiplierChanged,
-            )
-          else
-            Text(
-              '${_fmtMultiplier(multiplier)} serving',
-              style: AppTextStyles.bodySmall.copyWith(color: muted),
-            ),
+          trailing,
         ],
+      ),
+    );
+  }
+}
+
+class _CanonicalAmountControl extends StatelessWidget {
+  const _CanonicalAmountControl({
+    super.key,
+    required this.amount,
+    required this.unit,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final double? amount;
+  final String unit;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ink = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final label = amount != null
+        ? '${AmountPresentation.formatAmount(amount!)} $unit'
+        : 'Set amount';
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.04)
+              : const Color(0xFFF4F2EE),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            width: 0.5,
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.labelMono.copyWith(
+            fontSize: 13,
+            color: ink,
+            decoration: TextDecoration.underline,
+          ),
+        ),
       ),
     );
   }
@@ -1289,6 +1498,7 @@ class _KcalBanner extends StatelessWidget {
 
 class _ServingStepper extends StatelessWidget {
   const _ServingStepper({
+    super.key,
     required this.multiplier,
     required this.isDark,
     required this.onChanged,

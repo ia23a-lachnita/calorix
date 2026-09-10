@@ -471,6 +471,7 @@ Commit `Confirm reviewed nutrition amounts`, push, and record the single-update 
 - Modify: `test/food_detail_sheet_test.dart`
 - Modify: `test/manual/manual_entry_screen_test.dart`
 - Modify: `test/food_detail/food_crud_test.dart`
+- Modify: `test/food_detail/serving_multiplier_test.dart`
 - Modify: `docs/implementation-status.md`
 
 **Interfaces:**
@@ -482,7 +483,7 @@ Commit `Confirm reviewed nutrition amounts`, push, and record the single-update 
 
 **Task 9 pre-review ruling (2026-09-09):** read-only Antigravity conversation `calorix-canonical-amount-task9-20260909`, primary `gemini-3.8-flash`, first returned `AGREEMENT_STATUS: revise`. It required the explicit g/package and resolved per-100 formatting, invalid-canonical fallback, edit-versus-view key contract, repository numeric guards, non-finite draft rejection, canonical-ratio base-edit conversion, and mutually exclusive pending fields now specified above. The continued review returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none` before RED.
 
-- [ ] **Step 1: Write RED Food Detail/manual tests**
+- [x] **Step 1: Write RED Food Detail/manual tests**
 
 ```dart
 await pumpFoodDetail(canonicalEntry);
@@ -496,21 +497,27 @@ expect(find.byKey(const Key('legacy-serving-stepper')), findsOneWidget);
 expect(find.byKey(const Key('canonical-amount-control')), findsNothing);
 ```
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `fvm flutter test test/food_detail_sheet_test.dart test/manual/manual_entry_screen_test.dart`
 
 Expected: FAIL because canonical entries still expose the multiplier stepper and lack the canonical amount control, while legacy entries do not yet receive the explicit legacy-stepper key.
 
-- [ ] **Step 3: Implement canonical display/edit branches**
+**Actual (2026-09-09):** the first read-only Codex RED-review attempt failed before a verdict at `2026-09-09T21:41:44+02:00` with `usage_limit/no_verdict` and made no edit. The mandatory read-only Antigravity continuation found seven test-contract defects; after test-only correction it returned exact `SAFE_TO_FREEZE: yes`, `MUST_FIX: none`. Pinned Flutter 3.41.9 RED across the three focused files exited `1` with **6 passed / 4 failed**: Food Detail and repository files failed to load only on the intentionally absent `PendingEdits.consumedAmount` and entry-aware `toUpdateMap(entry)` API, while the executing manual suite had exactly two intended finite/bounds validation failures and all six existing/manual widget behaviors passed. Formatting and `git diff --check` passed. Production remained frozen.
+
+- [x] **Step 3: Implement canonical display/edit branches**
 
 Create the fail-closed presentation and static amount text from canonical amount/unit metadata. In edit mode, use exact finite-positive consumed-amount editing for valid canonical records and the old quarter-step control only for `usesLegacyServingMultiplier`; unresolved canonical records accept amount editing before base-nutrition editing, while invalid canonical tuples expose neither edit mechanism. Scale canonical display and displayed-to-base edits by the effective canonical ratio, never a retained multiplier. Make `PendingEdits.toUpdateMap` entry-kind-aware so canonical and legacy amount fields are mutually exclusive. Revalidate present `consumedAmount` in repository updates. Manual draft/provider/repository validation rejects non-finite or out-of-bound numbers; manual entries write `portion/1/portion`, `consumedAmount` equal to the entered quantity (for example `1.5`), `reviewReasons=[]`, and no `servingMultiplier`.
 
-- [ ] **Step 4: Verify GREEN**
+**Actual (2026-09-10):** Food Detail now renders fail-closed package/portion/per-100 presentation, uses a canonical amount control only for valid canonical tuples, keeps the legacy quarter-step control only for pure legacy entries, and scales display/base edits by `consumedAmount / nutritionAmount`. `PendingEdits` serializes only the entry-kind-appropriate amount field; the repository revalidates present canonical amounts before datastore access. Manual draft and repository creation enforce finite Firestore bounds and persist canonical `portion/1/portion` consumption with no legacy multiplier. `manual_entry_screen.dart` required no production change because its existing save path already delegates through the corrected provider/repository boundaries. The serving-multiplier unit test received the mechanical entry argument required by the new entry-aware `toUpdateMap(entry)` API.
+
+- [x] **Step 4: Verify GREEN**
 
 Run: `fvm flutter test test/food_detail_sheet_test.dart test/manual/manual_entry_screen_test.dart`
 
 Expected: PASS; presentation does not persist any UI suggestion list. Request Antigravity post-task review before committing because Food Detail/manual persistence and visible controls change together.
+
+**Actual (2026-09-10):** initial serial GREEN passed **73/73** and the first eight-item analyzer reported `No issues found` in `1375.6s`. Independent review then found that detected-item metadata hid the canonical package/reference label and malformed persisted `consumedAmount` values could display invalid text or throw on infinity. The bounded review-fix RED was **0 passed / 7 failed**, including the exact `Infinity or NaN toInt` crash; the same seven tests then passed **7/7** after sanitizing the effective consumed amount and rendering item metadata plus canonical amount as separate rows. Final pinned Flutter 3.41.9 verification ran serially with `--concurrency=1` and passed **80/80** in `15m51s`; final focused analysis reported `No issues found` in `917.2s`; formatter changed zero files after the final source correction and `git diff --check` passed. One earlier consolidated verifier was intentionally stopped and excluded when the host observed two parallel `flutter_tester` isolates; the authoritative reruns were serial to protect the Pi. Final independent review returned `MUST_FIX: none`. Mandatory Antigravity review conversation `calorix-canonical-amount-task9-20260909` had a primary `gemini-3.8-flash` timeout at `2026-09-10T08:16:19+02:00`; fallback `gemini-3.7-flash` returned exact `AGREEMENT_STATUS: agree`, `MUST_FIX: none`. After the defensive review fixes, `gemini-3.8-flash` returned the same exact green verdict. Its wrapper claimed it launched a Flutter-location command despite the read-only prompt; this is recorded as response noise, not verification evidence, and independent `git status` found no reviewer mutation. No Firebase production access/write/deploy, provider inference, phone/device action, or LocateAnything call occurred.
 
 - [ ] **Step 5: Record, commit, and push**
 

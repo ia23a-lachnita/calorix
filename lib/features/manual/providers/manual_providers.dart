@@ -24,17 +24,30 @@ class ManualFoodDraft {
   final double quantity;
   final MealType mealType;
 
+  static bool _isFiniteInRange(double value, double min, double max) =>
+      value.isFinite && value >= min && value <= max;
+
   Map<String, String> validate() {
     final errors = <String, String>{};
     if (name.trim().isEmpty) errors['name'] = 'Name is required';
-    if (kcal < 0) errors['kcal'] = 'Must be zero or greater';
-    if (proteinG < 0) errors['protein'] = 'Must be zero or greater';
-    if (carbsG < 0) errors['carbs'] = 'Must be zero or greater';
-    if (fatG < 0) errors['fat'] = 'Must be zero or greater';
+    if (!_isFiniteInRange(kcal, 0, 10000)) {
+      errors['kcal'] = 'Must be zero or greater';
+    }
+    if (!_isFiniteInRange(proteinG, 0, 1000000000)) {
+      errors['protein'] = 'Must be zero or greater';
+    }
+    if (!_isFiniteInRange(carbsG, 0, 1000000000)) {
+      errors['carbs'] = 'Must be zero or greater';
+    }
+    if (!_isFiniteInRange(fatG, 0, 1000000000)) {
+      errors['fat'] = 'Must be zero or greater';
+    }
     if (servingSize.trim().isEmpty) {
       errors['servingSize'] = 'Serving is required';
     }
-    if (quantity <= 0) errors['quantity'] = 'Must be greater than zero';
+    if (!_isFiniteInRange(quantity, double.minPositive, 1000000000)) {
+      errors['quantity'] = 'Must be greater than zero';
+    }
     return errors;
   }
 }

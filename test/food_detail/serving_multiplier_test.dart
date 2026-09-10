@@ -41,8 +41,8 @@ void main() {
   });
 
   test('pending corrections serialize canonical base fields only', () {
-    const edits = PendingEdits(kcal: 100, protein: 25, servingMultiplier: 2);
-    final map = edits.toUpdateMap();
+    final edits = PendingEdits(kcal: 100, protein: 25, servingMultiplier: 2);
+    final map = edits.toUpdateMap(_entry());
 
     expect(map, containsPair('baseKcal', 100));
     expect(map, containsPair('baseProtein', 25));

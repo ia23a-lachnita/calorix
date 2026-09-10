@@ -8,9 +8,11 @@ import 'package:go_router/go_router.dart';
 
 class _Saver implements ManualEntrySaver {
   ManualFoodDraft? saved;
+  int saveCalls = 0;
 
   @override
   Future<String> save(ManualFoodDraft draft) async {
+    saveCalls += 1;
     saved = draft;
     return 'manual-1';
   }
@@ -31,6 +33,86 @@ Future<_Saver> _pump(WidgetTester tester) async {
 }
 
 void main() {
+  ManualFoodDraft draft({
+    double kcal = 100,
+    double protein = 10,
+    double carbs = 20,
+    double fat = 5,
+    double quantity = 1,
+  }) =>
+      ManualFoodDraft(
+        name: 'Test food',
+        kcal: kcal,
+        proteinG: protein,
+        carbsG: carbs,
+        fatG: fat,
+        servingSize: '1 portion',
+        quantity: quantity,
+        mealType: MealType.lunch,
+      );
+
+  test('manual draft accepts Firestore numeric boundaries', () {
+    expect(
+      draft(
+        kcal: 10000,
+        protein: 1000000000,
+        carbs: 1000000000,
+        fat: 1000000000,
+        quantity: 1000000000,
+      ).validate(),
+      isEmpty,
+    );
+    expect(
+      draft(kcal: 0, protein: 0, carbs: 0, fat: 0, quantity: 1).validate(),
+      isEmpty,
+    );
+  });
+
+  test('manual draft rejects nonfinite and out-of-bound nutrition', () {
+    final cases = <(ManualFoodDraft, String)>[
+      (draft(kcal: -1), 'kcal'),
+      (draft(kcal: double.nan), 'kcal'),
+      (draft(kcal: double.infinity), 'kcal'),
+      (draft(kcal: double.negativeInfinity), 'kcal'),
+      (draft(kcal: 10000.0001), 'kcal'),
+      (draft(protein: -1), 'protein'),
+      (draft(protein: double.nan), 'protein'),
+      (draft(protein: double.infinity), 'protein'),
+      (draft(protein: double.negativeInfinity), 'protein'),
+      (draft(protein: 1000000000.0001), 'protein'),
+      (draft(carbs: -1), 'carbs'),
+      (draft(carbs: double.nan), 'carbs'),
+      (draft(carbs: double.infinity), 'carbs'),
+      (draft(carbs: double.negativeInfinity), 'carbs'),
+      (draft(carbs: 1000000000.0001), 'carbs'),
+      (draft(fat: -1), 'fat'),
+      (draft(fat: double.nan), 'fat'),
+      (draft(fat: double.infinity), 'fat'),
+      (draft(fat: double.negativeInfinity), 'fat'),
+      (draft(fat: 1000000000.0001), 'fat'),
+    ];
+    for (final (value, field) in cases) {
+      expect(value.validate(), contains(field), reason: field);
+    }
+  });
+
+  test('manual draft rejects nonfinite nonpositive and excessive quantity', () {
+    for (final quantity in <double>[
+      0,
+      -1,
+      double.nan,
+      double.infinity,
+      double.negativeInfinity,
+      1000000000.0001,
+    ]) {
+      expect(
+        draft(quantity: quantity).validate(),
+        contains('quantity'),
+        reason: 'quantity $quantity',
+      );
+    }
+  });
+
   testWidgets('renders search, filters, food rows, and custom action',
       (tester) async {
     await _pump(tester);
@@ -111,6 +193,21 @@ void main() {
     expect(saver.saved?.servingSize, '2 cups');
     expect(saver.saved?.quantity, 1.5);
     expect(saver.saved?.mealType, MealType.dinner);
+    expect(saver.saveCalls, 1);
+    expect(find.text('Today'), findsOneWidget);
+  });
+
+  testWidgets('quick add saves the default quantity exactly once',
+      (tester) async {
+    final saver = await _pump(tester);
+
+    await tester.tap(find.byTooltip('Add Protein Yogurt'));
+    await tester.pumpAndSettle();
+
+    expect(saver.saveCalls, 1);
+    expect(saver.saved?.name, 'Protein Yogurt');
+    expect(saver.saved?.kcal, 180);
+    expect(saver.saved?.quantity, 1);
     expect(find.text('Today'), findsOneWidget);
   });
 

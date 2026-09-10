@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:calorix/core/time/clock.dart';
+import 'package:calorix/features/food_detail/providers/food_detail_providers.dart';
 import 'package:calorix/shared/models/food_entry.dart';
 import 'package:calorix/shared/repositories/food_entry_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -35,6 +36,7 @@ class _MemoryFoodEntryStore implements FoodEntryDataStore {
   final Map<String, StreamController<FoodEntryDocument?>> controllers = {};
   final List<String> touchedPaths = [];
   int updateCalls = 0;
+  int addCalls = 0;
   Map<String, dynamic>? lastUpdate;
   int nextId = 1;
 
@@ -65,6 +67,7 @@ class _MemoryFoodEntryStore implements FoodEntryDataStore {
 
   @override
   Future<String> add(String uid, Map<String, dynamic> data) async {
+    addCalls += 1;
     final id = 'new-${nextId++}';
     final path = _path(uid, id);
     touchedPaths.add(path);
@@ -359,6 +362,385 @@ void main() {
     );
     expect(saved.keys.where((key) => key == 'protein'), isEmpty);
     expect(store.touchedPaths, ['users/user-1/entries/entry-1']);
+  });
+
+  test('pending edits isolate canonical and legacy amount fields', () {
+    final edits = PendingEdits(
+      kcal: 50,
+      consumedAmount: 250,
+      servingMultiplier: 2,
+    );
+
+    final canonical = edits.toUpdateMap(_canonicalEntry());
+    final legacy = edits.toUpdateMap(_entry());
+
+    expect(canonical['baseKcal'], 50);
+    expect(canonical['consumedAmount'], 250);
+    expect(canonical.containsKey('servingMultiplier'), isFalse);
+    expect(legacy['baseKcal'], 50);
+    expect(legacy['servingMultiplier'], 2);
+    expect(legacy.containsKey('consumedAmount'), isFalse);
+  });
+
+  test('PendingEdits rejects invalid canonical consumed amounts', () {
+    for (final amount in <double>[
+      0,
+      -1,
+      double.nan,
+      double.infinity,
+      double.negativeInfinity,
+      1000000000.0001,
+    ]) {
+      expect(
+        () => PendingEdits(consumedAmount: amount),
+        throwsArgumentError,
+        reason: 'consumedAmount $amount',
+      );
+    }
+    expect(
+      () => PendingEdits(consumedAmount: 1000000000),
+      returnsNormally,
+    );
+  });
+
+  test('canonical and legacy pending saves isolate fields and correct once',
+      () async {
+    final now = DateTime.utc(2026, 9, 9, 11, 30);
+    for (final scenario in <({
+      FoodEntry entry,
+      PendingEdits edits,
+      String kept,
+      String omitted
+    })>[
+      (
+        entry: _canonicalEntry(),
+        edits: PendingEdits(consumedAmount: 500),
+        kept: 'consumedAmount',
+        omitted: 'servingMultiplier',
+      ),
+      (
+        entry: _entry(),
+        edits: PendingEdits(servingMultiplier: 2),
+        kept: 'servingMultiplier',
+        omitted: 'consumedAmount',
+      ),
+    ]) {
+      final store = _MemoryFoodEntryStore();
+      addTearDown(store.dispose);
+      final repository = FoodEntryRepository.withStore(store, _FixedClock(now));
+
+      await repository.update(
+        scenario.entry.uid,
+        scenario.entry.id,
+        scenario.edits.toUpdateMap(scenario.entry),
+        markCorrected: true,
+      );
+
+      expect(store.updateCalls, 1);
+      expect(store.touchedPaths, [
+        'users/${scenario.entry.uid}/entries/${scenario.entry.id}',
+      ]);
+      final update = store.lastUpdate!;
+      expect(update.containsKey(scenario.kept), isTrue);
+      expect(update.containsKey(scenario.omitted), isFalse);
+      expect(update['corrected'], isTrue);
+      expect(
+        (update['correctedAt'] as Timestamp).toDate().isAtSameMomentAs(now),
+        isTrue,
+      );
+      expect(
+        (update['updatedAt'] as Timestamp).toDate().isAtSameMomentAs(now),
+        isTrue,
+      );
+    }
+  });
+
+  test('update rejects malformed canonical amounts before touching the store',
+      () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final repository = FoodEntryRepository.withStore(
+      store,
+      _FixedClock(DateTime.utc(2026, 9, 9, 11)),
+    );
+
+    for (final amount in <Object?>[
+      null,
+      '250',
+      0,
+      -1,
+      double.nan,
+      double.infinity,
+      double.negativeInfinity,
+      1000000000.0001,
+    ]) {
+      await expectLater(
+        () => repository.update(
+            'user-1', 'entry-1', <String, dynamic>{'consumedAmount': amount}),
+        throwsArgumentError,
+        reason: 'consumedAmount $amount',
+      );
+    }
+
+    expect(store.updateCalls, 0);
+    expect(store.lastUpdate, isNull);
+    expect(store.touchedPaths, isEmpty);
+  });
+
+  test('update accepts finite positive consumed amount boundaries', () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final repository = FoodEntryRepository.withStore(
+      store,
+      _FixedClock(DateTime.utc(2026, 9, 9, 11)),
+    );
+
+    await repository.update(
+      'user-1',
+      'entry-min',
+      {'consumedAmount': double.minPositive},
+    );
+    await repository.update(
+      'user-1',
+      'entry-max',
+      {'consumedAmount': 1000000000.0},
+    );
+
+    expect(store.updateCalls, 2);
+    expect(store.touchedPaths, [
+      'users/user-1/entries/entry-min',
+      'users/user-1/entries/entry-max',
+    ]);
+  });
+
+  test('manual creation persists one exact canonical portion document',
+      () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final now = DateTime.utc(2026, 9, 9, 12, 15);
+    final repository = FoodEntryRepository.withStore(store, _FixedClock(now));
+
+    final id = await repository.createManualEntry(
+      uid: 'user-1',
+      name: 'Tofu bowl',
+      kcal: 400,
+      protein: 28,
+      carbs: 52,
+      fat: 14,
+      servingSize: '2 cups',
+      quantity: 1.5,
+      mealType: MealType.dinner,
+    );
+
+    expect(store.addCalls, 1);
+    expect(store.touchedPaths, ['users/user-1/entries/new-1']);
+    final saved = store.documents['users/user-1/entries/$id']!;
+    expect(saved.keys, {
+      'uid',
+      'timestamp',
+      'date',
+      'scanMode',
+      'status',
+      'foodName',
+      'baseKcal',
+      'baseProtein',
+      'baseCarbs',
+      'baseFat',
+      'servingSize',
+      'nutritionBasis',
+      'nutritionAmount',
+      'nutritionUnit',
+      'consumedAmount',
+      'reviewReasons',
+      'mealType',
+      'confidence',
+      'corrected',
+    });
+    expect(saved['nutritionBasis'], 'portion');
+    expect(saved['nutritionAmount'], 1.0);
+    expect(saved['nutritionUnit'], 'portion');
+    expect(saved['consumedAmount'], 1.5);
+    expect(saved['reviewReasons'], <String>[]);
+    expect(saved.containsKey('servingMultiplier'), isFalse);
+    expect(saved['servingSize'], '2 cups');
+
+    final roundTrip = FoodEntry.fromData(id: id, data: saved);
+    expect(roundTrip.hasCanonicalNutrition, isTrue);
+    expect(roundTrip.hasResolvedConsumption, isTrue);
+    expect(roundTrip.scaledKcal, 600);
+    expect(roundTrip.scaledProtein, 42);
+  });
+
+  test('manual creation with quantity one remains exactly one portion',
+      () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final repository = FoodEntryRepository.withStore(
+      store,
+      _FixedClock(DateTime.utc(2026, 9, 9, 12, 15)),
+    );
+
+    await repository.createManualEntry(
+      uid: 'user-1',
+      name: 'Protein yogurt',
+      kcal: 180,
+      protein: 20,
+      carbs: 12,
+      fat: 4,
+      servingSize: '1 cup',
+      quantity: 1,
+      mealType: MealType.breakfast,
+    );
+
+    expect(store.addCalls, 1);
+    final saved = store.documents['users/user-1/entries/new-1']!;
+    expect(saved['nutritionBasis'], 'portion');
+    expect(saved['nutritionAmount'], 1.0);
+    expect(saved['nutritionUnit'], 'portion');
+    expect(saved['consumedAmount'], 1.0);
+    expect(saved['reviewReasons'], <String>[]);
+    expect(saved.containsKey('servingMultiplier'), isFalse);
+  });
+
+  test('manual creation rejects invalid nutrition and quantity before add',
+      () async {
+    final invalidCases = <({
+      double kcal,
+      double protein,
+      double carbs,
+      double fat,
+      double quantity,
+    })>[
+      (kcal: -1, protein: 1, carbs: 1, fat: 1, quantity: 1),
+      (kcal: double.nan, protein: 1, carbs: 1, fat: 1, quantity: 1),
+      (kcal: double.infinity, protein: 1, carbs: 1, fat: 1, quantity: 1),
+      (
+        kcal: double.negativeInfinity,
+        protein: 1,
+        carbs: 1,
+        fat: 1,
+        quantity: 1,
+      ),
+      (kcal: 10000.0001, protein: 1, carbs: 1, fat: 1, quantity: 1),
+      (kcal: 1, protein: -1, carbs: 1, fat: 1, quantity: 1),
+      (kcal: 1, protein: double.nan, carbs: 1, fat: 1, quantity: 1),
+      (kcal: 1, protein: double.infinity, carbs: 1, fat: 1, quantity: 1),
+      (
+        kcal: 1,
+        protein: double.negativeInfinity,
+        carbs: 1,
+        fat: 1,
+        quantity: 1,
+      ),
+      (
+        kcal: 1,
+        protein: 1000000000.0001,
+        carbs: 1,
+        fat: 1,
+        quantity: 1,
+      ),
+      (kcal: 1, protein: 1, carbs: -1, fat: 1, quantity: 1),
+      (kcal: 1, protein: 1, carbs: double.nan, fat: 1, quantity: 1),
+      (kcal: 1, protein: 1, carbs: double.infinity, fat: 1, quantity: 1),
+      (
+        kcal: 1,
+        protein: 1,
+        carbs: double.negativeInfinity,
+        fat: 1,
+        quantity: 1,
+      ),
+      (
+        kcal: 1,
+        protein: 1,
+        carbs: 1000000000.0001,
+        fat: 1,
+        quantity: 1,
+      ),
+      (kcal: 1, protein: 1, carbs: 1, fat: -1, quantity: 1),
+      (kcal: 1, protein: 1, carbs: 1, fat: double.nan, quantity: 1),
+      (kcal: 1, protein: 1, carbs: 1, fat: double.infinity, quantity: 1),
+      (
+        kcal: 1,
+        protein: 1,
+        carbs: 1,
+        fat: double.negativeInfinity,
+        quantity: 1,
+      ),
+      (
+        kcal: 1,
+        protein: 1,
+        carbs: 1,
+        fat: 1000000000.0001,
+        quantity: 1,
+      ),
+      (kcal: 1, protein: 1, carbs: 1, fat: 1, quantity: 0),
+      (kcal: 1, protein: 1, carbs: 1, fat: 1, quantity: -1),
+      (kcal: 1, protein: 1, carbs: 1, fat: 1, quantity: double.nan),
+      (kcal: 1, protein: 1, carbs: 1, fat: 1, quantity: double.infinity),
+      (
+        kcal: 1,
+        protein: 1,
+        carbs: 1,
+        fat: 1,
+        quantity: double.negativeInfinity,
+      ),
+      (
+        kcal: 1,
+        protein: 1,
+        carbs: 1,
+        fat: 1,
+        quantity: 1000000000.0001,
+      ),
+    ];
+
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final repository = FoodEntryRepository.withStore(
+      store,
+      _FixedClock(DateTime.utc(2026, 9, 9, 12, 15)),
+    );
+    for (final values in invalidCases) {
+      await expectLater(
+        repository.createManualEntry(
+          uid: 'user-1',
+          name: 'Invalid',
+          kcal: values.kcal,
+          protein: values.protein,
+          carbs: values.carbs,
+          fat: values.fat,
+          servingSize: '1 portion',
+          quantity: values.quantity,
+          mealType: MealType.lunch,
+        ),
+        throwsArgumentError,
+      );
+    }
+    expect(store.addCalls, 0);
+    expect(store.touchedPaths, isEmpty);
+  });
+
+  test('manual creation accepts every numeric upper boundary', () async {
+    final store = _MemoryFoodEntryStore();
+    addTearDown(store.dispose);
+    final repository = FoodEntryRepository.withStore(
+      store,
+      _FixedClock(DateTime.utc(2026, 9, 9, 12, 15)),
+    );
+
+    await repository.createManualEntry(
+      uid: 'user-1',
+      name: 'Boundary food',
+      kcal: 10000,
+      protein: 1000000000,
+      carbs: 1000000000,
+      fat: 1000000000,
+      servingSize: '1 portion',
+      quantity: 1000000000,
+      mealType: MealType.lunch,
+    );
+
+    expect(store.addCalls, 1);
+    expect(store.touchedPaths, ['users/user-1/entries/new-1']);
   });
 
   test('ReviewConfirmation rejects every non-positive or non-finite amount',

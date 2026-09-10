@@ -129,6 +129,29 @@ Map<String, dynamic> correctionUpdateFields(
   };
 }
 
+const double _kMaxFirestoreAmount = 1000000000;
+
+bool _isFiniteInRange(double value, double min, double max) =>
+    value.isFinite && value >= min && value <= max;
+
+bool _isValidConsumedAmount(double value) =>
+    _isFiniteInRange(value, double.minPositive, _kMaxFirestoreAmount);
+
+void _requireFiniteInRange(
+  double value,
+  String name,
+  double min,
+  double max,
+) {
+  if (!_isFiniteInRange(value, min, max)) {
+    throw ArgumentError.value(
+      value,
+      name,
+      'must be finite and within [$min, $max]',
+    );
+  }
+}
+
 class FoodEntryRepository {
   FoodEntryRepository(FirebaseFirestore firestore, Clock clock)
       : this.withStore(FirestoreFoodEntryDataStore(firestore), clock);
@@ -185,6 +208,18 @@ class FoodEntryRepository {
     Map<String, dynamic> fields, {
     bool markCorrected = false,
   }) {
+    if (fields.containsKey('consumedAmount')) {
+      final value = fields['consumedAmount'];
+      if (value is! num || !_isValidConsumedAmount(value.toDouble())) {
+        return Future<void>.error(
+          ArgumentError.value(
+            value,
+            'consumedAmount',
+            'must be finite and positive',
+          ),
+        );
+      }
+    }
     final now = _clock.nowTZ();
     return _store.update(
       uid,
@@ -250,6 +285,17 @@ class FoodEntryRepository {
     required double quantity,
     required MealType mealType,
   }) async {
+    _requireFiniteInRange(kcal, 'kcal', 0, 10000);
+    _requireFiniteInRange(protein, 'protein', 0, _kMaxFirestoreAmount);
+    _requireFiniteInRange(carbs, 'carbs', 0, _kMaxFirestoreAmount);
+    _requireFiniteInRange(fat, 'fat', 0, _kMaxFirestoreAmount);
+    if (!_isValidConsumedAmount(quantity)) {
+      throw ArgumentError.value(
+        quantity,
+        'quantity',
+        'must be finite and positive',
+      );
+    }
     final now = _clock.nowTZ();
     return _store.add(uid, {
       'uid': uid,
@@ -263,7 +309,11 @@ class FoodEntryRepository {
       'baseCarbs': carbs,
       'baseFat': fat,
       'servingSize': servingSize,
-      'servingMultiplier': quantity,
+      'nutritionBasis': 'portion',
+      'nutritionAmount': 1.0,
+      'nutritionUnit': 'portion',
+      'consumedAmount': quantity,
+      'reviewReasons': <String>[],
       'mealType': mealType.name,
       'confidence': 1.0,
       'corrected': true,

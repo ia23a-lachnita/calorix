@@ -35,6 +35,62 @@ FoodEntry _entry({
       ],
     );
 
+FoodEntry _canonicalEntry({
+  String basis = 'package',
+  double? nutritionAmount = 500,
+  String unit = 'ml',
+  double? consumedAmount = 250,
+  String? status,
+  double servingMultiplier = 9,
+  int? packageUnitCount,
+  double? unitAmount,
+  List<DetectedItem>? detectedItems,
+}) =>
+    FoodEntry.fromData(
+      id: 'e1',
+      data: {
+        'uid': 'u1',
+        'timestamp': DateTime(2026, 7, 8, 12, 48),
+        'date': '2026-07-08',
+        'scanMode': 'barcode',
+        'status':
+            status ?? (consumedAmount == null ? 'needs_review' : 'complete'),
+        'foodName': 'Vitamin Well Reload',
+        'baseKcal': 85.0,
+        'baseProtein': 0.0,
+        'baseCarbs': 21.0,
+        'baseFat': 0.0,
+        'servingMultiplier': servingMultiplier,
+        'nutritionBasis': basis,
+        'nutritionAmount': nutritionAmount,
+        'nutritionUnit': unit,
+        if (consumedAmount != null) 'consumedAmount': consumedAmount,
+        if (packageUnitCount != null) 'packageUnitCount': packageUnitCount,
+        if (unitAmount != null) 'unitAmount': unitAmount,
+        if (detectedItems != null)
+          'detectedItems': detectedItems.map((d) => d.toMap()).toList(),
+        'reviewReasons': <String>[],
+      },
+    );
+
+FoodEntry _invalidCanonicalEntry() => FoodEntry.fromData(
+      id: 'e1',
+      data: {
+        'uid': 'u1',
+        'timestamp': DateTime(2026, 7, 8, 12, 48),
+        'date': '2026-07-08',
+        'scanMode': 'barcode',
+        'status': 'complete',
+        'foodName': 'Invalid package',
+        'baseKcal': 85.0,
+        'servingMultiplier': 9.0,
+        'nutritionBasis': 'package',
+        'nutritionAmount': null,
+        'nutritionUnit': 'ml',
+        'reviewReasons': <String>[],
+      },
+    );
+
 Widget _app(
   FoodEntry? entry, {
   ThemeMode themeMode = ThemeMode.dark,
@@ -153,6 +209,236 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Save to Today'), findsOneWidget);
   });
+
+  final presentationCases = <(String, FoodEntry, List<String>)>[
+    ('package ml', _canonicalEntry(), ['500 ml bottle', '250 ml']),
+    (
+      'package g',
+      _canonicalEntry(
+        nutritionAmount: 250,
+        unit: 'g',
+        consumedAmount: 125,
+      ),
+      ['250 g pack', '125 g'],
+    ),
+    (
+      'agreeing multipack',
+      _canonicalEntry(
+        nutritionAmount: 1500,
+        consumedAmount: 1500,
+        packageUnitCount: 6,
+        unitAmount: 250,
+      ),
+      ['6 × 250 ml · whole pack', '1500 ml'],
+    ),
+    (
+      'contradictory multipack fallback',
+      _canonicalEntry(
+        nutritionAmount: 1500,
+        consumedAmount: 1500,
+        packageUnitCount: 6,
+        unitAmount: 300,
+      ),
+      ['1500 ml bottle', '1500 ml'],
+    ),
+    (
+      'portion',
+      _canonicalEntry(
+        basis: 'portion',
+        nutritionAmount: 1,
+        unit: 'portion',
+        consumedAmount: 1,
+      ),
+      ['full visible portion', '1 portion'],
+    ),
+    (
+      'resolved per-100',
+      _canonicalEntry(
+        basis: 'per100g',
+        nutritionAmount: 100,
+        unit: 'g',
+        consumedAmount: 150,
+      ),
+      ['100 g reference', '150 g'],
+    ),
+    (
+      'decimal package amount',
+      _canonicalEntry(
+        nutritionAmount: 250.5,
+        unit: 'g',
+        consumedAmount: 125.25,
+      ),
+      ['250.5 g pack', '125.25 g'],
+    ),
+  ];
+  for (final (name, entry, labels) in presentationCases) {
+    testWidgets('view mode formats $name canonical amount', (tester) async {
+      await tester.pumpWidget(_app(entry));
+      await _pump(tester);
+      for (final label in labels) {
+        expect(find.text(label), findsOneWidget, reason: name);
+      }
+      expect(find.byKey(const Key('canonical-amount-control')), findsNothing);
+      expect(find.byKey(const Key('legacy-serving-stepper')), findsNothing);
+    });
+  }
+
+  testWidgets('unresolved per-100 amount fails closed in view mode',
+      (tester) async {
+    await tester.pumpWidget(
+      _app(_canonicalEntry(
+        basis: 'per100g',
+        nutritionAmount: 100,
+        unit: 'g',
+        consumedAmount: null,
+      )),
+    );
+    await _pump(tester);
+    expect(find.text('100 g reference · amount required'), findsOneWidget);
+    expect(find.text('Amount required'), findsOneWidget);
+    expect(find.textContaining('9 serving'), findsNothing);
+  });
+
+  testWidgets('invalid canonical tuple is unavailable in view mode',
+      (tester) async {
+    await tester.pumpWidget(_app(_invalidCanonicalEntry()));
+    await _pump(tester);
+    expect(find.text('Amount unavailable'), findsNWidgets(2));
+    expect(find.textContaining('9 serving'), findsNothing);
+    expect(find.byKey(const Key('canonical-amount-control')), findsNothing);
+    expect(find.byKey(const Key('legacy-serving-stepper')), findsNothing);
+  });
+
+  testWidgets('edit mode exposes only canonical amount controls',
+      (tester) async {
+    await tester.pumpWidget(_app(_canonicalEntry()));
+    await _pump(tester);
+    await tester.tap(find.text('Edit'));
+    await tester.pump();
+    expect(find.byKey(const Key('canonical-amount-control')), findsOneWidget);
+    expect(find.byKey(const Key('legacy-serving-stepper')), findsNothing);
+    expect(find.byKey(const Key('serving-increment')), findsNothing);
+    expect(find.byKey(const Key('serving-decrement')), findsNothing);
+  });
+
+  testWidgets('edit mode exposes only the legacy quarter-step control',
+      (tester) async {
+    await tester.pumpWidget(_app(_entry()));
+    await _pump(tester);
+    await tester.tap(find.text('Edit'));
+    await tester.pump();
+    expect(find.byKey(const Key('legacy-serving-stepper')), findsOneWidget);
+    expect(find.byKey(const Key('canonical-amount-control')), findsNothing);
+    expect(find.byKey(const Key('serving-increment')), findsOneWidget);
+    expect(find.byKey(const Key('serving-decrement')), findsOneWidget);
+  });
+
+  testWidgets('invalid canonical tuple exposes no amount control',
+      (tester) async {
+    await tester.pumpWidget(_app(_invalidCanonicalEntry()));
+    await _pump(tester);
+    await tester.tap(find.text('Edit'));
+    await tester.pump();
+    expect(find.byKey(const Key('canonical-amount-control')), findsNothing);
+    expect(find.byKey(const Key('legacy-serving-stepper')), findsNothing);
+    expect(find.byKey(const Key('serving-increment')), findsNothing);
+  });
+
+  testWidgets(
+      'Vitamin Well display and base edits use 250 over 500 and ignore multiplier 9',
+      (tester) async {
+    await tester.pumpWidget(_app(_canonicalEntry()));
+    await _pump(tester);
+
+    expect(find.text('43'), findsOneWidget);
+    expect(find.text('11'), findsOneWidget);
+    expect(find.text('765'), findsNothing);
+
+    await tester.tap(find.text('Edit'));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('kcal-editor')));
+    await _pump(tester);
+    await tester.enterText(find.byType(TextField).last, '50');
+    await tester.tap(find.text('Done'));
+    await _pump(tester);
+
+    final pending = ProviderScope.containerOf(
+      tester.element(find.byType(FoodDetailSheet)),
+    ).read(pendingEditsProvider('e1'));
+    expect(pending.kcal, 100);
+    expect(pending.servingMultiplier, isNull);
+  });
+
+  testWidgets(
+      'canonical amount editor preserves exact input and rescales totals',
+      (tester) async {
+    await tester.pumpWidget(_app(_canonicalEntry()));
+    await _pump(tester);
+    await tester.tap(find.text('Edit'));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('canonical-amount-control')));
+    await _pump(tester);
+    await tester.enterText(find.byType(TextField).last, '500');
+    await tester.tap(find.text('Done'));
+    await _pump(tester);
+
+    final pending = ProviderScope.containerOf(
+      tester.element(find.byType(FoodDetailSheet)),
+    ).read(pendingEditsProvider('e1'));
+    expect(pending.consumedAmount, 500);
+    expect(pending.servingMultiplier, isNull);
+    expect(find.text('85'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(
+          const Key('macro-editor-Carbs'),
+          skipOffstage: false,
+        ),
+        matching: find.text('21', skipOffstage: false),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('unresolved canonical amount must be supplied before base edits',
+      (tester) async {
+    await tester.pumpWidget(
+      _app(_canonicalEntry(
+        basis: 'per100g',
+        nutritionAmount: 100,
+        unit: 'g',
+        consumedAmount: null,
+      )),
+    );
+    await _pump(tester);
+    await tester.tap(find.text('Edit'));
+    await tester.pump();
+
+    expect(find.byKey(const Key('canonical-amount-control')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('kcal-editor')));
+    await _pump(tester);
+    expect(find.text('Edit calories'), findsNothing);
+  });
+
+  for (final invalid in ['0', '-1', 'NaN', 'Infinity', '-Infinity', 'abc']) {
+    testWidgets('canonical amount editor rejects $invalid', (tester) async {
+      await tester.pumpWidget(_app(_canonicalEntry()));
+      await _pump(tester);
+      await tester.tap(find.text('Edit'));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('canonical-amount-control')));
+      await _pump(tester);
+      await tester.enterText(find.byType(TextField).last, invalid);
+      await tester.tap(find.text('Done'));
+      await _pump(tester);
+
+      expect(find.byType(TextField), findsOneWidget);
+      final pending = ProviderScope.containerOf(
+        tester.element(find.byType(FoodDetailSheet)),
+      ).read(pendingEditsProvider('e1'));
+      expect(pending.consumedAmount, isNull);
+    });
+  }
 
   testWidgets('edit mode exposes and applies direct nutrition inputs',
       (tester) async {
@@ -365,4 +651,64 @@ void main() {
         cachedImage.imageUrl, 'https://example.com/resolved/scans/u1/e1.jpg');
     tester.takeException();
   });
+
+  testWidgets(
+      'canonical package with detected items shows item count, weight, and consumed',
+      (tester) async {
+    final entry = _canonicalEntry(
+      nutritionAmount: 500,
+      unit: 'ml',
+      consumedAmount: 250,
+      detectedItems: const [
+        DetectedItem(name: 'Water', weight: 150),
+        DetectedItem(name: 'Flavoring', weight: 150),
+      ],
+    );
+    await tester.pumpWidget(_app(entry));
+    await _pump(tester);
+
+    expect(find.text('2 items · ≈ 300g'), findsOneWidget);
+    expect(find.text('500 ml bottle'), findsOneWidget);
+    expect(find.text('250 ml'), findsOneWidget);
+  });
+
+  for (final (name, malformedValue) in [
+    ('NaN', double.nan),
+    ('Infinity', double.infinity),
+    ('-Infinity', double.negativeInfinity),
+    ('-1', -1.0),
+    ('0', 0.0),
+    ('1000000001', 1000000001.0),
+  ]) {
+    testWidgets(
+        'malformed persisted consumedAmount $name does not throw in edit mode',
+        (tester) async {
+      final entry = _canonicalEntry(
+        consumedAmount: malformedValue,
+      );
+      await tester.pumpWidget(_app(entry));
+      await _pump(tester);
+
+      await tester.tap(find.text('Edit'));
+      await tester.pump();
+
+      expect(find.byKey(const Key('canonical-amount-control')), findsOneWidget);
+      expect(
+        find.textContaining('Set amount'),
+        findsOneWidget,
+        reason:
+            'malformed consumedAmount $name must display Set amount in edit mode',
+      );
+      expect(find.byKey(const Key('legacy-serving-stepper')), findsNothing);
+
+      await tester.tap(find.byKey(const Key('canonical-amount-control')));
+      await _pump(tester);
+
+      final textFields = find.byType(TextField);
+      expect(textFields, findsOneWidget);
+      final field = tester.widget<TextFormField>(find.byType(TextFormField));
+      expect(field.initialValue, isEmpty,
+          reason: 'editor must open empty for malformed consumedAmount $name');
+    });
+  }
 }
