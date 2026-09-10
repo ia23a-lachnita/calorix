@@ -236,13 +236,38 @@ describe('createLiveNutritionEvalAdapter', () => {
       ...normalizedSuccess,
       reviewReasons: undefined,
     }).success).toBe(true);
-    expect(NutritionPredictionSchema.safeParse({
+    const failure = (failureDetail: string) => NutritionPredictionSchema.safeParse({
       parseStatus: 'failure',
       source: 'label',
       decision: 'error',
       failureCategory: 'schema',
       failureCode: 'model_response_invalid',
-    }).success).toBe(true);
+      failureDetail,
+    });
+    for (const detail of [
+      'no_json_object_in_response',
+      'invalid_json',
+      'schema_violation:(root)',
+      'schema_violation:detectedItems.0.weight',
+      'schema_violation:candidates.1.name',
+      'schema_violation:packageReference.unit',
+    ]) {
+      expect(failure(detail)).toMatchObject({ success: true, data: { failureDetail: detail } });
+    }
+    for (const detail of [
+      'provider returned Secret food',
+      'https://private.example/vision',
+      'Bearer secret-token',
+      'token=secret-token',
+      'prompt: describe this food',
+      'Error: model failure\n    at /private/provider.ts:42',
+      '/private/provider.ts:42',
+      '../secrets/provider.ts',
+      'schema_violation:unknownField',
+      'schema_violation:detectedItems..weight',
+      'schema_violation:detectedItems.-1.weight',
+      'schema_violation:detectedItems[0].weight',
+    ]) expect(failure(detail).success).toBe(false);
   });
 
   it('keeps nutrition normalization failures inside the stable schema category', () => {
@@ -632,8 +657,9 @@ describe('createLiveNutritionEvalAdapter', () => {
     expect(normalizeVisionNutritionFn).toHaveBeenCalledOnce();
   });
 
-  it('maps malformed model text to schema/model_response_invalid without raw diagnostics', async () => {
-    const { adapter } = makeAdapter('not JSON: bearer secret-token');
+  it('preserves a safe non-JSON parser detail without serializing raw model output', async () => {
+    const rawProviderOutput = 'not JSON: Secret food at https://private.example/vision with Bearer secret-token in /private/provider.ts:42';
+    const { adapter } = makeAdapter(rawProviderOutput);
 
     const prediction = await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
 
@@ -643,7 +669,38 @@ describe('createLiveNutritionEvalAdapter', () => {
       decision: 'error',
       failureCategory: 'schema',
       failureCode: 'model_response_invalid',
+      failureDetail: 'no_json_object_in_response',
     });
+    const serialized = JSON.stringify(prediction);
+    for (const forbidden of [
+      rawProviderOutput,
+      'Secret food',
+      'https://private.example/vision',
+      'Bearer',
+      'secret-token',
+      '/private/provider.ts:42',
+    ]) expect(serialized).not.toContain(forbidden);
+  });
+
+  it('preserves a safe schema path for an invalid detected-item weight without serializing model content', async () => {
+    const { adapter } = makeAdapter(modelText('meal', {
+      name: 'Secret food',
+      detectedItems: [{ name: 'Secret ingredient', weight: null }],
+    }));
+
+    const prediction = await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toEqual({
+      parseStatus: 'failure',
+      source: 'meal',
+      decision: 'error',
+      failureCategory: 'schema',
+      failureCode: 'model_response_invalid',
+      failureDetail: 'schema_violation:detectedItems.0.weight',
+    });
+    const serialized = JSON.stringify(prediction);
+    expect(serialized).not.toContain('Secret food');
+    expect(serialized).not.toContain('Secret ingredient');
   });
 
   it('maps a thrown vision dependency to provider/provider_request_failed', async () => {

@@ -387,6 +387,21 @@ describe('public-manifest', () => {
     }
   });
 
+  it('declares each barcode case as supplied catalog/package input, not barcode OCR evidence', () => {
+    const manifest = loadManifest();
+    const barcodeCases = manifest.cases.filter(
+      (c) => c.source.dataset === 'open-food-facts' && c.scanMode === 'barcode',
+    );
+    expect(barcodeCases).toHaveLength(4);
+    for (const c of barcodeCases) {
+      const r = c as unknown as Record<string, unknown>;
+      expect(
+        r.suppliedBarcode,
+        `case ${c.id} must supply a barcode to exercise catalog/package lookup`,
+      ).toBe(c.expectedBarcode);
+    }
+  });
+
   it('no test performs network requests (default mode)', () => {
     const originalFetch = globalThis.fetch;
     const fetchSpy = vi.fn();
