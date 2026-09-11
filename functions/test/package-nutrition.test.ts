@@ -351,6 +351,85 @@ describe('normalizeOffPackage', () => {
     expect(draft).not.toHaveProperty('consumedAmount');
   });
 
+  it('uses a reliable name multipack when raw quantity only describes one unit', () => {
+    const draft = normalizeOffPackage({
+      ...vitamin500,
+      name: 'Freeway Cola xX (6x330ml cans)',
+      rawQuantity: '330ml',
+      productQuantity: { amount: 330, unit: 'ml' },
+      per100Reference: { ...vitamin500.per100Reference!, kcal: 1, carbsG: 0 },
+    });
+
+    expect(draft).toMatchObject({
+      nutritionBasis: 'package',
+      nutritionAmount: 1980,
+      nutritionUnit: 'ml',
+      baseKcal: 19.8,
+      packageUnitCount: 6,
+      unitAmount: 330,
+      reviewReasons: ['nutrition_basis_ambiguous'],
+    });
+    expect(draft).not.toHaveProperty('consumedAmount');
+  });
+
+  it('retains complete semantics when reliable name and raw multipacks match the structured total', () => {
+    const draft = normalizeOffPackage({
+      ...vitamin500,
+      name: 'Freeway Cola (6×330ml cans)',
+      rawQuantity: '6x330ml cans',
+      productQuantity: { amount: 1980, unit: 'ml' },
+    });
+
+    expect(draft).toMatchObject({
+      nutritionBasis: 'package',
+      nutritionAmount: 1980,
+      packageUnitCount: 6,
+      unitAmount: 330,
+      consumedAmount: 1980,
+      reviewReasons: [],
+    });
+  });
+
+  it('fails closed when reliable name and raw multipacks conflict', () => {
+    const draft = normalizeOffPackage({
+      ...vitamin500,
+      name: 'Freeway Cola (4x330ml cans)',
+      rawQuantity: '6x330ml cans',
+      productQuantity: { amount: 1980, unit: 'ml' },
+    });
+
+    expect(draft).toMatchObject({
+      nutritionBasis: 'per100g',
+      nutritionAmount: 100,
+      nutritionUnit: 'ml',
+      reviewReasons: ['nutrition_basis_ambiguous'],
+    });
+    expect(draft).not.toHaveProperty('consumedAmount');
+    expect(draft).not.toHaveProperty('packageUnitCount');
+    expect(draft).not.toHaveProperty('unitAmount');
+  });
+
+  it.each(['Freeway Cola X', 'Freeway Cola 2x spicy'])(
+    'does not treat an ordinary product name with %s as a multipack',
+    (name) => {
+      const draft = normalizeOffPackage({
+        ...vitamin500,
+        name,
+        rawQuantity: '500ml',
+        productQuantity: { amount: 500, unit: 'ml' },
+      });
+
+      expect(draft).toMatchObject({
+        nutritionBasis: 'package',
+        nutritionAmount: 500,
+        consumedAmount: 500,
+        reviewReasons: [],
+      });
+      expect(draft).not.toHaveProperty('packageUnitCount');
+      expect(draft).not.toHaveProperty('unitAmount');
+    },
+  );
+
   it('falls back to per-100 nutrition when multipack text is unreliable', () => {
     const unreliable = {
       ...vitamin500,

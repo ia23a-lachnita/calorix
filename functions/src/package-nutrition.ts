@@ -201,6 +201,7 @@ export function normalizeOffPackage(product: OffProduct): NutritionDraft {
   const servingReference = validReference(product.servingReference);
   const quantity = structuredQuantity(product.productQuantity);
   const rawMultipack = product.rawQuantity ? parseReliableMultipack(product.rawQuantity) : null;
+  const nameMultipack = product.name ? parseReliableMultipack(product.name) : null;
   const barcode = confirmedBarcode(product.barcode);
 
   if (product.productQuantityIssue) {
@@ -227,8 +228,23 @@ export function normalizeOffPackage(product: OffProduct): NutritionDraft {
     );
   }
 
-  if (rawMultipack) {
-    if (rawMultipack.unit !== reference.unit) {
+  if (!rawMultipack && hasUnreliableMultipackText(product.rawQuantity)) {
+    return unresolvedDraft(reference, 'nutrition_basis_ambiguous', servingReference ?? undefined, barcode);
+  }
+
+  if (
+    rawMultipack && nameMultipack && (
+      rawMultipack.packageUnitCount !== nameMultipack.packageUnitCount ||
+      rawMultipack.unitAmount !== nameMultipack.unitAmount ||
+      rawMultipack.unit !== nameMultipack.unit
+    )
+  ) {
+    return unresolvedDraft(reference, 'nutrition_basis_ambiguous', servingReference ?? undefined, barcode);
+  }
+
+  const multipack = rawMultipack ?? nameMultipack;
+  if (multipack) {
+    if (multipack.unit !== reference.unit) {
       return unresolvedDraft(reference, 'nutrition_basis_ambiguous', servingReference ?? undefined, barcode);
     }
     if (quantity && quantity.unit !== reference.unit) {
@@ -236,22 +252,18 @@ export function normalizeOffPackage(product: OffProduct): NutritionDraft {
     }
     const draft = makeDraft(
       reference,
-      rawMultipack.inferredTotal,
+      multipack.inferredTotal,
       'package',
-      quantity && quantity.amount !== rawMultipack.inferredTotal
+      quantity && quantity.amount !== multipack.inferredTotal
         ? ['nutrition_basis_ambiguous']
         : [],
       servingReference ?? undefined,
       barcode,
     );
-    draft.packageUnitCount = rawMultipack.packageUnitCount;
-    draft.unitAmount = rawMultipack.unitAmount;
-    if (draft.reviewReasons.length === 0) draft.consumedAmount = rawMultipack.inferredTotal;
+    draft.packageUnitCount = multipack.packageUnitCount;
+    draft.unitAmount = multipack.unitAmount;
+    if (draft.reviewReasons.length === 0) draft.consumedAmount = multipack.inferredTotal;
     return draft;
-  }
-
-  if (hasUnreliableMultipackText(product.rawQuantity)) {
-    return unresolvedDraft(reference, 'nutrition_basis_ambiguous', servingReference ?? undefined, barcode);
   }
 
   if (quantity) {
