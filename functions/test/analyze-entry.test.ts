@@ -105,7 +105,7 @@ function overflowPackageResponse(): string {
 interface Recorded {
   updates: Record<string, unknown>[];
   pushes: ScanPushMessage[];
-  visionCalls: Array<{ model: string; prompt: string }>;
+  visionCalls: Array<{ model: string; prompt: string; source?: string }>;
   offCalls: string[];
   imageLoads: number;
 }
@@ -168,8 +168,8 @@ function makeDeps(overrides: Partial<AnalyzeEntryDeps> = {}): {
       recorded.imageLoads += 1;
       return 'aW1hZ2U=';
     },
-    generateVision: async (model, prompt) => {
-      recorded.visionCalls.push({ model, prompt });
+    generateVision: async (model, prompt, _imageBase64, source?) => {
+      recorded.visionCalls.push({ model, prompt, source });
       return modelResponse(0.91);
     },
     fetchOffProduct: async (barcode) => {
@@ -355,7 +355,7 @@ describe('handleEntryCreated', () => {
 
     expect(recorded.updates[0]).toEqual({ status: 'processing' });
     expect(recorded.visionCalls).toEqual([
-      { model: 'gemini-config-vision', prompt: 'meal prompt' },
+      { model: 'gemini-config-vision', prompt: 'meal prompt', source: 'meal' },
     ]);
     expect(recorded.updates[1]).toMatchObject({
       status: 'complete',
@@ -380,6 +380,18 @@ describe('handleEntryCreated', () => {
     expect(recorded.updates[1]).not.toHaveProperty('kcal');
     expect(recorded.updates[1]).not.toHaveProperty('protein');
     expect(recorded.pushes[0]!.notification.body).toBe('Chicken Rice Bowl · 620 kcal');
+  });
+
+  it.each([
+    { scanMode: 'meal', prompt: 'meal prompt' },
+    { scanMode: 'label', prompt: 'label prompt' },
+    { scanMode: 'barcode', prompt: 'barcode prompt' },
+  ] as const)('forwards $scanMode scan source to the vision adapter', async ({ scanMode, prompt }) => {
+    const { deps, recorded } = makeDeps();
+
+    await handleEntryCreated('e1', { ...pendingEntry, scanMode }, deps);
+
+    expect(recorded.visionCalls[0]).toMatchObject({ prompt, source: scanMode });
   });
 
   it('completes a valid label with an explicit null barcode and no barcode review reason', async () => {

@@ -1,4 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
+
+const genaiAdapterFactoryMock = vi.hoisted(() => ({
+  createGenAIAdapter: vi.fn(),
+  generateVision: vi.fn(),
+}));
 import {
   buildAnalyzeEntryDepsFactory,
   handleRetryEntryAnalysis,
@@ -19,6 +24,10 @@ const firestoreFactoryMock = vi.hoisted(() => ({
 vi.mock('firebase-admin/firestore', () => ({
   FieldValue: { delete: firestoreFactoryMock.deleteField },
   getFirestore: firestoreFactoryMock.getFirestore,
+}));
+
+vi.mock('../src/genai-adapter', () => ({
+  createGenAIAdapter: genaiAdapterFactoryMock.createGenAIAdapter,
 }));
 
 // ---------------------------------------------------------------------------
@@ -203,6 +212,39 @@ describe('handleRetryEntryAnalysis', () => {
     expect(firestoreFactoryMock.getFirestore).toHaveBeenCalledTimes(1);
     expect(firestoreFactoryMock.deleteField).toHaveBeenCalledTimes(1);
     expect((deps as unknown as Record<string, unknown>).analysisFieldDeletion).toBe(deletionSentinel);
+  });
+
+  it('factory forwards label and barcode source through the real vision-adapter wrapper', async () => {
+    const deletionSentinel = Object.freeze({ firestore: 'delete' });
+    const entryRef = { update: vi.fn() };
+    const entries = { doc: vi.fn(() => entryRef) };
+    const userDoc = { collection: vi.fn(() => entries) };
+    const users = { doc: vi.fn(() => userDoc) };
+    const db = { collection: vi.fn(() => users) };
+    firestoreFactoryMock.deleteField.mockReturnValue(deletionSentinel);
+    firestoreFactoryMock.getFirestore.mockReturnValue(db);
+    genaiAdapterFactoryMock.generateVision.mockResolvedValue('provider response');
+    genaiAdapterFactoryMock.createGenAIAdapter.mockReturnValue({
+      generateChat: vi.fn(),
+      generateVision: genaiAdapterFactoryMock.generateVision,
+    });
+
+    const deps = buildAnalyzeEntryDepsFactory('uid-1', 'entry-1');
+    const generateVision = deps.generateVision as unknown as (
+      model: string,
+      prompt: string,
+      imageBase64: string,
+      source: 'label' | 'barcode',
+    ) => Promise<string>;
+    await generateVision('vision-model', 'label prompt', 'image-data', 'label');
+    await generateVision('vision-model', 'barcode prompt', 'image-data', 'barcode');
+
+    expect(genaiAdapterFactoryMock.generateVision).toHaveBeenNthCalledWith(
+      1, 'vision-model', 'label prompt', 'image-data', 'label',
+    );
+    expect(genaiAdapterFactoryMock.generateVision).toHaveBeenNthCalledWith(
+      2, 'vision-model', 'barcode prompt', 'image-data', 'barcode',
+    );
   });
 
   describe('typed error conditions', () => {

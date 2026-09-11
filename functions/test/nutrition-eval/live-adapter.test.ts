@@ -310,7 +310,7 @@ describe('createLiveNutritionEvalAdapter', () => {
     });
     expectReviewPrediction(prediction, []);
     expect(generateVision).toHaveBeenCalledWith(
-      'gemini-test-model', MEAL_ANALYSIS_PROMPT, 'AP8B',
+      'gemini-test-model', MEAL_ANALYSIS_PROMPT, 'AP8B', 'meal',
     );
   });
 
@@ -349,7 +349,7 @@ describe('createLiveNutritionEvalAdapter', () => {
     });
     expectReviewPrediction(prediction, []);
     expect(generateVision).toHaveBeenCalledWith(
-      'gemini-test-model', LABEL_ANALYSIS_PROMPT, 'AP8B',
+      'gemini-test-model', LABEL_ANALYSIS_PROMPT, 'AP8B', 'label',
     );
   });
 
@@ -511,7 +511,7 @@ describe('createLiveNutritionEvalAdapter', () => {
     expectReviewPrediction(prediction, []);
     expect(fetchOffProductFn).not.toHaveBeenCalled();
     expect(generateVision).toHaveBeenCalledWith(
-      'gemini-test-model', BARCODE_ANALYSIS_PROMPT, 'AP8B',
+      'gemini-test-model', BARCODE_ANALYSIS_PROMPT, 'AP8B', 'barcode',
     );
   });
 
@@ -529,7 +529,7 @@ describe('createLiveNutritionEvalAdapter', () => {
     expect(fetchOffProductFn).toHaveBeenNthCalledWith(1, rawBarcode);
     expect(fetchOffProductFn).toHaveBeenNthCalledWith(2, modelBarcode);
     expect(generateVision).toHaveBeenCalledWith(
-      'gemini-test-model', BARCODE_ANALYSIS_PROMPT, 'AP8B',
+      'gemini-test-model', BARCODE_ANALYSIS_PROMPT, 'AP8B', 'barcode',
     );
     expect(prediction).toMatchObject({
       parseStatus: 'success',
