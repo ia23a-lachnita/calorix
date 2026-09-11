@@ -120,7 +120,8 @@ function sameVector(left: NutritionReference, right: NutritionReference): boolea
   return ['kcal', 'proteinG', 'carbsG', 'fatG'].every((key) => {
     const a = left[key as keyof NutritionReference] as number;
     const b = right[key as keyof NutritionReference] as number;
-    return Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
+    return Number.isFinite(a) && Number.isFinite(b) &&
+      Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
   });
 }
 
@@ -155,14 +156,15 @@ function sourceContractValid(value: VisionResponse, source: AnalysisSource): boo
   if (value.nutritionBasis === 'per100g') {
     return value.nutritionAmount === 100 &&
       value.nutritionUnit !== 'portion' &&
-      value.observedPackageAmount !== undefined &&
-      value.observedPackageUnit === value.nutritionUnit &&
       value.per100Reference !== undefined &&
       value.per100Reference.amount === 100 &&
       value.per100Reference.unit === value.nutritionUnit &&
       (value.packageReference === undefined ||
-        (packageTolerance(value.packageReference.amount, value.observedPackageAmount!) &&
-          value.packageReference.unit === value.nutritionUnit)) &&
+        (value.packageReference.unit === value.nutritionUnit &&
+          (!hasObservation || packageTolerance(value.packageReference.amount, value.observedPackageAmount!)))) &&
+      (!hasObservation ||
+        (value.observedPackageAmount !== undefined &&
+          value.observedPackageUnit === value.nutritionUnit)) &&
       (value.servingReference === undefined || value.servingReference.unit === value.nutritionUnit);
   }
 
@@ -212,7 +214,15 @@ export function parseNutritionResponse(text: string, source: AnalysisSource = 'm
   } catch {
     return { ok: false, reason: 'invalid_json' };
   }
-  const parsed = visionResponseSchema.safeParse(raw);
+  const canonicalRaw = raw !== null && typeof raw === 'object' && !Array.isArray(raw) &&
+    (raw as Record<string, unknown>).observedPackageAmount === null &&
+    (raw as Record<string, unknown>).observedPackageUnit === null
+    ? (() => {
+      const { observedPackageAmount: _amount, observedPackageUnit: _unit, ...withoutNullObservation } = raw as Record<string, unknown>;
+      return withoutNullObservation;
+    })()
+    : raw;
+  const parsed = visionResponseSchema.safeParse(canonicalRaw);
   if (!parsed.success || !sourceContractValid(parsed.data, source)) {
     const issue = parsed.success ? undefined : parsed.error.issues[0];
     return { ok: false, reason: `schema_violation:${issue?.path.join('.') || '(root)'}` };
@@ -316,6 +326,7 @@ export function normalizeVisionNutrition(
 
   const modelBarcode = result.modelBarcode;
   const reasons: ReviewReason[] = barcodeReasons(validRaw, modelBarcode, validConfirmed);
+  if (result.source === 'label') reasons.push('nutrition_basis_ambiguous');
   let draft: NutritionDraft;
 
   if (result.nutritionBasis === 'portion') {
@@ -375,29 +386,60 @@ export function normalizeVisionNutrition(
       reviewReasons: [],
     };
   } else {
-    const amount = result.packageReference?.amount ?? result.observedPackageAmount!;
     const density = result.per100Reference!;
-    draft = {
-      ...scaledReference(density, amount),
-      nutritionBasis: 'package',
-      nutritionAmount: amount,
-      nutritionUnit: result.nutritionUnit as Extract<NutritionUnit, 'g' | 'ml'>,
-      consumedAmount: amount,
-      per100Reference: density,
-      ...(result.servingReference === undefined ? {} : { servingReference: result.servingReference }),
-      reviewReasons: [],
-    };
-    const canonicalReference: NutritionReference = {
-      kcal: draft.baseKcal,
-      proteinG: draft.baseProtein,
-      carbsG: draft.baseCarbs,
-      fatG: draft.baseFat,
-      amount,
-      unit: result.nutritionUnit as Extract<NutritionUnit, 'g' | 'ml'>,
-    };
-    if (!sameVector(referenceFromResult(result), density) ||
-      (result.packageReference !== undefined && !sameVector(result.packageReference, canonicalReference))) {
-      reasons.push('nutrition_arithmetic_mismatch');
+    if (result.observedPackageAmount === undefined) {
+      draft = {
+        baseKcal: density.kcal,
+        baseProtein: density.proteinG,
+        baseCarbs: density.carbsG,
+        baseFat: density.fatG,
+        nutritionBasis: 'per100g',
+        nutritionAmount: 100,
+        nutritionUnit: result.nutritionUnit as Extract<NutritionUnit, 'g' | 'ml'>,
+        per100Reference: density,
+        ...(result.servingReference === undefined ? {} : { servingReference: result.servingReference }),
+        reviewReasons: [],
+      };
+      reasons.push('package_quantity_missing');
+      if (!sameVector(referenceFromResult(result), density)) reasons.push('nutrition_arithmetic_mismatch');
+      if (result.packageReference !== undefined) {
+        const expectedPackage = scaledReference(density, result.packageReference.amount);
+        const expectedPackageReference: NutritionReference = {
+          kcal: expectedPackage.baseKcal,
+          proteinG: expectedPackage.baseProtein,
+          carbsG: expectedPackage.baseCarbs,
+          fatG: expectedPackage.baseFat,
+          amount: result.packageReference.amount,
+          unit: result.nutritionUnit as Extract<NutritionUnit, 'g' | 'ml'>,
+        };
+        if (!sameVector(result.packageReference, expectedPackageReference)) {
+          reasons.push('nutrition_arithmetic_mismatch');
+        }
+      }
+    } else {
+      const amount = result.packageReference?.amount ?? result.observedPackageAmount;
+      draft = {
+        ...scaledReference(density, amount),
+        nutritionBasis: 'package',
+        nutritionAmount: amount,
+        nutritionUnit: result.nutritionUnit as Extract<NutritionUnit, 'g' | 'ml'>,
+        consumedAmount: amount,
+        per100Reference: density,
+        ...(result.servingReference === undefined ? {} : { servingReference: result.servingReference }),
+        reviewReasons: [],
+      };
+      const canonicalReference: NutritionReference = {
+        kcal: draft.baseKcal,
+        proteinG: draft.baseProtein,
+        carbsG: draft.baseCarbs,
+        fatG: draft.baseFat,
+        amount,
+        unit: result.nutritionUnit as Extract<NutritionUnit, 'g' | 'ml'>,
+      };
+      if (!sameVector(referenceFromResult(result), density) ||
+        (result.packageReference !== undefined && !sameVector(result.packageReference, canonicalReference))) {
+        reasons.push('nutrition_arithmetic_mismatch');
+      }
     }
   }
 

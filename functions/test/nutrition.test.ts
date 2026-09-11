@@ -435,7 +435,7 @@ describe('vision normalization', () => {
     });
   });
 
-  it('adds only nutrition_arithmetic_mismatch when package values disagree with density but remain Atwater-consistent', () => {
+  it('adds label basis ambiguity and nutrition arithmetic mismatch when package values disagree with density but remain Atwater-consistent', () => {
     const result = normalizeVisionNutrition(parsePayload(packagePayload({
       kcal: 100,
       carbsG: 25,
@@ -451,7 +451,7 @@ describe('vision normalization', () => {
     });
   });
 
-  it('adds only atwater_mismatch when density and package arithmetic agree but source energy disagrees with macros', () => {
+  it('adds label basis ambiguity and Atwater mismatch when density and package arithmetic agree but source energy disagrees with macros', () => {
     const density = { ...vitaminPer100, proteinG: 15 };
     const result = normalizeVisionNutrition(parsePayload(packagePayload({
       proteinG: 75,
@@ -508,6 +508,92 @@ describe('vision normalization', () => {
     });
     if (result.kind === 'draft') expect(result.draft).not.toHaveProperty('consumedAmount');
   });
+
+  it.each(['label', 'barcode'] as const)(
+    'rejects a per-100 %s result with an unobserved package reference in a different unit',
+    (source) => {
+      expect(nutrition.parseNutritionResponse(JSON.stringify(per100Payload({
+        observedPackageAmount: undefined,
+        observedPackageUnit: undefined,
+        packageReference: { ...vitaminPackage, unit: 'g' },
+      })), source).ok).toBe(false);
+    },
+  );
+
+  it.each([
+    ['label', ['package_quantity_missing', 'nutrition_basis_ambiguous', 'nutrition_arithmetic_mismatch']],
+    ['barcode', ['package_quantity_missing', 'nutrition_arithmetic_mismatch']],
+  ] as const)(
+    'keeps a per-100 %s result with inconsistent unobserved package totals unresolved',
+    (source, reviewReasons) => {
+      const result = normalizeVisionNutrition(parsePayload(per100Payload({
+        observedPackageAmount: undefined,
+        observedPackageUnit: undefined,
+        packageReference: { ...vitaminPackage, kcal: 90 },
+      }), source));
+
+      expect(result).toMatchObject({
+        kind: 'draft',
+        status: 'needs_review',
+        draft: {
+          baseKcal: 17,
+          baseProtein: 0,
+          baseCarbs: 4.2,
+          baseFat: 0,
+          nutritionBasis: 'per100g',
+          nutritionAmount: 100,
+          nutritionUnit: 'ml',
+          per100Reference: vitaminPer100,
+          reviewReasons,
+        },
+      });
+      if (result.kind === 'draft') expect(result.draft).not.toHaveProperty('consumedAmount');
+    },
+  );
+
+  it.each([
+    ['label', ['package_quantity_missing', 'nutrition_basis_ambiguous', 'nutrition_arithmetic_mismatch']],
+    ['barcode', ['package_quantity_missing', 'nutrition_arithmetic_mismatch']],
+  ] as const)(
+    'flags a per-100 %s package reference whose finite expected totals overflow',
+    (source, reviewReasons) => {
+      const overflowingDensity = {
+        kcal: 9e307,
+        proteinG: 0,
+        carbsG: 0,
+        fatG: 1e307,
+        amount: 100,
+        unit: 'ml',
+      };
+      const result = normalizeVisionNutrition(parsePayload(per100Payload({
+        kcal: overflowingDensity.kcal,
+        proteinG: overflowingDensity.proteinG,
+        carbsG: overflowingDensity.carbsG,
+        fatG: overflowingDensity.fatG,
+        observedPackageAmount: undefined,
+        observedPackageUnit: undefined,
+        per100Reference: overflowingDensity,
+        packageReference: { ...overflowingDensity, amount: 1e308 },
+      }), source));
+
+      expect(result).toMatchObject({
+        kind: 'draft',
+        status: 'needs_review',
+        draft: {
+          baseKcal: 9e307,
+          baseProtein: 0,
+          baseCarbs: 0,
+          baseFat: 1e307,
+          nutritionBasis: 'per100g',
+          nutritionAmount: 100,
+          nutritionUnit: 'ml',
+          per100Reference: overflowingDensity,
+          reviewReasons,
+        },
+      });
+      if (result.kind === 'draft') expect(result.draft).not.toHaveProperty('consumedAmount');
+    },
+  );
 
   it.each([
     ['label', ['package_quantity_missing', 'nutrition_basis_ambiguous']],

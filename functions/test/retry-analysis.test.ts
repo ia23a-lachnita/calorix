@@ -602,7 +602,7 @@ describe('handleRetryEntryAnalysis', () => {
       expect(JSON.stringify(doc?.fields)).not.toContain('provider trace must not persist');
     });
 
-    it('retries stale error analysis to a canonical complete result and sends only the complete push route', async () => {
+    it('retries stale error analysis to a canonical review result and sends only the review push route', async () => {
       const deletionSentinel = Object.freeze({ firestore: 'delete' });
       const entryPath = 'users/uid-1/entries/entry-1';
       const docs = new Map<string, FakeDocState>([
@@ -703,7 +703,7 @@ describe('handleRetryEntryAnalysis', () => {
       expect(doc?.fields).toMatchObject({
         uid: 'uid-1',
         date: '2026-09-07',
-        status: 'complete',
+        status: 'needs_review',
         imageUrl: 'https://storage.example/scan.jpg',
         storagePath: 'scans/uid-1/entry-1.jpg',
         scanMode: 'label',
@@ -716,13 +716,14 @@ describe('handleRetryEntryAnalysis', () => {
         nutritionAmount: 500,
         nutritionUnit: 'ml',
         consumedAmount: 500,
+        reviewReasons: ['nutrition_basis_ambiguous'],
       });
       for (const key of [
         'packageUnitCount', 'unitAmount', 'per100Reference', 'servingReference', 'modelBarcode', 'confirmedBarcode', 'barcode',
         'errorCode', 'errorMessage', 'servingMultiplier', 'kcal', 'protein', 'carbs', 'fat',
       ]) expect(doc?.fields).not.toHaveProperty(key);
       expect(pushes).toHaveLength(1);
-      expect(pushes[0]!.notification.title).toBe('Calorix finished your meal scan');
+      expect(pushes[0]!.notification.title).toBe('Calorix scan ready to review');
       expect(pushes[0]!.data).toEqual({ entryId: 'entry-1' });
     });
   });
