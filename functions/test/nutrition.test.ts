@@ -321,6 +321,55 @@ describe('basis-aware nutrition response schema', () => {
 });
 
 describe('vision normalization', () => {
+  it('keeps a high-confidence meal portion canonical while routing it through Review', () => {
+    const result = normalizeVisionNutrition(parsePayload(portionPayload({
+      candidates: [{ name: 'Chicken Rice Bowl', confidence: 0.99, kcal: 620, proteinG: 48, carbsG: 72, fatG: 16 }],
+      detectedItems: [{ name: 'chicken', weight: 250 }],
+      confidence: 0.99,
+    }), 'meal'));
+
+    expect(result).toMatchObject({
+      kind: 'draft',
+      status: 'needs_review',
+      draft: {
+        baseKcal: 620,
+        baseProtein: 48,
+        baseCarbs: 72,
+        baseFat: 16,
+        nutritionBasis: 'portion',
+        nutritionAmount: 1,
+        nutritionUnit: 'portion',
+        consumedAmount: 1,
+        reviewReasons: ['nutrition_basis_ambiguous'],
+      },
+    });
+  });
+
+  it('orders meal basis ambiguity before an Atwater mismatch', () => {
+    const result = normalizeVisionNutrition(parsePayload(portionPayload({
+      kcal: 100,
+      proteinG: 1,
+      carbsG: 2,
+      fatG: 3,
+    }), 'meal'));
+
+    expect(result).toMatchObject({
+      kind: 'draft',
+      status: 'needs_review',
+      draft: {
+        baseKcal: 100,
+        baseProtein: 1,
+        baseCarbs: 2,
+        baseFat: 3,
+        nutritionBasis: 'portion',
+        nutritionAmount: 1,
+        nutritionUnit: 'portion',
+        consumedAmount: 1,
+        reviewReasons: ['nutrition_basis_ambiguous', 'atwater_mismatch'],
+      },
+    });
+  });
+
   it('keeps a label per-100 declaration with observed package evidence in Review', () => {
     const result = normalizeVisionNutrition(parsePayload(per100Payload({
       observedPackageAmount: 495,

@@ -343,7 +343,7 @@ describe('handleEntryCreated', () => {
     expect(recorded.updates).toHaveLength(0);
   });
 
-  it('requires the normalizer canonical meal draft before persisting analysis fields', async () => {
+  it('persists the normalizer-owned meal Review reason and sends the exact review push', async () => {
     const { deps, recorded } = makeDeps({
       getModelConfig: async () => ({
         visionModel: 'gemini-config-vision',
@@ -358,7 +358,7 @@ describe('handleEntryCreated', () => {
       { model: 'gemini-config-vision', prompt: 'meal prompt', source: 'meal' },
     ]);
     expect(recorded.updates[1]).toMatchObject({
-      status: 'complete',
+      status: 'needs_review',
       foodName: 'Chicken Rice Bowl',
       baseKcal: 620,
       baseProtein: 48,
@@ -372,14 +372,26 @@ describe('handleEntryCreated', () => {
       nutritionAmount: 1,
       nutritionUnit: 'portion',
       consumedAmount: 1,
-      reviewReasons: [],
+      reviewReasons: ['nutrition_basis_ambiguous'],
     });
     expect(recorded.updates[1]?.candidates).toEqual([
       expect.objectContaining({ name: 'Chicken Rice Bowl', proteinG: 48 }),
     ]);
+    expect(recorded.updates[1]?.detectedItems).toEqual([]);
+    expect(recorded.updates[1]).not.toHaveProperty('rawBarcode');
+    expect(recorded.updates[1]).not.toHaveProperty('modelBarcode');
+    expect(recorded.updates[1]).not.toHaveProperty('confirmedBarcode');
     expect(recorded.updates[1]).not.toHaveProperty('kcal');
     expect(recorded.updates[1]).not.toHaveProperty('protein');
-    expect(recorded.pushes[0]!.notification.body).toBe('Chicken Rice Bowl · 620 kcal');
+    expect(recorded.pushes[0]).toEqual({
+      token: 'token-1',
+      notification: {
+        title: 'AppName scan ready to review',
+        body: 'Is this Chicken Rice Bowl? Confirm or correct it.',
+      },
+      data: { entryId: 'e1' },
+      android: { priority: 'high' },
+    });
   });
 
   it.each([
@@ -511,7 +523,7 @@ describe('handleEntryCreated', () => {
     });
   });
 
-  it('routes low confidence alone to review without fabricating a blocking reason', async () => {
+  it('keeps the normalizer meal fail-safe reason distinct from low confidence', async () => {
     const { deps, recorded } = makeDeps({
       generateVision: async () => modelResponse(0.62),
     });
@@ -520,7 +532,7 @@ describe('handleEntryCreated', () => {
     expect(recorded.updates[1]).toMatchObject({
       status: 'needs_review',
       confidence: 0.62,
-      reviewReasons: [],
+      reviewReasons: ['nutrition_basis_ambiguous'],
     });
     expect(recorded.pushes[0]!.notification.title).toBe('AppName scan ready to review');
   });
@@ -563,7 +575,10 @@ describe('handleEntryCreated', () => {
   it('skips the push when the user has no FCM token', async () => {
     const { deps, recorded } = makeDeps({ getFcmToken: async () => undefined });
     await handleEntryCreated('e1', pendingEntry, deps);
-    expect(recorded.updates[1]).toMatchObject({ status: 'complete' });
+    expect(recorded.updates[1]).toMatchObject({
+      status: 'needs_review',
+      reviewReasons: ['nutrition_basis_ambiguous'],
+    });
     expect(recorded.pushes).toHaveLength(0);
   });
 
@@ -778,7 +793,7 @@ describe('handleEntryCreated', () => {
     expect(state).not.toHaveProperty('barcode');
   });
 
-  it('keeps a canonical complete result when FCM-token lookup fails after persistence', async () => {
+  it('keeps a normalizer-reviewed meal result when FCM-token lookup fails after persistence', async () => {
     const notificationFailure = new Error('FCM token lookup failed');
     const { deps, recorded, state } = makePersistedDeps(
       pendingEntry,
@@ -792,8 +807,12 @@ describe('handleEntryCreated', () => {
     await expect(handleEntryCreated('e1', pendingEntry, deps)).resolves.toBeUndefined();
 
     expect(recorded.updates).toHaveLength(2);
-    expect(recorded.updates[1]).toMatchObject({ status: 'complete', baseKcal: 620, consumedAmount: 1 });
-    expect(state).toMatchObject({ status: 'complete', baseKcal: 620, consumedAmount: 1 });
+    expect(recorded.updates[1]).toMatchObject({
+      status: 'needs_review', baseKcal: 620, consumedAmount: 1, reviewReasons: ['nutrition_basis_ambiguous'],
+    });
+    expect(state).toMatchObject({
+      status: 'needs_review', baseKcal: 620, consumedAmount: 1, reviewReasons: ['nutrition_basis_ambiguous'],
+    });
     expect(state).not.toHaveProperty('errorCode');
     expect(state).not.toHaveProperty('errorMessage');
     expect(deps.log).toHaveBeenCalledWith(expect.any(String), notificationFailure);
@@ -834,7 +853,9 @@ describe('handleEntryCreated', () => {
 
     expect(recorded.updates).toHaveLength(2);
     expect(recorded.updates[0]).toEqual({ status: 'processing' });
-    expect(recorded.updates[1]).toMatchObject({ status: 'complete', baseKcal: 620, consumedAmount: 1 });
+    expect(recorded.updates[1]).toMatchObject({
+      status: 'needs_review', baseKcal: 620, consumedAmount: 1, reviewReasons: ['nutrition_basis_ambiguous'],
+    });
     expect(recorded.pushes).toHaveLength(0);
   });
 
@@ -911,7 +932,7 @@ describe('handleEntryCreated', () => {
 
     const saved = recorded.updates[1]!;
     expect(saved).toMatchObject({
-      status: 'complete',
+      status: 'needs_review',
       nutritionBasis: 'portion',
       nutritionAmount: 1,
       nutritionUnit: 'portion',
@@ -1067,11 +1088,37 @@ describe('handleEntryCreated', () => {
     expect(recorded.pushes).toHaveLength(0);
   });
 
-  it('sends complete, review, and no error push with the exact entry data payload', async () => {
-    const complete = makeDeps({ generateVision: async () => modelResponse(0.99) });
-    await handleEntryCreated('e1', pendingEntry, complete.deps);
-    expect(complete.recorded.pushes).toHaveLength(1);
-    expect(complete.recorded.pushes[0]!.data).toEqual({ entryId: 'e1' });
+  it('sends normalizer-reviewed meal, confirmed catalog complete, review, and no error pushes', async () => {
+    const mealReview = makeDeps({ generateVision: async () => modelResponse(0.99) });
+    await handleEntryCreated('e1', pendingEntry, mealReview.deps);
+    expect(mealReview.recorded.pushes).toHaveLength(1);
+    expect(mealReview.recorded.pushes[0]!.data).toEqual({ entryId: 'e1' });
+
+    const complete = makeDeps({ fetchOffProduct: async () => knownProduct });
+    await handleEntryCreated(
+      'e1',
+      { ...pendingEntry, scanMode: 'barcode', rawBarcode: knownProduct.barcode },
+      complete.deps,
+    );
+    expect(complete.recorded.updates[1]).toMatchObject({
+      status: 'complete',
+      foodName: 'Nutella',
+      baseKcal: 2156,
+      nutritionBasis: 'package',
+      nutritionAmount: 400,
+      nutritionUnit: 'g',
+      consumedAmount: 400,
+      reviewReasons: [],
+    });
+    expect(complete.recorded.pushes).toEqual([{
+      token: 'token-1',
+      notification: {
+        title: 'AppName finished your meal scan',
+        body: 'Nutella · 2156 kcal',
+      },
+      data: { entryId: 'e1' },
+      android: { priority: 'high' },
+    }]);
 
     const review = makeDeps({ generateVision: async () => modelResponse(0.62, null, 'package') });
     await handleEntryCreated('e1', { ...pendingEntry, scanMode: 'label' }, review.deps);

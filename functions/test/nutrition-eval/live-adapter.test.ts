@@ -293,7 +293,7 @@ describe('createLiveNutritionEvalAdapter', () => {
     });
   });
 
-  it('uses the strict meal payload and exposes its canonical portion contract', async () => {
+  it('keeps a production-normalized meal measurement while routing it to Review', async () => {
     const { adapter, generateVision } = makeAdapter(modelText('meal'));
 
     const prediction = await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
@@ -302,13 +302,16 @@ describe('createLiveNutritionEvalAdapter', () => {
       parseStatus: 'success',
       source: 'meal',
       kcal: 100,
+      proteinG: 1,
+      carbsG: 15,
+      fatG: 4,
       confidence: 0.9,
       basis: 'portion',
       amount: 1,
       unit: 'portion',
-      decision: 'complete',
+      decision: 'needs_review',
     });
-    expectReviewPrediction(prediction, []);
+    expectReviewPrediction(prediction, ['nutrition_basis_ambiguous']);
     expect(generateVision).toHaveBeenCalledWith(
       'gemini-test-model', MEAL_ANALYSIS_PROMPT, 'AP8B', 'meal',
     );
@@ -326,7 +329,7 @@ describe('createLiveNutritionEvalAdapter', () => {
     expect(prediction).toMatchObject({
       parseStatus: 'success',
       decision: 'needs_review',
-      reviewReasons: ['atwater_mismatch'],
+      reviewReasons: ['nutrition_basis_ambiguous', 'atwater_mismatch'],
     });
   });
 
@@ -382,6 +385,46 @@ describe('createLiveNutritionEvalAdapter', () => {
     const prediction = await adapter.analyzeCase(labelCase, imageBytes, { sampleIndex: 1 });
 
     expect(prediction).toMatchObject({ decision: 'complete', reviewReasons: [] });
+    expect(normalizeVisionNutritionFn).toHaveBeenCalledOnce();
+  });
+
+  it('uses injected normalizer draft reasons instead of a separate meal decision override', async () => {
+    const normalizeVisionNutritionFn = vi.fn(() => ({
+      kind: 'draft' as const,
+      status: 'complete' as const,
+      draft: {
+        baseKcal: 100,
+        baseProtein: 1,
+        baseCarbs: 15,
+        baseFat: 4,
+        nutritionBasis: 'portion' as const,
+        nutritionAmount: 1,
+        nutritionUnit: 'portion' as const,
+        consumedAmount: 1,
+        reviewReasons: [],
+      },
+    }));
+    const { adapter } = makeAdapter(
+      modelText('meal', { confidence: 0.99 }),
+      async () => null,
+      { normalizeVisionNutritionFn },
+    );
+
+    const prediction = await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toMatchObject({
+      source: 'meal',
+      kcal: 100,
+      proteinG: 1,
+      carbsG: 15,
+      fatG: 4,
+      confidence: 0.99,
+      basis: 'portion',
+      amount: 1,
+      unit: 'portion',
+      decision: 'complete',
+      reviewReasons: [],
+    });
     expect(normalizeVisionNutritionFn).toHaveBeenCalledOnce();
   });
 

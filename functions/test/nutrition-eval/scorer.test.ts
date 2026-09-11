@@ -143,6 +143,25 @@ describe('scoreNutritionCase', () => {
     expect(r.safety.unsafeCompletion).toBe(false);
   });
 
+  it('keeps catastrophic meal numeric errors visible when the prediction is safely routed to Review', () => {
+    const r = scoreNutritionCase(kcal100Case, ok({
+      kcal: 250,
+      proteinG: 25,
+      carbsG: 50,
+      fatG: 20,
+      decision: 'needs_review',
+    }));
+
+    expect(r.numeric).toEqual({
+      kcal: { ratioToTruth: 2.5, absoluteError: 150, relativeError: 1.5 },
+      proteinG: { ratioToTruth: 2.5, absoluteError: 15, relativeError: 1.5 },
+      carbsG: { ratioToTruth: 2.5, absoluteError: 30, relativeError: 1.5 },
+      fatG: { ratioToTruth: 4, absoluteError: 15, relativeError: 3 },
+    });
+    expect(r.safety.catastrophicCalorieMiss).toBe(true);
+    expect(r.safety.unsafeCompletion).toBe(false);
+  });
+
   it('unsafe: expected needs_review + prediction complete => unsafe', () => {
     expect(scoreNutritionCase(needsReviewCase, ok({
       kcal: 85, proteinG: 0, carbsG: 21, fatG: 0,
