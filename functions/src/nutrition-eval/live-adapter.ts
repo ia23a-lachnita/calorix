@@ -204,6 +204,7 @@ export function createLiveNutritionEvalAdapter(
           model,
           promptFor(evalCase, options),
           Buffer.from(bytes).toString('base64'),
+          evalCase.scanMode,
         );
       } catch {
         return failure(evalCase, 'provider', 'provider_request_failed');

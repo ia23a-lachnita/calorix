@@ -106,8 +106,8 @@ export function buildAnalyzeEntryDepsFactory(
       }
       throw new Error('Entry has neither storagePath nor imageUrl');
     },
-    generateVision: (model: string, prompt: string, imageBase64: string) =>
-      getGenAIAdapter().generateVision(model, prompt, imageBase64),
+    generateVision: (model: string, prompt: string, imageBase64: string, source) =>
+      getGenAIAdapter().generateVision(model, prompt, imageBase64, source),
     sendPush: async (message) => {
       await getMessaging().send(message);
     },

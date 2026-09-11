@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import type { ChatContent } from './ai-chat';
+import { visionResponseJsonSchema, type VisionSource } from './nutrition-json-schema';
 
 export interface GenAIPart {
   text?: string;
@@ -17,6 +18,11 @@ export interface GenAIClient {
     generateContent(params: {
       model: string;
       contents: GenAIContent[];
+      config?: {
+        responseMimeType: 'application/json';
+        responseJsonSchema: Record<string, unknown>;
+        temperature: 0;
+      };
     }): Promise<{ text?: string | undefined }>;
   };
 }
@@ -30,7 +36,12 @@ export interface GenAIAdapterOptions {
 
 export interface GenAIAdapter {
   generateChat(model: string, contents: ChatContent[]): Promise<string>;
-  generateVision(model: string, prompt: string, imageBase64: string): Promise<string>;
+  generateVision(
+    model: string,
+    prompt: string,
+    imageBase64: string,
+    source?: VisionSource,
+  ): Promise<string>;
 }
 
 function extractText(response: { text?: string | undefined }): string {
@@ -56,7 +67,7 @@ export function createGenAIAdapter(options: GenAIAdapterOptions): GenAIAdapter {
       const response = await client.models.generateContent({ model, contents });
       return extractText(response);
     },
-    async generateVision(model, prompt, imageBase64) {
+    async generateVision(model, prompt, imageBase64, source = 'meal') {
       const response = await client.models.generateContent({
         model,
         contents: [
@@ -68,6 +79,11 @@ export function createGenAIAdapter(options: GenAIAdapterOptions): GenAIAdapter {
             ],
           },
         ],
+        config: {
+          responseMimeType: 'application/json',
+          responseJsonSchema: visionResponseJsonSchema(source),
+          temperature: 0,
+        },
       });
       return extractText(response);
     },

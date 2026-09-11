@@ -24,7 +24,12 @@ export interface AnalyzeEntryDeps {
   updateEntry(fields: Record<string, unknown>): Promise<void>;
   getFcmToken(uid: string): Promise<string | undefined>;
   loadImageBase64(entry: EntryData): Promise<string>;
-  generateVision(model: string, prompt: string, imageBase64: string): Promise<string>;
+  generateVision(
+    model: string,
+    prompt: string,
+    imageBase64: string,
+    source?: AnalysisSource,
+  ): Promise<string>;
   fetchOffProduct(barcode: string): Promise<OffProduct | null>;
   sendPush(message: ScanPushMessage): Promise<void>;
   getModelConfig(): Promise<ModelConfig>;
@@ -252,7 +257,12 @@ export async function handleEntryCreated(
 
     if (!analysis || !draft) {
       const imageBase64 = await deps.loadImageBase64(data);
-      const responseText = await deps.generateVision(config.visionModel, promptFor(source, deps), imageBase64);
+      const responseText = await deps.generateVision(
+        config.visionModel,
+        promptFor(source, deps),
+        imageBase64,
+        source,
+      );
       const parsed = parseNutritionResponse(responseText, source);
       if (!parsed.ok) {
         deps.log('processEntry invalid model response:', parsed.reason);
