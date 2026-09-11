@@ -394,7 +394,7 @@ describe('handleEntryCreated', () => {
     expect(recorded.visionCalls[0]).toMatchObject({ prompt, source: scanMode });
   });
 
-  it('completes a valid label with an explicit null barcode and no barcode review reason', async () => {
+  it('routes a high-confidence vision label through the normalizer to Review and sends a review push', async () => {
     const { deps, recorded } = makeDeps();
     deps.generateVision = async (model, prompt) => {
       recorded.visionCalls.push({ model, prompt });
@@ -404,14 +404,15 @@ describe('handleEntryCreated', () => {
 
     expect(recorded.visionCalls[0]?.prompt).toBe('label prompt');
     expect(recorded.updates[1]).toMatchObject({
-      status: 'complete',
+      status: 'needs_review',
       scanMode: 'label',
       nutritionBasis: 'package',
       nutritionAmount: 500,
       nutritionUnit: 'ml',
       consumedAmount: 500,
-      reviewReasons: [],
+      reviewReasons: ['nutrition_basis_ambiguous'],
     });
+    expect(recorded.pushes[0]!.notification.title).toBe('AppName scan ready to review');
   });
 
   it('normalizes a known raw barcode through the Task 2 package normalizer without loading the image', async () => {
@@ -728,7 +729,7 @@ describe('handleEntryCreated', () => {
     expect(deps.log).toHaveBeenCalledWith(expect.any(String), expect.any(Error));
   });
 
-  it('replaces stale error and legacy multipliers with an unscaled canonical package result', async () => {
+  it('replaces stale error and legacy multipliers with a reviewed canonical label package result', async () => {
     const deletionSentinel = Object.freeze({ firestore: 'delete' });
     const { deps, recorded, state } = makePersistedDeps(
       {
@@ -744,12 +745,13 @@ describe('handleEntryCreated', () => {
 
     const successUpdate = recorded.updates[1]!;
     expect(successUpdate).toMatchObject({
-      status: 'complete',
+      status: 'needs_review',
       nutritionBasis: 'package',
       nutritionAmount: 500,
       nutritionUnit: 'ml',
       consumedAmount: 500,
       baseKcal: 85,
+      reviewReasons: ['nutrition_basis_ambiguous'],
     });
     expectDeletedFields(
       successUpdate,
@@ -1066,8 +1068,8 @@ describe('handleEntryCreated', () => {
   });
 
   it('sends complete, review, and no error push with the exact entry data payload', async () => {
-    const complete = makeDeps({ generateVision: async () => modelResponse(0.99, null, 'package') });
-    await handleEntryCreated('e1', { ...pendingEntry, scanMode: 'label' }, complete.deps);
+    const complete = makeDeps({ generateVision: async () => modelResponse(0.99) });
+    await handleEntryCreated('e1', pendingEntry, complete.deps);
     expect(complete.recorded.pushes).toHaveLength(1);
     expect(complete.recorded.pushes[0]!.data).toEqual({ entryId: 'e1' });
 

@@ -330,9 +330,12 @@ describe('createLiveNutritionEvalAdapter', () => {
     });
   });
 
-  it('uses the strict label payload and keeps a low-confidence result in Review', async () => {
+  it('uses the production normalizer reason to keep a high-confidence label result in Review', async () => {
+    const normalizeVisionNutritionFn = vi.fn(normalizeVisionNutrition);
     const { adapter, generateVision } = makeAdapter(
-      modelText('package', { confidence: 0.79 }),
+      modelText('package', { confidence: 0.99 }),
+      async () => null,
+      { normalizeVisionNutritionFn },
     );
 
     const prediction = await adapter.analyzeCase(labelCase, imageBytes, { sampleIndex: 1 });
@@ -344,13 +347,42 @@ describe('createLiveNutritionEvalAdapter', () => {
       basis: 'package',
       amount: 500,
       unit: 'ml',
-      confidence: 0.79,
+      confidence: 0.99,
       decision: 'needs_review',
     });
-    expectReviewPrediction(prediction, []);
+    expectReviewPrediction(prediction, ['nutrition_basis_ambiguous']);
+    expect(normalizeVisionNutritionFn).toHaveBeenCalledOnce();
     expect(generateVision).toHaveBeenCalledWith(
       'gemini-test-model', LABEL_ANALYSIS_PROMPT, 'AP8B', 'label',
     );
+  });
+
+  it('uses the normalizer draft reasons instead of a separate label decision override', async () => {
+    const normalizeVisionNutritionFn = vi.fn(() => ({
+      kind: 'draft' as const,
+      status: 'complete' as const,
+      draft: {
+        baseKcal: 85,
+        baseProtein: 0,
+        baseCarbs: 21,
+        baseFat: 0,
+        nutritionBasis: 'package' as const,
+        nutritionAmount: 500,
+        nutritionUnit: 'ml' as const,
+        consumedAmount: 500,
+        reviewReasons: [],
+      },
+    }));
+    const { adapter } = makeAdapter(
+      modelText('package', { confidence: 0.99 }),
+      async () => null,
+      { normalizeVisionNutritionFn },
+    );
+
+    const prediction = await adapter.analyzeCase(labelCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toMatchObject({ decision: 'complete', reviewReasons: [] });
+    expect(normalizeVisionNutritionFn).toHaveBeenCalledOnce();
   });
 
   it('normalizes a 500ml OFF product into the canonical package total', async () => {
@@ -438,7 +470,7 @@ describe('createLiveNutritionEvalAdapter', () => {
     expect(normalizeOffPackageFn).toHaveBeenCalledWith(invalidOffProduct);
   });
 
-  it('canonicalizes a strict per-100 vision response to the observed package total', async () => {
+  it('uses the normalizer to retain an observed per-100 label result in Review', async () => {
     const normalizeVisionNutritionFn = vi.fn(normalizeVisionNutrition);
     const { adapter } = makeAdapter(
       modelText('per100'),
@@ -458,9 +490,9 @@ describe('createLiveNutritionEvalAdapter', () => {
       basis: 'package',
       amount: 500,
       unit: 'ml',
-      decision: 'complete',
+      decision: 'needs_review',
     });
-    expectReviewPrediction(prediction, []);
+    expectReviewPrediction(prediction, ['nutrition_basis_ambiguous']);
     expect(normalizeVisionNutritionFn).toHaveBeenCalledOnce();
     expect(normalizeVisionNutritionFn).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -472,6 +504,30 @@ describe('createLiveNutritionEvalAdapter', () => {
       undefined,
       undefined,
     );
+  });
+
+  it('keeps a vision label per-100 result without an observed package quantity unresolved', async () => {
+    const { adapter } = makeAdapter(modelText('per100', {
+      observedPackageAmount: null,
+      observedPackageUnit: null,
+      packageReference: vitaminPackage,
+    }));
+
+    const prediction = await adapter.analyzeCase(labelCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toMatchObject({
+      parseStatus: 'success',
+      source: 'label',
+      kcal: 17,
+      proteinG: 0,
+      carbsG: 4.2,
+      fatG: 0,
+      basis: 'per100g',
+      amount: 100,
+      unit: 'ml',
+      decision: 'needs_review',
+      reviewReasons: ['package_quantity_missing', 'nutrition_basis_ambiguous'],
+    });
   });
 
   it('returns arithmetic disagreement as a Review reason instead of trusting model totals', async () => {
@@ -491,7 +547,7 @@ describe('createLiveNutritionEvalAdapter', () => {
       unit: 'ml',
       decision: 'needs_review',
     });
-    expectReviewPrediction(prediction, ['nutrition_arithmetic_mismatch']);
+    expectReviewPrediction(prediction, ['nutrition_basis_ambiguous', 'nutrition_arithmetic_mismatch']);
   });
 
   it('does not treat scoring-only expectedBarcode as observed input for an OFF lookup', async () => {

@@ -209,6 +209,57 @@ describe('basis-aware nutrition response schema', () => {
     expect(nutrition.parseNutritionResponse(JSON.stringify(payload), source).ok).toBe(false);
   });
 
+  it.each(['label', 'barcode'] as const)(
+    'canonicalizes an exact null package-observation pair to absent %s evidence',
+    (source) => {
+      const parsed = parsePayload(per100Payload({
+        observedPackageAmount: null,
+        observedPackageUnit: null,
+      }), source);
+
+      expect(parsed).toMatchObject({
+        nutritionBasis: 'per100g',
+        nutritionAmount: 100,
+        nutritionUnit: 'ml',
+      });
+      expect(parsed).not.toHaveProperty('observedPackageAmount');
+      expect(parsed).not.toHaveProperty('observedPackageUnit');
+    },
+  );
+
+  it.each(['label', 'barcode'] as const)(
+    'accepts omitted package-observation evidence for an unresolved per-100 %s result',
+    (source) => {
+      const parsed = parsePayload(per100Payload({
+        observedPackageAmount: undefined,
+        observedPackageUnit: undefined,
+      }), source);
+
+      expect(parsed).not.toHaveProperty('observedPackageAmount');
+      expect(parsed).not.toHaveProperty('observedPackageUnit');
+    },
+  );
+
+  it.each([
+    ['null amount with a unit', { observedPackageAmount: null, observedPackageUnit: 'ml' }],
+    ['amount with a null unit', { observedPackageAmount: 500, observedPackageUnit: null }],
+    ['missing amount with a unit', { observedPackageAmount: undefined, observedPackageUnit: 'ml' }],
+    ['amount with a missing unit', { observedPackageAmount: 500, observedPackageUnit: undefined }],
+  ])('rejects a partial or mixed-null package-observation pair: %s', (_label, observation) => {
+    expect(nutrition.parseNutritionResponse(JSON.stringify(per100Payload(observation)), 'label').ok).toBe(false);
+    expect(nutrition.parseNutritionResponse(JSON.stringify(per100Payload(observation)), 'barcode').ok).toBe(false);
+  });
+
+  it.each(['label', 'barcode'] as const)(
+    'still rejects a package basis with an absent %s package-observation pair',
+    (source) => {
+      expect(nutrition.parseNutritionResponse(JSON.stringify(packagePayload({
+        observedPackageAmount: null,
+        observedPackageUnit: null,
+      })), source).ok).toBe(false);
+    },
+  );
+
   it.each([
     ['wrong amount type', packagePayload({ nutritionAmount: '500' })],
     ['null raw nutrient', packagePayload({ kcal: null })],
@@ -270,21 +321,21 @@ describe('basis-aware nutrition response schema', () => {
 });
 
 describe('vision normalization', () => {
-  it('uses an optional per-100 package declaration as the canonical whole-package amount', () => {
+  it('keeps a label per-100 declaration with observed package evidence in Review', () => {
     const result = normalizeVisionNutrition(parsePayload(per100Payload({
       observedPackageAmount: 495,
       packageReference: vitaminPackage,
     }), 'label'));
     expect(result).toMatchObject({
       kind: 'draft',
-      status: 'complete',
+      status: 'needs_review',
       draft: {
         nutritionBasis: 'package',
         nutritionAmount: 500,
         nutritionUnit: 'ml',
         consumedAmount: 500,
         baseKcal: 85,
-        reviewReasons: [],
+        reviewReasons: ['nutrition_basis_ambiguous'],
       },
     });
   });
@@ -297,7 +348,7 @@ describe('vision normalization', () => {
     expect(result).toMatchObject({
       kind: 'draft',
       status: 'needs_review',
-      draft: { baseKcal: 85, reviewReasons: ['nutrition_arithmetic_mismatch'] },
+      draft: { baseKcal: 85, reviewReasons: ['nutrition_basis_ambiguous', 'nutrition_arithmetic_mismatch'] },
     });
   });
 
@@ -306,7 +357,7 @@ describe('vision normalization', () => {
     expect(result).toMatchObject({
       kind: 'draft',
       status: 'needs_review',
-      draft: { baseKcal: 85, reviewReasons: ['nutrition_arithmetic_mismatch'] },
+      draft: { baseKcal: 85, reviewReasons: ['nutrition_basis_ambiguous', 'nutrition_arithmetic_mismatch'] },
     });
   });
 
@@ -317,7 +368,7 @@ describe('vision normalization', () => {
     expect(result).toMatchObject({
       kind: 'draft',
       status: 'needs_review',
-      draft: { baseKcal: 85, reviewReasons: ['nutrition_arithmetic_mismatch'] },
+      draft: { baseKcal: 85, reviewReasons: ['nutrition_basis_ambiguous', 'nutrition_arithmetic_mismatch'] },
     });
   });
 
@@ -326,7 +377,7 @@ describe('vision normalization', () => {
     expect(result).toMatchObject({
       kind: 'draft',
       status: 'needs_review',
-      draft: { reviewReasons: ['package_quantity_missing', 'nutrition_arithmetic_mismatch'] },
+      draft: { reviewReasons: ['package_quantity_missing', 'nutrition_basis_ambiguous', 'nutrition_arithmetic_mismatch'] },
     });
   });
 
@@ -396,7 +447,7 @@ describe('vision normalization', () => {
     expect(result).toMatchObject({
       kind: 'draft',
       status: 'needs_review',
-      draft: { baseKcal: 85, baseCarbs: 21, reviewReasons: ['nutrition_arithmetic_mismatch'] },
+      draft: { baseKcal: 85, baseCarbs: 21, reviewReasons: ['nutrition_basis_ambiguous', 'nutrition_arithmetic_mismatch'] },
     });
   });
 
@@ -410,15 +461,91 @@ describe('vision normalization', () => {
     expect(result).toMatchObject({
       kind: 'draft',
       status: 'needs_review',
-      draft: { baseKcal: 85, baseProtein: 75, reviewReasons: ['atwater_mismatch'] },
+      draft: { baseKcal: 85, baseProtein: 75, reviewReasons: ['nutrition_basis_ambiguous', 'atwater_mismatch'] },
     });
   });
 
-  it('normalizes a per-100 label into the observed whole package without a barcode review reason', () => {
+  it('keeps a per-100 label with no independently observed package quantity unresolved', () => {
+    const result = normalizeVisionNutrition(parsePayload(per100Payload({
+      observedPackageAmount: null,
+      observedPackageUnit: null,
+      packageReference: vitaminPackage,
+    }), 'label'));
+    expect(result).toMatchObject({
+      kind: 'draft',
+      status: 'needs_review',
+      draft: {
+        baseKcal: 17,
+        baseCarbs: 4.2,
+        nutritionBasis: 'per100g',
+        nutritionAmount: 100,
+        nutritionUnit: 'ml',
+        per100Reference: vitaminPer100,
+        reviewReasons: ['package_quantity_missing', 'nutrition_basis_ambiguous'],
+      },
+    });
+    if (result.kind === 'draft') expect(result.draft).not.toHaveProperty('consumedAmount');
+  });
+
+  it('keeps a per-100 barcode result with no independently observed package quantity unresolved', () => {
+    const result = normalizeVisionNutrition(parsePayload(per100Payload({
+      observedPackageAmount: undefined,
+      observedPackageUnit: undefined,
+      packageReference: vitaminPackage,
+    }), 'barcode'));
+    expect(result).toMatchObject({
+      kind: 'draft',
+      status: 'needs_review',
+      draft: {
+        baseKcal: 17,
+        baseCarbs: 4.2,
+        nutritionBasis: 'per100g',
+        nutritionAmount: 100,
+        nutritionUnit: 'ml',
+        per100Reference: vitaminPer100,
+        reviewReasons: ['package_quantity_missing'],
+      },
+    });
+    if (result.kind === 'draft') expect(result.draft).not.toHaveProperty('consumedAmount');
+  });
+
+  it.each([
+    ['label', ['package_quantity_missing', 'nutrition_basis_ambiguous']],
+    ['barcode', ['package_quantity_missing']],
+  ] as const)('keeps a per-100 %s result with no package reference or observed quantity unresolved', (source, reviewReasons) => {
+    const parsed = parsePayload(per100Payload({
+      observedPackageAmount: undefined,
+      observedPackageUnit: undefined,
+      packageReference: undefined,
+    }), source);
+    expect(parsed).not.toHaveProperty('observedPackageAmount');
+    expect(parsed).not.toHaveProperty('observedPackageUnit');
+    expect(parsed).not.toHaveProperty('packageReference');
+
+    const result = normalizeVisionNutrition(parsed);
+    expect(result).toMatchObject({
+      kind: 'draft',
+      status: 'needs_review',
+      draft: {
+        baseKcal: 17,
+        baseProtein: 0,
+        baseCarbs: 4.2,
+        baseFat: 0,
+        nutritionBasis: 'per100g',
+        nutritionAmount: 100,
+        nutritionUnit: 'ml',
+        per100Reference: vitaminPer100,
+        reviewReasons,
+      },
+    });
+    if (result.kind === 'draft') expect(result.draft).not.toHaveProperty('consumedAmount');
+  });
+
+  it('keeps a per-100 label with observed evidence in Review rather than completing it', () => {
     const result = normalizeVisionNutrition(parsePayload(per100Payload(), 'label'));
     expect(result).toMatchObject({
       kind: 'draft',
-      status: 'complete',
+      status: 'needs_review',
       draft: {
         baseKcal: 85,
         baseCarbs: 21,
@@ -426,7 +553,7 @@ describe('vision normalization', () => {
         nutritionAmount: 500,
         nutritionUnit: 'ml',
         consumedAmount: 500,
-        reviewReasons: [],
+        reviewReasons: ['nutrition_basis_ambiguous'],
       },
     });
   });
@@ -440,20 +567,20 @@ describe('vision normalization', () => {
         nutritionBasis: 'portion',
         nutritionAmount: 1,
         nutritionUnit: 'portion',
-        reviewReasons: ['package_quantity_missing'],
+        reviewReasons: ['package_quantity_missing', 'nutrition_basis_ambiguous'],
       },
     });
     if (result.kind === 'draft') expect(result.draft).not.toHaveProperty('consumedAmount');
   });
 
-  it('keeps the declared package amount canonical when observed evidence is within tolerance', () => {
+  it('keeps a label package draft in Review even when observed evidence is within tolerance', () => {
     const result = normalizeVisionNutrition(parsePayload(packagePayload({
       observedPackageAmount: 495,
       per100Reference: vitaminPer100,
     }), 'label'));
     expect(result).toMatchObject({
       kind: 'draft',
-      status: 'complete',
+      status: 'needs_review',
       draft: {
         nutritionBasis: 'package',
         nutritionAmount: 500,
@@ -461,7 +588,7 @@ describe('vision normalization', () => {
         consumedAmount: 500,
         baseKcal: 85,
         baseCarbs: 21,
-        reviewReasons: [],
+        reviewReasons: ['nutrition_basis_ambiguous'],
       },
     });
   });
