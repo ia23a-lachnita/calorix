@@ -4,8 +4,113 @@ import type {
   NutritionCaseResult,
   NutritionPrediction,
 } from './schema';
+import { classifyMealDominantDriver, isCanonicalNutritionTuple } from './schema';
 
 const NUMERIC_FIELDS = ['kcal', 'proteinG', 'carbsG', 'fatG'] as const;
+
+type DiagnosticMetric = NonNullable<NonNullable<NutritionCaseResult['diagnostics']>['mealMassG']>;
+type DiagnosticMetricVector = NonNullable<NonNullable<NutritionCaseResult['diagnostics']>['mealDensityPer100']>;
+
+function stableDiagnosticNumber(value: number): number {
+  return Number(value.toPrecision(12));
+}
+
+function computeDiagnosticMetric(predicted: number, truth: number): DiagnosticMetric | undefined {
+  const absoluteError = Math.abs(predicted - truth);
+  if (![predicted, truth, absoluteError].every((value) => Number.isFinite(value) && value >= 0)) {
+    return undefined;
+  }
+  const stablePredicted = stableDiagnosticNumber(predicted);
+  const stableTruth = stableDiagnosticNumber(truth);
+  const stableAbsoluteError = stableDiagnosticNumber(Math.abs(stablePredicted - stableTruth));
+  if (truth === 0) return { predicted: stablePredicted, truth: stableTruth, absoluteError: stableAbsoluteError };
+  const ratioToTruth = stablePredicted / stableTruth;
+  const relativeError = stableAbsoluteError / stableTruth;
+  if (!Number.isFinite(ratioToTruth) || !Number.isFinite(relativeError)) return undefined;
+  return {
+    predicted: stablePredicted,
+    truth: stableTruth,
+    absoluteError: stableAbsoluteError,
+    ratioToTruth: stableDiagnosticNumber(ratioToTruth),
+    relativeError: stableDiagnosticNumber(relativeError),
+  };
+}
+
+function diagnosticVector(
+  predicted: Record<(typeof NUMERIC_FIELDS)[number], number>,
+  truth: Record<(typeof NUMERIC_FIELDS)[number], number>,
+): DiagnosticMetricVector | undefined {
+  const metrics = Object.fromEntries(NUMERIC_FIELDS.map((field) => [
+    field,
+    computeDiagnosticMetric(predicted[field], truth[field]),
+  ])) as Partial<DiagnosticMetricVector>;
+  return NUMERIC_FIELDS.every((field) => metrics[field] !== undefined)
+    ? metrics as DiagnosticMetricVector
+    : undefined;
+}
+
+function classifyMealDriver(mass: DiagnosticMetric, density: DiagnosticMetric): ReturnType<typeof classifyMealDominantDriver> | undefined {
+  if (mass.ratioToTruth === undefined || density.ratioToTruth === undefined) return undefined;
+  return classifyMealDominantDriver(mass.ratioToTruth, density.ratioToTruth);
+}
+
+function scoreDiagnostics(
+  evalCase: NutritionEvalCase,
+  prediction: NutritionPrediction,
+): NutritionCaseResult['diagnostics'] | undefined {
+  const evidence = prediction.diagnostics;
+  if (!evidence) return undefined;
+
+  if (
+    evalCase.scanMode === 'meal' &&
+    prediction.source === 'meal' &&
+    evidence.rawNutrients !== undefined &&
+    evidence.estimatedTotalMassG !== undefined &&
+    evalCase.truth.referenceMassG !== undefined
+  ) {
+    const mealMassG = computeDiagnosticMetric(evidence.estimatedTotalMassG, evalCase.truth.referenceMassG);
+    const predictedDensity = Object.fromEntries(NUMERIC_FIELDS.map((field) => [
+      field,
+      evidence.rawNutrients![field] * 100 / evidence.estimatedTotalMassG!,
+    ])) as Record<(typeof NUMERIC_FIELDS)[number], number>;
+    const truthDensity = Object.fromEntries(NUMERIC_FIELDS.map((field) => [
+      field,
+      evalCase.truth[field] * 100 / evalCase.truth.referenceMassG!,
+    ])) as Record<(typeof NUMERIC_FIELDS)[number], number>;
+    const mealDensityPer100 = diagnosticVector(predictedDensity, truthDensity);
+    if (mealMassG !== undefined && mealDensityPer100 !== undefined) {
+      const mealDominantDriver = classifyMealDriver(mealMassG, mealDensityPer100.kcal);
+      return {
+        mealMassG,
+        mealDensityPer100,
+        ...(mealDominantDriver === undefined ? {} : { mealDominantDriver }),
+      };
+    }
+  }
+
+  if (
+    evalCase.scanMode === 'label' &&
+    prediction.source === 'label' &&
+    evidence.per100Reference?.amount === 100 &&
+    evidence.per100Reference.unit === evalCase.truth.unit &&
+    (evalCase.truth.basis === 'package' || evalCase.truth.basis === 'per100g') &&
+    isCanonicalNutritionTuple(
+      evidence.declaredBasis,
+      evidence.declaredAmount,
+      evidence.declaredUnit,
+    ) &&
+    evidence.declaredUnit === evalCase.truth.unit
+  ) {
+    const truthPer100 = Object.fromEntries(NUMERIC_FIELDS.map((field) => [
+      field,
+      evalCase.truth[field] * 100 / evalCase.truth.amount,
+    ])) as Record<(typeof NUMERIC_FIELDS)[number], number>;
+    const labelPer100 = diagnosticVector(evidence.per100Reference, truthPer100);
+    if (labelPer100 !== undefined) return { labelPer100 };
+  }
+
+  return undefined;
+}
 
 function computeMetric(pred: number, truth: number): {
   ratioToTruth: number;
@@ -56,6 +161,8 @@ export function scoreNutritionCase(
     booleans.unitExactMatch = prediction.unit === evalCase.truth.unit;
   }
 
+  const diagnostics = scoreDiagnostics(evalCase, prediction);
+
   return {
     caseId: evalCase.id,
     prediction,
@@ -65,6 +172,7 @@ export function scoreNutritionCase(
       unsafeCompletion: unsafe,
     },
     booleans,
+    ...(diagnostics === undefined ? {} : { diagnostics }),
   };
 }
 

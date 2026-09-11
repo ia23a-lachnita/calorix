@@ -327,6 +327,24 @@ describe('Slice F diagnostic schema contract', () => {
     }
   });
 
+  it('accepts only canonical declared nutrition tuples', () => {
+    for (const diagnostics of [
+      { rawNutrients, declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion' },
+      { rawNutrients, declaredBasis: 'per100g', declaredAmount: 100, declaredUnit: 'g' },
+      { rawNutrients, declaredBasis: 'per100g', declaredAmount: 100, declaredUnit: 'ml' },
+      { rawNutrients, declaredBasis: 'package', declaredAmount: 330, declaredUnit: 'ml' },
+    ]) {
+      expect(NutritionPredictionSchema.safeParse(predictionWithDiagnostics(diagnostics)).success).toBe(true);
+    }
+    for (const diagnostics of [
+      { rawNutrients, declaredBasis: 'portion', declaredAmount: 330, declaredUnit: 'ml' },
+      { rawNutrients, declaredBasis: 'per100g', declaredAmount: 99, declaredUnit: 'g' },
+      { rawNutrients, declaredBasis: 'package', declaredAmount: 1, declaredUnit: 'portion' },
+    ]) {
+      expect(NutritionPredictionSchema.safeParse(predictionWithDiagnostics(diagnostics)).success).toBe(false);
+    }
+  });
+
   // Production bug caught: DiagnosticMetric currently has no zero-aware and
   // arithmetic-consistency validation, so contradictory ratios are accepted.
   it('validates zero-aware DiagnosticMetric arithmetic and complete density vectors', () => {
@@ -368,13 +386,8 @@ describe('Slice F diagnostic schema contract', () => {
     };
     expect(NutritionCaseResultSchema.safeParse(mealResult).success).toBe(true);
     expect(NutritionCaseResultSchema.safeParse(labelResult).success).toBe(true);
-    for (const driver of ['mass_dominated', 'density_dominated', 'equal']) {
-      expect(NutritionCaseResultSchema.safeParse({
-        ...mealResult,
-        diagnostics: { ...mealResult.diagnostics, mealDominantDriver: driver },
-      }).success).toBe(true);
-    }
-    for (const driver of ['mass', 'density', 'other']) {
+    expect(NutritionCaseResultSchema.safeParse(mealResult).success).toBe(true);
+    for (const driver of ['mass_dominated', 'density_dominated', 'mass', 'density', 'other']) {
       expect(NutritionCaseResultSchema.safeParse({
         ...mealResult,
         diagnostics: { ...mealResult.diagnostics, mealDominantDriver: driver },
@@ -416,6 +429,82 @@ describe('Slice F diagnostic schema contract', () => {
       ...labelResult,
       diagnostics: { ...labelResult.diagnostics, mealMassG: mealResult.diagnostics.mealMassG },
     }).success).toBe(false);
+  });
+
+  it('uses dimensionless tolerance for ratios and accepts tiny arithmetic', () => {
+    const result = validMealResult();
+    expect(NutritionCaseResultSchema.safeParse({
+      ...result,
+      diagnostics: {
+        ...result.diagnostics,
+        mealMassG: {
+          predicted: 1e12, truth: 1e12, absoluteError: 0, ratioToTruth: 999, relativeError: 998,
+        },
+        mealDominantDriver: 'mass_dominated',
+      },
+    }).success).toBe(false);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...result,
+      diagnostics: {
+        ...result.diagnostics,
+        mealMassG: {
+          predicted: 1e-12, truth: 2e-12, absoluteError: 1e-12, ratioToTruth: 0.5, relativeError: 0.5,
+        },
+        mealDominantDriver: 'mass_dominated',
+      },
+    }).success).toBe(true);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...result,
+      diagnostics: {
+        ...result.diagnostics,
+        mealMassG: {
+          predicted: Number.MAX_VALUE,
+          truth: Number.MIN_VALUE,
+          absoluteError: Number.MAX_VALUE,
+          ratioToTruth: Number.MAX_VALUE,
+          relativeError: Number.MAX_VALUE,
+        },
+        mealDominantDriver: 'mass_dominated',
+      },
+    }).success).toBe(false);
+  });
+
+  it('requires the exact meal driver and permits a zero-kcal density without one', () => {
+    const result = validMealResult();
+    expect(NutritionCaseResultSchema.safeParse({
+      ...result,
+      diagnostics: { ...result.diagnostics, mealDominantDriver: undefined },
+    }).success).toBe(false);
+    const densityDominated = {
+      ...result,
+      diagnostics: {
+        ...result.diagnostics,
+        mealMassG: { predicted: 400, truth: 400, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+        mealDensityPer100: {
+          ...result.diagnostics.mealDensityPer100,
+          kcal: { predicted: 25, truth: 50, absoluteError: 25, ratioToTruth: 0.5, relativeError: 0.5 },
+        },
+        mealDominantDriver: 'mass_dominated',
+      },
+    };
+    expect(NutritionCaseResultSchema.safeParse(densityDominated).success).toBe(false);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...densityDominated,
+      diagnostics: { ...densityDominated.diagnostics, mealDominantDriver: 'density_dominated' },
+    }).success).toBe(true);
+
+    const zeroKcal = {
+      ...result,
+      diagnostics: {
+        ...result.diagnostics,
+        mealDensityPer100: {
+          ...result.diagnostics.mealDensityPer100,
+          kcal: { predicted: 0, truth: 0, absoluteError: 0 },
+        },
+        mealDominantDriver: undefined,
+      },
+    };
+    expect(NutritionCaseResultSchema.safeParse(zeroKcal).success).toBe(true);
   });
 
   function validMealResult() {
@@ -480,6 +569,13 @@ describe('Slice F diagnostic schema contract', () => {
     })],
   ])('rejects individually invalid diagnostic case: %s', (_label, mutate) => {
     expect(NutritionCaseResultSchema.safeParse(mutate(validMealResult())).success).toBe(false);
+  });
+
+  it('rejects empty case diagnostics', () => {
+    expect(NutritionCaseResultSchema.safeParse({
+      ...validMealResult(),
+      diagnostics: {},
+    }).success).toBe(false);
   });
 
   // Production bug caught: nested reference objects currently accept unknown

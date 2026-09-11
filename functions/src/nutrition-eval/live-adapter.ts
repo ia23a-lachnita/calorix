@@ -5,7 +5,11 @@ import {
   parseNutritionResponse,
   type AnalysisResult,
 } from '../nutrition';
-import { orderedReviewReasons, type NutritionDraft } from '../nutrition-contract';
+import {
+  orderedReviewReasons,
+  type NutritionDraft,
+  type NutritionReference,
+} from '../nutrition-contract';
 import {
   BARCODE_ANALYSIS_PROMPT,
   LABEL_ANALYSIS_PROMPT,
@@ -72,6 +76,59 @@ function visionBarcode(result: AnalysisResult): string | undefined {
   return result.modelBarcode ?? result.barcode;
 }
 
+type DiagnosticReference = Omit<NutritionReference, 'unit'> & { unit: 'g' | 'ml' };
+
+function diagnosticReference(reference: NutritionReference | undefined): DiagnosticReference | undefined {
+  if (reference?.unit !== 'g' && reference?.unit !== 'ml') return undefined;
+  return { ...reference, unit: reference.unit };
+}
+
+function visionDiagnostics(result: AnalysisResult): NonNullable<NutritionPrediction['diagnostics']> {
+  const totalMassG = result.detectedItems.reduce((sum, item) => sum + item.weight, 0);
+  return {
+    rawNutrients: {
+      kcal: result.kcal,
+      proteinG: result.proteinG,
+      carbsG: result.carbsG,
+      fatG: result.fatG,
+    },
+    detectedItemCount: result.detectedItems.length,
+    ...(result.detectedItems.length > 0 && Number.isFinite(totalMassG) && totalMassG > 0
+      ? { estimatedTotalMassG: totalMassG }
+      : {}),
+    declaredBasis: result.nutritionBasis,
+    declaredAmount: result.nutritionAmount,
+    declaredUnit: result.nutritionUnit,
+    ...(result.observedPackageAmount !== undefined && result.observedPackageUnit !== undefined ? {
+      observedAmount: result.observedPackageAmount,
+      observedUnit: result.observedPackageUnit,
+    } : {}),
+    ...(diagnosticReference(result.packageReference) === undefined ? {} : {
+      packageReference: diagnosticReference(result.packageReference),
+    }),
+    ...(diagnosticReference(result.per100Reference) === undefined ? {} : {
+      per100Reference: diagnosticReference(result.per100Reference),
+    }),
+    ...(diagnosticReference(result.servingReference) === undefined ? {} : {
+      servingReference: diagnosticReference(result.servingReference),
+    }),
+  };
+}
+
+function offDiagnostics(draft: NutritionDraft): NonNullable<NutritionPrediction['diagnostics']> {
+  return {
+    declaredBasis: draft.nutritionBasis,
+    declaredAmount: draft.nutritionAmount,
+    declaredUnit: draft.nutritionUnit,
+    ...(diagnosticReference(draft.per100Reference) === undefined ? {} : {
+      per100Reference: diagnosticReference(draft.per100Reference),
+    }),
+    ...(diagnosticReference(draft.servingReference) === undefined ? {} : {
+      servingReference: diagnosticReference(draft.servingReference),
+    }),
+  };
+}
+
 function withOffProvenance(
   draft: NutritionDraft,
   rawBarcode: string | undefined,
@@ -113,6 +170,7 @@ function successFromOffDraft(
       ? 'complete'
       : 'needs_review',
     reviewReasons: [...draft.reviewReasons],
+    diagnostics: offDiagnostics(draft),
   };
 }
 
@@ -140,6 +198,7 @@ function successFromVisionDraft(
     unit: draft.nutritionUnit,
     decision,
     reviewReasons: [...draft.reviewReasons],
+    diagnostics: visionDiagnostics(result),
   };
 }
 

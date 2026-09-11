@@ -144,6 +144,36 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
     ].join(' | ');
     return '| ' + row + ' |';
   });
+  const diagnosticCases = report.cases.filter((result) => result.diagnostics !== undefined);
+  const diagnosticsSection = diagnosticCases.length === 0 ? [] : [
+    '## Case diagnostics',
+    '| caseId | mealMassPredicted | mealMassTruth | mealMassAbsoluteError | mealMassRatioToTruth | mealMassRelativeError | mealDominantDriver | kcalDensityPredicted | kcalDensityTruth | kcalDensityAbsoluteError | kcalDensityRatioToTruth | kcalDensityRelativeError | proteinGDensityPredicted | proteinGDensityTruth | proteinGDensityAbsoluteError | proteinGDensityRatioToTruth | proteinGDensityRelativeError | carbsGDensityPredicted | carbsGDensityTruth | carbsGDensityAbsoluteError | carbsGDensityRatioToTruth | carbsGDensityRelativeError | fatGDensityPredicted | fatGDensityTruth | fatGDensityAbsoluteError | fatGDensityRatioToTruth | fatGDensityRelativeError |',
+    '| --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
+    ...diagnosticCases.map((result) => {
+      const diagnostics = result.diagnostics!;
+      const density = diagnostics.mealDensityPer100 ?? diagnostics.labelPer100;
+      const metricColumns = (metric: { predicted: number; truth: number; absoluteError: number; ratioToTruth?: number | undefined; relativeError?: number | undefined } | undefined) => [
+        markdownCell(metric?.predicted),
+        markdownCell(metric?.truth),
+        markdownCell(metric?.absoluteError),
+        markdownCell(metric?.ratioToTruth),
+        markdownCell(metric?.relativeError),
+      ];
+      const densityMetric = (field: 'kcal' | 'proteinG' | 'carbsG' | 'fatG') => [
+        ...metricColumns(density?.[field]),
+      ];
+      return '| ' + [
+        markdownCell(result.caseId),
+        ...metricColumns(diagnostics.mealMassG),
+        markdownCell(diagnostics.mealDominantDriver),
+        ...densityMetric('kcal'),
+        ...densityMetric('proteinG'),
+        ...densityMetric('carbsG'),
+        ...densityMetric('fatG'),
+      ].join(' | ') + ' |';
+    }),
+    '',
+  ];
   const latency = summary.latencyMs
     ? `min=${summary.latencyMs.min}, max=${summary.latencyMs.max}, median=${summary.latencyMs.median}, p90=${summary.latencyMs.p90}`
     : 'none';
@@ -205,7 +235,9 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
     '', '## Cases',
     '| caseId | source | parse | kcal | proteinG | carbsG | fatG | basis | amount | unit | barcode | decision | failure | latencyMs | catastrophic | unsafe | kcalRatioToTruth | kcalAbsoluteError | kcalRelativeError | proteinGRatioToTruth | proteinGAbsoluteError | proteinGRelativeError | carbsGRatioToTruth | carbsGAbsoluteError | carbsGRelativeError | fatGRatioToTruth | fatGAbsoluteError | fatGRelativeError | barcodeExactMatch | basisExactMatch | unitExactMatch |',
     '| --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | --- | --- | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |',
-    ...cases, '',
+    ...cases,
+    ...diagnosticsSection,
+    ...(diagnosticsSection.length === 0 ? [''] : []),
   ].join('\n');
 }
 

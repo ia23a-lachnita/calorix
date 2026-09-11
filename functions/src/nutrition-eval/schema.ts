@@ -27,6 +27,153 @@ const NutritionVectorSchema = z.object({
   fatG: z.number().finite().nonnegative(),
 });
 
+const DiagnosticNutritionVectorSchema = z.strictObject({
+  kcal: z.number().finite().nonnegative(),
+  proteinG: z.number().finite().nonnegative(),
+  carbsG: z.number().finite().nonnegative(),
+  fatG: z.number().finite().nonnegative(),
+});
+
+const DiagnosticReferenceSchema = DiagnosticNutritionVectorSchema.extend({
+  amount: z.number().finite().positive(),
+  unit: z.enum(['g', 'ml']),
+}).strict();
+
+function diagnosticClose(left: number, right: number): boolean {
+  if (!Number.isFinite(left) || !Number.isFinite(right)) {
+    return false;
+  }
+
+  return Math.abs(left - right) <= 1e-9 * Math.max(
+    Math.abs(left),
+    Math.abs(right),
+    Number.MIN_VALUE,
+  );
+}
+
+export function isCanonicalNutritionTuple(
+  basis: 'portion' | 'package' | 'per100g' | undefined,
+  amount: number | undefined,
+  unit: 'portion' | 'g' | 'ml' | undefined,
+): boolean {
+  if (
+    basis === undefined ||
+    amount === undefined ||
+    unit === undefined ||
+    !Number.isFinite(amount) ||
+    amount <= 0
+  ) {
+    return false;
+  }
+
+  if (basis === 'portion') return amount === 1 && unit === 'portion';
+  if (basis === 'per100g') return amount === 100 && (unit === 'g' || unit === 'ml');
+  return unit === 'g' || unit === 'ml';
+}
+
+export type MealDominantDriver = 'mass_dominated' | 'density_dominated' | 'equal';
+
+export function classifyMealDominantDriver(
+  massRatioToTruth: number,
+  kcalDensityRatioToTruth: number,
+): MealDominantDriver {
+  const massDeviation = Math.abs(massRatioToTruth - 1);
+  const densityDeviation = Math.abs(kcalDensityRatioToTruth - 1);
+  if (diagnosticClose(massDeviation, densityDeviation)) return 'equal';
+  return massDeviation > densityDeviation ? 'mass_dominated' : 'density_dominated';
+}
+
+const DiagnosticMetricSchema = z.strictObject({
+  predicted: z.number().finite().nonnegative(),
+  truth: z.number().finite().nonnegative(),
+  absoluteError: z.number().finite().nonnegative(),
+  ratioToTruth: z.number().finite().nonnegative().optional(),
+  relativeError: z.number().finite().nonnegative().optional(),
+}).superRefine((metric, context) => {
+  if (!diagnosticClose(metric.absoluteError, Math.abs(metric.predicted - metric.truth))) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['absoluteError'], message: 'absolute error must match predicted and truth' });
+  }
+
+  const ratioToTruth = metric.ratioToTruth;
+  const relativeError = metric.relativeError;
+  const hasRatio = ratioToTruth !== undefined;
+  const hasRelative = relativeError !== undefined;
+  if (metric.truth === 0) {
+    if (hasRatio || hasRelative) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'zero truth omits ratio metrics' });
+    }
+    return;
+  }
+  if (!hasRatio || !hasRelative) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'positive truth requires both ratio metrics' });
+    return;
+  }
+  const ratio = metric.predicted / metric.truth;
+  const relative = metric.absoluteError / metric.truth;
+  if (
+    !diagnosticClose(ratioToTruth, ratio) ||
+    !diagnosticClose(relativeError, relative)
+  ) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'ratio metrics must match predicted and truth' });
+  }
+});
+
+const DiagnosticMetricVectorSchema = z.strictObject({
+  kcal: DiagnosticMetricSchema,
+  proteinG: DiagnosticMetricSchema,
+  carbsG: DiagnosticMetricSchema,
+  fatG: DiagnosticMetricSchema,
+});
+
+const PredictionDiagnosticsSchema = z.strictObject({
+  rawNutrients: DiagnosticNutritionVectorSchema.optional(),
+  detectedItemCount: z.number().int().nonnegative().optional(),
+  estimatedTotalMassG: z.number().finite().positive().optional(),
+  declaredBasis: BasisSchema.optional(),
+  declaredAmount: z.number().finite().positive().optional(),
+  declaredUnit: UnitSchema.optional(),
+  observedAmount: z.number().finite().positive().optional(),
+  observedUnit: z.enum(['g', 'ml']).optional(),
+  packageReference: DiagnosticReferenceSchema.optional(),
+  per100Reference: DiagnosticReferenceSchema.optional(),
+  servingReference: DiagnosticReferenceSchema.optional(),
+}).superRefine((diagnostics, context) => {
+  const declared = [diagnostics.declaredBasis, diagnostics.declaredAmount, diagnostics.declaredUnit];
+  if (declared.some((value) => value === undefined) && declared.some((value) => value !== undefined)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'declared nutrition tuple is all-or-none' });
+  } else if (
+    diagnostics.declaredBasis !== undefined &&
+    !isCanonicalNutritionTuple(
+      diagnostics.declaredBasis,
+      diagnostics.declaredAmount,
+      diagnostics.declaredUnit,
+    )
+  ) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'declared nutrition tuple must be canonical' });
+  }
+
+  const observed = [diagnostics.observedAmount, diagnostics.observedUnit];
+  if (observed.some((value) => value === undefined) && observed.some((value) => value !== undefined)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'observed package tuple is all-or-none' });
+  }
+
+  if (diagnostics.estimatedTotalMassG !== undefined && diagnostics.detectedItemCount === undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['estimatedTotalMassG'], message: 'estimated mass requires detected item count' });
+  }
+  if (diagnostics.detectedItemCount === 0 && diagnostics.estimatedTotalMassG !== undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['estimatedTotalMassG'], message: 'empty detection has no estimated mass' });
+  }
+});
+
+const CaseDiagnosticsSchema = z.strictObject({
+  mealMassG: DiagnosticMetricSchema.optional(),
+  mealDensityPer100: DiagnosticMetricVectorSchema.optional(),
+  mealDominantDriver: z.enum(['mass_dominated', 'density_dominated', 'equal']).optional(),
+  labelPer100: DiagnosticMetricVectorSchema.optional(),
+}).refine((diagnostics) => Object.values(diagnostics).some((value) => value !== undefined), {
+  message: 'case diagnostics cannot be empty',
+});
+
 // ── Source ───────────────────────────────────────────────────────────────────
 
 const CaseSourceSchema = z.object({
@@ -191,6 +338,7 @@ export const NutritionPredictionSchema = z.object({
   latencyMs: z.number().finite().nonnegative().optional(),
   sampleIndex: z.number().int().positive().optional(),
   cached: z.boolean().optional(),
+  diagnostics: PredictionDiagnosticsSchema.optional(),
 }).superRefine((prediction, context) => {
   if (prediction.failureDetail !== undefined && (
     prediction.parseStatus !== 'failure' ||
@@ -261,6 +409,35 @@ export const NutritionCaseResultSchema = z.object({
     basisExactMatch: z.boolean().optional(),
     unitExactMatch: z.boolean().optional(),
   }),
+  diagnostics: CaseDiagnosticsSchema.optional(),
+}).superRefine((result, context) => {
+  const diagnostics = result.diagnostics;
+  if (!diagnostics) return;
+
+  const hasMealMass = diagnostics.mealMassG !== undefined;
+  const hasMealDensity = diagnostics.mealDensityPer100 !== undefined;
+  if (hasMealMass !== hasMealDensity) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['diagnostics'], message: 'meal diagnostics require mass and density together' });
+  }
+  const massRatio = diagnostics.mealMassG?.ratioToTruth;
+  const densityRatio = diagnostics.mealDensityPer100?.kcal.ratioToTruth;
+  const hasBothMealRatios = massRatio !== undefined && densityRatio !== undefined;
+  if (hasBothMealRatios && diagnostics.mealDominantDriver === undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['diagnostics', 'mealDominantDriver'], message: 'meal driver is required when mass and kcal density ratios are present' });
+  } else if (!hasBothMealRatios && diagnostics.mealDominantDriver !== undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['diagnostics', 'mealDominantDriver'], message: 'meal driver requires mass and kcal density ratios' });
+  } else if (
+    hasBothMealRatios &&
+    diagnostics.mealDominantDriver !== classifyMealDominantDriver(massRatio, densityRatio)
+  ) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['diagnostics', 'mealDominantDriver'], message: 'meal driver must match mass and kcal density deviations' });
+  }
+  if (result.prediction.source !== 'meal' && (hasMealMass || hasMealDensity || diagnostics.mealDominantDriver !== undefined)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['diagnostics'], message: 'meal diagnostics require a meal prediction source' });
+  }
+  if (result.prediction.source !== 'label' && diagnostics.labelPer100 !== undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['diagnostics', 'labelPer100'], message: 'label diagnostics require a label prediction source' });
+  }
 });
 
 // ── Aggregate report ─────────────────────────────────────────────────────────

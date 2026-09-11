@@ -451,6 +451,26 @@ describe('Slice F diagnostic scoring', () => {
     });
   });
 
+  it('retains a complete meal decomposition when only kcal truth is zero', () => {
+    const zeroKcalCase: NutritionEvalCase = {
+      ...diagnosticMealCase,
+      truth: { ...diagnosticMealCase.truth, kcal: 0 },
+    };
+    const result = scoreNutritionCase(zeroKcalCase, diagnosticPrediction());
+
+    expect(result.diagnostics).toMatchObject({
+      mealMassG: { predicted: 500, truth: 400, absoluteError: 100, ratioToTruth: 1.25, relativeError: 0.25 },
+      mealDensityPer100: {
+        kcal: { predicted: 24, truth: 0, absoluteError: 24 },
+        proteinG: { predicted: 1.6, truth: 2.5, absoluteError: 0.9, ratioToTruth: 0.64, relativeError: 0.36 },
+        carbsG: { predicted: 5, truth: 5, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+        fatG: { predicted: 0.8, truth: 1.25, absoluteError: 0.45, ratioToTruth: 0.64, relativeError: 0.36 },
+      },
+    });
+    expect(result.diagnostics?.mealDensityPer100?.kcal).not.toHaveProperty('ratioToTruth');
+    expect(result.diagnostics?.mealDominantDriver).toBeUndefined();
+  });
+
   // Production bug caught: missing optional mass evidence currently yields a
   // partial density result instead of omitting the whole meal density vector.
   it('omits the meal density vector when optional mass evidence is absent', () => {
@@ -478,15 +498,33 @@ describe('Slice F diagnostic scoring', () => {
     expect(result.numeric.kcal?.ratioToTruth).toBeCloseTo(120 / 138.6, 12);
     expect(result.numeric.kcal?.absoluteError).toBeCloseTo(18.6, 12);
     expect(result.numeric.kcal?.relativeError).toBeCloseTo(18.6 / 138.6, 12);
+    const packageReference = { kcal: 42, proteinG: 0, carbsG: 10.6, fatG: 0, amount: 100, unit: 'ml' as const };
+    const compatiblePackageDiagnostics = {
+      declaredBasis: 'package' as const,
+      declaredAmount: 330,
+      declaredUnit: 'ml' as const,
+      per100Reference: packageReference,
+    };
     for (const override of [
       { per100Reference: undefined },
       { per100Reference: { kcal: 42, proteinG: 0, carbsG: 10.6, fatG: 0, amount: 99, unit: 'ml' } },
       { per100Reference: { kcal: 42, proteinG: 0, carbsG: 10.6, fatG: 0, amount: 100, unit: 'g' } },
-      { declaredBasis: 'portion' },
+      { declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion' },
+      { declaredBasis: 'per100g', declaredAmount: 99, declaredUnit: 'ml' },
+      { declaredBasis: 'package', declaredAmount: 1, declaredUnit: 'portion' },
     ]) {
       expect(scoreNutritionCase(diagnosticLabelCase, diagnosticPrediction({
-        declaredBasis: 'package', declaredAmount: 330, declaredUnit: 'ml', ...override,
+        ...compatiblePackageDiagnostics, ...override,
       }, 'label')).diagnostics?.labelPer100).toBeUndefined();
+    }
+    for (const declared of [
+      { declaredBasis: 'package' as const, declaredAmount: 999, declaredUnit: 'ml' as const },
+      { declaredBasis: 'per100g' as const, declaredAmount: 100, declaredUnit: 'ml' as const },
+    ]) {
+      expect(scoreNutritionCase(diagnosticLabelCase, diagnosticPrediction({
+        ...declared,
+        per100Reference: packageReference,
+      }, 'label')).diagnostics?.labelPer100).toBeDefined();
     }
   });
 
@@ -521,6 +559,23 @@ describe('Slice F diagnostic scoring', () => {
       carbsG: { predicted: 4.2, truth: 4.2, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
       fatG: { predicted: 0, truth: 0, absoluteError: 0 },
     });
+    expect(scoreNutritionCase(diagnosticPer100LabelCase, diagnosticPrediction({
+      declaredBasis: 'package', declaredAmount: 500, declaredUnit: 'ml',
+      per100Reference: { kcal: 17, proteinG: 0, carbsG: 4.2, fatG: 0, amount: 100, unit: 'ml' },
+    }, 'label')).diagnostics?.labelPer100).toBeDefined();
+  });
+
+  it.each([
+    ['amount', { declaredAmount: 99 }],
+    ['unit', { declaredUnit: 'g' as const }],
+    ['portion tuple', { declaredBasis: 'portion' as const, declaredAmount: 1, declaredUnit: 'portion' as const }],
+  ])('omits per-100 label density for an incoherent declared %s', (_field, override) => {
+    const result = scoreNutritionCase(diagnosticPer100LabelCase, diagnosticPrediction({
+      declaredBasis: 'per100g', declaredAmount: 100, declaredUnit: 'ml',
+      per100Reference: { kcal: 17, proteinG: 0, carbsG: 4.2, fatG: 0, amount: 100, unit: 'ml' },
+      ...override,
+    }, 'label'));
+    expect(result.diagnostics?.labelPer100).toBeUndefined();
   });
 
   // Production bug caught: the dominant meal error driver currently ignores

@@ -795,8 +795,8 @@ describe('nutrition evaluation reports', () => {
     const markdown = renderNutritionEvalMarkdown(report);
     expect(markdown).toContain('## Cases');
     expect(markdown).toContain('## Case diagnostics');
-    expect(markdown).toContain('| caseId | mealMassRatioToTruth | mealMassRelativeError | mealDominantDriver | kcalDensityRatioToTruth | kcalDensityRelativeError | proteinGDensityRatioToTruth | proteinGDensityRelativeError | carbsGDensityRatioToTruth | carbsGDensityRelativeError | fatGDensityRatioToTruth | fatGDensityRelativeError |');
-    expect(markdown).toContain('| report-case | 1.25 | 0.25 | mass_dominated | 1.1 | 0.1 | 2 | 1 | 2 | 1 | 2 | 1 |');
+    expect(markdown).toContain('| caseId | mealMassPredicted | mealMassTruth | mealMassAbsoluteError | mealMassRatioToTruth | mealMassRelativeError | mealDominantDriver | kcalDensityPredicted | kcalDensityTruth | kcalDensityAbsoluteError | kcalDensityRatioToTruth | kcalDensityRelativeError | proteinGDensityPredicted | proteinGDensityTruth | proteinGDensityAbsoluteError | proteinGDensityRatioToTruth | proteinGDensityRelativeError | carbsGDensityPredicted | carbsGDensityTruth | carbsGDensityAbsoluteError | carbsGDensityRatioToTruth | carbsGDensityRelativeError | fatGDensityPredicted | fatGDensityTruth | fatGDensityAbsoluteError | fatGDensityRatioToTruth | fatGDensityRelativeError |');
+    expect(markdown).toContain('| report-case | 500 | 400 | 100 | 1.25 | 0.25 | mass_dominated | 27.5 | 25 | 2.5 | 1.1 | 0.1 | 0.5 | 0.25 | 0.25 | 2 | 1 | 1 | 0.5 | 0.5 | 2 | 1 | 1.5 | 0.75 | 0.75 | 2 | 1 |');
     const casesBlock = (value: string) => {
       const start = value.indexOf('## Cases');
       const end = value.indexOf('## Case diagnostics');
@@ -806,11 +806,50 @@ describe('nutrition evaluation reports', () => {
     expect(markdown.indexOf('## Case diagnostics')).toBeGreaterThan(markdown.indexOf('## Cases'));
   });
 
+  it('renders zero-truth label density values and absolute errors without ratios', () => {
+    const labelCase: NutritionEvalCase = {
+      ...reportCase,
+      id: 'zero-label',
+      scanMode: 'label',
+      truth: { basis: 'per100g', amount: 100, unit: 'ml', kcal: 0, proteinG: 0, carbsG: 4, fatG: 0 },
+    };
+    const base = scoreNutritionCase(labelCase, {
+      parseStatus: 'success', source: 'label', kcal: 0, proteinG: 0, carbsG: 4, fatG: 0,
+      confidence: 0.9, decision: 'needs_review',
+    });
+    const report = buildNutritionEvalReport([{
+      ...base,
+      diagnostics: {
+        labelPer100: {
+          kcal: { predicted: 5, truth: 0, absoluteError: 5 },
+          proteinG: { predicted: 1, truth: 0, absoluteError: 1 },
+          carbsG: { predicted: 4, truth: 4, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+          fatG: { predicted: 2, truth: 0, absoluteError: 2 },
+        },
+      },
+    }], { ...metadata, publicCases: 1 });
+
+    expect(renderNutritionEvalMarkdown(report)).toContain(
+      '| zero-label | - | - | - | - | - | - | 5 | 0 | 5 | - | - | 1 | 0 | 1 | - | - | 4 | 4 | 0 | 1 | 0 | 2 | 0 | 2 | - | - |',
+    );
+  });
+
   // Production bug caught: optional diagnostics must remain backward compatible;
   // absent diagnostics should not add an empty or misleading report section.
   it('omits the diagnostics section when no case provides diagnostics', () => {
     const report = buildNutritionEvalReport(results(), metadata);
     expect(renderNutritionEvalMarkdown(report)).not.toContain('## Case diagnostics');
+  });
+
+  it('rejects empty case diagnostics instead of rendering a placeholder row', () => {
+    const result = scoreNutritionCase(reportCase, {
+      parseStatus: 'success', source: 'meal', kcal: 110, proteinG: 1, carbsG: 2, fatG: 3,
+      confidence: 0.9, decision: 'complete',
+    });
+    expect(() => buildNutritionEvalReport([{
+      ...result,
+      diagnostics: {},
+    }], { ...metadata, publicCases: 1 })).toThrow();
   });
 
   // Production bug caught: report validation currently permits arbitrary
