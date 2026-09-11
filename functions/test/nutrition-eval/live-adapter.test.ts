@@ -849,4 +849,103 @@ describe('createLiveNutritionEvalAdapter', () => {
       failureCode: 'provider_request_failed',
     });
   });
+
+  // Production bug caught: vision predictions currently discard raw nutrient
+  // evidence and detected-item mass, making density error decomposition impossible.
+  it('maps real vision evidence to numeric diagnostics without model text or geometry', async () => {
+    const { adapter } = makeAdapter(modelText('meal', {
+      kcal: 240,
+      proteinG: 12,
+      carbsG: 30,
+      fatG: 8,
+      detectedItems: [
+        { name: 'Secret chicken', weight: 125 },
+        { name: 'Secret rice', weight: 275 },
+      ],
+    }));
+
+    const prediction = await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toMatchObject({
+      diagnostics: {
+        rawNutrients: { kcal: 240, proteinG: 12, carbsG: 30, fatG: 8 },
+        detectedItemCount: 2,
+        estimatedTotalMassG: 400,
+        declaredBasis: 'portion',
+        declaredAmount: 1,
+        declaredUnit: 'portion',
+      },
+    });
+    expect(prediction.diagnostics).not.toHaveProperty('name');
+    expect(prediction.diagnostics).not.toHaveProperty('candidates');
+    expect(prediction.diagnostics).not.toHaveProperty('boundingBox');
+    expect(JSON.stringify(prediction)).not.toContain('Secret chicken');
+  });
+
+  // Production bug caught: zero-weight/empty detections currently fabricate a
+  // mass value or emit null evidence instead of omitting estimated mass safely.
+  it('omits estimated mass for an empty vision detection list while retaining zero macros', async () => {
+    const { adapter } = makeAdapter(modelText('meal', {
+      kcal: 0, proteinG: 0, carbsG: 0, fatG: 0, detectedItems: [],
+    }));
+
+    const prediction = await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction).toMatchObject({
+      diagnostics: {
+        rawNutrients: { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 },
+        detectedItemCount: 0,
+        declaredBasis: 'portion',
+        declaredAmount: 1,
+        declaredUnit: 'portion',
+      },
+    });
+    expect(prediction.diagnostics).not.toHaveProperty('estimatedTotalMassG');
+  });
+
+  // Production bug caught: label vision mapping currently drops observed
+  // quantity and reference provenance instead of exposing exact numeric tuples.
+  it('maps label observations and all present references without names or raw text', async () => {
+    const { adapter } = makeAdapter(modelText('package', {
+      detectedItems: [{ name: 'Private food', weight: 200 }],
+      packageReference: vitaminPackage,
+      per100Reference: vitaminPer100,
+      servingReference: { kcal: 8.5, proteinG: 0, carbsG: 2.1, fatG: 0, amount: 50, unit: 'ml' },
+    }), async () => null);
+
+    const prediction = await adapter.analyzeCase(labelCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction.diagnostics).toMatchObject({
+      rawNutrients: vitaminNutrients,
+      detectedItemCount: 1,
+      estimatedTotalMassG: 200,
+      declaredBasis: 'package', declaredAmount: 500, declaredUnit: 'ml',
+      observedAmount: 500, observedUnit: 'ml',
+      packageReference: vitaminPackage,
+      per100Reference: vitaminPer100,
+      servingReference: { kcal: 8.5, proteinG: 0, carbsG: 2.1, fatG: 0, amount: 50, unit: 'ml' },
+    });
+    expect(JSON.stringify(prediction)).not.toContain('Private food');
+  });
+
+  // Production bug caught: OFF success currently drops exact catalog references
+  // and exposes no provenance diagnostics for the catalog result.
+  it('keeps OFF success catalog-only with exact references and no fabricated model evidence', async () => {
+    const { adapter } = makeAdapter(modelText('package'), async () => knownOffProduct);
+    const prediction = await adapter.analyzeCase(
+      caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
+    );
+
+    expect(prediction).toMatchObject({
+      diagnostics: {
+        declaredBasis: 'package', declaredAmount: 500, declaredUnit: 'ml',
+        per100Reference: vitaminPer100,
+      },
+    });
+    expect(prediction.diagnostics).not.toHaveProperty('rawNutrients');
+    expect(prediction.diagnostics).not.toHaveProperty('detectedItemCount');
+    expect(prediction.diagnostics).not.toHaveProperty('observedAmount');
+    expect(prediction.diagnostics).not.toHaveProperty('observedUnit');
+    expect(JSON.stringify(prediction)).not.toContain('Test food');
+  });
 });

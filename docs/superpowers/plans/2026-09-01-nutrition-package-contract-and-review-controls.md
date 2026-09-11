@@ -571,6 +571,8 @@ Mandatory read-only Antigravity conversation `calorix-postchange-live-eval-corre
 
 - [ ] **Slice F — privacy-safe calorie and macro error decomposition:** add optional strict numeric-only prediction diagnostics for raw kcal/protein/carbs/fat, detected count/positive total mass, declared tuple, observed pair, and complete references; never persist names or arbitrary strings. Preserve existing total kcal/macro/catastrophic/safety metrics. Add zero-aware diagnostic metrics for meal mass, complete four-nutrient meal per-100 density, and complete four-nutrient label per-100 extraction; ratio/relative are present only when truth is positive, while zero truth retains predicted/truth/absolute error. Require all-or-none/nonfinite invariants, OFF provenance without fabricated model evidence, cache round-trip compatibility, and a separate optional Markdown diagnostics table without changing the existing Cases table. TDD/focused/full/build/lint/review/commit/push precede a three-sample run over exactly 20 public / 0 private cases; inspect all 60 calorie and macro results plus variance before any accuracy fix or Task 10.
 
+  **RED frozen (2026-09-11):** five evaluation test files produce **29 intended failures / 169 passes (198 total)**, with no production change. Independent read-only review returned `SAFE_TO_FREEZE: yes`, `MUST_FIX: none`; exact test-file ESLint and `git diff --check` pass. GREEN implementation and all post-implementation gates remain pending.
+
 - [ ] **Step 6: Record, commit, and push the evaluation checkpoint**
 
 Commit only privacy-safe tracking and any reviewed source/tests from correction slices. Never commit `.nutrition-eval`, private images/manifests, credentials, provider payloads, or the protected `.mcp.json`.

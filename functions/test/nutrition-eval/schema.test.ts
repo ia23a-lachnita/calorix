@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { parseNutritionEvalManifest } from '../../src/nutrition-eval/schema';
+import {
+  NutritionCaseResultSchema,
+  NutritionPredictionSchema,
+  parseNutritionEvalManifest,
+} from '../../src/nutrition-eval/schema';
 
 const mealSha =
   '28f5fe26394586f124c04af2d22270d8a8079c141fc1f2b0fe80593d77ae2869';
@@ -247,5 +251,260 @@ describe('parseNutritionEvalManifest', () => {
     expect(() =>
       parseCase(mealWith({ case: { toleranceClass: '' } })),
     ).toThrow();
+  });
+});
+
+describe('Slice F diagnostic schema contract', () => {
+  const rawNutrients = { kcal: 240, proteinG: 12, carbsG: 30, fatG: 8 };
+  const completeDiagnostics = {
+    rawNutrients,
+    detectedItemCount: 2,
+    estimatedTotalMassG: 400,
+    declaredBasis: 'package',
+    declaredAmount: 400,
+    declaredUnit: 'g',
+    observedAmount: 400,
+    observedUnit: 'g',
+    packageReference: { kcal: 60, proteinG: 3, carbsG: 7.5, fatG: 2, amount: 100, unit: 'g' },
+    per100Reference: { kcal: 60, proteinG: 3, carbsG: 7.5, fatG: 2, amount: 100, unit: 'g' },
+    servingReference: { kcal: 120, proteinG: 6, carbsG: 15, fatG: 4, amount: 200, unit: 'g' },
+  };
+
+  function predictionWithDiagnostics(
+    diagnostics: Record<string, unknown>,
+    source: 'meal' | 'label' = 'label',
+  ) {
+    return {
+      parseStatus: 'success', source, decision: 'needs_review',
+      kcal: 240, proteinG: 12, carbsG: 30, fatG: 8,
+      diagnostics,
+    };
+  }
+
+  // Production bug caught: prediction diagnostics currently accept no strict
+  // raw evidence contract, allowing model names/paths/arbitrary text to leak.
+  it('accepts complete numeric diagnostics and rejects unknown or nonnumeric evidence', () => {
+    expect(NutritionPredictionSchema.safeParse(predictionWithDiagnostics(completeDiagnostics)).success).toBe(true);
+    for (const invalid of [
+      { ...completeDiagnostics, name: 'Secret food' },
+      { ...completeDiagnostics, rawText: 'provider output' },
+      { ...completeDiagnostics, path: '/private/image.jpg' },
+      { ...completeDiagnostics, url: 'https://private.example/image.jpg' },
+      { ...completeDiagnostics, rawNutrients: { ...rawNutrients, carbsG: '30' } },
+      { ...completeDiagnostics, rawNutrients: { ...rawNutrients, fatG: -1 } },
+      { ...completeDiagnostics, rawNutrients: { kcal: 1, proteinG: 2, carbsG: 3 } },
+      { ...completeDiagnostics, rawNutrients: { ...rawNutrients, kcal: Number.POSITIVE_INFINITY } },
+      { ...completeDiagnostics, detectedItemCount: 1.5 },
+      { ...completeDiagnostics, detectedItemCount: -1 },
+      { ...completeDiagnostics, detectedItemCount: undefined },
+      { ...completeDiagnostics, estimatedTotalMassG: 0 },
+      { ...completeDiagnostics, estimatedTotalMassG: Number.NaN },
+    ]) {
+      expect(NutritionPredictionSchema.safeParse(predictionWithDiagnostics(invalid)).success).toBe(false);
+    }
+  });
+
+  // Production bug caught: partial declared/observed tuples and references can
+  // be serialized as plausible but unverifiable nutrition evidence.
+  it('enforces all-or-none tuples, references, and item-count mass invariants', () => {
+    const absentMass = { ...completeDiagnostics, detectedItemCount: 0 };
+    delete absentMass.estimatedTotalMassG;
+    expect(NutritionPredictionSchema.safeParse(predictionWithDiagnostics(absentMass)).success).toBe(true);
+    for (const invalid of [
+      { ...completeDiagnostics, declaredBasis: undefined },
+      { ...completeDiagnostics, declaredAmount: undefined },
+      { ...completeDiagnostics, declaredUnit: undefined },
+      { ...completeDiagnostics, observedAmount: undefined },
+      { ...completeDiagnostics, observedUnit: undefined },
+      { ...completeDiagnostics, declaredAmount: Number.POSITIVE_INFINITY },
+      { ...completeDiagnostics, packageReference: { kcal: 60, proteinG: 3, carbsG: 7.5, amount: 100, unit: 'g' } },
+      { ...completeDiagnostics, packageReference: { ...completeDiagnostics.packageReference, amount: 0 } },
+      { ...completeDiagnostics, per100Reference: { ...completeDiagnostics.per100Reference, unit: 'portion' } },
+      { ...completeDiagnostics, servingReference: { ...completeDiagnostics.servingReference, kcal: Number.POSITIVE_INFINITY } },
+      { ...completeDiagnostics, detectedItemCount: 0 },
+    ]) {
+      expect(NutritionPredictionSchema.safeParse(predictionWithDiagnostics(invalid)).success).toBe(false);
+    }
+  });
+
+  // Production bug caught: DiagnosticMetric currently has no zero-aware and
+  // arithmetic-consistency validation, so contradictory ratios are accepted.
+  it('validates zero-aware DiagnosticMetric arithmetic and complete density vectors', () => {
+    const metric = (predicted: number, truth: number) => ({
+      predicted,
+      truth,
+      absoluteError: Math.abs(predicted - truth),
+      ...(truth > 0 ? {
+        ratioToTruth: predicted / truth,
+        relativeError: Math.abs(predicted - truth) / truth,
+      } : {}),
+    });
+    const mealResult = {
+      caseId: 'diagnostic-case',
+      prediction: predictionWithDiagnostics({
+        rawNutrients, detectedItemCount: 2, estimatedTotalMassG: 400,
+        declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion',
+      }, 'meal'),
+      numeric: {},
+      safety: { catastrophicCalorieMiss: false, unsafeCompletion: false },
+      booleans: {},
+      diagnostics: {
+        mealMassG: metric(400, 500),
+        mealDensityPer100: {
+          kcal: metric(60, 50), proteinG: metric(3, 2), carbsG: metric(7.5, 6), fatG: metric(2, 1),
+        },
+        mealDominantDriver: 'equal',
+      },
+    };
+    const labelResult = {
+      ...mealResult,
+      caseId: 'label-diagnostic-case',
+      prediction: predictionWithDiagnostics(completeDiagnostics, 'label'),
+      diagnostics: {
+        labelPer100: {
+          kcal: metric(60, 60), proteinG: metric(0, 0), carbsG: metric(7.5, 7.5), fatG: metric(0, 0),
+        },
+      },
+    };
+    expect(NutritionCaseResultSchema.safeParse(mealResult).success).toBe(true);
+    expect(NutritionCaseResultSchema.safeParse(labelResult).success).toBe(true);
+    for (const driver of ['mass_dominated', 'density_dominated', 'equal']) {
+      expect(NutritionCaseResultSchema.safeParse({
+        ...mealResult,
+        diagnostics: { ...mealResult.diagnostics, mealDominantDriver: driver },
+      }).success).toBe(true);
+    }
+    for (const driver of ['mass', 'density', 'other']) {
+      expect(NutritionCaseResultSchema.safeParse({
+        ...mealResult,
+        diagnostics: { ...mealResult.diagnostics, mealDominantDriver: driver },
+      }).success).toBe(false);
+    }
+    expect(NutritionCaseResultSchema.safeParse({
+      ...mealResult,
+      diagnostics: { ...mealResult.diagnostics, mealMassG: { ...mealResult.diagnostics.mealMassG, absoluteError: 99 } },
+    }).success).toBe(false);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...labelResult,
+      diagnostics: { ...labelResult.diagnostics, labelPer100: { ...labelResult.diagnostics.labelPer100, proteinG: { predicted: 1, truth: 0, absoluteError: 1, ratioToTruth: 1, relativeError: 1 } } },
+    }).success).toBe(false);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...mealResult,
+      diagnostics: { ...mealResult.diagnostics, mealDominantDriver: 'mass' },
+    }).success).toBe(false);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...mealResult,
+      diagnostics: { ...mealResult.diagnostics, mealDensityPer100: { ...mealResult.diagnostics.mealDensityPer100, fatG: undefined } },
+    }).success).toBe(false);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...mealResult,
+      diagnostics: { ...mealResult.diagnostics, mealMassG: { predicted: 400, truth: 500, absoluteError: 100 } },
+    }).success).toBe(false);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...mealResult,
+      diagnostics: { ...mealResult.diagnostics, mealMassG: { ...mealResult.diagnostics.mealMassG, ratioToTruth: 9 } },
+    }).success).toBe(false);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...mealResult,
+      diagnostics: { ...mealResult.diagnostics, mealDominantDriver: 'mass_dominated', mealMassG: undefined },
+    }).success).toBe(false);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...mealResult,
+      diagnostics: { ...mealResult.diagnostics, labelPer100: { ...labelResult.diagnostics.labelPer100 } },
+    }).success).toBe(false);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...labelResult,
+      diagnostics: { ...labelResult.diagnostics, mealMassG: mealResult.diagnostics.mealMassG },
+    }).success).toBe(false);
+  });
+
+  function validMealResult() {
+    const metric = (predicted: number, truth: number) => ({
+      predicted, truth, absoluteError: Math.abs(predicted - truth),
+      ...(truth > 0 ? { ratioToTruth: predicted / truth, relativeError: Math.abs(predicted - truth) / truth } : {}),
+    });
+    return {
+      caseId: 'metric-validation-case',
+      prediction: predictionWithDiagnostics({
+        rawNutrients, detectedItemCount: 1, estimatedTotalMassG: 400,
+        declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion',
+      }, 'meal'),
+      numeric: {},
+      safety: { catastrophicCalorieMiss: false, unsafeCompletion: false },
+      booleans: {},
+      diagnostics: {
+        mealMassG: metric(400, 500),
+        mealDensityPer100: {
+          kcal: metric(60, 50), proteinG: metric(3, 2), carbsG: metric(7.5, 6), fatG: metric(2, 1),
+        },
+        mealDominantDriver: 'equal',
+      },
+    };
+  }
+
+  // Production bug caught: metric validation currently accepts malformed
+  // finite values, partial ratio pairs, contradictory arithmetic, and unknown reference keys.
+  it.each([
+    ['negative predicted', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealMassG: { ...result.diagnostics.mealMassG, predicted: -1 } },
+    })],
+    ['nonfinite truth', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealMassG: { ...result.diagnostics.mealMassG, truth: Number.POSITIVE_INFINITY } },
+    })],
+    ['nonfinite predicted', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealMassG: { ...result.diagnostics.mealMassG, predicted: Number.POSITIVE_INFINITY } },
+    })],
+    ['nonfinite absolute error', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealMassG: { ...result.diagnostics.mealMassG, absoluteError: Number.NaN } },
+    })],
+    ['ratio without relative error', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealMassG: { predicted: 400, truth: 500, absoluteError: 100, ratioToTruth: 0.8 } },
+    })],
+    ['relative error without ratio', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealMassG: { predicted: 400, truth: 500, absoluteError: 100, relativeError: 0.2 } },
+    })],
+    ['negative truth', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealMassG: { ...result.diagnostics.mealMassG, truth: -1 } },
+    })],
+    ['negative absolute error', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealMassG: { ...result.diagnostics.mealMassG, absoluteError: -1 } },
+    })],
+    ['wrong relative error', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealMassG: { ...result.diagnostics.mealMassG, relativeError: 4 } },
+    })],
+    ['driver missing mass context', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealMassG: undefined },
+    })],
+    ['driver missing density context', (result: ReturnType<typeof validMealResult>) => ({
+      ...result, diagnostics: { ...result.diagnostics, mealDensityPer100: undefined },
+    })],
+  ])('rejects individually invalid diagnostic case: %s', (_label, mutate) => {
+    expect(NutritionCaseResultSchema.safeParse(mutate(validMealResult())).success).toBe(false);
+  });
+
+  // Production bug caught: nested reference objects currently accept unknown
+  // provenance keys; this must fail only after the otherwise-valid fixture is enriched.
+  it('rejects an unknown nested reference key while accepting the clean label fixture', () => {
+    const meal = validMealResult();
+    const clean = {
+      ...meal,
+      prediction: predictionWithDiagnostics(completeDiagnostics, 'label'),
+      diagnostics: {
+        labelPer100: {
+          kcal: { predicted: 60, truth: 60, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+          proteinG: { predicted: 0, truth: 0, absoluteError: 0 },
+          carbsG: { predicted: 7.5, truth: 7.5, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+          fatG: { predicted: 0, truth: 0, absoluteError: 0 },
+        },
+      },
+    };
+    expect(NutritionCaseResultSchema.safeParse(clean).success).toBe(true);
+    expect(NutritionCaseResultSchema.safeParse({
+      ...clean,
+      prediction: predictionWithDiagnostics({
+        ...completeDiagnostics,
+        packageReference: { ...completeDiagnostics.packageReference, producer: 'secret' },
+      }, 'label'),
+    }).success).toBe(false);
   });
 });

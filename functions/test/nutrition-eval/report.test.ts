@@ -765,4 +765,76 @@ describe('nutrition evaluation reports', () => {
       chmodSpy.mockRestore();
     }
   });
+
+  // Production bug caught: reports currently have nowhere to serialize
+  // privacy-safe decomposition, so ratio/driver evidence disappears on JSON roundtrip.
+  it('roundtrips optional diagnostics and renders them in a separate table', () => {
+    const base = scoreNutritionCase({ ...reportCase, truth: { ...reportCase.truth, referenceMassG: 400 } }, {
+      parseStatus: 'success', source: 'meal', kcal: 110, proteinG: 2, carbsG: 4, fatG: 6,
+      confidence: 0.9, decision: 'needs_review',
+    });
+    const detailed = {
+      ...base,
+      diagnostics: {
+        mealMassG: { predicted: 500, truth: 400, absoluteError: 100, ratioToTruth: 1.25, relativeError: 0.25 },
+        mealDensityPer100: {
+          kcal: { predicted: 27.5, truth: 25, absoluteError: 2.5, ratioToTruth: 1.1, relativeError: 0.1 },
+          proteinG: { predicted: 0.5, truth: 0.25, absoluteError: 0.25, ratioToTruth: 2, relativeError: 1 },
+          carbsG: { predicted: 1, truth: 0.5, absoluteError: 0.5, ratioToTruth: 2, relativeError: 1 },
+          fatG: { predicted: 1.5, truth: 0.75, absoluteError: 0.75, ratioToTruth: 2, relativeError: 1 },
+        },
+        mealDominantDriver: 'mass_dominated',
+      },
+    };
+    const report = buildNutritionEvalReport([detailed], { ...metadata, publicCases: 1 });
+    const withoutDiagnostics = buildNutritionEvalReport([base], { ...metadata, publicCases: 1 });
+    const json = renderNutritionEvalJson(report);
+    const roundTrip = NutritionEvalReportSchema.parse(JSON.parse(json));
+    expect(roundTrip.cases[0]?.diagnostics).toEqual(detailed.diagnostics);
+
+    const markdown = renderNutritionEvalMarkdown(report);
+    expect(markdown).toContain('## Cases');
+    expect(markdown).toContain('## Case diagnostics');
+    expect(markdown).toContain('| caseId | mealMassRatioToTruth | mealMassRelativeError | mealDominantDriver | kcalDensityRatioToTruth | kcalDensityRelativeError | proteinGDensityRatioToTruth | proteinGDensityRelativeError | carbsGDensityRatioToTruth | carbsGDensityRelativeError | fatGDensityRatioToTruth | fatGDensityRelativeError |');
+    expect(markdown).toContain('| report-case | 1.25 | 0.25 | mass_dominated | 1.1 | 0.1 | 2 | 1 | 2 | 1 | 2 | 1 |');
+    const casesBlock = (value: string) => {
+      const start = value.indexOf('## Cases');
+      const end = value.indexOf('## Case diagnostics');
+      return value.slice(start, end < 0 ? value.length : end);
+    };
+    expect(casesBlock(markdown)).toBe(casesBlock(renderNutritionEvalMarkdown(withoutDiagnostics)));
+    expect(markdown.indexOf('## Case diagnostics')).toBeGreaterThan(markdown.indexOf('## Cases'));
+  });
+
+  // Production bug caught: optional diagnostics must remain backward compatible;
+  // absent diagnostics should not add an empty or misleading report section.
+  it('omits the diagnostics section when no case provides diagnostics', () => {
+    const report = buildNutritionEvalReport(results(), metadata);
+    expect(renderNutritionEvalMarkdown(report)).not.toContain('## Case diagnostics');
+  });
+
+  // Production bug caught: report validation currently permits arbitrary
+  // diagnostic strings, which could persist model names, paths, or raw output.
+  it('rejects arbitrary diagnostic strings through the report schema', () => {
+    const result = scoreNutritionCase(reportCase, {
+      parseStatus: 'success', source: 'meal', kcal: 110, proteinG: 1, carbsG: 2, fatG: 3,
+      confidence: 0.9, decision: 'complete',
+    });
+    const cleanDiagnostics = {
+      rawNutrients: { kcal: 110, proteinG: 1, carbsG: 2, fatG: 3 },
+      detectedItemCount: 1,
+      estimatedTotalMassG: 100,
+      declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion',
+    };
+    const clean = {
+      ...result,
+      prediction: { ...result.prediction, diagnostics: cleanDiagnostics },
+    };
+    expect(() => buildNutritionEvalReport([clean], { ...metadata, publicCases: 1 })).not.toThrow();
+    const tainted = {
+      ...result,
+      prediction: { ...result.prediction, diagnostics: { ...cleanDiagnostics, rawText: 'Secret provider response' } },
+    };
+    expect(() => buildNutritionEvalReport([tainted], { ...metadata, publicCases: 1 })).toThrow();
+  });
 });

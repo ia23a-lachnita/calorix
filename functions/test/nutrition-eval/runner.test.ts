@@ -915,3 +915,74 @@ describe('test-owned analyzeCase adapter', () => {
     expect(results[0]?.prediction).toMatchObject({ basis: 'package', amount: 330, unit: 'ml' });
   });
 });
+
+describe('Slice F diagnostic cache compatibility', () => {
+  // Production bug caught: the runner currently rejects/stores no diagnostic
+  // payload, so a real miss cannot preserve evidence for the subsequent hit.
+  it('roundtrips diagnostics from a real miss while stamping runtime metadata per run', async () => {
+    const stored = new Map<string, string>();
+    const diagnosticPrediction = {
+      ...okMealPrediction,
+      diagnostics: {
+        rawNutrients: { kcal: 43.1, proteinG: 2.4, carbsG: 9, fatG: 0.4 },
+        detectedItemCount: 2,
+        estimatedTotalMassG: 350,
+        declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion',
+      },
+    };
+    const analyzeCase = vi.fn(async () => diagnosticPrediction);
+    const cacheStore = makeCacheStore({
+      get: vi.fn(async (key: string) => stored.get(key) ?? null),
+      set: vi.fn(async (key: string, value: string) => { stored.set(key, value); }),
+    });
+    let now = 1000;
+    const deps = makeDeps({
+      analyzeCase,
+      cacheStore,
+      nowMs: vi.fn(() => {
+        const value = now;
+        now += 25;
+        return value;
+      }),
+    });
+    const options = { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 };
+
+    const miss = await runNutritionEval([mealCase], deps, options);
+    expect(miss[0]?.prediction.diagnostics).toEqual(diagnosticPrediction.diagnostics);
+    expect(miss[0]?.prediction).toMatchObject({ latencyMs: 25, sampleIndex: 1, cached: false });
+    expect(JSON.parse([...stored.values()][0]!)).toEqual({
+      parseStatus: 'success', source: 'meal',
+      kcal: okMealPrediction.kcal, proteinG: okMealPrediction.proteinG,
+      carbsG: okMealPrediction.carbsG, fatG: okMealPrediction.fatG,
+      confidence: okMealPrediction.confidence, basis: okMealPrediction.basis,
+      amount: okMealPrediction.amount, unit: okMealPrediction.unit,
+      decision: okMealPrediction.decision, diagnostics: diagnosticPrediction.diagnostics,
+    });
+
+    const hit = await runNutritionEval([mealCase], deps, options);
+    expect(hit[0]?.prediction.diagnostics).toEqual(diagnosticPrediction.diagnostics);
+    expect(hit[0]?.prediction).toMatchObject({ latencyMs: 25, sampleIndex: 1, cached: true });
+    expect(analyzeCase).toHaveBeenCalledOnce();
+  });
+
+  // Production bug caught: tightening prediction diagnostics must not invalidate
+  // old cache payloads that never contained the optional field.
+  it('accepts an old cached prediction without diagnostics', async () => {
+    const oldPrediction = {
+      parseStatus: 'success', source: 'meal', kcal: 43.1,
+      proteinG: 2.4, carbsG: 9, fatG: 0.4, decision: 'complete',
+    } satisfies NutritionPrediction;
+    const deps = makeDeps({
+      analyzeCase: vi.fn(async () => { throw new Error('must not analyze cache hit'); }),
+      cacheStore: makeCacheStore({ get: vi.fn(async () => JSON.stringify(oldPrediction)) }),
+    });
+
+    const results = await runNutritionEval(
+      [mealCase], deps,
+      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+    );
+
+    expect(results[0]?.prediction).toMatchObject({ ...oldPrediction, cached: true, sampleIndex: 1 });
+    expect(results[0]?.prediction).not.toHaveProperty('diagnostics');
+  });
+});

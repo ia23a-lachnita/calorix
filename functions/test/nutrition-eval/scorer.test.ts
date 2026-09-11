@@ -353,3 +353,227 @@ describe('aggregateNutritionResults', () => {
       .toBe(JSON.stringify(aggregateNutritionResults([a, b])));
   });
 });
+
+describe('Slice F diagnostic scoring', () => {
+  const diagnosticMealCase: NutritionEvalCase = {
+    ...kcal100Case,
+    truth: { ...kcal100Case.truth, referenceMassG: 400 },
+  };
+  const diagnosticLabelCase: NutritionEvalCase = {
+    ...pkgCase,
+    id: 'label-diagnostic-case',
+    scanMode: 'label',
+  };
+  const diagnosticPer100LabelCase: NutritionEvalCase = {
+    ...diagnosticLabelCase,
+    id: 'label-per100-diagnostic-case',
+    truth: { basis: 'per100g', amount: 100, unit: 'ml', kcal: 17, proteinG: 0, carbsG: 4.2, fatG: 0 },
+  };
+
+  type PredictionDiagnostics = {
+    rawNutrients: { kcal: number; proteinG: number; carbsG: number; fatG: number };
+    detectedItemCount: number;
+    estimatedTotalMassG?: number;
+    declaredBasis: 'portion' | 'package' | 'per100g';
+    declaredAmount: number;
+    declaredUnit: 'portion' | 'g' | 'ml';
+    per100Reference?: { kcal: number; proteinG: number; carbsG: number; fatG: number; amount: number; unit: 'g' | 'ml' };
+  };
+  function diagnosticPrediction(
+    overrides: Partial<PredictionDiagnostics> = {},
+    source: 'meal' | 'label' | 'barcode' = 'meal',
+    predictionOverrides: Partial<NutritionPrediction> = {},
+  ) {
+    return {
+      parseStatus: 'success' as const,
+      source,
+      decision: 'complete' as const,
+      kcal: 120, proteinG: 8, carbsG: 25, fatG: 4,
+      ...predictionOverrides,
+      diagnostics: {
+        rawNutrients: { kcal: 120, proteinG: 8, carbsG: 25, fatG: 4 },
+        detectedItemCount: 2,
+        estimatedTotalMassG: 500,
+        declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion',
+        ...overrides,
+      },
+    };
+  }
+
+  // Production bug caught: scorer currently produces only total errors and
+  // cannot separate meal mass error from per-100 density error.
+  it('derives hand-calculated meal mass and complete four-nutrient density metrics', () => {
+    const result = scoreNutritionCase(diagnosticMealCase, diagnosticPrediction());
+
+    expect(result.numeric.kcal).toEqual({ ratioToTruth: 1.2, absoluteError: 20, relativeError: 0.2 });
+    expect(result.diagnostics).toMatchObject({
+      mealMassG: { predicted: 500, truth: 400, absoluteError: 100, ratioToTruth: 1.25, relativeError: 0.25 },
+      mealDensityPer100: {
+        kcal: { predicted: 24, truth: 25, absoluteError: 1, ratioToTruth: 0.96, relativeError: 0.04 },
+        proteinG: { predicted: 1.6, truth: 2.5, absoluteError: 0.9, ratioToTruth: 0.64, relativeError: 0.36 },
+        carbsG: { predicted: 5, truth: 5, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+        fatG: { predicted: 0.8, truth: 1.25, absoluteError: 0.45, ratioToTruth: 0.64, relativeError: 0.36 },
+      },
+        mealDominantDriver: 'mass_dominated',
+    });
+  });
+
+  // Production bug caught: density calculations commonly clamp ratios or use
+  // the wrong denominator, hiding a valid sub-one macro density prediction.
+  it('retains a positive sub-one macro density ratio without clamping', () => {
+    const result = scoreNutritionCase(diagnosticMealCase, diagnosticPrediction({
+      rawNutrients: { kcal: 120, proteinG: 1, carbsG: 25, fatG: 4 },
+    }));
+
+    expect(result.diagnostics?.mealDensityPer100?.proteinG).toEqual({
+      predicted: 0.2,
+      truth: 2.5,
+      absoluteError: 2.3,
+      ratioToTruth: 0.08,
+      relativeError: 0.92,
+    });
+  });
+
+  // Production bug caught: zero truth macros currently divide by one and emit
+  // misleading ratio/relative values in diagnostic metrics.
+  it('keeps zero-truth diagnostic macros to predicted/truth/absolute only', () => {
+    const zeroMacroCase: NutritionEvalCase = {
+      ...diagnosticMealCase,
+      truth: { ...diagnosticMealCase.truth, proteinG: 0, fatG: 0 },
+    };
+    const result = scoreNutritionCase(zeroMacroCase, diagnosticPrediction());
+
+    expect(result.diagnostics?.mealDensityPer100?.proteinG).toEqual({
+      predicted: 1.6, truth: 0, absoluteError: 1.6,
+    });
+    expect(result.diagnostics?.mealDensityPer100?.fatG).toEqual({
+      predicted: 0.8, truth: 0, absoluteError: 0.8,
+    });
+  });
+
+  // Production bug caught: missing optional mass evidence currently yields a
+  // partial density result instead of omitting the whole meal density vector.
+  it('omits the meal density vector when optional mass evidence is absent', () => {
+    const prediction = diagnosticPrediction();
+    delete prediction.diagnostics.estimatedTotalMassG;
+    const result = scoreNutritionCase(diagnosticMealCase, prediction);
+    expect(result.diagnostics?.mealDensityPer100).toBeUndefined();
+  });
+
+  // Production bug caught: label density extraction currently ignores basis,
+  // amount, and unit compatibility, or fails to scale package truth by 100.
+  it('derives exact label per-100 metrics from compatible references and package truth scaling', () => {
+    const result = scoreNutritionCase(diagnosticLabelCase, diagnosticPrediction({
+      rawNutrients: { kcal: 138.6, proteinG: 0, carbsG: 34.98, fatG: 0 },
+      declaredBasis: 'package', declaredAmount: 330, declaredUnit: 'ml',
+      per100Reference: { kcal: 42, proteinG: 0, carbsG: 10.6, fatG: 0, amount: 100, unit: 'ml' },
+    }, 'label'));
+
+    expect(result.diagnostics?.labelPer100).toEqual({
+      kcal: { predicted: 42, truth: 42, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+      proteinG: { predicted: 0, truth: 0, absoluteError: 0 },
+      carbsG: { predicted: 10.6, truth: 10.6, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+      fatG: { predicted: 0, truth: 0, absoluteError: 0 },
+    });
+    expect(result.numeric.kcal?.ratioToTruth).toBeCloseTo(120 / 138.6, 12);
+    expect(result.numeric.kcal?.absoluteError).toBeCloseTo(18.6, 12);
+    expect(result.numeric.kcal?.relativeError).toBeCloseTo(18.6 / 138.6, 12);
+    for (const override of [
+      { per100Reference: undefined },
+      { per100Reference: { kcal: 42, proteinG: 0, carbsG: 10.6, fatG: 0, amount: 99, unit: 'ml' } },
+      { per100Reference: { kcal: 42, proteinG: 0, carbsG: 10.6, fatG: 0, amount: 100, unit: 'g' } },
+      { declaredBasis: 'portion' },
+    ]) {
+      expect(scoreNutritionCase(diagnosticLabelCase, diagnosticPrediction({
+        declaredBasis: 'package', declaredAmount: 330, declaredUnit: 'ml', ...override,
+      }, 'label')).diagnostics?.labelPer100).toBeUndefined();
+    }
+  });
+
+  // Production bug caught: label per-100 extraction currently accepts a
+  // mismatched source/scan mode or truth basis instead of failing closed.
+  it.each([
+    ['label scan with meal source', diagnosticLabelCase, 'meal' as const, diagnosticLabelCase.truth],
+    ['meal scan with label source', { ...diagnosticLabelCase, scanMode: 'meal' as const }, 'label' as const, diagnosticLabelCase.truth],
+    ['portion truth', { ...diagnosticLabelCase, truth: { ...diagnosticLabelCase.truth, basis: 'portion' as const, amount: 1, unit: 'ml' as const } }, 'label' as const, diagnosticLabelCase.truth],
+  ])('omits label density for %s', (_label, evalCase, source, _truth) => {
+    const result = scoreNutritionCase(evalCase, diagnosticPrediction({
+      declaredBasis: 'per100g', declaredAmount: 100, declaredUnit: 'ml',
+      per100Reference: { kcal: 42, proteinG: 0, carbsG: 10.6, fatG: 0, amount: 100, unit: 'ml' },
+    }, source));
+    expect(result.diagnostics?.labelPer100).toBeUndefined();
+    expect(result.diagnostics?.mealMassG).toBeUndefined();
+    expect(result.diagnostics?.mealDensityPer100).toBeUndefined();
+    expect(result.diagnostics?.mealDominantDriver).toBeUndefined();
+  });
+
+  // Production bug caught: a valid label per-100 reference is not scored when
+  // truth itself is expressed at the matching per-100 basis.
+  it('derives positive per-100 label metrics for matching per100g truth', () => {
+    const result = scoreNutritionCase(diagnosticPer100LabelCase, diagnosticPrediction({
+      rawNutrients: { kcal: 17, proteinG: 0, carbsG: 4.2, fatG: 0 },
+      declaredBasis: 'per100g', declaredAmount: 100, declaredUnit: 'ml',
+      per100Reference: { kcal: 17, proteinG: 0, carbsG: 4.2, fatG: 0, amount: 100, unit: 'ml' },
+    }, 'label'));
+    expect(result.diagnostics?.labelPer100).toEqual({
+      kcal: { predicted: 17, truth: 17, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+      proteinG: { predicted: 0, truth: 0, absoluteError: 0 },
+      carbsG: { predicted: 4.2, truth: 4.2, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+      fatG: { predicted: 0, truth: 0, absoluteError: 0 },
+    });
+  });
+
+  // Production bug caught: the dominant meal error driver currently ignores
+  // kcal mass-vs-density deviations and cannot select density deterministically.
+  it('selects density as the meal driver when its kcal ratio deviation is larger', () => {
+    const result = scoreNutritionCase(diagnosticMealCase, diagnosticPrediction({
+      estimatedTotalMassG: 400,
+      rawNutrients: { kcal: 50, proteinG: 8, carbsG: 25, fatG: 4 },
+    }));
+
+    expect(result.diagnostics).toMatchObject({
+      mealMassG: { ratioToTruth: 1, relativeError: 0 },
+      mealDensityPer100: { kcal: { predicted: 12.5, truth: 25, ratioToTruth: 0.5, relativeError: 0.5 } },
+      mealDominantDriver: 'density_dominated',
+    });
+  });
+
+  // Production bug caught: equal mass and density deviations currently select
+  // an arbitrary driver instead of the explicit equal enum.
+  it('selects equal when mass and kcal-density ratio deviations tie', () => {
+    const result = scoreNutritionCase(diagnosticMealCase, diagnosticPrediction({
+      estimatedTotalMassG: 500,
+      rawNutrients: { kcal: 156.25, proteinG: 8, carbsG: 25, fatG: 4 },
+    }));
+    expect(result.diagnostics?.mealDominantDriver).toBe('equal');
+  });
+
+  // Production bug caught: non-meal cases currently receive meal diagnostics
+  // when they happen to carry a mass-like prediction payload.
+  it('omits meal diagnostics for a barcode case and barcode prediction', () => {
+    const result = scoreNutritionCase(pkgCase, diagnosticPrediction({
+      estimatedTotalMassG: 500,
+    }, 'barcode'));
+    expect(result.diagnostics?.mealMassG).toBeUndefined();
+    expect(result.diagnostics?.mealDensityPer100).toBeUndefined();
+    expect(result.diagnostics?.mealDominantDriver).toBeUndefined();
+  });
+
+  // Production bug caught: adding diagnostics currently risks changing the
+  // established total metrics and safety decisions.
+  it('preserves totals, safety, and boolean matches exactly when diagnostics are added', () => {
+    const plain = scoreNutritionCase(diagnosticMealCase, ok({
+      kcal: 250, proteinG: 25, carbsG: 50, fatG: 20, decision: 'needs_review',
+      basis: 'portion', unit: 'portion',
+    }));
+    const enriched = scoreNutritionCase(diagnosticMealCase, diagnosticPrediction({
+      rawNutrients: { kcal: 250, proteinG: 25, carbsG: 50, fatG: 20 },
+    }, 'meal', {
+      kcal: 250, proteinG: 25, carbsG: 50, fatG: 20, decision: 'needs_review',
+      basis: 'portion', unit: 'portion',
+    }));
+    expect(enriched.numeric).toEqual(plain.numeric);
+    expect(enriched.safety).toEqual(plain.safety);
+    expect(enriched.booleans).toEqual(plain.booleans);
+  });
+});
