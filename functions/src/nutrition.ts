@@ -326,7 +326,7 @@ export function normalizeVisionNutrition(
 
   const modelBarcode = result.modelBarcode;
   const reasons: ReviewReason[] = barcodeReasons(validRaw, modelBarcode, validConfirmed);
-  if (result.source === 'label') reasons.push('nutrition_basis_ambiguous');
+  if (result.source === 'label' || result.source === 'meal') reasons.push('nutrition_basis_ambiguous');
   let draft: NutritionDraft;
 
   if (result.nutritionBasis === 'portion') {
