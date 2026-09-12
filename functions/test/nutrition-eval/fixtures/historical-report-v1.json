@@ -1,0 +1,784 @@
+{
+  "version": 1,
+  "runId": "run-2026-09-02T04-44-02-551Z",
+  "timestamp": "2026-09-02T04:44:02.551Z",
+  "datasetId": "calorix-public-v1",
+  "datasetHash": "ca5c9e3bd552fcf30311c9de558519a24a7bad1f934b5f77ee2e1285e9462d4e",
+  "adapterModelId": "gemini-2.5-flash",
+  "promptHash": "294ea620c053db3687704a7b589c824776d138817b10c4d71f29abb734e6be49",
+  "codeSha": "0cf3b1295d121be7f137f36c16c0447f1970d88f",
+  "samples": 1,
+  "baselineOnly": true,
+  "summary": {
+    "totalCases": 20,
+    "runCases": 20,
+    "parseCases": 15,
+    "basisAccuracyDenom": 0,
+    "barcodeAccuracyDenom": 1,
+    "medianAbsoluteCalorieError": 92.620026,
+    "medianRelativeCalorieError": 0.6294211611262991,
+    "p90AbsoluteCalorieError": 699.6119459999998,
+    "p90RelativeCalorieError": 1,
+    "meanMacroRelativeError": 0.618922067764863,
+    "reviewRate": 0.26666666666666666,
+    "catastrophicCount": 4,
+    "unsafeCompletionCount": 1,
+    "failuresByCategory": {
+      "schema": 5
+    },
+    "failuresByCode": {
+      "model_response_invalid": 5
+    },
+    "latencyMs": {
+      "min": 2080,
+      "max": 38426,
+      "median": 15146,
+      "p90": 28850.100000000013
+    }
+  },
+  "cases": [
+    {
+      "caseId": "n5k-dish_1565035746",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 40,
+        "proteinG": 2.6,
+        "carbsG": 8.3,
+        "fatG": 0.4,
+        "confidence": 0.9,
+        "decision": "complete",
+        "latencyMs": 16871,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 0.9280742890057675,
+          "absoluteError": 3.0999979999999994,
+          "relativeError": 0.07192571099423252
+        },
+        "proteinG": {
+          "ratioToTruth": 1.0792860107928601,
+          "absoluteError": 0.19100000000000028,
+          "relativeError": 0.07928601079286023
+        },
+        "carbsG": {
+          "ratioToTruth": 0.921198668146504,
+          "absoluteError": 0.7099999999999991,
+          "relativeError": 0.07880133185349601
+        },
+        "fatG": {
+          "ratioToTruth": 0.4,
+          "absoluteError": 0.031000000000000028,
+          "relativeError": 0.031000000000000028
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1558639818",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 27,
+        "proteinG": 0.6,
+        "carbsG": 6.6,
+        "fatG": 0.2,
+        "confidence": 0.85,
+        "decision": "complete",
+        "latencyMs": 15067,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 1.3459621807558415,
+          "absoluteError": 6.940000999999999,
+          "relativeError": 0.34596218075584145
+        },
+        "proteinG": {
+          "ratioToTruth": 0.6,
+          "absoluteError": 0.128,
+          "relativeError": 0.128
+        },
+        "carbsG": {
+          "ratioToTruth": 1.3983050847457628,
+          "absoluteError": 1.88,
+          "relativeError": 0.3983050847457627
+        },
+        "fatG": {
+          "ratioToTruth": 0.2,
+          "absoluteError": 0.08200000000000002,
+          "relativeError": 0.08200000000000002
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1558549605",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 195,
+        "proteinG": 4.1,
+        "carbsG": 42,
+        "fatG": 0.5,
+        "confidence": 0.9,
+        "decision": "complete",
+        "latencyMs": 8930,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 2,
+          "absoluteError": 97.5,
+          "relativeError": 1
+        },
+        "proteinG": {
+          "ratioToTruth": 2.0246913580246915,
+          "absoluteError": 2.0749999999999997,
+          "relativeError": 1.0246913580246912
+        },
+        "carbsG": {
+          "ratioToTruth": 2,
+          "absoluteError": 21,
+          "relativeError": 1
+        },
+        "fatG": {
+          "ratioToTruth": 0.5,
+          "absoluteError": 0.275,
+          "relativeError": 0.275
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1561663580",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 732,
+        "proteinG": 38,
+        "carbsG": 97.1,
+        "fatG": 20,
+        "confidence": 0.85,
+        "decision": "complete",
+        "latencyMs": 24649,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 1.6941957427842027,
+          "absoluteError": 299.936584,
+          "relativeError": 0.6941957427842027
+        },
+        "proteinG": {
+          "ratioToTruth": 0.7388355962668659,
+          "absoluteError": 13.432281000000003,
+          "relativeError": 0.2611644037331341
+        },
+        "carbsG": {
+          "ratioToTruth": 3.097784321727521,
+          "absoluteError": 65.755016,
+          "relativeError": 2.097784321727521
+        },
+        "fatG": {
+          "ratioToTruth": 2.0316649199427514,
+          "absoluteError": 10.155857,
+          "relativeError": 1.0316649199427517
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1565898402",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 627,
+        "proteinG": 40.8,
+        "carbsG": 64.2,
+        "fatG": 26.7,
+        "confidence": 0.8,
+        "decision": "complete",
+        "latencyMs": 36087,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 1.6294211611262992,
+          "absoluteError": 242.20077500000002,
+          "relativeError": 0.6294211611262991
+        },
+        "proteinG": {
+          "ratioToTruth": 1.0348927797813605,
+          "absoluteError": 1.375625999999997,
+          "relativeError": 0.03489277978136056
+        },
+        "carbsG": {
+          "ratioToTruth": 6.784453372259047,
+          "absoluteError": 54.737189,
+          "relativeError": 5.784453372259047
+        },
+        "fatG": {
+          "ratioToTruth": 1.3661406990864304,
+          "absoluteError": 7.155892999999999,
+          "relativeError": 0.36614069908643043
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1566328724",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 206,
+        "proteinG": 39,
+        "carbsG": 0,
+        "fatG": 4.5,
+        "confidence": 0.9,
+        "decision": "complete",
+        "latencyMs": 12521,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 0.7475957502128434,
+          "absoluteError": 69.54998799999998,
+          "relativeError": 0.25240424978715653
+        },
+        "proteinG": {
+          "ratioToTruth": 0.7533320455862468,
+          "absoluteError": 12.770000000000003,
+          "relativeError": 0.2466679544137532
+        },
+        "carbsG": {
+          "ratioToTruth": 0,
+          "absoluteError": 0,
+          "relativeError": 0
+        },
+        "fatG": {
+          "ratioToTruth": 0.7485029940119761,
+          "absoluteError": 1.5119999999999996,
+          "relativeError": 0.2514970059880239
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1566838351",
+      "prediction": {
+        "parseStatus": "failure",
+        "source": "meal",
+        "decision": "error",
+        "failureCategory": "schema",
+        "failureCode": "model_response_invalid",
+        "latencyMs": 20143,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {},
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1567107839",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 191,
+        "proteinG": 24.8,
+        "carbsG": 9,
+        "fatG": 6.2,
+        "confidence": 0.7,
+        "decision": "needs_review",
+        "latencyMs": 38426,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 1.09590936909846,
+          "absoluteError": 16.71551500000001,
+          "relativeError": 0.09590936909845998
+        },
+        "proteinG": {
+          "ratioToTruth": 1.321746871830206,
+          "absoluteError": 6.036951999999999,
+          "relativeError": 0.3217468718302058
+        },
+        "carbsG": {
+          "ratioToTruth": 0.7512080050728241,
+          "absoluteError": 2.980703,
+          "relativeError": 0.24879199492717582
+        },
+        "fatG": {
+          "ratioToTruth": 0.37645733007960863,
+          "absoluteError": 10.26933,
+          "relativeError": 0.6235426699203914
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1558639787",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 18,
+        "proteinG": 1.4,
+        "carbsG": 3.5,
+        "fatG": 0.2,
+        "confidence": 0.9,
+        "decision": "complete",
+        "latencyMs": 11063,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 0.7272727272727273,
+          "absoluteError": 6.75,
+          "relativeError": 0.2727272727272727
+        },
+        "proteinG": {
+          "ratioToTruth": 0.7856341189674523,
+          "absoluteError": 0.3820000000000001,
+          "relativeError": 0.21436588103254775
+        },
+        "carbsG": {
+          "ratioToTruth": 0.7070707070707071,
+          "absoluteError": 1.4500000000000002,
+          "relativeError": 0.29292929292929293
+        },
+        "fatG": {
+          "ratioToTruth": 0.2,
+          "absoluteError": 0.09699999999999998,
+          "relativeError": 0.09699999999999998
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1562788601",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 760,
+        "proteinG": 57.5,
+        "carbsG": 75,
+        "fatG": 28,
+        "confidence": 0.8,
+        "decision": "complete",
+        "latencyMs": 20384,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 1.8394359505195117,
+          "absoluteError": 346.829865,
+          "relativeError": 0.8394359505195117
+        },
+        "proteinG": {
+          "ratioToTruth": 2.484136412873322,
+          "absoluteError": 34.353123,
+          "relativeError": 1.4841364128733219
+        },
+        "carbsG": {
+          "ratioToTruth": 1.537944189809873,
+          "absoluteError": 26.233601,
+          "relativeError": 0.537944189809873
+        },
+        "fatG": {
+          "ratioToTruth": 1.4629696517918007,
+          "absoluteError": 8.860847,
+          "relativeError": 0.4629696517918008
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1560456326",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 258,
+        "proteinG": 31.9,
+        "carbsG": 0.9,
+        "fatG": 14.6,
+        "confidence": 0.8,
+        "decision": "complete",
+        "latencyMs": 23886,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 1.2471434312638856,
+          "absoluteError": 51.12724299999999,
+          "relativeError": 0.24714343126388552
+        },
+        "proteinG": {
+          "ratioToTruth": 1.0725545495696216,
+          "absoluteError": 2.1579230000000003,
+          "relativeError": 0.07255454956962153
+        },
+        "carbsG": {
+          "ratioToTruth": 0.23736599700444114,
+          "absoluteError": 2.891613,
+          "relativeError": 0.762634002995559
+        },
+        "fatG": {
+          "ratioToTruth": 1.9409246352258147,
+          "absoluteError": 7.077812,
+          "relativeError": 0.9409246352258146
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "n5k-dish_1564427430",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "meal",
+        "kcal": 253,
+        "proteinG": 31.7,
+        "carbsG": 5.3,
+        "fatG": 12.4,
+        "confidence": 0.88,
+        "decision": "complete",
+        "latencyMs": 21121,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 0.7320177679750536,
+          "absoluteError": 92.620026,
+          "relativeError": 0.26798223202494637
+        },
+        "proteinG": {
+          "ratioToTruth": 1.0295550169030523,
+          "absoluteError": 0.9099989999999991,
+          "relativeError": 0.029555016903052362
+        },
+        "carbsG": {
+          "ratioToTruth": 2.264957264957265,
+          "absoluteError": 2.96,
+          "relativeError": 1.2649572649572651
+        },
+        "fatG": {
+          "ratioToTruth": 0.5196982179506195,
+          "absoluteError": 11.460001,
+          "relativeError": 0.48030178204938045
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "off-3017624010701",
+      "prediction": {
+        "parseStatus": "failure",
+        "source": "barcode",
+        "decision": "error",
+        "failureCategory": "schema",
+        "failureCode": "model_response_invalid",
+        "latencyMs": 10776,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {},
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "off-5449000000996",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "barcode",
+        "kcal": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "confidence": 0.79,
+        "decision": "needs_review",
+        "latencyMs": 15225,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 0,
+          "absoluteError": 138.6,
+          "relativeError": 1
+        },
+        "proteinG": {
+          "ratioToTruth": 0,
+          "absoluteError": 0,
+          "relativeError": 0
+        },
+        "carbsG": {
+          "ratioToTruth": 0,
+          "absoluteError": 34.98,
+          "relativeError": 1
+        },
+        "fatG": {
+          "ratioToTruth": 0,
+          "absoluteError": 0,
+          "relativeError": 0
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": true,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "off-4056489686941",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "barcode",
+        "kcal": 2,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "confidence": 0.79,
+        "barcode": "056489686941",
+        "decision": "needs_review",
+        "latencyMs": 14366,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 0.10101010101010101,
+          "absoluteError": 17.8,
+          "relativeError": 0.898989898989899
+        },
+        "proteinG": {
+          "ratioToTruth": 0,
+          "absoluteError": 0,
+          "relativeError": 0
+        },
+        "carbsG": {
+          "ratioToTruth": 0,
+          "absoluteError": 0,
+          "relativeError": 0
+        },
+        "fatG": {
+          "ratioToTruth": 0,
+          "absoluteError": 0,
+          "relativeError": 0
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": true,
+        "unsafeCompletion": false
+      },
+      "booleans": {
+        "barcodeExactMatch": false
+      }
+    },
+    {
+      "caseId": "off-7622210449283",
+      "prediction": {
+        "parseStatus": "failure",
+        "source": "barcode",
+        "decision": "error",
+        "failureCategory": "schema",
+        "failureCode": "model_response_invalid",
+        "latencyMs": 9768,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {},
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "off-8076809513753",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "label",
+        "kcal": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "confidence": 0,
+        "decision": "needs_review",
+        "latencyMs": 28046,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 0,
+          "absoluteError": 934.8,
+          "relativeError": 1
+        },
+        "proteinG": {
+          "ratioToTruth": 0,
+          "absoluteError": 8.93,
+          "relativeError": 1
+        },
+        "carbsG": {
+          "ratioToTruth": 0,
+          "absoluteError": 20.9,
+          "relativeError": 1
+        },
+        "fatG": {
+          "ratioToTruth": 0,
+          "absoluteError": 89.3,
+          "relativeError": 1
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": true,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "off-8000500310427",
+      "prediction": {
+        "parseStatus": "failure",
+        "source": "label",
+        "decision": "error",
+        "failureCategory": "schema",
+        "failureCode": "model_response_invalid",
+        "latencyMs": 2080,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {},
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "off-4008400404127",
+      "prediction": {
+        "parseStatus": "failure",
+        "source": "label",
+        "decision": "error",
+        "failureCategory": "schema",
+        "failureCode": "model_response_invalid",
+        "latencyMs": 5069,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {},
+      "safety": {
+        "catastrophicCalorieMiss": false,
+        "unsafeCompletion": false
+      },
+      "booleans": {}
+    },
+    {
+      "caseId": "off-3228857000166",
+      "prediction": {
+        "parseStatus": "success",
+        "source": "label",
+        "kcal": 62,
+        "proteinG": 1.9,
+        "carbsG": 11,
+        "fatG": 1.1,
+        "confidence": 0.98,
+        "decision": "complete",
+        "latencyMs": 5414,
+        "sampleIndex": 1,
+        "cached": false
+      },
+      "numeric": {
+        "kcal": {
+          "ratioToTruth": 0.0496,
+          "absoluteError": 1188,
+          "relativeError": 0.9504
+        },
+        "proteinG": {
+          "ratioToTruth": 0.050666666666666665,
+          "absoluteError": 35.6,
+          "relativeError": 0.9493333333333334
+        },
+        "carbsG": {
+          "ratioToTruth": 0.05238095238095238,
+          "absoluteError": 199,
+          "relativeError": 0.9476190476190476
+        },
+        "fatG": {
+          "ratioToTruth": 0.051162790697674425,
+          "absoluteError": 20.4,
+          "relativeError": 0.9488372093023255
+        }
+      },
+      "safety": {
+        "catastrophicCalorieMiss": true,
+        "unsafeCompletion": true
+      },
+      "booleans": {}
+    }
+  ]
+}

@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as fsPromises from 'fs/promises';
 import { chmod, mkdir, mkdtemp, readFile, readdir, rm, stat, symlink, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
-import { join, resolve } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 vi.mock('fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('fs/promises')>();
@@ -27,7 +28,8 @@ import {
 const HISTORICAL_RUN_ID = 'run-2026-09-02T04-44-02-551Z';
 const HISTORICAL_PROMPT_HASH = '294ea620c053db3687704a7b589c824776d138817b10c4d71f29abb734e6be49';
 const CURRENT_PROMPT_HASH = '205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263';
-const reportsRoot = resolve(process.cwd(), '..', '.nutrition-eval', 'reports');
+const testDir = dirname(fileURLToPath(import.meta.url));
+const historicalFixturePath = join(testDir, 'fixtures', 'historical-report-v1.json');
 
 interface BaselineComparison {
   baselineRunId: string;
@@ -72,12 +74,23 @@ async function readHistoricalReport(): Promise<{
   report: Record<string, unknown>;
   source: string;
 }> {
-  const source = await readFile(join(reportsRoot, HISTORICAL_RUN_ID, 'report.json'), 'utf8');
+  const source = await readFile(historicalFixturePath, 'utf8');
   const report: unknown = JSON.parse(source);
   if (report === null || typeof report !== 'object' || Array.isArray(report)) {
     throw new Error('historical fixture must be an object');
   }
   return { report: report as Record<string, unknown>, source };
+}
+
+async function setupHistoricalReportsRoot(directories: string[]): Promise<{ root: string; source: string }> {
+  const parent = await mkdtemp(join(tmpdir(), 'nutrition-eval-baseline-'));
+  directories.push(parent);
+  const root = join(parent, 'reports');
+  const runDir = join(root, HISTORICAL_RUN_ID);
+  await mkdir(runDir, { recursive: true });
+  const source = await readFile(historicalFixturePath, 'utf8');
+  await writeFile(join(runDir, 'report.json'), source);
+  return { root, source };
 }
 
 function currentReportFromHistorical(
@@ -458,6 +471,7 @@ describe('nutrition evaluation reports', () => {
 
   it('loads the historical v1 report without rewriting it and derives 20 public and 0 private cases in memory', async () => {
     const load = await loadBaselineComparison();
+    const { root: reportsRoot } = await setupHistoricalReportsRoot(directories);
     const { report, source } = await readHistoricalReport();
     const current = currentReportFromHistorical(report);
 
@@ -480,6 +494,7 @@ describe('nutrition evaluation reports', () => {
     ['missing run', 'run-does-not-exist', 'baseline_not_found'],
   ])('rejects %s with a stable path-safe baseline error', async (_label, runId, code) => {
     const load = await loadBaselineComparison();
+    const { root: reportsRoot } = await setupHistoricalReportsRoot(directories);
     const { report } = await readHistoricalReport();
     const current = currentReportFromHistorical(report);
 
@@ -560,6 +575,7 @@ describe('nutrition evaluation reports', () => {
 
   it('sanitizes an unexpected filesystem code while loading a baseline', async () => {
     const load = await loadBaselineComparison();
+    const { root: reportsRoot } = await setupHistoricalReportsRoot(directories);
     const { report } = await readHistoricalReport();
     const accessFailure = Object.assign(new Error('EACCES /private/nutrition-eval/report.json'), {
       code: 'EACCES',
@@ -576,6 +592,7 @@ describe('nutrition evaluation reports', () => {
 
   it('returns compatible zero deltas for a self-comparison and computes current minus baseline deltas', async () => {
     const load = await loadBaselineComparison();
+    const { root: reportsRoot } = await setupHistoricalReportsRoot(directories);
     const { report } = await readHistoricalReport();
     const current = currentReportFromHistorical(report);
 
@@ -608,6 +625,7 @@ describe('nutrition evaluation reports', () => {
 
   it('fails closed for the real current prompt hash against the historical baseline and omits deltas', async () => {
     const load = await loadBaselineComparison();
+    const { root: reportsRoot } = await setupHistoricalReportsRoot(directories);
     const { report } = await readHistoricalReport();
     expect(report.promptHash).toBe(HISTORICAL_PROMPT_HASH);
     const current = currentReportFromHistorical(report, {
@@ -626,6 +644,7 @@ describe('nutrition evaluation reports', () => {
 
   it('reports all compatibility mismatches in deterministic precedence order', async () => {
     const load = await loadBaselineComparison();
+    const { root: reportsRoot } = await setupHistoricalReportsRoot(directories);
     const { report } = await readHistoricalReport();
     const baselineCurrent = currentReportFromHistorical(report);
     const current = currentReportFromHistorical(report, {
