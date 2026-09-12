@@ -1071,6 +1071,44 @@ void main() {
     expect(result.router.state.uri.path, '/today/food/e1');
   });
 
+  testWidgets(
+      'in-flight confirmation remains locked across null transition and same-entry recovery',
+      (tester) async {
+    final stream = StreamController<FoodEntry?>();
+    addTearDown(stream.close);
+    final entry = _entry();
+    stream.add(entry);
+    final completion = Completer<void>();
+    final result = await _pump(
+      tester,
+      gateway: _Gateway(completion: completion),
+      reviewStream: stream.stream,
+    );
+    expect(tester.widget<FilledButton>(_confirmButton()).onPressed, isNotNull);
+    await _tapVisible(tester, _confirmButton());
+    expect(result.gateway.confirmations, hasLength(1));
+    expect(tester.widget<FilledButton>(_confirmButton()).onPressed, isNull,
+        reason: 'confirmation must lock while saving');
+
+    stream.add(null);
+    await tester.pump();
+    expect(find.text('Food entry no longer exists'), findsOneWidget);
+
+    stream.add(entry);
+    await tester.pump();
+    expect(tester.widget<FilledButton>(_confirmButton()).onPressed, isNull,
+        reason:
+            'in-flight confirmation must remain locked across null recovery');
+    await _tapVisible(tester, _confirmButton());
+    expect(result.gateway.confirmations, hasLength(1),
+        reason: 'no second gateway call may start until the original completes');
+
+    completion.complete();
+    await tester.pumpAndSettle();
+    expect(result.gateway.confirmations, hasLength(1));
+    expect(result.router.state.uri.path, '/today/food/e1');
+  });
+
   testWidgets('confirmation failure stays on Review and permits retry',
       (tester) async {
     final gateway = _Gateway(failuresRemaining: 1);

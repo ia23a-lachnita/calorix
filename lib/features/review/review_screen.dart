@@ -63,16 +63,27 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     ].join('|');
   }
 
-  void _syncEntry(FoodEntry entry) {
-    final signature = _signature(entry);
-    if (_entrySignature == signature) return;
-    final firstEntry = _entrySignature == null;
-    _entrySignature = signature;
+  void _clearTransientState() {
     _selected = 0;
-    _selectedAmountSource = firstEntry ? _defaultSource(entry) : null;
+    _selectedAmountSource = null;
     _customAmountState = const CustomAmountState(selected: false);
     _customAmountController.clear();
     _confirmationError = null;
+    _saving = false;
+    _entrySignature = null;
+    if (mounted) setState(() {});
+  }
+
+  void _syncEntry(FoodEntry entry) {
+    final signature = _signature(entry);
+    if (_entrySignature == signature) return;
+    _entrySignature = signature;
+    _selected = 0;
+    _selectedAmountSource = _defaultSource(entry);
+    _customAmountState = const CustomAmountState(selected: false);
+    _customAmountController.clear();
+    _confirmationError = null;
+    _saving = false;
     if (mounted) setState(() {});
   }
 
@@ -169,11 +180,34 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     return _selectedSuggestion(suggestions, entry)?.amount;
   }
 
+  bool _hasConfirmableCanonical(FoodEntry entry) {
+    final amount = entry.nutritionAmount;
+    return entry.hasCanonicalNutrition &&
+        amount != null &&
+        amount.isFinite &&
+        amount > 0 &&
+        amount <= 1e9;
+  }
+
+  double? _effectiveRatio(FoodEntry entry, double? selectedAmount) {
+    if (selectedAmount == null ||
+        !selectedAmount.isFinite ||
+        selectedAmount <= 0 ||
+        selectedAmount > 1e9) {
+      return null;
+    }
+    if (!_hasConfirmableCanonical(entry)) return null;
+    final nutritionAmount = entry.nutritionAmount!;
+    final ratio = selectedAmount / nutritionAmount;
+    if (!ratio.isFinite || ratio <= 0) return null;
+    return ratio;
+  }
+
   String? _scaledText(double? value, double? ratio, String suffix) {
     if (value == null || ratio == null) return null;
     final scaled = value * ratio;
     if (!scaled.isFinite) return null;
-    return '${scaled.round()} $suffix';
+    return '${formatReviewAmount(scaled.roundToDouble())} $suffix';
   }
 
   @override
@@ -181,8 +215,17 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     ref.listen<AsyncValue<FoodEntry?>>(
       reviewEntryProvider(widget.entryId),
       (_, next) {
+        if (next.hasError) {
+          _clearTransientState();
+          return;
+        }
+        if (next.isLoading) return;
         final entry = next.valueOrNull;
-        if (entry != null) _syncEntry(entry);
+        if (entry != null) {
+          _syncEntry(entry);
+          return;
+        }
+        _clearTransientState();
       },
     );
     final entry = ref.watch(reviewEntryProvider(widget.entryId));
@@ -202,40 +245,35 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           final selectedIndex = candidates.isEmpty
               ? 0
               : _selected.clamp(0, candidates.length - 1).toInt();
-          final canConfirm = selectedAmount != null &&
-              selectedAmount.isFinite &&
-              selectedAmount > 0 &&
-              !_saving;
+          final ratio = _effectiveRatio(value, selectedAmount);
+          final canConfirm = ratio != null && !_saving;
           final selectedCandidate = candidates.isEmpty
               ? null
               : candidates[selectedIndex];
-          final nutritionAmount = value.nutritionAmount;
-          final ratio = selectedAmount != null &&
-                  nutritionAmount != null &&
-                  nutritionAmount.isFinite &&
-                  nutritionAmount > 0
-              ? selectedAmount / nutritionAmount
-              : null;
+          final previewUsesCandidate = selectedCandidate != null;
           final previewKcal = _scaledText(
-            selectedCandidate?.kcal ?? value.baseKcal,
+            previewUsesCandidate ? selectedCandidate.kcal : value.baseKcal,
             ratio,
             'kcal',
           );
           final previewProtein = _scaledText(
-            selectedCandidate?.proteinG ?? value.baseProtein,
+            previewUsesCandidate
+                ? selectedCandidate.proteinG
+                : value.baseProtein,
             ratio,
             'g protein',
           );
           final previewCarbs = _scaledText(
-            selectedCandidate?.carbsG ?? value.baseCarbs,
+            previewUsesCandidate ? selectedCandidate.carbsG : value.baseCarbs,
             ratio,
             'g carbs',
           );
           final previewFat = _scaledText(
-            selectedCandidate?.fatG ?? value.baseFat,
+            previewUsesCandidate ? selectedCandidate.fatG : value.baseFat,
             ratio,
             'g fat',
           );
+          final customUnit = validatedCanonicalUnit(value.nutritionUnit);
           return Stack(
             children: [
               Positioned.fill(
@@ -336,7 +374,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                                           value: index,
                                           title: Text(candidates[index].name),
                                           secondary: Text(
-                                              '${candidates[index].kcal} kcal'),
+                                            '${formatReviewAmount(candidates[index].kcal)} kcal',
+                                          ),
                                         ),
                                       ),
                                   ],
@@ -344,7 +383,18 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                               ),
                             if (suggestions.isNotEmpty) ...[
                               const SizedBox(height: 4),
-                              const Text('AMOUNT'),
+                              Text(
+                                'AMOUNT',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      letterSpacing: 1.1,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                              ),
                               const SizedBox(height: 4),
                               for (final suggestion in suggestions)
                                 _AmountControl(
@@ -376,9 +426,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                                   decimal: true,
                                 ),
                                 onChanged: _setCustomAmount,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Amount',
-                                  suffixText: 'canonical unit',
+                                  suffixText: customUnit,
                                 ),
                               ),
                             ],
@@ -393,9 +443,26 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                                 children: [
                                   if (previewKcal != null) Text(previewKcal),
                                   if (previewProtein != null)
-                                    Text(previewProtein),
-                                  if (previewCarbs != null) Text(previewCarbs),
-                                  if (previewFat != null) Text(previewFat),
+                                    Text(
+                                      previewProtein,
+                                      style: const TextStyle(
+                                        color: AppColors.protein,
+                                      ),
+                                    ),
+                                  if (previewCarbs != null)
+                                    Text(
+                                      previewCarbs,
+                                      style: const TextStyle(
+                                        color: AppColors.carbs,
+                                      ),
+                                    ),
+                                  if (previewFat != null)
+                                    Text(
+                                      previewFat,
+                                      style: const TextStyle(
+                                        color: AppColors.fat,
+                                      ),
+                                    ),
                                 ],
                               ),
                             ],
@@ -415,6 +482,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                                   child: FilledButton(
                                     key: const ValueKey<String>(
                                       'review-confirm-button',
+                                    ),
+                                    style: FilledButton.styleFrom(
+                                      minimumSize: const Size(48, 48),
                                     ),
                                     onPressed: !canConfirm
                                         ? null
@@ -497,12 +567,22 @@ class _AmountControl extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-        container: true,
-        button: true,
-        selected: selected,
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final selectedColor = colorScheme.primary;
+    final idleColor = colorScheme.onSurfaceVariant;
+    return Semantics(
+      container: true,
+      button: true,
+      selected: selected,
+      child: Material(
+        color: selected
+            ? selectedColor.withValues(alpha: 0.08)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 52, minWidth: 48),
             child: Padding(
@@ -514,17 +594,30 @@ class _AmountControl extends StatelessWidget {
                         ? Icons.radio_button_checked
                         : Icons.radio_button_off,
                     size: 22,
+                    color: selected ? selectedColor : idleColor,
                   ),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(label)),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight:
+                                selected ? FontWeight.w600 : FontWeight.w500,
+                          ),
+                    ),
+                  ),
                   Text(
                     sourceLabel,
-                    style: Theme.of(context).textTheme.labelSmall,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: idleColor,
+                        ),
                   ),
                 ],
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
+  }
 }

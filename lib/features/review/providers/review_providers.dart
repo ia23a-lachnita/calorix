@@ -38,9 +38,23 @@ void validateCustomAmount(Object? value) {
     throw ArgumentError.value(value, 'amount', 'must be finite and positive');
   }
   final amount = value.toDouble();
-  if (!amount.isFinite || amount <= 0 || amount > 1e9) {
+  if (!_validAmount(amount)) {
     throw ArgumentError.value(value, 'amount', 'must be finite and positive');
   }
+}
+
+String formatReviewAmount(double amount) {
+  if (amount.isFinite && amount == amount.roundToDouble()) {
+    return amount.round().toString();
+  }
+  final text = amount.toString();
+  return text.endsWith('.0') ? text.substring(0, text.length - 2) : text;
+}
+
+String? validatedCanonicalUnit(String? unit) {
+  if (unit == null) return null;
+  final normalized = _normalizedUnit(unit);
+  return normalized == 'g' || normalized == 'ml' ? normalized : null;
 }
 
 String _normalizedUnit(String value) => value.trim().toLowerCase();
@@ -48,18 +62,28 @@ String _normalizedUnit(String value) => value.trim().toLowerCase();
 bool _validAmount(double? value) =>
     value != null && value.isFinite && value > 0 && value <= 1e9;
 
-String _displayAmount(double amount) {
-  final text = amount.toString();
-  return text.endsWith('.0') ? text.substring(0, text.length - 2) : text;
+bool _validServingMacro(double value) =>
+    value.isFinite && value >= 0 && value <= 1e9;
+
+bool _completeServingReference(
+  NutritionReference serving,
+  String canonicalUnit,
+) {
+  final servingUnit = _normalizedUnit(serving.unit);
+  return servingUnit == canonicalUnit &&
+      _validAmount(serving.amount) &&
+      serving.kcal.isFinite &&
+      serving.kcal >= 0 &&
+      serving.kcal <= 10000 &&
+      _validServingMacro(serving.proteinG) &&
+      _validServingMacro(serving.carbsG) &&
+      _validServingMacro(serving.fatG);
 }
 
 List<AmountSuggestion> deriveAmountSuggestions(FoodEntry entry) {
   final basis = entry.nutritionBasis?.trim().toLowerCase();
   final canonicalAmount = entry.nutritionAmount;
-  final canonicalUnit = entry.nutritionUnit == null
-      ? null
-      : _normalizedUnit(entry.nutritionUnit!);
-  final compatibleUnit = canonicalUnit == 'g' || canonicalUnit == 'ml';
+  final canonicalUnit = validatedCanonicalUnit(entry.nutritionUnit);
   final suggestions = <AmountSuggestion>[];
 
   final reasons = entry.reviewReasons ?? const <String>[];
@@ -67,26 +91,26 @@ List<AmountSuggestion> deriveAmountSuggestions(FoodEntry entry) {
       reasons.contains('package_unit_unsupported');
   if (basis == 'package' &&
       !packageBlocked &&
-      compatibleUnit &&
+      canonicalUnit != null &&
       _validAmount(canonicalAmount)) {
     suggestions.add(AmountSuggestion(
       amount: canonicalAmount!,
-      unit: canonicalUnit!,
-      label: 'Whole package · ${_displayAmount(canonicalAmount)} $canonicalUnit',
+      unit: canonicalUnit,
+      label:
+          'Whole package · ${formatReviewAmount(canonicalAmount)} $canonicalUnit',
       source: AmountSource.packageLabel,
     ));
   }
 
   final serving = entry.servingReference;
-  final servingUnit = serving == null ? null : _normalizedUnit(serving.unit);
   if (serving != null &&
-      compatibleUnit &&
-      servingUnit == canonicalUnit &&
-      _validAmount(serving.amount)) {
+      canonicalUnit != null &&
+      _completeServingReference(serving, canonicalUnit)) {
     suggestions.add(AmountSuggestion(
       amount: serving.amount,
-      unit: servingUnit!,
-      label: '1 serving · ${_displayAmount(serving.amount)} $servingUnit',
+      unit: canonicalUnit,
+      label:
+          '1 serving · ${formatReviewAmount(serving.amount)} $canonicalUnit',
       source: AmountSource.servingMetadata,
     ));
   }
@@ -97,7 +121,8 @@ List<AmountSuggestion> deriveAmountSuggestions(FoodEntry entry) {
       ? null
       : count.toDouble() * unitAmount;
   if (basis == 'package' &&
-      compatibleUnit &&
+      canonicalUnit != null &&
+      _validAmount(canonicalAmount) &&
       count != null &&
       count > 0 &&
       count <= 1000000000 &&
@@ -105,15 +130,13 @@ List<AmountSuggestion> deriveAmountSuggestions(FoodEntry entry) {
       product != null &&
       product.isFinite &&
       product <= 1e9 &&
-      canonicalAmount != null &&
-      (product - canonicalAmount).abs() <= 0.01) {
-    final amountLabel = count == 1
-        ? '1 $canonicalUnit'
-        : '1 of $count · ${_displayAmount(unitAmount!)} $canonicalUnit';
+      (product - canonicalAmount!).abs() <= 0.01) {
     suggestions.add(AmountSuggestion(
       amount: unitAmount!,
-      unit: canonicalUnit!,
-      label: amountLabel,
+      unit: canonicalUnit,
+      label: count == 1
+          ? '1 unit · ${formatReviewAmount(unitAmount)} $canonicalUnit'
+          : '1 of $count · ${formatReviewAmount(unitAmount)} $canonicalUnit',
       source: AmountSource.packMetadata,
     ));
   }
@@ -122,7 +145,7 @@ List<AmountSuggestion> deriveAmountSuggestions(FoodEntry entry) {
   for (final suggestion in suggestions) {
     final duplicate = deduplicated.any((existing) =>
         existing.unit == suggestion.unit &&
-        (existing.amount - suggestion.amount).abs() < 1e-4);
+        (existing.amount - suggestion.amount).abs() <= 1e-4);
     if (!duplicate) deduplicated.add(suggestion);
   }
   return List<AmountSuggestion>.unmodifiable(deduplicated);
