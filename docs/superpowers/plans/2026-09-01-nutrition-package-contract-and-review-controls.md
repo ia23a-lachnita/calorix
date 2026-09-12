@@ -620,7 +620,7 @@ Run: `fvm flutter test test/review/review_screen_test.dart`
 
 Expected: FAIL because Review candidates are not source-labeled amount choices and confirmation lacks the required amount selection.
 
-- [ ] **Step 3: Implement mutually exclusive derived choices**
+- [x] **Step 3: Implement mutually exclusive derived choices**
 
 Derive and deduplicate choices at render time only, rendering source labels `package label`, `serving metadata`, and `pack metadata`; present Custom as a separate action that controls `CustomAmountState`, never as a derived suggestion. Enforce one selected derived choice or selected custom state at a time. Preselect whole package only when the package-label choice exists and the reasons are empty or exactly `barcode_unconfirmed`; every other reason leaves amount selection empty. Deduplicate normalized units and amounts within `1e-4`, retaining package-label before serving before pack metadata. A package-label choice uses the canonical package tuple, a serving choice uses a complete serving reference, and a pack choice uses one positive unit amount from complete positive pack metadata. Test empty candidates plus an explicitly selected amount can confirm, and test zero, nonfinite, and empty custom input cannot.
 
