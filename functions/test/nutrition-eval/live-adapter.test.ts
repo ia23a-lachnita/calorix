@@ -614,7 +614,7 @@ describe('createLiveNutritionEvalAdapter', () => {
     );
   });
 
-  it('falls back from an OFF miss to strict barcode vision and retains the selected vision barcode', async () => {
+  it('returns product/off_product_not_found for a supplied barcode OFF miss without calling vision', async () => {
     const fetchOffProductFn = vi.fn(async () => null);
     const { adapter, generateVision } = makeAdapter(
       modelText('per100', { barcode: modelBarcode, confidence: 0.97 }),
@@ -625,64 +625,61 @@ describe('createLiveNutritionEvalAdapter', () => {
       caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
     );
 
-    expect(fetchOffProductFn).toHaveBeenNthCalledWith(1, rawBarcode);
-    expect(fetchOffProductFn).toHaveBeenNthCalledWith(2, modelBarcode);
-    expect(generateVision).toHaveBeenCalledWith(
-      'gemini-test-model', BARCODE_ANALYSIS_PROMPT, 'AP8B', 'barcode',
-    );
-    expect(prediction).toMatchObject({
-      parseStatus: 'success',
+    expect(prediction).toEqual({
+      parseStatus: 'failure',
       source: 'barcode',
-      barcode: modelBarcode,
-      confidence: 0.97,
-      basis: 'package',
-      amount: 500,
-      unit: 'ml',
-      decision: 'needs_review',
+      decision: 'error',
+      failureCategory: 'product',
+      failureCode: 'off_product_not_found',
     });
-    expectReviewPrediction(prediction, ['barcode_unconfirmed']);
+    expect(fetchOffProductFn).toHaveBeenCalledOnce();
+    expect(fetchOffProductFn).toHaveBeenCalledWith(rawBarcode);
+    expect(generateVision).not.toHaveBeenCalled();
   });
 
   it('rejects a non-8-to-14-digit supplied barcode before it can become an OFF query', () => {
     expect(() => caseWithSuppliedBarcode('1234567')).toThrow(/8-14 digits/);
   });
 
-  it('deduplicates a repeated barcode lookup and retains the selected unconfirmed barcode', async () => {
-    const fetchOffProductFn = vi.fn(async () => null);
-    const { adapter } = makeAdapter(
-      modelText('per100', { barcode: rawBarcode, confidence: 0.97 }),
-      fetchOffProductFn,
-    );
+  it('returns provider/provider_request_failed for a supplied barcode lookup error without calling vision', async () => {
+    const providerError = new Error('upstream token=secret');
+    const fetchOffProductFn = vi.fn(async () => { throw providerError; });
+    const { adapter, generateVision } = makeAdapter(modelText(), fetchOffProductFn);
 
     const prediction = await adapter.analyzeCase(
       caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
     );
 
-    expect(fetchOffProductFn).toHaveBeenCalledTimes(1);
-    expect(fetchOffProductFn).toHaveBeenCalledWith(rawBarcode);
-    expect(prediction).toMatchObject({
-      barcode: rawBarcode,
-      confidence: 0.97,
-      decision: 'needs_review',
+    expect(prediction).toEqual({
+      parseStatus: 'failure',
+      source: 'barcode',
+      decision: 'error',
+      failureCategory: 'provider',
+      failureCode: 'provider_request_failed',
     });
-    expectReviewPrediction(prediction, ['barcode_unconfirmed']);
+    expect(fetchOffProductFn).toHaveBeenCalledOnce();
+    expect(fetchOffProductFn).toHaveBeenCalledWith(rawBarcode);
+    expect(generateVision).not.toHaveBeenCalled();
   });
 
-  it('selects a distinct vision barcode after that barcode resolves to a canonical OFF result', async () => {
+  it('continues vision barcode detection when the barcode entry has no supplied barcode', async () => {
     const fetchOffProductFn = vi.fn(async (barcode: string) =>
       barcode === modelBarcode ? { ...knownOffProduct, barcode: modelBarcode } : null,
     );
-    const { adapter } = makeAdapter(
+    const { adapter, generateVision } = makeAdapter(
       modelText('per100', { barcode: modelBarcode, confidence: 0.97 }),
       fetchOffProductFn,
     );
 
     const prediction = await adapter.analyzeCase(
-      caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 },
+      barcodeCase, imageBytes, { sampleIndex: 1 },
     );
 
-    expect(fetchOffProductFn).toHaveBeenNthCalledWith(1, rawBarcode);
-    expect(fetchOffProductFn).toHaveBeenNthCalledWith(2, modelBarcode);
+    expect(generateVision).toHaveBeenCalledWith(
+      'gemini-test-model', BARCODE_ANALYSIS_PROMPT, 'AP8B', 'barcode',
+    );
+    expect(fetchOffProductFn).toHaveBeenCalledOnce();
+    expect(fetchOffProductFn).toHaveBeenCalledWith(modelBarcode);
     expect(prediction).toMatchObject({
       kcal: 85,
       basis: 'package',
@@ -690,9 +687,9 @@ describe('createLiveNutritionEvalAdapter', () => {
       unit: 'ml',
       barcode: modelBarcode,
       confidence: 0.97,
-      decision: 'needs_review',
+      decision: 'complete',
     });
-    expectReviewPrediction(prediction, ['barcode_unconfirmed']);
+    expectReviewPrediction(prediction, []);
   });
 
   it('keeps a low-confidence vision-led OFF hit in Review even when barcode provenance agrees', async () => {

@@ -1,5 +1,34 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchOffProduct } from '../src/off-client';
+import * as offClient from '../src/off-client';
+
+const { fetchOffProduct } = offClient;
+
+async function expectProviderRequestFailure(
+  request: Promise<unknown>,
+  forbiddenDiagnostics: readonly string[],
+): Promise<void> {
+  const error = await request.then(
+    () => undefined,
+    (reason: unknown) => reason,
+  );
+  const providerError = Reflect.get(offClient, 'OffProviderError');
+
+  expect(error).toMatchObject({
+    name: 'OffProviderError',
+    code: 'provider_request_failed',
+  });
+  expect(String(error)).toBe('OffProviderError: Open Food Facts provider request failed');
+  expect(error).not.toHaveProperty('cause');
+  const serialized = JSON.stringify(error);
+  for (const diagnostic of forbiddenDiagnostics) {
+    expect(String(error)).not.toContain(diagnostic);
+    expect(serialized).not.toContain(diagnostic);
+  }
+  expect(providerError).toBeTypeOf('function');
+  if (typeof providerError === 'function') {
+    expect(error).toBeInstanceOf(providerError as typeof Error);
+  }
+}
 
 const foundPayload = {
   status: 'success',
@@ -303,9 +332,28 @@ describe('fetchOffProduct', () => {
     expect(product).not.toHaveProperty('servingReference');
   });
 
+  it('returns null for an exact HTTP 404', async () => {
+    vi.useFakeTimers();
+    try {
+      await expect(fetchOffProduct('3017624010701', {
+        fetchFn: async () => new Response('', { status: 404 }),
+      })).resolves.toBeNull();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('returns null for a parseable OFF product_not_found payload', async () => {
+    await expect(fetchOffProduct('3017624010701', {
+      fetchFn: async () => new Response(
+        JSON.stringify({ status: 'failure', result: { id: 'product_not_found' } }),
+        { status: 200 },
+      ),
+    })).resolves.toBeNull();
+  });
+
   it.each([
-    new Response('', { status: 404 }),
-    new Response(JSON.stringify({ status: 'failure', result: { id: 'product_not_found' } })),
     new Response(JSON.stringify({ ...foundPayload, product: { product_name: 'Bad', nutriments: { fat_100g: 'NaN' } } })),
     new Response(JSON.stringify({
       ...foundPayload,
@@ -328,7 +376,7 @@ describe('fetchOffProduct', () => {
         nutriments: { ...foundPayload.product.nutriments, fat_100g: Number.NaN },
       },
     })),
-  ])('returns null for non-successful or malformed responses', async (response) => {
+  ])('returns null for malformed successful product payloads', async (response) => {
     expect(
       await fetchOffProduct('3017624010701', {
         fetchFn: async () => response,
@@ -336,24 +384,78 @@ describe('fetchOffProduct', () => {
     ).toBeNull();
   });
 
-  it('returns null on transport failure and abort timeout', async () => {
-    expect(
-      await fetchOffProduct('3017624010701', {
-        fetchFn: async () => {
-          throw new Error('offline');
-        },
-      }),
-    ).toBeNull();
+  it('throws an exported privacy-safe provider error for a transport rejection', async () => {
+    const transportDetail = 'transport ECONNRESET at https://private.example/off?token=secret';
 
-    expect(
-      await fetchOffProduct('3017624010701', {
+    const request = fetchOffProduct('3017624010701', {
+      fetchFn: async () => { throw new Error(transportDetail); },
+    });
+
+    await expectProviderRequestFailure(request, [
+      transportDetail,
+      'ECONNRESET',
+      'https://private.example/off?token=secret',
+      'token=secret',
+    ]);
+  });
+
+  it('throws the provider error after timeout and cleans up its timer', async () => {
+    vi.useFakeTimers();
+    try {
+      const request = fetchOffProduct('3017624010701', {
         timeoutMs: 1,
         fetchFn: (_, init) =>
           new Promise((_, reject) => {
-            init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+            init?.signal?.addEventListener('abort', () => reject(new Error(
+              'abort timeout at https://private.example/off?token=secret',
+            )));
           }),
-      }),
-    ).toBeNull();
+      });
+
+      await vi.advanceTimersByTimeAsync(1);
+      await expectProviderRequestFailure(request, [
+        'abort timeout at https://private.example/off?token=secret',
+        'abort timeout',
+        'https://private.example/off?token=secret',
+        'token=secret',
+      ]);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('cleans up its timer after a successful product response', async () => {
+    vi.useFakeTimers();
+    try {
+      await expect(fetchOffProduct('3017624010701', {
+        fetchFn: async () => new Response(JSON.stringify(foundPayload), { status: 200 }),
+      })).resolves.toMatchObject({ name: 'Nutella', barcode: '3017624010701' });
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it.each([429, 500, 503])('throws the provider error for HTTP %i without exposing its body', async (status) => {
+    const providerBody = `HTTP ${status} at https://private.example/off?token=secret; provider body=raw-detail`;
+    vi.useFakeTimers();
+    try {
+      const request = fetchOffProduct('3017624010701', {
+        fetchFn: async () => new Response(providerBody, { status }),
+      });
+
+      await expectProviderRequestFailure(request, [
+        providerBody,
+        `HTTP ${status}`,
+        'https://private.example/off?token=secret',
+        'token=secret',
+        'raw-detail',
+      ]);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('rejects non-barcode input without making a request', async () => {

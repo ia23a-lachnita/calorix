@@ -465,6 +465,86 @@ describe('handleEntryCreated', () => {
     expect(recorded.updates[1]).not.toHaveProperty('modelBarcode');
   });
 
+  it('persists an exact product-not-found error for a raw barcode without loading an image, vision, or push', async () => {
+    const deletionSentinel = Object.freeze({ firestore: 'delete' });
+    const sourceState = {
+      uid: 'user-1',
+      imageUrl: 'https://storage.example/not-found.jpg',
+      storagePath: 'scans/user-1/not-found.jpg',
+      scanMode: 'barcode',
+      rawBarcode: '3017624010701',
+    };
+    const entry: EntryData = { ...sourceState, status: 'pending' };
+    const fetchOffProduct = vi.fn(async () => null);
+    const { deps, recorded, state } = makePersistedDeps(
+      { ...entry, ...staleAnalysisState() },
+      deletionSentinel,
+      { fetchOffProduct },
+    );
+
+    await handleEntryCreated('e1', entry, deps);
+
+    const errorUpdate = recorded.updates[1]!;
+    expect(errorUpdate).toMatchObject({
+      status: 'error',
+      errorCode: 'off_product_not_found',
+      errorMessage: 'Product not found',
+    });
+    expectDeletedFields(errorUpdate, staleAnalysisKeys, deletionSentinel);
+    expect(state).toEqual({
+      ...sourceState,
+      status: 'error',
+      errorCode: 'off_product_not_found',
+      errorMessage: 'Product not found',
+    });
+    expect(fetchOffProduct).toHaveBeenCalledOnce();
+    expect(fetchOffProduct).toHaveBeenCalledWith('3017624010701');
+    expect(recorded.imageLoads).toBe(0);
+    expect(recorded.visionCalls).toHaveLength(0);
+    expect(recorded.pushes).toHaveLength(0);
+  });
+
+  it('persists the sanitized provider error for a raw barcode lookup throw without loading an image or vision', async () => {
+    const deletionSentinel = Object.freeze({ firestore: 'delete' });
+    const rawProviderDiagnostic = 'upstream 503 token=should-never-persist';
+    const sourceState = {
+      uid: 'user-1',
+      imageUrl: 'https://storage.example/provider-error.jpg',
+      storagePath: 'scans/user-1/provider-error.jpg',
+      scanMode: 'barcode',
+      rawBarcode: '3017624010701',
+    };
+    const entry: EntryData = { ...sourceState, status: 'pending' };
+    const fetchOffProduct = vi.fn(async () => { throw new Error(rawProviderDiagnostic); });
+    const { deps, recorded, state } = makePersistedDeps(
+      { ...entry, ...staleAnalysisState() },
+      deletionSentinel,
+      { fetchOffProduct },
+    );
+
+    await handleEntryCreated('e1', entry, deps);
+
+    const errorUpdate = recorded.updates[1]!;
+    expect(errorUpdate).toMatchObject({
+      status: 'error',
+      errorCode: 'provider_request_failed',
+      errorMessage: 'Analysis provider request failed',
+    });
+    expectDeletedFields(errorUpdate, staleAnalysisKeys, deletionSentinel);
+    expect(JSON.stringify(errorUpdate)).not.toContain(rawProviderDiagnostic);
+    expect(state).toEqual({
+      ...sourceState,
+      status: 'error',
+      errorCode: 'provider_request_failed',
+      errorMessage: 'Analysis provider request failed',
+    });
+    expect(fetchOffProduct).toHaveBeenCalledOnce();
+    expect(fetchOffProduct).toHaveBeenCalledWith('3017624010701');
+    expect(recorded.imageLoads).toBe(0);
+    expect(recorded.visionCalls).toHaveLength(0);
+    expect(recorded.pushes).toHaveLength(0);
+  });
+
   it('extracts a barcode with vision, queries OFF, and uses the confirmed product', async () => {
     const { deps, recorded } = makeDeps({
       generateVision: async (model, prompt) => {
