@@ -71,6 +71,10 @@ NutritionReference _reference({
 FoodEntry _entry({
   String id = 'e1',
   double? consumedAmount,
+  double? baseKcal,
+  double? baseProtein,
+  double? baseCarbs,
+  double? baseFat,
   List<ReviewCandidate> candidates = _candidates,
   String nutritionBasis = 'package',
   double? nutritionAmount = 500,
@@ -90,6 +94,10 @@ FoodEntry _entry({
       status: FoodEntryStatus.needsReview,
       confidence: 0.62,
       candidates: candidates,
+      baseKcal: baseKcal,
+      baseProtein: baseProtein,
+      baseCarbs: baseCarbs,
+      baseFat: baseFat,
       nutritionBasis: nutritionBasis,
       nutritionAmount: nutritionAmount,
       nutritionUnit: nutritionUnit,
@@ -356,6 +364,107 @@ void main() {
     ));
     expect(
         outsideTolerance.where((choice) => choice.amount > 499), hasLength(2));
+  });
+
+  test('deduplicates the inclusive 1e-4 boundary but not just outside it',
+      () {
+    final atBoundary = deriveAmountSuggestions(_entry(
+      nutritionAmount: 0.000001,
+      nutritionUnit: 'g',
+      servingReference: _reference(amount: 0.000101, unit: ' G '),
+    ));
+    expect(
+      atBoundary.where((choice) => choice.unit == 'g'),
+      hasLength(1),
+      reason: 'the 1e-4 amount difference is inclusive',
+    );
+    expect(atBoundary.single.source, AmountSource.packageLabel);
+
+    final outside = deriveAmountSuggestions(_entry(
+      nutritionAmount: 0.000001,
+      nutritionUnit: 'g',
+      servingReference: _reference(amount: 0.0001011, unit: 'g'),
+    ));
+    expect(outside.where((choice) => choice.unit == 'g'), hasLength(2));
+  });
+
+  test('serving suggestion requires bounded finite reference values', () {
+    final invalidReferences = <({String field, NutritionReference reference})>[
+      (
+        field: 'kcal nonfinite',
+        reference: _reference(kcal: double.infinity),
+      ),
+      (
+        field: 'protein negative',
+        reference: _reference(proteinG: -1),
+      ),
+      (
+        field: 'carbs above ceiling',
+        reference: _reference(carbsG: 1000000001),
+      ),
+      (
+        field: 'fat nonfinite',
+        reference: _reference(fatG: double.nan),
+      ),
+      (
+        field: 'amount above ceiling',
+        reference: _reference(amount: 1000000001),
+      ),
+    ];
+    for (final invalid in invalidReferences) {
+      final suggestions = deriveAmountSuggestions(
+        _entry(servingReference: invalid.reference),
+      );
+      expect(
+        suggestions.where((choice) =>
+            choice.source == AmountSource.servingMetadata),
+        isEmpty,
+        reason: invalid.field,
+      );
+    }
+
+    final zeroMacros = deriveAmountSuggestions(_entry(
+      servingReference: _reference(
+        kcal: 0,
+        proteinG: 0,
+        carbsG: 0,
+        fatG: 0,
+      ),
+    ));
+    expect(
+      zeroMacros.where((choice) =>
+          choice.source == AmountSource.servingMetadata),
+      hasLength(1),
+    );
+  });
+
+  test('pack suggestion requires valid bounded canonical amount', () {
+    for (final malformedAmount in const [-0.001, 1000000000.001]) {
+      final suggestions = deriveAmountSuggestions(_entry(
+        nutritionAmount: malformedAmount,
+        packageUnitCount: 1,
+        unitAmount: malformedAmount < 0 ? 0.001 : 1000000000,
+        reviewReasons: const ['package_quantity_missing'],
+      ));
+      expect(
+        suggestions.where((choice) => choice.source == AmountSource.packMetadata),
+        isEmpty,
+        reason: 'canonical amount $malformedAmount must fail closed',
+      );
+    }
+  });
+
+  test('count-one pack label includes the unit amount exactly', () {
+    final suggestions = deriveAmountSuggestions(_entry(
+      reviewReasons: const ['package_quantity_missing'],
+      packageUnitCount: 1,
+      unitAmount: 500,
+    ));
+    expect(
+      suggestions.singleWhere((choice) =>
+          choice.source == AmountSource.packMetadata).label,
+      '1 unit · 500 ml',
+    );
   });
 
   test('validates only finite positive custom amounts', () {
@@ -636,6 +745,59 @@ void main() {
     expect(result.gateway.confirmations.single.consumedAmount, 123.456789);
   });
 
+  testWidgets(
+      'invalid canonical amount, unit, or ratio disables derived and custom confirmation',
+      (tester) async {
+    // These direct-constructor fixtures intentionally exercise fail-closed UI
+    // behavior for malformed wire states that FoodEntry.fromData rejects.
+    final invalidCanonicalEntries = <({String label, FoodEntry entry})>[
+      (label: 'missing amount', entry: _entry(nutritionAmount: null)),
+      (label: 'negative amount', entry: _entry(nutritionAmount: -1)),
+      (label: 'nonfinite amount', entry: _entry(nutritionAmount: double.nan)),
+      (
+        label: 'amount above ceiling',
+        entry: _entry(nutritionAmount: 1000000001),
+      ),
+      (label: 'missing unit', entry: _entry(nutritionUnit: null)),
+      (label: 'unsupported unit', entry: _entry(nutritionUnit: 'oz')),
+      (
+        label: 'nonfinite selected ratio',
+        entry: _entry(
+          nutritionAmount: double.minPositive,
+          servingReference: _reference(amount: 1000000000),
+          reviewReasons: const ['package_quantity_missing'],
+        ),
+      ),
+    ];
+    for (final invalid in invalidCanonicalEntries) {
+      await _pump(tester, entry: invalid.entry);
+      expect(
+        tester.widget<FilledButton>(_confirmButton()).onPressed,
+        isNull,
+        reason: '${invalid.label} must disable confirmation',
+      );
+      await _tapVisible(tester, _amountControl('custom'));
+      await tester.enterText(_customInput(), '1000000000');
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(_confirmButton()).onPressed,
+        isNull,
+        reason: '${invalid.label} must remain disabled for custom amount',
+      );
+    }
+  });
+
+  testWidgets('custom amount suffix uses the validated canonical unit',
+      (tester) async {
+    for (final unit in const ['g', 'ml']) {
+      await _pump(tester, entry: _entry(nutritionUnit: unit));
+      await _tapVisible(tester, _amountControl('custom'));
+      final field = tester.widget<TextField>(_customInput());
+      expect(field.decoration.suffixText, unit);
+      expect(field.decoration.suffixText, isNot('canonical unit'));
+    }
+  });
+
   testWidgets('scales calorie and present macro previews exactly once',
       (tester) async {
     await _pump(
@@ -677,6 +839,35 @@ void main() {
     expect(find.text('19 g protein'), findsOneWidget);
     expect(find.text('0 g carbs'), findsNothing);
     expect(find.text('0 g fat'), findsNothing);
+  });
+
+  testWidgets(
+      'selected candidate null macros do not fall back to entry base macros',
+      (tester) async {
+    await _pump(
+      tester,
+      entry: _entry(
+        baseKcal: 999,
+        baseProtein: 77,
+        baseCarbs: 100,
+        baseFat: 50,
+        candidates: const [
+          ReviewCandidate(
+            name: 'Partial macros with entry fallback',
+            confidence: 0.8,
+            kcal: 620,
+            proteinG: 38,
+          ),
+        ],
+      ),
+    );
+    await _tapVisible(tester, _amountControl('custom'));
+    await tester.enterText(_customInput(), '250');
+    await tester.pump();
+    expect(find.text('310 kcal'), findsOneWidget);
+    expect(find.text('19 g protein'), findsOneWidget);
+    expect(find.text('50 g carbs'), findsNothing);
+    expect(find.text('25 g fat'), findsNothing);
   });
 
   testWidgets(
@@ -773,6 +964,97 @@ void main() {
     }
   });
 
+  testWidgets(
+      'streamed valid package updates reset state and conservatively preselect package',
+      (tester) async {
+    for (final reasons in const [
+      <String>[],
+      ['barcode_unconfirmed'],
+    ]) {
+      final stream = StreamController<FoodEntry?>();
+      addTearDown(stream.close);
+      stream.add(_entry(
+        reviewReasons: const ['package_quantity_missing'],
+      ));
+      final gateway = _Gateway(failuresRemaining: 1);
+      await _pump(
+        tester,
+        gateway: gateway,
+        reviewStream: stream.stream,
+      );
+      await _tapVisible(tester, _amountControl('custom'));
+      await tester.enterText(_customInput(), '250');
+      await tester.pump();
+      await _tapVisible(tester, find.text('Teriyaki Chicken Bowl'));
+      await _tapVisible(tester, _confirmButton());
+      await tester.pumpAndSettle();
+      expect(find.text('Could not confirm. Please try again.'), findsOneWidget);
+
+      stream.add(_entry(reviewReasons: reasons));
+      await tester.pump();
+      _expectAmountSelection(tester, 'package');
+      expect(_customInput(), findsNothing);
+      expect(find.text('Could not confirm. Please try again.'), findsNothing);
+      expect(tester.widget<FilledButton>(_confirmButton()).onPressed,
+          isNotNull);
+      await _tapVisible(tester, _confirmButton());
+      await tester.pumpAndSettle();
+      expect(gateway.confirmations.last.consumedAmount, 500);
+      expect(gateway.confirmations.last.selectedCandidate?.name,
+          'Chicken Rice Bowl');
+    }
+  });
+
+  testWidgets(
+      'null and error stream transitions clear state before same-signature recovery',
+      (tester) async {
+    final stream = StreamController<FoodEntry?>();
+    addTearDown(stream.close);
+    final entry = _entry(
+      reviewReasons: const ['package_quantity_missing'],
+    );
+    stream.add(entry);
+    final gateway = _Gateway(failuresRemaining: 1);
+    await _pump(
+      tester,
+      gateway: gateway,
+      reviewStream: stream.stream,
+    );
+    await _tapVisible(tester, _amountControl('custom'));
+    await tester.enterText(_customInput(), '250');
+    await tester.pump();
+    await _tapVisible(tester, find.text('Teriyaki Chicken Bowl'));
+    await _tapVisible(tester, _confirmButton());
+    await tester.pumpAndSettle();
+    expect(find.text('Could not confirm. Please try again.'), findsOneWidget);
+
+    stream.add(null);
+    await tester.pump();
+    expect(find.text('Food entry no longer exists'), findsOneWidget);
+    expect(_customInput(), findsNothing);
+    expect(find.text('Could not confirm. Please try again.'), findsNothing);
+
+    stream.addError(StateError('temporary stream failure'));
+    await tester.pump();
+    expect(find.text('Could not load review'), findsOneWidget);
+    expect(_customInput(), findsNothing);
+    expect(find.text('Could not confirm. Please try again.'), findsNothing);
+
+    stream.add(entry);
+    await tester.pump();
+    _expectAmountSelection(tester, null);
+    expect(_customInput(), findsNothing);
+    expect(tester.widget<FilledButton>(_confirmButton()).onPressed, isNull);
+
+    await _tapVisible(tester, _amountControl('custom'));
+    await tester.enterText(_customInput(), '250');
+    await tester.pump();
+    await _tapVisible(tester, _confirmButton());
+    await tester.pumpAndSettle();
+    expect(gateway.confirmations.last.selectedCandidate?.name,
+        'Chicken Rice Bowl');
+  });
+
   testWidgets('duplicate confirmation tap while saving forwards only one call',
       (tester) async {
     final completion = Completer<void>();
@@ -810,7 +1092,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(result.router.state.uri.path, '/manual');
     result = await _pump(tester);
-    await tester.tap(find.text('Retake'));
+    await _tapVisible(tester, find.text('Retake'));
     await tester.pumpAndSettle();
     expect(result.router.state.uri.path, '/scan');
     result = await _pump(tester);
