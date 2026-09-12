@@ -603,7 +603,7 @@ Commit only privacy-safe tracking and any reviewed source/tests from correction 
 - `AmountSuggestion` is `{kind:'derived'; amount:double; unit:String; label:String; source:AmountSource}` where `AmountSource` is `packageLabel|servingMetadata|packMetadata`; `CustomAmountState` is `{selected:bool; amount:double?}` and has no numeric amount until the user enters one. `deriveAmountSuggestions(entry)` emits only derived choices, deduplicated by normalized `(amount, unit)` with package-label precedence over serving then pack labels.
 - Candidate selection and amount selection are independent. Empty candidates still permit amount-only Review; unresolved amount ambiguity leaves all derived choices and `CustomAmountState` unselected and blocks confirmation. A selected custom choice requires a finite positive entered amount before confirmation.
 
-- [ ] **Step 1: Write RED Review suggestion tests**
+- [x] **Step 1: Write RED Review suggestion tests**
 
 ```dart
 expect(deriveAmountSuggestions(entry).map((v) => v.label), contains('Whole package · 500 ml'));
@@ -614,7 +614,7 @@ expect(() => validateCustomAmount(double.nan), throwsArgumentError);
 expect(() => validateCustomAmount(null), throwsArgumentError);
 ```
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `fvm flutter test test/review/review_screen_test.dart`
 
