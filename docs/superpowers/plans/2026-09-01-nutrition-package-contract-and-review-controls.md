@@ -626,15 +626,19 @@ Derive and deduplicate choices at render time only, rendering source labels `pac
 
 Keep candidate selection and amount selection independent. If a streamed entry changes identity or its canonical amount, unit, candidates, or review reasons, reset both selections to conservative defaults, clear custom text/state, and clear the confirmation error. Scale the confirmation calorie preview and any displayed candidate macros exactly once by `effectiveRatio = selectedConsumedAmount / nutritionAmount`; omit absent candidate macros instead of inventing zero.
 
-- [ ] **Step 4: Verify GREEN, APK, and bounded runtime evidence**
+- [x] **Step 4: Verify GREEN, APK, and bounded runtime evidence**
 
 Run: `fvm flutter test test/review/review_screen_test.dart test/tool/android_test_apk_contract_test.dart`
 
 Expected: PASS. After the Task 10 source commit is pushed, set `SOURCE_SHA=$(git rev-parse HEAD)`, require `git status --short` to contain no intended source diff, and verify `git ls-remote origin refs/heads/fix/scan-photo-flow-viewer` resolves to `SOURCE_SHA`. Trigger `.github/workflows/android-test-apk.yml` for that SHA; record its run ID and require artifact name `android-test-apk-${SOURCE_SHA}`. Download the artifact, verify ZIP integrity, SHA-256 against its published checksum, APK signer, and embedded/source metadata against `SOURCE_SHA`. On a missing run/artifact, source mismatch, checksum/signer mismatch, non-clean source, or workflow failure, record that exact blocker and do not use an older APK. After a verified artifact exists, collect bounded runtime/visual evidence only in the designated test environment/account and only when the exercised flow cannot upload or mutate production data; do not use a production account, write cloud data, or deploy.
 
-- [ ] **Step 5: Record, review, commit, and push**
+Actual (2026-09-12): exact source `7952c14ba8e52d289f0f41b03ecd96e02cf25599`, branch `fix/scan-photo-flow-viewer` equals origin; GitHub run `34701817668` green. Functions 22 files / 656 passed / 1 skipped / 0 failed; Flutter 949 passed / 1 skipped / 0 failed; APK build, debug signing, certificate verification, checksum, upload green. Artifact `android-test-apk-7952c14ba8e52d289f0f41b03ecd96e02cf25599` ID `10301010438`; APK `calorix-1.0.0+1-android-test.apk` 165559407 bytes; SHA256 `131c63c41cdcbe4ebaf9e9129803ab1762e8142caf46952a4a4a8d2149080c19` equals computed/checksum/metadata; signer SHA256 `38815FD37711F170E534CF3C8767DE7F0F7CA5F958E755D8A47B03FE2B764B7C`; metadata pins SHA/run/ref. Final hermetic fixture review `calorix-functions-report-fixture-20260912` with `gemini-3.8-flash`: `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `QUESTIONS: none`; no secrets/private/raw provider/prompts/images/PII/Firebase data, weakening, or fs leaks. Task10 UX review `calorix-review-amount-selection-20260912b` green, but does not imply nutrition accuracy. Physical runtime safely skipped/blocker because current signed-in environment is not proven isolated non-production and confirmation may write production; APK gate passed.
+
+- [x] **Step 5: Record, review, commit, and push**
 
 Request Antigravity UX/behavior review, record Test APK/runtime evidence or exact environment blocker, commit `Review canonical nutrition amounts`, and push.
+
+Actual (2026-09-12): Task10 complete. Tracking records the green APK evidence above and the safe physical-runtime skip. Current next: calorie AND protein/carbs/fat accuracy remains red; three-sample public run `run-2026-09-11T20-22-21-450Z` (60/60 parsed, 0 unsafe, 15 catastrophic); inspect existing Slice F/G and start next bounded TDD calibration. No accuracy/production-ready claim.
 
 ### Task 11: Verify Stage C/D, review it, and hand off captured-still work
 
