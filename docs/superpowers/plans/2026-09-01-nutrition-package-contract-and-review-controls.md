@@ -597,7 +597,6 @@ Commit only privacy-safe tracking and any reviewed source/tests from correction 
 - Modify: `lib/features/review/review_screen.dart`
 - Modify: `lib/features/review/providers/review_providers.dart`
 - Modify: `test/review/review_screen_test.dart`
-- Modify: `test/tool/android_test_apk_contract_test.dart`
 - Modify: `docs/implementation-status.md`
 
 **Interfaces:**
@@ -617,13 +616,15 @@ expect(() => validateCustomAmount(null), throwsArgumentError);
 
 - [ ] **Step 2: Witness RED**
 
-Run: `fvm flutter test test/review/review_screen_test.dart test/tool/android_test_apk_contract_test.dart`
+Run: `fvm flutter test test/review/review_screen_test.dart`
 
 Expected: FAIL because Review candidates are not source-labeled amount choices and confirmation lacks the required amount selection.
 
 - [ ] **Step 3: Implement mutually exclusive derived choices**
 
-Derive and deduplicate choices at render time only, rendering source labels `package label`, `serving metadata`, and `pack metadata`; present Custom as a separate action that controls `CustomAmountState`, never as a derived suggestion. Enforce one selected derived choice or selected custom state at a time. Preselect whole package only for established amount without `package_quantity_missing`, `package_unit_unsupported`, or `nutrition_basis_ambiguous`; `barcode_unconfirmed` alone permits the default. Test empty candidates plus established amount can confirm, and test zero, nonfinite, and empty custom input cannot.
+Derive and deduplicate choices at render time only, rendering source labels `package label`, `serving metadata`, and `pack metadata`; present Custom as a separate action that controls `CustomAmountState`, never as a derived suggestion. Enforce one selected derived choice or selected custom state at a time. Preselect whole package only when the package-label choice exists and the reasons are empty or exactly `barcode_unconfirmed`; every other reason leaves amount selection empty. Deduplicate normalized units and amounts within `1e-4`, retaining package-label before serving before pack metadata. A package-label choice uses the canonical package tuple, a serving choice uses a complete serving reference, and a pack choice uses one positive unit amount from complete positive pack metadata. Test empty candidates plus an explicitly selected amount can confirm, and test zero, nonfinite, and empty custom input cannot.
+
+Keep candidate selection and amount selection independent. If a streamed entry changes identity or its canonical amount, unit, candidates, or review reasons, reset both selections to conservative defaults, clear custom text/state, and clear the confirmation error. Scale the confirmation calorie preview and any displayed candidate macros exactly once by `effectiveRatio = selectedConsumedAmount / nutritionAmount`; omit absent candidate macros instead of inventing zero.
 
 - [ ] **Step 4: Verify GREEN, APK, and bounded runtime evidence**
 
