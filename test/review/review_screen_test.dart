@@ -172,7 +172,9 @@ Future<({GoRouter router, _Gateway gateway})> _pump(
         name: 'foodDetail',
         builder: (_, state) => Text('Food ${state.pathParameters['id']}')),
   ]);
-  await tester.pumpWidget(ProviderScope(overrides: [
+  await tester.pumpWidget(ProviderScope(
+      key: UniqueKey(),
+      overrides: [
     reviewEntryProvider('e1').overrideWith(
       (ref) => reviewStream ?? Stream.value(entry ?? _entry()),
     ),
@@ -944,6 +946,7 @@ void main() {
 
       stream.add(change.entry);
       await tester.pump();
+      await tester.pump();
       expect(_amountControl('custom'), findsOneWidget);
       _expectAmountSelection(tester, null);
       expect(_customInput(), findsNothing);
@@ -993,6 +996,7 @@ void main() {
 
       stream.add(_entry(reviewReasons: reasons));
       await tester.pump();
+      await tester.pump();
       _expectAmountSelection(tester, 'package');
       expect(_customInput(), findsNothing);
       expect(find.text('Could not confirm. Please try again.'), findsNothing);
@@ -1031,17 +1035,20 @@ void main() {
 
     stream.add(null);
     await tester.pump();
+    await tester.pump();
     expect(find.text('Food entry no longer exists'), findsOneWidget);
     expect(_customInput(), findsNothing);
     expect(find.text('Could not confirm. Please try again.'), findsNothing);
 
     stream.addError(StateError('temporary stream failure'));
     await tester.pump();
+    await tester.pump();
     expect(find.text('Could not load review'), findsOneWidget);
     expect(_customInput(), findsNothing);
     expect(find.text('Could not confirm. Please try again.'), findsNothing);
 
     stream.add(entry);
+    await tester.pump();
     await tester.pump();
     _expectAmountSelection(tester, null);
     expect(_customInput(), findsNothing);
@@ -1092,9 +1099,11 @@ void main() {
 
     stream.add(null);
     await tester.pump();
+    await tester.pump();
     expect(find.text('Food entry no longer exists'), findsOneWidget);
 
     stream.add(entry);
+    await tester.pump();
     await tester.pump();
     expect(tester.widget<FilledButton>(_confirmButton()).onPressed, isNull,
         reason:

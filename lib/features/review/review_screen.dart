@@ -69,7 +69,6 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     _customAmountState = const CustomAmountState(selected: false);
     _customAmountController.clear();
     _confirmationError = null;
-    _saving = false;
     _entrySignature = null;
     if (mounted) setState(() {});
   }
@@ -83,7 +82,6 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     _customAmountState = const CustomAmountState(selected: false);
     _customAmountController.clear();
     _confirmationError = null;
-    _saving = false;
     if (mounted) setState(() {});
   }
 
@@ -162,10 +160,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
   AmountSuggestion? _selectedSuggestion(
     List<AmountSuggestion> suggestions,
-    FoodEntry entry,
   ) {
-    final source = _selectedAmountSource ??
-        (_entrySignature == null ? _defaultSource(entry) : null);
+    final source = _selectedAmountSource;
     for (final suggestion in suggestions) {
       if (suggestion.source == source) return suggestion;
     }
@@ -174,10 +170,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
   double? _effectiveAmount(
     List<AmountSuggestion> suggestions,
-    FoodEntry entry,
   ) {
     if (_customAmountState.selected) return _customAmountState.amount;
-    return _selectedSuggestion(suggestions, entry)?.amount;
+    return _selectedSuggestion(suggestions)?.amount;
   }
 
   bool _hasConfirmableCanonical(FoodEntry entry) {
@@ -215,17 +210,20 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     ref.listen<AsyncValue<FoodEntry?>>(
       reviewEntryProvider(widget.entryId),
       (_, next) {
+        if (next.isLoading) {
+          _clearTransientState();
+          return;
+        }
         if (next.hasError) {
           _clearTransientState();
           return;
         }
-        if (next.isLoading) return;
         final entry = next.valueOrNull;
-        if (entry != null) {
-          _syncEntry(entry);
+        if (entry == null) {
+          _clearTransientState();
           return;
         }
-        _clearTransientState();
+        _syncEntry(entry);
       },
     );
     final entry = ref.watch(reviewEntryProvider(widget.entryId));
@@ -237,9 +235,13 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           if (value == null) {
             return const Center(child: Text('Food entry no longer exists'));
           }
+          if (_entrySignature == null) {
+            _entrySignature = _signature(value);
+            _selectedAmountSource = _defaultSource(value);
+          }
           final suggestions = deriveAmountSuggestions(value);
-          final selectedSuggestion = _selectedSuggestion(suggestions, value);
-          final selectedAmount = _effectiveAmount(suggestions, value);
+          final selectedSuggestion = _selectedSuggestion(suggestions);
+          final selectedAmount = _effectiveAmount(suggestions);
           final confidence = ((value.confidence ?? 0) * 100).round();
           final candidates = value.candidates;
           final selectedIndex = candidates.isEmpty
