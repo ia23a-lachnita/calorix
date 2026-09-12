@@ -793,8 +793,9 @@ void main() {
       await _pump(tester, entry: _entry(nutritionUnit: unit));
       await _tapVisible(tester, _amountControl('custom'));
       final field = tester.widget<TextField>(_customInput());
-      expect(field.decoration.suffixText, unit);
-      expect(field.decoration.suffixText, isNot('canonical unit'));
+      final decoration = field.decoration!;
+      expect(decoration.suffixText, unit);
+      expect(decoration.suffixText, isNot('canonical unit'));
     }
   });
 
