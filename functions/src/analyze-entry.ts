@@ -183,8 +183,8 @@ export function analysisEntryFields(
 }
 
 function analysisErrorFields(
-  errorCode: 'model_schema_invalid' | 'provider_request_failed',
-  errorMessage: 'Invalid model response' | 'Analysis provider request failed',
+  errorCode: 'model_schema_invalid' | 'off_product_not_found' | 'provider_request_failed',
+  errorMessage: 'Invalid model response' | 'Product not found' | 'Analysis provider request failed',
   analysisFieldDeletion?: unknown,
 ): Record<string, unknown> {
   return replaceAnalysisFields({
@@ -253,7 +253,18 @@ export async function handleEntryCreated(
       return 'found';
     };
 
-    if (source === 'barcode' && await lookupOff(data.rawBarcode) === 'invalid') return;
+    if (source === 'barcode') {
+      const rawBarcodeLookup = await lookupOff(data.rawBarcode);
+      if (rawBarcodeLookup === 'invalid') return;
+      if (data.rawBarcode && rawBarcodeLookup === 'not_found') {
+        await persist(analysisErrorFields(
+          'off_product_not_found',
+          'Product not found',
+          deps.analysisFieldDeletion,
+        ));
+        return;
+      }
+    }
 
     if (!analysis || !draft) {
       const imageBase64 = await deps.loadImageBase64(data);

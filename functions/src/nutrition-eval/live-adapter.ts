@@ -59,6 +59,7 @@ function failure(
     | 'model_response_invalid'
     | 'nutrition_normalization_invalid'
     | 'off_product_invalid'
+    | 'off_product_not_found'
     | 'provider_request_failed',
   failureDetail?: string,
 ): NutritionPrediction {
@@ -246,6 +247,7 @@ export function createLiveNutritionEvalAdapter(
       if (evalCase.scanMode === 'barcode' && evalCase.suppliedBarcode) {
         const off = await lookupOff(evalCase.suppliedBarcode);
         if (off.kind === 'provider_failure') return failure(evalCase, 'provider', 'provider_request_failed');
+        if (off.kind === 'not_found') return failure(evalCase, 'product', 'off_product_not_found');
         if (off.kind === 'product_invalid') return failure(evalCase, 'product', 'off_product_invalid');
         if (off.kind === 'found') {
           return successFromOffDraft(

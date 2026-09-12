@@ -353,6 +353,33 @@ describe('fetchOffProduct', () => {
     })).resolves.toBeNull();
   });
 
+  it('throws the provider error for a recognized 2xx rate_limited failure envelope and clears its timer', async () => {
+    const rateLimitedBody = JSON.stringify({
+      status: 'failure',
+      result: {
+        id: 'rate_limited',
+        message: 'retry https://private.example/off?token=secret',
+      },
+    });
+    vi.useFakeTimers();
+    try {
+      const request = fetchOffProduct('3017624010701', {
+        fetchFn: async () => new Response(rateLimitedBody, { status: 200 }),
+      });
+      const providerFailure = expectProviderRequestFailure(request, [
+        rateLimitedBody,
+        'rate_limited',
+        'https://private.example/off?token=secret',
+        'token=secret',
+      ]);
+
+      await providerFailure;
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it.each([
     new Response(JSON.stringify({ ...foundPayload, product: { product_name: 'Bad', nutriments: { fat_100g: 'NaN' } } })),
     new Response(JSON.stringify({
@@ -411,14 +438,15 @@ describe('fetchOffProduct', () => {
             )));
           }),
       });
-
-      await vi.advanceTimersByTimeAsync(1);
-      await expectProviderRequestFailure(request, [
+      const providerFailure = expectProviderRequestFailure(request, [
         'abort timeout at https://private.example/off?token=secret',
         'abort timeout',
         'https://private.example/off?token=secret',
         'token=secret',
       ]);
+
+      await vi.advanceTimersByTimeAsync(1);
+      await providerFailure;
       expect(vi.getTimerCount()).toBe(0);
     } finally {
       vi.useRealTimers();
