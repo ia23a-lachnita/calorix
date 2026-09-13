@@ -40,7 +40,6 @@ Repository edits and token-heavy implementation work use this strongest-first ro
 qwen -p "<prompt>" --model qwen3.7-max --output-format text
 opencode run --model opencode/nemotron-3-ultra-free --auto --dir <repo> "<prompt>"
 opencode run --model opencode/muse-spark-1.3-contributor-free --auto --dir <repo> "<prompt>"
-opencode run --model opencode/mimo-v2.5-free --auto --dir <repo> "<prompt>"
 opencode run --model opencode/nemotron-3.5-lightning-free --auto --dir <repo> "<prompt>"
 opencode run --model opencode/ling-3.0-flash-fin-free --auto --dir <repo> "<prompt>"
 opencode run --model opencode/big-pickle --auto --dir <repo> "<prompt>"
@@ -49,9 +48,10 @@ claude -p "<prompt>" --model claude-sonnet-5 --dangerously-skip-permissions --ou
 
 The OpenCode order is refreshed from `opencode models opencode --refresh
 --verbose` and ranks coding/reasoning strength before tool reliability/context,
-then speed. `muse-spark-1.3-contributor-free` supersedes Muse 1.2 and ranks above
-MiMo 2.5; `big-pickle` is an opaque experimental reserve. Do not route to a
-model absent from the refreshed `opencode/` namespace.
+then speed. `muse-spark-1.3-contributor-free` supersedes Muse 1.2;
+`mimo-v2.5-free` is excluded by explicit user instruction; `big-pickle` is an
+opaque experimental reserve. Do not route to a model absent from the refreshed
+`opencode/` namespace.
 
 Before each fallback, record the ISO timestamp, exact model, category, and provider/tool message in `docs/implementation-status.md`. Claude is the paid last route.
 
