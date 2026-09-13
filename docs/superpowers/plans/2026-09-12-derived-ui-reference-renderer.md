@@ -301,7 +301,7 @@ Run: `npm test --prefix tool/ui_capture/reference_renderer`
 
 Expected: PASS with no browser installed. Confirm byte-identical rerun of `buildDerivedManifest` on fixed input.
 
-- [ ] **Step 5: Record, review, commit, and push**
+- [x] **Step 5: Record, review, commit, and push**
 
 Request Antigravity post-task review in the same conversation because the manifest is the downstream gate contract. Update status with source SHA and RED/GREEN/review evidence. Commit `Add derived manifest and leaf safety` and push `origin/fix/scan-photo-flow-viewer`, then verify remote equality.
 
