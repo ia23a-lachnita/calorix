@@ -218,7 +218,7 @@ Run: `npm test --prefix tool/ui_capture/reference_renderer`
 
 Expected: PASS (12 tests on the ARM host) with no browser installed. Also run `git status --short` and confirm `tool/ui_capture/reference_renderer/node_modules/` is ignored and untracked.
 
-- [ ] **Step 5: Record, review, commit, and push**
+- [x] **Step 5: Record, review, commit, and push**
 
 Request Antigravity post-task review in conversation `calorix-derived-reference-renderer-20260912` because the locked supply chain is substantive. Update status with source SHA, RED/GREEN evidence, and review verdict. Commit `Pin derived renderer dependencies` and push `origin/fix/scan-photo-flow-viewer`, then verify remote equality.
 
