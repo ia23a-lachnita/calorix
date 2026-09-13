@@ -1,0 +1,24 @@
+{
+  "name": "reference-renderer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20 <21"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "render": "node bin/render.mjs",
+    "validate": "node bin/render.mjs --validate-only"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "@babel/standalone": "7.29.0",
+    "@fontsource/geist": "5.3.0",
+    "@fontsource/geist-mono": "5.3.0"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

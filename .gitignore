@@ -107,3 +107,4 @@ Thumbs.db
 
 # Nutrition evaluation runtime artifacts
 .nutrition-eval/
+tool/ui_capture/reference_renderer/node_modules/

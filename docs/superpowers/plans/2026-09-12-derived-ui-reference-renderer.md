@@ -31,7 +31,7 @@
 
 ## File Map
 
-- `tool/ui_capture/reference_renderer/package.json` — ESM locked package with exact pins (React 18.3.1, ReactDOM 18.3.1, `@babel/standalone` 7.29.0, `@fontsource/geist` 5.3.0, `@fontsource/geist-mono` 5.3.0, Playwright 1.63.0), engines Node `>=20 <21`, scripts `test` = `node --test test/` (browserless), `render` = `node bin/render.mjs`, `validate` = `node bin/render.mjs --validate-only`.
+- `tool/ui_capture/reference_renderer/package.json` — ESM locked package with exact pins (React 18.3.1, ReactDOM 18.3.1, `@babel/standalone` 7.29.0, `@fontsource/geist` 5.3.0, `@fontsource/geist-mono` 5.3.0, Playwright 1.63.0), engines Node `>=20 <21`, scripts `test` = `node --test test/*.test.mjs` (browserless and portable), `render` = `node bin/render.mjs`, `validate` = `node bin/render.mjs --validate-only`.
 - `tool/ui_capture/reference_renderer/package-lock.json` — committed lockfile; generated at implementation time by `npm install --package-lock-only`.
 - `tool/ui_capture/reference_renderer/bin/render.mjs` — CLI entry exporting pure `parseCliArgs(argv)` returning `{ selection, replace, allowLocalRender, validateOnly }`; parses `--selection`, `--replace`/`--no-replace`, `--allow-local-render`, `--validate-only` without importing Playwright; enforces ARM refusal before dynamically importing `harness/render.mjs`. Exit codes: `0` success, `11` ARM refusal, `20` invalid input, `30` render/validation failure.
 - `tool/ui_capture/reference_renderer/harness/profile.mjs` — frozen profile constants plus ARM guard (exact ESM signatures below).
@@ -101,7 +101,7 @@ Update status with conversation ID, model, verdict, and exact error text for any
 - Modify: `docs/implementation-status.md`
 
 **Interfaces:**
-- `tool/ui_capture/reference_renderer/package.json` sets `"type": "module"`, `"engines": { "node": ">=20 <21" }`, `"scripts": { "test": "node --test test/", "render": "node bin/render.mjs", "validate": "node bin/render.mjs --validate-only" }`, exact `dependencies` pins `react@18.3.1`, `react-dom@18.3.1`, `@babel/standalone@7.29.0`, `@fontsource/geist@5.3.0`, `@fontsource/geist-mono@5.3.0`, and exact `devDependencies` pin `playwright@1.63.0`.
+- `tool/ui_capture/reference_renderer/package.json` sets `"type": "module"`, `"engines": { "node": ">=20 <21" }`, `"scripts": { "test": "node --test test/*.test.mjs", "render": "node bin/render.mjs", "validate": "node bin/render.mjs --validate-only" }`, exact `dependencies` pins `react@18.3.1`, `react-dom@18.3.1`, `@babel/standalone@7.29.0`, `@fontsource/geist@5.3.0`, `@fontsource/geist-mono@5.3.0`, and exact `devDependencies` pin `playwright@1.63.0`.
 - `harness/profile.mjs` exact ESM surface — behavior: frozen S20 FE geometry/locale/flags/guard; `FROZEN_CHROMIUM_FLAGS` values include leading `--` and are the exact custom args passed to launch (Playwright default internal args are outside this list):
 ```js
 export const PROFILE_ID = 'samsung-s20fe';
@@ -130,14 +130,15 @@ export async function main(argv = process.argv.slice(2)) // enforces assertLocal
 - `.gitignore` appends exactly `tool/ui_capture/reference_renderer/node_modules/` on its own line (the ignored dependency tree). Existing `.ui-diff/` line already covers derived leaves and stays unchanged.
 - `README.md` states the fixed full leaf, the separate subset leaf pattern (never nested), the forbidden Pi flag, the manual workflow name, the `test`/`render`/`validate` scripts, and that `npm test` needs no browser.
 
-- [ ] **Step 1: Write RED pure profile/settlement/CLI tests**
+- [x] **Step 1: Write RED pure profile/settlement/CLI tests**
 
 `test/profile.test.mjs` constructs fixtures directly from the defined profile surface (no external fixture file needed):
 ```js
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { VIEWPORT_WIDTH, VIEWPORT_HEIGHT, DEVICE_SCALE_FACTOR, PHYSICAL_WIDTH, PHYSICAL_HEIGHT, BROWSER_LOCALE, BROWSER_TIMEZONE, FROZEN_CHROMIUM_FLAGS, isArmArch, assertLocalRenderAllowed, RENDER_GUARD_EXIT_CODE } from '../harness/profile.mjs';
+import { PROFILE_ID, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, DEVICE_SCALE_FACTOR, PHYSICAL_WIDTH, PHYSICAL_HEIGHT, BROWSER_LOCALE, BROWSER_TIMEZONE, FROZEN_CHROMIUM_FLAGS, isArmArch, assertLocalRenderAllowed, RENDER_GUARD_EXIT_CODE } from '../harness/profile.mjs';
 test('frozen S20 FE profile', () => {
+  assert.equal(PROFILE_ID, 'samsung-s20fe');
   assert.equal(VIEWPORT_WIDTH, 360);
   assert.equal(VIEWPORT_HEIGHT, 800);
   assert.equal(DEVICE_SCALE_FACTOR, 3);
@@ -164,11 +165,16 @@ test('locked pins and engines recorded', async () => {
   assert.equal(pkg.dependencies['@fontsource/geist-mono'], '5.3.0');
   assert.equal(pkg.devDependencies['playwright'], '1.63.0');
   assert.equal(pkg.engines['node'], '>=20 <21');
-  assert.equal(pkg.scripts['test'], 'node --test test/');
+  assert.equal(pkg.scripts['test'], 'node --test test/*.test.mjs');
   assert.ok(pkg.scripts['render'].includes('bin/render.mjs'));
   assert.ok(pkg.scripts['validate'].includes('--validate-only'));
 });
 ```
+
+The locked-pins test also parses `package-lock.json`, requires lockfile
+version 3, requires its root dependencies/devDependencies to equal
+`package.json`, and requires every direct non-link package entry to carry
+the exact version plus a nonempty integrity string.
 
 `test/settlement.test.mjs` builds the expected 19-ID list inline from the inventory contract and compares map keys (reads the real inventory file for key equality):
 ```js
@@ -194,23 +200,23 @@ test('clockAdvanceMsFor maps and rejects unknown', () => {
 });
 ```
 
-`test/cli.test.mjs` tests `parseCliArgs` with inline argv arrays (for example `['--selection', 'today--dark', '--replace']` yields `{ selection: ['today--dark'], replace: true, allowLocalRender: false, validateOnly: false }`; `all` stays the string `all`; explicit keys are sorted and deduplicated; mixed `all` plus explicit keys, unknown flags, missing values, and conflicting replace flags throw `RENDER_INVALID_INPUT`). It also source-checks that `bin/render.mjs` has no static `playwright` import, calls the ARM guard before the dynamic `harness/render.mjs` import, and invokes `main()` only under an ESM direct-execution guard so importing it in tests has no side effect.
+`test/cli.test.mjs` tests `parseCliArgs` with inline argv arrays (for example `['--selection', 'today--dark', '--replace']` yields `{ selection: ['today--dark'], replace: true, allowLocalRender: false, validateOnly: false }`; `all` stays the string `all`; explicit keys are sorted and deduplicated; mixed `all` plus explicit keys, unknown flags, missing values, and conflicting replace flags throw `RENDER_INVALID_INPUT`). It also source-checks that `bin/render.mjs` has no static `playwright` import, compares the exact `assertLocalRenderAllowed({` call position against the exact dynamic `await import('../harness/render.mjs')` position, and invokes `main()` only under an ESM direct-execution guard so importing it in tests has no side effect. Real child-process tests require direct invalid input to exit `20`, require direct no-flag execution on ARM to exit `11`, and simulate x64 by overriding `process.arch` in an isolated child (without `--allow-local-render`) so the intentionally absent Task 5 module proves render-failure exit `30` without launching a browser.
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `npm test --prefix tool/ui_capture/reference_renderer`
 
 Expected: FAIL because `harness/profile.mjs`, `harness/settlement.mjs`, `bin/render.mjs`, `package.json` pins/engines/scripts, and the ignore line do not exist.
 
-- [ ] **Step 3: Implement minimal GREEN**
+- [x] **Step 3: Implement minimal GREEN**
 
 Create `package.json` with the exact pins/engines/scripts above, generate the lockfile with `npm install --package-lock-only --prefix tool/ui_capture/reference_renderer` without committing `node_modules`, create `harness/profile.mjs`, `harness/settlement.mjs`, and `bin/render.mjs` with the exact surfaces above, create `README.md`, and append the single ignore line. Do not add `no-sandbox`, vendor directories, or a cloned stage file.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `npm test --prefix tool/ui_capture/reference_renderer`
 
-Expected: PASS with no browser installed. Also run `git status --short` and confirm `tool/ui_capture/reference_renderer/node_modules/` is ignored and untracked.
+Expected: PASS (12 tests on the ARM host) with no browser installed. Also run `git status --short` and confirm `tool/ui_capture/reference_renderer/node_modules/` is ignored and untracked.
 
 - [ ] **Step 5: Record, review, commit, and push**
 
