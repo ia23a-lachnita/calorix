@@ -369,7 +369,7 @@ Run: `npm test --prefix tool/ui_capture/reference_renderer`
 
 Expected: PASS with no browser installed and no network access.
 
-- [ ] **Step 5: Record, review, commit, and push**
+- [x] **Step 5: Record, review, commit, and push**
 
 Request Antigravity post-task review in the same conversation because network isolation is security-substantive. Update status with source SHA and RED/GREEN/review evidence. Commit `Add derived loopback server` and push `origin/fix/scan-photo-flow-viewer`, then verify remote equality.
 
