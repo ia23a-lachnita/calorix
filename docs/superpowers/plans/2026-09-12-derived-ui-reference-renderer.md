@@ -327,7 +327,7 @@ export async function createReferenceServer({ repoRoot, nodeModulesDir } = {}) /
 - `createReferenceServer` binds only `127.0.0.1` on an ephemeral port, serves only allowlisted GET paths with per-component symlink plus `realpath` containment under the repo root, returns 404 for non-allowlisted paths, rejects non-GET methods with `RENDER_REMOTE_FETCH`, and sets `content-type` for `.html`, `.jsx`, `.js`, `.css`, `.woff2`, `.png`, and `.jpg`.
 - Playwright routing (used by Task 5) intercepts `CDN_INTERCEPT_HOSTS` with these resolved local bytes and aborts every other unexpected external request with `route.abort()`.
 
-- [ ] **Step 1: Write RED server tests**
+- [x] **Step 1: Write RED server tests**
 
 `test/server.test.mjs` asserts resolved paths (not regex-matched bytes) and pathname-only semantics:
 ```js
@@ -353,17 +353,17 @@ test('allowlist accepts pathnames only', () => {
 
 Plus tests that traversal `..`, absolute escapes, non-GET methods, unpinned versions, and unexpected `fonts.gstatic.com` file requests return null or false, and that the Google stylesheet result has `absolutePath === undefined`, a deterministic `body` referencing only loopback `/fonts/` URLs, and exact @fontsource face/weight coverage.
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `npm test --prefix tool/ui_capture/reference_renderer -- test/server.test.mjs`
 
 Expected: FAIL because `harness/server.mjs` does not exist.
 
-- [ ] **Step 3: Implement minimal GREEN**
+- [x] **Step 3: Implement minimal GREEN**
 
 Implement the exact allowlist, `resolveCdnResource` map with deterministic font CSS, loopback bind, GET-only check, pathname-only check, and `realpath` containment. Abort semantics stay in the Task 5 driver; this module returns null or false for disallowed inputs.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `npm test --prefix tool/ui_capture/reference_renderer`
 
