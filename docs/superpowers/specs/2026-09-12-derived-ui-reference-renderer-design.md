@@ -382,8 +382,12 @@ leaf and are never a full gate/downstream expected set.
   validated exact subset leaf (selected count + manifest) may be swapped in:
   the renderer stages to a validated temp sibling, validates it, moves the
   existing leaf to a validated backup sibling, renames the staged leaf into
-  place, rolls back from backup on any failure, and removes only the
-  validated backup after success. It never silently deletes unknown/stale
+  place, and rolls back from backup on any pre-commit failure. The commit
+  point is the successful post-install validation of the new target. Backup
+  removal is post-commit cleanup: if it fails, the valid new target and the
+  retained validated backup remain in place and the operation reports a
+  cleanup error instead of attempting an unsafe rollback from a potentially
+  partially deleted backup. It never silently deletes unknown/stale
   files, never removes any ancestor directory, and never touches the
   canonical tree. Symlink path-component, nearest-existing-ancestor realpath
   containment, and device/mount escape checks apply to the leaf, staged, temp,
@@ -604,8 +608,9 @@ leaf and are never a full gate/downstream expected set.
   with their own selected-count manifest, never nested inside the full leaf,
   and are never a full gate/downstream expected set (§7, §10, §14); safe
   replace is `replaceLeafAtomically(leafDir, stagedDir, { replace = false })`
-  with default-no-replace, validated temp/backup sibling, rollback on
-  failure, removal of only the validated backup after success, no silent
+  with default-no-replace, validated temp/backup sibling, rollback on every
+  pre-commit failure, post-commit backup cleanup that retains the valid target
+  and remaining validated backup on cleanup error, no silent
   deletion of unknown/stale files, no ancestor removal, and
   symlink-component plus nearest-ancestor realpath plus device/mount checks
   (§10); inventory names count 38 (§7); `SETTLEMENT_MS_BY_STATE` keys equal

@@ -246,17 +246,17 @@ export async function readInventorySelection(repoRoot, selection) // reads visua
 export function buildDerivedManifest({ sourceFingerprint, gitCommit, gitDirty, dirtyPaths, inventoryHash, jsxTree, previewHash, foodHash, fontDigests, lockDigest, rendererDigest, profileDigest, settlementDigest, nodeVersion, npmVersion, playwrightVersion, chromiumVersion, selection, readiness, images }) // sorted keys/entries; timestamp-free; exact schema below
 export async function validateFullLeaf(leafDir, manifest) // requires exactly 38 PNGs + manifest.json and nothing else (no subdirectories); throws RENDER_LEAF_EXTRA otherwise
 export async function validateSubsetLeaf(leafDir, manifest, selection) // requires exactly selected count + manifest; throws RENDER_LEAF_EXTRA otherwise
-export async function replaceLeafAtomically(leafDir, stagedDir, { replace = false } = {}) // default replace=false: existing target fails; replace=true swaps only a fully validated exact full leaf or exact subset leaf via validated temp/backup sibling with rollback on failure and removal of only the validated backup after success; never deletes unknown/stale files or any ancestor
+export async function replaceLeafAtomically(leafDir, stagedDir, { replace = false } = {}) // default replace=false: existing target fails; replace=true swaps only a fully validated exact full leaf or exact subset leaf via validated temp/backup sibling; every pre-commit failure rolls back, while post-commit backup-cleanup failure retains the valid target plus validated backup and throws; never deletes unknown/stale files or any ancestor
 export async function validateReferenceLeaf({ repoRoot, selection = 'all' } = {}) // recomputes current source fingerprint, resolves the existing full/subset leaf, parses its manifest, and validates without rendering, staging, replacing, or mutating
 ```
 - `computeSourceFingerprint` hashes actual consumed bytes in sorted path order: the inventory JSON, every loaded `docs/design-handoff/placeholder-app/src/cx-*.jsx` file, `docs/design-handoff/placeholder-app/preview/screens.html`, referenced `docs/design-handoff/placeholder-app/assets/food/*` bytes, the exact served `node_modules` runtime JS/font files, `package.json`, `package-lock.json`, and all renderer source/profile/settlement modules (`bin/render.mjs`, `harness/profile.mjs`, `harness/settlement.mjs`, `harness/server.mjs`, `harness/render.mjs`, `harness/manifest.mjs`). Missing or unallowlisted inputs throw `RENDER_INVALID_INPUT`. The relevant dirty path set is `docs/design-handoff/placeholder-app/{visual-state-inventory.json, src/cx-*.jsx, preview/screens.html, assets/food/**}` plus `tool/ui_capture/reference_renderer/{package.json, package-lock.json, bin/render.mjs, harness/*.mjs}`; git commit plus dirty boolean/list are stored separately in the manifest.
 - `readInventorySelection` reads `docs/design-handoff/placeholder-app/visual-state-inventory.json`, requires all 19 state IDs (`loading`, `login`, `permission`, `scan_idle`, `scan_capturing`, `processing`, `review`, `manual`, `today`, `today_empty`, `food`, `food_edit`, `history_week`, `history_month`, `goals`, `goals_select`, `ai`, `ai_history`, `profile`), expands `all` to 38 `<id>--<mode>` pairs in sorted order, validates explicit `<id>--<mode>` selections, and throws `RENDER_INVALID_INPUT` for unknown IDs, bad modes, or subset written at the full leaf.
 - `buildDerivedManifest` emits sorted keys and sorted file entries with exactly `schemaVersion`, `sourceFingerprint`, `gitCommit`, `gitDirty`, `dirtyPaths`, `inventoryHash`, `jsxTree`, `previewHash`, `foodHash`, `fontDigests`, `lockDigest`, `rendererDigest`, `profileDigest`, `settlementDigest`, `nodeVersion`, `npmVersion`, `playwrightVersion`, `chromiumVersion`, `profile` (`logicalWidth` 360, `logicalHeight` 800, `physicalWidth` 1080, `physicalHeight` 2400, `deviceScaleFactor` 3, `locale` `en-US`, `timezone` `UTC`, `flags` frozen five with leading `--`), `selection`, `readiness`, and per-image `path`, `sha256`, `bytes`, `width` 1080, `height` 2400, `clockAdvanceMs`. No timestamps, no absolute host paths, no hostnames, no user info.
 - `validateFullLeaf` requires exactly 38 PNGs plus `manifest.json` at the full leaf and no extras (any subdirectory or extra file throws `RENDER_LEAF_EXTRA`). Subset leaves require exactly the selected count plus their own manifest. Both validators require manifest names/counts, SHA256, byte sizes, and 1080×2400 PNG dimensions to match the files. All leaf/staged/temp/backup paths get per-component symlink checks, nearest-existing-ancestor `realpath` containment under the fixed prefix, device/mount escape rejection, and traversal rejection.
-- `replaceLeafAtomically` with default `{ replace: false }` fails when the target exists. With `{ replace: true }` it swaps only a fully validated exact full leaf or exact subset leaf: stage to a validated temp sibling, validate it, move the existing leaf to a validated backup sibling, rename staged into place, roll back from backup on any failure, remove only the validated backup after success. Stale or extra files fail instead of silent deletion of unknown files. Never removes any ancestor. Never touches the canonical tree.
+- `replaceLeafAtomically` with default `{ replace: false }` fails when the target exists. With `{ replace: true }` it swaps only a fully validated exact full leaf or exact subset leaf: stage to a validated temp sibling, validate it, move the existing leaf to a validated backup sibling, rename staged into place, and roll back from backup on every failure before the new target passes post-install validation. That validation is the commit point. Backup removal happens afterward; if cleanup fails, the valid committed target and retained validated backup remain and a cleanup error is thrown, because rollback from a potentially partially removed backup is unsafe. Stale or extra files fail instead of silent deletion of unknown files. Never removes any ancestor. Never touches the canonical tree.
 - `validateReferenceLeaf` is side-effect free: it recomputes the current fingerprint, resolves the corresponding existing leaf, parses its manifest, and invokes the correct validator. It never imports Playwright, launches a browser, creates staging/backup paths, rewrites a manifest, or calls `replaceLeafAtomically`.
 
-- [ ] **Step 1: Write RED manifest tests**
+- [x] **Step 1: Write RED manifest tests**
 
 `test/manifest.test.mjs` constructs fixtures inline (no external fixture directory needed): build a temp full-leaf fixture with 38 zero-byte PNG names plus manifest via `node:os.tmpdir()`, a subset fixture with 1 PNG, and symlink-escape fixtures created at test time:
 ```js
@@ -285,17 +285,17 @@ test('selection hash is stable', () => {
 
 Plus tests, all with test-created temp dirs, that unknown inventory IDs throw `RENDER_INVALID_INPUT`, full leaves with 37 or 39 PNGs throw `RENDER_LEAF_EXTRA`, a nested `subsets/` dir inside the full leaf throws `RENDER_LEAF_EXTRA`, manifest image names/counts/hashes/bytes/dimensions must match the files, `replaceLeafAtomically` with default options fails on existing target, a forced rename failure restores the original leaf byte-for-byte, symlink path components and nearest-ancestor escapes are rejected, and device/mount escapes are rejected. A `validateReferenceLeaf` test asserts validation performs no write/rename and does not import or launch Playwright.
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `npm test --prefix tool/ui_capture/reference_renderer -- test/manifest.test.mjs`
 
 Expected: FAIL because `harness/manifest.mjs` does not exist.
 
-- [ ] **Step 3: Implement minimal GREEN**
+- [x] **Step 3: Implement minimal GREEN**
 
 Implement the exact surface above with sorted-key output, fixed full plus separate subset helpers, allowlisted fingerprint inputs with the documented return structure, and atomic rename with default-no-replace plus temp/backup/rollback. Keep error codes `RENDER_INVALID_INPUT` and `RENDER_LEAF_EXTRA`. Do not introduce `FINGERPRINT_DRIFT`.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `npm test --prefix tool/ui_capture/reference_renderer`
 
