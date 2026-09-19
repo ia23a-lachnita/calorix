@@ -448,6 +448,11 @@ test('upload-artifact@v4 of env LEAF_DIR with if-no-files-found error', () => {
     /if-no-files-found\s*:\s*['"]?error['"]?/,
     'if-no-files-found must be configured as error',
   );
+  assert.match(
+    withBlock,
+    /include-hidden-files\s*:\s*true/,
+    'upload with block must set include-hidden-files: true so hidden .ui-diff leaf is uploaded',
+  );
 });
 
 test('prohibits local-render bypass sandbox weakening commit push deploy release secrets', () => {

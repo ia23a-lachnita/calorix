@@ -529,11 +529,11 @@ Run: `test -f .github/workflows/derived-ui-reference.yml && echo PRESENT || echo
 
 Expected: `MISSING` before GREEN (supplements the RED unit failure above; it is not the validation itself).
 
-- [ ] **Step 3: Implement minimal GREEN**
+- [x] **Step 3: Implement minimal GREEN**
 
 Create the workflow with the exact trigger, inputs, install, test, browser install (`npx playwright install --with-deps chromium`), render, validate, and upload steps above. Add no push trigger, no `Verify` coupling, no deploy, no secret, no `--allow-local-render`, and no `no-sandbox` flag.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `npm test --prefix tool/ui_capture/reference_renderer`
 

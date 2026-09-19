@@ -1,0 +1,85 @@
+name: Derived UI Reference
+on:
+  workflow_dispatch:
+    inputs:
+      subset:
+        description: 'Comma list of <id>--<mode> keys or all'
+        required: false
+        default: all
+        type: string
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout dispatched SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install renderer dependencies
+        run: npm ci --prefix tool/ui_capture/reference_renderer
+      - name: Run renderer unit gate
+        run: npm test --prefix tool/ui_capture/reference_renderer
+      - name: Install pinned Chromium
+        working-directory: tool/ui_capture/reference_renderer
+        run: npx playwright install --with-deps chromium
+      - name: Render selection
+        env:
+          SUBSET: ${{ inputs.subset }}
+        run: npm run render --prefix tool/ui_capture/reference_renderer -- --selection "$SUBSET"
+      - name: Validate selection
+        env:
+          SUBSET: ${{ inputs.subset }}
+        run: npm run validate --prefix tool/ui_capture/reference_renderer -- --selection "$SUBSET"
+      - name: Discover validated leaf
+        env:
+          SUBSET: ${{ inputs.subset }}
+        run: |
+          set -euo pipefail
+          if [ "$SUBSET" = "all" ]; then
+            LEAF_COUNT="$(find ".ui-diff/expected-derived/samsung-s20fe" -mindepth 1 -maxdepth 1 -type d ! -name "subsets" | wc -l)"
+            if [ "$LEAF_COUNT" -ne 1 ]; then
+              echo "Expected exactly one full leaf" >&2
+              exit 1
+            fi
+            LEAF_DIR="$(find ".ui-diff/expected-derived/samsung-s20fe" -mindepth 1 -maxdepth 1 -type d ! -name "subsets" | head -n 1)"
+            if [ ! -f "$LEAF_DIR/manifest.json" ]; then
+              echo "Missing manifest" >&2
+              exit 1
+            fi
+            PNG_COUNT="$(find "$LEAF_DIR" -maxdepth 1 -type f -name "*.png" | wc -l)"
+            if [ "$PNG_COUNT" -ne 38 ]; then
+              echo "Expected exactly 38 PNG files" >&2
+              exit 1
+            fi
+          else
+            LEAF_COUNT="$(find ".ui-diff/expected-derived/samsung-s20fe/subsets" -mindepth 2 -maxdepth 2 -type d | wc -l)"
+            if [ "$LEAF_COUNT" -ne 1 ]; then
+              echo "Expected exactly one subset leaf" >&2
+              exit 1
+            fi
+            LEAF_DIR="$(find ".ui-diff/expected-derived/samsung-s20fe/subsets" -mindepth 2 -maxdepth 2 -type d | head -n 1)"
+            if [ ! -f "$LEAF_DIR/manifest.json" ]; then
+              echo "Missing subset manifest" >&2
+              exit 1
+            fi
+            FULL_COUNT="$(find ".ui-diff/expected-derived/samsung-s20fe" -mindepth 1 -maxdepth 1 -type d ! -name "subsets" | wc -l)"
+            if [ "$FULL_COUNT" -ne 0 ]; then
+              echo "Full leaf must not exist in subset mode" >&2
+              exit 1
+            fi
+          fi
+          echo "LEAF_DIR=$LEAF_DIR" >> "$GITHUB_ENV"
+      - name: Upload validated leaf
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.LEAF_DIR }}
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
