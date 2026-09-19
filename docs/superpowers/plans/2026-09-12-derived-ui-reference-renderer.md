@@ -555,7 +555,7 @@ Request Antigravity post-task review in the same conversation because CI executi
 - This task is the first remote integration run, not a forced remote RED: dispatch once; diagnose and fix only if it fails (bounded fixes return to their owning Task 1–6 contract with tests first). Determinism requires two successful runs at the same pushed SHA with byte-identical manifests and PNG hashes.
 - Renderer-only report contract until the historical comparison: no auditor, reviewer, or recovery provider route (none) and no ui-diff finding counts. The historical report states run ID if the comparison tool produces one, provider routes (none — deterministic-only), real deterministic diff counts/metrics, `auditLimited`/`visualClassificationStatus` only if emitted otherwise explicitly not applicable, blockers, and sampled scope from the real result. No fresh device capture, no VLM audit, no LocateAnything, no provider calls, and no exhaustive-parity claim belongs here.
 
-- [ ] **Step 1: Dispatch first remote integration run**
+- [x] **Step 1: Dispatch first remote integration run**
 
 Dispatch `.github/workflows/derived-ui-reference.yml` with `subset: all` at the pushed source SHA. Record the run ID. Download the full-leaf artifact (38 PNGs plus `manifest.json`).
 
@@ -572,11 +572,11 @@ gh run download "$RUN_ID" --dir "$ARTIFACT_ROOT"
 
 Expected: PASS on a correct implementation. If it fails, record the exact failure log excerpt and run ID, then proceed to Step 2; otherwise proceed directly to Step 3.
 
-- [ ] **Step 2: Diagnose and fix only on failure**
+- [x] **Step 2: Diagnose and fix only on failure**
 
 Apply only the minimal reviewed fixes required by the failure log. Each fix returns to its owning Task 1–6 contract, updates tests first where applicable, and re-pushes a new source SHA. Record each fix SHA. Skip this step entirely when Step 1 passes.
 
-- [ ] **Step 3: Verify determinism with two successful runs at the same SHA**
+- [x] **Step 3: Verify determinism with two successful runs at the same SHA**
 
 Obtain exactly two successful `subset: all` runs at the same pushed source SHA. If Step 1 passed and no fix changed the SHA, reuse it as run A and dispatch one additional run B. If Step 1 failed or Step 2 changed the SHA, dispatch two fresh runs A/B at the final SHA. Record both run IDs and artifact IDs, download each into a distinct `mktemp -d` directory bound to `ARTIFACT_ROOT_A` and `ARTIFACT_ROOT_B`, and verify both manifests are byte-identical and every PNG SHA256 matches across reruns. If identical input and selection do not produce identical manifest plus PNG hashes, the gate fails rather than excluding PNGs from the claim.
 
@@ -598,7 +598,7 @@ ARTIFACT_ROOT="$ARTIFACT_ROOT_A"
 
 Expected: PASS with two matching hash sets. Record both run IDs, artifact IDs, manifest SHA256, and the 38 PNG hashes summary.
 
-- [ ] **Step 4: Sampled historical Today dark comparison against the preserved Samsung actual**
+- [x] **Step 4: Sampled historical Today dark comparison against the preserved Samsung actual**
 
 Compare only the derived `today--dark.png` (1080×2400 expected) against the preserved Samsung actual `.ui-diff/captures/today-2026-08-27T15-58-52-075Z.png`: first verify that file exists and its SHA-256 equals the known `e13d6783aac36ef3fd13244401b000fb4fa1069df1dcc9f4d5c6c626ce9ba621`, failing with an exact blocker if absent or mismatched. Do not compare derived output against the canonical 402×874 set as the result.
 
@@ -613,7 +613,7 @@ env -u UI_DIFF_DETERMINISTIC_LOCATOR node --input-type=module -e 'import { handl
 
 Report provider routes as none, the real deterministic diff counts/metrics, the comparison run ID if the tool produces one, `auditLimited`/`visualClassificationStatus` only if emitted otherwise explicitly not applicable, the exact blocker if the preserved actual is unavailable, and the sampled scope. This sample is historical evidence only: reflow at 360 px does not override canonical truth. Make no exhaustive-parity and no production-readiness claim from this sample.
 
-- [ ] **Step 5: Record, review, commit, and push**
+- [x] **Step 5: Record, review, commit, and push**
 
 Request final Antigravity post-implementation review in conversation `calorix-derived-reference-renderer-20260912` covering Tasks 1–7 evidence. Update status with source SHAs, both run IDs, artifact IDs, manifest and PNG hashes, historical sample report fields, and review verdict. Commit `Verify derived renderer on CI` as a tracking-only commit if status changes remain, and push `origin/fix/scan-photo-flow-viewer`, then verify remote equality.
 
