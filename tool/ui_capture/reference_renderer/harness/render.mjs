@@ -366,73 +366,90 @@ export async function runReferenceRender(
         }
         assertNoRouteViolation();
 
-        await page.evaluate(async () => {
-          if (window.innerWidth !== 360 || window.innerHeight !== 800) {
-            throw new Error(`RENDER_VIEWPORT_MISMATCH: expected inner dimensions 360x800, got ${window.innerWidth}x${window.innerHeight}`);
-          }
-          if (window.devicePixelRatio !== 3) {
-            throw new Error(`RENDER_DPR_MISMATCH: expected devicePixelRatio 3, got ${window.devicePixelRatio}`);
-          }
-
-          const fitEl = document.querySelector('#fit');
-          const stageEl = document.querySelector('#stage');
-          if (!fitEl || !stageEl) {
-            throw new Error('RENDER_INVALID_INPUT: missing #fit or #stage element');
-          }
-
-          const fitRect = fitEl.getBoundingClientRect();
-          const stageRect = stageEl.getBoundingClientRect();
-          if (fitRect.left !== 0 || fitRect.top !== 0 || fitRect.width !== 360 || fitRect.height !== 800) {
-            throw new Error(`RENDER_VIEWPORT_MISMATCH: #fit rect mismatch: left=${fitRect.left}, top=${fitRect.top}, width=${fitRect.width}, height=${fitRect.height}`);
-          }
-          if (stageRect.left !== 0 || stageRect.top !== 0 || stageRect.width !== 360 || stageRect.height !== 800) {
-            throw new Error(`RENDER_VIEWPORT_MISMATCH: #stage rect mismatch: left=${stageRect.left}, top=${stageRect.top}, width=${stageRect.width}, height=${stageRect.height}`);
-          }
-
-          const profileObj = window.CX_CAPTURE_PROFILE;
-          if (!profileObj || profileObj.profile !== 'samsung-s20fe' || profileObj.width !== 360 || profileObj.height !== 800) {
-            throw new Error('RENDER_INVALID_INPUT: invalid CX_CAPTURE_PROFILE');
-          }
-
-          const token = stageEl.getAttribute('data-cx-capture-token');
-          if (token !== '1') {
-            throw new Error(`RENDER_CLOCK_MISORDER: expected capture token '1', got '${token}'`);
-          }
-
-          await document.fonts.ready;
-          const fontDescriptors = [
-            '200 16px Geist',
-            '400 16px Geist',
-            '500 16px Geist',
-            '600 16px Geist',
-            '700 16px Geist',
-            '400 16px Geist Mono',
-            '500 16px Geist Mono',
-            '600 16px Geist Mono',
-          ];
-          for (const desc of fontDescriptors) {
-            if (!document.fonts.check(desc)) {
-              throw new Error(`RENDER_FONT_MISSING: font check failed for '${desc}'`);
+        try {
+          await page.evaluate(async () => {
+            if (window.innerWidth !== 360 || window.innerHeight !== 800) {
+              throw new Error(`RENDER_VIEWPORT_MISMATCH: expected inner dimensions 360x800, got ${window.innerWidth}x${window.innerHeight}`);
             }
-          }
-          for (const face of document.fonts) {
-            if (face instanceof FontFace && face.status !== 'loaded') {
-              throw new Error(`RENDER_FONT_MISSING: FontFace '${face.family}' weight ${face.weight} status is '${face.status}'`);
+            if (window.devicePixelRatio !== 3) {
+              throw new Error(`RENDER_DPR_MISMATCH: expected devicePixelRatio 3, got ${window.devicePixelRatio}`);
             }
-          }
 
-          const stageImages = Array.from(document.querySelectorAll('#stage img'));
-          for (const img of stageImages) {
-            try {
-              await img.decode();
-            } catch (err) {
-              throw new Error(`RENDER_IMAGE_INCOMPLETE: failed to decode stage image: ${err.message}`);
+            const fitEl = document.querySelector('#fit');
+            const stageEl = document.querySelector('#stage');
+            if (!fitEl || !stageEl) {
+              throw new Error('RENDER_INVALID_INPUT: missing #fit or #stage element');
             }
-            if (!img.complete || img.naturalWidth <= 0) {
-              throw new Error('RENDER_IMAGE_INCOMPLETE: stage image incomplete or zero naturalWidth');
+
+            const fitRect = fitEl.getBoundingClientRect();
+            const stageRect = stageEl.getBoundingClientRect();
+            if (fitRect.left !== 0 || fitRect.top !== 0 || fitRect.width !== 360 || fitRect.height !== 800) {
+              throw new Error(`RENDER_VIEWPORT_MISMATCH: #fit rect mismatch: left=${fitRect.left}, top=${fitRect.top}, width=${fitRect.width}, height=${fitRect.height}`);
             }
-          }
-        });
+            if (stageRect.left !== 0 || stageRect.top !== 0 || stageRect.width !== 360 || stageRect.height !== 800) {
+              throw new Error(`RENDER_VIEWPORT_MISMATCH: #stage rect mismatch: left=${stageRect.left}, top=${stageRect.top}, width=${stageRect.width}, height=${stageRect.height}`);
+            }
+
+            const profileObj = window.CX_CAPTURE_PROFILE;
+            if (!profileObj || profileObj.profile !== 'samsung-s20fe' || profileObj.width !== 360 || profileObj.height !== 800) {
+              throw new Error('RENDER_INVALID_INPUT: invalid CX_CAPTURE_PROFILE');
+            }
+
+            const token = stageEl.getAttribute('data-cx-capture-token');
+            if (token !== '1') {
+              throw new Error(`RENDER_CLOCK_MISORDER: expected capture token '1', got '${token}'`);
+            }
+
+            const fontDescriptors = [
+              '200 16px Geist',
+              '400 16px Geist',
+              '500 16px Geist',
+              '600 16px Geist',
+              '700 16px Geist',
+              '400 16px Geist Mono',
+              '500 16px Geist Mono',
+              '600 16px Geist Mono',
+            ];
+            for (const desc of fontDescriptors) {
+              let loaded;
+              try {
+                loaded = await document.fonts.load(desc);
+              } catch (err) {
+                const detail = err instanceof Error ? err.message : String(err);
+                throw new Error(`RENDER_FONT_MISSING: font load failed for '${desc}': ${detail}`);
+              }
+              if (!Array.isArray(loaded) || loaded.length === 0) {
+                throw new Error(`RENDER_FONT_MISSING: font load failed for '${desc}': empty result`);
+              }
+            }
+            await document.fonts.ready;
+            for (const desc of fontDescriptors) {
+              if (!document.fonts.check(desc)) {
+                throw new Error(`RENDER_FONT_MISSING: font check failed for '${desc}'`);
+              }
+            }
+            for (const face of document.fonts) {
+              if (face instanceof FontFace && face.status !== 'loaded') {
+                throw new Error(`RENDER_FONT_MISSING: FontFace '${face.family}' weight ${face.weight} status is '${face.status}'`);
+              }
+            }
+
+            const stageImages = Array.from(document.querySelectorAll('#stage img'));
+            for (const img of stageImages) {
+              try {
+                await img.decode();
+              } catch (err) {
+                throw new Error(`RENDER_IMAGE_INCOMPLETE: failed to decode stage image: ${err.message}`);
+              }
+              if (!img.complete || img.naturalWidth <= 0) {
+                throw new Error('RENDER_IMAGE_INCOMPLETE: stage image incomplete or zero naturalWidth');
+              }
+            }
+          });
+        } catch (err) {
+          assertNoRouteViolation();
+          throw err;
+        }
         assertNoRouteViolation();
 
         const advanceMs = clockAdvanceMsFor(stateId);
