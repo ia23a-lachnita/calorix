@@ -7,6 +7,9 @@ on:
         required: false
         default: all
         type: string
+  push:
+    branches:
+      - 'evidence/derived-ui-reference-*'
 permissions:
   contents: read
 jobs:
@@ -31,15 +34,15 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Render selection
         env:
-          SUBSET: ${{ inputs.subset }}
+          SUBSET: ${{ inputs.subset || 'all' }}
         run: npm run render --prefix tool/ui_capture/reference_renderer -- --selection "$SUBSET"
       - name: Validate selection
         env:
-          SUBSET: ${{ inputs.subset }}
+          SUBSET: ${{ inputs.subset || 'all' }}
         run: npm run validate --prefix tool/ui_capture/reference_renderer -- --selection "$SUBSET"
       - name: Discover validated leaf
         env:
-          SUBSET: ${{ inputs.subset }}
+          SUBSET: ${{ inputs.subset || 'all' }}
         run: |
           set -euo pipefail
           if [ "$SUBSET" = "all" ]; then
