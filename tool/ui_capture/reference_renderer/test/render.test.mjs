@@ -29,6 +29,7 @@ import {
   VIEWPORT_HEIGHT,
   VIEWPORT_WIDTH,
 } from '../harness/profile.mjs';
+import * as profileModule from '../harness/profile.mjs';
 import { clockAdvanceMsFor } from '../harness/settlement.mjs';
 import { parseCliArgs } from '../bin/render.mjs';
 import {
@@ -146,9 +147,11 @@ function createMockPlaywrightHarness(options = {}) {
     clocksInstalled: [],
     clocksFastForwarded: [],
     gotos: [],
+    waitForFunctions: [],
     evaluates: [],
     screenshots: [],
     routesRegistered: [],
+    timeline: [],
     browserClosed: 0,
     serverClosed: 0,
   };
@@ -163,6 +166,7 @@ function createMockPlaywrightHarness(options = {}) {
       clock: {
         install: async () => {
           events.clocksInstalled.push({ contextId });
+          events.timeline.push({ kind: 'clockInstall', contextId });
         },
         fastForward: async (ms) => {
           events.clocksFastForwarded.push({ contextId, ms });
@@ -178,12 +182,27 @@ function createMockPlaywrightHarness(options = {}) {
       goto: async (url, opts) => {
         currentUrl = url;
         events.gotos.push({ contextId, url, opts });
+        events.timeline.push({ kind: 'goto', contextId });
         if (options.onGoto) {
           await options.onGoto({ contextId, url, opts, page, routeHandler });
         }
       },
+      waitForFunction: async (fn, arg, waitOptions) => {
+        events.waitForFunctions.push({
+          contextId,
+          fn: typeof fn === 'function' ? fn.toString() : fn,
+          arg,
+          options: waitOptions,
+        });
+        events.timeline.push({ kind: 'waitForFunction', contextId });
+        if (options.onWaitForFunction) {
+          return await options.onWaitForFunction({ contextId, fn, arg, options: waitOptions, page, routeHandler });
+        }
+        return undefined;
+      },
       evaluate: async (fn, ...args) => {
         events.evaluates.push({ contextId, fn: typeof fn === 'function' ? fn.toString() : fn });
+        events.timeline.push({ kind: 'evaluate', contextId, fn: typeof fn === 'function' ? fn.toString() : String(fn) });
         if (options.onEvaluate) {
           return await options.onEvaluate({ contextId, fn, args, page, routeHandler });
         }
@@ -202,6 +221,7 @@ function createMockPlaywrightHarness(options = {}) {
           return {
             screenshot: async (opts) => {
               events.screenshots.push({ contextId, opts });
+              events.timeline.push({ kind: 'screenshot', contextId });
               if (options.onScreenshot) {
                 await options.onScreenshot({ contextId, opts });
               } else if (opts?.path) {
@@ -1490,4 +1510,252 @@ test('driver validates staged content via replaceLeafAtomically and successfully
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+// Capture-commit race RED: real run 35458207031 failed first ai--dark with
+// token null immediately after goto(load), before Babel/React commit.
+test('capture commit waits for token screen theme after goto before readiness evaluate and screenshot', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-capture-order-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    const { mockPlaywright, mockServer, events } = createMockPlaywrightHarness();
+
+    const result = await runReferenceRender(
+      {
+        repoRoot: root,
+        selection: ['ai--dark'],
+        allowLocalRender: true,
+        replace: true,
+      },
+      {
+        importPlaywrightFn: async () => mockPlaywright,
+        createReferenceServerFn: async () => mockServer,
+      },
+    );
+
+    assert.equal(result.valid, true);
+    assert.ok(events.waitForFunctions.length >= 1, 'production must call waitForFunction for capture commit');
+    const kinds = events.timeline.map((entry) => entry.kind);
+    const clockInstallIndex = kinds.indexOf('clockInstall');
+    const gotoIndex = kinds.indexOf('goto');
+    const waitIndex = kinds.indexOf('waitForFunction');
+    const firstEvaluateIndex = kinds.indexOf('evaluate');
+    const screenshotIndex = kinds.indexOf('screenshot');
+    assert.ok(clockInstallIndex !== -1 && gotoIndex !== -1 && waitIndex !== -1 && firstEvaluateIndex !== -1 && screenshotIndex !== -1);
+    assert.ok(clockInstallIndex < gotoIndex, 'clockInstall must run before goto');
+    assert.ok(waitIndex > gotoIndex, 'waitForFunction must run after goto');
+    assert.ok(waitIndex < firstEvaluateIndex, 'waitForFunction must run before first readiness evaluate');
+    assert.ok(firstEvaluateIndex < screenshotIndex, 'first readiness evaluate must run before screenshot');
+    assert.ok(waitIndex < screenshotIndex, 'waitForFunction must run before screenshot');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('capture commit predicate binds exact token screen theme with expected arg and production timeout', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-capture-predicate-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    const { mockPlaywright, mockServer, events } = createMockPlaywrightHarness();
+
+    const result = await runReferenceRender(
+      {
+        repoRoot: root,
+        selection: ['ai--dark'],
+        allowLocalRender: true,
+        replace: true,
+      },
+      {
+        importPlaywrightFn: async () => mockPlaywright,
+        createReferenceServerFn: async () => mockServer,
+      },
+    );
+
+    assert.equal(result.valid, true);
+    assert.equal(events.waitForFunctions.length, 1);
+    const call = events.waitForFunctions[0];
+    const predicateSource = String(call.fn);
+    assert.match(
+      predicateSource,
+      /getAttribute\s*\(\s*['"]data-cx-capture-token['"]\s*\)\s*===\s*['"]1['"]/,
+      "predicate must prove getAttribute('data-cx-capture-token') === '1'",
+    );
+    assert.match(
+      predicateSource,
+      /getAttribute\s*\(\s*['"]data-cx-capture-screen['"]\s*\)\s*===\s*(?:\w+\.)?expectedScreen/,
+      "predicate must prove getAttribute('data-cx-capture-screen') === expectedScreen",
+    );
+    assert.match(
+      predicateSource,
+      /getAttribute\s*\(\s*['"]data-cx-capture-theme['"]\s*\)\s*===\s*(?:\w+\.)?expectedTheme/,
+      "predicate must prove getAttribute('data-cx-capture-theme') === expectedTheme",
+    );
+    assert.deepEqual(call.arg, { expectedScreen: 'ai', expectedTheme: 'dark' });
+    assert.deepEqual(call.options, { timeout: 5000 });
+    assert.equal(call.options.timeout, 5000);
+    assert.equal(profileModule.CAPTURE_COMMIT_TIMEOUT_MS, 5000);
+    assert.equal(call.options.timeout, profileModule.CAPTURE_COMMIT_TIMEOUT_MS);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('delayed capture commit wait is awaited before readiness then render succeeds', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-capture-delayed-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    let waitResolved = false;
+    const { mockPlaywright, mockServer, events } = createMockPlaywrightHarness({
+      onWaitForFunction: async () => {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 20);
+        });
+        waitResolved = true;
+        return undefined;
+      },
+      onEvaluate: async ({ fn }) => {
+        const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
+        if (fnStr.includes('heroMatch') || fnStr.includes('cx-harness')) {
+          return '1420 kcal 96 g 132 g 38 g';
+        }
+        assert.equal(waitResolved, true, 'production must await delayed waitForFunction before readiness evaluate');
+        return '';
+      },
+    });
+
+    const result = await runReferenceRender(
+      {
+        repoRoot: root,
+        selection: ['ai--dark'],
+        allowLocalRender: true,
+        replace: true,
+      },
+      {
+        importPlaywrightFn: async () => mockPlaywright,
+        createReferenceServerFn: async () => mockServer,
+      },
+    );
+
+    assert.equal(waitResolved, true, 'delayed waitForFunction callback must have resolved');
+    assert.ok(events.waitForFunctions.length >= 1, 'production must call waitForFunction for capture commit');
+    assert.equal(result.valid, true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('capture commit timeout maps to RENDER_CLOCK_MISORDER with selection key cleanup and no screenshot', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-capture-timeout-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    const { mockPlaywright, mockServer, events } = createMockPlaywrightHarness({
+      onWaitForFunction: async () => {
+        throw new Error('Timeout 5000ms exceeded');
+      },
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['ai--dark'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_CLOCK_MISORDER/);
+        assert.match(err.message, /5000ms/);
+        assert.match(err.message, /ai/);
+        assert.match(err.message, /dark/);
+        assert.match(err.message, /ai--dark/);
+        assert.match(err.message, /\[ai--dark\]/);
+        return true;
+      },
+    );
+
+    assert.equal(events.waitForFunctions.length, 1);
+    assert.equal(events.screenshots.length, 0, 'no screenshot on capture commit timeout');
+    assert.equal(events.contextsClosed.length, 1, 'per-screen context must close on capture commit timeout');
+    assert.equal(events.browserClosed, 1, 'browser must close on capture commit timeout');
+    assert.equal(events.serverClosed, 1, 'server must close on capture commit timeout');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('remote fetch during capture commit wait stays RENDER_REMOTE_FETCH not RENDER_CLOCK_MISORDER with selection key cleanup and no screenshot', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-capture-remote-during-wait-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    const { mockPlaywright, mockServer, events } = createMockPlaywrightHarness({
+      onWaitForFunction: async ({ routeHandler }) => {
+        await routeHandler({
+          request: () => ({
+            method: () => 'GET',
+            url: () => 'https://analytics.example.com/tracker.js',
+            headers: () => ({}),
+          }),
+          abort: async () => {},
+          fulfill: async () => {},
+          continue: async () => {},
+        });
+        throw new Error('Timeout 5000ms exceeded');
+      },
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['ai--dark'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_REMOTE_FETCH/);
+        assert.match(err.message, /ai--dark/);
+        assert.match(err.message, /\[ai--dark\]/);
+        assert.ok(!err.message.includes('RENDER_CLOCK_MISORDER'), 'remote fetch must not be masked as RENDER_CLOCK_MISORDER');
+        return true;
+      },
+    );
+
+    assert.equal(events.waitForFunctions.length, 1);
+    assert.equal(events.screenshots.length, 0, 'no screenshot when remote fetch occurs during capture commit wait');
+    assert.equal(events.contextsClosed.length, 1, 'per-screen context must close on remote fetch during capture commit wait');
+    assert.equal(events.browserClosed, 1, 'browser must close on remote fetch during capture commit wait');
+    assert.equal(events.serverClosed, 1, 'server must close on remote fetch during capture commit wait');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('harness/render.mjs waits for capture commit via waitForFunction without sleeps while retaining token assertion', () => {
+  const src = readFileSync(new URL('../harness/render.mjs', import.meta.url), 'utf8');
+  assert.ok(src.includes('waitForFunction'), 'production must call waitForFunction for capture commit');
+  assert.ok(src.includes('data-cx-capture-token'), 'production must retain capture token assertion');
+  assert.ok(src.includes("'1'"), "production must retain exact token '1' assertion");
+  assert.ok(!src.includes('page.waitForTimeout'), 'forbidden page.waitForTimeout sleep must not be present');
+  assert.ok(!src.includes('setTimeout'), 'forbidden setTimeout sleep must not be present');
+  assert.ok(!src.toLowerCase().includes('sleep'), 'forbidden generic sleep must not be present');
 });

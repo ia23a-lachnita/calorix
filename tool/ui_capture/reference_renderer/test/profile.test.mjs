@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PROFILE_ID, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, DEVICE_SCALE_FACTOR, PHYSICAL_WIDTH, PHYSICAL_HEIGHT, BROWSER_LOCALE, BROWSER_TIMEZONE, FROZEN_CHROMIUM_FLAGS, isArmArch, assertLocalRenderAllowed, RENDER_GUARD_EXIT_CODE } from '../harness/profile.mjs';
+import * as profile from '../harness/profile.mjs';
 
 test('frozen S20 FE profile', () => {
   assert.equal(PROFILE_ID, 'samsung-s20fe');
@@ -52,4 +53,8 @@ test('locked pins and engines recorded', async () => {
       assert.ok(entry.integrity.length > 0, `missing integrity for ${name}`);
     }
   }
+});
+
+test('frozen capture commit timeout', () => {
+  assert.equal(profile.CAPTURE_COMMIT_TIMEOUT_MS, 5000);
 });
