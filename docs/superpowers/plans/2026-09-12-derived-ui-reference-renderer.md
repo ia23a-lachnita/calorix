@@ -420,7 +420,7 @@ Run: `npm test --prefix tool/ui_capture/reference_renderer`
 
 Expected: PASS with no browser installed. Also run `git diff --check` and confirm the preview diff touches only the capture branch.
 
-- [ ] **Step 5: Record, review, commit, and push**
+- [x] **Step 5: Record, review, commit, and push**
 
 Request Antigravity post-task review in the same conversation because the authoritative preview is behavior-touching. Update status with source SHA and RED/GREEN/review evidence. Commit `Add derived capture profile` and push `origin/fix/scan-photo-flow-viewer`, then verify remote equality.
 
