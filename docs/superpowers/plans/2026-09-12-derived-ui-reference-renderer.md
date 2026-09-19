@@ -515,7 +515,7 @@ Request Antigravity post-task review in the same conversation because the driver
 - Full default writes and validates all 38 at the full leaf. Subset diagnostics write only at the separate subset leaf with their own selected-count manifest and are never nested inside the full leaf, never a full gate or downstream expected set.
 - `test/workflow.test.mjs` is a static pure `node:test` contract: it reads `.github/workflows/derived-ui-reference.yml` as text (resolved from the test dir via `../../../../.github/workflows/derived-ui-reference.yml`) plus `package.json` scripts, and asserts dispatch-only trigger, exact `npm ci`, exact `npm test`, exact `npx playwright install --with-deps chromium`, render and validate CLI steps, artifact upload, subset-leaf separation, and no push trigger/commit/deploy/`--allow-local-render`. No YAML execution, no `node --check` on YAML, no shell-only fake validation.
 
-- [ ] **Step 1: Write RED static workflow contract**
+- [x] **Step 1: Write RED static workflow contract**
 
 Create `test/workflow.test.mjs` per the interface above (reads workflow YAML as text and asserts the exact steps). RED is witnessed with the unit gate:
 
@@ -523,7 +523,7 @@ Run: `npm test --prefix tool/ui_capture/reference_renderer -- test/workflow.test
 
 Expected RED: FAIL because `.github/workflows/derived-ui-reference.yml` is absent, so the contract test fails on the missing file. Record this missing-file RED explicitly.
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `test -f .github/workflows/derived-ui-reference.yml && echo PRESENT || echo MISSING`
 
