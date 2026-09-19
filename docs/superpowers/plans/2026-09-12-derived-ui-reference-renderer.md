@@ -539,7 +539,7 @@ Run: `npm test --prefix tool/ui_capture/reference_renderer`
 
 Expected: PASS, including `test/workflow.test.mjs`. Also run `git diff --check` and confirm `test -f .github/workflows/derived-ui-reference.yml` prints `PRESENT`.
 
-- [ ] **Step 5: Record, review, commit, and push**
+- [x] **Step 5: Record, review, commit, and push**
 
 Request Antigravity post-task review in the same conversation because CI execution is substantive. Update status with source SHA and RED/GREEN/review evidence. Commit `Add derived reference workflow` and push `origin/fix/scan-photo-flow-viewer`, then verify remote equality.
 
