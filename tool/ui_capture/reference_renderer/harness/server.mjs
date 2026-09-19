@@ -24,6 +24,7 @@ const PINNED_REACT_DOM_URL =
 const PINNED_BABEL_URL = 'https://unpkg.com/@babel/standalone@7.29.0/babel.min.js';
 const GOOGLE_CSS_URL =
   'https://fonts.googleapis.com/css2?family=Geist:wght@200;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap';
+const GOOGLE_FONTS_BASE_URL = 'https://fonts.googleapis.com/fonts/';
 
 const JS_CONTENT_TYPE = 'text/javascript; charset=utf-8';
 const CSS_CONTENT_TYPE = 'text/css; charset=utf-8';
@@ -88,6 +89,16 @@ export function resolveCdnResource(cdnUrl, { nodeModulesDir } = {}) {
   }
   if (cdnUrl === GOOGLE_CSS_URL) {
     return { contentType: CSS_CONTENT_TYPE, body: googleCssBody() };
+  }
+  if (cdnUrl.startsWith(GOOGLE_FONTS_BASE_URL)) {
+    if (typeof nodeModulesDir !== 'string' || nodeModulesDir === '') return null;
+    const filename = cdnUrl.slice(GOOGLE_FONTS_BASE_URL.length);
+    if (!Object.hasOwn(FONT_PACKAGE_BY_FILENAME, filename)) return null;
+    const packageName = FONT_PACKAGE_BY_FILENAME[filename];
+    return {
+      contentType: 'font/woff2',
+      absolutePath: join(nodeModulesDir, `@fontsource/${packageName}/files/${filename}`),
+    };
   }
   return null;
 }
