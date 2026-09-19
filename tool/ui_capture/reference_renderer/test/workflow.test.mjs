@@ -169,7 +169,7 @@ test('package render and validate scripts wire CLI entry', () => {
   );
 });
 
-test('dispatch-only trigger with subset string default all', () => {
+test('workflow_dispatch plus scoped push trigger with subset string default all', () => {
   const text = readWorkflow();
   const onBlock = extractTopLevelBlock(text, 'on');
   assert.ok(onBlock.length > 0, 'top-level on block must exist');
@@ -185,19 +185,77 @@ test('dispatch-only trigger with subset string default all', () => {
   assert.match(subsetBlock, /type\s*:\s*string/, 'subset input type must be string');
   assert.match(subsetBlock, /default\s*:\s*['"]?all['"]?/, 'subset input default must be all');
 
-  // No forbidden triggers within on block
-  assert.ok(!/\bpush\s*:/i.test(onBlock), 'on block must not contain push trigger');
+  const pushBlock = extractNestedBlock(onBlock, 'push');
+  assert.ok(pushBlock.length > 0, 'on block must define scoped push trigger');
+  assert.match(pushBlock, /branches\s*:/, 'scoped push must define branches list');
+  assert.ok(!/\bpaths\s*:/.test(pushBlock), 'scoped push must not define paths');
+  assert.ok(!/paths-ignore\s*:/.test(pushBlock), 'scoped push must not define paths-ignore');
+  assert.ok(!/branches-ignore\s*:/.test(pushBlock), 'scoped push must not define branches-ignore');
+  const branchesBlock = extractNestedBlock(pushBlock, 'branches');
+  assert.ok(branchesBlock.length > 0, 'scoped push branches list must exist');
+  assert.match(
+    branchesBlock,
+    /evidence\/derived-ui-reference-\*/,
+    'scoped push branches must be exactly evidence/derived-ui-reference-*',
+  );
+  const branchItems = branchesBlock.split('\n').filter(l => /^\s*-\s+/.test(l));
+  assert.equal(branchItems.length, 1, 'scoped push branches list must contain exactly one entry');
+  const soleBranchRaw = (branchItems[0] ?? '').replace(/^\s*-\s+/, '').trim();
+  const soleBranch =
+    soleBranchRaw.length >= 2 &&
+    ((soleBranchRaw.startsWith("'") && soleBranchRaw.endsWith("'")) ||
+      (soleBranchRaw.startsWith('"') && soleBranchRaw.endsWith('"')))
+      ? soleBranchRaw.slice(1, -1).trim()
+      : soleBranchRaw;
+  assert.strictEqual(
+    soleBranch,
+    'evidence/derived-ui-reference-*',
+    'sole branches entry must be exactly evidence/derived-ui-reference-*',
+  );
+
+  // No forbidden triggers within on block (scoped push is allowed)
   assert.ok(!/\bpull_request\s*:/i.test(onBlock), 'on block must not contain pull_request trigger');
   assert.ok(!/\bworkflow_call\s*:/i.test(onBlock), 'on block must not contain workflow_call trigger');
   assert.ok(!/\bschedule\s*:/i.test(onBlock), 'on block must not contain schedule trigger');
 });
 
-test('prohibits push/pull_request/workflow_call/schedule triggers and Verify coupling', () => {
+test('rejects broad push/main/master/fix/feat and pull_request/schedule/workflow_call/Verify coupling', () => {
   const text = readWorkflow();
-  assert.ok(!text.includes('pull_request'), 'must not trigger on pull_request');
-  assert.ok(!text.includes('workflow_call'), 'must not trigger on workflow_call');
-  assert.ok(!/^\s*schedule\s*:/m.test(text), 'must not trigger on schedule');
-  assert.ok(!/^\s*push\s*:/m.test(text), 'must not trigger on push');
+  const onBlock = extractTopLevelBlock(text, 'on');
+  const pushBlock = extractNestedBlock(onBlock, 'push');
+  assert.ok(pushBlock.length > 0, 'on block must define scoped push');
+  assert.match(pushBlock, /branches\s*:/, 'scoped push must define branches list');
+  assert.ok(!/\bpaths\s*:/.test(pushBlock), 'scoped push must not define paths');
+  assert.ok(!/paths-ignore\s*:/.test(pushBlock), 'scoped push must not define paths-ignore');
+  assert.ok(!/branches-ignore\s*:/.test(pushBlock), 'scoped push must not define branches-ignore');
+  const branchesBlock = extractNestedBlock(pushBlock, 'branches');
+  assert.ok(branchesBlock.length > 0, 'scoped push branches list must exist');
+  assert.match(
+    branchesBlock,
+    /evidence\/derived-ui-reference-\*/,
+    'scoped push branches must be exactly evidence/derived-ui-reference-*',
+  );
+  const branchItems = branchesBlock.split('\n').filter(l => /^\s*-\s+/.test(l));
+  assert.equal(branchItems.length, 1, 'scoped push branches list must contain exactly one entry');
+  const soleBranchRaw = (branchItems[0] ?? '').replace(/^\s*-\s+/, '').trim();
+  const soleBranch =
+    soleBranchRaw.length >= 2 &&
+    ((soleBranchRaw.startsWith("'") && soleBranchRaw.endsWith("'")) ||
+      (soleBranchRaw.startsWith('"') && soleBranchRaw.endsWith('"')))
+      ? soleBranchRaw.slice(1, -1).trim()
+      : soleBranchRaw;
+  assert.strictEqual(
+    soleBranch,
+    'evidence/derived-ui-reference-*',
+    'sole branches entry must be exactly evidence/derived-ui-reference-*',
+  );
+  assert.ok(!/\bmain\b/.test(pushBlock), 'scoped push must not include main');
+  assert.ok(!/\bmaster\b/.test(pushBlock), 'scoped push must not include master');
+  assert.ok(!/fix/.test(pushBlock), 'scoped push must not include fix');
+  assert.ok(!/feat/.test(pushBlock), 'scoped push must not include feat');
+  assert.ok(!/\bpull_request\s*:/i.test(onBlock), 'must not trigger on pull_request');
+  assert.ok(!/\bworkflow_call\s*:/i.test(onBlock), 'must not trigger on workflow_call');
+  assert.ok(!/^\s*schedule\s*:/m.test(onBlock), 'must not trigger on schedule');
   assert.ok(!text.includes('Verify'), 'must not couple to routine Verify');
 });
 
@@ -263,7 +321,7 @@ test('local pinned Playwright install in renderer working-directory', () => {
   );
 });
 
-test('independently binds render step to env SUBSET from inputs.subset and quoted selection without interpolation in run', () => {
+test('independently binds render step to env SUBSET from inputs.subset with all fallback and quoted selection without interpolation in run', () => {
   const text = readWorkflow();
   const steps = extractSteps(text);
   const renderStep = steps.find(s => s.includes('npm run render'));
@@ -272,8 +330,8 @@ test('independently binds render step to env SUBSET from inputs.subset and quote
   const envBlock = extractNestedBlock(renderStep, 'env');
   assert.match(
     envBlock,
-    /SUBSET\s*:\s*.*inputs\.subset/,
-    'render step env block must bind SUBSET from inputs.subset',
+    /SUBSET\s*:\s*.*inputs\.subset\s*\|\|\s*['"]all['"]/,
+    'render step env block must bind SUBSET from inputs.subset || \'all\'',
   );
 
   const runScript = extractRunScript(renderStep);
@@ -298,7 +356,7 @@ test('independently binds render step to env SUBSET from inputs.subset and quote
   );
 });
 
-test('independently binds validate step to env SUBSET from inputs.subset and quoted selection without interpolation in run', () => {
+test('independently binds validate step to env SUBSET from inputs.subset with all fallback and quoted selection without interpolation in run', () => {
   const text = readWorkflow();
   const steps = extractSteps(text);
   const validateStep = steps.find(s => s.includes('npm run validate'));
@@ -307,8 +365,8 @@ test('independently binds validate step to env SUBSET from inputs.subset and quo
   const envBlock = extractNestedBlock(validateStep, 'env');
   assert.match(
     envBlock,
-    /SUBSET\s*:\s*.*inputs\.subset/,
-    'validate step env block must bind SUBSET from inputs.subset',
+    /SUBSET\s*:\s*.*inputs\.subset\s*\|\|\s*['"]all['"]/,
+    'validate step env block must bind SUBSET from inputs.subset || \'all\'',
   );
 
   const runScript = extractRunScript(validateStep);
@@ -364,6 +422,13 @@ test('binds leaf discovery to quoted SUBSET=all full branch and separate subsets
     s => s.includes('LEAF_DIR') && (s.includes('GITHUB_ENV') || s.includes('find')),
   );
   assert.ok(discoveryStep, 'discovery step must exist');
+
+  const discoveryEnv = extractNestedBlock(discoveryStep, 'env');
+  assert.match(
+    discoveryEnv,
+    /SUBSET\s*:\s*.*inputs\.subset\s*\|\|\s*['"]all['"]/,
+    'discovery step env block must bind SUBSET from inputs.subset || \'all\'',
+  );
 
   const runScript = extractRunScript(discoveryStep);
   assert.ok(runScript.length > 0, 'discovery step run script must exist');
