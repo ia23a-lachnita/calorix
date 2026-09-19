@@ -555,3 +555,60 @@ test('realpath containment independently rejects ordinary files whose resolved p
     rmSync(outside, { recursive: true, force: true });
   }
 });
+
+const GOOGLE_FONTS_ORIGIN = 'https://fonts.googleapis.com';
+
+test('resolves exact Google Fonts base-URL fonts to pinned @fontsource paths and rejects all other shapes', () => {
+  assert.equal(FONT_CASES.length, 8);
+  assert.ok(Object.isFrozen(FONT_CASES));
+  for (const font of FONT_CASES) {
+    assert.ok(Object.isFrozen(font));
+    const url = `${GOOGLE_FONTS_ORIGIN}/fonts/${font.filename}`;
+    const packageName = font.family === 'Geist' ? 'geist' : 'geist-mono';
+    const result = resolveCdnResource(url, { nodeModulesDir: '/pkg' });
+    assert.ok(result, `must resolve ${url}`);
+    exactlyOneOf(result);
+    assert.equal(result.absolutePath, `/pkg/@fontsource/${packageName}/files/${font.filename}`, url);
+    assert.equal(result.contentType, 'font/woff2', url);
+    assert.equal(result.body, undefined, url);
+  }
+  const firstUrl = `${GOOGLE_FONTS_ORIGIN}/fonts/${FONT_CASES[0].filename}`;
+  assert.equal(resolveCdnResource(firstUrl, { nodeModulesDir: '' }), null, 'empty nodeModulesDir must reject');
+  assert.equal(resolveCdnResource(firstUrl, { nodeModulesDir: undefined }), null, 'undefined nodeModulesDir must reject');
+  assert.equal(resolveCdnResource(firstUrl, {}), null, 'absent nodeModulesDir must reject');
+  const invalid = [
+    'https://fonts.googleapis.com/fonts/',
+    'https://fonts.googleapis.com/fonts/geist-latin-300-normal.woff2',
+    'https://fonts.googleapis.com/fonts/geist-latin-900-normal.woff2',
+    'https://fonts.googleapis.com/fonts/geist-mono-latin-700-normal.woff2',
+    'https://fonts.googleapis.com/fonts/geist-mono-latin-300-normal.woff2',
+    'https://fonts.googleapis.com/fonts/roboto-latin-400-normal.woff2',
+    'https://fonts.googleapis.com/fonts/geist-latin-400.woff2',
+    'https://fonts.googleapis.com/fonts/geist-latin-400-normal.woff',
+    'https://fonts.googleapis.com/fonts/geist-latin-400-italic.woff2',
+    'https://fonts.googleapis.com/fonts/geist-mono-latin-400-italic.woff2',
+    'https://fonts.googleapis.com/fonts/geist-latin-400-normal.woff2/extra',
+    'https://fonts.googleapis.com/fonts//geist-latin-400-normal.woff2',
+    'https://fonts.googleapis.com/fonts/nested/geist-latin-400-normal.woff2',
+    'https://fonts.googleapis.com/fonts/./geist-latin-400-normal.woff2',
+    'https://fonts.googleapis.com/fonts/../geist-latin-400-normal.woff2',
+    'https://fonts.googleapis.com/fonts/%2e%2e/geist-latin-400-normal.woff2',
+    'https://fonts.googleapis.com/fonts/..%2fgeist-latin-400-normal.woff2',
+    'https://fonts.googleapis.com/fonts/geist-latin-400-normal.woff2?v=1',
+    'https://fonts.googleapis.com/fonts/geist-latin-400-normal.woff2#frag',
+    'http://fonts.googleapis.com/fonts/geist-latin-400-normal.woff2',
+    'https://fonts.gstatic.com/s/geist/geist-latin-400-normal.woff2',
+    'https://fonts.gstatic.com/fonts/geist-latin-400-normal.woff2',
+    'https://unpkg.com/@fontsource/geist/files/geist-latin-400-normal.woff2',
+    'https://example.com/fonts/geist-latin-400-normal.woff2',
+    'https://fonts.googleapis.com.example.com/fonts/geist-latin-400-normal.woff2',
+    'https://fonts.googleapis.com/fonts/__proto__',
+    'https://fonts.googleapis.com/fonts/constructor',
+    'https://fonts.googleapis.com/fonts/toString',
+    'https://fonts.googleapis.com/fonts/valueOf',
+  ];
+  assert.equal(new Set(invalid).size, invalid.length, 'invalid list must be deduplicated');
+  for (const url of invalid) {
+    assert.equal(resolveCdnResource(url, { nodeModulesDir: '/pkg' }), null, `must reject ${url}`);
+  }
+});

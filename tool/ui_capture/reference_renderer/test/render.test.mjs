@@ -1759,3 +1759,73 @@ test('harness/render.mjs waits for capture commit via waitForFunction without sl
   assert.ok(!src.includes('setTimeout'), 'forbidden setTimeout sleep must not be present');
   assert.ok(!src.toLowerCase().includes('sleep'), 'forbidden generic sleep must not be present');
 });
+
+const FONT_CASES = Object.freeze([
+  Object.freeze({ family: 'Geist', weight: 200, filename: 'geist-latin-200-normal.woff2', bytes: 'geist-200' }),
+  Object.freeze({ family: 'Geist', weight: 400, filename: 'geist-latin-400-normal.woff2', bytes: 'geist-400' }),
+  Object.freeze({ family: 'Geist', weight: 500, filename: 'geist-latin-500-normal.woff2', bytes: 'geist-500' }),
+  Object.freeze({ family: 'Geist', weight: 600, filename: 'geist-latin-600-normal.woff2', bytes: 'geist-600' }),
+  Object.freeze({ family: 'Geist', weight: 700, filename: 'geist-latin-700-normal.woff2', bytes: 'geist-700' }),
+  Object.freeze({ family: 'Geist Mono', weight: 400, filename: 'geist-mono-latin-400-normal.woff2', bytes: 'mono-400' }),
+  Object.freeze({ family: 'Geist Mono', weight: 500, filename: 'geist-mono-latin-500-normal.woff2', bytes: 'mono-500' }),
+  Object.freeze({ family: 'Geist Mono', weight: 600, filename: 'geist-mono-latin-600-normal.woff2', bytes: 'mono-600' }),
+]);
+
+test('render routes all eight exact Google Fonts base-URL GETs to 200 font/woff2 fixture bytes without abort', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-google-fonts-base-url-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+    assert.equal(FONT_CASES.length, 8);
+    assert.ok(Object.isFrozen(FONT_CASES));
+    const fulfilled = [];
+    let abortCount = 0;
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness({
+      onGoto: async ({ routeHandler }) => {
+        for (const font of FONT_CASES) {
+          const url = `https://fonts.googleapis.com/fonts/${font.filename}`;
+          await routeHandler({
+            request: () => ({
+              method: () => 'GET',
+              url: () => url,
+              headers: () => ({}),
+            }),
+            fulfill: async (payload) => {
+              fulfilled.push({ url, payload });
+            },
+            abort: async () => {
+              abortCount += 1;
+            },
+            continue: async () => {},
+          });
+        }
+      },
+    });
+    const result = await runReferenceRender(
+      {
+        repoRoot: root,
+        selection: ['ai--dark'],
+        allowLocalRender: true,
+        replace: true,
+      },
+      {
+        importPlaywrightFn: async () => mockPlaywright,
+        createReferenceServerFn: async () => mockServer,
+      },
+    );
+    assert.equal(result.valid, true);
+    assert.equal(abortCount, 0, 'no font request may abort');
+    assert.equal(fulfilled.length, 8, 'exactly eight font fulfillments expected');
+    const byUrl = new Map(fulfilled.map((entry) => [entry.url, entry.payload]));
+    for (const font of FONT_CASES) {
+      const url = `https://fonts.googleapis.com/fonts/${font.filename}`;
+      const payload = byUrl.get(url);
+      assert.ok(payload, `must fulfill ${url}`);
+      assert.equal(payload.status, 200, url);
+      assert.equal(payload.contentType, 'font/woff2', url);
+      assert.deepEqual(Buffer.from(payload.body), Buffer.from(font.bytes), url);
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
