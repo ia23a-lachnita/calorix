@@ -384,46 +384,37 @@ Request Antigravity post-task review in the same conversation because network is
 
 **Interfaces:**
 - Preview URL contract: `?screen=<id>&mode=<dark|light>&capture=1&profile=samsung-s20fe`. Existing `capture=1` without the exact profile keeps the canonical 402×874 fit/stage (`body.capture` + `window.CX_STATIC = true` + 402×874 centered layout, frozen motion). Only the exact `profile=samsung-s20fe` selects the derived capture profile (360×800 stage at x0/y0, `box-shadow: none`, `border: 0`, no `#bar`, no centering translate) and freezes motion. A missing or unknown profile never activates derived geometry. Without `capture=1` the interactive default 402×874 centered behavior is byte-for-byte unchanged except the additive capture branch.
-- `CaptureBoundary` wraps only the selected screen in the derived profile and publishes on `#stage` exactly `data-cx-capture-screen`, `data-cx-capture-theme`, and a single `data-cx-capture-token` via React `useLayoutEffect` after commit (no ambiguous `mode` attribute). The token confirms the selected screen commit only; child state updates do not increment it, and Today settlement uses settled DOM numbers.
-- `window.CX_CAPTURE_PROFILE` exposes `{ profile: 'samsung-s20fe', width: 360, height: 800, scale: 1 }` in the derived profile only, for the Task 5 driver to assert before screenshot.
+- The exact derived branch resets both `#fit` and `#stage`: `#fit` is left/top `0`, width/height `360px`/`800px`, margin `0`, and `transform: none !important`; `#stage` is width/height `360px`/`800px`, `box-shadow: none`, and border `0`. Its JavaScript branch also keeps `window.setHalf(...)` from restoring the legacy `translateX(-50%)` transform while derived capture is active.
+- `screen` and `mode` query parameters initialize the selected view after the localStorage/default fallback: accept `screen` only when it is an own key of `SCREENS`, accept `mode` only for `dark`/`light`, and let valid query values override saved state. Invalid/absent query values retain the saved/default value.
+- `CaptureBoundary` wraps only the selected screen in the exact derived profile; interactive and legacy capture render the screen directly. It returns its child without an added DOM wrapper and publishes on `#stage` exactly `data-cx-capture-screen`, `data-cx-capture-theme`, and constant `data-cx-capture-token="1"` via React `useLayoutEffect(..., [screen, theme])` after commit (no ambiguous `mode` attribute). The constant token confirms the selected screen commit only; child state updates cannot increment it, and Today settlement uses settled DOM numbers.
+- `window.CX_CAPTURE_PROFILE` exposes `Object.freeze({ profile: 'samsung-s20fe', width: 360, height: 800, scale: 1 })` in the derived profile only, for the Task 5 driver to assert before screenshot.
 
-- [ ] **Step 1: Write RED static preview tests**
+- [x] **Step 1: Write RED static preview tests**
 
-`test/preview-capture.test.mjs` reads the preview file at the exact test-dir-relative path `../../../../docs/design-handoff/placeholder-app/preview/screens.html` (four levels up from `tool/ui_capture/reference_renderer/test/`), no browser:
+`test/preview-capture.test.mjs` reads the preview file at the exact test-dir-relative path `../../../../docs/design-handoff/placeholder-app/preview/screens.html` (four levels up from `tool/ui_capture/reference_renderer/test/`), strips HTML/JavaScript/CSS comments before structural inspection, and runs the first plain JavaScript block in an isolated `node:vm` sandbox with mocked `location`, `window`, `document.body.classList`, `#fit`, and resize registration. It covers interactive default, legacy `?capture=1`, legacy capture with an unknown profile, profile without capture, and exact derived capture. Assertions include `CX_STATIC`, capture/profile classes, frozen/absent `CX_CAPTURE_PROFILE`, legacy centering translate, derived `transform: none`, and unchanged interactive fit behavior.
 ```js
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
 const html = readFileSync(new URL('../../../../docs/design-handoff/placeholder-app/preview/screens.html', import.meta.url), 'utf8');
-test('capture profile keeps 402x874 default; derived needs exact profile', () => {
-  assert.match(html, /width:\s*402px;\s*height:\s*874px/);
-  assert.match(html, /CX_CAPTURE_PROFILE/);
-  assert.match(html, /box-shadow:\s*none/);
-  assert.match(html, /profile=samsung-s20fe|profile === 'samsung-s20fe'|"samsung-s20fe"/);
-});
-test('CaptureBoundary publishes single useLayoutEffect token without mode attribute', () => {
-  assert.match(html, /CaptureBoundary/);
-  assert.match(html, /useLayoutEffect/);
-  assert.match(html, /data-cx-capture-token/);
-  assert.match(html, /data-cx-capture-screen/);
-  assert.match(html, /data-cx-capture-theme/);
-  assert.ok(!html.match(/data-cx-capture-mode/));
-});
+// Extract and execute the non-Babel capture/bootstrap script in node:vm for the
+// five query states; inspect comment-stripped CSS and Babel source structurally.
 ```
 
-Plus assertions that `#stage` derived CSS sets 360×800 at x0/y0 only under the exact profile branch, that `window.CX_STATIC` follows `capture=1`, that default 402×874 fit logic is intact, and that no cloned `stage.html` path appears.
+Structural assertions require exact derived-only `#fit` and `#stage` geometry, intact default 402×874 CSS/fit formulas, own-key `screen` and enum `mode` query overrides after saved/default initialization, and a conditional `CaptureBoundary` with `useLayoutEffect(..., [screen, theme])`, exactly three `data-cx-capture-*` names, constant token `1`, direct child return, and no cloned `stage.html` path. Comments cannot satisfy any assertion.
 
-- [ ] **Step 2: Witness RED**
+- [x] **Step 2: Witness RED**
 
 Run: `npm test --prefix tool/ui_capture/reference_renderer -- test/preview-capture.test.mjs`
 
 Expected: FAIL because the preview has no `CaptureBoundary`, no `CX_CAPTURE_PROFILE`, and no exact-profile 360×800 stage rule.
 
-- [ ] **Step 3: Implement minimal GREEN**
+- [x] **Step 3: Implement minimal GREEN**
 
-Edit only `docs/design-handoff/placeholder-app/preview/screens.html`: add the exact-profile capture CSS branch, the `CX_CAPTURE_PROFILE` publisher (derived profile only), and the `CaptureBoundary` wrapper with single-commit `useLayoutEffect` token (screen/theme/token only). Keep the default 402×874 interactive layout, bar, and fit logic unchanged, including existing `capture=1`-without-profile behavior. Do not add vendor files, cloned stage files, or app-shipped code.
+Edit only `docs/design-handoff/placeholder-app/preview/screens.html`: add the exact-profile capture CSS/JavaScript branch for both `#fit` and `#stage`, the frozen `CX_CAPTURE_PROFILE` publisher (derived profile only), validated `screen`/`mode` query initialization, and the conditionally applied direct-child `CaptureBoundary` with constant single-commit `useLayoutEffect` token (screen/theme/token only). Keep the default 402×874 interactive layout, bar, fit formula, and `capture=1`-without-profile behavior unchanged. Do not add vendor files, cloned stage files, or app-shipped code.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `npm test --prefix tool/ui_capture/reference_renderer`
 

@@ -37,6 +37,20 @@
   }
   body.capture #bar { display: none !important; }
   body:not(.capture) #fit { top: 50%; }
+  body.capture.profile-samsung-s20fe #fit {
+    left: 0;
+    top: 0;
+    width: 360px;
+    height: 800px;
+    margin: 0;
+    transform: none !important;
+  }
+  body.capture.profile-samsung-s20fe #stage {
+    width: 360px;
+    height: 800px;
+    box-shadow: none;
+    border: 0;
+  }
 </style>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
@@ -66,15 +80,24 @@
 </div>
 <div id="fit"><div id="stage"></div></div>
 <script>
-  var CAPTURE = new URLSearchParams(location.search).has('capture');
+  var params = new URLSearchParams(location.search);
+  var CAPTURE = params.get('capture') === '1';
+  var IS_DERIVED_CAPTURE = CAPTURE && params.get('profile') === 'samsung-s20fe';
   if (CAPTURE) document.body.classList.add('capture');
-  window.CX_STATIC = CAPTURE; // capture: render tween end-states (RAF is throttled offscreen)
+  if (IS_DERIVED_CAPTURE) document.body.classList.add('profile-samsung-s20fe');
+  window.CX_STATIC = CAPTURE;
+  if (IS_DERIVED_CAPTURE) {
+    window.CX_CAPTURE_PROFILE = Object.freeze({ profile: 'samsung-s20fe', width: 360, height: 800, scale: 1 });
+  }
   // Capture mode: show top (0) or bottom (1) half of the 402×874 stage at scale 1.
   window.setHalf = function (n) {
+    if (IS_DERIVED_CAPTURE) return;
     document.getElementById('fit').style.transform =
       'translateX(-50%) translateY(' + (n === 1 ? '-437px' : '0px') + ')';
   };
-  if (CAPTURE) {
+  if (IS_DERIVED_CAPTURE) {
+    document.getElementById('fit').style.transform = 'none';
+  } else if (CAPTURE) {
     window.setHalf(0);
   } else {
     // Live browsing: scale stage to fit, centered.
@@ -204,6 +227,21 @@ try {
   const saved = JSON.parse(localStorage.getItem('cx-harness') || 'null');
   if (saved && SCREENS[saved.id]) CUR = saved;
 } catch (e) {}
+const qParams = new URLSearchParams(location.search);
+const qScreen = qParams.get('screen');
+if (Object.hasOwn(SCREENS, qScreen)) { CUR.id = qScreen; }
+const qMode = qParams.get('mode');
+if (qMode === 'dark' || qMode === 'light') { CUR.mode = qMode; }
+
+function CaptureBoundary({ screen, theme, children }) {
+  React.useLayoutEffect(() => {
+    const stage = document.getElementById('stage');
+    stage.setAttribute('data-cx-capture-screen', screen);
+    stage.setAttribute('data-cx-capture-theme', theme);
+    stage.setAttribute('data-cx-capture-token', '1');
+  }, [screen, theme]);
+  return children;
+}
 
 window.showScreen = (id, mode = 'dark') => {
   CUR = { id, mode };
@@ -211,7 +249,8 @@ window.showScreen = (id, mode = 'dark') => {
   document.body.style.background = mode === 'dark' ? '#101010' : '#DDDAD4';
   const pick = document.getElementById('pick');
   if (pick) pick.value = id;
-  root.render(SCREENS[id](mode));
+  const selected = SCREENS[CUR.id](CUR.mode);
+  root.render(IS_DERIVED_CAPTURE ? <CaptureBoundary screen={CUR.id} theme={CUR.mode}>{selected}</CaptureBoundary> : selected);
 };
 
 // live-browsing controls
