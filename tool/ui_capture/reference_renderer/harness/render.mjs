@@ -8,6 +8,7 @@ import {
   assertLocalRenderAllowed,
   BROWSER_LOCALE,
   BROWSER_TIMEZONE,
+  CAPTURE_COMMIT_TIMEOUT_MS,
   DEVICE_SCALE_FACTOR,
   FROZEN_CHROMIUM_FLAGS,
   VIEWPORT_HEIGHT,
@@ -339,6 +340,30 @@ export async function runReferenceRender(
 
         await page.clock.install();
         await page.goto(captureUrl, { waitUntil: 'load' });
+        assertNoRouteViolation();
+
+        try {
+          await page.waitForFunction(
+            (commit) => {
+              const stage = document.querySelector('#stage');
+              if (!stage) {
+                return false;
+              }
+              return (
+                stage.getAttribute('data-cx-capture-token') === '1' &&
+                stage.getAttribute('data-cx-capture-screen') === commit.expectedScreen &&
+                stage.getAttribute('data-cx-capture-theme') === commit.expectedTheme
+              );
+            },
+            { expectedScreen: stateId, expectedTheme: mode },
+            { timeout: CAPTURE_COMMIT_TIMEOUT_MS },
+          );
+        } catch {
+          assertNoRouteViolation();
+          throw new Error(
+            `RENDER_CLOCK_MISORDER: capture commit timeout after ${CAPTURE_COMMIT_TIMEOUT_MS}ms waiting for token '1' screen '${stateId}' theme '${mode}'`,
+          );
+        }
         assertNoRouteViolation();
 
         await page.evaluate(async () => {

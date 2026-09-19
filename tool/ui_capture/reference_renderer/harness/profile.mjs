@@ -14,6 +14,7 @@ export const FROZEN_CHROMIUM_FLAGS = Object.freeze([
   '--hide-scrollbars',
 ]);
 export const RENDER_GUARD_EXIT_CODE = 11;
+export const CAPTURE_COMMIT_TIMEOUT_MS = 5000;
 
 export function isArmArch(arch = process.arch) {
   return arch === 'arm' || arch === 'arm64';
