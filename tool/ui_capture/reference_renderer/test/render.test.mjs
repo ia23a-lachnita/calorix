@@ -1771,6 +1771,10 @@ const FONT_CASES = Object.freeze([
   Object.freeze({ family: 'Geist Mono', weight: 600, filename: 'geist-mono-latin-600-normal.woff2', bytes: 'mono-600' }),
 ]);
 
+// ============================================================================
+// RED: derived reference renderer unused-font load bug (failing for missing production behavior)
+// ============================================================================
+
 test('render routes all eight exact Google Fonts base-URL GETs to 200 font/woff2 fixture bytes without abort', async () => {
   const root = mkdtempSync(join(tmpdir(), 'render-google-fonts-base-url-'));
   try {
@@ -1825,6 +1829,285 @@ test('render routes all eight exact Google Fonts base-URL GETs to 200 font/woff2
       assert.equal(payload.contentType, 'font/woff2', url);
       assert.deepEqual(Buffer.from(payload.body), Buffer.from(font.bytes), url);
     }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+const DERIVED_FONT_DESCRIPTORS = Object.freeze([
+  '200 16px Geist',
+  '400 16px Geist',
+  '500 16px Geist',
+  '600 16px Geist',
+  '700 16px Geist',
+  '400 16px Geist Mono',
+  '500 16px Geist Mono',
+  '600 16px Geist Mono',
+]);
+
+function isReadinessEvaluate(fn) {
+  const src = typeof fn === 'function' ? fn.toString() : String(fn);
+  return src.includes('document.fonts') || src.includes('fontDescriptors') || src.includes('RENDER_FONT_MISSING');
+}
+
+function installDerivedFontStubs(loadImpl) {
+  const prevWindow = globalThis.window;
+  const prevDocument = globalThis.document;
+  const prevFontFace = globalThis.FontFace;
+  const hadWindow = 'window' in globalThis;
+  const hadDocument = 'document' in globalThis;
+  const hadFontFace = 'FontFace' in globalThis;
+  class StubFontFace {
+    constructor(family = 'Geist', weight = '400') {
+      this.family = family;
+      this.weight = weight;
+      this.status = 'loaded';
+    }
+  }
+  const faces = [
+    new StubFontFace('Geist', '200'),
+    new StubFontFace('Geist', '400'),
+    new StubFontFace('Geist Mono', '400'),
+  ];
+  const fonts = [...faces];
+  fonts.ready = Promise.resolve();
+  fonts.load = loadImpl;
+  fonts.check = () => true;
+  const fitRect = { left: 0, top: 0, width: 360, height: 800 };
+  const stageEl = {
+    getBoundingClientRect: () => ({ ...fitRect }),
+    getAttribute: (name) => (name === 'data-cx-capture-token' ? '1' : null),
+    innerText: '',
+  };
+  const fitEl = { getBoundingClientRect: () => ({ ...fitRect }) };
+  globalThis.window = {
+    innerWidth: 360,
+    innerHeight: 800,
+    devicePixelRatio: 3,
+    CX_CAPTURE_PROFILE: { profile: 'samsung-s20fe', width: 360, height: 800 },
+  };
+  globalThis.document = {
+    querySelector: (sel) => {
+      if (sel === '#fit') return fitEl;
+      if (sel === '#stage') return stageEl;
+      return null;
+    },
+    querySelectorAll: () => [],
+    fonts,
+  };
+  globalThis.FontFace = StubFontFace;
+  return () => {
+    if (hadWindow) globalThis.window = prevWindow;
+    else delete globalThis.window;
+    if (hadDocument) globalThis.document = prevDocument;
+    else delete globalThis.document;
+    if (hadFontFace) globalThis.FontFace = prevFontFace;
+    else delete globalThis.FontFace;
+  };
+}
+
+test('derived font readiness explicitly awaits all eight frozen descriptors via document.fonts.load before ready/check/FontFace with no sleep', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-derived-font-load-order-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+    assert.equal(DERIVED_FONT_DESCRIPTORS.length, 8);
+    assert.ok(Object.isFrozen(DERIVED_FONT_DESCRIPTORS));
+    let readinessSrc = '';
+    const { mockPlaywright, mockServer, events } = createMockPlaywrightHarness({
+      onEvaluate: async ({ fn }) => {
+        if (isReadinessEvaluate(fn)) {
+          readinessSrc = typeof fn === 'function' ? fn.toString() : String(fn);
+        }
+        const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
+        if (fnStr.includes('heroMatch') || fnStr.includes('cx-harness')) {
+          return '1420 kcal 96 g 132 g 38 g';
+        }
+        return '';
+      },
+    });
+    const result = await runReferenceRender(
+      { repoRoot: root, selection: ['ai--dark'], allowLocalRender: true, replace: true },
+      { importPlaywrightFn: async () => mockPlaywright, createReferenceServerFn: async () => mockServer },
+    );
+    assert.equal(result.valid, true);
+    assert.ok(readinessSrc.length > 0, 'readiness evaluate must have been captured through runReferenceRender');
+    for (const desc of DERIVED_FONT_DESCRIPTORS) {
+      const literalPattern = new RegExp(`['"\`]${desc.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}['"\`]`);
+      assert.match(readinessSrc, literalPattern, `descriptor array must contain exact literal '${desc}'`);
+    }
+    const arrayMatch = readinessSrc.match(/(?:const|let|var)\s+fontDescriptors\s*=\s*\[([\s\S]*?)\]/);
+    assert.ok(arrayMatch, 'readiness must declare one exact eight-item fontDescriptors array');
+    const arrayBody = arrayMatch[1];
+    for (const desc of DERIVED_FONT_DESCRIPTORS) {
+      const arrayLiteralPattern = new RegExp(`['"\`]${desc.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}['"\`]`);
+      assert.match(arrayBody, arrayLiteralPattern, `fontDescriptors array must contain exact literal '${desc}'`);
+    }
+    assert.match(
+      readinessSrc,
+      /for\s*\(\s*(?:const|let|var)\s+desc\s+of\s+fontDescriptors\s*\)/,
+      'readiness must loop with for (const desc of fontDescriptors)',
+    );
+    const loadMatches = readinessSrc.match(/await\s+document\.fonts\.load\s*\(\s*desc\s*\)/g) || [];
+    assert.equal(loadMatches.length, 1, 'readiness must contain a single awaited document.fonts.load(desc) loop operation');
+    const loadIndex = readinessSrc.indexOf('document.fonts.load');
+    const readyIndex = readinessSrc.indexOf('document.fonts.ready');
+    const checkIndex = readinessSrc.indexOf('document.fonts.check');
+    const faceIndex = readinessSrc.indexOf('FontFace');
+    assert.ok(loadIndex !== -1 && readyIndex !== -1 && checkIndex !== -1 && faceIndex !== -1);
+    assert.ok(loadIndex < readyIndex, 'all document.fonts.load calls must precede document.fonts.ready');
+    assert.ok(readyIndex < checkIndex, 'document.fonts.ready must precede document.fonts.check');
+    assert.ok(checkIndex < faceIndex, 'document.fonts.check must precede FontFace loaded-status checks');
+    assert.ok(!readinessSrc.includes('waitForTimeout'), 'no page.waitForTimeout sleep in font readiness');
+    assert.ok(!readinessSrc.includes('setTimeout'), 'no setTimeout sleep in font readiness');
+    assert.ok(!readinessSrc.toLowerCase().includes('sleep'), 'no generic sleep in font readiness');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('empty document.fonts.load result yields RENDER_FONT_MISSING with descriptor and screen key', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-derived-font-empty-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+    const failingDesc = '600 16px Geist Mono';
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness({
+      onEvaluate: async ({ fn }) => {
+        const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
+        if (fnStr.includes('heroMatch') || fnStr.includes('cx-harness')) {
+          return '1420 kcal 96 g 132 g 38 g';
+        }
+        if (!isReadinessEvaluate(fn)) return '';
+        const restore = installDerivedFontStubs(async (desc) => {
+          if (desc === failingDesc) return [];
+          return [{ family: desc }];
+        });
+        try {
+          await fn();
+        } finally {
+          restore();
+        }
+        return '';
+      },
+    });
+    await assert.rejects(
+      runReferenceRender(
+        { repoRoot: root, selection: ['ai--dark'], allowLocalRender: true, replace: true },
+        { importPlaywrightFn: async () => mockPlaywright, createReferenceServerFn: async () => mockServer },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_FONT_MISSING/);
+        assert.match(err.message, new RegExp(failingDesc.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')));
+        assert.match(err.message, /ai--dark/);
+        assert.match(err.message, /\[ai--dark\]/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('rejected document.fonts.load yields RENDER_FONT_MISSING with descriptor and screen key', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-derived-font-reject-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+    const failingDesc = '400 16px Geist Mono';
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness({
+      onEvaluate: async ({ fn }) => {
+        const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
+        if (fnStr.includes('heroMatch') || fnStr.includes('cx-harness')) {
+          return '1420 kcal 96 g 132 g 38 g';
+        }
+        if (!isReadinessEvaluate(fn)) return '';
+        const restore = installDerivedFontStubs(async (desc) => {
+          if (desc === failingDesc) throw new Error('network fail');
+          return [{ family: desc }];
+        });
+        try {
+          await fn();
+        } finally {
+          restore();
+        }
+        return '';
+      },
+    });
+    await assert.rejects(
+      runReferenceRender(
+        { repoRoot: root, selection: ['ai--dark'], allowLocalRender: true, replace: true },
+        { importPlaywrightFn: async () => mockPlaywright, createReferenceServerFn: async () => mockServer },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_FONT_MISSING/);
+        assert.match(err.message, new RegExp(failingDesc.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')));
+        assert.match(err.message, /ai--dark/);
+        assert.match(err.message, /\[ai--dark\]/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('unallowlisted font request during page.evaluate with font load reject stays RENDER_REMOTE_FETCH with no screenshot and correct cleanup', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-derived-font-remote-precedence-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+    const failingDesc = '500 16px Geist';
+    const { mockPlaywright, mockServer, events } = createMockPlaywrightHarness({
+      onEvaluate: async ({ fn, routeHandler }) => {
+        const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
+        if (fnStr.includes('heroMatch') || fnStr.includes('cx-harness')) {
+          return '1420 kcal 96 g 132 g 38 g';
+        }
+        if (!isReadinessEvaluate(fn)) return '';
+        await routeHandler({
+          request: () => ({
+            method: () => 'GET',
+            url: () => 'https://fonts.gstatic.com/s/geist/v1/evil.woff2',
+            headers: () => ({}),
+          }),
+          abort: async () => {},
+          fulfill: async () => {},
+          continue: async () => {},
+        });
+        const restore = installDerivedFontStubs(async (desc) => {
+          if (desc === failingDesc) throw new Error('network fail');
+          return [{ family: desc }];
+        });
+        try {
+          try {
+            await fn();
+          } catch (loadErr) {
+            throw loadErr;
+          }
+          throw new Error(`RENDER_FONT_MISSING: font load failed for '${failingDesc}'`);
+        } finally {
+          restore();
+        }
+      },
+    });
+    await assert.rejects(
+      runReferenceRender(
+        { repoRoot: root, selection: ['ai--dark'], allowLocalRender: true, replace: true },
+        { importPlaywrightFn: async () => mockPlaywright, createReferenceServerFn: async () => mockServer },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_REMOTE_FETCH/);
+        assert.match(err.message, /ai--dark/);
+        assert.match(err.message, /\[ai--dark\]/);
+        assert.ok(!err.message.includes('RENDER_FONT_MISSING'), 'remote fetch must take precedence over font load reject');
+        return true;
+      },
+    );
+    assert.equal(events.screenshots.length, 0, 'no screenshot when route violation races font load reject');
+    assert.equal(events.contextsClosed.length, 1, 'per-screen context must close');
+    assert.equal(events.browserClosed, 1, 'browser must close');
+    assert.equal(events.serverClosed, 1, 'server must close');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
