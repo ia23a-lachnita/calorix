@@ -69,29 +69,35 @@ export function parseCliArgs(argv) {
   return { selection, replace, allowLocalRender, validateOnly };
 }
 
-export async function main(argv = process.argv.slice(2)) {
+export async function main(argv, { importRenderModuleFn } = {}) {
+  const args = argv !== undefined ? argv : process.argv.slice(2);
   let parsed;
   try {
-    parsed = parseCliArgs(argv);
+    parsed = parseCliArgs(args);
   } catch (err) {
     process.exitCode = 20;
     throw err;
   }
-  try {
-    assertLocalRenderAllowed({ allowLocalRender: parsed.allowLocalRender });
-  } catch (err) {
-    process.exitCode = 11;
-    throw err;
+  if (!parsed.validateOnly) {
+    try {
+      assertLocalRenderAllowed({ allowLocalRender: parsed.allowLocalRender });
+    } catch (err) {
+      process.exitCode = 11;
+      throw err;
+    }
   }
   try {
-    const renderModule = await import('../harness/render.mjs');
-    await renderModule.runReferenceRender({
+    const renderModule = importRenderModuleFn
+      ? await importRenderModuleFn()
+      : await import('../harness/render.mjs');
+    const result = await renderModule.runReferenceRender({
       selection: parsed.selection,
       replace: parsed.replace,
       allowLocalRender: parsed.allowLocalRender,
       validateOnly: parsed.validateOnly,
     });
     process.exitCode = 0;
+    return result;
   } catch (err) {
     const message = String(err?.message ?? err);
     if (message.includes('RENDER_ARM_REFUSED')) {

@@ -486,11 +486,11 @@ Run: `npm test --prefix tool/ui_capture/reference_renderer -- test/render.test.m
 
 Expected: FAIL because `harness/render.mjs` and its Today normalization plus profiled URL helpers do not exist.
 
-- [ ] **Step 3: Implement minimal GREEN**
+- [x] **Step 3: Implement minimal GREEN**
 
 Implement the exact helpers plus both the side-effect-free validation branch and ordered render branch of `runReferenceRender`, wiring `bin/render.mjs` `main` to pass `validateOnly` through. Keep font (exact weights), image (`decode` + complete), viewport, DPR, and rect checks fail-closed. Keep stage checks at 360×800 and DPR 3. Use the native stage handle only.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `npm test --prefix tool/ui_capture/reference_renderer`
 

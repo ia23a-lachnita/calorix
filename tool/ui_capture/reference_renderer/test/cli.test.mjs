@@ -85,14 +85,25 @@ test('CLI entry is side-effect free with guard-before-dynamic-import and stable 
 });
 
 test('simulated x64 missing harness maps to exit 30 without launching a browser', () => {
-  const bin = fileURLToPath(new URL('../bin/render.mjs', import.meta.url));
   const binUrl = new URL('../bin/render.mjs', import.meta.url).href;
   const evalCode = [
     "Object.defineProperty(process, 'arch', { value: 'x64', configurable: true });",
-    `process.argv[1] = ${JSON.stringify(bin)};`,
-    `await import(${JSON.stringify(binUrl)});`,
+    `import { main } from ${JSON.stringify(binUrl)};`,
+    `try {`,
+    `  await main([], {`,
+    `    importRenderModuleFn: async () => ({`,
+    `      runReferenceRender: async () => {`,
+    `        throw new Error('STABLE_RENDER_FAILURE: simulated harness failure');`,
+    `      },`,
+    `    }),`,
+    `  });`,
+    `} catch (err) {`,
+    `  console.error(err?.message ?? err);`,
+    `}`,
   ].join('\n');
   const result = spawnSync(process.execPath, ['--input-type=module', '--eval', evalCode], { encoding: 'utf8' });
   assert.equal(result.status, 30);
-  assert.match(result.stderr, /harness\/render\.mjs/);
+  assert.match(result.stderr, /STABLE_RENDER_FAILURE/);
+  assert.ok(!result.stderr.includes('browserType.launch'));
+  assert.ok(!result.stderr.includes('chrome-headless-shell'));
 });

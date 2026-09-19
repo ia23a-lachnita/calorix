@@ -1,8 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { deflateSync } from 'node:zlib';
+import { execFileSync } from 'node:child_process';
 import {
   buildCaptureUrl,
   normalizeTodayText,
@@ -10,9 +21,256 @@ import {
   assertTodaySettlement,
   runReferenceRender,
 } from '../harness/render.mjs';
-import { FROZEN_CHROMIUM_FLAGS } from '../harness/profile.mjs';
+import {
+  BROWSER_LOCALE,
+  BROWSER_TIMEZONE,
+  DEVICE_SCALE_FACTOR,
+  FROZEN_CHROMIUM_FLAGS,
+  VIEWPORT_HEIGHT,
+  VIEWPORT_WIDTH,
+} from '../harness/profile.mjs';
 import { clockAdvanceMsFor } from '../harness/settlement.mjs';
 import { parseCliArgs } from '../bin/render.mjs';
+import {
+  computeSourceFingerprint,
+  fullLeafPath,
+  subsetLeafPath,
+  validateReferenceLeaf,
+} from '../harness/manifest.mjs';
+
+const STATE_IDS = [
+  'loading', 'login', 'permission', 'scan_idle', 'scan_capturing', 'processing',
+  'review', 'manual', 'today', 'today_empty', 'food', 'food_edit',
+  'history_week', 'history_month', 'goals', 'goals_select', 'ai', 'ai_history', 'profile',
+];
+
+const DEFAULT_INDEXED_SCANLINES = deflateSync(Buffer.alloc((1080 + 1) * 2400));
+
+function crc32(bytes) {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function chunk(type, data) {
+  const body = Buffer.concat([Buffer.from(type), data]);
+  const result = Buffer.alloc(12 + data.length);
+  result.writeUInt32BE(data.length, 0);
+  body.copy(result, 4);
+  result.writeUInt32BE(crc32(body), 8 + data.length);
+  return result;
+}
+
+function createValid1080x2400Png(payload = '') {
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(1080, 0);
+  ihdr.writeUInt32BE(2400, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 3;
+  const colour = createHash('sha256').update(payload).digest()[0];
+  return Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    chunk('IHDR', ihdr),
+    chunk('PLTE', Buffer.from([colour, 0, 0])),
+    chunk('IDAT', DEFAULT_INDEXED_SCANLINES),
+    chunk('IEND', Buffer.alloc(0)),
+  ]);
+}
+
+function createTestRepoFixture(root) {
+  const app = join(root, 'docs/design-handoff/placeholder-app');
+  const renderer = join(root, 'tool/ui_capture/reference_renderer');
+  mkdirSync(join(app, 'src'), { recursive: true });
+  mkdirSync(join(app, 'preview'), { recursive: true });
+  mkdirSync(join(app, 'assets/food'), { recursive: true });
+  mkdirSync(join(renderer, 'bin'), { recursive: true });
+  mkdirSync(join(renderer, 'harness'), { recursive: true });
+  mkdirSync(join(renderer, 'test'), { recursive: true });
+  mkdirSync(join(renderer, 'node_modules/react/umd'), { recursive: true });
+  mkdirSync(join(renderer, 'node_modules/react-dom/umd'), { recursive: true });
+  mkdirSync(join(renderer, 'node_modules/@babel/standalone'), { recursive: true });
+  mkdirSync(join(renderer, 'node_modules/@fontsource/geist/files'), { recursive: true });
+  mkdirSync(join(renderer, 'node_modules/@fontsource/geist-mono/files'), { recursive: true });
+
+  writeFileSync(
+    join(app, 'visual-state-inventory.json'),
+    JSON.stringify({ states: STATE_IDS.map((id) => ({ id })) }),
+  );
+  writeFileSync(
+    join(app, 'src/cx-shell.jsx'),
+    'export const shell = "../assets/food/nested/apple.png";',
+  );
+  writeFileSync(join(app, 'preview/screens.html'), '<main></main>');
+  mkdirSync(join(app, 'assets/food/nested'), { recursive: true });
+  writeFileSync(join(app, 'assets/food/nested/apple.png'), 'apple');
+  writeFileSync(join(app, 'assets/food/unused.png'), 'unused');
+  writeFileSync(join(renderer, 'package.json'), '{}');
+  writeFileSync(join(renderer, 'package-lock.json'), '{}');
+  writeFileSync(join(renderer, 'bin/render.mjs'), 'export {};');
+  for (const name of ['profile.mjs', 'settlement.mjs', 'server.mjs', 'render.mjs', 'manifest.mjs']) {
+    writeFileSync(join(renderer, 'harness', name), `// ${name}`);
+  }
+  writeFileSync(join(renderer, 'node_modules/react/umd/react.development.js'), 'react');
+  writeFileSync(join(renderer, 'node_modules/react-dom/umd/react-dom.development.js'), 'react-dom');
+  writeFileSync(join(renderer, 'node_modules/@babel/standalone/babel.min.js'), 'babel');
+  for (const weight of [200, 400, 500, 600, 700]) {
+    writeFileSync(
+      join(renderer, `node_modules/@fontsource/geist/files/geist-latin-${weight}-normal.woff2`),
+      `geist-${weight}`,
+    );
+  }
+  for (const weight of [400, 500, 600]) {
+    writeFileSync(
+      join(renderer, `node_modules/@fontsource/geist-mono/files/geist-mono-latin-${weight}-normal.woff2`),
+      `mono-${weight}`,
+    );
+  }
+}
+
+function initGitRepoWithCommit(root) {
+  execFileSync('git', ['init'], { cwd: root });
+  execFileSync('git', ['config', 'user.email', 'test@test.com'], { cwd: root });
+  execFileSync('git', ['config', 'user.name', 'test'], { cwd: root });
+  execFileSync('git', ['add', '.'], { cwd: root });
+  execFileSync('git', ['commit', '-m', 'initial commit'], { cwd: root });
+}
+
+function createMockPlaywrightHarness(options = {}) {
+  const events = {
+    contextsCreated: [],
+    contextsClosed: [],
+    pagesCreated: [],
+    clocksInstalled: [],
+    clocksFastForwarded: [],
+    gotos: [],
+    evaluates: [],
+    screenshots: [],
+    routesRegistered: [],
+    browserClosed: 0,
+    serverClosed: 0,
+  };
+
+  const validPng = createValid1080x2400Png('mock-screenshot');
+
+  const createMockPage = (contextId) => {
+    let routeHandler = null;
+    let currentUrl = '';
+    const page = {
+      contextId,
+      clock: {
+        install: async () => {
+          events.clocksInstalled.push({ contextId });
+        },
+        fastForward: async (ms) => {
+          events.clocksFastForwarded.push({ contextId, ms });
+        },
+      },
+      route: async (pattern, handler) => {
+        routeHandler = handler;
+        events.routesRegistered.push({ contextId, pattern, handler });
+        if (options.onRouteRegistered) {
+          await options.onRouteRegistered({ contextId, pattern, handler, page });
+        }
+      },
+      goto: async (url, opts) => {
+        currentUrl = url;
+        events.gotos.push({ contextId, url, opts });
+        if (options.onGoto) {
+          await options.onGoto({ contextId, url, opts, page, routeHandler });
+        }
+      },
+      evaluate: async (fn, ...args) => {
+        events.evaluates.push({ contextId, fn: typeof fn === 'function' ? fn.toString() : fn });
+        if (options.onEvaluate) {
+          return await options.onEvaluate({ contextId, fn, args, page, routeHandler });
+        }
+        const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
+        if (fnStr.includes('heroMatch') || fnStr.includes('cx-harness')) {
+          if (currentUrl.includes('screen=today_empty')) {
+            return '0 kcal 0 g 0 g 0 g';
+          }
+          return '1420 kcal 96 g 132 g 38 g';
+        }
+        return '';
+      },
+      $: async (selector) => {
+        if (selector === '#stage') {
+          if (options.missingStage) return null;
+          return {
+            screenshot: async (opts) => {
+              events.screenshots.push({ contextId, opts });
+              if (options.onScreenshot) {
+                await options.onScreenshot({ contextId, opts });
+              } else if (opts?.path) {
+                writeFileSync(opts.path, validPng);
+              }
+            },
+          };
+        }
+        return null;
+      },
+      close: async () => {},
+    };
+    events.pagesCreated.push(page);
+    return page;
+  };
+
+  const createMockContext = (ctxOpts) => {
+    const contextId = events.contextsCreated.length + 1;
+    let isClosed = false;
+    const context = {
+      contextId,
+      opts: ctxOpts,
+      newPage: async () => {
+        const page = createMockPage(contextId);
+        return page;
+      },
+      close: async () => {
+        isClosed = true;
+        events.contextsClosed.push(contextId);
+        if (options.onCloseContext) await options.onCloseContext(contextId);
+      },
+      get isClosed() { return isClosed; },
+    };
+    events.contextsCreated.push(context);
+    return context;
+  };
+
+  const mockBrowser = {
+    version: () => '130.0.0.0',
+    newContext: async (ctxOpts) => {
+      if (options.onNewContext) await options.onNewContext(ctxOpts);
+      return createMockContext(ctxOpts);
+    },
+    close: async () => {
+      events.browserClosed += 1;
+      if (options.onCloseBrowser) await options.onCloseBrowser();
+    },
+  };
+
+  const mockPlaywright = {
+    version: '1.63.0',
+    chromium: {
+      launch: async (launchOpts) => {
+        if (options.onLaunch) await options.onLaunch(launchOpts);
+        return mockBrowser;
+      },
+    },
+  };
+
+  const mockServer = {
+    address: () => ({ address: '127.0.0.1', port: 12345, family: 'IPv4' }),
+    close: (cb) => {
+      events.serverClosed += 1;
+      if (cb) cb();
+    },
+  };
+
+  return { mockPlaywright, mockServer, events, validPng };
+}
 
 test('clock map and frozen custom flags', () => {
   assert.equal(clockAdvanceMsFor('today'), 1600);
@@ -322,6 +580,7 @@ test('canonical repoRoot resolution executes identically from repo root and pack
 });
 
 test('render path with replace: false rejects existing target leaf with RENDER_LEAF_EXTRA before server creation or Playwright import', async () => {
+  const canonicalRepoRoot = resolve(fileURLToPath(new URL('../../../..', import.meta.url)));
   let serverCreated = false;
   let playwrightImported = false;
 
@@ -329,6 +588,7 @@ test('render path with replace: false rejects existing target leaf with RENDER_L
     async () => {
       await runReferenceRender(
         {
+          repoRoot: canonicalRepoRoot,
           selection: 'all',
           replace: false,
           validateOnly: false,
@@ -340,7 +600,7 @@ test('render path with replace: false rejects existing target leaf with RENDER_L
             if (String(p).includes('.ui-diff/expected-derived/samsung-s20fe')) {
               return true;
             }
-            return true;
+            return existsSync(p);
           },
           importPlaywrightFn: async () => {
             playwrightImported = true;
@@ -481,4 +741,753 @@ test('harness/render.mjs captures native #stage element handle screenshot and fo
   assert.ok(!src.includes('no-sandbox'), 'forbidden no-sandbox must not be present');
   assert.ok(!src.includes('svgizeGradients'), 'forbidden svgizeGradients must not be present');
   assert.ok(!src.includes('no pending RAF'), 'forbidden no pending RAF must not be present');
+});
+
+// ============================================================================
+// MANDATORY ANTIGRAVITY MCP REGRESSION TESTS (Findings 1 through 6)
+// ============================================================================
+
+// Finding 1: Direct fail-closed propagation when readInventorySelection or computeSourceFingerprint fails
+test('fail-closed propagation: computeSourceFingerprint failure rejects with RENDER_INVALID_INPUT without fallback zero fingerprint or server/browser launch', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-fail-fingerprint-'));
+  let serverCreated = false;
+  let playwrightImported = false;
+  try {
+    createTestRepoFixture(root);
+    // Remove a required allowlisted input so computeSourceFingerprint will fail
+    rmSync(join(root, 'docs/design-handoff/placeholder-app/preview/screens.html'));
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['today--dark'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => {
+            playwrightImported = true;
+            throw new Error('importPlaywrightFn must not be called when computeSourceFingerprint fails');
+          },
+          createReferenceServerFn: async () => {
+            serverCreated = true;
+            throw new Error('createReferenceServerFn must not be called when computeSourceFingerprint fails');
+          },
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_INVALID_INPUT/);
+        assert.match(err.message, /missing allowlisted input/);
+        return true;
+      },
+    );
+
+    assert.equal(serverCreated, false, 'server must not be created on computeSourceFingerprint failure');
+    assert.equal(playwrightImported, false, 'playwright must not be imported on computeSourceFingerprint failure');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('fail-closed propagation: readInventorySelection failure rejects with RENDER_INVALID_INPUT on custom repoRoot without canonical root fallback', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-fail-inventory-'));
+  try {
+    createTestRepoFixture(root);
+    // Corrupt the inventory in custom root
+    writeFileSync(
+      join(root, 'docs/design-handoff/placeholder-app/visual-state-inventory.json'),
+      JSON.stringify({ states: [{ id: 'today' }] }), // Only 1 state instead of 19
+    );
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: 'all',
+          allowLocalRender: true,
+          replace: true,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_INVALID_INPUT/);
+        assert.match(err.message, /inventory must contain exactly the required 19 state IDs/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('source contract: harness/render.mjs forbids fallback zero fingerprint and canonicalRoot inventory catch fallback', () => {
+  const src = readFileSync(new URL('../harness/render.mjs', import.meta.url), 'utf8');
+  assert.ok(!src.includes("'0'.repeat(64)"), 'render.mjs must not fall back to 64 zeros fingerprint');
+  assert.ok(!src.includes('"0".repeat(64)'), 'render.mjs must not fall back to 64 zeros fingerprint');
+  assert.ok(!src.includes('0000000000000000000000000000000000000000000000000000000000000000'), 'render.mjs must not contain literal zero fingerprint');
+  assert.ok(
+    !src.match(/catch\s*\(err\)\s*\{[\s\S]*?readInventorySelection\s*\(\s*canonicalRoot/),
+    'readInventorySelection error must not be caught to fall back to canonicalRoot',
+  );
+});
+
+// Finding 2: Exact relevant dirty-path filtering semantics
+test('manifest dirty-path filtering: irrelevant dirty files are excluded and do not set gitDirty', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-dirty-irrelevant-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    // Modify only irrelevant files
+    writeFileSync(join(root, 'README.md'), 'modified readme');
+    mkdirSync(join(root, 'docs/superpowers'), { recursive: true });
+    writeFileSync(join(root, 'docs/superpowers/notes.txt'), 'notes');
+    mkdirSync(join(root, 'tool/ui_capture/reference_renderer/test'), { recursive: true });
+    writeFileSync(join(root, 'tool/ui_capture/reference_renderer/test/render.test.mjs'), '// test');
+
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness();
+
+    const result = await runReferenceRender(
+      {
+        repoRoot: root,
+        selection: ['today--dark'],
+        allowLocalRender: true,
+        replace: true,
+      },
+      {
+        importPlaywrightFn: async () => mockPlaywright,
+        createReferenceServerFn: async () => mockServer,
+      },
+    );
+
+    assert.equal(result.valid, true);
+    assert.deepEqual(result.manifest.dirtyPaths, [], 'irrelevant dirty files must be filtered out');
+    assert.equal(result.manifest.gitDirty, false, 'gitDirty must be false when no relevant files are dirty');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('manifest dirty-path filtering: only exact allowlisted source files are retained in sorted dirtyPaths', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-dirty-mixed-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    // Modify a mix of relevant and irrelevant files
+    writeFileSync(join(root, 'README.md'), 'modified readme');
+    writeFileSync(
+      join(root, 'docs/design-handoff/placeholder-app/src/cx-shell.jsx'),
+      'export const shell = "../assets/food/nested/apple.png"; // dirty',
+    );
+    writeFileSync(
+      join(root, 'docs/design-handoff/placeholder-app/assets/food/nested/apple.png'),
+      'apple-dirty',
+    );
+    mkdirSync(join(root, 'tool/ui_capture/reference_renderer/test'), { recursive: true });
+    writeFileSync(join(root, 'tool/ui_capture/reference_renderer/test/render.test.mjs'), '// dirty test');
+    writeFileSync(
+      join(root, 'tool/ui_capture/reference_renderer/harness/render.mjs'),
+      '// dirty harness',
+    );
+
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness();
+
+    const result = await runReferenceRender(
+      {
+        repoRoot: root,
+        selection: ['today--dark'],
+        allowLocalRender: true,
+        replace: true,
+      },
+      {
+        importPlaywrightFn: async () => mockPlaywright,
+        createReferenceServerFn: async () => mockServer,
+      },
+    );
+
+    assert.equal(result.valid, true);
+    assert.deepEqual(
+      result.manifest.dirtyPaths,
+      [
+        'docs/design-handoff/placeholder-app/assets/food/nested/apple.png',
+        'docs/design-handoff/placeholder-app/src/cx-shell.jsx',
+        'tool/ui_capture/reference_renderer/harness/render.mjs',
+      ],
+      'dirtyPaths must contain only allowlisted relevant source paths in alphabetical order',
+    );
+    assert.equal(result.manifest.gitDirty, true, 'gitDirty must be true when relevant files are dirty');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// Finding 3: One fresh browser context/page/clock per selected screen and context cleanup
+test('one fresh browser context page and clock per selected screen with prompt context cleanup', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-fresh-context-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    const { mockPlaywright, mockServer, events } = createMockPlaywrightHarness();
+
+    const selection = ['food--light', 'today--dark', 'today_empty--light'];
+
+    const result = await runReferenceRender(
+      {
+        repoRoot: root,
+        selection,
+        allowLocalRender: true,
+        replace: true,
+      },
+      {
+        importPlaywrightFn: async () => mockPlaywright,
+        createReferenceServerFn: async () => mockServer,
+      },
+    );
+
+    assert.equal(result.valid, true);
+    assert.equal(events.contextsCreated.length, 3, 'must create exactly one fresh browser context per selected screen');
+    assert.equal(events.pagesCreated.length, 3, 'must create exactly one fresh page per selected screen');
+    assert.equal(events.clocksInstalled.length, 3, 'must install clock on each fresh page per selected screen');
+    assert.equal(events.contextsClosed.length, 3, 'each per-screen browser context must be closed after screen render');
+
+    for (const ctx of events.contextsCreated) {
+      assert.deepEqual(ctx.opts, {
+        viewport: { width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT },
+        deviceScaleFactor: DEVICE_SCALE_FACTOR,
+        locale: BROWSER_LOCALE,
+        timezoneId: BROWSER_TIMEZONE,
+      });
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('per-screen context cleanup closes active context when per-screen rendering fails', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-context-cleanup-fail-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    let screenCount = 0;
+    const { mockPlaywright, mockServer, events } = createMockPlaywrightHarness({
+      onEvaluate: async ({ fn }) => {
+        const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
+        if (fnStr.includes('heroMatch') || fnStr.includes('cx-harness')) {
+          return '1420 kcal 96 g 132 g 38 g';
+        }
+        screenCount += 1;
+        if (screenCount === 2) {
+          throw new Error('RENDER_IMAGE_INCOMPLETE: stage image incomplete');
+        }
+        return '';
+      },
+    });
+
+    const selection = ['today--dark', 'food--light'];
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection,
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      /RENDER_IMAGE_INCOMPLETE/,
+    );
+
+    assert.equal(events.contextsCreated.length, 2, '2 contexts should have been created');
+    assert.equal(events.contextsClosed.length, 2, 'both contexts must be closed even when rendering fails on second screen');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// Finding 4: Exact local URL origin plus allowlisted path and typed RENDER_REMOTE_FETCH failure for unexpected requests
+test('request routing: external unallowlisted network request fails render with typed RENDER_REMOTE_FETCH', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-route-remote-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    let injected = false;
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness({
+      onGoto: async ({ routeHandler }) => {
+        injected = true;
+        await routeHandler({
+          request: () => ({
+            method: () => 'GET',
+            url: () => 'https://analytics.example.com/tracker.js',
+            headers: () => ({}),
+          }),
+          abort: async () => {},
+          fulfill: async () => {},
+          continue: async () => {},
+        });
+      },
+      onEvaluate: async () => {
+        if (injected) {
+          throw new Error('SENTINEL_REMOTE_FETCH_NOT_SURFACED: execution continued after unallowlisted network request');
+        }
+        return '';
+      },
+      onScreenshot: async () => {
+        if (injected) {
+          throw new Error('SENTINEL_REMOTE_FETCH_NOT_SURFACED: screenshot reached after unallowlisted network request');
+        }
+      },
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['today--dark'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_REMOTE_FETCH/);
+        assert.match(err.message, /today--dark/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('request routing: local request with unallowlisted path or origin mismatch fails with typed RENDER_REMOTE_FETCH', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-route-unallowlisted-local-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    let injected = false;
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness({
+      onGoto: async ({ routeHandler }) => {
+        injected = true;
+        await routeHandler({
+          request: () => ({
+            method: () => 'GET',
+            url: () => 'http://127.0.0.1:12345/unallowlisted/secret.env',
+            headers: () => ({}),
+          }),
+          abort: async () => {},
+          fulfill: async () => {},
+          continue: async () => {},
+        });
+      },
+      onEvaluate: async () => {
+        if (injected) {
+          throw new Error('SENTINEL_REMOTE_FETCH_NOT_SURFACED: execution continued after unallowlisted network request');
+        }
+        return '';
+      },
+      onScreenshot: async () => {
+        if (injected) {
+          throw new Error('SENTINEL_REMOTE_FETCH_NOT_SURFACED: screenshot reached after unallowlisted network request');
+        }
+      },
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['food--light'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_REMOTE_FETCH/);
+        assert.match(err.message, /food--light/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('request routing: non-GET request fails render with typed RENDER_REMOTE_FETCH', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-route-non-get-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    let injected = false;
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness({
+      onGoto: async ({ routeHandler }) => {
+        injected = true;
+        await routeHandler({
+          request: () => ({
+            method: () => 'POST',
+            url: () => 'http://127.0.0.1:12345/preview/screens.html',
+            headers: () => ({}),
+          }),
+          abort: async () => {},
+          fulfill: async () => {},
+          continue: async () => {},
+        });
+      },
+      onEvaluate: async () => {
+        if (injected) {
+          throw new Error('SENTINEL_REMOTE_FETCH_NOT_SURFACED: execution continued after unallowlisted network request');
+        }
+        return '';
+      },
+      onScreenshot: async () => {
+        if (injected) {
+          throw new Error('SENTINEL_REMOTE_FETCH_NOT_SURFACED: screenshot reached after unallowlisted network request');
+        }
+      },
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['login--dark'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_REMOTE_FETCH/);
+        assert.match(err.message, /login--dark/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// Finding 5: Pre-existing staged sibling must fail with RENDER_LEAF_EXTRA without deletion
+test('pre-existing staged sibling must fail with RENDER_LEAF_EXTRA without deletion', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-staged-sibling-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    // Compute expected subset leaf path to locate the staged sibling path
+    const { computeSourceFingerprint, subsetLeafPath } = await import('../harness/manifest.mjs');
+    const { fingerprint } = await computeSourceFingerprint(root);
+    const targetLeaf = subsetLeafPath(root, fingerprint, ['today--dark']);
+    const parentDir = dirname(targetLeaf);
+    mkdirSync(parentDir, { recursive: true });
+
+    const stagedDir = join(parentDir, `.${basename(targetLeaf)}.staged`);
+    mkdirSync(stagedDir, { recursive: true });
+    const markerFile = join(stagedDir, 'preserve-me.txt');
+    writeFileSync(markerFile, 'do-not-delete-this-file');
+
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness();
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['today--dark'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      /RENDER_LEAF_EXTRA/,
+    );
+
+    assert.equal(
+      existsSync(markerFile),
+      true,
+      'pre-existing staged sibling and its contents must NOT be deleted',
+    );
+    assert.equal(
+      readFileSync(markerFile, 'utf8'),
+      'do-not-delete-this-file',
+      'marker file contents must remain untouched',
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// Finding 6: Every per-screen runtime error must include the selection key context
+test('every per-screen runtime error must include the selection key context: RENDER_FONT_MISSING', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-context-font-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness({
+      onEvaluate: async () => {
+        throw new Error("RENDER_FONT_MISSING: font check failed for '200 16px Geist'");
+      },
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['login--dark'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_FONT_MISSING/);
+        assert.match(err.message, /login--dark/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('every per-screen runtime error must include the selection key context: RENDER_IMAGE_INCOMPLETE', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-context-image-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness({
+      onEvaluate: async () => {
+        throw new Error('RENDER_IMAGE_INCOMPLETE: stage image incomplete or zero naturalWidth');
+      },
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['food--light'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_IMAGE_INCOMPLETE/);
+        assert.match(err.message, /food--light/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('every per-screen runtime error must include the selection key context: RENDER_VIEWPORT_MISMATCH and RENDER_DPR_MISMATCH', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-context-viewport-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness({
+      onEvaluate: async () => {
+        throw new Error('RENDER_VIEWPORT_MISMATCH: expected inner dimensions 360x800, got 400x800');
+      },
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['today_empty--light'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_VIEWPORT_MISMATCH/);
+        assert.match(err.message, /today_empty--light/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('every per-screen runtime error must include the selection key context: RENDER_CLOCK_MISORDER', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-context-clock-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness({
+      onEvaluate: async () => {
+        throw new Error("RENDER_CLOCK_MISORDER: expected capture token '1', got 'null'");
+      },
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['scan_idle--dark'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => mockPlaywright,
+          createReferenceServerFn: async () => mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_CLOCK_MISORDER/);
+        assert.match(err.message, /scan_idle--dark/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('every per-screen runtime error must include the selection key context: settlement failure and missing stage handle', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-context-settlement-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    // Case A: Settlement failure on today--dark
+    const harnessSettlement = createMockPlaywrightHarness({
+      onEvaluate: async ({ fn }) => {
+        const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
+        if (fnStr.includes('heroMatch') || fnStr.includes('cx-harness')) {
+          return '999 kcal 96 g 132 g 38 g'; // Mismatched calories
+        }
+        return '';
+      },
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['today--dark'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => harnessSettlement.mockPlaywright,
+          createReferenceServerFn: async () => harnessSettlement.mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_INVALID_INPUT/);
+        assert.match(err.message, /today--dark/);
+        return true;
+      },
+    );
+
+    // Case B: Missing stage element handle on profile--light
+    const harnessMissingStage = createMockPlaywrightHarness({
+      missingStage: true,
+    });
+
+    await assert.rejects(
+      runReferenceRender(
+        {
+          repoRoot: root,
+          selection: ['profile--light'],
+          allowLocalRender: true,
+          replace: true,
+        },
+        {
+          importPlaywrightFn: async () => harnessMissingStage.mockPlaywright,
+          createReferenceServerFn: async () => harnessMissingStage.mockServer,
+        },
+      ),
+      (err) => {
+        assert.match(err.message, /RENDER_INVALID_INPUT/);
+        assert.match(err.message, /profile--light/);
+        return true;
+      },
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// Finding 7: Successful one-screen render installs and validates via replaceLeafAtomically without staging name rejection
+test('driver validates staged content via replaceLeafAtomically and successfully installs a one-screen subset render leaf', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'render-install-leaf-'));
+  try {
+    createTestRepoFixture(root);
+    initGitRepoWithCommit(root);
+
+    const { mockPlaywright, mockServer } = createMockPlaywrightHarness();
+
+    const { fingerprint } = await computeSourceFingerprint(root);
+    const selection = ['food--light'];
+    const expectedLeafPath = subsetLeafPath(root, fingerprint, selection);
+
+    const result = await runReferenceRender(
+      {
+        repoRoot: root,
+        selection,
+        allowLocalRender: true,
+        replace: true,
+      },
+      {
+        importPlaywrightFn: async () => mockPlaywright,
+        createReferenceServerFn: async () => mockServer,
+      },
+    );
+
+    assert.equal(result.valid, true);
+    assert.equal(result.leafPath, expectedLeafPath);
+    assert.ok(existsSync(expectedLeafPath), 'target leaf directory must exist on disk after installation');
+    assert.ok(existsSync(join(expectedLeafPath, 'manifest.json')), 'target leaf must contain manifest.json');
+    assert.ok(existsSync(join(expectedLeafPath, 'food--light.png')), 'target leaf must contain food--light.png');
+    assert.equal(result.manifest.sourceFingerprint, fingerprint);
+    assert.deepEqual(result.manifest.selection, selection);
+
+    const validation = await validateReferenceLeaf({ repoRoot: root, selection });
+    assert.equal(validation.valid, true);
+    assert.equal(validation.leafPath, expectedLeafPath);
+    assert.equal(validation.manifest.sourceFingerprint, fingerprint);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
