@@ -496,7 +496,7 @@ Run: `npm test --prefix tool/ui_capture/reference_renderer`
 
 Expected: PASS with no browser installed. No browser is launched by any unit test; browser integration belongs only to remote x86 CI in Task 7.
 
-- [ ] **Step 5: Record, review, commit, and push**
+- [x] **Step 5: Record, review, commit, and push**
 
 Request Antigravity post-task review in the same conversation because the driver is the substantive runtime contract. Update status with source SHA and RED/GREEN/review evidence. Commit `Add derived Playwright orchestrator` and push `origin/fix/scan-photo-flow-viewer`, then verify remote equality.
 
