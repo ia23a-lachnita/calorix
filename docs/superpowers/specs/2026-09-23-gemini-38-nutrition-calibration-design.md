@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-23
 
-**Status:** Approved direction; implementation plan pending
+**Status:** Approved, including the historical-baseline-only correction; implementation plan pending
 
 ## Context
 
@@ -16,7 +16,7 @@ An external review response claimed two Gemini 3.x evaluation run IDs that are a
 
 ## Goal
 
-Determine whether `gemini-3.8-flash` materially improves meal calories and all three macros over the current `gemini-2.5-flash` control, using a preregistered, public-only, reproducible evaluation that cannot silently change production behavior.
+Determine whether `gemini-3.8-flash` materially improves meal calories and all three macros over the recorded `gemini-2.5-flash` historical results, using a preregistered, public-only, reproducible evaluation that cannot silently change production behavior. No new 2.5 provider call is permitted.
 
 ## Non-goals
 
@@ -26,6 +26,7 @@ Determine whether `gemini-3.8-flash` materially improves meal calories and all t
 - Do not include `gemini-3.1-pro-preview` in the qualification gate. A preview/costly challenger would require a separate approved design after the stable Flash candidate is measured.
 - Do not claim that a newer model is more accurate until the recorded gates pass.
 - Do not treat Google consumer Pro or AI Studio paid tiers as Vertex capacity.
+- Do not call `gemini-2.5-flash` during compatibility, development, validation, or benchmark stages. Its prior results are a fixed regression reference, not an active arm.
 
 ## Model and project routing
 
@@ -40,15 +41,18 @@ All calibration calls use:
 
 The `us` multi-region is supported by Gemini 3.8 and preserves a US processing boundary for later production consideration. `us-central1` is invalid for Gemini 3.8; `global` is available but is not used for this qualification. A future production migration must separately document its data-residency impact and keep `us` unless an explicitly reviewed requirement changes it.
 
-### Model arms
+### Model profiles and historical reference
 
-The calibration has three development arms:
+The calibration has two development profiles:
 
-1. `gemini-2.5-flash` with its existing structured-output configuration and `temperature: 0` — paired control.
-2. `gemini-3.8-flash` with structured output and `thinkingLevel: LOW` — candidate profile A.
-3. `gemini-3.8-flash` with structured output and `thinkingLevel: MEDIUM` — candidate profile B and the model's documented default effort.
+1. `gemini-3.8-flash` with structured output and `thinkingLevel: LOW` — candidate profile A.
+2. `gemini-3.8-flash` with structured output and `thinkingLevel: MEDIUM` — candidate profile B and the model's documented default effort.
 
 Only one Gemini 3.8 profile may advance beyond development. `HIGH` is excluded to bound cost and latency. Gemini 3.8 requests omit deprecated sampling fields, including `temperature`, `topP`, and `topK`.
+
+`gemini-2.5-flash` is historical evidence only. No stage invokes it. The regression reference is the already-inspected run `run-2026-09-11T20-22-21-450Z`, with source SHA `bb414d1850fb9f91cc419b4a270138354abf5535`, dataset hash `2dc17d06752c2981862690953a7b134235bb6a20da4dc9b5fef5528f91f5bb56`, prompt hash `205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263`, model `gemini-2.5-flash`, 20 public / 0 private cases, and three uncached samples. Its recorded aggregate results are 60/60 parsed, zero failures, zero unsafe completions, 52 Review outcomes, 15 catastrophic calorie misses, 27.19% median and 101.36% P90 relative calorie error, and 52.27% legacy mean macro relative error using the scorer's existing denominator semantics. Recorded diagnostic references are 46.95% mean meal-mass error, 77.80% mean meal carbohydrate-density error, and 37.86% mean meal fat-density error. Metrics not recorded for that run must not be invented, and the historical legacy macro mean must not be mislabeled as the new zero-safe metric.
+
+Commit a strict historical-reference record containing only those verified aggregates and identities. It is not a reconstructed report, has no per-case predictions, and does not enter the baseline loader as if the ignored raw report still existed.
 
 The exact model ID, location, thinking level, prompt hash, schema hash, code SHA, dataset hash, and sample index must be part of report identity and cache identity. A report that omits or conflates profiles is invalid.
 
@@ -121,15 +125,15 @@ Before image inference:
 
 - confirm ADC quota project is `calorix-xurschnell` without printing credentials;
 - confirm billing and Vertex API status read-only;
-- run `countTokens` for both model IDs at location `us`;
-- run one public development image through each of the three profiles;
+- run `countTokens` for `gemini-3.8-flash` at location `us`;
+- run one public development image through each of the two Gemini 3.8 profiles;
 - require a valid structured response, exact report identity, and no `400`, `403`, `404`, `429`, or `5xx` provider result.
 
 Any failure stops the live protocol. It does not authorize a fallback project, location, model alias, API key, or schema relaxation.
 
 ### Stage 1: development screen
 
-Run the 24 development cases once through all three profiles: 72 image calls. Use the identical prompt, JSON schema, parser, normalizer, and scorer for every arm.
+Run the 24 development cases once through both Gemini 3.8 profiles: 48 image calls. Use the identical prompt, JSON schema, parser, normalizer, and scorer for both profiles.
 
 Choose between Gemini 3.8 LOW and MEDIUM using this fixed ordering:
 
@@ -142,28 +146,23 @@ Choose between Gemini 3.8 LOW and MEDIUM using this fixed ordering:
 
 Ties advance MEDIUM because it is the documented default accuracy profile. No prompt, schema, threshold, corpus, or ranking change is allowed after development results are visible.
 
-The selected Gemini 3.8 profile advances only if it has zero unsafe completions, at least 23/24 parses, no more catastrophic misses than the paired 2.5 control, and no more than 30 seconds P90 latency. Otherwise the workstream stops with no production change.
+The selected Gemini 3.8 profile advances only if it has zero unsafe completions, at least 23/24 parses, at most six catastrophic calorie misses, median relative calorie error at most 35%, mean zero-safe macro relative error at most 50%, and no more than 30 seconds P90 latency. Otherwise the workstream stops with no production change.
 
 ### Stage 2: validation gate
 
-Run the 16 validation cases with three uncached samples through only:
-
-- `gemini-2.5-flash` control;
-- the frozen Gemini 3.8 profile.
-
-This stage uses 96 image calls. Every one of the 96 outcomes is accounted for, but no implementation or threshold change may follow from validation inspection.
+Run the 16 validation cases with three uncached samples through only the frozen Gemini 3.8 profile. This stage uses 48 image calls. Every one of the 48 outcomes is accounted for, but no implementation or threshold change may follow from validation inspection.
 
 Gemini 3.8 passes only when all conditions hold:
 
 - zero unsafe completions;
 - at least 46/48 successful parses;
-- catastrophic calorie count no worse than control;
-- median calorie relative error at least 15% lower than control;
-- P90 calorie relative error no worse than control;
-- mean zero-safe macro relative error at least 20% lower than control;
-- median protein, carbohydrate, and fat relative error each at least 10% lower than control;
-- median meal-mass relative error at least 15% lower than control;
-- P90 latency at most 30 seconds and no more than twice the control P90.
+- at most eight catastrophic calorie misses;
+- median calorie relative error at most 25%;
+- P90 calorie relative error at most 90%;
+- mean zero-safe macro relative error at most 45%;
+- median protein, carbohydrate, and fat relative error each at most 35%;
+- median meal-mass relative error at most 35%;
+- P90 latency at most 30 seconds.
 
 Relative metrics omit zero-truth values; zero-truth nutrients retain predicted, truth, and absolute error. The summary must publish separate median protein, carbohydrate, and fat relative errors rather than relying only on a pooled mean.
 
@@ -171,20 +170,34 @@ Failure of any condition ends this model-only workstream. Production stays on th
 
 ### Stage 3: frozen public benchmark
 
-Only after validation passes, run the existing 12 Nutrition5k benchmark cases with three uncached samples through the current-source 2.5 control and the frozen 3.8 profile: 72 image calls.
+Only after validation passes, run all 20 existing public benchmark cases with three uncached samples through the frozen 3.8 profile. This yields 60 evaluator outcomes and an expected 48 Gemini calls: the 12 meals and four labels use vision, while the four supplied-barcode cases use their committed, checksum-pinned OFF snapshots through the production normalizer and must make zero vision or live OFF network calls. This keeps catalog availability from confounding the model comparison.
 
-This produces a paired current-source comparison while preserving the historical 2.5 report. The benchmark is evaluated exactly once. Its result may approve or reject promotion but may not trigger tuning.
+The benchmark is evaluated exactly once. Its result may approve or reject promotion but may not trigger tuning. Comparison uses only the verified aggregate fields in the historical 2.5 reference; it never fabricates missing case-level or per-macro baseline values.
 
-Promotion requires all validation gates to hold again on the benchmark, except parse count becomes at least 35/36. A failure keeps production unchanged.
+Promotion requires all of the following:
+
+- 60/60 evaluator outcomes accounted for and 60/60 parsed;
+- zero unsafe completions and zero model/schema/normalization failures;
+- no more than 12 catastrophic calorie misses, improving on historical 15;
+- median relative calorie error at most 25%, improving on historical 27.19%;
+- P90 relative calorie error at most 90%, improving on historical 101.36%;
+- legacy `meanMacroRelativeError` at most 45% under the unchanged historical denominator semantics, improving on historical 52.27%;
+- mean meal-mass relative error at most 40%, improving on historical 46.95%;
+- mean meal carbohydrate-density error at most 70%, improving on historical 77.80%;
+- mean meal fat-density error at most 35%, improving on historical 37.86%;
+- all absolute validation gates for separate protein, carbohydrate, and fat medians still hold;
+- every supplied-barcode case makes zero vision calls.
+
+A failure keeps production unchanged.
 
 ### Call ceiling
 
-The planned maximum is 243 image calls:
+The planned maximum is 146 Gemini image calls:
 
-- Stage 0: 3;
-- Stage 1: 72;
-- Stage 2: 96;
-- Stage 3: 72.
+- Stage 0: 2;
+- Stage 1: 48;
+- Stage 2: 48;
+- Stage 3: 48 expected Gemini calls across 60 evaluator outcomes.
 
 The hard authorization ceiling is 300 image calls. Retries, reruns, or additional models may not exceed it. Provider failures are recorded as failures; they do not silently consume repeated samples. Exceeding the planned count requires an explicit recorded reason and still may not exceed 300.
 
@@ -194,12 +207,13 @@ The evaluator needs additive, backward-compatible summaries before live comparis
 
 - median relative error for protein, carbohydrates, and fat, excluding zero truth;
 - zero-truth sample counts and mean/median absolute error for those samples;
-- median meal-mass relative error;
+- mean and median meal-mass relative error;
+- mean meal carbohydrate- and fat-density relative error under the existing diagnostic semantics;
 - per-profile parse, catastrophic, unsafe, and latency counts;
-- paired case/sample deltas between control and candidate;
+- explicit deltas from the verified historical aggregate reference for fields that exist in both records;
 - exact generation-profile identity.
 
-Existing report fields and the historical fixture remain valid. Every additive summary field is optional in the report's Zod schema so historical reports continue to deserialize; newly created calibration reports require the fields through a calibration-report refinement/version contract. Formal baseline compatibility continues to report model/profile mismatches rather than pretending reports are interchangeable; the new paired-comparison view explicitly compares named arms without rewriting baseline semantics.
+Existing report fields and the historical fixture remain valid. Every additive summary field is optional in the report's Zod schema so historical reports continue to deserialize; newly created calibration reports require the fields through a calibration-report refinement/version contract. Formal baseline compatibility continues to report model/profile mismatches rather than pretending reports are interchangeable. The historical-reference comparator supports aggregate regression checks only and rejects any request for unavailable per-case or per-macro historical data.
 
 ## Safety, privacy, and failure behavior
 
@@ -221,7 +235,7 @@ Passing calibration does not itself change production. A separate test-first mig
 4. obtain mandatory post-review with `AGREEMENT_STATUS: agree` and `MUST_FIX: none`;
 5. commit and push an exact source SHA;
 6. deploy only with separate explicit authorization;
-7. retain the prior 2.5 configuration as a documented rollback route.
+7. define an explicitly approved rollback behavior without silently reintroducing 2.5 as an evaluation or automatic fallback model.
 
 Until that task completes, `DEFAULT_MODEL_CONFIG`, remote Firestore model configuration, and deployed Functions remain unchanged.
 
@@ -229,7 +243,7 @@ Until that task completes, `DEFAULT_MODEL_CONFIG`, remote Firestore model config
 
 - A reproducible 40-case train-split calibration manifest exists with no test overlap.
 - Model-aware request profiles are hermetically tested without changing the production default.
-- The evaluator emits zero-safe per-macro and paired model metrics.
+- The evaluator emits zero-safe per-macro metrics and strict historical aggregate regression comparisons.
 - All offline tests, build, lint, privacy checks, and review gates pass before any live run.
 - Live stages execute in order, stop on their gates, and remain within 300 calls.
 - Every report records project, location, model, profile, prompt/schema/code/dataset identity, samples, provider errors, and all four-nutrient results.
