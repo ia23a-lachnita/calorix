@@ -119,7 +119,7 @@ export interface VisionGenerationOptions {
 - [x] **Step 3: Run RED.** Run `cd functions && npx vitest run test/nutrition-eval/scorer.test.ts test/nutrition-eval/schema.test.ts test/nutrition-eval/report.test.ts`.
 - [x] **Step 4: Implement additive metrics and refinement.** Keep legacy `meanMacroRelativeError` byte-for-byte semantically unchanged. Add truth to newly scored results, compute zero-safe summaries from exact truth with explicit eligible/coverage counts, and add strict calibration refinement without rewriting historical fixtures. Preserve one schema-valid report per profile/stage; do not serialize a combined LOW+MEDIUM case array that violates case-count invariants.
 - [x] **Step 5: Run GREEN.** Run the focused tests, then `cd functions && npm run build && npm run lint`.
-- [ ] **Step 6: Review, track, commit, and push.** Commit `Add calibration scoring metrics` and push after green review.
+- [x] **Step 6: Review, track, commit, and push.** Commit `Add calibration scoring metrics` and push after green review.
 
 ## Task 3: Freeze the aggregate-only historical reference
 
