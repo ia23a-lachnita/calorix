@@ -7,6 +7,7 @@ import { NutritionEvalReportSchema } from './schema';
 
 import type {
   BaselineComparison,
+  CalibrationInfo,
   NutritionCaseResult,
   NutritionEvalReport,
 } from './schema';
@@ -24,6 +25,7 @@ export interface NutritionEvalReportMetadata {
   publicCases: number;
   privateCases: number;
   comparison?: BaselineComparison;
+  calibration?: CalibrationInfo;
 }
 
 function percentile(sorted: readonly number[], percentileValue: number): number {
@@ -107,6 +109,7 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
     .map(([code, count]) => markdownCell(code) + '=' + count).join(', ') || 'none';
   const cases = report.cases.map((result) => {
     const prediction = result.prediction;
+    const truth = result.truth;
     const failure = prediction.failureCategory && prediction.failureCode
       ? `${prediction.failureCategory}/${prediction.failureCode}` : '-';
     const metric = (field: keyof NutritionCaseResult['numeric']): string[] => {
@@ -141,6 +144,14 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
       markdownCell(result.booleans.barcodeExactMatch),
       markdownCell(result.booleans.basisExactMatch),
       markdownCell(result.booleans.unitExactMatch),
+      markdownCell(truth?.kcal),
+      markdownCell(truth?.proteinG),
+      markdownCell(truth?.carbsG),
+      markdownCell(truth?.fatG),
+      markdownCell(truth?.basis),
+      markdownCell(truth?.amount),
+      markdownCell(truth?.unit),
+      markdownCell(truth?.referenceMassG),
     ].join(' | ');
     return '| ' + row + ' |';
   });
@@ -213,6 +224,18 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
     `baselineOnly: ${report.baselineOnly}`,
     `Public cases: ${report.publicCases}`,
     `Private cases: ${report.privateCases}`,
+    ...(report.calibration ? [
+      `calibrationProtocol: ${report.calibration.protocolVersion}`,
+      `calibrationProject: ${report.calibration.project}`,
+      `calibrationLocation: ${report.calibration.location}`,
+      `calibrationModel: ${report.calibration.model}`,
+      `calibrationThinkingLevel: ${report.calibration.thinkingLevel}`,
+      `calibrationSchemaHash: ${report.calibration.schemaHash}`,
+      `calibrationStage: ${report.calibration.stage}`,
+      `imageCallsReserved: ${report.calibration.imageCallsReserved}`,
+      `imageCallsCompleted: ${report.calibration.imageCallsCompleted}`,
+      `imageCallsFailed: ${report.calibration.imageCallsFailed}`,
+    ] : []),
     '', '## Aggregate metrics',
     `totalCases: ${summary.totalCases}`,
     `runCases: ${summary.runCases}`,
@@ -224,6 +247,32 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
     `p90AbsoluteCalorieError: ${summary.p90AbsoluteCalorieError}`,
     `p90RelativeCalorieError: ${summary.p90RelativeCalorieError}`,
     `meanMacroRelativeError: ${summary.meanMacroRelativeError}`,
+    `medianProteinRelativeError: ${summary.medianProteinRelativeError ?? '-'}`,
+    `medianCarbsRelativeError: ${summary.medianCarbsRelativeError ?? '-'}`,
+    `medianFatRelativeError: ${summary.medianFatRelativeError ?? '-'}`,
+    `meanZeroSafeMacroRelativeError: ${summary.meanZeroSafeMacroRelativeError ?? '-'}`,
+    `zeroSafeEligiblePairs: ${summary.zeroSafeEligiblePairs ?? '-'}`,
+    `proteinEligibleCount: ${summary.proteinEligibleCount ?? '-'}`,
+    `carbsEligibleCount: ${summary.carbsEligibleCount ?? '-'}`,
+    `fatEligibleCount: ${summary.fatEligibleCount ?? '-'}`,
+    `proteinZeroTruthCount: ${summary.proteinZeroTruthCount ?? '-'}`,
+    `carbsZeroTruthCount: ${summary.carbsZeroTruthCount ?? '-'}`,
+    `fatZeroTruthCount: ${summary.fatZeroTruthCount ?? '-'}`,
+    `proteinZeroTruthMeanAbsoluteError: ${summary.proteinZeroTruthMeanAbsoluteError ?? '-'}`,
+    `proteinZeroTruthMedianAbsoluteError: ${summary.proteinZeroTruthMedianAbsoluteError ?? '-'}`,
+    `carbsZeroTruthMeanAbsoluteError: ${summary.carbsZeroTruthMeanAbsoluteError ?? '-'}`,
+    `carbsZeroTruthMedianAbsoluteError: ${summary.carbsZeroTruthMedianAbsoluteError ?? '-'}`,
+    `fatZeroTruthMeanAbsoluteError: ${summary.fatZeroTruthMeanAbsoluteError ?? '-'}`,
+    `fatZeroTruthMedianAbsoluteError: ${summary.fatZeroTruthMedianAbsoluteError ?? '-'}`,
+    `meanMealMassRelativeError: ${summary.meanMealMassRelativeError ?? '-'}`,
+    `medianMealMassRelativeError: ${summary.medianMealMassRelativeError ?? '-'}`,
+    `mealMassEligibleCount: ${summary.mealMassEligibleCount ?? '-'}`,
+    `parsedMealCount: ${summary.parsedMealCount ?? '-'}`,
+    `meanMealCarbDensityRelativeError: ${summary.meanMealCarbDensityRelativeError ?? '-'}`,
+    `meanMealFatDensityRelativeError: ${summary.meanMealFatDensityRelativeError ?? '-'}`,
+    `mealCarbDensityEligibleCount: ${summary.mealCarbDensityEligibleCount ?? '-'}`,
+    `mealFatDensityEligibleCount: ${summary.mealFatDensityEligibleCount ?? '-'}`,
+    `mealDensityCoverageCount: ${summary.mealDensityCoverageCount ?? '-'}`,
     `reviewRate: ${summary.reviewRate}`,
     `catastrophicCount: ${summary.catastrophicCount}`,
     `unsafeCompletionCount: ${summary.unsafeCompletionCount}`,
@@ -233,8 +282,8 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
     ...baselineSection,
     ...deltasSection,
     '', '## Cases',
-    '| caseId | source | parse | kcal | proteinG | carbsG | fatG | basis | amount | unit | barcode | decision | failure | latencyMs | catastrophic | unsafe | kcalRatioToTruth | kcalAbsoluteError | kcalRelativeError | proteinGRatioToTruth | proteinGAbsoluteError | proteinGRelativeError | carbsGRatioToTruth | carbsGAbsoluteError | carbsGRelativeError | fatGRatioToTruth | fatGAbsoluteError | fatGRelativeError | barcodeExactMatch | basisExactMatch | unitExactMatch |',
-    '| --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | --- | --- | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |',
+    '| caseId | source | parse | kcal | proteinG | carbsG | fatG | basis | amount | unit | barcode | decision | failure | latencyMs | catastrophic | unsafe | kcalRatioToTruth | kcalAbsoluteError | kcalRelativeError | proteinGRatioToTruth | proteinGAbsoluteError | proteinGRelativeError | carbsGRatioToTruth | carbsGAbsoluteError | carbsGRelativeError | fatGRatioToTruth | fatGAbsoluteError | fatGRelativeError | barcodeExactMatch | basisExactMatch | unitExactMatch | truthKcal | truthProteinG | truthCarbsG | truthFatG | truthBasis | truthAmount | truthUnit | truthReferenceMassG |',
+    '| --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | --- | --- | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | --- | ---: |',
     ...cases,
     ...diagnosticsSection,
     ...(diagnosticsSection.length === 0 ? [''] : []),

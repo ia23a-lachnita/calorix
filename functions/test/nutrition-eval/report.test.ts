@@ -896,3 +896,168 @@ describe('nutrition evaluation reports', () => {
     expect(() => buildNutritionEvalReport([tainted], { ...metadata, publicCases: 1 })).toThrow();
   });
 });
+
+describe('Task 2 calibration report rendering', () => {
+  const calibrationMetadata = {
+    runId: 'calibration-run-001',
+    timestamp: '2026-09-23T12:00:00.000Z',
+    datasetId: 'calorix-n5k-calibration-v1',
+    datasetHash: 'b'.repeat(64),
+    adapterModelId: 'gemini-3.8-flash',
+    promptHash: 'c'.repeat(64),
+    codeSha: 'd'.repeat(40),
+    samples: 1,
+    baselineOnly: true,
+    publicCases: 1,
+    privateCases: 0,
+    calibration: {
+      protocolVersion: 'calorix-gemini-38-calibration-v1' as const,
+      project: 'calorix-xurschnell',
+      location: 'us',
+      model: 'gemini-3.8-flash',
+      thinkingLevel: 'LOW' as const,
+      schemaHash: 'a'.repeat(64),
+      stage: 'development' as const,
+      imageCallsReserved: 1,
+      imageCallsCompleted: 1,
+      imageCallsFailed: 0,
+    },
+  };
+
+  const calibrationCase: NutritionEvalCase = {
+    ...reportCase,
+    id: 'calibration-meal',
+    truth: { ...reportCase.truth, referenceMassG: 400 },
+  };
+
+  function calibrationResults(): NutritionCaseResult[] {
+    return [
+      scoreNutritionCase(calibrationCase, {
+        parseStatus: 'success', source: 'meal', kcal: 110, proteinG: 1, carbsG: 2, fatG: 3,
+        confidence: 0.9, decision: 'complete', latencyMs: 20,
+        diagnostics: {
+          rawNutrients: { kcal: 110, proteinG: 1, carbsG: 2, fatG: 3 },
+          detectedItemCount: 1,
+          estimatedTotalMassG: 500,
+          declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion',
+        },
+      }),
+    ];
+  }
+
+  it('renders calibration identity, truth, call accounting, and zero-safe metrics without private paths', () => {
+    const report = buildNutritionEvalReport(calibrationResults(), calibrationMetadata);
+    const json = renderNutritionEvalJson(report);
+    const markdown = renderNutritionEvalMarkdown(report);
+    const parsed = JSON.parse(json);
+    expect(parsed.calibration.protocolVersion).toBe('calorix-gemini-38-calibration-v1');
+    expect(parsed.calibration.project).toBe('calorix-xurschnell');
+    expect(parsed.calibration.location).toBe('us');
+    expect(parsed.calibration.model).toBe('gemini-3.8-flash');
+    expect(parsed.calibration.thinkingLevel).toBe('LOW');
+    expect(parsed.calibration.stage).toBe('development');
+    expect(parsed.cases[0].truth.kcal).toBe(100);
+    expect(parsed.cases[0].truth.referenceMassG).toBe(400);
+    expect(parsed.summary.medianProteinRelativeError).toBeDefined();
+    expect(parsed.summary.meanZeroSafeMacroRelativeError).toBeDefined();
+    expect(parsed.summary.meanMealMassRelativeError).toBeDefined();
+    expect(parsed.summary.meanMealCarbDensityRelativeError).toBeDefined();
+    expect(parsed.summary.meanMealFatDensityRelativeError).toBeDefined();
+    expect(parsed.summary.mealCarbDensityEligibleCount).toBeDefined();
+    expect(parsed.summary.mealFatDensityEligibleCount).toBeDefined();
+    expect(markdown).toContain('calorix-gemini-38-calibration-v1');
+    expect(markdown).toContain('calorix-xurschnell');
+    expect(markdown).toContain('medianProteinRelativeError');
+    expect(markdown).toContain('meanZeroSafeMacroRelativeError');
+    expect(markdown).toContain('meanMealMassRelativeError');
+    expect(markdown).toContain('mealCarbDensityEligibleCount');
+    expect(markdown).toContain('mealFatDensityEligibleCount');
+    // Per-case truth renders in Markdown (not only JSON), including referenceMassG.
+    expect(markdown).toContain('truthKcal');
+    expect(markdown).toContain('truthProteinG');
+    expect(markdown).toContain('truthCarbsG');
+    expect(markdown).toContain('truthFatG');
+    expect(markdown).toContain('truthReferenceMassG');
+    // Calibration truth row: prediction kcal 110 vs truth kcal 100, referenceMassG 400.
+    expect(markdown).toContain('| calibration-meal |');
+    expect(markdown).toContain('400');
+    expect(markdown).not.toContain('rawText');
+    expect(markdown).not.toContain('detectedItems');
+    expect(markdown).not.toContain('/home/');
+    expect(markdown).not.toContain('file://');
+  });
+});
+
+describe('Task 2 correction RED: calibration report bounds and omitted metrics', () => {
+  const baseMetadata = {
+    runId: 'calibration-red-001',
+    timestamp: '2026-09-23T12:00:00.000Z',
+    datasetId: 'calorix-n5k-calibration-v1',
+    datasetHash: 'b'.repeat(64),
+    adapterModelId: 'gemini-3.8-flash',
+    promptHash: 'c'.repeat(64),
+    codeSha: 'd'.repeat(40),
+    samples: 1,
+    baselineOnly: true,
+    publicCases: 1,
+    privateCases: 0,
+    calibration: {
+      protocolVersion: 'calorix-gemini-38-calibration-v1' as const,
+      project: 'calorix-xurschnell',
+      location: 'us',
+      model: 'gemini-3.8-flash',
+      thinkingLevel: 'LOW' as const,
+      schemaHash: 'a'.repeat(64),
+      stage: 'development' as const,
+      imageCallsReserved: 1,
+      imageCallsCompleted: 1,
+      imageCallsFailed: 0,
+    },
+  };
+
+  const mealCase: NutritionEvalCase = {
+    ...reportCase,
+    id: 'calibration-meal',
+    truth: { ...reportCase.truth, referenceMassG: 400 },
+  };
+
+  function mealResults(): NutritionCaseResult[] {
+    return [
+      scoreNutritionCase(mealCase, {
+        parseStatus: 'success', source: 'meal', kcal: 110, proteinG: 1, carbsG: 2, fatG: 3,
+        confidence: 0.9, decision: 'complete', latencyMs: 20,
+        diagnostics: {
+          rawNutrients: { kcal: 110, proteinG: 1, carbsG: 2, fatG: 3 },
+          detectedItemCount: 1,
+          estimatedTotalMassG: 500,
+          declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion',
+        },
+      }),
+    ];
+  }
+
+  it('omits zero-count population metrics from aggregate summaries', () => {
+    const report = buildNutritionEvalReport(mealResults(), baseMetadata);
+    // All macro truths are positive, so zero-truth counts are 0 and their metrics must be absent.
+    expect(report.summary.proteinZeroTruthCount).toBe(0);
+    expect(report.summary.proteinZeroTruthMeanAbsoluteError).toBeUndefined();
+    expect(report.summary.proteinZeroTruthMedianAbsoluteError).toBeUndefined();
+    expect('proteinZeroTruthMeanAbsoluteError' in report.summary).toBe(false);
+    const json = JSON.parse(renderNutritionEvalJson(report));
+    expect('proteinZeroTruthMeanAbsoluteError' in json.summary).toBe(false);
+  });
+
+  it('rejects adapterModelId that does not equal calibration.model', () => {
+    expect(() => buildNutritionEvalReport(mealResults(), {
+      ...baseMetadata,
+      adapterModelId: 'gemini-2.5-flash',
+    })).toThrow();
+  });
+
+  it('rejects reserved call counts exceeding runCases', () => {
+    expect(() => buildNutritionEvalReport(mealResults(), {
+      ...baseMetadata,
+      calibration: { ...baseMetadata.calibration, imageCallsReserved: 2, imageCallsCompleted: 1, imageCallsFailed: 0 },
+    })).toThrow();
+  });
+});

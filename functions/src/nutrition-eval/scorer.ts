@@ -166,6 +166,7 @@ export function scoreNutritionCase(
   return {
     caseId: evalCase.id,
     prediction,
+    truth: evalCase.truth,
     numeric,
     safety: {
       catastrophicCalorieMiss: catastrophic,
@@ -207,6 +208,20 @@ export function aggregateNutritionResults(
   const absCalorieValues: number[] = [];
   const relCalorieValues: number[] = [];
   const macroRelativeErrors: number[] = [];
+  // Zero-safe (exact-truth denominator) accumulators. Positive truth only.
+  const proteinRel: number[] = [];
+  const carbsRel: number[] = [];
+  const fatRel: number[] = [];
+  const pooledRel: number[] = [];
+  const proteinZeroAbs: number[] = [];
+  const carbsZeroAbs: number[] = [];
+  const fatZeroAbs: number[] = [];
+  // Meal-only diagnostic accumulators (parsed meal outcomes only).
+  const mealMassRel: number[] = [];
+  const mealCarbDensityRel: number[] = [];
+  const mealFatDensityRel: number[] = [];
+  let parsedMealCount = 0;
+  let mealDensityCoverageCount = 0;
   let catastrophicCount = 0;
   let unsafeCompletionCount = 0;
   let basisAccuracyDenom = 0;
@@ -227,6 +242,41 @@ export function aggregateNutritionResults(
       const metric = r.numeric[field];
       if (metric) {
         macroRelativeErrors.push(metric.relativeError);
+      }
+    }
+
+    if (r.prediction.parseStatus === 'success') {
+      const truth = r.truth;
+      const targets: Array<{ field: 'proteinG' | 'carbsG' | 'fatG'; list: number[]; zeroList: number[] }> = [
+        { field: 'proteinG', list: proteinRel, zeroList: proteinZeroAbs },
+        { field: 'carbsG', list: carbsRel, zeroList: carbsZeroAbs },
+        { field: 'fatG', list: fatRel, zeroList: fatZeroAbs },
+      ];
+      for (const target of targets) {
+        const metric = r.numeric[target.field];
+        const truthVal = truth?.[target.field];
+        if (metric === undefined || truthVal === undefined) continue;
+        if (truthVal > 0) {
+          const rel = metric.absoluteError / truthVal;
+          if (Number.isFinite(rel) && rel >= 0) {
+            target.list.push(rel);
+            pooledRel.push(rel);
+          }
+        } else if (truthVal === 0) {
+          target.zeroList.push(metric.absoluteError);
+        }
+      }
+
+      if (r.prediction.source === 'meal') {
+        parsedMealCount++;
+        const massRel = r.diagnostics?.mealMassG?.relativeError;
+        if (massRel !== undefined) mealMassRel.push(massRel);
+        const density = r.diagnostics?.mealDensityPer100;
+        const carbRel = density?.carbsG?.relativeError;
+        const fatRelValue = density?.fatG?.relativeError;
+        if (carbRel !== undefined) mealCarbDensityRel.push(carbRel);
+        if (fatRelValue !== undefined) mealFatDensityRel.push(fatRelValue);
+        if (density !== undefined) mealDensityCoverageCount++;
       }
     }
 
@@ -264,6 +314,19 @@ export function aggregateNutritionResults(
         macroRelativeErrors.length
       : 0;
 
+  function mean(values: number[]): number {
+    if (values.length === 0) return 0;
+    return values.reduce((s, v) => s + v, 0) / values.length;
+  }
+
+  function safeMean(values: number[]): number | undefined {
+    return values.length > 0 ? mean(values) : undefined;
+  }
+
+  function safeMedian(values: number[]): number | undefined {
+    return values.length > 0 ? median(values) : undefined;
+  }
+
   const reviewRate = parseCases > 0 ? reviewCount / parseCases : 0;
 
   const sortedCategoryKeys = Object.keys(categoryCounts).sort();
@@ -277,6 +340,43 @@ export function aggregateNutritionResults(
   for (const k of sortedCodeKeys) {
     failuresByCode[k] = codeCounts[k] as number;
   }
+
+  const mProteinRel = [...proteinRel].sort((a, b) => a - b);
+  const mCarbsRel = [...carbsRel].sort((a, b) => a - b);
+  const mFatRel = [...fatRel].sort((a, b) => a - b);
+  const mProteinZeroAbs = [...proteinZeroAbs].sort((a, b) => a - b);
+  const mCarbsZeroAbs = [...carbsZeroAbs].sort((a, b) => a - b);
+  const mFatZeroAbs = [...fatZeroAbs].sort((a, b) => a - b);
+  const mMealMassRel = [...mealMassRel].sort((a, b) => a - b);
+
+  const zeroSafeSummary = {
+    ...(safeMedian(mProteinRel) !== undefined ? { medianProteinRelativeError: safeMedian(mProteinRel) } : {}),
+    ...(safeMedian(mCarbsRel) !== undefined ? { medianCarbsRelativeError: safeMedian(mCarbsRel) } : {}),
+    ...(safeMedian(mFatRel) !== undefined ? { medianFatRelativeError: safeMedian(mFatRel) } : {}),
+    ...(safeMean(pooledRel) !== undefined ? { meanZeroSafeMacroRelativeError: safeMean(pooledRel) } : {}),
+    zeroSafeEligiblePairs: pooledRel.length,
+    proteinEligibleCount: proteinRel.length,
+    carbsEligibleCount: carbsRel.length,
+    fatEligibleCount: fatRel.length,
+    proteinZeroTruthCount: proteinZeroAbs.length,
+    carbsZeroTruthCount: carbsZeroAbs.length,
+    fatZeroTruthCount: fatZeroAbs.length,
+    ...(safeMean(proteinZeroAbs) !== undefined ? { proteinZeroTruthMeanAbsoluteError: safeMean(proteinZeroAbs) } : {}),
+    ...(safeMedian(mProteinZeroAbs) !== undefined ? { proteinZeroTruthMedianAbsoluteError: safeMedian(mProteinZeroAbs) } : {}),
+    ...(safeMean(carbsZeroAbs) !== undefined ? { carbsZeroTruthMeanAbsoluteError: safeMean(carbsZeroAbs) } : {}),
+    ...(safeMedian(mCarbsZeroAbs) !== undefined ? { carbsZeroTruthMedianAbsoluteError: safeMedian(mCarbsZeroAbs) } : {}),
+    ...(safeMean(fatZeroAbs) !== undefined ? { fatZeroTruthMeanAbsoluteError: safeMean(fatZeroAbs) } : {}),
+    ...(safeMedian(mFatZeroAbs) !== undefined ? { fatZeroTruthMedianAbsoluteError: safeMedian(mFatZeroAbs) } : {}),
+    ...(safeMean(mealMassRel) !== undefined ? { meanMealMassRelativeError: safeMean(mealMassRel) } : {}),
+    ...(safeMedian(mMealMassRel) !== undefined ? { medianMealMassRelativeError: safeMedian(mMealMassRel) } : {}),
+    mealMassEligibleCount: mealMassRel.length,
+    parsedMealCount,
+    ...(safeMean(mealCarbDensityRel) !== undefined ? { meanMealCarbDensityRelativeError: safeMean(mealCarbDensityRel) } : {}),
+    ...(safeMean(mealFatDensityRel) !== undefined ? { meanMealFatDensityRelativeError: safeMean(mealFatDensityRel) } : {}),
+    mealCarbDensityEligibleCount: mealCarbDensityRel.length,
+    mealFatDensityEligibleCount: mealFatDensityRel.length,
+    mealDensityCoverageCount,
+  };
 
   return {
     totalCases,
@@ -294,5 +394,6 @@ export function aggregateNutritionResults(
     unsafeCompletionCount,
     failuresByCategory,
     failuresByCode,
+    ...zeroSafeSummary,
   };
 }

@@ -391,9 +391,73 @@ const NumericMetricSchema = z.object({
 
 // ── Case result ──────────────────────────────────────────────────────────────
 
+export const CALIBRATION_PROTOCOL_VERSION = 'calorix-gemini-38-calibration-v1' as const;
+
+const CalibrationThinkingLevelSchema = z.enum(['LOW', 'MEDIUM']);
+
+const CalibrationStageSchema = z.enum(['preflight', 'development', 'validation', 'benchmark']);
+
+export const CalibrationInfoSchema = z.object({
+  protocolVersion: z.literal(CALIBRATION_PROTOCOL_VERSION),
+  project: z.string().min(1),
+  location: z.string().min(1),
+  model: z.string().min(1),
+  thinkingLevel: CalibrationThinkingLevelSchema,
+  schemaHash: z.string().regex(/^[0-9a-f]{64}$/),
+  stage: CalibrationStageSchema,
+  imageCallsReserved: z.number().int().nonnegative().max(300),
+  imageCallsCompleted: z.number().int().nonnegative(),
+  imageCallsFailed: z.number().int().nonnegative(),
+});
+
+const ZeroSafeSummaryFields = {
+  medianProteinRelativeError: z.number().finite().nonnegative().optional(),
+  medianCarbsRelativeError: z.number().finite().nonnegative().optional(),
+  medianFatRelativeError: z.number().finite().nonnegative().optional(),
+  meanZeroSafeMacroRelativeError: z.number().finite().nonnegative().optional(),
+  zeroSafeEligiblePairs: z.number().int().nonnegative().optional(),
+  proteinEligibleCount: z.number().int().nonnegative().optional(),
+  carbsEligibleCount: z.number().int().nonnegative().optional(),
+  fatEligibleCount: z.number().int().nonnegative().optional(),
+  proteinZeroTruthCount: z.number().int().nonnegative().optional(),
+  carbsZeroTruthCount: z.number().int().nonnegative().optional(),
+  fatZeroTruthCount: z.number().int().nonnegative().optional(),
+  proteinZeroTruthMeanAbsoluteError: z.number().finite().nonnegative().optional(),
+  proteinZeroTruthMedianAbsoluteError: z.number().finite().nonnegative().optional(),
+  carbsZeroTruthMeanAbsoluteError: z.number().finite().nonnegative().optional(),
+  carbsZeroTruthMedianAbsoluteError: z.number().finite().nonnegative().optional(),
+  fatZeroTruthMeanAbsoluteError: z.number().finite().nonnegative().optional(),
+  fatZeroTruthMedianAbsoluteError: z.number().finite().nonnegative().optional(),
+  meanMealMassRelativeError: z.number().finite().nonnegative().optional(),
+  medianMealMassRelativeError: z.number().finite().nonnegative().optional(),
+  mealMassEligibleCount: z.number().int().nonnegative().optional(),
+  parsedMealCount: z.number().int().nonnegative().optional(),
+  meanMealCarbDensityRelativeError: z.number().finite().nonnegative().optional(),
+  meanMealFatDensityRelativeError: z.number().finite().nonnegative().optional(),
+  mealCarbDensityEligibleCount: z.number().int().nonnegative().optional(),
+  mealFatDensityEligibleCount: z.number().int().nonnegative().optional(),
+  mealDensityCoverageCount: z.number().int().nonnegative().optional(),
+};
+
+const REQUIRED_ZERO_SAFE_SUMMARY_KEYS = [
+  'zeroSafeEligiblePairs',
+  'proteinEligibleCount',
+  'carbsEligibleCount',
+  'fatEligibleCount',
+  'proteinZeroTruthCount',
+  'carbsZeroTruthCount',
+  'fatZeroTruthCount',
+  'mealMassEligibleCount',
+  'parsedMealCount',
+  'mealCarbDensityEligibleCount',
+  'mealFatDensityEligibleCount',
+  'mealDensityCoverageCount',
+] as const;
+
 export const NutritionCaseResultSchema = z.object({
   caseId: z.string(),
   prediction: NutritionPredictionSchema,
+  truth: NutritionTruthSchema.optional(),
   numeric: z.object({
     kcal: NumericMetricSchema.optional(),
     proteinG: NumericMetricSchema.optional(),
@@ -516,7 +580,20 @@ export const BaselineComparisonSchema = z.object({
   }
 });
 
-export const NutritionEvalReportSchema = z.object({
+function inferHistoricalVisibilityCounts(value: unknown): unknown {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
+  const record = value as Record<string, unknown>;
+  if (record['publicCases'] !== undefined || record['privateCases'] !== undefined) return value;
+  if (record['calibration'] !== undefined) return value;
+  const cases = record['cases'];
+  const samples = record['samples'];
+  if (!Array.isArray(cases)) return value;
+  if (typeof samples !== 'number' || !Number.isInteger(samples) || samples <= 0) return value;
+  if (cases.length % samples !== 0) return value;
+  return { ...record, publicCases: cases.length / samples, privateCases: 0 };
+}
+
+export const NutritionEvalReportSchema = z.preprocess(inferHistoricalVisibilityCounts, z.object({
   version: z.literal(1),
   runId: z.string().trim().min(1),
   timestamp: z.string().datetime({ offset: true }),
@@ -530,6 +607,7 @@ export const NutritionEvalReportSchema = z.object({
   publicCases: z.number().int().nonnegative(),
   privateCases: z.number().int().nonnegative(),
   comparison: BaselineComparisonSchema.optional(),
+  calibration: CalibrationInfoSchema.optional(),
   summary: z.object({
     totalCases: z.number().int().nonnegative(),
     runCases: z.number().int().nonnegative(),
@@ -552,6 +630,7 @@ export const NutritionEvalReportSchema = z.object({
       median: z.number().finite().nonnegative(),
       p90: z.number().finite().nonnegative(),
     }).optional(),
+    ...ZeroSafeSummaryFields,
   }),
   cases: z.array(NutritionCaseResultSchema),
 }).superRefine((report, context) => {
@@ -568,7 +647,113 @@ export const NutritionEvalReportSchema = z.object({
   if (report.summary.parseCases > report.summary.runCases) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'parseCases'], message: 'parse cases cannot exceed run cases' });
   }
-});
+  const calibration = report.calibration;
+  if (calibration?.protocolVersion !== CALIBRATION_PROTOCOL_VERSION) return;
+  if (calibration.project !== 'calorix-xurschnell') {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', 'project'], message: 'calibration project must be calorix-xurschnell' });
+  }
+  if (calibration.location !== 'us') {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', 'location'], message: 'calibration location must be us' });
+  }
+  if (calibration.model !== 'gemini-3.8-flash') {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', 'model'], message: 'calibration model must be gemini-3.8-flash' });
+  }
+  if (report.adapterModelId !== calibration.model) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['adapterModelId'], message: 'adapterModelId must equal calibration.model' });
+  }
+  if (calibration.imageCallsCompleted + calibration.imageCallsFailed > calibration.imageCallsReserved) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', 'imageCallsCompleted'], message: 'completed + failed cannot exceed reserved' });
+  }
+  if (calibration.imageCallsReserved > report.summary.runCases) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', 'imageCallsReserved'], message: 'reserved cannot exceed runCases' });
+  }
+  const s = report.summary;
+
+  // Zero-safe count fields are required (not merely optional) in calibration
+  // reports; missing counts are flagged here, and a type-safe local record is
+  // used below so subsequent arithmetic never sees `number | undefined`.
+  const zeroSafeCounts = Object.fromEntries(
+    REQUIRED_ZERO_SAFE_SUMMARY_KEYS.map((key) => {
+      const value = s[key];
+      if (value === undefined) {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', key], message: `${key} is required in calibration reports` });
+      }
+      return [key, value ?? 0];
+    }),
+  ) as Record<(typeof REQUIRED_ZERO_SAFE_SUMMARY_KEYS)[number], number>;
+
+  const {
+    zeroSafeEligiblePairs,
+    proteinEligibleCount,
+    carbsEligibleCount,
+    fatEligibleCount,
+    proteinZeroTruthCount,
+    carbsZeroTruthCount,
+    fatZeroTruthCount,
+    mealMassEligibleCount,
+    parsedMealCount,
+    mealCarbDensityEligibleCount,
+    mealFatDensityEligibleCount,
+    mealDensityCoverageCount,
+  } = zeroSafeCounts;
+
+  if (zeroSafeEligiblePairs !== proteinEligibleCount + carbsEligibleCount + fatEligibleCount) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'zeroSafeEligiblePairs'], message: 'zeroSafeEligiblePairs must equal the sum of per-macro eligible counts' });
+  }
+  if (proteinEligibleCount + proteinZeroTruthCount > s.parseCases) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'proteinEligibleCount'], message: 'macro eligible + zeroTruth cannot exceed parseCases' });
+  }
+  if (carbsEligibleCount + carbsZeroTruthCount > s.parseCases) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'carbsEligibleCount'], message: 'macro eligible + zeroTruth cannot exceed parseCases' });
+  }
+  if (fatEligibleCount + fatZeroTruthCount > s.parseCases) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'fatEligibleCount'], message: 'macro eligible + zeroTruth cannot exceed parseCases' });
+  }
+  if (mealMassEligibleCount > parsedMealCount) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'mealMassEligibleCount'], message: 'mealMassEligibleCount cannot exceed parsedMealCount' });
+  }
+  if (parsedMealCount > s.parseCases) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'parsedMealCount'], message: 'parsedMealCount cannot exceed parseCases' });
+  }
+  if (mealCarbDensityEligibleCount > mealDensityCoverageCount) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'mealCarbDensityEligibleCount'], message: 'density eligible cannot exceed coverage' });
+  }
+  if (mealFatDensityEligibleCount > mealDensityCoverageCount) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'mealFatDensityEligibleCount'], message: 'density eligible cannot exceed coverage' });
+  }
+  if (mealDensityCoverageCount > parsedMealCount) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'mealDensityCoverageCount'], message: 'coverage cannot exceed parsedMealCount' });
+  }
+  for (const [index, result] of report.cases.entries()) {
+    if (result.truth === undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['cases', index, 'truth'], message: 'calibration cases require truth' });
+    }
+  }
+  const conditionalMetricPairs: Array<[string, string, number]> = [
+    ['medianProteinRelativeError', 'proteinEligibleCount', proteinEligibleCount],
+    ['medianCarbsRelativeError', 'carbsEligibleCount', carbsEligibleCount],
+    ['medianFatRelativeError', 'fatEligibleCount', fatEligibleCount],
+    ['meanZeroSafeMacroRelativeError', 'zeroSafeEligiblePairs', zeroSafeEligiblePairs],
+    ['proteinZeroTruthMeanAbsoluteError', 'proteinZeroTruthCount', proteinZeroTruthCount],
+    ['proteinZeroTruthMedianAbsoluteError', 'proteinZeroTruthCount', proteinZeroTruthCount],
+    ['carbsZeroTruthMeanAbsoluteError', 'carbsZeroTruthCount', carbsZeroTruthCount],
+    ['carbsZeroTruthMedianAbsoluteError', 'carbsZeroTruthCount', carbsZeroTruthCount],
+    ['fatZeroTruthMeanAbsoluteError', 'fatZeroTruthCount', fatZeroTruthCount],
+    ['fatZeroTruthMedianAbsoluteError', 'fatZeroTruthCount', fatZeroTruthCount],
+    ['meanMealMassRelativeError', 'mealMassEligibleCount', mealMassEligibleCount],
+    ['medianMealMassRelativeError', 'mealMassEligibleCount', mealMassEligibleCount],
+    ['meanMealCarbDensityRelativeError', 'mealCarbDensityEligibleCount', mealCarbDensityEligibleCount],
+    ['meanMealFatDensityRelativeError', 'mealFatDensityEligibleCount', mealFatDensityEligibleCount],
+  ];
+  for (const [metric, countKey, count] of conditionalMetricPairs) {
+    if (count === 0 && report.summary[metric as keyof typeof report.summary] !== undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', metric], message: `${metric} must be absent when ${countKey} is zero` });
+    }
+    if (count > 0 && report.summary[metric as keyof typeof report.summary] === undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', metric], message: `${metric} is required when ${countKey} is positive` });
+    }
+  }
+}));
 
 // ── Manifest ─────────────────────────────────────────────────────────────────
 
@@ -597,6 +782,9 @@ export type NutritionCaseResult = z.infer<typeof NutritionCaseResultSchema>;
 export type NutritionEvalReport = z.infer<typeof NutritionEvalReportSchema>;
 export type BaselineComparison = z.infer<typeof BaselineComparisonSchema>;
 export type BaselineDeltas = z.infer<typeof BaselineDeltasSchema>;
+export type CalibrationInfo = z.infer<typeof CalibrationInfoSchema>;
+export type CalibrationStage = CalibrationInfo['stage'];
+export type CalibrationThinkingLevel = CalibrationInfo['thinkingLevel'];
 
 export function parseNutritionEvalManifest(
   value: unknown,

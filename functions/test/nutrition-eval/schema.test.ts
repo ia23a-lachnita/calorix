@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import {
+  CalibrationInfoSchema,
   NutritionCaseResultSchema,
+  NutritionEvalReportSchema,
   NutritionPredictionSchema,
   parseNutritionEvalManifest,
 } from '../../src/nutrition-eval/schema';
@@ -602,5 +607,362 @@ describe('Slice F diagnostic schema contract', () => {
         packageReference: { ...completeDiagnostics.packageReference, producer: 'secret' },
       }, 'label'),
     }).success).toBe(false);
+  });
+});
+
+describe('Task 2 calibration identity and zero-safe schema', () => {
+  const testDir = dirname(fileURLToPath(import.meta.url));
+  const historicalPath = join(testDir, 'fixtures', 'historical-report-v1.json');
+
+  function zeroSafeSummary() {
+    return {
+      medianProteinRelativeError: 0.1,
+      medianCarbsRelativeError: 0.2,
+      medianFatRelativeError: 0.3,
+      meanZeroSafeMacroRelativeError: 0,
+      zeroSafeEligiblePairs: 3,
+      proteinEligibleCount: 1,
+      carbsEligibleCount: 1,
+      fatEligibleCount: 1,
+      proteinZeroTruthCount: 0,
+      carbsZeroTruthCount: 0,
+      fatZeroTruthCount: 0,
+      parsedMealCount: 1,
+      mealMassEligibleCount: 0,
+      mealCarbDensityEligibleCount: 0,
+      mealFatDensityEligibleCount: 0,
+      mealDensityCoverageCount: 0,
+    };
+  }
+
+  function calibrationIdentity(overrides: Record<string, unknown> = {}) {
+    return {
+      protocolVersion: 'calorix-gemini-38-calibration-v1',
+      project: 'calorix-xurschnell',
+      location: 'us',
+      model: 'gemini-3.8-flash',
+      thinkingLevel: 'LOW',
+      schemaHash: 'a'.repeat(64),
+      stage: 'development',
+      imageCallsReserved: 1,
+      imageCallsCompleted: 1,
+      imageCallsFailed: 0,
+      ...overrides,
+    };
+  }
+
+  function validCalibrationReport(overrides: Record<string, unknown> = {}) {
+    const truth = {
+      basis: 'portion', amount: 1, unit: 'portion',
+      kcal: 100, proteinG: 10, carbsG: 20, fatG: 5,
+    };
+    const base = {
+      version: 1,
+      runId: 'calibration-run',
+      timestamp: '2026-09-23T12:00:00.000Z',
+      datasetId: 'calorix-n5k-calibration-v1',
+      datasetHash: 'b'.repeat(64),
+      adapterModelId: 'gemini-3.8-flash',
+      promptHash: 'c'.repeat(64),
+      codeSha: 'd'.repeat(40),
+      samples: 1,
+      baselineOnly: true,
+      publicCases: 1,
+      privateCases: 0,
+      calibration: calibrationIdentity(),
+      summary: {
+        totalCases: 1,
+        runCases: 1,
+        parseCases: 1,
+        basisAccuracyDenom: 0,
+        barcodeAccuracyDenom: 0,
+        medianAbsoluteCalorieError: 0,
+        medianRelativeCalorieError: 0,
+        p90AbsoluteCalorieError: 0,
+        p90RelativeCalorieError: 0,
+        meanMacroRelativeError: 0.2,
+        reviewRate: 0,
+        catastrophicCount: 0,
+        unsafeCompletionCount: 0,
+        failuresByCategory: {},
+        failuresByCode: {},
+        ...zeroSafeSummary(),
+      },
+      cases: [
+        {
+          caseId: 'calibration-case',
+          prediction: { parseStatus: 'success', source: 'meal', kcal: 100, proteinG: 10, carbsG: 20, fatG: 5, decision: 'complete' },
+          truth,
+          numeric: {
+            kcal: { ratioToTruth: 1, absoluteError: 0, relativeError: 0 },
+            proteinG: { ratioToTruth: 1, absoluteError: 0, relativeError: 0 },
+            carbsG: { ratioToTruth: 1, absoluteError: 0, relativeError: 0 },
+            fatG: { ratioToTruth: 1, absoluteError: 0, relativeError: 0 },
+          },
+          safety: { catastrophicCalorieMiss: false, unsafeCompletion: false },
+          booleans: {},
+        },
+      ],
+      ...overrides,
+    };
+    return base;
+  }
+
+  it('parses the historical v1 fixture unchanged', () => {
+    const source = readFileSync(historicalPath, 'utf8');
+    const parsed = NutritionEvalReportSchema.parse(JSON.parse(source));
+    expect(parsed.version).toBe(1);
+    expect(parsed.runId).toBe('run-2026-09-02T04-44-02-551Z');
+    expect(parsed.cases).toHaveLength(20);
+    expect(parsed.publicCases).toBe(20);
+    expect(parsed.privateCases).toBe(0);
+    expect(parsed.calibration).toBeUndefined();
+  });
+
+  it.each([
+    ['only publicCases', (raw: Record<string, unknown>) => ({ ...raw, publicCases: 20 })],
+    ['only privateCases', (raw: Record<string, unknown>) => ({ ...raw, privateCases: 0 })],
+  ])('rejects version-1 reports missing %s', (_label, withOneField) => {
+    const source = readFileSync(historicalPath, 'utf8');
+    const raw = JSON.parse(source) as Record<string, unknown>;
+    expect(NutritionEvalReportSchema.safeParse(withOneField(raw)).success).toBe(false);
+  });
+
+  it('rejects calibration reports missing density eligible denominators', () => {
+    const complete = validCalibrationReport() as Record<string, unknown>;
+    const summary = { ...(complete['summary'] as Record<string, unknown>) };
+    delete summary['mealCarbDensityEligibleCount'];
+    delete summary['mealFatDensityEligibleCount'];
+    expect(NutritionEvalReportSchema.safeParse({ ...complete, summary }).success).toBe(false);
+  });
+
+  it('accepts a complete calibration report with identity, truth, call accounting, and zero-safe summary', () => {
+    expect(NutritionEvalReportSchema.safeParse(validCalibrationReport()).success).toBe(true);
+  });
+
+  it.each([
+    ['project', { calibration: calibrationIdentity({ project: undefined }) }],
+    ['location', { calibration: calibrationIdentity({ location: undefined }) }],
+    ['model', { calibration: calibrationIdentity({ model: undefined }) }],
+    ['thinkingLevel', { calibration: calibrationIdentity({ thinkingLevel: undefined }) }],
+    ['schemaHash', { calibration: calibrationIdentity({ schemaHash: undefined }) }],
+    ['stage', { calibration: calibrationIdentity({ stage: undefined }) }],
+    ['call counts', { calibration: { ...calibrationIdentity(), imageCallsReserved: undefined } }],
+    ['truth', { cases: [{ caseId: 'calibration-case', prediction: { parseStatus: 'success', source: 'meal', kcal: 100, decision: 'complete' }, numeric: {}, safety: { catastrophicCalorieMiss: false, unsafeCompletion: false }, booleans: {} }] }],
+    ['zero-safe summary', { summary: { totalCases: 1, runCases: 1, parseCases: 1, basisAccuracyDenom: 0, barcodeAccuracyDenom: 0, medianAbsoluteCalorieError: 0, medianRelativeCalorieError: 0, p90AbsoluteCalorieError: 0, p90RelativeCalorieError: 0, meanMacroRelativeError: 0.2, reviewRate: 0, catastrophicCount: 0, unsafeCompletionCount: 0, failuresByCategory: {}, failuresByCode: {} } }],
+  ])('rejects calibration reports missing %s', (_label, override) => {
+    expect(NutritionEvalReportSchema.safeParse(validCalibrationReport(override)).success).toBe(false);
+  });
+
+  it('rejects calibration reports with both publicCases and privateCases omitted', () => {
+    const report = validCalibrationReport() as Record<string, unknown>;
+    delete report['publicCases'];
+    delete report['privateCases'];
+    expect(NutritionEvalReportSchema.safeParse(report).success).toBe(false);
+  });
+
+  it.each([
+    ['wrong project', calibrationIdentity({ project: 'other-project' })],
+    ['wrong location', calibrationIdentity({ location: 'global' })],
+    ['wrong model', calibrationIdentity({ model: 'gemini-2.5-flash' })],
+    ['wrong thinking level', calibrationIdentity({ thinkingLevel: 'HIGH' })],
+    ['wrong protocol', calibrationIdentity({ protocolVersion: 'other-v1' })],
+  ])('rejects calibration reports with %s', (_label, calibration) => {
+    expect(NutritionEvalReportSchema.safeParse(validCalibrationReport({ calibration })).success).toBe(false);
+  });
+});
+
+describe('Task 2 correction RED: calibration bounds and conditional population metrics', () => {
+function correctedSummary(overrides: Record<string, unknown> = {}) {
+    return {
+      totalCases: 1,
+      runCases: 1,
+      parseCases: 1,
+      basisAccuracyDenom: 0,
+      barcodeAccuracyDenom: 0,
+      medianAbsoluteCalorieError: 0,
+      medianRelativeCalorieError: 0,
+      p90AbsoluteCalorieError: 0,
+      p90RelativeCalorieError: 0,
+      meanMacroRelativeError: 0.2,
+      reviewRate: 0,
+      catastrophicCount: 0,
+      unsafeCompletionCount: 0,
+      failuresByCategory: {},
+      failuresByCode: {},
+      medianProteinRelativeError: 0.1,
+      medianCarbsRelativeError: 0.2,
+      medianFatRelativeError: 0.3,
+      meanZeroSafeMacroRelativeError: 0.2,
+      zeroSafeEligiblePairs: 3,
+      proteinEligibleCount: 1,
+      carbsEligibleCount: 1,
+      fatEligibleCount: 1,
+      proteinZeroTruthCount: 0,
+      carbsZeroTruthCount: 0,
+      fatZeroTruthCount: 0,
+      meanMealMassRelativeError: 0.25,
+      medianMealMassRelativeError: 0.25,
+      mealMassEligibleCount: 1,
+      parsedMealCount: 1,
+      meanMealCarbDensityRelativeError: 0.04,
+      meanMealFatDensityRelativeError: 0.36,
+      mealCarbDensityEligibleCount: 1,
+      mealFatDensityEligibleCount: 1,
+      mealDensityCoverageCount: 1,
+      ...overrides,
+    };
+  }
+
+  function correctedCalibrationIdentity(overrides: Record<string, unknown> = {}) {
+    return {
+      protocolVersion: 'calorix-gemini-38-calibration-v1',
+      project: 'calorix-xurschnell',
+      location: 'us',
+      model: 'gemini-3.8-flash',
+      thinkingLevel: 'LOW',
+      schemaHash: 'a'.repeat(64),
+      stage: 'development',
+      imageCallsReserved: 1,
+      imageCallsCompleted: 1,
+      imageCallsFailed: 0,
+      ...overrides,
+    };
+  }
+
+  function correctedReport(overrides: Record<string, unknown> = {}) {
+    const truth = {
+      basis: 'portion', amount: 1, unit: 'portion',
+      kcal: 100, proteinG: 10, carbsG: 20, fatG: 5, referenceMassG: 400,
+    };
+    const base: Record<string, unknown> = {
+      version: 1,
+      runId: 'calibration-run',
+      timestamp: '2026-09-23T12:00:00.000Z',
+      datasetId: 'calorix-n5k-calibration-v1',
+      datasetHash: 'b'.repeat(64),
+      adapterModelId: 'gemini-3.8-flash',
+      promptHash: 'c'.repeat(64),
+      codeSha: 'd'.repeat(40),
+      samples: 1,
+      baselineOnly: true,
+      publicCases: 1,
+      privateCases: 0,
+      calibration: correctedCalibrationIdentity(),
+      summary: correctedSummary(),
+      cases: [
+        {
+          caseId: 'calibration-case',
+          prediction: { parseStatus: 'success', source: 'meal', kcal: 100, proteinG: 10, carbsG: 20, fatG: 5, decision: 'complete' },
+          truth,
+          numeric: {
+            kcal: { ratioToTruth: 1, absoluteError: 0, relativeError: 0 },
+            proteinG: { ratioToTruth: 1, absoluteError: 0, relativeError: 0 },
+            carbsG: { ratioToTruth: 1, absoluteError: 0, relativeError: 0 },
+            fatG: { ratioToTruth: 1, absoluteError: 0, relativeError: 0 },
+          },
+          safety: { catastrophicCalorieMiss: false, unsafeCompletion: false },
+          booleans: {},
+          diagnostics: {
+            mealMassG: { predicted: 500, truth: 400, absoluteError: 100, ratioToTruth: 1.25, relativeError: 0.25 },
+            mealDensityPer100: {
+              kcal: { predicted: 25, truth: 25, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+              proteinG: { predicted: 2.5, truth: 2.5, absoluteError: 0, ratioToTruth: 1, relativeError: 0 },
+              carbsG: { predicted: 5.2, truth: 5, absoluteError: 0.2, ratioToTruth: 1.04, relativeError: 0.04 },
+              fatG: { predicted: 1.7, truth: 1.25, absoluteError: 0.45, ratioToTruth: 1.36, relativeError: 0.36 },
+            },
+            mealDominantDriver: 'mass_dominated',
+          },
+        },
+      ],
+      ...overrides,
+    };
+    return base;
+  }
+
+  it('accepts a possible one-case calibration report with conditional metrics omitted for zero counts', () => {
+    expect(NutritionEvalReportSchema.safeParse(correctedReport()).success).toBe(true);
+  });
+
+  it('requires adapterModelId to equal calibration.model', () => {
+    expect(NutritionEvalReportSchema.safeParse(
+      correctedReport({ adapterModelId: 'gemini-2.5-flash' }),
+    ).success).toBe(false);
+  });
+
+  it('rejects completed+failed exceeding reserved', () => {
+    expect(NutritionEvalReportSchema.safeParse(
+      correctedReport({ calibration: correctedCalibrationIdentity({ imageCallsReserved: 1, imageCallsCompleted: 1, imageCallsFailed: 1 }) }),
+    ).success).toBe(false);
+  });
+
+  it('rejects reserved exceeding runCases', () => {
+    expect(NutritionEvalReportSchema.safeParse(
+      correctedReport({ calibration: correctedCalibrationIdentity({ imageCallsReserved: 2, imageCallsCompleted: 1, imageCallsFailed: 0 }) }),
+    ).success).toBe(false);
+  });
+
+  it('rejects imageCallsReserved above the 300 ceiling in isolation', () => {
+    expect(CalibrationInfoSchema.safeParse(
+      correctedCalibrationIdentity({ imageCallsReserved: 301, imageCallsCompleted: 200, imageCallsFailed: 0 }),
+    ).success).toBe(false);
+    expect(CalibrationInfoSchema.safeParse(
+      correctedCalibrationIdentity({ imageCallsReserved: 300, imageCallsCompleted: 200, imageCallsFailed: 0 }),
+    ).success).toBe(true);
+  });
+
+  it('requires zeroSafeEligiblePairs to equal the sum of per-macro eligible counts', () => {
+    expect(NutritionEvalReportSchema.safeParse(
+      correctedReport({ summary: correctedSummary({ zeroSafeEligiblePairs: 2 }) }),
+    ).success).toBe(false);
+  });
+
+  it('rejects per-macro eligible+zeroTruth exceeding parseCases', () => {
+    expect(NutritionEvalReportSchema.safeParse(
+      correctedReport({ summary: correctedSummary({ proteinEligibleCount: 1, proteinZeroTruthCount: 1, zeroSafeEligiblePairs: 3 }) }),
+    ).success).toBe(false);
+  });
+
+  it('rejects mealMassEligible exceeding parsedMealCount and parsedMealCount exceeding parseCases', () => {
+    expect(NutritionEvalReportSchema.safeParse(
+      correctedReport({ summary: correctedSummary({ mealMassEligibleCount: 2, parsedMealCount: 1 }) }),
+    ).success).toBe(false);
+    expect(NutritionEvalReportSchema.safeParse(
+      correctedReport({ summary: correctedSummary({ parsedMealCount: 2, mealMassEligibleCount: 2, mealDensityCoverageCount: 2, mealCarbDensityEligibleCount: 2, mealFatDensityEligibleCount: 2 }) }),
+    ).success).toBe(false);
+  });
+
+  it('rejects density eligible exceeding coverage and coverage exceeding parsedMealCount', () => {
+    expect(NutritionEvalReportSchema.safeParse(
+      correctedReport({ summary: correctedSummary({ mealCarbDensityEligibleCount: 2 }) }),
+    ).success).toBe(false);
+    expect(NutritionEvalReportSchema.safeParse(
+      correctedReport({ summary: correctedSummary({ mealDensityCoverageCount: 2, mealMassEligibleCount: 1, mealCarbDensityEligibleCount: 1, mealFatDensityEligibleCount: 1 }) }),
+    ).success).toBe(false);
+  });
+
+  it('requires counts while omitting population metrics for zero counts', () => {
+    const summary = correctedSummary() as Record<string, unknown>;
+    delete summary['proteinEligibleCount'];
+    expect(NutritionEvalReportSchema.safeParse(correctedReport({ summary })).success).toBe(false);
+    // Zero-count population metric must be absent.
+    expect(NutritionEvalReportSchema.safeParse(
+      correctedReport({ summary: correctedSummary({ proteinZeroTruthMeanAbsoluteError: 0 }) }),
+    ).success).toBe(false);
+  });
+
+  it('requires population metrics when counts are positive', () => {
+    const summary = correctedSummary() as Record<string, unknown>;
+    delete summary['medianProteinRelativeError'];
+    expect(NutritionEvalReportSchema.safeParse(correctedReport({ summary })).success).toBe(false);
+    const noPooled = correctedSummary() as Record<string, unknown>;
+    delete noPooled['meanZeroSafeMacroRelativeError'];
+    expect(NutritionEvalReportSchema.safeParse(correctedReport({ summary: noPooled })).success).toBe(false);
+    const noMass = correctedSummary() as Record<string, unknown>;
+    delete noMass['meanMealMassRelativeError'];
+    expect(NutritionEvalReportSchema.safeParse(correctedReport({ summary: noMass })).success).toBe(false);
+    const noCarbDensity = correctedSummary() as Record<string, unknown>;
+    delete noCarbDensity['meanMealCarbDensityRelativeError'];
+    expect(NutritionEvalReportSchema.safeParse(correctedReport({ summary: noCarbDensity })).success).toBe(false);
   });
 });

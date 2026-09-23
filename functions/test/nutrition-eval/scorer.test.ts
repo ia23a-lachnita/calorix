@@ -632,3 +632,220 @@ describe('Slice F diagnostic scoring', () => {
     expect(enriched.booleans).toEqual(plain.booleans);
   });
 });
+
+describe('Task 2 zero-safe calibration scoring', () => {
+  const zeroSafeBase: NutritionEvalCase = {
+    ...kcal100Case,
+    truth: { ...kcal100Case.truth, referenceMassG: 400 },
+  };
+
+  function mealOutcome(
+    id: string,
+    pred: { proteinG?: number; carbsG?: number; fatG?: number; kcal?: number },
+  ) {
+    const evalCase = { ...kcal100Case, id };
+    return scoreNutritionCase(evalCase, ok({
+      kcal: pred.kcal ?? 100,
+      proteinG: pred.proteinG,
+      carbsG: pred.carbsG,
+      fatG: pred.fatG,
+    }));
+  }
+
+  it('stamps exact truth onto newly scored results', () => {
+    const r = scoreNutritionCase(kcal100Case, ok({ kcal: 100, proteinG: 10, carbsG: 20, fatG: 5 }));
+    expect(r.truth).toEqual(kcal100Case.truth);
+  });
+
+  it('computes positive-truth per-macro medians and pooled eligible mean excluding zero truth', () => {
+    // Hand calculation:
+    // A: protein |11-10|/10=0.1, carbs |24-20|/20=0.2, fat |6.5-5|/5=0.3
+    // B: protein |12-10|/10=0.2, carbs |22-20|/20=0.1, fat |7-5|/5=0.4
+    // C: protein |9-10|/10=0.1, carbs |26-20|/20=0.3, fat |4-5|/5=0.2
+    // protein sorted [0.1,0.1,0.2] median 0.1
+    // carbs sorted [0.1,0.2,0.3] median 0.2
+    // fat sorted [0.2,0.3,0.4] median 0.3
+    // pooled sum 0.6+0.7+0.6=1.9 over 9 pairs mean 0.2111111111111111
+    const a = mealOutcome('zs-a', { proteinG: 11, carbsG: 24, fatG: 6.5 });
+    const b = mealOutcome('zs-b', { proteinG: 12, carbsG: 22, fatG: 7 });
+    const c = mealOutcome('zs-c', { proteinG: 9, carbsG: 26, fatG: 4 });
+    // Zero-truth macro with nonzero prediction: excluded from relative, retained as absolute.
+    const zero = scoreNutritionCase(pkgCase, ok({ proteinG: 5, fatG: 2 }));
+    const s = aggregateNutritionResults([a, b, c, zero]);
+    expect(s.medianProteinRelativeError).toBeCloseTo(0.1, 8);
+    expect(s.medianCarbsRelativeError).toBeCloseTo(0.2, 8);
+    expect(s.medianFatRelativeError).toBeCloseTo(0.3, 8);
+    expect(s.meanZeroSafeMacroRelativeError).toBeCloseTo(1.9 / 9, 8);
+    expect(s.zeroSafeEligiblePairs).toBe(9);
+    expect(s.proteinEligibleCount).toBe(3);
+    expect(s.carbsEligibleCount).toBe(3);
+    expect(s.fatEligibleCount).toBe(3);
+  });
+
+  it('retains zero-truth absolute errors and counts while excluding them from relative metrics', () => {
+    const zero = scoreNutritionCase(pkgCase, ok({ proteinG: 5, fatG: 2 }));
+    const s = aggregateNutritionResults([zero]);
+    expect(s.proteinZeroTruthCount).toBe(1);
+    expect(s.fatZeroTruthCount).toBe(1);
+    expect(s.carbsZeroTruthCount).toBe(0);
+    expect(s.proteinZeroTruthMeanAbsoluteError).toBeCloseTo(5, 8);
+    expect(s.proteinZeroTruthMedianAbsoluteError).toBeCloseTo(5, 8);
+    expect(s.fatZeroTruthMeanAbsoluteError).toBeCloseTo(2, 8);
+    expect(s.fatZeroTruthMedianAbsoluteError).toBeCloseTo(2, 8);
+    // Zero truth contributes no eligible relative pairs.
+    expect(s.zeroSafeEligiblePairs).toBe(0);
+    expect(s.meanZeroSafeMacroRelativeError).toBeUndefined();
+  });
+
+  it('computes meal-only mass and density aggregates with explicit coverage', () => {
+    // M1: mass 500 vs 400 -> rel 0.25; densities kcal 24/25 rel 0.04, protein 1.6/2.5 rel 0.36,
+    // carbs 5/5 rel 0, fat 0.8/1.25 rel 0.36
+    // M2: mass 400 vs 400 -> rel 0; densities kcal 12.5/25 rel 0.5, protein 2.0/2.5 rel 0.2,
+    // carbs 6.25/5 rel 0.25, fat 1.0/1.25 rel 0.2
+    // mean mass (0.25+0)/2=0.125 median 0.125; mean carb density (0+0.25)/2=0.125;
+    // mean fat density (0.36+0.2)/2=0.28
+    function diagnosticMeal(id: string, estimatedTotalMassG: number, raw: { kcal: number; proteinG: number; carbsG: number; fatG: number }) {
+      return scoreNutritionCase({ ...zeroSafeBase, id }, {
+        parseStatus: 'success', source: 'meal', decision: 'complete',
+        kcal: 100, proteinG: 10, carbsG: 20, fatG: 5,
+        diagnostics: {
+          rawNutrients: raw,
+          detectedItemCount: 2,
+          estimatedTotalMassG,
+          declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion',
+        },
+      });
+    }
+    const m1 = diagnosticMeal('mass-1', 500, { kcal: 120, proteinG: 8, carbsG: 25, fatG: 4 });
+    const m2 = diagnosticMeal('mass-2', 400, { kcal: 50, proteinG: 8, carbsG: 25, fatG: 4 });
+    const barcode = scoreNutritionCase(pkgCase, { parseStatus: 'success', source: 'barcode', decision: 'complete', kcal: 138.6, proteinG: 0, carbsG: 34.98, fatG: 0, barcode: '5449000000996' });
+    const s = aggregateNutritionResults([m1, m2, barcode]);
+    expect(s.parsedMealCount).toBe(2);
+    expect(s.mealMassEligibleCount).toBe(2);
+    expect(s.meanMealMassRelativeError).toBeCloseTo(0.125, 8);
+    expect(s.medianMealMassRelativeError).toBeCloseTo(0.125, 8);
+    expect(s.meanMealCarbDensityRelativeError).toBeCloseTo(0.125, 8);
+    expect(s.meanMealFatDensityRelativeError).toBeCloseTo(0.28, 8);
+    expect(s.mealCarbDensityEligibleCount).toBe(2);
+    expect(s.mealFatDensityEligibleCount).toBe(2);
+    expect(s.mealDensityCoverageCount).toBe(2);
+  });
+
+  it('counts complete density diagnostics independent of zero-truth relative-error eligibility', () => {
+    // Truth has zero carbohydrate and zero fat: density metrics exist without
+    // relative errors, so means have no eligible pairs but coverage still counts
+    // the complete mealDensityPer100 diagnostic.
+    const zeroMacroBase: NutritionEvalCase = {
+      ...kcal100Case,
+      id: 'zero-macro-meal',
+      truth: {
+        basis: 'portion', amount: 1, unit: 'portion',
+        kcal: 100, proteinG: 10, carbsG: 0, fatG: 0,
+        referenceMassG: 400,
+      },
+    };
+    const r = scoreNutritionCase(zeroMacroBase, {
+      parseStatus: 'success', source: 'meal', decision: 'complete',
+      kcal: 100, proteinG: 10, carbsG: 0, fatG: 0,
+      diagnostics: {
+        rawNutrients: { kcal: 100, proteinG: 10, carbsG: 5, fatG: 2 },
+        detectedItemCount: 1,
+        estimatedTotalMassG: 400,
+        declaredBasis: 'portion', declaredAmount: 1, declaredUnit: 'portion',
+      },
+    });
+    expect(r.diagnostics?.mealDensityPer100).toBeDefined();
+    expect(r.diagnostics?.mealDensityPer100?.carbsG.relativeError).toBeUndefined();
+    expect(r.diagnostics?.mealDensityPer100?.fatG.relativeError).toBeUndefined();
+    const s = aggregateNutritionResults([r]);
+    expect(s.parsedMealCount).toBe(1);
+expect(s.mealCarbDensityEligibleCount).toBe(0);
+     expect(s.mealFatDensityEligibleCount).toBe(0);
+     expect(s.meanMealCarbDensityRelativeError).toBeUndefined();
+     expect(s.meanMealFatDensityRelativeError).toBeUndefined();
+     expect(s.mealDensityCoverageCount).toBe(1);
+   });
+
+  it('preserves legacy meanMacroRelativeError denominator semantics for sub-one truth', () => {
+    // mealCase fat truth 0.369, pred 0.5: abs 0.131, legacy rel 0.131/1=0.131
+    const r = scoreNutritionCase(mealCase, ok({ fatG: 0.5 }));
+    const s = aggregateNutritionResults([r]);
+    expect(s.meanMacroRelativeError).toBeCloseTo(0.131, 8);
+  });
+});
+
+describe('Task 2 correction RED: omitted empty population metrics', () => {
+  function mealOnly(id: string): ReturnType<typeof scoreNutritionCase> {
+    return scoreNutritionCase(
+      { ...kcal100Case, id },
+      { parseStatus: 'success', source: 'meal', decision: 'complete', kcal: 100, proteinG: 10, carbsG: 20, fatG: 5 },
+    );
+  }
+
+  it('omits pooled and per-macro medians when no eligible positive-truth pairs exist', () => {
+    const zero = scoreNutritionCase(pkgCase, { parseStatus: 'success', source: 'barcode', decision: 'complete', proteinG: 5, fatG: 2 });
+    const s = aggregateNutritionResults([zero]);
+    expect(s.zeroSafeEligiblePairs).toBe(0);
+    expect(s.proteinEligibleCount).toBe(0);
+    expect(s.carbsEligibleCount).toBe(0);
+    expect(s.fatEligibleCount).toBe(0);
+    expect(s.medianProteinRelativeError).toBeUndefined();
+    expect(s.medianCarbsRelativeError).toBeUndefined();
+    expect(s.medianFatRelativeError).toBeUndefined();
+    expect(s.meanZeroSafeMacroRelativeError).toBeUndefined();
+    expect('medianProteinRelativeError' in s).toBe(false);
+    expect('meanZeroSafeMacroRelativeError' in s).toBe(false);
+  });
+
+  it('omits zero-truth metrics for zero counts and requires them for positive counts', () => {
+    const zero = scoreNutritionCase(pkgCase, { parseStatus: 'success', source: 'barcode', decision: 'complete', proteinG: 5, fatG: 2 });
+    const s = aggregateNutritionResults([zero]);
+    // carbs zero count is 0 so its metrics must be absent.
+    expect(s.carbsZeroTruthCount).toBe(0);
+    expect(s.carbsZeroTruthMeanAbsoluteError).toBeUndefined();
+    expect(s.carbsZeroTruthMedianAbsoluteError).toBeUndefined();
+    // protein zero count is 1 so its metrics must be present.
+    expect(s.proteinZeroTruthCount).toBe(1);
+    expect(s.proteinZeroTruthMeanAbsoluteError).toBeCloseTo(5, 8);
+    expect(s.proteinZeroTruthMedianAbsoluteError).toBeCloseTo(5, 8);
+  });
+
+  it('omits meal mass and density means when there is no eligible meal evidence', () => {
+    const zero = scoreNutritionCase(pkgCase, { parseStatus: 'success', source: 'barcode', decision: 'complete', proteinG: 5, fatG: 2 });
+    const s = aggregateNutritionResults([zero]);
+    expect(s.parsedMealCount).toBe(0);
+    expect(s.mealMassEligibleCount).toBe(0);
+    expect(s.meanMealMassRelativeError).toBeUndefined();
+    expect(s.medianMealMassRelativeError).toBeUndefined();
+    expect(s.meanMealCarbDensityRelativeError).toBeUndefined();
+    expect(s.meanMealFatDensityRelativeError).toBeUndefined();
+    expect(s.mealCarbDensityEligibleCount).toBe(0);
+    expect(s.mealFatDensityEligibleCount).toBe(0);
+    expect(s.mealDensityCoverageCount).toBe(0);
+  });
+
+  it('omits empty results population metrics while keeping required counts', () => {
+    const s = aggregateNutritionResults([]);
+    expect(s.zeroSafeEligiblePairs).toBe(0);
+    expect(s.parsedMealCount).toBe(0);
+    expect(s.meanZeroSafeMacroRelativeError).toBeUndefined();
+    expect(s.medianProteinRelativeError).toBeUndefined();
+    expect(s.meanMealMassRelativeError).toBeUndefined();
+    expect(s.meanMealCarbDensityRelativeError).toBeUndefined();
+    expect(s.meanMealFatDensityRelativeError).toBeUndefined();
+  });
+
+  it('keeps required population metrics for a parsed meal without diagnostics coverage', () => {
+    const s = aggregateNutritionResults([mealOnly('plain-meal')]);
+    // Positive-truth macros are eligible, so pooled mean and medians are required.
+    expect(s.zeroSafeEligiblePairs).toBe(3);
+    expect(s.meanZeroSafeMacroRelativeError).toBeDefined();
+    expect(s.medianProteinRelativeError).toBeDefined();
+    // No meal diagnostics, so mass/density means must be absent but counts present.
+    expect(s.parsedMealCount).toBe(1);
+    expect(s.mealMassEligibleCount).toBe(0);
+    expect(s.meanMealMassRelativeError).toBeUndefined();
+    expect(s.mealCarbDensityEligibleCount).toBe(0);
+    expect(s.meanMealCarbDensityRelativeError).toBeUndefined();
+  });
+});
