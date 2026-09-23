@@ -99,7 +99,7 @@ export interface VisionGenerationOptions {
 - [x] **Step 2: Run RED.** Run `cd functions && npx vitest run test/genai-adapter.test.ts test/nutrition-eval/live-adapter.test.ts`. Expected: missing profile resolver/options and incorrect 3.x request config.
 - [x] **Step 3: Implement the minimum adapter changes.** Add a trailing optional `VisionGenerationOptions` parameter to `generateVision`; preserve every current caller and bypass profile resolution entirely when it is absent. Thread the frozen calibration options through `createLiveNutritionEvalAdapter`. Do not change prompts, response schema, parser, normalizer, model defaults, or generic request media labeling.
 - [x] **Step 4: Run GREEN and static checks.** Run `cd functions && npx vitest run test/genai-adapter.test.ts test/nutrition-eval/live-adapter.test.ts && npm run build && npm run lint`.
-- [ ] **Step 5: Review, track, commit, and push.** Verify `.mcp.json` hash, update status/checkboxes, obtain required post-implementation review, commit `Add model-aware vision profiles`, and push.
+- [x] **Step 5: Review, track, commit, and push.** Verify `.mcp.json` hash, update status/checkboxes, obtain required post-implementation review, commit `Add model-aware vision profiles`, and push.
 
 ## Task 2: Extend result identity and zero-safe scoring
 
