@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ChatContent } from '../src/ai-chat';
-import { createGenAIAdapter } from '../src/genai-adapter';
+import {
+  createGenAIAdapter,
+  resolveVisionGenerationProfile,
+  type VisionGenerationOptions,
+} from '../src/genai-adapter';
 
 type VisionSource = 'meal' | 'label' | 'barcode';
 
@@ -432,5 +436,199 @@ describe('createGenAIAdapter', () => {
         { role: 'user', parts: [{ text: 'Hello' }] },
       ]),
     ).rejects.toThrow('Empty model response');
+  });
+});
+
+describe('resolveVisionGenerationProfile', () => {
+  it('resolves gemini-2.5-flash to the gemini-2 temperature profile', () => {
+    expect(resolveVisionGenerationProfile('gemini-2.5-flash')).toEqual({
+      kind: 'gemini-2',
+      temperature: 0,
+    });
+  });
+
+  it.each(['LOW', 'MEDIUM'] as const)(
+    'resolves exact gemini-3.8-flash with %s to the matching gemini-3 profile',
+    (thinkingLevel) => {
+      expect(resolveVisionGenerationProfile('gemini-3.8-flash', thinkingLevel)).toEqual({
+        kind: 'gemini-3',
+        thinkingLevel,
+      });
+    },
+  );
+
+  it('rejects gemini-3.8-flash without a thinking level', () => {
+    expect(() => resolveVisionGenerationProfile('gemini-3.8-flash')).toThrow();
+  });
+
+  it('rejects unknown models', () => {
+    expect(() => resolveVisionGenerationProfile('firestore-future-model')).toThrow();
+    expect(() => resolveVisionGenerationProfile('gemini-2.0-flash')).toThrow();
+  });
+});
+
+describe('generateVision no-options compatibility', () => {
+  it.each(['gemini-2.5-flash', 'gemini-3.8-flash', 'firestore-future-model'])(
+    'bypasses profile resolution for %s with temperature 0, no thinkingConfig, image/jpeg',
+    async (model) => {
+      const generateContent = vi.fn(async () => ({ text: 'ok' }));
+      const adapter = createGenAIAdapter({
+        project: 'test-project',
+        location: 'us-central1',
+        googleGenAI: { models: { generateContent } },
+      });
+
+      const result = await adapter.generateVision(model, 'Analyze this food image', 'base64data');
+
+      expect(result).toBe('ok');
+      expect(generateContent).toHaveBeenCalledTimes(1);
+      const request = generateContent.mock.calls[0]?.[0] as {
+        model: string;
+        contents: Array<{ parts: Array<{ inlineData?: { mimeType: string } }> }>;
+        config?: Record<string, unknown>;
+      };
+      expect(request.model).toBe(model);
+      expect(request.config).toMatchObject({ temperature: 0 });
+      expect(request.config).not.toHaveProperty('thinkingConfig');
+      expect(request.contents[0]?.parts[1]?.inlineData?.mimeType).toBe('image/jpeg');
+    },
+  );
+});
+
+describe('generateVision calibration profile', () => {
+  function calibrationAdapter(
+    generateContent: ReturnType<typeof vi.fn>,
+  ) {
+    return createGenAIAdapter({
+      project: 'test-project',
+      location: 'us-central1',
+      googleGenAI: { models: { generateContent } },
+    });
+  }
+
+  it.each(['LOW', 'MEDIUM'] as const)(
+    'sends thinkingConfig %s with the passed manifest media type and no temperature',
+    async (thinkingLevel) => {
+      const generateContent = vi.fn(async () => ({ text: 'calibrated', modelVersion: 'v3.8-1' }));
+      const adapter = calibrationAdapter(generateContent);
+      const seen: Array<{ modelVersion?: string }> = [];
+      const options: VisionGenerationOptions = {
+        mode: 'calibration',
+        thinkingLevel,
+        imageMediaType: 'image/png',
+        timeoutMs: 30000,
+        onResponseMetadata: (metadata) => {
+          seen.push(metadata);
+        },
+      };
+
+      const result = await adapter.generateVision(
+        'gemini-3.8-flash',
+        'Analyze this food image',
+        'base64data',
+        'meal',
+        options,
+      );
+
+      expect(result).toBe('calibrated');
+      expect(generateContent).toHaveBeenCalledTimes(1);
+      const request = generateContent.mock.calls[0]?.[0] as {
+        config?: Record<string, unknown>;
+        contents: Array<{ parts: Array<{ inlineData?: { mimeType: string } }> }>;
+      };
+      expect(request.config).toMatchObject({
+        responseMimeType: 'application/json',
+        thinkingConfig: { thinkingLevel },
+      });
+      expect(request.config).not.toHaveProperty('temperature');
+      expect(request.config?.httpOptions).toEqual({ timeout: 30000 });
+      expect(request.contents[0]?.parts[1]?.inlineData?.mimeType).toBe('image/png');
+      expect(seen).toEqual([{ modelVersion: 'v3.8-1' }]);
+    },
+  );
+
+  it('uses the passed image/jpeg manifest media type on the calibration path', async () => {
+    const generateContent = vi.fn(async () => ({ text: 'ok' }));
+    const adapter = calibrationAdapter(generateContent);
+
+    await adapter.generateVision('gemini-3.8-flash', 'prompt', 'base64data', 'meal', {
+      mode: 'calibration',
+      thinkingLevel: 'LOW',
+      imageMediaType: 'image/jpeg',
+      timeoutMs: 1000,
+    });
+
+    const request = generateContent.mock.calls[0]?.[0] as {
+      contents: Array<{ parts: Array<{ inlineData?: { mimeType: string } }> }>;
+    };
+    expect(request.contents[0]?.parts[1]?.inlineData?.mimeType).toBe('image/jpeg');
+  });
+
+  it('runs beforeRequest exactly once immediately before generateContent', async () => {
+    const order: string[] = [];
+    const generateContent = vi.fn(async () => {
+      order.push('generateContent');
+      return { text: 'ok' };
+    });
+    const beforeRequest = vi.fn(async () => {
+      order.push('beforeRequest');
+    });
+    const adapter = calibrationAdapter(generateContent);
+
+    await adapter.generateVision('gemini-3.8-flash', 'prompt', 'base64data', 'meal', {
+      mode: 'calibration',
+      thinkingLevel: 'MEDIUM',
+      imageMediaType: 'image/png',
+      timeoutMs: 5000,
+      beforeRequest,
+    });
+
+    expect(beforeRequest).toHaveBeenCalledTimes(1);
+    expect(order).toEqual(['beforeRequest', 'generateContent']);
+    expect(
+      (beforeRequest.mock.invocationCallOrder[0] ?? 0) <
+        (generateContent.mock.invocationCallOrder[0] ?? 1),
+    ).toBe(true);
+  });
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects non-finite or non-positive timeoutMs %s',
+    async (timeoutMs) => {
+      const generateContent = vi.fn(async () => ({ text: 'ok' }));
+      const adapter = calibrationAdapter(generateContent);
+
+      await expect(
+        adapter.generateVision('gemini-3.8-flash', 'prompt', 'base64data', 'meal', {
+          mode: 'calibration',
+          thinkingLevel: 'LOW',
+          imageMediaType: 'image/png',
+          timeoutMs,
+        }),
+      ).rejects.toThrow();
+      expect(generateContent).not.toHaveBeenCalled();
+    },
+  );
+
+  it('rejects calibration for any model other than exact gemini-3.8-flash', async () => {
+    const generateContent = vi.fn(async () => ({ text: 'ok' }));
+    const adapter = calibrationAdapter(generateContent);
+
+    await expect(
+      adapter.generateVision('gemini-2.5-flash', 'prompt', 'base64data', 'meal', {
+        mode: 'calibration',
+        thinkingLevel: 'LOW',
+        imageMediaType: 'image/png',
+        timeoutMs: 1000,
+      }),
+    ).rejects.toThrow();
+    await expect(
+      adapter.generateVision('firestore-future-model', 'prompt', 'base64data', 'meal', {
+        mode: 'calibration',
+        thinkingLevel: 'LOW',
+        imageMediaType: 'image/png',
+        timeoutMs: 1000,
+      }),
+    ).rejects.toThrow();
+    expect(generateContent).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { GenAIAdapter } from '../../src/genai-adapter';
+import type { GenAIAdapter, VisionGenerationOptions } from '../../src/genai-adapter';
 import type { OffProduct } from '../../src/off-client';
 import { normalizeOffPackage } from '../../src/package-nutrition';
 import { normalizeVisionNutrition } from '../../src/nutrition';
@@ -944,5 +944,64 @@ describe('createLiveNutritionEvalAdapter', () => {
     expect(prediction.diagnostics).not.toHaveProperty('observedAmount');
     expect(prediction.diagnostics).not.toHaveProperty('observedUnit');
     expect(JSON.stringify(prediction)).not.toContain('Test food');
+  });
+});
+
+describe('createLiveNutritionEvalAdapter calibration generation options', () => {
+  it('preserves the generic four-argument vision call when no calibration options are supplied', async () => {
+    const generateVision = vi.fn(async () => modelText('meal'));
+    const genAIAdapter: GenAIAdapter = {
+      generateChat: vi.fn(async () => ''),
+      generateVision,
+    };
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-test-model',
+      genAIAdapter,
+      fetchOffProductFn: async () => null,
+    });
+
+    await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
+
+    expect(generateVision).toHaveBeenCalledTimes(1);
+    expect(generateVision).toHaveBeenCalledWith(
+      'gemini-test-model', MEAL_ANALYSIS_PROMPT, 'AP8B', 'meal',
+    );
+    expect(generateVision.mock.calls[0]).toHaveLength(4);
+  });
+
+  it('threads frozen calibration options through without changing prompt, input, or scan mode', async () => {
+    const generateVision = vi.fn(async () => modelText('meal'));
+    const genAIAdapter: GenAIAdapter = {
+      generateChat: vi.fn(async () => ''),
+      generateVision,
+    };
+    const visionGenerationOptions: VisionGenerationOptions = {
+      mode: 'calibration',
+      thinkingLevel: 'LOW',
+      imageMediaType: 'image/png',
+      timeoutMs: 30000,
+    };
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-3.8-flash',
+      genAIAdapter,
+      fetchOffProductFn: async () => null,
+      visionGenerationOptions,
+    });
+
+    const prediction = await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction.parseStatus).toBe('success');
+    expect(generateVision).toHaveBeenCalledTimes(1);
+    expect(generateVision).toHaveBeenCalledWith(
+      'gemini-3.8-flash',
+      MEAL_ANALYSIS_PROMPT,
+      'AP8B',
+      'meal',
+      visionGenerationOptions,
+    );
   });
 });

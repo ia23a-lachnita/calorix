@@ -1,4 +1,4 @@
-import { createGenAIAdapter, type GenAIAdapter } from '../genai-adapter';
+import { createGenAIAdapter, type GenAIAdapter, type VisionGenerationOptions } from '../genai-adapter';
 import { normalizeOffPackage } from '../package-nutrition';
 import {
   normalizeVisionNutrition,
@@ -32,6 +32,7 @@ export interface CreateLiveNutritionEvalAdapterOptions {
   location: string;
   model: string;
   confidenceThreshold?: number;
+  visionGenerationOptions?: VisionGenerationOptions;
   genAIAdapter?: GenAIAdapter;
   fetchOffProductFn?: (barcode: string) => Promise<OffProduct | null>;
   normalizeOffPackageFn?: typeof normalizeOffPackage;
@@ -220,6 +221,7 @@ export function createLiveNutritionEvalAdapter(
     throw new Error('confidenceThreshold must be between 0 and 1');
   }
   const genAIAdapter = options.genAIAdapter ?? createGenAIAdapter({ project, location });
+  const visionGenerationOptions = options.visionGenerationOptions;
   const lookup = options.fetchOffProductFn ?? fetchOffProduct;
   const normalizeOff = options.normalizeOffPackageFn ?? normalizeOffPackage;
   const normalizeVision = options.normalizeVisionNutritionFn ?? normalizeVisionNutrition;
@@ -261,12 +263,20 @@ export function createLiveNutritionEvalAdapter(
 
       let response: string;
       try {
-        response = await genAIAdapter.generateVision(
-          model,
-          promptFor(evalCase, options),
-          Buffer.from(bytes).toString('base64'),
-          evalCase.scanMode,
-        );
+        response = visionGenerationOptions === undefined
+          ? await genAIAdapter.generateVision(
+            model,
+            promptFor(evalCase, options),
+            Buffer.from(bytes).toString('base64'),
+            evalCase.scanMode,
+          )
+          : await genAIAdapter.generateVision(
+            model,
+            promptFor(evalCase, options),
+            Buffer.from(bytes).toString('base64'),
+            evalCase.scanMode,
+            visionGenerationOptions,
+          );
       } catch {
         return failure(evalCase, 'provider', 'provider_request_failed');
       }
