@@ -12,11 +12,17 @@ vi.mock('fs/promises', async (importOriginal) => {
 
 import {
   buildNutritionEvalReport,
+  renderHistoricalComparisonMarkdown,
   renderNutritionEvalJson,
   renderNutritionEvalMarkdown,
   writeNutritionEvalReport,
 } from '../../src/nutrition-eval/report';
 import { scoreNutritionCase } from '../../src/nutrition-eval/scorer';
+import {
+  HistoricalReferenceSchema,
+  compareToHistoricalReference,
+  evaluateHistoricalAggregateSubsetGate,
+} from '../../src/nutrition-eval/historical-reference';
 import {
   BaselineComparisonSchema,
   NutritionEvalReportSchema,
@@ -1059,5 +1065,156 @@ describe('Task 2 correction RED: calibration report bounds and omitted metrics',
       ...baseMetadata,
       calibration: { ...baseMetadata.calibration, imageCallsReserved: 2, imageCallsCompleted: 1, imageCallsFailed: 0 },
     })).toThrow();
+  });
+});
+
+describe('Task 3 historical reference comparison rendering', () => {
+  const REFERENCE_DATASET_HASH = '2dc17d06752c2981862690953a7b134235bb6a20da4dc9b5fef5528f91f5bb56';
+  const REFERENCE_PROMPT_HASH = '205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263';
+
+  const validReferenceJson = {
+    version: 1,
+    runId: 'run-2026-09-11T20-22-21-450Z',
+    codeSha: 'bb414d1850fb9f91cc419b4a270138354abf5535',
+    datasetId: 'calorix-public-v1',
+    datasetHash: REFERENCE_DATASET_HASH,
+    promptHash: REFERENCE_PROMPT_HASH,
+    model: 'gemini-2.5-flash',
+    publicCases: 20,
+    privateCases: 0,
+    samples: 3,
+    coverage: {
+      totalCases: 60,
+      runCases: 60,
+      parseCases: 60,
+      failureCount: 0,
+      unsafeCompletionCount: 0,
+      reviewCount: 52,
+      catastrophicCount: 15,
+    },
+    metrics: {
+      medianRelativeCalorieError: 0.2719,
+      p90RelativeCalorieError: 1.0136,
+      meanMacroRelativeError: 0.5227,
+      meanMealMassRelativeError: 0.4695,
+      meanMealCarbDensityRelativeError: 0.7780,
+      meanMealFatDensityRelativeError: 0.3786,
+    },
+    provenance: {
+      rounding: 'four_decimal_places',
+      predatesSliceG: true,
+      sliceGCommit: 'd9492b60d06296b54f51d951b0d5fb4ae8c89ed8',
+      caveat: 'one transient supplied-barcode catalog miss fell through to a catastrophic vision estimate, so the aggregate is valid historical evidence but not a like-for-like barcode-routing implementation baseline.',
+    },
+  };
+
+  function historicalCurrentReport(
+    reportOverrides: Record<string, unknown> = {},
+    summaryOverrides: Record<string, unknown> = {},
+  ): NutritionEvalReport {
+    const cases = Array.from({ length: 60 }, (_, index) => ({
+      caseId: `hist-render-case-${index}`,
+      prediction: { parseStatus: 'success' as const, source: 'meal' as const },
+      numeric: {},
+      safety: { catastrophicCalorieMiss: false, unsafeCompletion: false },
+      booleans: {},
+    }));
+    return NutritionEvalReportSchema.parse({
+      version: 1,
+      runId: 'run-hist-render-0001',
+      timestamp: '2026-09-24T00:00:00.000Z',
+      datasetId: 'calorix-public-v1',
+      datasetHash: REFERENCE_DATASET_HASH,
+      adapterModelId: 'gemini-3.8-flash',
+      promptHash: REFERENCE_PROMPT_HASH,
+      codeSha: 'e'.repeat(40),
+      samples: 3,
+      baselineOnly: false,
+      publicCases: 20,
+      privateCases: 0,
+      summary: {
+        totalCases: 60,
+        runCases: 60,
+        parseCases: 60,
+        basisAccuracyDenom: 0,
+        barcodeAccuracyDenom: 0,
+        medianAbsoluteCalorieError: 10,
+        medianRelativeCalorieError: 0.2,
+        p90AbsoluteCalorieError: 20,
+        p90RelativeCalorieError: 0.8,
+        meanMacroRelativeError: 0.4,
+        reviewRate: 0.1,
+        catastrophicCount: 5,
+        unsafeCompletionCount: 0,
+        failuresByCategory: {},
+        failuresByCode: {},
+        meanMealMassRelativeError: 0.3,
+        meanMealCarbDensityRelativeError: 0.5,
+        meanMealFatDensityRelativeError: 0.2,
+        ...summaryOverrides,
+      },
+      cases,
+      ...reportOverrides,
+    });
+  }
+
+  it('renders reference identity, the Slice-G caveat, and a partial-scope warning', () => {
+    const reference = HistoricalReferenceSchema.parse(validReferenceJson);
+    const current = historicalCurrentReport();
+    const comparison = compareToHistoricalReference(reference, current);
+    const gate = evaluateHistoricalAggregateSubsetGate(reference, current);
+    const markdown = renderHistoricalComparisonMarkdown(reference, comparison, gate);
+    expect(markdown).toContain('run-2026-09-11T20-22-21-450Z');
+    expect(markdown).toContain('gemini-2.5-flash');
+    expect(markdown).toContain('like-for-like barcode-routing implementation baseline');
+    expect(markdown.toLowerCase()).toContain('not a full promotion decision');
+    expect(markdown).not.toContain('/home/');
+    expect(markdown).not.toContain('file://');
+  });
+
+  it('renders clear improvement/regression direction for each delta', () => {
+    const reference = HistoricalReferenceSchema.parse(validReferenceJson);
+    const current = historicalCurrentReport();
+    const comparison = compareToHistoricalReference(reference, current);
+    const gate = evaluateHistoricalAggregateSubsetGate(reference, current);
+    const markdown = renderHistoricalComparisonMarkdown(reference, comparison, gate);
+    // Current 0.2 vs reference 0.2719 is an improvement (lower error).
+    expect(markdown).toMatch(/medianRelativeCalorieError:.*improved/);
+    // Current 5 vs reference 15 catastrophic misses is an improvement.
+    expect(markdown).toMatch(/catastrophicCount:.*improved/);
+  });
+
+  it('renders gate pass/fail and threshold-exceeded failures', () => {
+    const reference = HistoricalReferenceSchema.parse(validReferenceJson);
+    const passingCurrent = historicalCurrentReport();
+    const passingGate = evaluateHistoricalAggregateSubsetGate(reference, passingCurrent);
+    const passingComparison = compareToHistoricalReference(reference, passingCurrent);
+    expect(renderHistoricalComparisonMarkdown(reference, passingComparison, passingGate)).toContain('Gate result: pass');
+
+    const failingCurrent = historicalCurrentReport({}, { catastrophicCount: 13 });
+    const failingGate = evaluateHistoricalAggregateSubsetGate(reference, failingCurrent);
+    const failingComparison = compareToHistoricalReference(reference, failingCurrent);
+    const failingMarkdown = renderHistoricalComparisonMarkdown(reference, failingComparison, failingGate);
+    expect(failingMarkdown).toContain('Gate result: fail');
+    expect(failingMarkdown).toContain('catastrophicCount_exceeds_threshold');
+  });
+
+  it('renders incompatible comparisons without a deltas section and lists the mismatch reasons', () => {
+    const reference = HistoricalReferenceSchema.parse(validReferenceJson);
+    const current = historicalCurrentReport({ datasetHash: '9'.repeat(64) });
+    const comparison = compareToHistoricalReference(reference, current);
+    const gate = evaluateHistoricalAggregateSubsetGate(reference, current);
+    const markdown = renderHistoricalComparisonMarkdown(reference, comparison, gate);
+    expect(markdown).toContain('Compatible: false');
+    expect(markdown).toContain('dataset_hash_mismatch');
+    expect(markdown).not.toContain('medianRelativeCalorieError:');
+  });
+
+  it('leaves the existing runtime baseline comparison and rendering untouched', () => {
+    const report = buildNutritionEvalReport(results(), metadata);
+    const markdown = renderNutritionEvalMarkdown(report);
+    expect(markdown).toContain('# Nutrition evaluation report');
+    expect(report.comparison).toBeUndefined();
+    expect(BaselineComparisonSchema).toBeDefined();
   });
 });

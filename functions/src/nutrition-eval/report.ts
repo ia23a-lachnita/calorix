@@ -2,9 +2,15 @@ import { chmod, mkdir, rename, rm, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { join } from 'path';
 
+import { SUPPORTED_HISTORICAL_DELTA_FIELDS } from './historical-reference';
 import { aggregateNutritionResults } from './scorer';
 import { NutritionEvalReportSchema } from './schema';
 
+import type {
+  HistoricalAggregateSubsetGate,
+  HistoricalComparisonResult,
+  HistoricalReference,
+} from './historical-reference';
 import type {
   BaselineComparison,
   CalibrationInfo,
@@ -288,6 +294,55 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
     ...diagnosticsSection,
     ...(diagnosticsSection.length === 0 ? [''] : []),
   ].join('\n');
+}
+
+/**
+ * Renders a privacy-safe, additive summary of a historical aggregate
+ * comparison plus its subset gate. This is separate from
+ * `renderNutritionEvalMarkdown` and does not modify the existing runtime
+ * baseline comparison rendered there; it exists only to surface the frozen
+ * gemini-2.5-flash aggregate reference alongside a clear improvement/
+ * regression direction for each supported delta and an explicit warning
+ * that the gate below covers a fixed aggregate subset only.
+ */
+export function renderHistoricalComparisonMarkdown(
+  reference: HistoricalReference,
+  comparison: HistoricalComparisonResult,
+  gate: HistoricalAggregateSubsetGate,
+): string {
+  if (containsPrivacyLeak(reference) || containsPrivacyLeak(comparison) || containsPrivacyLeak(gate)) {
+    throw new Error('privacy_leak');
+  }
+  const lines: string[] = [
+    '## Historical aggregate comparison',
+    '',
+    'Partial-scope warning: this compares aggregate-only fields against one frozen historical run. It is a subset gate, not a full promotion decision.',
+    '',
+    `Reference run: ${reference.runId}`,
+    `Reference code SHA: ${reference.codeSha}`,
+    `Reference model: ${reference.model}`,
+    `Reference caveat: ${reference.provenance.caveat}`,
+    `Current adapter model: ${comparison.currentAdapterModelId}`,
+    `Compatible: ${comparison.compatible}`,
+  ];
+  if (!comparison.compatible) {
+    lines.push(`Compatibility reasons: ${comparison.compatibilityReasons.join(', ')}`);
+  }
+  const deltas = comparison.deltas;
+  if (deltas) {
+    lines.push('', '### Deltas (current minus reference; negative means lower error/count than history)');
+    for (const field of SUPPORTED_HISTORICAL_DELTA_FIELDS) {
+      const delta = deltas[field];
+      if (delta === undefined) continue;
+      const direction = delta < 0 ? 'improved' : delta > 0 ? 'regressed' : 'unchanged';
+      lines.push(`${field}: ${delta} (${direction})`);
+    }
+  }
+  lines.push('', `Gate result: ${gate.passed ? 'pass' : 'fail'}`);
+  if (gate.failures.length > 0) {
+    lines.push(`Gate failures: ${gate.failures.join(', ')}`);
+  }
+  return lines.join('\n') + '\n';
 }
 
 async function writePrivateTemp(

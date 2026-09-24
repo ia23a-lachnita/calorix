@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "runId": "run-2026-09-11T20-22-21-450Z",
+  "codeSha": "bb414d1850fb9f91cc419b4a270138354abf5535",
+  "datasetId": "calorix-public-v1",
+  "datasetHash": "2dc17d06752c2981862690953a7b134235bb6a20da4dc9b5fef5528f91f5bb56",
+  "promptHash": "205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263",
+  "model": "gemini-2.5-flash",
+  "publicCases": 20,
+  "privateCases": 0,
+  "samples": 3,
+  "coverage": {
+    "totalCases": 60,
+    "runCases": 60,
+    "parseCases": 60,
+    "failureCount": 0,
+    "unsafeCompletionCount": 0,
+    "reviewCount": 52,
+    "catastrophicCount": 15
+  },
+  "metrics": {
+    "medianRelativeCalorieError": 0.2719,
+    "p90RelativeCalorieError": 1.0136,
+    "meanMacroRelativeError": 0.5227,
+    "meanMealMassRelativeError": 0.4695,
+    "meanMealCarbDensityRelativeError": 0.7780,
+    "meanMealFatDensityRelativeError": 0.3786
+  },
+  "provenance": {
+    "rounding": "four_decimal_places",
+    "predatesSliceG": true,
+    "sliceGCommit": "d9492b60d06296b54f51d951b0d5fb4ae8c89ed8",
+    "caveat": "one transient supplied-barcode catalog miss fell through to a catastrophic vision estimate, so the aggregate is valid historical evidence but not a like-for-like barcode-routing implementation baseline."
+  }
+}

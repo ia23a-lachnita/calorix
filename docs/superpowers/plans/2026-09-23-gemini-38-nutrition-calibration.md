@@ -133,10 +133,10 @@ export interface VisionGenerationOptions {
 
 **Reference fields:** run ID `run-2026-09-11T20-22-21-450Z`, code SHA `bb414d1850fb9f91cc419b4a270138354abf5535`, dataset hash `2dc17d06752c2981862690953a7b134235bb6a20da4dc9b5fef5528f91f5bb56`, prompt hash `205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263`, model `gemini-2.5-flash`, `20` public/`0` private, `3` samples, `60/60` parsed, `0` failures, `0` unsafe, `52` Review, `15` catastrophic, calorie median/P90 `0.2719`/`1.0136`, legacy mean macro `0.5227`, mean mass `0.4695`, mean carbohydrate/fat density `0.7780`/`0.3786`. Metric values are explicitly labeled rounded to four decimal places. Provenance also records that this run predates Slice G (`d9492b60d06296b54f51d951b0d5fb4ae8c89ed8`): one transient supplied-barcode catalog miss fell through to a catastrophic vision estimate, so the aggregate is valid historical evidence but not a like-for-like barcode-routing implementation baseline.
 
-- [ ] **Step 1: Write RED strict-provenance tests.** Reject unknown keys, missing provenance, absent rounding/caveat metadata, percentages stored as `27.19` instead of ratios, any case array, and any invented per-macro historical metric. Permit deltas only for fields present in the reference.
-- [ ] **Step 2: Run RED.** Run `cd functions && npx vitest run test/nutrition-eval/historical-reference.test.ts test/nutrition-eval/report.test.ts`.
-- [ ] **Step 3: Add the immutable JSON and comparator.** The module must never import or construct a GenAI client. It returns explicit supported deltas and a promotion-gate result; a request for unavailable baseline data fails closed.
-- [ ] **Step 4: Run GREEN plus a no-provider-boundary assertion.** Run focused tests and `rg -n "GoogleGenAI|generateContent|countTokens" functions/src/nutrition-eval/historical-reference.ts`; expected search result is empty.
+- [x] **Step 1: Write RED strict-provenance tests.** Reject unknown keys, missing provenance, absent rounding/caveat metadata, percentages stored as `27.19` instead of ratios, any case array, and any invented per-macro historical metric. Permit deltas only for fields present in the reference.
+- [x] **Step 2: Run RED.** Run `cd functions && npx vitest run test/nutrition-eval/historical-reference.test.ts test/nutrition-eval/report.test.ts`.
+- [x] **Step 3: Add the immutable JSON and comparator.** The module must never import or construct a GenAI client. It returns explicit supported deltas and a promotion-gate result; a request for unavailable baseline data fails closed.
+- [x] **Step 4: Run GREEN plus a no-provider-boundary assertion.** Run focused tests and `rg -n "GoogleGenAI|generateContent|countTokens" functions/src/nutrition-eval/historical-reference.ts`; expected search result is empty.
 - [ ] **Step 5: Review, track, commit, and push.** Commit `Record historical nutrition reference` and push.
 
 ## Task 4: Build the deterministic 40-case train-split corpus
