@@ -137,7 +137,7 @@ export interface VisionGenerationOptions {
 - [x] **Step 2: Run RED.** Run `cd functions && npx vitest run test/nutrition-eval/historical-reference.test.ts test/nutrition-eval/report.test.ts`.
 - [x] **Step 3: Add the immutable JSON and comparator.** The module must never import or construct a GenAI client. It returns explicit supported deltas and a promotion-gate result; a request for unavailable baseline data fails closed.
 - [x] **Step 4: Run GREEN plus a no-provider-boundary assertion.** Run focused tests and `rg -n "GoogleGenAI|generateContent|countTokens" functions/src/nutrition-eval/historical-reference.ts`; expected search result is empty.
-- [ ] **Step 5: Review, track, commit, and push.** Commit `Record historical nutrition reference` and push.
+- [x] **Step 5: Review, track, commit, and push.** Commit `Record historical nutrition reference` and push.
 
 ## Task 4: Build the deterministic 40-case train-split corpus
 
