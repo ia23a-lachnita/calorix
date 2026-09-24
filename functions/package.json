@@ -15,6 +15,7 @@
     "eval:nutrition:fixtures": "vitest run test/nutrition-eval",
     "eval:nutrition:baseline": "npm run build && node lib/nutrition-eval/cli.js baseline",
     "eval:nutrition:release": "npm run build && node lib/nutrition-eval/cli.js release",
+    "eval:nutrition:calibration-corpus": "npm run build && node lib/nutrition-eval/calibration-corpus.js",
     "deploy": "firebase deploy --only functions"
   },
   "engines": {

@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { z } from 'zod';
 
 // ── Enums ────────────────────────────────────────────────────────────────────
@@ -770,6 +771,316 @@ export const NutritionEvalManifestSchema = z
     },
     { message: 'duplicate case IDs' },
   );
+
+// ── Task 4: strict calibration source-lock / manifest schemas ───────────────
+//
+// These are deliberately separate from the generic v1 manifest above: the
+// generic `NutritionEvalManifestSchema`/`parseNutritionEvalManifest` pair
+// keeps stripping-tolerant, backward-compatible parsing for the existing
+// 20-case public manifest, while calibration data is parsed and hashed
+// through a fully strict (unknown-key-rejecting) shape instead.
+
+const CALIBRATION_DATASET_ID = 'calorix-n5k-calibration-v1';
+// Duplicated verbatim from calibration-corpus.ts's RANK_PREFIX so a case's
+// `rank`/`id` can be checked against the exact formula for its dish id
+// without importing the corpus-selection module.
+const RANK_PREFIX = 'calorix-n5k-calibration-v1:';
+const CALIBRATION_BASE_URL = 'https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/';
+const CALIBRATION_SOURCE_PATHS = {
+  trainSplit: 'dish_ids/splits/rgb_train_ids.txt',
+  metadataCafe1: 'metadata/dish_metadata_cafe1.csv',
+  metadataCafe2: 'metadata/dish_metadata_cafe2.csv',
+} as const;
+const CALIBRATION_ATTRIBUTION_ID = 'nutrition5k-cc-by-4.0';
+
+const CalibrationBinSchema = z.union([z.literal(0), z.literal(1), z.literal(2)]);
+
+const CalibrationStratumSchema = z.strictObject({
+  componentBin: CalibrationBinSchema,
+  calorieBin: CalibrationBinSchema,
+  macroBin: CalibrationBinSchema,
+});
+
+function calibrationSourceObjectSchema(expectedPath: string) {
+  return z
+    .strictObject({
+      path: z.literal(expectedPath),
+      url: z.string().url(),
+      sha256: z.string().regex(/^[0-9a-f]{64}$/),
+      byteLength: z.number().int().positive(),
+    })
+    .refine((source) => source.url === `${CALIBRATION_BASE_URL}${expectedPath}`, {
+      message: 'source url must be the exact base URL plus pinned path',
+      path: ['url'],
+    });
+}
+
+const ExcludedDishReasonSchema = z.enum([
+  'non_positive_calories',
+  'non_positive_mass',
+  'negative_macros',
+  'missing_metadata',
+]);
+
+const ExcludedDishSchema = z.strictObject({
+  dishId: z.string().regex(/^dish_[0-9]+$/),
+  reason: ExcludedDishReasonSchema,
+});
+
+const SkippedImageReasonSchema = z.enum([
+  'http_error',
+  'fetch_error',
+  'invalid_signature',
+  'invalid_media_type',
+  'invalid_dimensions',
+]);
+
+const SkippedCalibrationImageSchema = z
+  .strictObject({
+    dishId: z.string().regex(/^dish_[0-9]+$/),
+    stratum: CalibrationStratumSchema,
+    reason: SkippedImageReasonSchema,
+    status: z.number().int().min(100).max(599).optional(),
+  })
+  .superRefine((record, context) => {
+    if (record.reason === 'http_error' && record.status === undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['status'], message: 'http_error requires a numeric status' });
+    }
+    if (record.reason !== 'http_error' && record.status !== undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['status'], message: 'status is only meaningful for http_error' });
+    }
+  });
+
+export const CalibrationSourceLockSchema = z
+  .strictObject({
+    version: z.literal(1),
+    datasetId: z.literal(CALIBRATION_DATASET_ID),
+    baseUrl: z.literal(CALIBRATION_BASE_URL),
+    retrievalProvenance: z.strictObject({
+      retrievedAt: z.string().datetime({ offset: true }),
+      baseUrl: z.literal(CALIBRATION_BASE_URL),
+    }),
+    sources: z.strictObject({
+      trainSplit: calibrationSourceObjectSchema(CALIBRATION_SOURCE_PATHS.trainSplit),
+      metadataCafe1: calibrationSourceObjectSchema(CALIBRATION_SOURCE_PATHS.metadataCafe1),
+      metadataCafe2: calibrationSourceObjectSchema(CALIBRATION_SOURCE_PATHS.metadataCafe2),
+    }),
+    skippedImages: z.array(SkippedCalibrationImageSchema),
+    excludedDishes: z.array(ExcludedDishSchema),
+  })
+  .superRefine((lock, context) => {
+    const seenSkipped = new Set<string>();
+    for (const skipped of lock.skippedImages) {
+      if (seenSkipped.has(skipped.dishId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['skippedImages'],
+          message: 'duplicate skipped dish ID',
+        });
+        break;
+      }
+      seenSkipped.add(skipped.dishId);
+    }
+    const seenExcluded = new Set<string>();
+    for (const excluded of lock.excludedDishes) {
+      if (seenExcluded.has(excluded.dishId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['excludedDishes'],
+          message: 'duplicate exclusion: duplicate excluded dish ID',
+        });
+        break;
+      }
+      seenExcluded.add(excluded.dishId);
+    }
+    for (let i = 1; i < lock.excludedDishes.length; i++) {
+      if (lock.excludedDishes[i]!.dishId <= lock.excludedDishes[i - 1]!.dishId) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['excludedDishes'],
+          message: 'exclusion list must be sorted in strictly ascending dishId order (excludedDishes)',
+        });
+        break;
+      }
+    }
+    for (const excluded of lock.excludedDishes) {
+      if (seenSkipped.has(excluded.dishId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['excludedDishes'],
+          message: 'exclusion overlaps a skipped-image dish ID (excluded dish ID)',
+        });
+        break;
+      }
+    }
+  });
+
+// Exact plan-pinned development (24) then validation (16) stratum tuples, in
+// slot order; duplicated verbatim from the Task 4 calibration-corpus schedule
+// so a case's `stratum` can be checked against the exact tuple for its slot
+// without importing the corpus-selection module (which itself may depend on
+// this schema file).
+const CALIBRATION_SCHEDULE_STRATA: ReadonlyArray<readonly [0 | 1 | 2, 0 | 1 | 2, 0 | 1 | 2]> = [
+  [0, 0, 0], [1, 1, 1], [2, 2, 2],
+  [0, 0, 0], [1, 1, 2], [2, 2, 1],
+  [0, 0, 1], [1, 1, 0], [2, 2, 2],
+  [0, 0, 1], [1, 1, 2], [2, 2, 0],
+  [0, 0, 2], [1, 1, 0], [2, 2, 1],
+  [0, 0, 2], [1, 1, 1], [2, 2, 0],
+  [0, 1, 1], [1, 0, 2], [2, 2, 0],
+  [0, 2, 2], [1, 0, 1], [2, 1, 0],
+  [0, 0, 0], [1, 2, 2], [2, 1, 1],
+  [0, 0, 1], [1, 2, 2], [2, 1, 0],
+  [0, 1, 0], [1, 0, 1], [2, 2, 2],
+  [0, 1, 0], [1, 0, 2], [2, 2, 1],
+  [0, 1, 2], [1, 0, 1], [2, 2, 0],
+  [0, 2, 1],
+];
+
+function expectedCalibrationRank(dishId: string): string {
+  return createHash('sha256').update(`${RANK_PREFIX}${dishId}`).digest('hex');
+}
+
+const StrictCalibrationCaseSchema = z
+  .strictObject({
+    id: z.string().min(1),
+    visibility: z.literal('public'),
+    scanMode: z.literal('meal'),
+    source: z.strictObject({
+      dataset: z.literal('nutrition5k'),
+      objectId: z.string().regex(/^dish_[0-9]+$/),
+    }),
+    image: z.strictObject({
+      url: z.string().url(),
+      sha256: z.string().regex(/^[0-9a-f]{64}$/),
+      mediaType: z.literal('image/png'),
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+    }),
+    truth: z.strictObject({
+      basis: z.literal('portion'),
+      amount: z.literal(1),
+      unit: z.literal('portion'),
+      kcal: z.number().finite().positive(),
+      proteinG: z.number().finite().nonnegative(),
+      carbsG: z.number().finite().nonnegative(),
+      fatG: z.number().finite().nonnegative(),
+      referenceMassG: z.number().finite().positive(),
+    }),
+    toleranceClass: z.literal('meal-estimate'),
+    attributionId: z.literal(CALIBRATION_ATTRIBUTION_ID),
+    group: z.enum(['development', 'validation']),
+    stratum: CalibrationStratumSchema,
+    rank: z.string().regex(/^[0-9a-f]{64}$/),
+    slotIndex: z.number().int().min(0).max(39),
+  })
+  .superRefine((calibrationCase, context) => {
+    const expectedId = `calibration-${calibrationCase.source.objectId}`;
+    if (calibrationCase.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: 'id must be exactly calibration-<dishId>',
+      });
+    }
+    const expectedRank = expectedCalibrationRank(calibrationCase.source.objectId);
+    if (calibrationCase.rank !== expectedRank) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rank'],
+        message: 'rank must equal sha256("calorix-n5k-calibration-v1:" + dishId) exactly',
+      });
+    }
+  });
+
+export const StrictCalibrationManifestSchema = z
+  .strictObject({
+    version: z.literal(1),
+    datasetId: z.literal(CALIBRATION_DATASET_ID),
+    sourceLockHash: z.string().regex(/^[0-9a-f]{64}$/),
+    cases: z.array(StrictCalibrationCaseSchema).length(40),
+  })
+  .superRefine((manifest, context) => {
+    const ids = manifest.cases.map((c) => c.id);
+    if (new Set(ids).size !== ids.length) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['cases'], message: 'duplicate case id' });
+    }
+    const dishIds = manifest.cases.map((c) => c.source.objectId);
+    if (new Set(dishIds).size !== dishIds.length) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['cases'], message: 'duplicate dish id' });
+    }
+
+    manifest.cases.forEach((calibrationCase, index) => {
+      if (calibrationCase.slotIndex !== index) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cases', index, 'slotIndex'],
+          message: 'slotIndex must equal the case\'s ascending array position',
+        });
+      }
+
+      const expectedGroup = index < 24 ? 'development' : 'validation';
+      if (calibrationCase.group !== expectedGroup) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cases', index, 'group'],
+          message: 'group must match the pinned slot range (0-23 development, 24-39 validation)',
+        });
+      }
+
+      const expectedStratum = CALIBRATION_SCHEDULE_STRATA[index];
+      if (
+        expectedStratum !== undefined &&
+        (calibrationCase.stratum.componentBin !== expectedStratum[0] ||
+          calibrationCase.stratum.calorieBin !== expectedStratum[1] ||
+          calibrationCase.stratum.macroBin !== expectedStratum[2])
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cases', index, 'stratum'],
+          message: 'stratum must match the pinned schedule tuple for this slot',
+        });
+      }
+
+      const expectedUrl = `${CALIBRATION_BASE_URL}imagery/realsense_overhead/${calibrationCase.source.objectId}/rgb.png`;
+      if (calibrationCase.image.url !== expectedUrl) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cases', index, 'image', 'url'],
+          message: 'image url must be the exact pinned overhead-image URL for this dish',
+        });
+      }
+    });
+  });
+
+function canonicalizeForHash(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map((item) => canonicalizeForHash(item));
+  if (value !== null && typeof value === 'object') {
+    const source = value as Record<string, unknown>;
+    const sorted: Record<string, unknown> = {};
+    for (const key of Object.keys(source).sort()) {
+      sorted[key] = canonicalizeForHash(source[key]);
+    }
+    return sorted;
+  }
+  return value;
+}
+
+export function hashStrictCalibrationManifest(manifest: unknown): string {
+  const parsed = StrictCalibrationManifestSchema.parse(manifest);
+  const canonical = canonicalizeForHash(parsed);
+  return createHash('sha256').update(JSON.stringify(canonical), 'utf8').digest('hex');
+}
+
+export function hashCalibrationSourceLock(sourceLock: unknown): string {
+  const parsed = CalibrationSourceLockSchema.parse(sourceLock);
+  const canonical = canonicalizeForHash(parsed);
+  return createHash('sha256').update(JSON.stringify(canonical), 'utf8').digest('hex');
+}
+
+export type StrictCalibrationManifest = z.infer<typeof StrictCalibrationManifestSchema>;
+export type CalibrationSourceLock = z.infer<typeof CalibrationSourceLockSchema>;
+export type ExcludedCalibrationDish = z.infer<typeof ExcludedDishSchema>;
 
 // ── Public API ───────────────────────────────────────────────────────────────
 

@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest';
+import { createHash } from 'crypto';
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import {
   CalibrationInfoSchema,
+  CalibrationSourceLockSchema,
   NutritionCaseResultSchema,
   NutritionEvalReportSchema,
   NutritionPredictionSchema,
+  StrictCalibrationManifestSchema,
+  hashCalibrationSourceLock,
+  hashStrictCalibrationManifest,
   parseNutritionEvalManifest,
 } from '../../src/nutrition-eval/schema';
 
@@ -964,5 +969,810 @@ function correctedSummary(overrides: Record<string, unknown> = {}) {
     const noCarbDensity = correctedSummary() as Record<string, unknown>;
     delete noCarbDensity['meanMealCarbDensityRelativeError'];
     expect(NutritionEvalReportSchema.safeParse(correctedReport({ summary: noCarbDensity })).success).toBe(false);
+  });
+});
+
+const NUTRITION5K_BASE_URL_FOR_TEST = 'https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/';
+const STABLE_RETRIEVED_AT_FOR_TEST = '2026-09-23T00:00:00.000Z';
+
+describe('Task 4 strict calibration source-lock/manifest schema', () => {
+  function validSourceObject(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    return {
+      path: 'dish_ids/splits/rgb_train_ids.txt',
+      url: `${NUTRITION5K_BASE_URL_FOR_TEST}dish_ids/splits/rgb_train_ids.txt`,
+      sha256: 'a'.repeat(64),
+      byteLength: 1024,
+      ...overrides,
+    };
+  }
+
+  function validSkippedImage(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    const merged: Record<string, unknown> = {
+      dishId: 'dish_9000000001',
+      stratum: { componentBin: 0, calorieBin: 0, macroBin: 0 },
+      reason: 'http_error',
+      status: 404,
+      ...overrides,
+    };
+    // An override explicitly set to `undefined` means "omit this key", not
+    // "set it to the literal value undefined" (which zod's strict object
+    // shape would otherwise still see as a present key).
+    for (const key of Object.keys(merged)) {
+      if (merged[key] === undefined) delete merged[key];
+    }
+    return merged;
+  }
+
+  function validSourceLock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    return {
+      version: 1,
+      datasetId: 'calorix-n5k-calibration-v1',
+      baseUrl: NUTRITION5K_BASE_URL_FOR_TEST,
+      retrievalProvenance: {
+        retrievedAt: STABLE_RETRIEVED_AT_FOR_TEST,
+        baseUrl: NUTRITION5K_BASE_URL_FOR_TEST,
+      },
+      sources: {
+        trainSplit: validSourceObject({
+          path: 'dish_ids/splits/rgb_train_ids.txt',
+          url: `${NUTRITION5K_BASE_URL_FOR_TEST}dish_ids/splits/rgb_train_ids.txt`,
+          sha256: 'a'.repeat(64),
+        }),
+        metadataCafe1: validSourceObject({
+          path: 'metadata/dish_metadata_cafe1.csv',
+          url: `${NUTRITION5K_BASE_URL_FOR_TEST}metadata/dish_metadata_cafe1.csv`,
+          sha256: 'b'.repeat(64),
+        }),
+        metadataCafe2: validSourceObject({
+          path: 'metadata/dish_metadata_cafe2.csv',
+          url: `${NUTRITION5K_BASE_URL_FOR_TEST}metadata/dish_metadata_cafe2.csv`,
+          sha256: 'c'.repeat(64),
+        }),
+      },
+      skippedImages: [] as unknown[],
+      excludedDishes: [] as unknown[],
+      ...overrides,
+    };
+  }
+
+  it('accepts a well-formed calibration source lock', () => {
+    expect(CalibrationSourceLockSchema.safeParse(validSourceLock()).success).toBe(true);
+  });
+
+  it('rejects an unknown top-level key on the source lock instead of stripping it', () => {
+    const withExtra = { ...validSourceLock(), unexpectedField: 'nope' };
+    expect(CalibrationSourceLockSchema.safeParse(withExtra).success).toBe(false);
+  });
+
+  it('rejects an unknown key nested inside a source object instead of stripping it', () => {
+    const lock = validSourceLock();
+    const sources = lock['sources'] as Record<string, unknown>;
+    const trainSplit = sources['trainSplit'] as Record<string, unknown>;
+    const tampered = {
+      ...lock,
+      sources: { ...sources, trainSplit: { ...trainSplit, extra: 'nope' } },
+    };
+    expect(CalibrationSourceLockSchema.safeParse(tampered).success).toBe(false);
+  });
+
+  it('requires the exact three official source paths, not merely well-formed URLs', () => {
+    const lock = validSourceLock();
+    const sources = lock['sources'] as Record<string, unknown>;
+    const trainSplit = sources['trainSplit'] as Record<string, unknown>;
+    const wrongPath = {
+      ...lock,
+      sources: { ...sources, trainSplit: { ...trainSplit, path: 'dish_ids/splits/wrong.txt' } },
+    };
+    expect(CalibrationSourceLockSchema.safeParse(wrongPath).success).toBe(false);
+  });
+
+  it('requires the exact datasetId on the source lock', () => {
+    const wrongDatasetId = validSourceLock({ datasetId: 'wrong-dataset-id' });
+    expect(CalibrationSourceLockSchema.safeParse(wrongDatasetId).success).toBe(false);
+
+    const missingDatasetId = validSourceLock();
+    delete missingDatasetId['datasetId'];
+    expect(CalibrationSourceLockSchema.safeParse(missingDatasetId).success).toBe(false);
+  });
+
+  it('requires retrievalProvenance with a stable ISO retrievedAt and the exact base URL', () => {
+    expect(CalibrationSourceLockSchema.safeParse(validSourceLock()).success).toBe(true);
+
+    const withoutProvenance = validSourceLock();
+    delete withoutProvenance['retrievalProvenance'];
+    expect(CalibrationSourceLockSchema.safeParse(withoutProvenance).success).toBe(false);
+
+    const wrongBaseUrl = validSourceLock({
+      retrievalProvenance: { retrievedAt: STABLE_RETRIEVED_AT_FOR_TEST, baseUrl: 'https://example.com/wrong/' },
+    });
+    expect(CalibrationSourceLockSchema.safeParse(wrongBaseUrl).success).toBe(false);
+
+    const nonIsoRetrievedAt = validSourceLock({
+      retrievalProvenance: { retrievedAt: 'not-a-date', baseUrl: NUTRITION5K_BASE_URL_FOR_TEST },
+    });
+    expect(CalibrationSourceLockSchema.safeParse(nonIsoRetrievedAt).success).toBe(false);
+  });
+
+  it('rejects a self-referential hash field on the source lock (the lock never hashes itself)', () => {
+    const withLockHash = { ...validSourceLock(), lockHash: 'e'.repeat(64) };
+    expect(CalibrationSourceLockSchema.safeParse(withLockHash).success).toBe(false);
+
+    const withSelfHash = { ...validSourceLock(), selfHash: 'e'.repeat(64) };
+    expect(CalibrationSourceLockSchema.safeParse(withSelfHash).success).toBe(false);
+  });
+
+  describe('skippedImages: strict enumerated reason/status, no raw provider text or local paths', () => {
+    it('accepts a well-formed http-status skipped-image record with a numeric status', () => {
+      const lock = validSourceLock({ skippedImages: [validSkippedImage()] });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(true);
+    });
+
+    it('accepts a well-formed non-http skipped-image record without a status field', () => {
+      const lock = validSourceLock({
+        skippedImages: [validSkippedImage({ reason: 'invalid_signature', status: undefined })],
+      });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(true);
+    });
+
+    it('rejects a status field on a non-http reason (status is only relevant to http reasons)', () => {
+      const lock = validSourceLock({
+        skippedImages: [validSkippedImage({ reason: 'invalid_signature', status: 500 })],
+      });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+    });
+
+    it('rejects an unrecognized (non-enumerated) reason string', () => {
+      const lock = validSourceLock({
+        skippedImages: [validSkippedImage({ reason: 'weird_unknown_reason', status: undefined })],
+      });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+    });
+
+    it('rejects a reason carrying raw provider/network error text instead of a stable enum member', () => {
+      const lock = validSourceLock({
+        skippedImages: [
+          validSkippedImage({
+            reason: 'ECONNRESET: connect ETIMEDOUT 172.16.0.5:443',
+            status: undefined,
+          }),
+        ],
+      });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+    });
+
+    it('rejects a reason carrying a local filesystem path', () => {
+      const lock = validSourceLock({
+        skippedImages: [
+          validSkippedImage({
+            reason: '/home/agent-runner/projects/calorix/.nutrition-eval/cache/dish_9000000005.png',
+            status: undefined,
+          }),
+        ],
+      });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+    });
+
+    it('rejects an unknown key on a skipped-image record instead of stripping it (tampered record)', () => {
+      const lock = validSourceLock({
+        skippedImages: [{ ...validSkippedImage(), extra: 'nope' }],
+      });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+    });
+
+    it('rejects a skipped-image record missing dishId or stratum', () => {
+      const missingDishId = validSkippedImage();
+      delete missingDishId['dishId'];
+      expect(CalibrationSourceLockSchema.safeParse(validSourceLock({ skippedImages: [missingDishId] })).success).toBe(
+        false,
+      );
+
+      const missingStratum = validSkippedImage();
+      delete missingStratum['stratum'];
+      expect(
+        CalibrationSourceLockSchema.safeParse(validSourceLock({ skippedImages: [missingStratum] })).success,
+      ).toBe(false);
+    });
+
+    it('rejects an unknown key nested inside a skipped-image stratum instead of stripping it', () => {
+      const tampered = validSkippedImage();
+      tampered['stratum'] = { ...(tampered['stratum'] as Record<string, unknown>), extra: 'nope' };
+      expect(CalibrationSourceLockSchema.safeParse(validSourceLock({ skippedImages: [tampered] })).success).toBe(
+        false,
+      );
+    });
+  });
+
+  // Duplicated verbatim from calibration-corpus.test.ts's DEV_TUPLES/VALIDATION_TUPLES
+  // (the plan-pinned DEVELOPMENT_SLOT_SCHEDULE / VALIDATION_SLOT_SCHEDULE) so the
+  // strict-manifest fixture here is exact at every position, not merely well-shaped.
+  const DEV_STRATUM_TUPLES: ReadonlyArray<[number, number, number]> = [
+    [0, 0, 0], [1, 1, 1], [2, 2, 2],
+    [0, 0, 0], [1, 1, 2], [2, 2, 1],
+    [0, 0, 1], [1, 1, 0], [2, 2, 2],
+    [0, 0, 1], [1, 1, 2], [2, 2, 0],
+    [0, 0, 2], [1, 1, 0], [2, 2, 1],
+    [0, 0, 2], [1, 1, 1], [2, 2, 0],
+    [0, 1, 1], [1, 0, 2], [2, 2, 0],
+    [0, 2, 2], [1, 0, 1], [2, 1, 0],
+  ];
+
+  const VALIDATION_STRATUM_TUPLES: ReadonlyArray<[number, number, number]> = [
+    [0, 0, 0], [1, 2, 2], [2, 1, 1],
+    [0, 0, 1], [1, 2, 2], [2, 1, 0],
+    [0, 1, 0], [1, 0, 1], [2, 2, 2],
+    [0, 1, 0], [1, 0, 2], [2, 2, 1],
+    [0, 1, 2], [1, 0, 1], [2, 2, 0],
+    [0, 2, 1],
+  ];
+
+  function buildStrictCase(
+    index: number,
+    group: 'development' | 'validation',
+    slotIndex: number,
+    stratum: readonly [number, number, number],
+    overrides: Record<string, unknown> = {},
+  ): Record<string, unknown> {
+    const dishId = `dish_9${String(index).padStart(9, '0')}`;
+    const imageHash = createHash('sha256').update(`image:${dishId}`).digest('hex');
+    const rank = createHash('sha256').update(`calorix-n5k-calibration-v1:${dishId}`).digest('hex');
+    const [componentBin, calorieBin, macroBin] = stratum;
+    return {
+      id: `calibration-${dishId}`,
+      visibility: 'public',
+      scanMode: 'meal',
+      source: { dataset: 'nutrition5k', objectId: dishId },
+      image: {
+        url: `${NUTRITION5K_BASE_URL_FOR_TEST}imagery/realsense_overhead/${dishId}/rgb.png`,
+        sha256: imageHash,
+        mediaType: 'image/png',
+        width: 640,
+        height: 480,
+      },
+      truth: {
+        basis: 'portion',
+        amount: 1,
+        unit: 'portion',
+        kcal: 100 + index,
+        proteinG: 5,
+        carbsG: 10,
+        fatG: 2,
+        referenceMassG: 150,
+      },
+      toleranceClass: 'meal-estimate',
+      attributionId: 'nutrition5k-cc-by-4.0',
+      group,
+      stratum: { componentBin, calorieBin, macroBin },
+      rank,
+      slotIndex,
+      ...overrides,
+    };
+  }
+
+  function validStrictManifest(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    const development = DEV_STRATUM_TUPLES.map((stratum, i) => buildStrictCase(i, 'development', i, stratum));
+    const validation = VALIDATION_STRATUM_TUPLES.map((stratum, i) =>
+      buildStrictCase(24 + i, 'validation', 24 + i, stratum),
+    );
+    return {
+      version: 1,
+      datasetId: 'calorix-n5k-calibration-v1',
+      sourceLockHash: 'd'.repeat(64),
+      cases: [...development, ...validation],
+      ...overrides,
+    };
+  }
+
+  it('accepts a well-formed 24-development/16-validation strict calibration manifest', () => {
+    expect(StrictCalibrationManifestSchema.safeParse(validStrictManifest()).success).toBe(true);
+  });
+
+  it('rejects an unknown top-level key on the strict manifest instead of stripping it', () => {
+    const withExtra = { ...validStrictManifest(), unexpectedField: 'nope' };
+    expect(StrictCalibrationManifestSchema.safeParse(withExtra).success).toBe(false);
+  });
+
+  it('rejects an unknown key on a strict case instead of stripping it', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    cases[0] = { ...cases[0], unexpectedField: 'nope' };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('requires referenceMassG on every calibration case truth', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    const truth = { ...(cases[0]!['truth'] as Record<string, unknown>) };
+    delete truth['referenceMassG'];
+    cases[0] = { ...cases[0], truth };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('requires exactly 24 development and 16 validation cases', () => {
+    const manifest = validStrictManifest();
+    const cases = manifest['cases'] as Record<string, unknown>[];
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: cases.slice(0, 39) }).success).toBe(false);
+
+    const tooManyDev = cases.slice();
+    tooManyDev[39] = { ...tooManyDev[39], group: 'development' };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: tooManyDev }).success).toBe(false);
+  });
+
+  it('rejects duplicate case IDs and duplicate dish IDs', () => {
+    const manifest = validStrictManifest();
+    const cases = manifest['cases'] as Record<string, unknown>[];
+
+    const dupId = cases.slice();
+    dupId[1] = { ...dupId[1], id: dupId[0]!['id'] };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: dupId }).success).toBe(false);
+
+    const dupDish = cases.slice();
+    const firstSource = dupDish[0]!['source'] as Record<string, unknown>;
+    const secondSource = dupDish[1]!['source'] as Record<string, unknown>;
+    dupDish[1] = { ...dupDish[1], source: { ...secondSource, objectId: firstSource['objectId'] } };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: dupDish }).success).toBe(false);
+  });
+
+  it('rejects a case whose scanMode or visibility drifts from the frozen public meal shape', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    cases[0] = { ...cases[0], scanMode: 'barcode' };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+
+    const privateCase = (manifest['cases'] as Record<string, unknown>[]).slice();
+    privateCase[0] = { ...privateCase[0], visibility: 'private' };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: privateCase }).success).toBe(false);
+  });
+
+  it('rejects a case whose id does not exactly match calibration-<dishId>', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    cases[0] = { ...cases[0], id: 'calibration-dish_0000000000' };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('rejects a case whose source.dataset is not exactly nutrition5k', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    const source = cases[0]!['source'] as Record<string, unknown>;
+    cases[0] = { ...cases[0], source: { ...source, dataset: 'other-dataset' } };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('rejects a case whose source.objectId does not match dish_[0-9]+', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    const source = cases[0]!['source'] as Record<string, unknown>;
+    cases[0] = { ...cases[0], source: { ...source, objectId: 'dish_abc' } };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('rejects a case whose truth basis/amount/unit drifts from the frozen portion-of-one shape', () => {
+    const manifest = validStrictManifest();
+    const cases = manifest['cases'] as Record<string, unknown>[];
+    const truth = cases[0]!['truth'] as Record<string, unknown>;
+
+    const wrongBasis = cases.slice();
+    wrongBasis[0] = { ...wrongBasis[0], truth: { ...truth, basis: 'package' } };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: wrongBasis }).success).toBe(false);
+
+    const wrongAmount = cases.slice();
+    wrongAmount[0] = { ...wrongAmount[0], truth: { ...truth, amount: 2 } };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: wrongAmount }).success).toBe(false);
+
+    const wrongUnit = cases.slice();
+    wrongUnit[0] = { ...wrongUnit[0], truth: { ...truth, unit: 'g' } };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: wrongUnit }).success).toBe(false);
+  });
+
+  it('rejects a case with non-positive kcal (zero is no longer accepted)', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    const truth = cases[0]!['truth'] as Record<string, unknown>;
+    cases[0] = { ...cases[0], truth: { ...truth, kcal: 0 } };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('rejects a case whose toleranceClass is not exactly meal-estimate', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    cases[0] = { ...cases[0], toleranceClass: 'package-estimate' };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('does not affect generic version-1 manifest parsing (backward compatible)', () => {
+    // A minimal generic manifest, unrelated to calibration, must still parse
+    // through the unchanged public NutritionEvalManifestSchema/parser and
+    // must not require any calibration-only field.
+    const generic = {
+      version: 1,
+      datasetId: 'calorix-nutrition-eval-v1',
+      cases: [
+        {
+          id: 'meal-dish-1565035746',
+          visibility: 'public',
+          scanMode: 'meal',
+          source: { dataset: 'nutrition5k', objectId: 'dish_1565035746' },
+          image: {
+            url: 'https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565035746/rgb.png',
+            sha256: '28f5fe26394586f124c04af2d22270d8a8079c141fc1f2b0fe80593d77ae2869',
+            mediaType: 'image/png',
+            width: 640,
+            height: 480,
+          },
+          truth: { basis: 'portion', amount: 1, unit: 'portion', kcal: 43.1, proteinG: 2.4, carbsG: 9.0, fatG: 0.4 },
+          toleranceClass: 'meal-estimate',
+          attributionId: 'nutrition5k-cc-by-4.0',
+        },
+      ],
+    };
+    const parsed = parseNutritionEvalManifest(generic);
+    expect(parsed.cases).toHaveLength(1);
+    expect(parsed.cases[0]).not.toHaveProperty('group');
+  });
+
+  it('rejects cases listed out of ascending slotIndex order (swapped order)', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    const [a, b] = [cases[0]!, cases[1]!];
+    cases[0] = b;
+    cases[1] = a;
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('rejects a case whose group does not match its slotIndex range (group drift)', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    cases[0] = { ...cases[0], group: 'validation' }; // slotIndex 0 must be development
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('rejects a duplicated or out-of-sequence slotIndex (slot drift)', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    cases[1] = { ...cases[1], slotIndex: 0 }; // duplicate of cases[0]
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('rejects a case whose stratum deviates from the pinned schedule tuple at its slot (stratum drift)', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    const stratum = cases[0]!['stratum'] as Record<string, unknown>;
+    cases[0] = {
+      ...cases[0],
+      stratum: { ...stratum, componentBin: ((stratum['componentBin'] as number) + 1) % 3 },
+    };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('rejects an invalid rank (must be lowercase 64-hex)', () => {
+    const manifest = validStrictManifest();
+
+    const uppercaseRank = (manifest['cases'] as Record<string, unknown>[]).slice();
+    uppercaseRank[0] = { ...uppercaseRank[0], rank: 'A'.repeat(64) };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: uppercaseRank }).success).toBe(false);
+
+    const shortRank = (manifest['cases'] as Record<string, unknown>[]).slice();
+    shortRank[0] = { ...shortRank[0], rank: 'a'.repeat(63) };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: shortRank }).success).toBe(false);
+  });
+
+  it('rejects a case whose rank is well-formed 64-hex but does not equal sha256(prefix+dishId)', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    cases[0] = { ...cases[0], rank: 'f'.repeat(64) };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('rejects an unknown key nested inside a case stratum instead of stripping it', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    const stratum = cases[0]!['stratum'] as Record<string, unknown>;
+    cases[0] = { ...cases[0], stratum: { ...stratum, extra: 'nope' } };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases }).success).toBe(false);
+  });
+
+  it('rejects a case whose image URL, media type, or attribution drifts from the exact pinned values', () => {
+    const manifest = validStrictManifest();
+
+    const wrongUrl = (manifest['cases'] as Record<string, unknown>[]).slice();
+    const image0 = wrongUrl[0]!['image'] as Record<string, unknown>;
+    wrongUrl[0] = { ...wrongUrl[0], image: { ...image0, url: 'https://example.com/rgb.png' } };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: wrongUrl }).success).toBe(false);
+
+    const wrongMedia = (manifest['cases'] as Record<string, unknown>[]).slice();
+    const image1 = wrongMedia[0]!['image'] as Record<string, unknown>;
+    wrongMedia[0] = { ...wrongMedia[0], image: { ...image1, mediaType: 'image/jpeg' } };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: wrongMedia }).success).toBe(false);
+
+    const wrongAttribution = (manifest['cases'] as Record<string, unknown>[]).slice();
+    wrongAttribution[0] = { ...wrongAttribution[0], attributionId: 'some-other-license' };
+    expect(StrictCalibrationManifestSchema.safeParse({ ...manifest, cases: wrongAttribution }).success).toBe(false);
+  });
+
+  it('parses the manifest before hashing, so unknown or invalid input is rejected rather than hashed', () => {
+    const manifest = validStrictManifest();
+    const baseHash = hashStrictCalibrationManifest(manifest);
+    expect(baseHash).toMatch(/^[0-9a-f]{64}$/);
+
+    expect(() => hashStrictCalibrationManifest({ ...manifest, unexpectedField: 'nope' })).toThrow();
+
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    cases[0] = { ...cases[0], unexpectedField: 'nope' };
+    expect(() => hashStrictCalibrationManifest({ ...manifest, cases })).toThrow();
+  });
+
+  it('hashes the full canonical strict object, sensitive to legitimate truth-field changes', () => {
+    const manifest = validStrictManifest();
+    const baseHash = hashStrictCalibrationManifest(manifest);
+
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    const truth = { ...(cases[0]!['truth'] as Record<string, unknown>) };
+    cases[0] = { ...cases[0], truth: { ...truth, proteinG: (truth['proteinG'] as number) + 1 } };
+    const changedHash = hashStrictCalibrationManifest({ ...manifest, cases });
+    expect(changedHash).not.toBe(baseHash);
+  });
+
+  it('rejects (throws instead of hashing) a manifest with group/stratum drift from the pinned schedule', () => {
+    const manifest = validStrictManifest();
+    const cases = (manifest['cases'] as Record<string, unknown>[]).slice();
+    cases[0] = { ...cases[0], group: 'validation' };
+    cases[24] = { ...cases[24], group: 'development' };
+    expect(() => hashStrictCalibrationManifest({ ...manifest, cases })).toThrow();
+  });
+
+  it('is deterministic for identical valid input', () => {
+    const manifest = validStrictManifest();
+    expect(hashStrictCalibrationManifest(manifest)).toBe(hashStrictCalibrationManifest(validStrictManifest()));
+  });
+
+  it('rejects (throws instead of hashing) an out-of-range slotIndex or a rank not matching its dish id', () => {
+    const manifest = validStrictManifest();
+
+    const reindexed = (manifest['cases'] as Record<string, unknown>[]).slice();
+    reindexed[0] = { ...reindexed[0], slotIndex: (reindexed[0]!['slotIndex'] as number) + 100 };
+    expect(() => hashStrictCalibrationManifest({ ...manifest, cases: reindexed })).toThrow();
+
+    const rerated = (manifest['cases'] as Record<string, unknown>[]).slice();
+    rerated[0] = { ...rerated[0], rank: 'f'.repeat(64) };
+    expect(() => hashStrictCalibrationManifest({ ...manifest, cases: rerated })).toThrow();
+  });
+
+  describe('hashCalibrationSourceLock: parses CalibrationSourceLockSchema before hashing', () => {
+    it('hashes a well-formed source lock deterministically', () => {
+      const lock = validSourceLock();
+      const hash = hashCalibrationSourceLock(lock);
+      expect(hash).toMatch(/^[0-9a-f]{64}$/);
+      expect(hashCalibrationSourceLock(validSourceLock())).toBe(hash);
+    });
+
+    it('is sensitive to a source sha256/byteLength change', () => {
+      const lock = validSourceLock();
+      const base = hashCalibrationSourceLock(lock);
+      const sources = lock['sources'] as Record<string, unknown>;
+      const trainSplit = sources['trainSplit'] as Record<string, unknown>;
+      const changed = {
+        ...lock,
+        sources: {
+          ...sources,
+          trainSplit: { ...trainSplit, byteLength: (trainSplit['byteLength'] as number) + 1 },
+        },
+      };
+      expect(hashCalibrationSourceLock(changed)).not.toBe(base);
+    });
+
+    it('rejects (throws) an unknown top-level key instead of hashing it', () => {
+      const lock = { ...validSourceLock(), unexpectedField: 'nope' };
+      expect(() => hashCalibrationSourceLock(lock)).toThrow();
+    });
+
+    it('rejects (throws) a source lock missing a required field instead of hashing it', () => {
+      const lock = validSourceLock();
+      delete lock['datasetId'];
+      expect(() => hashCalibrationSourceLock(lock)).toThrow();
+    });
+  });
+
+  describe('Task 4 audit correction: stable fetch_error, strict dish IDs, unique skips', () => {
+    it('accepts fetch_error without a status field (thrown fetch/arrayBuffer path)', () => {
+      const lock = validSourceLock({
+        skippedImages: [validSkippedImage({ reason: 'fetch_error', status: undefined })],
+      });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(true);
+    });
+
+    it('rejects fetch_error carrying a numeric status', () => {
+      const lock = validSourceLock({
+        skippedImages: [validSkippedImage({ reason: 'fetch_error', status: 500 })],
+      });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+    });
+
+    it('rejects http_error without a numeric status', () => {
+      const lock = validSourceLock({
+        skippedImages: [validSkippedImage({ reason: 'http_error', status: undefined })],
+      });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+    });
+
+    it('rejects skipped dish IDs that do not match dish_[0-9]+', () => {
+      for (const badId of ['dish_abc', 'dish-', '', 'DISH_123', 'dish_12a34', 'meal-1']) {
+        const lock = validSourceLock({
+          skippedImages: [validSkippedImage({ dishId: badId })],
+        });
+        expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+      }
+    });
+
+    it('rejects duplicate skipped dish IDs', () => {
+      const lock = validSourceLock({
+        skippedImages: [validSkippedImage(), validSkippedImage()],
+      });
+      expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+    });
+  });
+});
+
+describe('Task 4a RED: canonical excludedDishes on the calibration source lock', () => {
+  // The reviewed live-pin correction (Steps 4a–4b): train candidates with
+  // non-positive total calories/mass, negative total macros, or absent merged
+  // metadata become canonical stable typed `excludedDishes`, bound into the
+  // source-lock hash. Non-train invalid rows never appear here. Every
+  // accept/hash test below fails until schema.ts implements the field; the
+  // reject tests guard the strictness the GREEN implementation must keep.
+
+  function validExclusion(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    return { dishId: 'dish_1556575700', reason: 'non_positive_calories', ...overrides };
+  }
+
+  function exclusionLock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    return {
+      version: 1,
+      datasetId: 'calorix-n5k-calibration-v1',
+      baseUrl: NUTRITION5K_BASE_URL_FOR_TEST,
+      retrievalProvenance: {
+        retrievedAt: STABLE_RETRIEVED_AT_FOR_TEST,
+        baseUrl: NUTRITION5K_BASE_URL_FOR_TEST,
+      },
+      sources: {
+        trainSplit: {
+          path: 'dish_ids/splits/rgb_train_ids.txt',
+          url: `${NUTRITION5K_BASE_URL_FOR_TEST}dish_ids/splits/rgb_train_ids.txt`,
+          sha256: 'a'.repeat(64),
+          byteLength: 1024,
+        },
+        metadataCafe1: {
+          path: 'metadata/dish_metadata_cafe1.csv',
+          url: `${NUTRITION5K_BASE_URL_FOR_TEST}metadata/dish_metadata_cafe1.csv`,
+          sha256: 'b'.repeat(64),
+          byteLength: 2048,
+        },
+        metadataCafe2: {
+          path: 'metadata/dish_metadata_cafe2.csv',
+          url: `${NUTRITION5K_BASE_URL_FOR_TEST}metadata/dish_metadata_cafe2.csv`,
+          sha256: 'c'.repeat(64),
+          byteLength: 4096,
+        },
+      },
+      skippedImages: [] as unknown[],
+      excludedDishes: [] as unknown[],
+      ...overrides,
+    };
+  }
+
+  it('accepts a lock with canonical excludedDishes covering every stable reason', () => {
+    const lock = exclusionLock({
+      excludedDishes: [
+        validExclusion({ dishId: 'dish_1556575700', reason: 'non_positive_calories' }),
+        validExclusion({ dishId: 'dish_1556575701', reason: 'non_positive_mass' }),
+        validExclusion({ dishId: 'dish_1556575702', reason: 'negative_macros' }),
+        validExclusion({ dishId: 'dish_1556575703', reason: 'missing_metadata' }),
+      ],
+    });
+    expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(true);
+  });
+
+  it('rejects duplicate excluded dish IDs', () => {
+    const lock = exclusionLock({
+      excludedDishes: [validExclusion(), validExclusion()],
+    });
+    expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+  });
+
+  it('rejects an unknown exclusion reason', () => {
+    const lock = exclusionLock({
+      excludedDishes: [validExclusion({ reason: 'weird_unknown_reason' })],
+    });
+    expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
+  });
+
+  it('rejects unknown keys or raw provider text on an exclusion entry', () => {
+    const withExtra = exclusionLock({ excludedDishes: [{ ...validExclusion(), extra: 'nope' }] });
+    expect(CalibrationSourceLockSchema.safeParse(withExtra).success).toBe(false);
+
+    const withRawText = exclusionLock({
+      excludedDishes: [validExclusion({ reason: 'ECONNRESET: connect ETIMEDOUT 172.16.0.5:443' })],
+    });
+    expect(CalibrationSourceLockSchema.safeParse(withRawText).success).toBe(false);
+
+    const badDishId = exclusionLock({ excludedDishes: [validExclusion({ dishId: 'dish_abc' })] });
+    expect(CalibrationSourceLockSchema.safeParse(badDishId).success).toBe(false);
+  });
+
+  it('binds excludedDishes into the source-lock hash (omission/addition changes the hash)', () => {
+    const base = exclusionLock({
+      excludedDishes: [validExclusion({ dishId: 'dish_1556575700', reason: 'non_positive_calories' })],
+    });
+    const baseHash = hashCalibrationSourceLock(base);
+    expect(baseHash).toMatch(/^[0-9a-f]{64}$/);
+
+    const omitted = exclusionLock({ excludedDishes: [] });
+    expect(hashCalibrationSourceLock(omitted)).not.toBe(baseHash);
+
+    const added = exclusionLock({
+      excludedDishes: [
+        validExclusion({ dishId: 'dish_1556575700', reason: 'non_positive_calories' }),
+        validExclusion({ dishId: 'dish_1556575701', reason: 'missing_metadata' }),
+      ],
+    });
+    expect(hashCalibrationSourceLock(added)).not.toBe(baseHash);
+  });
+
+  it('is sensitive to exclusion reason and order drift', () => {
+    const base = exclusionLock({
+      excludedDishes: [
+        validExclusion({ dishId: 'dish_1556575700', reason: 'non_positive_calories' }),
+        validExclusion({ dishId: 'dish_1556575701', reason: 'missing_metadata' }),
+      ],
+    });
+    const baseHash = hashCalibrationSourceLock(base);
+
+    const reasonDrift = exclusionLock({
+      excludedDishes: [
+        validExclusion({ dishId: 'dish_1556575700', reason: 'missing_metadata' }),
+        validExclusion({ dishId: 'dish_1556575701', reason: 'missing_metadata' }),
+      ],
+    });
+    expect(hashCalibrationSourceLock(reasonDrift)).not.toBe(baseHash);
+
+    const orderDrift = exclusionLock({
+      excludedDishes: [
+        validExclusion({ dishId: 'dish_1556575701', reason: 'missing_metadata' }),
+        validExclusion({ dishId: 'dish_1556575700', reason: 'non_positive_calories' }),
+      ],
+    });
+    expect(CalibrationSourceLockSchema.safeParse(orderDrift).success).toBe(false);
+    expect(() => hashCalibrationSourceLock(orderDrift)).toThrow();
+  });
+
+  it('rejects non-canonical excludedDishes order (descending dishIds fail closed)', () => {
+    const canonical = exclusionLock({
+      excludedDishes: [
+        validExclusion({ dishId: 'dish_1556575700', reason: 'non_positive_calories' }),
+        validExclusion({ dishId: 'dish_1556575701', reason: 'missing_metadata' }),
+      ],
+    });
+    expect(CalibrationSourceLockSchema.safeParse(canonical).success).toBe(true);
+    const nonCanonical = exclusionLock({
+      excludedDishes: [
+        validExclusion({ dishId: 'dish_1556575701', reason: 'missing_metadata' }),
+        validExclusion({ dishId: 'dish_1556575700', reason: 'non_positive_calories' }),
+      ],
+    });
+    expect(CalibrationSourceLockSchema.safeParse(nonCanonical).success).toBe(false);
+  });
+
+  it('rejects an exclusion overlapping a skipped-image dish ID', () => {
+    const lock = exclusionLock({
+      skippedImages: [
+        {
+          dishId: 'dish_9000000001',
+          stratum: { componentBin: 0, calorieBin: 0, macroBin: 0 },
+          reason: 'http_error',
+          status: 404,
+        },
+      ],
+      excludedDishes: [validExclusion({ dishId: 'dish_9000000001', reason: 'missing_metadata' })],
+    });
+    expect(CalibrationSourceLockSchema.safeParse(lock).success).toBe(false);
   });
 });

@@ -14,6 +14,18 @@
 - **Nutrition source**: Per-dish CSV annotations computed from USDA Food and Nutrient Database
 - **Limitations**: Dataset collected from select Google cafeterias in California, USA. Does not cover all food cuisines. Overhead RGB-D images available for ~3,500 of ~5,000 dishes. Selected cases are from the official `depth_test_ids.txt` split.
 
+### Calibration corpus (nutrition5k-cc-by-4.0)
+
+- **Scope**: 40 dishes in manifest slot order: 24 development (slots 0-23) / 16 validation (slots 24-39).
+- **Split**: Official `rgb_train_ids.txt` split (`dish_ids/splits/rgb_train_ids.txt`).
+- **Image view**: Overhead `rgb.png` only, per the image URL pattern above.
+- **Source/license**: Public CC BY 4.0 source above; same dataset, image source, URL pattern, and license.
+- **Retrieval date**: 2026-09-24.
+- **Source lock SHA-256**: `f1138680a38aa64eb400bc20c89ec656d771e8f3823ae09bed956a48eff2a43b` (`functions/eval/nutrition/calibration-source-lock.json`).
+- **Manifest SHA-256**: `313c37c14cb912d5dc6410dbb3b812139c22d7533d2341678de3ac860b0c1d6d` (`functions/eval/nutrition/calibration-manifest.json`).
+- **Bytes policy**: Selected image bytes are referenced by HTTPS URL/hash but not committed.
+- **Dish IDs (manifest slot order)**: dish_1565117892, dish_1566844803, dish_1560442303, dish_1558116547, dish_1563986093, dish_1564000490, dish_1561575410, dish_1563812535, dish_1564778057, dish_1559846311, dish_1564588719, dish_1563480534, dish_1562688382, dish_1565711115, dish_1561492204, dish_1558115011, dish_1560798707, dish_1563910708, dish_1567629081, dish_1560874667, dish_1566501473, dish_1560356523, dish_1565119642, dish_1565021675, dish_1560442450, dish_1562173267, dish_1559241099, dish_1558630006, dish_1562602627, dish_1562096372, dish_1565972363, dish_1559846504, dish_1562184705, dish_1561393550, dish_1563563467, dish_1561665747, dish_1558115764, dish_1562689601, dish_1565118096, dish_1560800836.
+
 ## open-food-facts-odbl
 
 - **Dataset**: Open Food Facts
