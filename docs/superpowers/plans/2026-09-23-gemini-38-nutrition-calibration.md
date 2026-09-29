@@ -185,7 +185,7 @@ This checked schedule avoids the officially empty combined strata while giving d
 - [x] **Step 4d: Implement the exact official-name rule and reverify.** Remove only the non-empty ingredient-name check, preserve every other group validation and the unchanged exclusion vocabulary, then rerun focused/full nutrition-eval, build, and lint before retrying `--pin`.
 - [x] **Step 5: Generate and independently inspect the committed corpus.** Run `--pin` once. Confirm 40 unique train IDs, 24/16 groups, exact stratum margins, zero overlap with the frozen 12, exact truth/mass data, no local paths, and no downloaded image bytes staged.
 - [x] **Step 6: Run GREEN and repeat-verification proof.** Run `--verify` and compare its canonical output byte-for-byte with the committed manifest without rewriting it. Run `cd functions && npx vitest run test/nutrition-eval/calibration-corpus.test.ts test/nutrition-eval/public-manifest.test.ts test/nutrition-eval/schema.test.ts && npm run build && npm run lint`.
-- [ ] **Step 7: Review, track, commit, and push.** Record exact source hashes and verification results, commit `Add deterministic calibration corpus`, and push.
+- [x] **Step 7: Review, track, commit, and push.** Record exact source hashes and verification results, commit `Add deterministic calibration corpus`, and push.
 
 ## Task 5: Make cache identity and barcode replay exact
 
