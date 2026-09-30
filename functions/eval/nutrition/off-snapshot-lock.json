@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "datasetId": "calorix-off-snapshot-v1",
+  "baseUrl": "https://world.openfoodfacts.org/api/v3/",
+  "snapshots": {
+    "3017624010701": {
+      "path": "functions/eval/nutrition/off-snapshots/3017624010701.json",
+      "url": "https://world.openfoodfacts.org/api/v3/product/3017624010701?fields=code%2Cproduct_name%2Cquantity%2Cproduct_quantity%2Cproduct_quantity_unit%2Cserving_size%2Cserving_quantity%2Cserving_quantity_unit%2Cnutrition_data_per%2Cnutriments",
+      "sha256": "6d2d26a27dbc66a85dbb82a538f11e55118c6b8d9e2e3e498851c44bf9870602"
+    },
+    "5449000000996": {
+      "path": "functions/eval/nutrition/off-snapshots/5449000000996.json",
+      "url": "https://world.openfoodfacts.org/api/v3/product/5449000000996?fields=code%2Cproduct_name%2Cquantity%2Cproduct_quantity%2Cproduct_quantity_unit%2Cserving_size%2Cserving_quantity%2Cserving_quantity_unit%2Cnutrition_data_per%2Cnutriments",
+      "sha256": "24763e361ef54bcfbc3736966bdadeb4bc4eea9d24a96896740def1b93febbf2"
+    },
+    "4056489686941": {
+      "path": "functions/eval/nutrition/off-snapshots/4056489686941.json",
+      "url": "https://world.openfoodfacts.org/api/v3/product/4056489686941?fields=code%2Cproduct_name%2Cquantity%2Cproduct_quantity%2Cproduct_quantity_unit%2Cserving_size%2Cserving_quantity%2Cserving_quantity_unit%2Cnutrition_data_per%2Cnutriments",
+      "sha256": "7e7e30b7aabd564c21fdd645f5c3ba11e9d718a79fa90f7e3f90f2f9f7895906"
+    },
+    "7622210449283": {
+      "path": "functions/eval/nutrition/off-snapshots/7622210449283.json",
+      "url": "https://world.openfoodfacts.org/api/v3/product/7622210449283?fields=code%2Cproduct_name%2Cquantity%2Cproduct_quantity%2Cproduct_quantity_unit%2Cserving_size%2Cserving_quantity%2Cserving_quantity_unit%2Cnutrition_data_per%2Cnutriments",
+      "sha256": "bdd38934d1af3d39584049b75a2c73a5b9f5ec7105bded32fda1f45f8e9af80f"
+    }
+  }
+}
