@@ -26,15 +26,22 @@ import {
 type Deps = Parameters<typeof runNutritionEval>[1];
 type CacheStore = NonNullable<Deps['cacheStore']>;
 
+const FULL_CACHE_IDENTITY = {
+  adapterModelId: 'gemini-3.8-flash',
+  project: 'calorix-xurschnell',
+  location: 'us',
+  model: 'gemini-3.8-flash',
+  generationProfile: 'LOW' as const,
+  responseSchemaHash: 'a'.repeat(64),
+  datasetHash: 'c'.repeat(64),
+  functionsTreeId: 'd'.repeat(40),
+};
+
 function makeDeps(overrides: Partial<Deps> = {}): Deps {
   return {
     loadImage: vi.fn(async () => new Uint8Array([0x89])),
     analyzeCase: vi.fn(async () => okMealPrediction),
     nowMs: vi.fn(() => 1000),
-    cacheStore: {
-      get: vi.fn(async () => null),
-      set: vi.fn(async () => {}),
-    },
     ...overrides,
   };
 }
@@ -280,18 +287,12 @@ describe('runner cache isolation across profiles', () => {
       deps,
       {
         datasetId: 'd',
-        adapterModelId: 'm',
         promptHash: 'b'.repeat(64),
         codeSha: 'c',
         samples: 1,
-        project: 'calorix-xurschnell',
-        location: 'us',
-        model: 'gemini-3.8-flash',
-        generationProfile: 'MEDIUM',
-        responseSchemaHash: 'a'.repeat(64),
-        datasetHash: 'c'.repeat(64),
-        functionsTreeId: 'd'.repeat(40),
-      } as unknown as Parameters<typeof runNutritionEval>[2],
+        ...FULL_CACHE_IDENTITY,
+        generationProfile: 'MEDIUM' as const,
+      },
     );
 
     expect(getSpy).toHaveBeenCalledTimes(1);
@@ -439,7 +440,7 @@ describe('calibration cache bypass', () => {
     const results = await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY },
     );
 
     expect(results[0]?.prediction.cached).toBe(true);
@@ -731,12 +732,12 @@ describe('runner cache key identity', () => {
     await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY },
     );
     await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY },
     );
 
     expect(keys[0]).toBe(keys[1]);
@@ -756,12 +757,18 @@ describe('runner cache key identity', () => {
     await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'a', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      {
+        datasetId: 'a', promptHash: 'p', codeSha: 'c', samples: 1,
+        ...FULL_CACHE_IDENTITY, datasetHash: 'a'.repeat(64),
+      },
     );
     await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'b', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      {
+        datasetId: 'b', promptHash: 'p', codeSha: 'c', samples: 1,
+        ...FULL_CACHE_IDENTITY, datasetHash: 'b'.repeat(64),
+      },
     );
 
     expect(keys[0]).not.toBe(keys[1]);
@@ -779,12 +786,12 @@ describe('runner cache key identity', () => {
     await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY },
     );
     await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 2 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 2, ...FULL_CACHE_IDENTITY },
     );
 
     // With samples: 2, two keys are written per case
@@ -825,7 +832,7 @@ describe('runner cache behavior', () => {
     const results = await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY },
     );
 
     expect(results[0]?.prediction.kcal).toBe(42);
@@ -855,7 +862,7 @@ describe('runner cache behavior', () => {
     const results = await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY },
     );
 
     expect(results[0]?.prediction).toMatchObject({
@@ -885,7 +892,7 @@ describe('runner cache behavior', () => {
     const results = await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY },
     );
 
     expect(results[0]?.prediction.parseStatus).toBe('failure');
@@ -911,7 +918,7 @@ describe('runner cache behavior', () => {
     const results = await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY },
     );
 
     expect(results[0]?.prediction.parseStatus).toBe('failure');
@@ -934,7 +941,7 @@ describe('runner cache behavior', () => {
     const results = await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY },
     );
 
     expect(results[0]?.prediction.parseStatus).toBe('failure');
@@ -1073,7 +1080,7 @@ describe('runner lazy image load', () => {
     await runNutritionEval(
       [mealCase],
       deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 2 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 2, ...FULL_CACHE_IDENTITY },
     );
 
     expect(loadFn).not.toHaveBeenCalled();
@@ -1227,7 +1234,9 @@ describe('Slice F diagnostic cache compatibility', () => {
         return value;
       }),
     });
-    const options = { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 };
+    const options = {
+      datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY,
+    };
 
     const miss = await runNutritionEval([mealCase], deps, options);
     expect(miss[0]?.prediction.diagnostics).toEqual(diagnosticPrediction.diagnostics);
@@ -1261,7 +1270,7 @@ describe('Slice F diagnostic cache compatibility', () => {
 
     const results = await runNutritionEval(
       [mealCase], deps,
-      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+      { datasetId: 'd', promptHash: 'p', codeSha: 'c', samples: 1, ...FULL_CACHE_IDENTITY },
     );
 
     expect(results[0]?.prediction).toMatchObject({ ...oldPrediction, cached: true, sampleIndex: 1 });
@@ -1288,17 +1297,10 @@ describe('runner generic full identity gate', () => {
       const deps = makeDeps({ loadImage, analyzeCase, cacheStore: { get, set } });
       const base: Record<string, unknown> = {
         datasetId: 'd',
-        adapterModelId: 'm',
         promptHash: 'p',
         codeSha: 'c',
         samples: 1,
-        project: 'calorix-xurschnell',
-        location: 'us',
-        model: 'gemini-3.8-flash',
-        generationProfile: 'LOW',
-        responseSchemaHash: 'a'.repeat(64),
-        datasetHash: 'c'.repeat(64),
-        functionsTreeId: 'd'.repeat(40),
+        ...FULL_CACHE_IDENTITY,
       };
       delete base[field];
       await expect(

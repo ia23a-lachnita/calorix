@@ -17,11 +17,31 @@ export interface NutritionEvalDependencies {
   loadImage(evalCase: NutritionEvalCase): Promise<Uint8Array>;
   analyzeCase(
     evalCase: NutritionEvalCase,
-    bytes: Uint8Array,
+    bytes: Uint8Array | undefined,
     options: { sampleIndex: number },
   ): Promise<unknown>;
   nowMs(): number;
   cacheStore?: NutritionEvalCacheStore;
+}
+
+export type NutritionGenerationProfile = 'LOW' | 'MEDIUM';
+
+export interface NutritionEvalCacheIdentity {
+  project: string;
+  location: string;
+  model: string;
+  generationProfile: NutritionGenerationProfile;
+  responseSchemaHash: string;
+  promptHash: string;
+  datasetHash: string;
+  functionsTreeId: string;
+  imageSha: string;
+  sampleIndex: number;
+}
+
+export interface RunNutritionEvalCalibrationOptions {
+  mode?: 'strict';
+  skipImageForSuppliedBarcode?: boolean;
 }
 
 export interface RunNutritionEvalOptions {
@@ -30,30 +50,83 @@ export interface RunNutritionEvalOptions {
   promptHash: string;
   codeSha: string;
   samples?: number;
+  project?: string;
+  location?: string;
+  model?: string;
+  generationProfile?: NutritionGenerationProfile;
+  responseSchemaHash?: string;
+  datasetHash?: string;
+  functionsTreeId?: string;
+  calibration?: RunNutritionEvalCalibrationOptions;
 }
+
+type CacheIdentityBase = Omit<NutritionEvalCacheIdentity, 'imageSha' | 'sampleIndex'>;
 
 interface FailureDetails {
   category: 'dataset' | 'schema' | 'provider' | 'runner';
   code: string;
 }
 
-export function buildCacheKey(
-  datasetId: string,
-  imageSha: string,
-  adapterModelId: string,
-  promptHash: string,
-  codeSha: string,
-  oneBasedSampleIndex: number,
-): string {
-  const identity = JSON.stringify([
-    datasetId,
-    imageSha,
-    adapterModelId,
-    promptHash,
-    codeSha,
-    oneBasedSampleIndex,
-  ]);
-  return sha256Hex(Buffer.from(identity, 'utf8'));
+function requiredIdentityString(value: string | undefined, field: string): string {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error(`${field} must be a nonblank string`);
+  }
+  return value;
+}
+
+function requiredGenerationProfile(
+  value: NutritionGenerationProfile | undefined,
+): NutritionGenerationProfile {
+  if (value !== 'LOW' && value !== 'MEDIUM') {
+    throw new Error('generationProfile must be LOW or MEDIUM');
+  }
+  return value;
+}
+
+export function buildCacheKey(identity: NutritionEvalCacheIdentity): string {
+  const sampleIndex = identity.sampleIndex;
+  if (typeof sampleIndex !== 'number' || !Number.isInteger(sampleIndex) || sampleIndex < 1) {
+    throw new Error('sampleIndex must be a positive integer');
+  }
+  const canonical = JSON.stringify({
+    datasetHash: requiredIdentityString(identity.datasetHash, 'datasetHash'),
+    functionsTreeId: requiredIdentityString(identity.functionsTreeId, 'functionsTreeId'),
+    generationProfile: requiredGenerationProfile(identity.generationProfile),
+    imageSha: requiredIdentityString(identity.imageSha, 'imageSha'),
+    location: requiredIdentityString(identity.location, 'location'),
+    model: requiredIdentityString(identity.model, 'model'),
+    project: requiredIdentityString(identity.project, 'project'),
+    promptHash: requiredIdentityString(identity.promptHash, 'promptHash'),
+    responseSchemaHash: requiredIdentityString(identity.responseSchemaHash, 'responseSchemaHash'),
+    sampleIndex,
+  });
+  return sha256Hex(Buffer.from(canonical, 'utf8'));
+}
+
+function requireCacheIdentity(options: RunNutritionEvalOptions): CacheIdentityBase {
+  const identity: CacheIdentityBase = {
+    project: requiredIdentityString(options.project, 'project'),
+    location: requiredIdentityString(options.location, 'location'),
+    model: requiredIdentityString(options.model, 'model'),
+    generationProfile: requiredGenerationProfile(options.generationProfile),
+    responseSchemaHash: requiredIdentityString(
+      options.responseSchemaHash,
+      'responseSchemaHash',
+    ),
+    promptHash: requiredIdentityString(options.promptHash, 'promptHash'),
+    datasetHash: requiredIdentityString(options.datasetHash, 'datasetHash'),
+    functionsTreeId: requiredIdentityString(options.functionsTreeId, 'functionsTreeId'),
+  };
+  if (identity.model !== options.adapterModelId) {
+    throw new Error('model must match adapterModelId');
+  }
+  return identity;
+}
+
+function validateCalibration(calibration: RunNutritionEvalCalibrationOptions): void {
+  if (calibration.mode !== undefined && calibration.mode !== 'strict') {
+    throw new Error('calibration mode must be strict');
+  }
 }
 
 function validateOptions(options: RunNutritionEvalOptions): number {
@@ -118,30 +191,40 @@ export async function runNutritionEval(
   options: RunNutritionEvalOptions,
 ): Promise<NutritionCaseResult[]> {
   const samples = validateOptions(options);
+
+  const calibration = options.calibration;
+  if (calibration !== undefined) validateCalibration(calibration);
+  const cacheStore = calibration === undefined ? deps.cacheStore : undefined;
+  const cacheIdentity = cacheStore === undefined ? undefined : requireCacheIdentity(options);
+
   const results: NutritionCaseResult[] = [];
 
   for (const evalCase of cases) {
     let imageBytes: Uint8Array | undefined;
     let attemptedLoad = false;
     let rememberedLoadFailure: FailureDetails | undefined;
+    const skipImage =
+      calibration?.skipImageForSuppliedBarcode === true
+      && evalCase.scanMode === 'barcode'
+      && evalCase.suppliedBarcode !== undefined;
 
     for (let sampleIndex = 1; sampleIndex <= samples; sampleIndex++) {
       const startedAt = deps.nowMs();
       let prediction: NutritionPrediction | undefined;
       let cached = false;
-      const cacheKey = buildCacheKey(
-        options.datasetId,
-        evalCase.image.sha256,
-        options.adapterModelId,
-        options.promptHash,
-        options.codeSha,
-        sampleIndex,
-      );
 
-      if (deps.cacheStore) {
+      const cacheKey = cacheIdentity === undefined
+        ? undefined
+        : buildCacheKey({
+          ...cacheIdentity,
+          imageSha: evalCase.image.sha256,
+          sampleIndex,
+        });
+
+      if (cacheKey !== undefined && cacheStore !== undefined) {
         let cachedValue: string | null = null;
         try {
-          cachedValue = await deps.cacheStore.get(cacheKey);
+          cachedValue = await cacheStore.get(cacheKey);
         } catch {
           prediction = failurePrediction(evalCase, {
             category: 'runner',
@@ -174,25 +257,29 @@ export async function runNutritionEval(
       if (!prediction) {
         if (!attemptedLoad) {
           attemptedLoad = true;
-          try {
-            imageBytes = await deps.loadImage(evalCase);
-          } catch (error) {
-            rememberedLoadFailure = loadFailureFrom(error);
+          if (skipImage) {
+            imageBytes = undefined;
+          } else {
+            try {
+              imageBytes = await deps.loadImage(evalCase);
+            } catch (error) {
+              rememberedLoadFailure = loadFailureFrom(error);
+            }
           }
         }
 
-        if (rememberedLoadFailure) {
+        if (rememberedLoadFailure !== undefined) {
           prediction = failurePrediction(evalCase, rememberedLoadFailure);
-        } else if (imageBytes) {
+        } else if (skipImage || imageBytes !== undefined) {
           try {
             const rawPrediction = await deps.analyzeCase(evalCase, imageBytes, { sampleIndex });
             const parsed = NutritionPredictionSchema.safeParse(rawPrediction);
             prediction = parsed.success
               ? corePrediction(parsed.data)
               : failurePrediction(evalCase, {
-                  category: 'schema',
-                  code: 'prediction_schema_invalid',
-                });
+                category: 'schema',
+                code: 'prediction_schema_invalid',
+              });
             shouldWriteCache = parsed.success;
           } catch {
             prediction = failurePrediction(evalCase, {
@@ -208,9 +295,9 @@ export async function runNutritionEval(
         }
       }
 
-      if (shouldWriteCache && deps.cacheStore) {
+      if (shouldWriteCache && cacheKey !== undefined && cacheStore !== undefined) {
         try {
-          await deps.cacheStore.set(cacheKey, JSON.stringify(corePrediction(prediction)));
+          await cacheStore.set(cacheKey, JSON.stringify(corePrediction(prediction)));
         } catch {
           prediction = failurePrediction(evalCase, {
             category: 'runner',

@@ -341,7 +341,12 @@ export async function runNutritionEvalCli(
           ? internalLoadImage(evalCase, { privateRoot })
           : internalLoadImage(evalCase)
         : internalLoadImage(evalCase),
-      analyzeCase: (evalCase, bytes, options) => adapter.analyzeCase(evalCase, bytes, options),
+      analyzeCase: (evalCase, bytes, options) => {
+        if (bytes === undefined) {
+          throw new Error('image bytes are required without calibration supplied-barcode skipping');
+        }
+        return adapter.analyzeCase(evalCase, bytes, options);
+      },
       nowMs: () => Date.now(),
     }, {
       datasetId: manifest.datasetId,
