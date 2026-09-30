@@ -63,6 +63,7 @@ import type {
   JournalEntry,
   ReservationKey,
   StageName,
+  TokenCountReservationKey,
 } from '../../src/nutrition-eval/calibration';
 
 const EXPECTED_ROOT =
@@ -156,6 +157,14 @@ function makeWorld(liveness: 'live' | 'dead' | 'unknown' = 'live'): FakeWorld {
         ops.push('archiveLock');
         if (currentLock === owner) {
           currentLock = undefined;
+        }
+      },
+      removeLock: (owner: CalibrationOwner) => {
+        ops.push('removeLock');
+        if (currentLock === owner) {
+          currentLock = undefined;
+        } else {
+          throw new Error('lock:not-owner');
         }
       },
       appendLedgerEvent: (event: unknown) => {
@@ -1903,5 +1912,175 @@ describe('calibration meal-only macro metric population', () => {
     expect(metrics.carbsZeroTruthMedianAbsoluteError).toBeCloseTo(5, 8);
     expect(metrics.proteinZeroTruthCount).toBe(0);
     expect(metrics.fatZeroTruthCount).toBe(0);
+  });
+});
+
+/**
+ * Task 6 RED review-correction slice: ledger subset only.
+ *
+ * Three focused must-fix cases using the existing injected fake world and
+ * valid development case/profile keys. No real fs, /proc, provider,
+ * Firebase, or network access occurs here. Expected RED remains the
+ * absent-module collection failure on
+ * `functions/src/nutrition-eval/fatal-error.ts` /
+ * `functions/src/nutrition-eval/calibration.ts`.
+ */
+describe('calibration completed-key re-reservation', () => {
+  it('rejects re-reserving a completed key without altering completed state', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    ledger.acquireLock(makeOwner());
+    ledger.reserve(key);
+    ledger.complete(key, ledger.appendResultJournal(makeJournal(key)));
+    const completedBefore = ledger.rebuildReport().completed;
+    const eventCountBefore = world.events.length;
+    expect(completedBefore).toContainEqual(key);
+    expect(() => ledger.reserve(key)).toThrow(CalibrationFatalError);
+    // Fatal re-reservation must not duplicate or drop completion state.
+    expect(ledger.rebuildReport().completed).toEqual(completedBefore);
+    expect(ledger.rebuildReport().completed).toHaveLength(
+      completedBefore.length,
+    );
+    expect(world.events).toHaveLength(eventCountBefore);
+  });
+});
+
+describe('calibration crash recovery resumable isolation', () => {
+  it('returns only the remaining unreserved key as resumable after finished plus crash', () => {
+    const world = makeWorld();
+    const finished = makeKey({ caseId: DEV_CASE_A, sampleIndex: 1 });
+    const interrupted = makeKey({ caseId: DEV_CASE_B, sampleIndex: 1 });
+    const remaining = makeKey({ caseId: DEV_CASE_A, profile: 'LOW', sampleIndex: 1 });
+    const ledger = makeLedger(world, [finished, interrupted, remaining]);
+    ledger.acquireLock(makeOwner());
+    ledger.reserve(finished);
+    ledger.complete(
+      finished,
+      ledger.appendResultJournal(makeJournal(finished)),
+    );
+    ledger.reserve(interrupted);
+    const recovered = ledger.recoverAfterCrash();
+    expect(recovered.interrupted).toContainEqual(interrupted);
+    expect(recovered.resumable).toHaveLength(1);
+    expect(recovered.resumable).toContainEqual(remaining);
+    expect(recovered.resumable).not.toContainEqual(finished);
+    expect(recovered.resumable).not.toContainEqual(interrupted);
+    // The remaining allowed key resumes; finished and interrupted stay closed.
+    ledger.reserve(remaining);
+    expect(() => ledger.reserve(finished)).toThrow(CalibrationFatalError);
+    expect(() => ledger.reserve(interrupted)).toThrow(CalibrationFatalError);
+  });
+});
+
+describe('calibration lock release ownership', () => {
+  it('rejects a foreign owner release, keeps the exact lock, then releases for the current owner', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    const owner = makeOwner();
+    ledger.acquireLock(owner);
+    const foreign = makeOwner({ pid: 9999 });
+    expect(() => ledger.releaseLock(foreign)).toThrow(CalibrationFatalError);
+    expect(world.ops).not.toContain('removeLock');
+    expect(world.lockFile).toBe(owner);
+    ledger.releaseLock(owner);
+    expect(world.ops.filter((op) => op === 'removeLock')).toHaveLength(1);
+    expect(world.lockFile).toBeUndefined();
+  });
+});
+
+/**
+ * Task 6 RED review-correction slice: Stage 0 token-count reservation subset.
+ *
+ * Covers ONLY the separately typed Stage 0 `countTokens` reservation. The
+ * planned `TokenCountReservationKey` is a discriminated key that is never
+ * cast to `ReservationKey`; the token-count reservation must not consume any
+ * of the 146 planned image reservations or the 300 hard image ceiling.
+ *
+ * Assumptions (planned GREEN contract, kept coherent with the existing
+ * ledger): `ledger.reserveTokenCount(key)` persists the token-count
+ * reservation; `ledger.getCounts()` exposes `{ tokenCountReserved,
+ * imageReserved }`; a duplicate token-count key is a `CalibrationFatalError`
+ * with no extra ledger event or count change; a later valid image `reserve`
+ * increments only `imageReserved`. Expected RED remains the absent-module
+ * collection failure on `functions/src/nutrition-eval/fatal-error.ts` /
+ * `functions/src/nutrition-eval/calibration.ts`. No real fs, /proc,
+ * provider, Firebase, or network access occurs here.
+ */
+describe('calibration Stage 0 token-count reservation', () => {
+  it('reserves a separately typed token-count key without consuming image budget', () => {
+    const world = makeWorld();
+    const imageKey = makeKey();
+    const ledger = makeLedger(world, [imageKey]);
+    ledger.acquireLock(makeOwner());
+    const tokenKey: TokenCountReservationKey = {
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: DEV_CASE_A,
+      model: 'gemini-3.8-flash',
+    };
+    ledger.reserveTokenCount(tokenKey);
+    expect(ledger.getCounts()).toMatchObject({
+      tokenCountReserved: 1,
+      imageReserved: 0,
+    });
+    const eventCountAfterFirst = world.events.length;
+    expect(() => ledger.reserveTokenCount(tokenKey)).toThrow(
+      CalibrationFatalError,
+    );
+    // Duplicate token-count reservation is fatal with no extra event/count.
+    expect(world.events).toHaveLength(eventCountAfterFirst);
+    expect(ledger.getCounts()).toMatchObject({
+      tokenCountReserved: 1,
+      imageReserved: 0,
+    });
+    // A valid image reservation increments only the image count, proving the
+    // token-count reservation consumed neither the 146 planned image
+    // reservations nor the 300 hard image ceiling.
+    ledger.reserve(imageKey);
+    expect(ledger.getCounts()).toMatchObject({
+      tokenCountReserved: 1,
+      imageReserved: 1,
+    });
+  });
+});
+
+/**
+ * Task 6 RED review-correction slice: journal parent-directory fsync fault.
+ *
+ * Covers ONLY the injected `fsyncJournalDir` ordinary-`Error` fault after a
+ * reservation. `appendResultJournal` must surface it as a
+ * `CalibrationFatalError` with no journal hash and no completion; the
+ * existing journal-file fault case is preserved unchanged. Expected RED
+ * remains the absent-module collection failure on
+ * `functions/src/nutrition-eval/fatal-error.ts` /
+ * `functions/src/nutrition-eval/calibration.ts`. No real fs occurs here.
+ */
+describe('calibration journal parent-directory fsync fault', () => {
+  it('fails closed on journal directory fsync without marking completion', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    ledger.acquireLock(makeOwner());
+    ledger.reserve(key);
+    world.deps.fsyncJournalDir = () => {
+      world.ops.push('fsyncJournalDir');
+      throw new Error('EIO: journal directory fsync failed');
+    };
+    let journalHash: string | undefined;
+    let threw = false;
+    try {
+      journalHash = ledger.appendResultJournal(makeJournal(key));
+    } catch (error) {
+      threw = true;
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+    }
+    expect(threw).toBe(true);
+    expect(journalHash).toBeUndefined();
+    expect(world.ops).toContain('fsyncJournalDir');
+    expect(() => ledger.complete(key, 'unset-journal-hash')).toThrow(
+      CalibrationFatalError,
+    );
+    expect(ledger.rebuildReport().completed).not.toContainEqual(key);
   });
 });
