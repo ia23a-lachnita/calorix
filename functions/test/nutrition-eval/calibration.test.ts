@@ -1269,3 +1269,353 @@ describe('calibration validation stage gate', () => {
     );
   });
 });
+
+/**
+ * Task 6 Step 2 RED-only slice: benchmark stage gate only.
+ *
+ * Covers ONLY the planned pure `evaluateCalibrationStageGate('benchmark',
+ * metrics).passed`. Benchmark expects exactly 60 scored outcomes with 60
+ * parses: `totalCases`/`runCases`/`totalOutcomes`/`parseCases` each exactly
+ * 60, `unsafeCompletionCount` exactly 0, `failureCount` exactly 0,
+ * `catastrophicCount <= 12`, `medianRelativeCalorieError <= 0.25`,
+ * `p90RelativeCalorieError <= 0.90`, legacy `meanMacroRelativeError <= 0.45`,
+ * `meanMealMassRelativeError <= 0.40`,
+ * `meanMealCarbDensityRelativeError <= 0.70`,
+ * `meanMealFatDensityRelativeError <= 0.35`, and three MEAL-ONLY
+ * positive-truth macro medians (`medianMealProteinRelativeError`,
+ * `medianMealCarbsRelativeError`, `medianMealFatRelativeError`) each
+ * `<= 0.35` over meal outcomes with positive truth (protein 36, fat 36,
+ * carbs 33: frozen `n5k-dish_1566328724` has `truth.carbsG=0` so its 3
+ * samples yield complete density diagnostics but no relative
+ * carbohydrate-density error).
+ *
+ * Population isolation: `mealOutcomeCount` exactly 36,
+ * `suppliedBarcodeOutcomeCount` exactly 12, `labelOutcomeCount` exactly 12
+ * (36 + 12 + 12 = 60). The meal-only medians must be computed over parsed
+ * meal outcomes with positive truth only (protein/fat 36, carbs 33);
+ * generic all-row medians must not satisfy this gate, so this slice uses only the explicit `medianMeal*` fields and never
+ * asserts a generic `medianProtein/Carbs/FatRelativeError` field.
+ *
+ * Diagnostics: every parsed meal must carry mass/density diagnostics, so
+ * `parsedMealCount`, `mealMassEligibleCount`, `mealDensityCoverageCount`,
+ * and `mealFatDensityEligibleCount` each equal exactly 36, while
+ * `mealCarbDensityEligibleCount` equals exactly 33 (36 - 3 zero-carb
+ * samples of frozen `n5k-dish_1566328724` with `truth.carbsG=0`, which
+ * have complete density diagnostics but no relative carb-density error
+ * because the scorer returns no relativeError on zero truth). Missing
+ * diagnostics fail coverage rather than shrinking denominators; the 36/36
+ * complete diagnostic coverage requirement is not weakened.
+ *
+ * Call accounting (explicit enriched fields supplied by the calibration gate
+ * input builder, not implied by the generic scorer summary):
+ * `visionCallCount` exactly 48, with zero image/vision/live-OFF calls for
+ * all 12 supplied-barcode outcomes (`suppliedBarcodeImageCallCount`,
+ * `suppliedBarcodeVisionCallCount`, `suppliedBarcodeLiveOffCallCount` each
+ * exactly 0).
+ *
+ * Inclusive boundaries pass; each threshold/count/population is broken one
+ * at a time just over/under; undefined required error metrics fail closed.
+ * No development/validation gate is modified here. Expected RED is the
+ * missing-module collection failure on
+ * `functions/src/nutrition-eval/calibration.ts`. All fixtures are in-memory;
+ * no real fs, /proc, provider, Firebase, or network access occurs here.
+ */
+describe('calibration benchmark stage gate', () => {
+  interface BenchmarkGateMetrics {
+    totalCases: number;
+    runCases: number;
+    totalOutcomes: number;
+    parseCases: number;
+    unsafeCompletionCount: number;
+    failureCount: number;
+    catastrophicCount: number;
+    medianRelativeCalorieError?: number;
+    p90RelativeCalorieError?: number;
+    meanMacroRelativeError?: number;
+    meanMealMassRelativeError?: number;
+    meanMealCarbDensityRelativeError?: number;
+    meanMealFatDensityRelativeError?: number;
+    medianMealProteinRelativeError?: number;
+    medianMealCarbsRelativeError?: number;
+    medianMealFatRelativeError?: number;
+    mealOutcomeCount: number;
+    suppliedBarcodeOutcomeCount: number;
+    labelOutcomeCount: number;
+    parsedMealCount: number;
+    mealMassEligibleCount: number;
+    mealDensityCoverageCount: number;
+    mealCarbDensityEligibleCount: number;
+    mealFatDensityEligibleCount: number;
+    visionCallCount: number;
+    suppliedBarcodeImageCallCount: number;
+    suppliedBarcodeVisionCallCount: number;
+    suppliedBarcodeLiveOffCallCount: number;
+  }
+
+  function benchmarkMetrics(
+    overrides: Partial<BenchmarkGateMetrics> = {},
+  ): BenchmarkGateMetrics {
+    return {
+      totalCases: 60,
+      runCases: 60,
+      totalOutcomes: 60,
+      parseCases: 60,
+      unsafeCompletionCount: 0,
+      failureCount: 0,
+      catastrophicCount: 0,
+      medianRelativeCalorieError: 0.1,
+      p90RelativeCalorieError: 0.4,
+      meanMacroRelativeError: 0.2,
+      meanMealMassRelativeError: 0.2,
+      meanMealCarbDensityRelativeError: 0.4,
+      meanMealFatDensityRelativeError: 0.2,
+      medianMealProteinRelativeError: 0.2,
+      medianMealCarbsRelativeError: 0.2,
+      medianMealFatRelativeError: 0.2,
+      mealOutcomeCount: 36,
+      suppliedBarcodeOutcomeCount: 12,
+      labelOutcomeCount: 12,
+      parsedMealCount: 36,
+      mealMassEligibleCount: 36,
+      mealDensityCoverageCount: 36,
+      mealCarbDensityEligibleCount: 33,
+      mealFatDensityEligibleCount: 36,
+      visionCallCount: 48,
+      suppliedBarcodeImageCallCount: 0,
+      suppliedBarcodeVisionCallCount: 0,
+      suppliedBarcodeLiveOffCallCount: 0,
+      ...overrides,
+    };
+  }
+
+  function benchmarkBoundary(): BenchmarkGateMetrics {
+    return benchmarkMetrics({
+      catastrophicCount: 12,
+      medianRelativeCalorieError: 0.25,
+      p90RelativeCalorieError: 0.9,
+      meanMacroRelativeError: 0.45,
+      meanMealMassRelativeError: 0.4,
+      meanMealCarbDensityRelativeError: 0.7,
+      meanMealFatDensityRelativeError: 0.35,
+      medianMealProteinRelativeError: 0.35,
+      medianMealCarbsRelativeError: 0.35,
+      medianMealFatRelativeError: 0.35,
+      mealCarbDensityEligibleCount: 33,
+    });
+  }
+
+  interface GateRow {
+    name: string;
+    metrics: BenchmarkGateMetrics;
+    expected: boolean;
+  }
+
+  const rows: GateRow[] = [
+    {
+      name: 'exact inclusive boundary passes with 60/60, 36/36 complete diagnostics and 33 carb-density eligible',
+      metrics: benchmarkBoundary(),
+      expected: true,
+    },
+    {
+      name: 'clean mid-range values pass',
+      metrics: benchmarkMetrics(),
+      expected: true,
+    },
+    {
+      name: 'wrong totalCases count fails',
+      metrics: benchmarkMetrics({ totalCases: 59 }),
+      expected: false,
+    },
+    {
+      name: 'wrong runCases count fails',
+      metrics: benchmarkMetrics({ runCases: 59 }),
+      expected: false,
+    },
+    {
+      name: 'wrong totalOutcomes count fails',
+      metrics: benchmarkMetrics({ totalOutcomes: 59 }),
+      expected: false,
+    },
+    {
+      name: 'parseCases 59 fails (one under the exact 60)',
+      metrics: benchmarkMetrics({ parseCases: 59 }),
+      expected: false,
+    },
+    {
+      name: 'single unsafe completion fails',
+      metrics: benchmarkMetrics({ unsafeCompletionCount: 1 }),
+      expected: false,
+    },
+    {
+      name: 'single scored failure fails',
+      metrics: benchmarkMetrics({ failureCount: 1 }),
+      expected: false,
+    },
+    {
+      name: 'catastrophicCount 13 fails (one over the 12 maximum)',
+      metrics: benchmarkMetrics({ catastrophicCount: 13 }),
+      expected: false,
+    },
+    {
+      name: 'median calorie error just over 0.25 fails',
+      metrics: benchmarkMetrics({ medianRelativeCalorieError: 0.251 }),
+      expected: false,
+    },
+    {
+      name: 'p90 calorie error just over 0.90 fails',
+      metrics: benchmarkMetrics({ p90RelativeCalorieError: 0.901 }),
+      expected: false,
+    },
+    {
+      name: 'legacy mean macro error just over 0.45 fails',
+      metrics: benchmarkMetrics({ meanMacroRelativeError: 0.451 }),
+      expected: false,
+    },
+    {
+      name: 'mean meal mass error just over 0.40 fails',
+      metrics: benchmarkMetrics({ meanMealMassRelativeError: 0.401 }),
+      expected: false,
+    },
+    {
+      name: 'mean meal carb density error just over 0.70 fails',
+      metrics: benchmarkMetrics({ meanMealCarbDensityRelativeError: 0.701 }),
+      expected: false,
+    },
+    {
+      name: 'mean meal fat density error just over 0.35 fails',
+      metrics: benchmarkMetrics({ meanMealFatDensityRelativeError: 0.351 }),
+      expected: false,
+    },
+    {
+      name: 'meal-only median protein error just over 0.35 fails',
+      metrics: benchmarkMetrics({ medianMealProteinRelativeError: 0.351 }),
+      expected: false,
+    },
+    {
+      name: 'meal-only median carbs error just over 0.35 fails',
+      metrics: benchmarkMetrics({ medianMealCarbsRelativeError: 0.351 }),
+      expected: false,
+    },
+    {
+      name: 'meal-only median fat error just over 0.35 fails',
+      metrics: benchmarkMetrics({ medianMealFatRelativeError: 0.351 }),
+      expected: false,
+    },
+    {
+      name: 'mealOutcomeCount 35 fails (one under the exact 36)',
+      metrics: benchmarkMetrics({ mealOutcomeCount: 35 }),
+      expected: false,
+    },
+    {
+      name: 'suppliedBarcodeOutcomeCount 11 fails (one under the exact 12)',
+      metrics: benchmarkMetrics({ suppliedBarcodeOutcomeCount: 11 }),
+      expected: false,
+    },
+    {
+      name: 'labelOutcomeCount 11 fails (one under the exact 12)',
+      metrics: benchmarkMetrics({ labelOutcomeCount: 11 }),
+      expected: false,
+    },
+    {
+      name: 'parsedMealCount below 36 fails diagnostic coverage',
+      metrics: benchmarkMetrics({ parsedMealCount: 35 }),
+      expected: false,
+    },
+    {
+      name: 'missing meal mass population fails diagnostic coverage',
+      metrics: benchmarkMetrics({ mealMassEligibleCount: 35 }),
+      expected: false,
+    },
+    {
+      name: 'missing meal density coverage fails diagnostic coverage',
+      metrics: benchmarkMetrics({ mealDensityCoverageCount: 35 }),
+      expected: false,
+    },
+    {
+      name: 'missing meal carb density population fails when 32 not exact 33',
+      metrics: benchmarkMetrics({ mealCarbDensityEligibleCount: 32 }),
+      expected: false,
+    },
+    {
+      name: 'missing meal fat density population fails diagnostic coverage',
+      metrics: benchmarkMetrics({ mealFatDensityEligibleCount: 35 }),
+      expected: false,
+    },
+    {
+      name: 'visionCallCount 47 fails (one under the exact 48)',
+      metrics: benchmarkMetrics({ visionCallCount: 47 }),
+      expected: false,
+    },
+    {
+      name: 'visionCallCount 49 fails (one over the exact 48)',
+      metrics: benchmarkMetrics({ visionCallCount: 49 }),
+      expected: false,
+    },
+    {
+      name: 'single supplied-barcode image call fails isolation',
+      metrics: benchmarkMetrics({ suppliedBarcodeImageCallCount: 1 }),
+      expected: false,
+    },
+    {
+      name: 'single supplied-barcode vision call fails isolation',
+      metrics: benchmarkMetrics({ suppliedBarcodeVisionCallCount: 1 }),
+      expected: false,
+    },
+    {
+      name: 'single supplied-barcode live-OFF call fails isolation',
+      metrics: benchmarkMetrics({ suppliedBarcodeLiveOffCallCount: 1 }),
+      expected: false,
+    },
+    {
+      name: 'undefined median calorie error fails closed',
+      metrics: benchmarkMetrics({ medianRelativeCalorieError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined p90 calorie error fails closed',
+      metrics: benchmarkMetrics({ p90RelativeCalorieError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined legacy mean macro error fails closed',
+      metrics: benchmarkMetrics({ meanMacroRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined mean meal mass error fails closed',
+      metrics: benchmarkMetrics({ meanMealMassRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined mean meal carb density error fails closed',
+      metrics: benchmarkMetrics({ meanMealCarbDensityRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined mean meal fat density error fails closed',
+      metrics: benchmarkMetrics({ meanMealFatDensityRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined meal-only median protein error fails closed',
+      metrics: benchmarkMetrics({ medianMealProteinRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined meal-only median carbs error fails closed',
+      metrics: benchmarkMetrics({ medianMealCarbsRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined meal-only median fat error fails closed',
+      metrics: benchmarkMetrics({ medianMealFatRelativeError: undefined }),
+      expected: false,
+    },
+  ];
+
+  it.each(rows)('$name', ({ metrics, expected }) => {
+    expect(evaluateCalibrationStageGate('benchmark', metrics).passed).toBe(
+      expected,
+    );
+  });
+});
