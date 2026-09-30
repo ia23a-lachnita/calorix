@@ -47,6 +47,7 @@ import {
   HARD_CALL_CEILING,
   PLANNED_IMAGE_CALLS,
   createCalibrationLedger,
+  evaluateCalibrationStageGate,
   selectCalibrationProfile,
 } from '../../src/nutrition-eval/calibration';
 import type {
@@ -876,5 +877,136 @@ describe('calibration profile selection', () => {
     const low = metrics({ p90AnalysisLatencyMs: 2500 });
     const medium = metrics({ p90AnalysisLatencyMs: 1200 });
     expect(selectCalibrationProfile(low, medium)).toBe('MEDIUM');
+  });
+});
+
+/**
+ * Task 6 Step 2 RED-only slice: development stage gate only.
+ *
+ * Covers ONLY the planned pure `evaluateCalibrationStageGate('development',
+ * metrics).passed`. Development expects 24 scored outcomes with at least 23
+ * parses accepted (one parse failure allowed): `totalCases`/`runCases` exactly
+ * 24, `parseCases >= 23`, `unsafeCompletionCount` exactly 0,
+ * `catastrophicCount <= 6`, `medianRelativeCalorieError <= 0.35`,
+ * `meanZeroSafeMacroRelativeError <= 0.50`, `p90AnalysisLatencyMs <= 30000`.
+ * Inclusive boundaries pass; each threshold is broken one at a time just
+ * over/under; wrong total/run counts fail; undefined required error/latency
+ * metrics fail closed. No validation/benchmark gate is added here. Expected
+ * RED is the missing-module collection failure on
+ * `functions/src/nutrition-eval/calibration.ts`. All fixtures are in-memory;
+ * no real fs, /proc, provider, Firebase, or network access occurs here.
+ */
+describe('calibration development stage gate', () => {
+  interface DevelopmentGateMetrics {
+    totalCases: number;
+    runCases: number;
+    parseCases: number;
+    unsafeCompletionCount: number;
+    catastrophicCount: number;
+    medianRelativeCalorieError?: number;
+    meanZeroSafeMacroRelativeError?: number;
+    p90AnalysisLatencyMs?: number;
+  }
+
+  function devMetrics(
+    overrides: Partial<DevelopmentGateMetrics> = {},
+  ): DevelopmentGateMetrics {
+    return {
+      totalCases: 24,
+      runCases: 24,
+      parseCases: 24,
+      unsafeCompletionCount: 0,
+      catastrophicCount: 0,
+      medianRelativeCalorieError: 0.1,
+      meanZeroSafeMacroRelativeError: 0.1,
+      p90AnalysisLatencyMs: 1000,
+      ...overrides,
+    };
+  }
+
+  interface GateRow {
+    name: string;
+    metrics: DevelopmentGateMetrics;
+    expected: boolean;
+  }
+
+  const rows: GateRow[] = [
+    {
+      name: 'exact inclusive boundary passes with 23 parses accepted',
+      metrics: devMetrics({
+        parseCases: 23,
+        catastrophicCount: 6,
+        medianRelativeCalorieError: 0.35,
+        meanZeroSafeMacroRelativeError: 0.5,
+        p90AnalysisLatencyMs: 30000,
+      }),
+      expected: true,
+    },
+    {
+      name: 'full 24 parses pass',
+      metrics: devMetrics(),
+      expected: true,
+    },
+    {
+      name: 'parseCases 22 fails (one under the 23 minimum)',
+      metrics: devMetrics({ parseCases: 22 }),
+      expected: false,
+    },
+    {
+      name: 'single unsafe completion fails',
+      metrics: devMetrics({ unsafeCompletionCount: 1 }),
+      expected: false,
+    },
+    {
+      name: 'catastrophicCount 7 fails (one over the 6 maximum)',
+      metrics: devMetrics({ catastrophicCount: 7 }),
+      expected: false,
+    },
+    {
+      name: 'median calorie error just over 0.35 fails',
+      metrics: devMetrics({ medianRelativeCalorieError: 0.351 }),
+      expected: false,
+    },
+    {
+      name: 'mean zero-safe macro error just over 0.50 fails',
+      metrics: devMetrics({ meanZeroSafeMacroRelativeError: 0.501 }),
+      expected: false,
+    },
+    {
+      name: 'p90 analysis latency just over 30000ms fails',
+      metrics: devMetrics({ p90AnalysisLatencyMs: 30001 }),
+      expected: false,
+    },
+    {
+      name: 'wrong totalCases count fails',
+      metrics: devMetrics({ totalCases: 23 }),
+      expected: false,
+    },
+    {
+      name: 'wrong runCases count fails',
+      metrics: devMetrics({ runCases: 23 }),
+      expected: false,
+    },
+    {
+      name: 'undefined median calorie error fails closed',
+      metrics: devMetrics({ medianRelativeCalorieError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined mean zero-safe macro error fails closed',
+      metrics: devMetrics({ meanZeroSafeMacroRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined p90 analysis latency fails closed',
+      metrics: devMetrics({ p90AnalysisLatencyMs: undefined }),
+      expected: false,
+    },
+  ];
+
+  it.each(rows)('$name', ({ metrics, expected }) => {
+    expect(evaluateCalibrationStageGate('development', metrics).passed).toBe(
+      expected,
+    );
   });
 });
