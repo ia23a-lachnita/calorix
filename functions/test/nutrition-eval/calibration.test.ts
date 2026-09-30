@@ -1010,3 +1010,262 @@ describe('calibration development stage gate', () => {
     );
   });
 });
+
+/**
+ * Task 6 Step 2 RED-only slice: validation stage gate only.
+ *
+ * Covers ONLY the planned pure `evaluateCalibrationStageGate('validation',
+ * metrics).passed`. Validation expects exactly 48 scored outcomes (16 cases x
+ * 3 samples) with at least 46 parses accepted (two parse failures allowed):
+ * `totalCases`/`runCases` exactly 48, `parseCases >= 46`,
+ * `unsafeCompletionCount` exactly 0, `catastrophicCount <= 8`,
+ * `medianRelativeCalorieError <= 0.25`, `p90RelativeCalorieError <= 0.90`,
+ * `meanZeroSafeMacroRelativeError <= 0.45`, each positive-truth per-macro
+ * median (`medianProteinRelativeError`, `medianCarbsRelativeError`,
+ * `medianFatRelativeError`) each `<= 0.35`, `medianMealMassRelativeError <=
+ * 0.35`, `p90AnalysisLatencyMs <= 30000`.
+ *
+ * Every parsed validation outcome is a meal, so `parsedMealCount` must equal
+ * `parseCases`, and each diagnostic population must equal `parsedMealCount`:
+ * `mealMassEligibleCount`, `mealDensityCoverageCount`,
+ * `mealCarbDensityEligibleCount`, `mealFatDensityEligibleCount`. The crucial
+ * positive boundary is 46/48 parses with exactly 46/46 diagnostics passing;
+ * parse failures are governed only by the parse gate and must not create a
+ * contradictory 48/48 diagnostic requirement. Missing diagnostics fail
+ * coverage rather than shrinking denominators; undefined required error or
+ * latency metrics fail closed. Field names match the scorer summary contract.
+ * No benchmark gate is added here. Expected RED is the missing-module
+ * collection failure on `functions/src/nutrition-eval/calibration.ts`. All
+ * fixtures are in-memory; no real fs, /proc, provider, Firebase, or network
+ * access occurs here.
+ */
+describe('calibration validation stage gate', () => {
+  interface ValidationGateMetrics {
+    totalCases: number;
+    runCases: number;
+    parseCases: number;
+    unsafeCompletionCount: number;
+    catastrophicCount: number;
+    medianRelativeCalorieError?: number;
+    p90RelativeCalorieError?: number;
+    meanZeroSafeMacroRelativeError?: number;
+    medianProteinRelativeError?: number;
+    medianCarbsRelativeError?: number;
+    medianFatRelativeError?: number;
+    medianMealMassRelativeError?: number;
+    parsedMealCount: number;
+    mealMassEligibleCount: number;
+    mealDensityCoverageCount: number;
+    mealCarbDensityEligibleCount: number;
+    mealFatDensityEligibleCount: number;
+    p90AnalysisLatencyMs?: number;
+  }
+
+  function validationMetrics(
+    overrides: Partial<ValidationGateMetrics> = {},
+  ): ValidationGateMetrics {
+    return {
+      totalCases: 48,
+      runCases: 48,
+      parseCases: 48,
+      unsafeCompletionCount: 0,
+      catastrophicCount: 0,
+      medianRelativeCalorieError: 0.1,
+      p90RelativeCalorieError: 0.4,
+      meanZeroSafeMacroRelativeError: 0.2,
+      medianProteinRelativeError: 0.2,
+      medianCarbsRelativeError: 0.2,
+      medianFatRelativeError: 0.2,
+      medianMealMassRelativeError: 0.2,
+      parsedMealCount: 48,
+      mealMassEligibleCount: 48,
+      mealDensityCoverageCount: 48,
+      mealCarbDensityEligibleCount: 48,
+      mealFatDensityEligibleCount: 48,
+      p90AnalysisLatencyMs: 1000,
+      ...overrides,
+    };
+  }
+
+  function validationBoundary(): ValidationGateMetrics {
+    return validationMetrics({
+      parseCases: 46,
+      catastrophicCount: 8,
+      medianRelativeCalorieError: 0.25,
+      p90RelativeCalorieError: 0.9,
+      meanZeroSafeMacroRelativeError: 0.45,
+      medianProteinRelativeError: 0.35,
+      medianCarbsRelativeError: 0.35,
+      medianFatRelativeError: 0.35,
+      medianMealMassRelativeError: 0.35,
+      parsedMealCount: 46,
+      mealMassEligibleCount: 46,
+      mealDensityCoverageCount: 46,
+      mealCarbDensityEligibleCount: 46,
+      mealFatDensityEligibleCount: 46,
+      p90AnalysisLatencyMs: 30000,
+    });
+  }
+
+  interface GateRow {
+    name: string;
+    metrics: ValidationGateMetrics;
+    expected: boolean;
+  }
+
+  const rows: GateRow[] = [
+    {
+      name: 'exact inclusive boundary passes with 46 parses and 46 diagnostics',
+      metrics: validationBoundary(),
+      expected: true,
+    },
+    {
+      name: 'full 48 parses with 48 diagnostics passes',
+      metrics: validationMetrics(),
+      expected: true,
+    },
+    {
+      name: 'parseCases 45 fails (one under the 46 minimum)',
+      metrics: validationMetrics({
+        parseCases: 45,
+        parsedMealCount: 45,
+        mealMassEligibleCount: 45,
+        mealDensityCoverageCount: 45,
+        mealCarbDensityEligibleCount: 45,
+        mealFatDensityEligibleCount: 45,
+      }),
+      expected: false,
+    },
+    {
+      name: 'wrong totalCases count fails',
+      metrics: validationMetrics({ totalCases: 47 }),
+      expected: false,
+    },
+    {
+      name: 'wrong runCases count fails',
+      metrics: validationMetrics({ runCases: 47 }),
+      expected: false,
+    },
+    {
+      name: 'single unsafe completion fails',
+      metrics: validationMetrics({ unsafeCompletionCount: 1 }),
+      expected: false,
+    },
+    {
+      name: 'catastrophicCount 9 fails (one over the 8 maximum)',
+      metrics: validationMetrics({ catastrophicCount: 9 }),
+      expected: false,
+    },
+    {
+      name: 'median calorie error just over 0.25 fails',
+      metrics: validationMetrics({ medianRelativeCalorieError: 0.251 }),
+      expected: false,
+    },
+    {
+      name: 'p90 calorie error just over 0.90 fails',
+      metrics: validationMetrics({ p90RelativeCalorieError: 0.901 }),
+      expected: false,
+    },
+    {
+      name: 'mean zero-safe macro error just over 0.45 fails',
+      metrics: validationMetrics({ meanZeroSafeMacroRelativeError: 0.451 }),
+      expected: false,
+    },
+    {
+      name: 'median protein error just over 0.35 fails',
+      metrics: validationMetrics({ medianProteinRelativeError: 0.351 }),
+      expected: false,
+    },
+    {
+      name: 'median carbs error just over 0.35 fails',
+      metrics: validationMetrics({ medianCarbsRelativeError: 0.351 }),
+      expected: false,
+    },
+    {
+      name: 'median fat error just over 0.35 fails',
+      metrics: validationMetrics({ medianFatRelativeError: 0.351 }),
+      expected: false,
+    },
+    {
+      name: 'median meal mass error just over 0.35 fails',
+      metrics: validationMetrics({ medianMealMassRelativeError: 0.351 }),
+      expected: false,
+    },
+    {
+      name: 'p90 analysis latency just over 30000ms fails',
+      metrics: validationMetrics({ p90AnalysisLatencyMs: 30001 }),
+      expected: false,
+    },
+    {
+      name: 'parsedMealCount below parseCases fails diagnostic coverage',
+      metrics: validationMetrics({ parsedMealCount: 47 }),
+      expected: false,
+    },
+    {
+      name: 'missing meal mass population fails diagnostic coverage',
+      metrics: validationMetrics({ mealMassEligibleCount: 47 }),
+      expected: false,
+    },
+    {
+      name: 'missing meal density coverage fails diagnostic coverage',
+      metrics: validationMetrics({ mealDensityCoverageCount: 47 }),
+      expected: false,
+    },
+    {
+      name: 'missing meal carb density population fails diagnostic coverage',
+      metrics: validationMetrics({ mealCarbDensityEligibleCount: 47 }),
+      expected: false,
+    },
+    {
+      name: 'missing meal fat density population fails diagnostic coverage',
+      metrics: validationMetrics({ mealFatDensityEligibleCount: 47 }),
+      expected: false,
+    },
+    {
+      name: 'undefined median calorie error fails closed',
+      metrics: validationMetrics({ medianRelativeCalorieError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined p90 calorie error fails closed',
+      metrics: validationMetrics({ p90RelativeCalorieError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined mean zero-safe macro error fails closed',
+      metrics: validationMetrics({ meanZeroSafeMacroRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined median protein error fails closed',
+      metrics: validationMetrics({ medianProteinRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined median carbs error fails closed',
+      metrics: validationMetrics({ medianCarbsRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined median fat error fails closed',
+      metrics: validationMetrics({ medianFatRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined median meal mass error fails closed',
+      metrics: validationMetrics({ medianMealMassRelativeError: undefined }),
+      expected: false,
+    },
+    {
+      name: 'undefined p90 analysis latency fails closed',
+      metrics: validationMetrics({ p90AnalysisLatencyMs: undefined }),
+      expected: false,
+    },
+  ];
+
+  it.each(rows)('$name', ({ metrics, expected }) => {
+    expect(evaluateCalibrationStageGate('validation', metrics).passed).toBe(
+      expected,
+    );
+  });
+});
