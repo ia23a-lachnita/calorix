@@ -192,6 +192,8 @@ function makeWorld(liveness: 'live' | 'dead' | 'unknown' = 'live'): FakeWorld {
         return world.liveness;
       },
       nowIso: () => '2026-09-30T00:00:00.000Z',
+      readLedgerEvents: () => [...events],
+      readJournalEntries: () => [...journals],
     },
   } as FakeWorld;
   return world;
@@ -2082,5 +2084,490 @@ describe('calibration journal parent-directory fsync fault', () => {
       CalibrationFatalError,
     );
     expect(ledger.rebuildReport().completed).not.toContainEqual(key);
+  });
+});
+
+/**
+ * Task 6 Step 5 correction slice (gap 1): durable reconstruction.
+ *
+ * A freshly constructed ledger must not start from empty in-memory state: it
+ * must replay the durably injected ledger events plus journal entries to
+ * reconstruct completed/reserved/interrupted status, and `rebuildReport` must
+ * trust only completion records whose journal hash is actually backed by a
+ * persisted journal entry, never a memory-only `completedKeys` list. All
+ * fixtures reuse the same injected `FakeWorld` (`world.deps.readLedgerEvents`
+ * / `world.deps.readJournalEntries`) to simulate a process restart against
+ * the same durable store; no real fs/process access occurs.
+ */
+describe('calibration ledger durable reconstruction', () => {
+  it('reconstructs completed/reserved/interrupted state on a fresh ledger and keeps interrupted reservations nonretryable with only the unreserved key resumable', () => {
+    const world = makeWorld('dead');
+    const finished = makeKey({ caseId: DEV_CASE_A, sampleIndex: 1 });
+    const crashed = makeKey({ caseId: DEV_CASE_B, sampleIndex: 1 });
+    const remaining = makeKey({
+      caseId: DEV_CASE_A,
+      profile: 'LOW',
+      sampleIndex: 1,
+    });
+    const allowed = [finished, crashed, remaining];
+
+    // Process A: completes one reservation and leaves another reserved but
+    // unfinished, then crashes without releasing the lock or running crash
+    // recovery.
+    const ledgerA = makeLedger(world, allowed);
+    ledgerA.acquireLock(makeOwner());
+    ledgerA.reserve(finished);
+    ledgerA.complete(finished, ledgerA.appendResultJournal(makeJournal(finished)));
+    ledgerA.reserve(crashed);
+
+    // Process B: a brand-new ledger instance over the SAME durable world,
+    // simulating a restart. Reconstruction must happen purely from
+    // construction, before any lock is acquired.
+    const ledgerB = makeLedger(world, allowed);
+    expect(ledgerB.rebuildReport().completed).toContainEqual(finished);
+    expect(ledgerB.rebuildReport().completed).not.toContainEqual(crashed);
+
+    const ownerB = makeOwner({ pid: 7777, startTicks: 111 });
+    ledgerB.acquireLock(ownerB);
+    const recovered = ledgerB.recoverAfterCrash();
+    expect(recovered.interrupted).toContainEqual(crashed);
+    expect(recovered.resumable).toEqual([remaining]);
+
+    // Completed and interrupted reservations remain nonretryable even though
+    // this ledger instance never reserved them itself; only the truly
+    // unreserved key may resume.
+    expect(() => ledgerB.reserve(finished)).toThrow(CalibrationFatalError);
+    expect(() => ledgerB.reserve(crashed)).toThrow(CalibrationFatalError);
+    ledgerB.reserve(remaining);
+  });
+
+  it('rebuildReport trusts a reconstructed completion only when its journal hash is backed by a persisted journal entry', () => {
+    const world = makeWorld();
+    const verified = makeKey({ caseId: DEV_CASE_A, sampleIndex: 1 });
+    const forged = makeKey({ caseId: DEV_CASE_B, sampleIndex: 1 });
+    const allowed = [verified, forged];
+
+    const ledgerA = makeLedger(world, allowed);
+    ledgerA.acquireLock(makeOwner());
+    ledgerA.reserve(verified);
+    ledgerA.complete(
+      verified,
+      ledgerA.appendResultJournal(makeJournal(verified)),
+    );
+    ledgerA.reserve(forged);
+    // Simulate a corrupted/forged completion record: a "completed" ledger
+    // event was durably appended for `forged`, but no journal entry was ever
+    // durably written to back its journal hash.
+    world.deps.appendLedgerEvent({
+      type: 'completed',
+      key: forged,
+      journalHash: 'not-a-real-persisted-hash',
+      at: world.deps.nowIso(),
+    });
+
+    // A freshly reconstructed ledger must derive `completed` only from
+    // records whose journal hash is actually backed by a persisted journal
+    // entry, not from trusting the ledger event alone.
+    const ledgerB = makeLedger(world, allowed);
+    const rebuilt = ledgerB.rebuildReport().completed;
+    expect(rebuilt).toContainEqual(verified);
+    expect(rebuilt).not.toContainEqual(forged);
+  });
+});
+
+/**
+ * Task 6 Step 5 correction slice (gap 2): lock dependency fatal conversion.
+ *
+ * Every injected lock dependency failure (`readLock`, `writeLockExclusive`,
+ * `archiveLock`, `removeLock`, `probeOwnerLiveness`), including those raised
+ * during dead-owner recovery, must surface as a `CalibrationFatalError` with
+ * the original error preserved as `cause` so runner/live-adapter catch layers
+ * (which rethrow only `CalibrationFatalError` unchanged) never mistake a
+ * broken lock dependency for a scoreable provider outcome. All failures are
+ * injected fakes; no real fs/process access occurs.
+ */
+describe('calibration lock dependency fatal conversion', () => {
+  it('converts a readLock failure to a fatal error preserving the cause', () => {
+    const world = makeWorld();
+    const original = new Error('EIO: read lock failed');
+    world.deps.readLock = () => {
+      throw original;
+    };
+    const ledger = makeLedger(world, []);
+    let caught: unknown;
+    try {
+      ledger.acquireLock(makeOwner());
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as CalibrationFatalError).cause).toBe(original);
+  });
+
+  it('converts a fresh writeLockExclusive failure to a fatal error preserving the cause', () => {
+    const world = makeWorld();
+    const original = new Error('EEXIST: lock file appeared concurrently');
+    world.deps.writeLockExclusive = () => {
+      throw original;
+    };
+    const ledger = makeLedger(world, []);
+    let caught: unknown;
+    try {
+      ledger.acquireLock(makeOwner());
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as CalibrationFatalError).cause).toBe(original);
+  });
+
+  it('converts a probeOwnerLiveness failure to a fatal error preserving the cause', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const original = new Error('ESRCH: cannot read /proc/<pid>/stat');
+    world.deps.probeOwnerLiveness = () => {
+      throw original;
+    };
+    let caught: unknown;
+    try {
+      ledger.acquireLock(makeOwner({ pid: 7777 }));
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as CalibrationFatalError).cause).toBe(original);
+  });
+
+  it('converts an archiveLock failure during dead-owner recovery to a fatal error preserving the cause', () => {
+    const world = makeWorld('dead');
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const original = new Error('EACCES: cannot archive stale lock');
+    world.deps.archiveLock = () => {
+      throw original;
+    };
+    let caught: unknown;
+    try {
+      ledger.acquireLock(makeOwner({ pid: 7777 }));
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as CalibrationFatalError).cause).toBe(original);
+  });
+
+  it('converts a writeLockExclusive failure during dead-owner recovery to a fatal error preserving the cause', () => {
+    const world = makeWorld('dead');
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const original = new Error('EIO: cannot write recovered lock file');
+    world.deps.writeLockExclusive = () => {
+      throw original;
+    };
+    let caught: unknown;
+    try {
+      ledger.acquireLock(makeOwner({ pid: 7777 }));
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as CalibrationFatalError).cause).toBe(original);
+  });
+
+  it('converts a removeLock failure during release to a fatal error preserving the cause', () => {
+    const world = makeWorld();
+    const owner = makeOwner();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(owner);
+    const original = new Error('EPERM: cannot remove lock file');
+    world.deps.removeLock = () => {
+      throw original;
+    };
+    let caught: unknown;
+    try {
+      ledger.releaseLock(owner);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as CalibrationFatalError).cause).toBe(original);
+  });
+});
+
+/**
+ * Task 6 Step 5 correction slice (gap 3): fail-closed on nonfinite/invalid
+ * metrics.
+ *
+ * Development/validation/benchmark gates must fail rather than silently pass
+ * when a required count or error/latency metric is `NaN`, `Infinity`,
+ * `-Infinity`, negative, or non-integer where an integer count is required.
+ * `selectCalibrationProfile` must throw instead of silently picking a profile
+ * when a required count (`unsafeCount`, `parseCount`, `catastrophicCount`) on
+ * either side is nonfinite, negative, or non-integer.
+ */
+describe('calibration stage gates fail closed on nonfinite and invalid metrics', () => {
+  function devMetrics(overrides: Record<string, number> = {}): Record<string, number> {
+    return {
+      totalCases: 24,
+      runCases: 24,
+      parseCases: 24,
+      unsafeCompletionCount: 0,
+      catastrophicCount: 0,
+      medianRelativeCalorieError: 0.1,
+      meanZeroSafeMacroRelativeError: 0.1,
+      p90AnalysisLatencyMs: 1000,
+      ...overrides,
+    };
+  }
+
+  function validationMetrics(
+    overrides: Record<string, number> = {},
+  ): Record<string, number> {
+    return {
+      totalCases: 48,
+      runCases: 48,
+      parseCases: 48,
+      unsafeCompletionCount: 0,
+      catastrophicCount: 0,
+      medianRelativeCalorieError: 0.1,
+      p90RelativeCalorieError: 0.4,
+      meanZeroSafeMacroRelativeError: 0.2,
+      medianProteinRelativeError: 0.2,
+      medianCarbsRelativeError: 0.2,
+      medianFatRelativeError: 0.2,
+      medianMealMassRelativeError: 0.2,
+      parsedMealCount: 48,
+      mealMassEligibleCount: 48,
+      mealDensityCoverageCount: 48,
+      mealCarbDensityEligibleCount: 48,
+      mealFatDensityEligibleCount: 48,
+      p90AnalysisLatencyMs: 1000,
+      ...overrides,
+    };
+  }
+
+  function benchmarkMetrics(
+    overrides: Record<string, number> = {},
+  ): Record<string, number> {
+    return {
+      totalCases: 60,
+      runCases: 60,
+      totalOutcomes: 60,
+      parseCases: 60,
+      unsafeCompletionCount: 0,
+      failureCount: 0,
+      catastrophicCount: 0,
+      medianRelativeCalorieError: 0.1,
+      p90RelativeCalorieError: 0.4,
+      meanMacroRelativeError: 0.2,
+      meanMealMassRelativeError: 0.2,
+      meanMealCarbDensityRelativeError: 0.4,
+      meanMealFatDensityRelativeError: 0.2,
+      medianMealProteinRelativeError: 0.2,
+      medianMealCarbsRelativeError: 0.2,
+      medianMealFatRelativeError: 0.2,
+      mealOutcomeCount: 36,
+      suppliedBarcodeOutcomeCount: 12,
+      labelOutcomeCount: 12,
+      parsedMealCount: 36,
+      mealMassEligibleCount: 36,
+      mealDensityCoverageCount: 36,
+      mealCarbDensityEligibleCount: 33,
+      mealFatDensityEligibleCount: 36,
+      visionCallCount: 48,
+      suppliedBarcodeImageCallCount: 0,
+      suppliedBarcodeVisionCallCount: 0,
+      suppliedBarcodeLiveOffCallCount: 0,
+      ...overrides,
+    };
+  }
+
+  it('development gate fails closed on a negative, non-integer, or NaN catastrophicCount', () => {
+    expect(
+      evaluateCalibrationStageGate(
+        'development',
+        devMetrics({ catastrophicCount: NaN }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'development',
+        devMetrics({ catastrophicCount: -1 }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'development',
+        devMetrics({ catastrophicCount: 2.5 }),
+      ).passed,
+    ).toBe(false);
+  });
+
+  it('development gate fails closed on NaN and -Infinity error/latency metrics', () => {
+    expect(
+      evaluateCalibrationStageGate(
+        'development',
+        devMetrics({ medianRelativeCalorieError: NaN }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'development',
+        devMetrics({ meanZeroSafeMacroRelativeError: -Infinity }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'development',
+        devMetrics({ p90AnalysisLatencyMs: NaN }),
+      ).passed,
+    ).toBe(false);
+  });
+
+  it('development gate fails closed on a NaN, negative, or non-integer parseCases minimum', () => {
+    expect(
+      evaluateCalibrationStageGate(
+        'development',
+        devMetrics({ parseCases: NaN }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'development',
+        devMetrics({ parseCases: 23.5 }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'development',
+        devMetrics({ parseCases: -23 }),
+      ).passed,
+    ).toBe(false);
+  });
+
+  it('validation gate fails closed on invalid catastrophicCount and parseCases', () => {
+    expect(
+      evaluateCalibrationStageGate(
+        'validation',
+        validationMetrics({ catastrophicCount: NaN }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'validation',
+        validationMetrics({ catastrophicCount: -1 }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'validation',
+        validationMetrics({ parseCases: NaN }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'validation',
+        validationMetrics({ parseCases: 45.5 }),
+      ).passed,
+    ).toBe(false);
+  });
+
+  it('validation gate fails closed on NaN and -Infinity error/latency metrics', () => {
+    expect(
+      evaluateCalibrationStageGate(
+        'validation',
+        validationMetrics({ p90RelativeCalorieError: NaN }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'validation',
+        validationMetrics({ medianMealMassRelativeError: -Infinity }),
+      ).passed,
+    ).toBe(false);
+  });
+
+  it('benchmark gate fails closed on invalid catastrophicCount', () => {
+    expect(
+      evaluateCalibrationStageGate(
+        'benchmark',
+        benchmarkMetrics({ catastrophicCount: NaN }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'benchmark',
+        benchmarkMetrics({ catastrophicCount: -1 }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'benchmark',
+        benchmarkMetrics({ catastrophicCount: 3.5 }),
+      ).passed,
+    ).toBe(false);
+  });
+
+  it('benchmark gate fails closed on NaN and -Infinity error metrics', () => {
+    expect(
+      evaluateCalibrationStageGate(
+        'benchmark',
+        benchmarkMetrics({ meanMacroRelativeError: NaN }),
+      ).passed,
+    ).toBe(false);
+    expect(
+      evaluateCalibrationStageGate(
+        'benchmark',
+        benchmarkMetrics({ medianMealCarbsRelativeError: -Infinity }),
+      ).passed,
+    ).toBe(false);
+  });
+});
+
+describe('calibration profile selection fails closed on invalid required counts', () => {
+  interface ProfileMetrics {
+    unsafeCount: number;
+    parseCount: number;
+    catastrophicCount: number;
+    meanZeroSafeMacroError?: number;
+    medianKcalError?: number;
+    p90AnalysisLatencyMs?: number;
+  }
+
+  function metrics(overrides: Partial<ProfileMetrics> = {}): ProfileMetrics {
+    return {
+      unsafeCount: 0,
+      parseCount: 24,
+      catastrophicCount: 0,
+      meanZeroSafeMacroError: 0.1,
+      medianKcalError: 0.1,
+      p90AnalysisLatencyMs: 1000,
+      ...overrides,
+    };
+  }
+
+  it('throws instead of silently selecting when parseCount is NaN', () => {
+    expect(() => selectCalibrationProfile(metrics({ parseCount: NaN }), metrics())).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it('throws instead of silently selecting when parseCount is Infinity', () => {
+    expect(() =>
+      selectCalibrationProfile(metrics({ parseCount: Infinity }), metrics()),
+    ).toThrow(CalibrationFatalError);
+  });
+
+  it('throws instead of silently selecting when unsafeCount is negative', () => {
+    expect(() =>
+      selectCalibrationProfile(metrics({ unsafeCount: -1 }), metrics()),
+    ).toThrow(CalibrationFatalError);
+  });
+
+  it('throws instead of silently selecting when catastrophicCount is non-integer', () => {
+    expect(() =>
+      selectCalibrationProfile(metrics(), metrics({ catastrophicCount: 2.5 })),
+    ).toThrow(CalibrationFatalError);
   });
 });
