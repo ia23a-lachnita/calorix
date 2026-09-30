@@ -22,7 +22,7 @@ import type { NutritionEvalCase, NutritionPrediction } from './schema';
 export interface LiveNutritionEvalAdapter {
   analyzeCase(
     evalCase: NutritionEvalCase,
-    bytes: Uint8Array,
+    bytes: Uint8Array | undefined,
     options: { sampleIndex: number },
   ): Promise<NutritionPrediction>;
 }
@@ -40,6 +40,7 @@ export interface CreateLiveNutritionEvalAdapterOptions {
   mealPrompt?: string;
   labelPrompt?: string;
   barcodePrompt?: string;
+  offSnapshotMap?: ReadonlyMap<string, OffProduct>;
 }
 
 function required(value: string, name: string): string {
@@ -225,6 +226,7 @@ export function createLiveNutritionEvalAdapter(
   const lookup = options.fetchOffProductFn ?? fetchOffProduct;
   const normalizeOff = options.normalizeOffPackageFn ?? normalizeOffPackage;
   const normalizeVision = options.normalizeVisionNutritionFn ?? normalizeVisionNutrition;
+  const offSnapshotMap = options.offSnapshotMap;
 
   return {
     async analyzeCase(evalCase, bytes, _options) {
@@ -246,19 +248,47 @@ export function createLiveNutritionEvalAdapter(
         }
       };
 
-      if (evalCase.scanMode === 'barcode' && evalCase.suppliedBarcode) {
-        const off = await lookupOff(evalCase.suppliedBarcode);
+      const isSuppliedBarcodeCase = evalCase.scanMode === 'barcode' && evalCase.suppliedBarcode;
+      const hasSnapshotMap = offSnapshotMap !== undefined;
+      const isMapIsolatedBarcodeCase = Boolean(isSuppliedBarcodeCase) && hasSnapshotMap;
+
+      if (isMapIsolatedBarcodeCase) {
+        const barcode = evalCase.suppliedBarcode!;
+        const product = offSnapshotMap?.get(barcode);
+        if (!product) {
+          return failure(evalCase, 'product', 'off_product_not_found');
+        }
+        try {
+          const draft = normalizeOff(product);
+          return successFromOffDraft(
+            withOffProvenance(draft, barcode, undefined),
+            barcode,
+            1,
+            threshold,
+          );
+        } catch {
+          return failure(evalCase, 'product', 'off_product_invalid');
+        }
+      }
+
+      if (isSuppliedBarcodeCase && !isMapIsolatedBarcodeCase) {
+        const suppliedBarcode = evalCase.suppliedBarcode!;
+        const off = await lookupOff(suppliedBarcode);
         if (off.kind === 'provider_failure') return failure(evalCase, 'provider', 'provider_request_failed');
         if (off.kind === 'not_found') return failure(evalCase, 'product', 'off_product_not_found');
         if (off.kind === 'product_invalid') return failure(evalCase, 'product', 'off_product_invalid');
         if (off.kind === 'found') {
           return successFromOffDraft(
-            withOffProvenance(off.draft, evalCase.suppliedBarcode, undefined),
-            evalCase.suppliedBarcode,
+            withOffProvenance(off.draft, suppliedBarcode, undefined),
+            suppliedBarcode,
             1,
             threshold,
           );
         }
+      }
+
+      if (bytes === undefined) {
+        return failure(evalCase, 'schema', 'model_response_invalid', 'no_image_bytes');
       }
 
       let response: string;

@@ -1116,4 +1116,110 @@ describe('calibration barcode isolation', () => {
     expect(generateVision).toHaveBeenCalledTimes(1);
     expect(fetchOffProductFn).toHaveBeenCalledWith('12345678');
   });
+
+  it('supplied barcode with injected map and present bytes still resolves from the map only', async () => {
+    const snapshotMap = makeSnapshotMap();
+    const fetchOffProductFn = vi.fn(async (_barcode: string): Promise<OffProduct | null> => {
+      throw new Error('live OFF fetch must not be called when snapshot map is injected');
+    });
+    const generateVision = vi.fn(async (): Promise<string> => {
+      throw new Error('vision must not be called when snapshot map is injected');
+    });
+    const genAIAdapter: GenAIAdapter = { generateChat: vi.fn(async () => ''), generateVision };
+
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-3.8-flash',
+      genAIAdapter,
+      fetchOffProductFn,
+      offSnapshotMap: snapshotMap,
+    } as unknown as Parameters<typeof createLiveNutritionEvalAdapter>[0]);
+
+    for (const barcode of SUPPLIED_BARCODES) {
+      const c = makeBarcodeCase(barcode);
+      const prediction = await adapter.analyzeCase(c, imageBytes, { sampleIndex: 1 });
+
+      expect(prediction.parseStatus).toBe('success');
+      expect(prediction.source).toBe('barcode');
+      expect(prediction).toMatchObject({ barcode });
+    }
+    expect(generateVision).not.toHaveBeenCalled();
+    expect(fetchOffProductFn).not.toHaveBeenCalled();
+  });
+
+  it('missing snapshot key fails closed without live OFF or vision', async () => {
+    const snapshotMap = makeSnapshotMap();
+    const fetchOffProductFn = vi.fn(async (_barcode: string): Promise<OffProduct | null> => {
+      throw new Error('live OFF fetch must not be called for a missing snapshot key');
+    });
+    const generateVision = vi.fn(async (): Promise<string> => {
+      throw new Error('vision must not be called for a missing snapshot key');
+    });
+    const genAIAdapter: GenAIAdapter = { generateChat: vi.fn(async () => ''), generateVision };
+
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-3.8-flash',
+      genAIAdapter,
+      fetchOffProductFn,
+      offSnapshotMap: snapshotMap,
+    } as unknown as Parameters<typeof createLiveNutritionEvalAdapter>[0]);
+
+    const missingBarcode = '0000000000000';
+    const missingCase = makeBarcodeCase(missingBarcode);
+    const withBytes = await adapter.analyzeCase(missingCase, imageBytes, { sampleIndex: 1 });
+    expect(withBytes).toEqual({
+      parseStatus: 'failure',
+      source: 'barcode',
+      decision: 'error',
+      failureCategory: 'product',
+      failureCode: 'off_product_not_found',
+    });
+    const withoutBytes = await adapter.analyzeCase(
+      missingCase,
+      undefined as unknown as Uint8Array,
+      { sampleIndex: 1 },
+    );
+    expect(withoutBytes).toEqual({
+      parseStatus: 'failure',
+      source: 'barcode',
+      decision: 'error',
+      failureCategory: 'product',
+      failureCode: 'off_product_not_found',
+    });
+    expect(generateVision).not.toHaveBeenCalled();
+    expect(fetchOffProductFn).not.toHaveBeenCalled();
+  });
+
+  it('undefined bytes without a snapshot map fails safely without provider calls', async () => {
+    const fetchOffProductFn = vi.fn(async (): Promise<OffProduct | null> => null);
+    const generateVision = vi.fn(async () => modelText('meal'));
+    const genAIAdapter: GenAIAdapter = { generateChat: vi.fn(async () => ''), generateVision };
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-test-model',
+      genAIAdapter,
+      fetchOffProductFn,
+    });
+
+    const prediction = await adapter.analyzeCase(
+      mealCase,
+      undefined as unknown as Uint8Array,
+      { sampleIndex: 1 },
+    );
+
+    expect(prediction).toEqual({
+      parseStatus: 'failure',
+      source: 'meal',
+      decision: 'error',
+      failureCategory: 'schema',
+      failureCode: 'model_response_invalid',
+      failureDetail: 'no_image_bytes',
+    });
+    expect(generateVision).not.toHaveBeenCalled();
+    expect(fetchOffProductFn).not.toHaveBeenCalled();
+  });
 });
