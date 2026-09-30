@@ -1363,4 +1363,29 @@ describe('runner CalibrationFatalError propagation (Task 6 RED)', () => {
     expect(loadFn).toHaveBeenCalledTimes(1);
     expect(analyzeFn).not.toHaveBeenCalled();
   });
+
+  it('rethrows a mid-run fatal after first success with no later case/sample calls', async () => {
+    const fatal = new CalibrationFatalError('reservation:rejected');
+    const loadFn = vi.fn(async () => new Uint8Array([0x89]));
+    let callCount = 0;
+    const analyzeFn = vi.fn(async (): Promise<unknown> => {
+      callCount++;
+      if (callCount === 1) return okMealPrediction;
+      throw fatal;
+    });
+    const deps = makeDeps({ loadImage: loadFn, analyzeCase: analyzeFn });
+
+    await expect(
+      runNutritionEval(
+        [mealCase, labelCase],
+        deps,
+        { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 2 },
+      ),
+    ).rejects.toBe(fatal);
+    expect(analyzeFn).toHaveBeenCalledTimes(2);
+    expect(loadFn).toHaveBeenCalledTimes(1);
+    expect(loadFn).toHaveBeenCalledWith(mealCase);
+    expect((analyzeFn.mock.calls[0] as unknown[])[0]).toBe(mealCase);
+    expect((analyzeFn.mock.calls[1] as unknown[])[0]).toBe(mealCase);
+  });
 });

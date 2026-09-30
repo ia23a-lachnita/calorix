@@ -5,6 +5,7 @@ import type { OffProduct } from '../../src/off-client';
 import { normalizeOffPackage } from '../../src/package-nutrition';
 import { normalizeVisionNutrition } from '../../src/nutrition';
 import { createLiveNutritionEvalAdapter } from '../../src/nutrition-eval/live-adapter';
+import { runNutritionEval } from '../../src/nutrition-eval/runner';
 import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
 import {
   NutritionPredictionSchema,
@@ -1279,5 +1280,43 @@ describe('live adapter CalibrationFatalError propagation (Task 6 RED)', () => {
     expect(fetchOffProductFn).toHaveBeenCalledTimes(1);
     expect(fetchOffProductFn).toHaveBeenCalledWith(rawBarcode);
     expect(generateVision).not.toHaveBeenCalled();
+  });
+
+  it('propagates a mid-run fatal through the runner and live adapter with no third/later stage calls', async () => {
+    const fatal = new CalibrationFatalError('reservation:rejected');
+    let visionCalls = 0;
+    const generateVision = vi.fn(async (): Promise<string> => {
+      visionCalls++;
+      if (visionCalls === 1) return modelText();
+      throw fatal;
+    });
+    const genAIAdapter: GenAIAdapter = {
+      generateChat: vi.fn(async () => ''),
+      generateVision,
+    };
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-test-model',
+      genAIAdapter,
+      fetchOffProductFn: async () => null,
+    });
+    const loadFn = vi.fn(async () => new Uint8Array(imageBytes));
+
+    await expect(
+      runNutritionEval(
+        [mealCase, labelCase],
+        {
+          loadImage: loadFn,
+          analyzeCase: (evalCase, bytes, options) =>
+            adapter.analyzeCase(evalCase, bytes, options),
+          nowMs: () => 1000,
+        },
+        { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 3 },
+      ),
+    ).rejects.toBe(fatal);
+    expect(generateVision).toHaveBeenCalledTimes(2);
+    expect(loadFn).toHaveBeenCalledTimes(1);
+    expect(loadFn).toHaveBeenCalledWith(mealCase);
   });
 });
