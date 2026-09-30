@@ -19,9 +19,17 @@
  * - `world.lockFile` is a live getter/setter over the same closure cell the
  *   fake `readLock`/`writeLockExclusive`/`archiveLock` mutate, so assertions
  *   observe real fake lock writes instead of a stale snapshot.
+ * - Git identity is fully injected: no `git` subprocess, no real filesystem
+ *   status, and no network occur. The proposed `assertGitState` contract below
+ *   lives only in this test file until GREEN implements it; it compares an
+ *   injected `{ headCommit, functionsTreeId, dirtyPaths }` triple against the
+ *   pinned `implementationCommit`/`functionsTreeId` identity. `headCommit` may
+ *   move for documentation-only commits only while `functionsTreeId` is exact;
+ *   a different `functionsTreeId` is never adopted as a new pin.
  * - Reservation/completion ordering is asserted on the actual injected
- *   persistence calls (`appendLedgerEvent`, `appendJournal`, `fsyncLedgerFile`,
- *   `fsyncLedgerDir`), never on an invented `reserve*`/`complete*` op name.
+ *   persistence calls (`appendLedgerEvent`, `appendJournal`,
+ *   `fsyncLedgerFile`, `fsyncLedgerDir`, `fsyncJournalFile`,
+ *   `fsyncJournalDir`), never on an invented `reserve*`/`complete*` op name.
  * - Reservation keys use committed `calibration-manifest.json` development IDs
  *   (`calibration-dish_1565117892` slot 0, `calibration-dish_1566844803`
  *   slot 1) with positive 1-indexed `sampleIndex`; the allowed set is injected
@@ -155,6 +163,12 @@ function makeWorld(liveness: 'live' | 'dead' | 'unknown' = 'live'): FakeWorld {
       appendJournal: (entry: JournalEntry) => {
         ops.push('appendJournal');
         journals.push(entry);
+      },
+      fsyncJournalFile: () => {
+        ops.push('fsyncJournalFile');
+      },
+      fsyncJournalDir: () => {
+        ops.push('fsyncJournalDir');
       },
       probeOwnerLiveness: (_owner: CalibrationOwner) => {
         ops.push('probeOwnerLiveness');
@@ -428,5 +442,209 @@ describe('calibration stage gates', () => {
     expect(() =>
       ledger.assertStageTransition('development', 'development', gateSummary(true)),
     ).toThrow(CalibrationFatalError);
+  });
+});
+
+describe('calibration git tree gate', () => {
+  const PINNED_HEAD = '0e55baedad6099359e17a842d508fc70ab53999e';
+  const PINNED_TREE = 'abc123def456abc123def456abc123def456abcd';
+
+  it('refuses a dirty Functions tree including tracked modifications', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    const dispatch = vi.fn();
+    let threw = false;
+    try {
+      ledger.assertGitState({
+        headCommit: PINNED_HEAD,
+        functionsTreeId: PINNED_TREE,
+        dirtyPaths: ['functions/src/nutrition-eval/runner.ts'],
+      });
+      ledger.acquireLock(makeOwner());
+      ledger.reserve(key);
+      dispatch();
+    } catch (error) {
+      threw = true;
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+    }
+    expect(threw).toBe(true);
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(world.lockFile).toBeUndefined();
+    expect(world.events).toHaveLength(0);
+  });
+
+  it('refuses a non-ignored untracked path under functions/', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    const dispatch = vi.fn();
+    let threw = false;
+    try {
+      // Non-ignored untracked file: it has never been committed and no ignore
+      // rule covers it, so a clean-tree gate must still fail closed.
+      ledger.assertGitState({
+        headCommit: PINNED_HEAD,
+        functionsTreeId: PINNED_TREE,
+        dirtyPaths: ['functions/src/nutrition-eval/new-unreviewed-helper.ts'],
+      });
+      ledger.acquireLock(makeOwner());
+      ledger.reserve(key);
+      dispatch();
+    } catch (error) {
+      threw = true;
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+    }
+    expect(threw).toBe(true);
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(world.lockFile).toBeUndefined();
+    expect(world.events).toHaveLength(0);
+  });
+
+  it('allows a documentation-only HEAD move when the Functions tree is unchanged', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    // HEAD differs from the pinned implementationCommit, but the derived
+    // clean functionsTreeId is exact, so this is a docs-only move.
+    ledger.assertGitState({
+      headCommit: 'docs-only-commit-fff000111',
+      functionsTreeId: PINNED_TREE,
+      dirtyPaths: [],
+    });
+    ledger.acquireLock(makeOwner());
+    ledger.reserve(key);
+    expect(world.events.length).toBeGreaterThan(0);
+    expect(world.lockFile).toBeDefined();
+  });
+
+  it('rejects a different Functions tree and never adopts it as the new pin', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    const dispatch = vi.fn();
+    let threw = false;
+    try {
+      ledger.assertGitState({
+        headCommit: 'docs-only-commit-fff000111',
+        functionsTreeId: 'different-functions-tree-id',
+        dirtyPaths: [],
+      });
+      ledger.acquireLock(makeOwner());
+      ledger.reserve(key);
+      dispatch();
+    } catch (error) {
+      threw = true;
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+    }
+    expect(threw).toBe(true);
+    expect(dispatch).not.toHaveBeenCalled();
+    // The rejected tree must not become the new pin: the exact pinned tree
+    // still verifies through the existing identity gate.
+    ledger.assertIdentity(makeIdentity({ functionsTreeId: PINNED_TREE }));
+    expect(() =>
+      ledger.assertIdentity(
+        makeIdentity({ functionsTreeId: 'different-functions-tree-id' }),
+      ),
+    ).toThrow(CalibrationFatalError);
+  });
+});
+
+describe('calibration ledger fsync faults', () => {
+  it('fails closed on ledger file fsync before dispatch without marking completion', () => {
+    const world = makeWorld();
+    world.deps.fsyncLedgerFile = () => {
+      world.ops.push('fsyncLedgerFile');
+      throw new Error('EIO: ledger file fsync failed');
+    };
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    ledger.acquireLock(makeOwner());
+    const dispatch = vi.fn();
+    let threw = false;
+    try {
+      ledger.reserve(key);
+      dispatch();
+    } catch (error) {
+      threw = true;
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+    }
+    expect(threw).toBe(true);
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(world.ops).toContain('fsyncLedgerFile');
+    expect(ledger.rebuildReport().completed).not.toContainEqual(key);
+  });
+
+  it('fails closed on ledger parent-directory fsync before dispatch without marking completion', () => {
+    const world = makeWorld();
+    world.deps.fsyncLedgerDir = () => {
+      world.ops.push('fsyncLedgerDir');
+      throw new Error('EIO: ledger directory fsync failed');
+    };
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    ledger.acquireLock(makeOwner());
+    const dispatch = vi.fn();
+    let threw = false;
+    try {
+      ledger.reserve(key);
+      dispatch();
+    } catch (error) {
+      threw = true;
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+    }
+    expect(threw).toBe(true);
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(world.ops).toContain('fsyncLedgerDir');
+    expect(ledger.rebuildReport().completed).not.toContainEqual(key);
+  });
+});
+
+describe('calibration journal durability', () => {
+  it('fsyncs the journaled result file then the parent directory before completion', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    ledger.acquireLock(makeOwner());
+    ledger.reserve(key);
+    const mark = world.ops.length;
+    const journalHash = ledger.appendResultJournal(makeJournal(key));
+    ledger.complete(key, journalHash);
+    const tail = world.ops.slice(mark);
+    const journalIndex = tail.indexOf('appendJournal');
+    const fileIndex = tail.indexOf('fsyncJournalFile');
+    const dirIndex = tail.indexOf('fsyncJournalDir');
+    const completionIndex = tail.lastIndexOf('appendLedgerEvent');
+    expect(journalIndex).toBeGreaterThanOrEqual(0);
+    expect(fileIndex).toBeGreaterThan(journalIndex);
+    expect(dirIndex).toBeGreaterThan(fileIndex);
+    expect(completionIndex).toBeGreaterThan(dirIndex);
+    expect(ledger.rebuildReport().completed).toContainEqual(key);
+  });
+
+  it('fails closed on journal fsync fault without marking completion', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    ledger.acquireLock(makeOwner());
+    ledger.reserve(key);
+    world.deps.fsyncJournalFile = () => {
+      world.ops.push('fsyncJournalFile');
+      throw new Error('EIO: journal file fsync failed');
+    };
+    let journalHash: string | undefined;
+    let threw = false;
+    try {
+      journalHash = ledger.appendResultJournal(makeJournal(key));
+    } catch (error) {
+      threw = true;
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+    }
+    expect(threw).toBe(true);
+    expect(journalHash).toBeUndefined();
+    expect(() => ledger.complete(key, 'unset-journal-hash')).toThrow(
+      CalibrationFatalError,
+    );
+    expect(ledger.rebuildReport().completed).not.toContainEqual(key);
   });
 });
