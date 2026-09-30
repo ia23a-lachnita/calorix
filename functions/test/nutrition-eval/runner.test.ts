@@ -4,7 +4,6 @@ import type {
   NutritionPrediction,
 } from '../../src/nutrition-eval/schema';
 import { DatasetError } from '../../src/nutrition-eval/assets';
-import { sha256Hex } from '../../src/nutrition-eval/assets';
 import { scoreNutritionCase } from '../../src/nutrition-eval/scorer';
 import { runNutritionEval, buildCacheKey } from '../../src/nutrition-eval/runner';
 import { parseNutritionResponse } from '../../src/nutrition';
@@ -132,37 +131,320 @@ function testAnalyzeAdapter(
   });
 }
 
-// ── buildCacheKey ────────────────────────────────────────────────────────────
+// ── buildCacheKey (strict identity object) ─────────────────────────────────────
 
 describe('buildCacheKey', () => {
-  it('matches manual sha256 computation', () => {
-    const key = buildCacheKey('d', SHA, 'm', 'p', 'c', 1);
-    const expected = sha256Hex(
-      Buffer.from(JSON.stringify(['d', SHA, 'm', 'p', 'c', 1]), 'utf8'),
-    );
-    expect(key).toBe(expected);
+  const baseIdentity = {
+    project: 'calorix-xurschnell',
+    location: 'us',
+    model: 'gemini-3.8-flash',
+    generationProfile: 'LOW' as const,
+    responseSchemaHash: 'a'.repeat(64),
+    promptHash: 'b'.repeat(64),
+    datasetHash: 'c'.repeat(64),
+    functionsTreeId: 'd'.repeat(40),
+    imageSha: SHA,
+    sampleIndex: 1,
+  };
+
+  it('produces deterministic 64-char hex key from one strict identity object', () => {
+    const key = buildCacheKey(baseIdentity);
     expect(key).toHaveLength(64);
     expect(key).toMatch(/^[0-9a-f]{64}$/);
   });
 
+  it('identical identity produces identical key', () => {
+    expect(buildCacheKey({ ...baseIdentity })).toBe(buildCacheKey(baseIdentity));
+  });
+
+  it('different project produces different key', () => {
+    expect(buildCacheKey({ ...baseIdentity, project: 'other-project' })).not.toBe(
+      buildCacheKey(baseIdentity),
+    );
+  });
+
+  it('different location produces different key', () => {
+    expect(buildCacheKey({ ...baseIdentity, location: 'europe-west1' })).not.toBe(
+      buildCacheKey(baseIdentity),
+    );
+  });
+
+  it('different model produces different key', () => {
+    expect(buildCacheKey({ ...baseIdentity, model: 'gemini-3.8-pro' })).not.toBe(
+      buildCacheKey(baseIdentity),
+    );
+  });
+
+  it('LOW vs MEDIUM generationProfile produces different key', () => {
+    expect(
+      buildCacheKey({ ...baseIdentity, generationProfile: 'MEDIUM' }),
+    ).not.toBe(buildCacheKey({ ...baseIdentity, generationProfile: 'LOW' }));
+  });
+
+  it('different responseSchemaHash produces different key', () => {
+    expect(
+      buildCacheKey({ ...baseIdentity, responseSchemaHash: 'f'.repeat(64) }),
+    ).not.toBe(buildCacheKey(baseIdentity));
+  });
+
+  it('different promptHash produces different key', () => {
+    expect(buildCacheKey({ ...baseIdentity, promptHash: 'f'.repeat(64) })).not.toBe(
+      buildCacheKey(baseIdentity),
+    );
+  });
+
+  it('different datasetHash produces different key', () => {
+    expect(buildCacheKey({ ...baseIdentity, datasetHash: 'f'.repeat(64) })).not.toBe(
+      buildCacheKey(baseIdentity),
+    );
+  });
+
+  it('different functionsTreeId produces different key', () => {
+    expect(
+      buildCacheKey({ ...baseIdentity, functionsTreeId: 'e'.repeat(40) }),
+    ).not.toBe(buildCacheKey(baseIdentity));
+  });
+
+  it('different imageSha produces different key', () => {
+    expect(buildCacheKey({ ...baseIdentity, imageSha: 'f'.repeat(64) })).not.toBe(
+      buildCacheKey(baseIdentity),
+    );
+  });
+
   it('different sampleIndex produces different key', () => {
-    const k1 = buildCacheKey('d', SHA, 'm', 'p', 'c', 1);
-    const k2 = buildCacheKey('d', SHA, 'm', 'p', 'c', 2);
-    expect(k1).not.toBe(k2);
+    expect(buildCacheKey({ ...baseIdentity, sampleIndex: 2 })).not.toBe(
+      buildCacheKey(baseIdentity),
+    );
   });
 
-  it('different datasetId produces different key', () => {
-    const k1 = buildCacheKey('a', SHA, 'm', 'p', 'c', 1);
-    const k2 = buildCacheKey('b', SHA, 'm', 'p', 'c', 1);
-    expect(k1).not.toBe(k2);
+  it('rejects invalid generationProfile', () => {
+    expect(() =>
+      buildCacheKey({ ...baseIdentity, generationProfile: 'HIGH' as unknown as 'LOW' }),
+    ).toThrow();
+    expect(() =>
+      buildCacheKey({ ...baseIdentity, generationProfile: '' as unknown as 'LOW' }),
+    ).toThrow();
   });
 
-  it('includes every remaining identity field', () => {
-    const base = buildCacheKey('d', SHA, 'm', 'p', 'c', 1);
-    expect(buildCacheKey('d', 'a'.repeat(64), 'm', 'p', 'c', 1)).not.toBe(base);
-    expect(buildCacheKey('d', SHA, 'other-model', 'p', 'c', 1)).not.toBe(base);
-    expect(buildCacheKey('d', SHA, 'm', 'other-prompt', 'c', 1)).not.toBe(base);
-    expect(buildCacheKey('d', SHA, 'm', 'p', 'other-code', 1)).not.toBe(base);
+  it('rejects missing required fields', () => {
+    for (const field of [
+      'project',
+      'location',
+      'model',
+      'generationProfile',
+      'responseSchemaHash',
+      'promptHash',
+      'datasetHash',
+      'functionsTreeId',
+      'imageSha',
+    ] as const) {
+      const invalid = { ...baseIdentity };
+      delete (invalid as Record<string, unknown>)[field];
+      expect(() => buildCacheKey(invalid as unknown as typeof baseIdentity)).toThrow(
+        new RegExp(field),
+      );
+    }
+  });
+});
+
+// ── Runner cache isolation across generation profiles (generic cache) ──────────
+
+describe('runner cache isolation across profiles', () => {
+  it('MEDIUM never reuses a LOW cached result in generic cache-enabled runs', async () => {
+    const lowIdentity = {
+      project: 'calorix-xurschnell',
+      location: 'us',
+      model: 'gemini-3.8-flash',
+      generationProfile: 'LOW' as const,
+      responseSchemaHash: 'a'.repeat(64),
+      promptHash: 'b'.repeat(64),
+      datasetHash: 'c'.repeat(64),
+      functionsTreeId: 'd'.repeat(40),
+      imageSha: SHA,
+      sampleIndex: 1,
+    };
+    const lowKey = buildCacheKey(lowIdentity);
+    const mediumKey = buildCacheKey({ ...lowIdentity, generationProfile: 'MEDIUM' });
+    expect(mediumKey).not.toBe(lowKey);
+
+    const store = new Map<string, string>([[lowKey, JSON.stringify(okMealPrediction)]]);
+    const getSpy = vi.fn(async (key: string) => store.get(key) ?? null);
+    const setSpy = vi.fn(async (key: string, value: string) => {
+      store.set(key, value);
+    });
+    const analyzeFn = vi.fn(async () => okMealPrediction);
+    const deps = makeDeps({ analyzeCase: analyzeFn, cacheStore: { get: getSpy, set: setSpy } });
+
+    const results = await runNutritionEval(
+      [mealCase],
+      deps,
+      {
+        datasetId: 'd',
+        adapterModelId: 'm',
+        promptHash: 'b'.repeat(64),
+        codeSha: 'c',
+        samples: 1,
+        project: 'calorix-xurschnell',
+        location: 'us',
+        model: 'gemini-3.8-flash',
+        generationProfile: 'MEDIUM',
+        responseSchemaHash: 'a'.repeat(64),
+        datasetHash: 'c'.repeat(64),
+        functionsTreeId: 'd'.repeat(40),
+      } as unknown as Parameters<typeof runNutritionEval>[2],
+    );
+
+    expect(getSpy).toHaveBeenCalledTimes(1);
+    expect(getSpy).toHaveBeenCalledWith(mediumKey);
+    expect(getSpy).not.toHaveBeenCalledWith(lowKey);
+    expect(analyzeFn).toHaveBeenCalledTimes(1);
+    expect(results[0]?.prediction.cached).toBe(false);
+  });
+});
+
+// ── Runner-owned image loading with explicit calibration barcode skip ──────────
+
+describe('runner calibration skipImageForSuppliedBarcode', () => {
+  const suppliedBarcodeCase: NutritionEvalCase = {
+    ...barcodeCase,
+    id: 'barcode-5449000000996-supplied',
+    suppliedBarcode: '5449000000996',
+  };
+
+  function calibrationOptions() {
+    return {
+      datasetId: 'd',
+      adapterModelId: 'm',
+      promptHash: 'p',
+      codeSha: 'c',
+      samples: 1,
+      calibration: { skipImageForSuppliedBarcode: true },
+    } as unknown as Parameters<typeof runNutritionEval>[2];
+  }
+
+  it('supplied barcode receives undefined bytes with zero image loads', async () => {
+    const loadFn = vi.fn(async () => new Uint8Array([0x89]));
+    const seen: Array<Uint8Array | undefined> = [];
+    const analyzeFn = vi.fn(
+      async (_c: NutritionEvalCase, bytes: Uint8Array | undefined) => {
+        seen.push(bytes);
+        return okBarcodePrediction;
+      },
+    );
+    const deps = makeDeps({ loadImage: loadFn, analyzeCase: analyzeFn });
+
+    const results = await runNutritionEval([suppliedBarcodeCase], deps, calibrationOptions());
+
+    expect(loadFn).not.toHaveBeenCalled();
+    expect(analyzeFn).toHaveBeenCalledTimes(1);
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toBeUndefined();
+    expect(results).toHaveLength(1);
+  });
+
+  it('generic case without supplied barcode still loads image', async () => {
+    const loadFn = vi.fn(async () => new Uint8Array([0x89]));
+    const analyzeFn = vi.fn(async () => okMealPrediction);
+    const deps = makeDeps({ loadImage: loadFn, analyzeCase: analyzeFn });
+
+    await runNutritionEval([mealCase], deps, calibrationOptions());
+
+    expect(loadFn).toHaveBeenCalledTimes(1);
+    expect(analyzeFn).toHaveBeenCalledTimes(1);
+    const bytes = (analyzeFn.mock.calls[0] as unknown[])[1] as Uint8Array;
+    expect(bytes).toBeInstanceOf(Uint8Array);
+  });
+
+  it('generic supplied-barcode case without explicit skip still loads image', async () => {
+    const loadFn = vi.fn(async () => new Uint8Array([0x89]));
+    const analyzeFn = vi.fn(async () => okBarcodePrediction);
+    const deps = makeDeps({ loadImage: loadFn, analyzeCase: analyzeFn });
+
+    await runNutritionEval(
+      [suppliedBarcodeCase],
+      deps,
+      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+    );
+
+    expect(loadFn).toHaveBeenCalledTimes(1);
+    expect(analyzeFn).toHaveBeenCalledTimes(1);
+    const bytes = (analyzeFn.mock.calls[0] as unknown[])[1] as Uint8Array;
+    expect(bytes).toBeInstanceOf(Uint8Array);
+  });
+});
+
+// ── Calibration cache bypass ────────────────────────────────────────────────────
+
+describe('calibration cache bypass', () => {
+  it('creates no cache store when calibration mode is enabled', async () => {
+    const cacheStore = {
+      get: vi.fn(async () => null),
+      set: vi.fn(async () => {}),
+    };
+    const analyzeFn = vi.fn(async () => okMealPrediction);
+    const deps = makeDeps({
+      analyzeCase: analyzeFn,
+      cacheStore,
+    });
+
+    await runNutritionEval(
+      [mealCase],
+      deps,
+      {
+        datasetId: 'd',
+        adapterModelId: 'm',
+        promptHash: 'p',
+        codeSha: 'c',
+        samples: 1,
+        calibration: { mode: 'strict' },
+      },
+    );
+
+    expect(cacheStore.get).not.toHaveBeenCalled();
+    expect(cacheStore.set).not.toHaveBeenCalled();
+  });
+
+  it('every outcome serializes with cached: false in calibration mode', async () => {
+    const analyzeFn = vi.fn(async () => okMealPrediction);
+    const deps = makeDeps({ analyzeCase: analyzeFn });
+
+    const results = await runNutritionEval(
+      [mealCase],
+      deps,
+      {
+        datasetId: 'd',
+        adapterModelId: 'm',
+        promptHash: 'p',
+        codeSha: 'c',
+        samples: 3,
+        calibration: { mode: 'strict' },
+      },
+    );
+
+    expect(results).toHaveLength(3);
+    for (const result of results) {
+      expect(result.prediction.cached).toBe(false);
+    }
+  });
+
+  it('generic mode without calibration option still uses cache', async () => {
+    const cacheStore = {
+      get: vi.fn(async () => JSON.stringify(okMealPrediction)),
+      set: vi.fn(async () => {}),
+    };
+    const loadFn = vi.fn(async () => new Uint8Array([0x89]));
+    const analyzeFn = vi.fn(async () => okMealPrediction);
+    const deps = makeDeps({ loadImage: loadFn, analyzeCase: analyzeFn, cacheStore });
+
+    const results = await runNutritionEval(
+      [mealCase],
+      deps,
+      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 1 },
+    );
+
+    expect(results[0]?.prediction.cached).toBe(true);
+    expect(loadFn).not.toHaveBeenCalled();
+    expect(analyzeFn).not.toHaveBeenCalled();
   });
 });
 
@@ -984,5 +1266,52 @@ describe('Slice F diagnostic cache compatibility', () => {
 
     expect(results[0]?.prediction).toMatchObject({ ...oldPrediction, cached: true, sampleIndex: 1 });
     expect(results[0]?.prediction).not.toHaveProperty('diagnostics');
+  });
+});
+
+describe('runner generic full identity gate', () => {
+  it('generic cache-enabled run with one missing full identity field rejects before cache/image/provider work', async () => {
+    const fullIdentityFields = [
+      'project',
+      'location',
+      'model',
+      'generationProfile',
+      'responseSchemaHash',
+      'datasetHash',
+      'functionsTreeId',
+    ] as const;
+    for (const field of fullIdentityFields) {
+      const get = vi.fn(async () => null);
+      const set = vi.fn(async () => {});
+      const loadImage = vi.fn(async () => new Uint8Array([0x89]));
+      const analyzeCase = vi.fn(async () => okMealPrediction);
+      const deps = makeDeps({ loadImage, analyzeCase, cacheStore: { get, set } });
+      const base: Record<string, unknown> = {
+        datasetId: 'd',
+        adapterModelId: 'm',
+        promptHash: 'p',
+        codeSha: 'c',
+        samples: 1,
+        project: 'calorix-xurschnell',
+        location: 'us',
+        model: 'gemini-3.8-flash',
+        generationProfile: 'LOW',
+        responseSchemaHash: 'a'.repeat(64),
+        datasetHash: 'c'.repeat(64),
+        functionsTreeId: 'd'.repeat(40),
+      };
+      delete base[field];
+      await expect(
+        runNutritionEval(
+          [mealCase],
+          deps,
+          base as unknown as Parameters<typeof runNutritionEval>[2],
+        ),
+      ).rejects.toThrow(new RegExp(field));
+      expect(get).not.toHaveBeenCalled();
+      expect(set).not.toHaveBeenCalled();
+      expect(loadImage).not.toHaveBeenCalled();
+      expect(analyzeCase).not.toHaveBeenCalled();
+    }
   });
 });

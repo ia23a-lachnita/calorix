@@ -1005,3 +1005,115 @@ describe('createLiveNutritionEvalAdapter calibration generation options', () => 
     );
   });
 });
+
+// ── Calibration barcode isolation (runner owns image loading) ─────────────────
+// The runner alone owns loadImage; the adapter never loads images. For a
+// supplied barcode the runner passes undefined bytes and the adapter must
+// resolve exclusively from the injected prevalidated snapshot map.
+
+describe('calibration barcode isolation', () => {
+  const SUPPLIED_BARCODES = [
+    '3017624010701',
+    '5449000000996',
+    '4056489686941',
+    '7622210449283',
+  ] as const;
+
+  function makeBarcodeCase(suppliedBarcode: string): NutritionEvalCase {
+    return parseNutritionEvalManifest({
+      version: 1,
+      datasetId: 'test-dataset',
+      cases: [{
+        ...barcodeCase,
+        id: `barcode-${suppliedBarcode}`,
+        suppliedBarcode,
+      }],
+    }).cases[0]!;
+  }
+
+  function makeOffSnapshot(barcode: string): OffProduct {
+    return {
+      name: `Test Product ${barcode}`,
+      barcode,
+      kcalPer100g: 100,
+      proteinPer100g: 5,
+      carbsPer100g: 15,
+      fatPer100g: 2,
+      productQuantity: { amount: 330, unit: 'ml' },
+      per100Reference: {
+        kcal: 100,
+        proteinG: 5,
+        carbsG: 15,
+        fatG: 2,
+        amount: 100,
+        unit: 'ml',
+      },
+    };
+  }
+
+  function makeSnapshotMap(): Map<string, OffProduct> {
+    const map = new Map<string, OffProduct>();
+    for (const barcode of SUPPLIED_BARCODES) {
+      map.set(barcode, makeOffSnapshot(barcode));
+    }
+    return map;
+  }
+
+  it('supplied barcode with undefined bytes resolves from the prevalidated map only', async () => {
+    const snapshotMap = makeSnapshotMap();
+    const fetchOffProductFn = vi.fn(async (_barcode: string): Promise<OffProduct | null> => {
+      throw new Error('live OFF fetch must not be called for a supplied barcode');
+    });
+    const generateVision = vi.fn(async (): Promise<string> => {
+      throw new Error('vision must not be called for a supplied barcode');
+    });
+    const genAIAdapter: GenAIAdapter = { generateChat: vi.fn(async () => ''), generateVision };
+
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-3.8-flash',
+      genAIAdapter,
+      fetchOffProductFn,
+      offSnapshotMap: snapshotMap,
+    } as unknown as Parameters<typeof createLiveNutritionEvalAdapter>[0]);
+
+    for (const barcode of SUPPLIED_BARCODES) {
+      const c = makeBarcodeCase(barcode);
+      const prediction = await adapter.analyzeCase(
+        c,
+        undefined as unknown as Uint8Array,
+        { sampleIndex: 1 },
+      );
+
+      expect(prediction.parseStatus).toBe('success');
+      expect(prediction.source).toBe('barcode');
+      expect(prediction).toMatchObject({ barcode });
+    }
+    expect(generateVision).not.toHaveBeenCalled();
+    expect(fetchOffProductFn).not.toHaveBeenCalled();
+  });
+
+  it('generic barcode without suppliedBarcode still uses vision and live OFF lookup', async () => {
+    const generateVision = vi.fn(async () => modelText('per100', { barcode: '12345678', confidence: 0.97 }));
+    const genAIAdapter: GenAIAdapter = { generateChat: vi.fn(async () => ''), generateVision };
+    const fetchOffProductFn = vi.fn(async (b: string) =>
+      b === '12345678' ? makeOffSnapshot('12345678') : null,
+    );
+
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-3.8-flash',
+      genAIAdapter,
+      fetchOffProductFn,
+    });
+
+    const c = { ...barcodeCase, id: 'barcode-generic' };
+    const prediction = await adapter.analyzeCase(c, imageBytes, { sampleIndex: 1 });
+
+    expect(prediction.parseStatus).toBe('success');
+    expect(generateVision).toHaveBeenCalledTimes(1);
+    expect(fetchOffProductFn).toHaveBeenCalledWith('12345678');
+  });
+});
