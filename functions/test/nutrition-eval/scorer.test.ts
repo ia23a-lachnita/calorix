@@ -849,3 +849,47 @@ describe('Task 2 correction RED: omitted empty population metrics', () => {
     expect(s.meanMealCarbDensityRelativeError).toBeUndefined();
   });
 });
+
+describe('Task 2 pooled pair-mean regression', () => {
+  it('pools meanZeroSafeMacroRelativeError over eligible pairs, not per-outcome means', () => {
+    // Case A (kcal100Case truth protein 10 / carbs 20 / fat 5): every macro
+    // relative error is exactly 1 (protein |20-10|/10, carbs |40-20|/20,
+    // fat |10-5|/5).
+    const caseA = scoreNutritionCase(
+      { ...kcal100Case, id: 'pooled-a' },
+      ok({ kcal: 100, proteinG: 20, carbsG: 40, fatG: 10 }),
+    );
+    // Case B (pkgCase truth protein 0 / carbs 34.98 / fat 0): only carbs is
+    // eligible with relative error 0; nonzero protein/fat predictions are
+    // zero-truth absolute-only errors.
+    const caseB = scoreNutritionCase(
+      pkgCase,
+      ok({ proteinG: 5, carbsG: 34.98, fatG: 2 }),
+    );
+    const s = aggregateNutritionResults([caseA, caseB]);
+    // Eligible positive-truth (outcome, macro) pairs: 3 from A + 1 from B.
+    expect(s.zeroSafeEligiblePairs).toBe(4);
+    expect(s.proteinEligibleCount).toBe(1);
+    expect(s.carbsEligibleCount).toBe(2);
+    expect(s.fatEligibleCount).toBe(1);
+    // Pooled pair mean (1 + 1 + 1 + 0) / 4 = 0.75, not the mean of
+    // per-outcome means (1 + 0) / 2 = 0.5.
+    expect(s.meanZeroSafeMacroRelativeError).toBeCloseTo(0.75, 8);
+    expect(Math.abs((s.meanZeroSafeMacroRelativeError ?? 0) - 0.5)).toBeGreaterThan(
+      0.2,
+    );
+    // Zero-truth macros stay absolute-only.
+    expect(s.proteinZeroTruthCount).toBe(1);
+    expect(s.fatZeroTruthCount).toBe(1);
+    expect(s.carbsZeroTruthCount).toBe(0);
+    expect(s.proteinZeroTruthMeanAbsoluteError).toBeCloseTo(5, 8);
+    expect(s.proteinZeroTruthMedianAbsoluteError).toBeCloseTo(5, 8);
+    expect(s.fatZeroTruthMeanAbsoluteError).toBeCloseTo(2, 8);
+    expect(s.fatZeroTruthMedianAbsoluteError).toBeCloseTo(2, 8);
+    // Per-macro positive-truth medians: protein [1] -> 1, carbs [0, 1] -> 0.5,
+    // fat [1] -> 1.
+    expect(s.medianProteinRelativeError).toBeCloseTo(1, 8);
+    expect(s.medianCarbsRelativeError).toBeCloseTo(0.5, 8);
+    expect(s.medianFatRelativeError).toBeCloseTo(1, 8);
+  });
+});

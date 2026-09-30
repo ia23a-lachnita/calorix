@@ -46,10 +46,16 @@ import {
   CALIBRATION_ROOT,
   HARD_CALL_CEILING,
   PLANNED_IMAGE_CALLS,
+  aggregateCalibrationMealMetrics,
   createCalibrationLedger,
   evaluateCalibrationStageGate,
   selectCalibrationProfile,
 } from '../../src/nutrition-eval/calibration';
+import { scoreNutritionCase } from '../../src/nutrition-eval/scorer';
+import type {
+  NutritionCaseResult,
+  NutritionEvalCase,
+} from '../../src/nutrition-eval/schema';
 import type {
   CalibrationIdentity,
   CalibrationLedgerDeps,
@@ -1617,5 +1623,285 @@ describe('calibration benchmark stage gate', () => {
     expect(evaluateCalibrationStageGate('benchmark', metrics).passed).toBe(
       expected,
     );
+  });
+});
+
+/**
+ * Task 6 Step 3 RED-only slice: meal-only macro metric population.
+ *
+ * Covers ONLY the planned pure
+ * `aggregateCalibrationMealMetrics(results: readonly NutritionCaseResult[])`
+ * from `functions/src/nutrition-eval/calibration.ts`. The helper isolates the
+ * benchmark meal-model gate population: parsed meal outcomes only, so exact
+ * barcode and label rows cannot pad meal-only medians. Per-macro relative
+ * medians use parsed meal results with positive truth only, with the scorer's
+ * linear-interpolation median; zero-truth meal values contribute only to their
+ * per-macro zero-truth count plus absolute-error mean/median, never to the
+ * relative median or eligible count. The helper must expose explicit
+ * meal-only eligible counts alongside those zero-truth counts/absolute
+ * metrics. Expected RED is the missing-module collection failure on
+ * `functions/src/nutrition-eval/calibration.ts`. All fixtures are built with
+ * `scoreNutritionCase` in memory; no real fs, /proc, provider, Firebase, or
+ * network access occurs here.
+ */
+describe('calibration meal-only macro metric population', () => {
+  const SHA =
+    '28f5fe26394586f124c04af2d22270d8a8079c141fc1f2b0fe80593d77ae2869';
+
+  const mealBase: NutritionEvalCase = {
+    id: 'meal-base',
+    visibility: 'public',
+    scanMode: 'meal',
+    source: { dataset: 'nutrition5k', objectId: 'meal_base' },
+    image: {
+      url: 'https://example.com/meal.png',
+      sha256: SHA,
+      mediaType: 'image/png',
+      width: 640,
+      height: 480,
+    },
+    truth: {
+      basis: 'portion',
+      amount: 1,
+      unit: 'portion',
+      kcal: 100,
+      proteinG: 10,
+      carbsG: 20,
+      fatG: 5,
+      referenceMassG: 400,
+    },
+    toleranceClass: 'meal-estimate',
+    attributionId: 'nutrition5k-cc-by-4.0',
+  };
+
+  const barcodeBase: NutritionEvalCase = {
+    id: 'barcode-base',
+    visibility: 'public',
+    scanMode: 'barcode',
+    source: { dataset: 'off', objectId: '3017624010701' },
+    image: {
+      url: 'https://example.com/product.jpg',
+      sha256: 'a'.repeat(64),
+      mediaType: 'image/jpeg',
+      width: 400,
+      height: 400,
+    },
+    truth: {
+      basis: 'package',
+      amount: 100,
+      unit: 'g',
+      kcal: 100,
+      proteinG: 10,
+      carbsG: 20,
+      fatG: 5,
+    },
+    toleranceClass: 'package-strict',
+    attributionId: 'off-odbl',
+    expectedBarcode: '3017624010701',
+  };
+
+  const labelBase: NutritionEvalCase = {
+    id: 'label-base',
+    visibility: 'public',
+    scanMode: 'label',
+    source: { dataset: 'off', objectId: 'label_base' },
+    image: {
+      url: 'https://example.com/label.jpg',
+      sha256: 'b'.repeat(64),
+      mediaType: 'image/jpeg',
+      width: 400,
+      height: 400,
+    },
+    truth: {
+      basis: 'per100g',
+      amount: 100,
+      unit: 'g',
+      kcal: 100,
+      proteinG: 10,
+      carbsG: 20,
+      fatG: 5,
+    },
+    toleranceClass: 'package-strict',
+    attributionId: 'off-odbl',
+  };
+
+  function mealResult(
+    id: string,
+    pred: { proteinG: number; carbsG: number; fatG: number },
+    truthOverride?: Partial<NutritionEvalCase['truth']>,
+  ): NutritionCaseResult {
+    return scoreNutritionCase(
+      {
+        ...mealBase,
+        id,
+        truth: { ...mealBase.truth, ...truthOverride },
+      },
+      {
+        parseStatus: 'success',
+        source: 'meal',
+        decision: 'complete',
+        kcal: 100,
+        proteinG: pred.proteinG,
+        carbsG: pred.carbsG,
+        fatG: pred.fatG,
+      },
+    );
+  }
+
+  function perfectBarcodeResult(id: string): NutritionCaseResult {
+    return scoreNutritionCase(
+      { ...barcodeBase, id },
+      {
+        parseStatus: 'success',
+        source: 'barcode',
+        decision: 'complete',
+        kcal: 100,
+        proteinG: 10,
+        carbsG: 20,
+        fatG: 5,
+        barcode: '3017624010701',
+      },
+    );
+  }
+
+  function perfectLabelResult(id: string): NutritionCaseResult {
+    return scoreNutritionCase(
+      { ...labelBase, id },
+      {
+        parseStatus: 'success',
+        source: 'label',
+        decision: 'complete',
+        kcal: 100,
+        proteinG: 10,
+        carbsG: 20,
+        fatG: 5,
+      },
+    );
+  }
+
+  it('excludes perfect barcode/label rows from meal-only relative medians', () => {
+    // Meal A: protein |11-10|/10=0.1, carbs |24-20|/20=0.2, fat |6.5-5|/5=0.3.
+    // Meal B: protein |12-10|/10=0.2, carbs |22-20|/20=0.1, fat |7-5|/5=0.4.
+    // Scorer linear interpolation over two values is the pairwise average:
+    // protein median (0.1+0.2)/2=0.15, carbs median 0.15, fat median 0.35.
+    // Two perfect non-meal rows carry relative error 0 on every positive-truth
+    // macro; including them would pad any median toward 0.
+    const mealA = mealResult('meal-a', {
+      proteinG: 11,
+      carbsG: 24,
+      fatG: 6.5,
+    });
+    const mealB = mealResult('meal-b', {
+      proteinG: 12,
+      carbsG: 22,
+      fatG: 7,
+    });
+    const barcode = perfectBarcodeResult('barcode-perfect');
+    const label = perfectLabelResult('label-perfect');
+    const metrics = aggregateCalibrationMealMetrics([
+      mealA,
+      mealB,
+      barcode,
+      label,
+    ]);
+    expect(metrics.parsedMealCount).toBe(2);
+    expect(metrics.proteinEligibleCount).toBe(2);
+    expect(metrics.carbsEligibleCount).toBe(2);
+    expect(metrics.fatEligibleCount).toBe(2);
+    expect(metrics.medianMealProteinRelativeError).toBeCloseTo(0.15, 8);
+    expect(metrics.medianMealCarbsRelativeError).toBeCloseTo(0.15, 8);
+    expect(metrics.medianMealFatRelativeError).toBeCloseTo(0.35, 8);
+  });
+
+  it('keeps a zero-truth meal carbohydrate out of the relative median while counting its absolute error', () => {
+    // Same A/B meals as above plus a zero-carbohydrate meal C: truth carbs 0
+    // with prediction 5 gives absolute error 5 and no relative error. Protein
+    // and fat predictions are exact so they join those medians at 0.
+    // Protein eligible 3 over [0.1,0.2,0] median 0.1; carbs eligible stays 2
+    // with median 0.15; fat eligible 3 over [0.3,0.4,0] median 0.3.
+    const mealA = mealResult('meal-a', {
+      proteinG: 11,
+      carbsG: 24,
+      fatG: 6.5,
+    });
+    const mealB = mealResult('meal-b', {
+      proteinG: 12,
+      carbsG: 22,
+      fatG: 7,
+    });
+    const zeroCarb = mealResult(
+      'meal-zero-carb',
+      { proteinG: 10, carbsG: 5, fatG: 5 },
+      { carbsG: 0 },
+    );
+    const metrics = aggregateCalibrationMealMetrics([
+      mealA,
+      mealB,
+      zeroCarb,
+    ]);
+    expect(metrics.parsedMealCount).toBe(3);
+    expect(metrics.proteinEligibleCount).toBe(3);
+    expect(metrics.carbsEligibleCount).toBe(2);
+    expect(metrics.fatEligibleCount).toBe(3);
+    expect(metrics.medianMealProteinRelativeError).toBeCloseTo(0.1, 8);
+    expect(metrics.medianMealCarbsRelativeError).toBeCloseTo(0.15, 8);
+    expect(metrics.medianMealFatRelativeError).toBeCloseTo(0.3, 8);
+    expect(metrics.carbsZeroTruthCount).toBe(1);
+    expect(metrics.carbsZeroTruthMeanAbsoluteError).toBeCloseTo(5, 8);
+    expect(metrics.carbsZeroTruthMedianAbsoluteError).toBeCloseTo(5, 8);
+    expect(metrics.proteinZeroTruthCount).toBe(0);
+    expect(metrics.fatZeroTruthCount).toBe(0);
+  });
+
+  it('holds 36 parsed meals with 33 carb eligible against 24 perfect non-meal rows', () => {
+    // Benchmark shape: 33 normal meals with relative errors 0.01..0.33 on
+    // every macro, 3 zero-carbohydrate meals with protein/fat relative errors
+    // 0.34/0.35/0.36 and carbs absolute error 5, plus 12 perfect barcode and
+    // 12 perfect label rows (relative error 0). Meal-only protein/fat medians
+    // use 36 values via linear interpolation: index 17.5 between 0.18 and
+    // 0.19 gives 0.185. Meal-only carbs median uses 33 values: middle 0.17.
+    // Any all-row median would be padded toward 0 by the 24 perfect rows.
+    const results: NutritionCaseResult[] = [];
+    for (let i = 0; i < 33; i += 1) {
+      const rel = (i + 1) * 0.01;
+      results.push(
+        mealResult(`bench-meal-${i}`, {
+          proteinG: 10 * (1 + rel),
+          carbsG: 20 * (1 + rel),
+          fatG: 5 * (1 + rel),
+        }),
+      );
+    }
+    const zeroRels = [0.34, 0.35, 0.36];
+    zeroRels.forEach((rel, index) => {
+      results.push(
+        mealResult(
+          `bench-zero-carb-${index}`,
+          {
+            proteinG: 10 * (1 + rel),
+            carbsG: 5,
+            fatG: 5 * (1 + rel),
+          },
+          { carbsG: 0 },
+        ),
+      );
+    });
+    for (let i = 0; i < 12; i += 1) {
+      results.push(perfectBarcodeResult(`bench-barcode-${i}`));
+      results.push(perfectLabelResult(`bench-label-${i}`));
+    }
+    const metrics = aggregateCalibrationMealMetrics(results);
+    expect(metrics.parsedMealCount).toBe(36);
+    expect(metrics.proteinEligibleCount).toBe(36);
+    expect(metrics.carbsEligibleCount).toBe(33);
+    expect(metrics.fatEligibleCount).toBe(36);
+    expect(metrics.medianMealProteinRelativeError).toBeCloseTo(0.185, 8);
+    expect(metrics.medianMealCarbsRelativeError).toBeCloseTo(0.17, 8);
+    expect(metrics.medianMealFatRelativeError).toBeCloseTo(0.185, 8);
+    expect(metrics.carbsZeroTruthCount).toBe(3);
+    expect(metrics.carbsZeroTruthMeanAbsoluteError).toBeCloseTo(5, 8);
+    expect(metrics.carbsZeroTruthMedianAbsoluteError).toBeCloseTo(5, 8);
+    expect(metrics.proteinZeroTruthCount).toBe(0);
+    expect(metrics.fatZeroTruthCount).toBe(0);
   });
 });
