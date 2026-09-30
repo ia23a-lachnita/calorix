@@ -47,6 +47,7 @@ import {
   HARD_CALL_CEILING,
   PLANNED_IMAGE_CALLS,
   createCalibrationLedger,
+  selectCalibrationProfile,
 } from '../../src/nutrition-eval/calibration';
 import type {
   CalibrationIdentity,
@@ -646,5 +647,234 @@ describe('calibration journal durability', () => {
       CalibrationFatalError,
     );
     expect(ledger.rebuildReport().completed).not.toContainEqual(key);
+  });
+});
+
+/**
+ * Task 6 Step 2 first RED slice: profile selection only.
+ *
+ * These cases cover ONLY the planned pure `selectCalibrationProfile`
+ * lexicographic ordering. They do not prove any stage gate, ledger, journal,
+ * lock, fatal-error, or CLI behavior. Expected RED is the missing-module
+ * collection failure on `functions/src/nutrition-eval/calibration.ts`.
+ */
+describe('calibration profile selection', () => {
+  interface ProfileMetrics {
+    unsafeCount: number;
+    parseCount: number;
+    catastrophicCount: number;
+    meanZeroSafeMacroError?: number;
+    medianKcalError?: number;
+    p90AnalysisLatencyMs?: number;
+  }
+
+  function metrics(overrides: Partial<ProfileMetrics> = {}): ProfileMetrics {
+    return {
+      unsafeCount: 0,
+      parseCount: 24,
+      catastrophicCount: 0,
+      meanZeroSafeMacroError: 0.1,
+      medianKcalError: 0.1,
+      p90AnalysisLatencyMs: 1000,
+      ...overrides,
+    };
+  }
+
+  interface SelectionRow {
+    name: string;
+    low: ProfileMetrics;
+    medium: ProfileMetrics;
+    expected: 'LOW' | 'MEDIUM';
+  }
+
+  const rows: SelectionRow[] = [
+    {
+      name: 'unsafe count asc dominates every lower priority',
+      low: metrics({
+        unsafeCount: 0,
+        parseCount: 20,
+        catastrophicCount: 5,
+        meanZeroSafeMacroError: 0.5,
+        medianKcalError: 0.4,
+        p90AnalysisLatencyMs: 5000,
+      }),
+      medium: metrics({
+        unsafeCount: 1,
+        parseCount: 24,
+        catastrophicCount: 0,
+        meanZeroSafeMacroError: 0.1,
+        medianKcalError: 0.1,
+        p90AnalysisLatencyMs: 100,
+      }),
+      expected: 'LOW',
+    },
+    {
+      name: 'parse count desc beats better catastrophic/error/latency',
+      low: metrics({
+        parseCount: 24,
+        catastrophicCount: 5,
+        meanZeroSafeMacroError: 0.5,
+        medianKcalError: 0.4,
+        p90AnalysisLatencyMs: 5000,
+      }),
+      medium: metrics({
+        parseCount: 20,
+        catastrophicCount: 0,
+        meanZeroSafeMacroError: 0.1,
+        medianKcalError: 0.1,
+        p90AnalysisLatencyMs: 100,
+      }),
+      expected: 'LOW',
+    },
+    {
+      name: 'catastrophic count asc beats better errors and latency',
+      low: metrics({
+        catastrophicCount: 1,
+        meanZeroSafeMacroError: 0.5,
+        medianKcalError: 0.4,
+        p90AnalysisLatencyMs: 5000,
+      }),
+      medium: metrics({
+        catastrophicCount: 4,
+        meanZeroSafeMacroError: 0.1,
+        medianKcalError: 0.1,
+        p90AnalysisLatencyMs: 100,
+      }),
+      expected: 'LOW',
+    },
+    {
+      name: 'mean zero-safe macro error asc beats better kcal and latency',
+      low: metrics({
+        meanZeroSafeMacroError: 0.3,
+        medianKcalError: 0.4,
+        p90AnalysisLatencyMs: 5000,
+      }),
+      medium: metrics({
+        meanZeroSafeMacroError: 0.4,
+        medianKcalError: 0.1,
+        p90AnalysisLatencyMs: 100,
+      }),
+      expected: 'LOW',
+    },
+    {
+      name: 'median kcal error asc beats better latency',
+      low: metrics({ medianKcalError: 0.2, p90AnalysisLatencyMs: 5000 }),
+      medium: metrics({ medianKcalError: 0.3, p90AnalysisLatencyMs: 100 }),
+      expected: 'LOW',
+    },
+    {
+      name: 'p90 analysis-only latency asc decides the final priority',
+      low: metrics({ p90AnalysisLatencyMs: 1200 }),
+      medium: metrics({ p90AnalysisLatencyMs: 2500 }),
+      expected: 'LOW',
+    },
+    {
+      name: 'zero parses rank worst even with perfect later metrics',
+      low: metrics({
+        parseCount: 0,
+        catastrophicCount: 0,
+        meanZeroSafeMacroError: 0.0,
+        medianKcalError: 0.0,
+        p90AnalysisLatencyMs: 1,
+      }),
+      medium: metrics({
+        parseCount: 1,
+        catastrophicCount: 100,
+        meanZeroSafeMacroError: 10,
+        medianKcalError: 10,
+        p90AnalysisLatencyMs: 100000,
+      }),
+      expected: 'MEDIUM',
+    },
+    {
+      name: 'both zero parses tie downstream infinities to MEDIUM despite better raw numbers',
+      low: metrics({
+        parseCount: 0,
+        catastrophicCount: 0,
+        meanZeroSafeMacroError: 0.0,
+        medianKcalError: 0.0,
+        p90AnalysisLatencyMs: 1,
+      }),
+      medium: metrics({
+        parseCount: 0,
+        catastrophicCount: 0,
+        meanZeroSafeMacroError: 10,
+        medianKcalError: 10,
+        p90AnalysisLatencyMs: 100000,
+      }),
+      expected: 'MEDIUM',
+    },
+    {
+      name: 'both zero parses still order by catastrophic count first',
+      low: metrics({
+        parseCount: 0,
+        catastrophicCount: 0,
+        meanZeroSafeMacroError: 10,
+        medianKcalError: 10,
+        p90AnalysisLatencyMs: 100000,
+      }),
+      medium: metrics({
+        parseCount: 0,
+        catastrophicCount: 5,
+        meanZeroSafeMacroError: 0.0,
+        medianKcalError: 0.0,
+        p90AnalysisLatencyMs: 1,
+      }),
+      expected: 'LOW',
+    },
+    {
+      name: 'undefined mean zero-safe macro error ranks worst',
+      low: metrics({
+        meanZeroSafeMacroError: undefined,
+        medianKcalError: 0.01,
+        p90AnalysisLatencyMs: 10,
+      }),
+      medium: metrics({
+        meanZeroSafeMacroError: 5.0,
+        medianKcalError: 9.0,
+        p90AnalysisLatencyMs: 90000,
+      }),
+      expected: 'MEDIUM',
+    },
+    {
+      name: 'undefined median kcal error ranks worst',
+      low: metrics({ medianKcalError: undefined, p90AnalysisLatencyMs: 10 }),
+      medium: metrics({ medianKcalError: 5.0, p90AnalysisLatencyMs: 90000 }),
+      expected: 'MEDIUM',
+    },
+    {
+      name: 'undefined p90 analysis latency ranks worst',
+      low: metrics({ p90AnalysisLatencyMs: undefined }),
+      medium: metrics({ p90AnalysisLatencyMs: 90000 }),
+      expected: 'MEDIUM',
+    },
+    {
+      name: 'tied undefined means fall through to the next priority',
+      low: metrics({
+        meanZeroSafeMacroError: undefined,
+        medianKcalError: 0.2,
+      }),
+      medium: metrics({
+        meanZeroSafeMacroError: undefined,
+        medianKcalError: 0.3,
+      }),
+      expected: 'LOW',
+    },
+    {
+      name: 'exact full JavaScript-number tie selects MEDIUM',
+      low: metrics(),
+      medium: metrics(),
+      expected: 'MEDIUM',
+    },
+  ];
+
+  it.each(rows)('$name', ({ low, medium, expected }) => {
+    expect(selectCalibrationProfile(low, medium)).toBe(expected);
+  });
+
+  it('reverses the latency decision when MEDIUM is faster analysis-only', () => {
+    const low = metrics({ p90AnalysisLatencyMs: 2500 });
+    const medium = metrics({ p90AnalysisLatencyMs: 1200 });
+    expect(selectCalibrationProfile(low, medium)).toBe('MEDIUM');
   });
 });
