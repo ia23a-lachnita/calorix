@@ -1,4 +1,5 @@
 import { DatasetError, sha256Hex } from './assets';
+import { CalibrationFatalError } from './fatal-error';
 import { NutritionPredictionSchema } from './schema';
 import { scoreNutritionCase } from './scorer';
 
@@ -225,7 +226,8 @@ export async function runNutritionEval(
         let cachedValue: string | null = null;
         try {
           cachedValue = await cacheStore.get(cacheKey);
-        } catch {
+        } catch (error) {
+          if (error instanceof CalibrationFatalError) throw error;
           prediction = failurePrediction(evalCase, {
             category: 'runner',
             code: 'cache_read_failed',
@@ -244,7 +246,8 @@ export async function runNutritionEval(
               prediction = corePrediction(parsed.data);
               cached = true;
             }
-          } catch {
+          } catch (error) {
+            if (error instanceof CalibrationFatalError) throw error;
             prediction = failurePrediction(evalCase, {
               category: 'runner',
               code: 'cache_invalid',
@@ -263,6 +266,7 @@ export async function runNutritionEval(
             try {
               imageBytes = await deps.loadImage(evalCase);
             } catch (error) {
+              if (error instanceof CalibrationFatalError) throw error;
               rememberedLoadFailure = loadFailureFrom(error);
             }
           }
@@ -281,7 +285,8 @@ export async function runNutritionEval(
                 code: 'prediction_schema_invalid',
               });
             shouldWriteCache = parsed.success;
-          } catch {
+          } catch (error) {
+            if (error instanceof CalibrationFatalError) throw error;
             prediction = failurePrediction(evalCase, {
               category: 'provider',
               code: 'provider_request_failed',
@@ -298,7 +303,8 @@ export async function runNutritionEval(
       if (shouldWriteCache && cacheKey !== undefined && cacheStore !== undefined) {
         try {
           await cacheStore.set(cacheKey, JSON.stringify(corePrediction(prediction)));
-        } catch {
+        } catch (error) {
+          if (error instanceof CalibrationFatalError) throw error;
           prediction = failurePrediction(evalCase, {
             category: 'runner',
             code: 'cache_write_failed',

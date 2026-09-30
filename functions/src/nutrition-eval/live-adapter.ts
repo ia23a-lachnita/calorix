@@ -1,4 +1,5 @@
 import { createGenAIAdapter, type GenAIAdapter, type VisionGenerationOptions } from '../genai-adapter';
+import { CalibrationFatalError } from './fatal-error';
 import { normalizeOffPackage } from '../package-nutrition';
 import {
   normalizeVisionNutrition,
@@ -237,13 +238,15 @@ export function createLiveNutritionEvalAdapter(
         let product: OffProduct | null;
         try {
           product = await lookup(barcode);
-        } catch {
+        } catch (error) {
+          if (error instanceof CalibrationFatalError) throw error;
           return { kind: 'provider_failure' };
         }
         if (!product) return { kind: 'not_found' };
         try {
           return { kind: 'found', draft: normalizeOff(product) };
-        } catch {
+        } catch (error) {
+          if (error instanceof CalibrationFatalError) throw error;
           return { kind: 'product_invalid' };
         }
       };
@@ -266,7 +269,8 @@ export function createLiveNutritionEvalAdapter(
             1,
             threshold,
           );
-        } catch {
+        } catch (error) {
+          if (error instanceof CalibrationFatalError) throw error;
           return failure(evalCase, 'product', 'off_product_invalid');
         }
       }
@@ -307,7 +311,8 @@ export function createLiveNutritionEvalAdapter(
             evalCase.scanMode,
             visionGenerationOptions,
           );
-      } catch {
+      } catch (error) {
+        if (error instanceof CalibrationFatalError) throw error;
         return failure(evalCase, 'provider', 'provider_request_failed');
       }
       const parsed = parseNutritionResponse(response, evalCase.scanMode);
@@ -334,7 +339,8 @@ export function createLiveNutritionEvalAdapter(
       let normalized: ReturnType<typeof normalizeVisionNutrition>;
       try {
         normalized = normalizeVision(result, evalCase.suppliedBarcode ?? undefined, undefined);
-      } catch {
+      } catch (error) {
+        if (error instanceof CalibrationFatalError) throw error;
         return failure(evalCase, 'schema', 'nutrition_normalization_invalid');
       }
       if (normalized.kind === 'error') {
