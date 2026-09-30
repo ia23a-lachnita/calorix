@@ -230,6 +230,50 @@ function asFatal(error: unknown, message: string): CalibrationFatalError {
   return new CalibrationFatalError(message, { cause: error });
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isValidReservationKeyRecord(value: unknown): value is ReservationKey {
+  if (!isPlainRecord(value)) return false;
+  if (value.profile !== 'LOW' && value.profile !== 'MEDIUM') return false;
+  if (typeof value.caseId !== 'string' || value.caseId.length === 0) return false;
+  if (typeof value.stage !== 'string' || typeof value.sampleIndex !== 'number') return false;
+  return isValidReservationKeyShape(value as unknown as ReservationKey);
+}
+
+function isValidTokenKeyRecord(value: unknown): value is TokenCountReservationKey {
+  if (!isPlainRecord(value)) return false;
+  return (
+    value.kind === 'token_count' &&
+    typeof value.stage === 'string' &&
+    typeof value.caseId === 'string' &&
+    typeof value.model === 'string'
+  );
+}
+
+function isValidJournalEntryRecord(value: unknown): value is JournalEntry {
+  if (!isPlainRecord(value)) return false;
+  return (
+    isValidReservationKeyRecord(value.key) &&
+    typeof value.predictionHash === 'string' &&
+    (value.normalizedPrediction === null || isPlainRecord(value.normalizedPrediction)) &&
+    typeof value.analysisLatencyMs === 'number' &&
+    Number.isFinite(value.analysisLatencyMs) &&
+    typeof value.errorCategory === 'string' &&
+    typeof value.responseModelVersion === 'string'
+  );
+}
+
+const KNOWN_LEDGER_EVENT_TYPES = new Set([
+  'reserved',
+  'completed',
+  'failed',
+  'token_count_reserved',
+  'lock_recovery',
+  'synthetic_reserved',
+]);
+
 interface ReservationRecord {
   key: ReservationKey;
   status: 'reserved' | 'completed' | 'interrupted_reservation';
@@ -241,7 +285,13 @@ export function createCalibrationLedger(
   identity: CalibrationIdentity,
   allowedKeys: readonly ReservationKey[],
 ): CalibrationLedger {
+  if (allowedKeys.length > identity.plannedImageCalls) {
+    throw new CalibrationFatalError('calibration:allowed-keys-exceed-planned-ceiling');
+  }
   const allowedKeySet = new Set(allowedKeys.map(canonicalReservationKey));
+  if (allowedKeySet.size !== allowedKeys.length) {
+    throw new CalibrationFatalError('calibration:allowed-keys-duplicate');
+  }
   const reservations = new Map<string, ReservationRecord>();
   const reservationOrder: string[] = [];
   const journalHashesByKey = new Map<string, Set<string>>();
@@ -267,57 +317,133 @@ export function createCalibrationLedger(
   }
 
   function replayLedgerEvent(raw: unknown): void {
-    if (typeof raw !== 'object' || raw === null || !('type' in raw)) return;
-    const event = raw as Record<string, unknown>;
-    switch (event.type) {
+    if (!isPlainRecord(raw) || typeof raw.type !== 'string') {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed');
+    }
+    const event = raw;
+    const type: string = raw.type;
+    if (!KNOWN_LEDGER_EVENT_TYPES.has(type)) {
+      throw new CalibrationFatalError(`calibration:ledger-event-unknown-type:${type}`);
+    }
+    switch (type) {
       case 'reserved': {
-        const key = event.key as ReservationKey;
-        const id = canonicalReservationKey(key);
-        if (!reservations.has(id)) {
-          reservations.set(id, { key, status: 'reserved' });
-          reservationOrder.push(id);
-          imageReserved += 1;
+        if (!isValidReservationKeyRecord(event.key)) {
+          throw new CalibrationFatalError('calibration:ledger-event-malformed:reserved');
         }
+        const key = event.key;
+        const id = canonicalReservationKey(key);
+        if (!allowedKeySet.has(id)) {
+          throw new CalibrationFatalError('calibration:ledger-event-unplanned:reserved');
+        }
+        if (reservations.has(id)) {
+          throw new CalibrationFatalError('calibration:ledger-event-duplicate:reserved');
+        }
+        reservations.set(id, { key, status: 'reserved' });
+        reservationOrder.push(id);
+        imageReserved += 1;
         break;
       }
       case 'completed': {
-        const key = event.key as ReservationKey;
-        const journalHash = event.journalHash as string;
+        if (
+          !isValidReservationKeyRecord(event.key) ||
+          typeof event.journalHash !== 'string' ||
+          event.journalHash.length === 0
+        ) {
+          throw new CalibrationFatalError('calibration:ledger-event-malformed:completed');
+        }
+        const key = event.key;
+        const journalHash = event.journalHash;
         const id = canonicalReservationKey(key);
         const record = reservations.get(id);
-        if (record !== undefined) {
-          record.status = 'completed';
-          record.journalHash = journalHash;
+        if (record === undefined) {
+          throw new CalibrationFatalError('calibration:ledger-event-out-of-order:completed');
         }
+        if (record.status !== 'reserved') {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-invalid-transition:completed',
+          );
+        }
+        const validHashes = journalHashesByKey.get(id);
+        if (validHashes === undefined || !validHashes.has(journalHash)) {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-completed-missing-journal',
+          );
+        }
+        record.status = 'completed';
+        record.journalHash = journalHash;
         break;
       }
       case 'failed': {
-        const key = event.key as ReservationKey;
+        if (!isValidReservationKeyRecord(event.key)) {
+          throw new CalibrationFatalError('calibration:ledger-event-malformed:failed');
+        }
+        const key = event.key;
         const id = canonicalReservationKey(key);
         const record = reservations.get(id);
-        if (record !== undefined) {
-          record.status = 'interrupted_reservation';
+        if (record === undefined) {
+          throw new CalibrationFatalError('calibration:ledger-event-out-of-order:failed');
         }
+        if (record.status !== 'reserved') {
+          throw new CalibrationFatalError('calibration:ledger-event-invalid-transition:failed');
+        }
+        record.status = 'interrupted_reservation';
         break;
       }
       case 'token_count_reserved': {
-        const key = event.key as TokenCountReservationKey;
-        const id = canonicalTokenKey(key);
-        if (!tokenReservations.has(id)) {
-          tokenReservations.add(id);
-          tokenCountReserved += 1;
+        if (!isValidTokenKeyRecord(event.key)) {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-malformed:token_count_reserved',
+          );
         }
+        const key = event.key;
+        const id = canonicalTokenKey(key);
+        if (tokenReservations.has(id)) {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-duplicate:token_count_reserved',
+          );
+        }
+        tokenReservations.add(id);
+        tokenCountReserved += 1;
         break;
       }
+      case 'lock_recovery':
+      case 'synthetic_reserved':
+        // Recognized as legitimate audit-only events written by this module;
+        // they carry no reservation/journal state to reconstruct.
+        break;
       default:
         break;
     }
   }
 
-  for (const entry of deps.readJournalEntries()) {
+  let replayJournalEntries: readonly JournalEntry[];
+  try {
+    const result = deps.readJournalEntries();
+    if (!Array.isArray(result)) {
+      throw new CalibrationFatalError('calibration:journal-replay-not-array');
+    }
+    replayJournalEntries = result;
+  } catch (error) {
+    throw asFatal(error, 'calibration:journal-replay-read-failed');
+  }
+  for (const entry of replayJournalEntries) {
+    if (!isValidJournalEntryRecord(entry)) {
+      throw new CalibrationFatalError('calibration:journal-entry-malformed');
+    }
     indexJournalHash(canonicalReservationKey(entry.key), computeJournalHash(entry));
   }
-  for (const event of deps.readLedgerEvents()) {
+
+  let replayLedgerEvents: readonly unknown[];
+  try {
+    const result = deps.readLedgerEvents();
+    if (!Array.isArray(result)) {
+      throw new CalibrationFatalError('calibration:ledger-replay-not-array');
+    }
+    replayLedgerEvents = result;
+  } catch (error) {
+    throw asFatal(error, 'calibration:ledger-replay-read-failed');
+  }
+  for (const event of replayLedgerEvents) {
     replayLedgerEvent(event);
   }
 
@@ -529,6 +655,14 @@ export function createCalibrationLedger(
 
   function appendResultJournal(entry: JournalEntry): string {
     requireLock();
+    const id = canonicalReservationKey(entry.key);
+    const record = reservations.get(id);
+    if (record === undefined || record.status !== 'reserved') {
+      throw new CalibrationFatalError('calibration:journal-not-reserved');
+    }
+    if (pendingJournalHashes.has(id)) {
+      throw new CalibrationFatalError('calibration:journal-duplicate');
+    }
     const hash = computeJournalHash(entry);
     try {
       deps.appendJournal(entry);
@@ -537,7 +671,6 @@ export function createCalibrationLedger(
     } catch (error) {
       throw asFatal(error, 'calibration:journal-persist-failed');
     }
-    const id = canonicalReservationKey(entry.key);
     pendingJournalHashes.set(id, hash);
     indexJournalHash(id, hash);
     return hash;
@@ -641,6 +774,15 @@ function assertValidRequiredCount(value: number, label: string): void {
   }
 }
 
+function assertValidOptionalMetric(value: number | undefined, label: string): void {
+  if (value === undefined) return;
+  if (!Number.isFinite(value) || value < 0) {
+    throw new CalibrationFatalError(
+      `calibration:profile-selection-invalid-metric:${label}`,
+    );
+  }
+}
+
 export function selectCalibrationProfile(
   low: CalibrationProfileMetrics,
   medium: CalibrationProfileMetrics,
@@ -651,6 +793,12 @@ export function selectCalibrationProfile(
   assertValidRequiredCount(medium.parseCount, 'medium.parseCount');
   assertValidRequiredCount(low.catastrophicCount, 'low.catastrophicCount');
   assertValidRequiredCount(medium.catastrophicCount, 'medium.catastrophicCount');
+  assertValidOptionalMetric(low.meanZeroSafeMacroError, 'low.meanZeroSafeMacroError');
+  assertValidOptionalMetric(medium.meanZeroSafeMacroError, 'medium.meanZeroSafeMacroError');
+  assertValidOptionalMetric(low.medianKcalError, 'low.medianKcalError');
+  assertValidOptionalMetric(medium.medianKcalError, 'medium.medianKcalError');
+  assertValidOptionalMetric(low.p90AnalysisLatencyMs, 'low.p90AnalysisLatencyMs');
+  assertValidOptionalMetric(medium.p90AnalysisLatencyMs, 'medium.p90AnalysisLatencyMs');
   if (low.unsafeCount !== medium.unsafeCount) {
     return low.unsafeCount < medium.unsafeCount ? 'LOW' : 'MEDIUM';
   }
@@ -732,7 +880,7 @@ export interface CalibrationStageGateResult {
 }
 
 function exceedsOrMissing(value: number | undefined, max: number): boolean {
-  return value === undefined || !Number.isFinite(value) || value > max;
+  return value === undefined || !Number.isFinite(value) || value < 0 || value > max;
 }
 
 function isValidNonNegativeInteger(value: number | undefined): value is number {

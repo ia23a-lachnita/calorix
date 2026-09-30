@@ -2141,7 +2141,7 @@ describe('calibration ledger durable reconstruction', () => {
     ledgerB.reserve(remaining);
   });
 
-  it('rebuildReport trusts a reconstructed completion only when its journal hash is backed by a persisted journal entry', () => {
+  it('fails closed reconstructing a completed record whose journal hash has no matching persisted journal entry, instead of silently dropping it from rebuildReport', () => {
     const world = makeWorld();
     const verified = makeKey({ caseId: DEV_CASE_A, sampleIndex: 1 });
     const forged = makeKey({ caseId: DEV_CASE_B, sampleIndex: 1 });
@@ -2157,7 +2157,8 @@ describe('calibration ledger durable reconstruction', () => {
     ledgerA.reserve(forged);
     // Simulate a corrupted/forged completion record: a "completed" ledger
     // event was durably appended for `forged`, but no journal entry was ever
-    // durably written to back its journal hash.
+    // durably written to back its journal hash. Reconstruction must fail
+    // closed rather than silently excluding it from `rebuildReport`.
     world.deps.appendLedgerEvent({
       type: 'completed',
       key: forged,
@@ -2165,13 +2166,7 @@ describe('calibration ledger durable reconstruction', () => {
       at: world.deps.nowIso(),
     });
 
-    // A freshly reconstructed ledger must derive `completed` only from
-    // records whose journal hash is actually backed by a persisted journal
-    // entry, not from trusting the ledger event alone.
-    const ledgerB = makeLedger(world, allowed);
-    const rebuilt = ledgerB.rebuildReport().completed;
-    expect(rebuilt).toContainEqual(verified);
-    expect(rebuilt).not.toContainEqual(forged);
+    expect(() => makeLedger(world, allowed)).toThrow(CalibrationFatalError);
   });
 });
 
@@ -2569,5 +2564,635 @@ describe('calibration profile selection fails closed on invalid required counts'
     expect(() =>
       selectCalibrationProfile(metrics(), metrics({ catastrophicCount: 2.5 })),
     ).toThrow(CalibrationFatalError);
+  });
+});
+
+/**
+ * Task 6 Step 5 correction slice (gap 4): fail-closed replay/input validation.
+ *
+ * Host review of the initial GREEN ledger found three remaining safety gaps:
+ * malformed/duplicate/out-of-order persisted ledger and journal records are
+ * silently accepted during reconstruction instead of rejected; an injected
+ * `readLedgerEvents`/`readJournalEntries` exception surfaces as a raw error
+ * instead of a typed `CalibrationFatalError`; and negative/nonfinite optional
+ * profile-selection metrics and negative relative-error gate values are not
+ * rejected. This slice adds focused RED coverage for each gap plus explicit
+ * non-regression coverage for two scenarios that must keep working: a
+ * fsynced success journal whose completion ledger event never landed still
+ * recovers as a nonretryable interrupted reservation (never silently trusted
+ * as complete), and the legitimate `lock_recovery`/`synthetic_reserved`
+ * ledger event types this module itself writes remain recognized rather than
+ * rejected as unknown/corrupt. All effects are injected fakes; no real fs,
+ * /proc, provider, Firebase, or network access occurs here.
+ */
+describe('calibration ledger replay rejects malformed, duplicate, and out-of-order records', () => {
+  it('rejects a non-object persisted ledger event', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent('not-an-event');
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects an unrecognized persisted ledger event type', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({ type: 'mystery_event', at: world.deps.nowIso() });
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a malformed reserved ledger event missing its key', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({ type: 'reserved', at: world.deps.nowIso() });
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a duplicate persisted reserved event for the same key', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    world.deps.appendLedgerEvent({ type: 'reserved', key, at: world.deps.nowIso() });
+    world.deps.appendLedgerEvent({ type: 'reserved', key, at: world.deps.nowIso() });
+    expect(() => makeLedger(world, [key])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a completed event for a key that was never reserved', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    world.deps.appendLedgerEvent({
+      type: 'completed',
+      key,
+      journalHash: 'hash-1',
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [key])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a failed event for a key that was never reserved', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    world.deps.appendLedgerEvent({
+      type: 'failed',
+      key,
+      status: 'interrupted_reservation',
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [key])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a duplicate persisted completed event for the same key', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    world.deps.appendLedgerEvent({ type: 'reserved', key, at: world.deps.nowIso() });
+    world.deps.appendLedgerEvent({
+      type: 'completed',
+      key,
+      journalHash: 'hash-1',
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'completed',
+      key,
+      journalHash: 'hash-1',
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [key])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a duplicate persisted failed event for the same key', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    world.deps.appendLedgerEvent({ type: 'reserved', key, at: world.deps.nowIso() });
+    world.deps.appendLedgerEvent({
+      type: 'failed',
+      key,
+      status: 'interrupted_reservation',
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'failed',
+      key,
+      status: 'interrupted_reservation',
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [key])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a duplicate persisted token-count reserved event', () => {
+    const world = makeWorld();
+    const tokenKey: TokenCountReservationKey = {
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: DEV_CASE_A,
+      model: 'gemini-3.8-flash',
+    };
+    world.deps.appendLedgerEvent({
+      type: 'token_count_reserved',
+      key: tokenKey,
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'token_count_reserved',
+      key: tokenKey,
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a completed event with a missing journal hash', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    world.deps.appendLedgerEvent({ type: 'reserved', key, at: world.deps.nowIso() });
+    world.deps.appendLedgerEvent({ type: 'completed', key, at: world.deps.nowIso() });
+    expect(() => makeLedger(world, [key])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a completed event with a non-string journal hash', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    world.deps.appendLedgerEvent({ type: 'reserved', key, at: world.deps.nowIso() });
+    world.deps.appendLedgerEvent({
+      type: 'completed',
+      key,
+      journalHash: 12345,
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [key])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a malformed persisted journal entry', () => {
+    const world = makeWorld();
+    world.deps.appendJournal({
+      key: makeKey(),
+      predictionHash: 'content-hash-1',
+    } as JournalEntry);
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
+  it('recognizes legitimate lock_recovery and synthetic_reserved ledger events without treating them as corruption', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({
+      type: 'lock_recovery',
+      staleOwner: makeOwner({ pid: 1 }),
+      recoveringOwner: makeOwner({ pid: 2 }),
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'synthetic_reserved',
+      reason: 'ceiling-probe',
+      index: 0,
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).not.toThrow();
+  });
+
+  it('preserves fail-closed crash recovery when a fsynced success journal exists but the completion event never landed', () => {
+    const world = makeWorld('dead');
+    const key = makeKey();
+    world.deps.appendLedgerEvent({ type: 'reserved', key, at: world.deps.nowIso() });
+    world.deps.appendJournal(makeJournal(key));
+    const ledger = makeLedger(world, [key]);
+    // The success journal is durably recorded, but with no persisted
+    // `completed` ledger event the reservation must stay open, not be
+    // silently trusted as finished.
+    expect(ledger.rebuildReport().completed).not.toContainEqual(key);
+    ledger.acquireLock(makeOwner({ pid: 7777 }));
+    const recovered = ledger.recoverAfterCrash();
+    expect(recovered.interrupted).toContainEqual(key);
+    expect(() => ledger.reserve(key)).toThrow(CalibrationFatalError);
+  });
+});
+
+describe('calibration ledger replay-read failures convert to typed fatal errors', () => {
+  it('converts a readLedgerEvents replay failure to a fatal error preserving the cause', () => {
+    const world = makeWorld();
+    const original = new Error('EIO: cannot read ledger events');
+    world.deps.readLedgerEvents = () => {
+      throw original;
+    };
+    let caught: unknown;
+    try {
+      makeLedger(world, []);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as CalibrationFatalError).cause).toBe(original);
+  });
+
+  it('converts a readJournalEntries replay failure to a fatal error preserving the cause', () => {
+    const world = makeWorld();
+    const original = new Error('EIO: cannot read journal entries');
+    world.deps.readJournalEntries = () => {
+      throw original;
+    };
+    let caught: unknown;
+    try {
+      makeLedger(world, []);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as CalibrationFatalError).cause).toBe(original);
+  });
+});
+
+describe('calibration allowed-key list is bounded by the planned image-call ceiling', () => {
+  it('rejects an allowed-key list that exceeds the planned image-call ceiling', () => {
+    const world = makeWorld();
+    const identity = makeIdentity({ plannedImageCalls: 2 });
+    const allowed = [
+      makeKey({ caseId: DEV_CASE_A, sampleIndex: 1 }),
+      makeKey({ caseId: DEV_CASE_B, sampleIndex: 1 }),
+      makeKey({ caseId: DEV_CASE_A, profile: 'LOW', sampleIndex: 1 }),
+    ];
+    expect(() => createCalibrationLedger(world.deps, identity, allowed)).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it('accepts an allowed-key list exactly at the planned image-call ceiling', () => {
+    const world = makeWorld();
+    const identity = makeIdentity({ plannedImageCalls: 2 });
+    const allowed = [
+      makeKey({ caseId: DEV_CASE_A, sampleIndex: 1 }),
+      makeKey({ caseId: DEV_CASE_B, sampleIndex: 1 }),
+    ];
+    expect(() => createCalibrationLedger(world.deps, identity, allowed)).not.toThrow();
+  });
+});
+
+describe('calibration public result journaling requires a live reservation', () => {
+  it('rejects journaling a result for a key that was never reserved', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    ledger.acquireLock(makeOwner());
+    expect(() => ledger.appendResultJournal(makeJournal(key))).toThrow(
+      CalibrationFatalError,
+    );
+    expect(world.journals).toHaveLength(0);
+  });
+
+  it('rejects journaling a duplicate result for a still-reserved key', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    ledger.acquireLock(makeOwner());
+    ledger.reserve(key);
+    ledger.appendResultJournal(makeJournal(key));
+    expect(() => ledger.appendResultJournal(makeJournal(key))).toThrow(
+      CalibrationFatalError,
+    );
+    expect(world.journals).toHaveLength(1);
+  });
+
+  it('rejects journaling a result for an already-completed key', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledger = makeLedger(world, [key]);
+    ledger.acquireLock(makeOwner());
+    ledger.reserve(key);
+    ledger.complete(key, ledger.appendResultJournal(makeJournal(key)));
+    expect(() => ledger.appendResultJournal(makeJournal(key))).toThrow(
+      CalibrationFatalError,
+    );
+    expect(world.journals).toHaveLength(1);
+  });
+});
+
+describe('calibration stage gates fail closed on negative relative-error metrics', () => {
+  function devGateMetrics(overrides: Record<string, number> = {}): Record<string, number> {
+    return {
+      totalCases: 24,
+      runCases: 24,
+      parseCases: 24,
+      unsafeCompletionCount: 0,
+      catastrophicCount: 0,
+      medianRelativeCalorieError: 0.1,
+      meanZeroSafeMacroRelativeError: 0.1,
+      p90AnalysisLatencyMs: 1000,
+      ...overrides,
+    };
+  }
+
+  function validationGateMetrics(
+    overrides: Record<string, number> = {},
+  ): Record<string, number> {
+    return {
+      totalCases: 48,
+      runCases: 48,
+      parseCases: 48,
+      unsafeCompletionCount: 0,
+      catastrophicCount: 0,
+      medianRelativeCalorieError: 0.1,
+      p90RelativeCalorieError: 0.4,
+      meanZeroSafeMacroRelativeError: 0.2,
+      medianProteinRelativeError: 0.2,
+      medianCarbsRelativeError: 0.2,
+      medianFatRelativeError: 0.2,
+      medianMealMassRelativeError: 0.2,
+      parsedMealCount: 48,
+      mealMassEligibleCount: 48,
+      mealDensityCoverageCount: 48,
+      mealCarbDensityEligibleCount: 48,
+      mealFatDensityEligibleCount: 48,
+      p90AnalysisLatencyMs: 1000,
+      ...overrides,
+    };
+  }
+
+  function benchmarkGateMetrics(
+    overrides: Record<string, number> = {},
+  ): Record<string, number> {
+    return {
+      totalCases: 60,
+      runCases: 60,
+      totalOutcomes: 60,
+      parseCases: 60,
+      unsafeCompletionCount: 0,
+      failureCount: 0,
+      catastrophicCount: 0,
+      medianRelativeCalorieError: 0.1,
+      p90RelativeCalorieError: 0.4,
+      meanMacroRelativeError: 0.2,
+      meanMealMassRelativeError: 0.2,
+      meanMealCarbDensityRelativeError: 0.4,
+      meanMealFatDensityRelativeError: 0.2,
+      medianMealProteinRelativeError: 0.2,
+      medianMealCarbsRelativeError: 0.2,
+      medianMealFatRelativeError: 0.2,
+      mealOutcomeCount: 36,
+      suppliedBarcodeOutcomeCount: 12,
+      labelOutcomeCount: 12,
+      parsedMealCount: 36,
+      mealMassEligibleCount: 36,
+      mealDensityCoverageCount: 36,
+      mealCarbDensityEligibleCount: 33,
+      mealFatDensityEligibleCount: 36,
+      visionCallCount: 48,
+      suppliedBarcodeImageCallCount: 0,
+      suppliedBarcodeVisionCallCount: 0,
+      suppliedBarcodeLiveOffCallCount: 0,
+      ...overrides,
+    };
+  }
+
+  it('development gate fails closed on a negative relative-error metric', () => {
+    expect(
+      evaluateCalibrationStageGate(
+        'development',
+        devGateMetrics({ medianRelativeCalorieError: -0.1 }),
+      ).passed,
+    ).toBe(false);
+  });
+
+  it('validation gate fails closed on a negative relative-error metric', () => {
+    expect(
+      evaluateCalibrationStageGate(
+        'validation',
+        validationGateMetrics({ p90RelativeCalorieError: -0.1 }),
+      ).passed,
+    ).toBe(false);
+  });
+
+  it('benchmark gate fails closed on a negative relative-error metric', () => {
+    expect(
+      evaluateCalibrationStageGate(
+        'benchmark',
+        benchmarkGateMetrics({ meanMealCarbDensityRelativeError: -0.1 }),
+      ).passed,
+    ).toBe(false);
+  });
+});
+
+describe('calibration profile selection fails closed on invalid optional metrics', () => {
+  interface ProfileMetrics {
+    unsafeCount: number;
+    parseCount: number;
+    catastrophicCount: number;
+    meanZeroSafeMacroError?: number;
+    medianKcalError?: number;
+    p90AnalysisLatencyMs?: number;
+  }
+
+  function profileMetrics(overrides: Partial<ProfileMetrics> = {}): ProfileMetrics {
+    return {
+      unsafeCount: 0,
+      parseCount: 24,
+      catastrophicCount: 0,
+      meanZeroSafeMacroError: 0.1,
+      medianKcalError: 0.1,
+      p90AnalysisLatencyMs: 1000,
+      ...overrides,
+    };
+  }
+
+  it('throws instead of silently selecting when meanZeroSafeMacroError is negative', () => {
+    expect(() =>
+      selectCalibrationProfile(
+        profileMetrics({ meanZeroSafeMacroError: -0.1 }),
+        profileMetrics(),
+      ),
+    ).toThrow(CalibrationFatalError);
+  });
+
+  it('throws instead of silently selecting when medianKcalError is NaN', () => {
+    expect(() =>
+      selectCalibrationProfile(profileMetrics(), profileMetrics({ medianKcalError: NaN })),
+    ).toThrow(CalibrationFatalError);
+  });
+
+  it('throws instead of silently selecting when p90AnalysisLatencyMs is negative infinity', () => {
+    expect(() =>
+      selectCalibrationProfile(
+        profileMetrics({ p90AnalysisLatencyMs: -Infinity }),
+        profileMetrics(),
+      ),
+    ).toThrow(CalibrationFatalError);
+  });
+});
+
+/**
+ * Task 6 Step 5 correction slice (gap 5): reject invalid replay transitions
+ * and an unplanned replayed reservation.
+ *
+ * Host review of the prior correction found that a `completed` event could
+ * still be replayed for a key already marked `failed`, and a `failed` event
+ * could still be replayed for a key already marked `completed`; both are
+ * illegal state transitions that must fail closed, not silently overwrite
+ * the prior terminal status. It also found that a replayed `reserved` event
+ * could reintroduce a key outside the injected `allowedKeys` set, bypassing
+ * the same unplanned-key check the live `reserve()` path already enforces.
+ * All effects are injected fakes; no real fs, /proc, provider, Firebase, or
+ * network access occurs here.
+ */
+describe('calibration ledger replay rejects invalid transitions and unplanned keys', () => {
+  it('rejects a completed event replayed for a key already marked failed', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledgerA = makeLedger(world, [key]);
+    ledgerA.acquireLock(makeOwner());
+    ledgerA.reserve(key);
+    ledgerA.recoverAfterCrash();
+    // Corruption/replay-order bug: a "completed" event lands for a key that
+    // is already durably marked interrupted/failed.
+    world.deps.appendLedgerEvent({
+      type: 'completed',
+      key,
+      journalHash: 'forged-after-failure',
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [key])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a failed event replayed for a key already marked completed', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    const ledgerA = makeLedger(world, [key]);
+    ledgerA.acquireLock(makeOwner());
+    ledgerA.reserve(key);
+    ledgerA.complete(key, ledgerA.appendResultJournal(makeJournal(key)));
+    // Corruption/replay-order bug: a "failed" event lands for a key that is
+    // already durably marked completed.
+    world.deps.appendLedgerEvent({
+      type: 'failed',
+      key,
+      status: 'interrupted_reservation',
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [key])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a replayed reserved event for a key outside the injected allowed set', () => {
+    const world = makeWorld();
+    const unplannedKey = makeKey({ caseId: DEV_CASE_B });
+    world.deps.appendLedgerEvent({
+      type: 'reserved',
+      key: unplannedKey,
+      at: world.deps.nowIso(),
+    });
+    expect(() =>
+      makeLedger(world, [makeKey({ caseId: DEV_CASE_A })]),
+    ).toThrow(CalibrationFatalError);
+  });
+});
+
+/**
+ * Task 6 Step 5 correction slice (gap 5 continued): replayed key-shape
+ * validation must check actual field validity, not merely `typeof`. A
+ * replayed key with an unrecognized stage/profile, an empty caseId, or a
+ * sampleIndex outside its stage's protocol range must be rejected on
+ * `reserved`, `completed`, and `failed` events and on persisted journal
+ * entries, matching the validity the live `reserve()` path already enforces
+ * via `isValidReservationKeyShape`.
+ */
+describe('calibration ledger replay rejects structurally invalid key fields, not just wrong types', () => {
+  it('rejects a replayed reserved event with an unrecognized stage', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({
+      type: 'reserved',
+      key: { stage: 'bogus-stage', profile: 'MEDIUM', caseId: DEV_CASE_A, sampleIndex: 1 },
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a replayed reserved event with an unrecognized profile', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({
+      type: 'reserved',
+      key: { stage: 'development', profile: 'HIGH', caseId: DEV_CASE_A, sampleIndex: 1 },
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a replayed reserved event with an empty caseId', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({
+      type: 'reserved',
+      key: { stage: 'development', profile: 'MEDIUM', caseId: '', sampleIndex: 1 },
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a replayed reserved event with a sampleIndex outside the stage range', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({
+      type: 'reserved',
+      key: { stage: 'development', profile: 'MEDIUM', caseId: DEV_CASE_A, sampleIndex: 9999 },
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a replayed completed event whose key has an unrecognized profile', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({ type: 'reserved', key: makeKey(), at: world.deps.nowIso() });
+    world.deps.appendLedgerEvent({
+      type: 'completed',
+      key: { stage: 'development', profile: 'HIGH', caseId: DEV_CASE_A, sampleIndex: 1 },
+      journalHash: 'hash-1',
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [makeKey()])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a replayed failed event whose key has an empty caseId', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({ type: 'reserved', key: makeKey(), at: world.deps.nowIso() });
+    world.deps.appendLedgerEvent({
+      type: 'failed',
+      key: { stage: 'development', profile: 'MEDIUM', caseId: '', sampleIndex: 1 },
+      status: 'interrupted_reservation',
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [makeKey()])).toThrow(CalibrationFatalError);
+  });
+
+  it('rejects a persisted journal entry whose key has an out-of-range sampleIndex', () => {
+    const world = makeWorld();
+    world.deps.appendJournal({
+      ...makeJournal(makeKey()),
+      key: { stage: 'development', profile: 'MEDIUM', caseId: DEV_CASE_A, sampleIndex: 9999 },
+    } as JournalEntry);
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+});
+
+/**
+ * Task 6 Step 5 correction slice (gap 5 continued): the ledger constructor
+ * must reject a caller-supplied `allowedKeys` list containing the same
+ * canonical `(stage, profile, caseId, sampleIndex)` key twice, rather than
+ * silently deduplicating it into a smaller allowed set than the caller
+ * believes was configured.
+ */
+describe('calibration ledger constructor rejects duplicate allowed keys', () => {
+  it('throws when the same canonical key appears twice in allowedKeys', () => {
+    const world = makeWorld();
+    const key = makeKey();
+    expect(() => createCalibrationLedger(world.deps, makeIdentity(), [key, { ...key }])).toThrow(
+      CalibrationFatalError,
+    );
+  });
+});
+
+/**
+ * Task 6 Step 5 correction slice (gap 5 continued): a non-array
+ * `readLedgerEvents`/`readJournalEntries` result must become a typed
+ * `CalibrationFatalError` at construction, not a raw non-fatal iteration
+ * error that a runner/adapter catch layer could mistake for a scoreable
+ * outcome.
+ */
+describe('calibration ledger replay requires array-shaped persisted reads', () => {
+  it('converts a non-array readLedgerEvents result to a fatal error', () => {
+    const world = makeWorld();
+    world.deps.readLedgerEvents = () => ({ not: 'an array' }) as unknown as readonly unknown[];
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
+  it('converts a non-array readJournalEntries result to a fatal error', () => {
+    const world = makeWorld();
+    world.deps.readJournalEntries = () =>
+      ({ not: 'an array' }) as unknown as readonly JournalEntry[];
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
   });
 });
