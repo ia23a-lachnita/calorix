@@ -4,6 +4,7 @@ import type {
   NutritionPrediction,
 } from '../../src/nutrition-eval/schema';
 import { DatasetError } from '../../src/nutrition-eval/assets';
+import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
 import { scoreNutritionCase } from '../../src/nutrition-eval/scorer';
 import { runNutritionEval, buildCacheKey } from '../../src/nutrition-eval/runner';
 import { parseNutritionResponse } from '../../src/nutrition';
@@ -1315,5 +1316,51 @@ describe('runner generic full identity gate', () => {
       expect(loadImage).not.toHaveBeenCalled();
       expect(analyzeCase).not.toHaveBeenCalled();
     }
+  });
+});
+
+// ── Task 6 RED: CalibrationFatalError propagation ───────────────────────────
+// RED-only: `src/nutrition-eval/fatal-error.ts` is absent, so collection fails
+// until GREEN implements the planned typed fatal. These tests prove the runner
+// rethrows the exact fatal instance instead of scoring it as a provider or
+// dataset failure, and stops the stage with no later calls.
+
+describe('runner CalibrationFatalError propagation (Task 6 RED)', () => {
+  it('rethrows the exact fatal from analyzeCase on the first sample without later calls', async () => {
+    const fatal = new CalibrationFatalError('reservation:rejected');
+    const loadFn = vi.fn(async () => new Uint8Array([0x89]));
+    const analyzeFn = vi.fn(async (): Promise<unknown> => {
+      throw fatal;
+    });
+    const deps = makeDeps({ loadImage: loadFn, analyzeCase: analyzeFn });
+
+    await expect(
+      runNutritionEval(
+        [mealCase, labelCase],
+        deps,
+        { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 2 },
+      ),
+    ).rejects.toBe(fatal);
+    expect(analyzeFn).toHaveBeenCalledTimes(1);
+    expect(loadFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows the exact fatal from loadImage without later analysis', async () => {
+    const fatal = new CalibrationFatalError('ledger:identity-drift');
+    const loadFn = vi.fn(async (): Promise<Uint8Array> => {
+      throw fatal;
+    });
+    const analyzeFn = vi.fn(async () => okMealPrediction);
+    const deps = makeDeps({ loadImage: loadFn, analyzeCase: analyzeFn });
+
+    await expect(
+      runNutritionEval(
+        [mealCase, labelCase],
+        deps,
+        { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 2 },
+      ),
+    ).rejects.toBe(fatal);
+    expect(loadFn).toHaveBeenCalledTimes(1);
+    expect(analyzeFn).not.toHaveBeenCalled();
   });
 });

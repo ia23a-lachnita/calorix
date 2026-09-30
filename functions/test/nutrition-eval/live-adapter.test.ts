@@ -5,6 +5,7 @@ import type { OffProduct } from '../../src/off-client';
 import { normalizeOffPackage } from '../../src/package-nutrition';
 import { normalizeVisionNutrition } from '../../src/nutrition';
 import { createLiveNutritionEvalAdapter } from '../../src/nutrition-eval/live-adapter';
+import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
 import {
   NutritionPredictionSchema,
   parseNutritionEvalManifest,
@@ -1221,5 +1222,62 @@ describe('calibration barcode isolation', () => {
     });
     expect(generateVision).not.toHaveBeenCalled();
     expect(fetchOffProductFn).not.toHaveBeenCalled();
+  });
+});
+
+// ── Task 6 RED: CalibrationFatalError propagation ───────────────────────────
+// RED-only: `src/nutrition-eval/fatal-error.ts` is absent, so collection fails
+// until GREEN implements the planned typed fatal. These tests prove the live
+// adapter rethrows the exact fatal instance instead of transforming it into a
+// scored provider/product failure.
+
+describe('live adapter CalibrationFatalError propagation (Task 6 RED)', () => {
+  it('rethrows the exact fatal from generateVision without scoring a provider failure', async () => {
+    const fatal = new CalibrationFatalError('reservation:rejected');
+    const generateVision = vi.fn(async (): Promise<string> => {
+      throw fatal;
+    });
+    const genAIAdapter: GenAIAdapter = {
+      generateChat: vi.fn(async () => ''),
+      generateVision,
+    };
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-test-model',
+      genAIAdapter,
+      fetchOffProductFn: async () => null,
+    });
+
+    await expect(
+      adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 }),
+    ).rejects.toBe(fatal);
+    expect(generateVision).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows the exact fatal from live OFF lookup for a supplied barcode without scoring provider/product failure', async () => {
+    const fatal = new CalibrationFatalError('ledger:reservation-rejected');
+    const fetchOffProductFn = vi.fn(async (_barcode: string): Promise<OffProduct | null> => {
+      throw fatal;
+    });
+    const generateVision = vi.fn(async () => modelText());
+    const genAIAdapter: GenAIAdapter = {
+      generateChat: vi.fn(async () => ''),
+      generateVision,
+    };
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-test-model',
+      genAIAdapter,
+      fetchOffProductFn,
+    });
+
+    await expect(
+      adapter.analyzeCase(caseWithSuppliedBarcode(rawBarcode), imageBytes, { sampleIndex: 1 }),
+    ).rejects.toBe(fatal);
+    expect(fetchOffProductFn).toHaveBeenCalledTimes(1);
+    expect(fetchOffProductFn).toHaveBeenCalledWith(rawBarcode);
+    expect(generateVision).not.toHaveBeenCalled();
   });
 });
