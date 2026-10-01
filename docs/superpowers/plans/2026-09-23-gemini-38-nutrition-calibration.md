@@ -233,7 +233,7 @@ Every reservation key is exactly `(stage, profile, caseId, sampleIndex)`, except
 - [x] **Step 4: Run RED.** Run `cd functions && npx vitest run test/nutrition-eval/calibration.test.ts test/nutrition-eval/runner.test.ts test/nutrition-eval/live-adapter.test.ts`.
 - [x] **Step 5: Implement pure gates, fatal propagation, and atomic ledger writes.** Use write-to-sibling, file fsync/close, rename, then parent-directory fsync. Reserve before provider dispatch; completed/failed updates never decrement reserved count. Store privacy-safe categories only.
 - [x] **Step 6: Run GREEN, build, and lint.** Include fault-injection tests for interrupted writes, malformed ledgers, mid-stage fatal errors, and recovery of reserved-but-unfinished keys.
-- [ ] **Step 7: Obtain review, track, commit, and push.** This is production-safety-significant even though production defaults are unchanged. Commit `Add fail-closed calibration stages` only after the required external reviewer reports `AGREEMENT_STATUS: agree` and `MUST_FIX: none`.
+- [x] **Step 7: Obtain review, track, commit, and push.** This is production-safety-significant even though production defaults are unchanged. Commit the bounded Task 6 checkpoints only after the required external reviewer reports `AGREEMENT_STATUS: agree` and `MUST_FIX: none` for the final adapter slice; the final checkpoint is `9d1df5b` (`Add atomic calibration file store`), pushed to `origin/fix/scan-photo-flow-viewer`.
 
 ## Task 7: Add the dedicated calibration CLI and preflight boundary
 
