@@ -18,7 +18,18 @@ import {
 } from '../prompts';
 import { fetchOffProduct, type OffProduct } from '../off-client';
 
+import type {
+  CalibrationProfile,
+  ReservationKey,
+  StageName,
+} from './calibration';
 import type { NutritionEvalCase, NutritionPrediction } from './schema';
+
+export interface CalibrationReservationOptions {
+  stage: StageName;
+  profile: CalibrationProfile;
+  onBeforeVisionRequest: (key: ReservationKey) => Promise<void>;
+}
 
 export interface LiveNutritionEvalAdapter {
   analyzeCase(
@@ -42,6 +53,72 @@ export interface CreateLiveNutritionEvalAdapterOptions {
   labelPrompt?: string;
   barcodePrompt?: string;
   offSnapshotMap?: ReadonlyMap<string, OffProduct>;
+  calibrationReservation?: CalibrationReservationOptions;
+}
+
+const RESERVATION_STAGES: readonly StageName[] = [
+  'preflight',
+  'development',
+  'validation',
+  'benchmark',
+];
+
+const SAFE_CALIBRATION_MESSAGE = /^calibration:[a-z0-9-]+$/;
+
+function reservationFatal(reason: string): CalibrationFatalError {
+  return new CalibrationFatalError(`calibration:reservation-invalid-${reason}`);
+}
+
+function reservationFailedFatal(): CalibrationFatalError {
+  return new CalibrationFatalError('calibration:reservation-failed');
+}
+
+/**
+ * Never rethrows the hook's own error instance. A rejection that is already a
+ * safe, causeless calibration fatal keeps only its validated message and is
+ * rebuilt as a fresh `CalibrationFatalError`, because the original instance can
+ * still carry a secret-bearing custom property or stack. Anything else — a raw
+ * provider/secret-bearing error, a fatal carrying a cause, or a fatal with an
+ * unrecognized message — is replaced by a static message, so no raw secret can
+ * reach a log or the runner. Either way the thrown error is a new instance with
+ * no `cause` and no properties beyond `name` and `message`.
+ */
+function sanitizedReservationFatal(error: unknown): CalibrationFatalError {
+  if (
+    error instanceof CalibrationFatalError
+    && error.cause === undefined
+    && SAFE_CALIBRATION_MESSAGE.test(error.message)
+  ) {
+    return new CalibrationFatalError(error.message);
+  }
+  return reservationFailedFatal();
+}
+
+function validateCalibrationReservation(
+  reservation: unknown,
+): CalibrationReservationOptions | undefined {
+  if (reservation === undefined) return undefined;
+  if (typeof reservation !== 'object' || reservation === null || Array.isArray(reservation)) {
+    throw reservationFatal('shape');
+  }
+  const record = reservation as Record<string, unknown>;
+  if (
+    typeof record.stage !== 'string'
+    || !RESERVATION_STAGES.includes(record.stage as StageName)
+  ) {
+    throw reservationFatal('stage');
+  }
+  if (record.profile !== 'LOW' && record.profile !== 'MEDIUM') {
+    throw reservationFatal('profile');
+  }
+  if (typeof record.onBeforeVisionRequest !== 'function') {
+    throw reservationFatal('callback');
+  }
+  return {
+    stage: record.stage as StageName,
+    profile: record.profile as CalibrationProfile,
+    onBeforeVisionRequest: record.onBeforeVisionRequest as (key: ReservationKey) => Promise<void>,
+  };
 }
 
 function required(value: string, name: string): string {
@@ -222,6 +299,7 @@ export function createLiveNutritionEvalAdapter(
   if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) {
     throw new Error('confidenceThreshold must be between 0 and 1');
   }
+  const calibrationReservation = validateCalibrationReservation(options.calibrationReservation);
   const genAIAdapter = options.genAIAdapter ?? createGenAIAdapter({ project, location });
   const visionGenerationOptions = options.visionGenerationOptions;
   const lookup = options.fetchOffProductFn ?? fetchOffProduct;
@@ -293,6 +371,24 @@ export function createLiveNutritionEvalAdapter(
 
       if (bytes === undefined) {
         return failure(evalCase, 'schema', 'model_response_invalid', 'no_image_bytes');
+      }
+
+      if (calibrationReservation !== undefined) {
+        const sampleIndex: unknown = _options?.sampleIndex;
+        if (typeof sampleIndex !== 'number' || !Number.isInteger(sampleIndex) || sampleIndex < 1) {
+          throw reservationFatal('sample-index');
+        }
+        const reservationKey: ReservationKey = {
+          stage: calibrationReservation.stage,
+          profile: calibrationReservation.profile,
+          caseId: evalCase.id,
+          sampleIndex,
+        };
+        try {
+          await calibrationReservation.onBeforeVisionRequest(reservationKey);
+        } catch (error) {
+          throw sanitizedReservationFatal(error);
+        }
       }
 
       let response: string;

@@ -7,6 +7,7 @@ import { normalizeVisionNutrition } from '../../src/nutrition';
 import { createLiveNutritionEvalAdapter } from '../../src/nutrition-eval/live-adapter';
 import { runNutritionEval } from '../../src/nutrition-eval/runner';
 import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
+import type { ReservationKey } from '../../src/nutrition-eval/calibration';
 import {
   NutritionPredictionSchema,
   parseNutritionEvalManifest,
@@ -1318,5 +1319,302 @@ describe('live adapter CalibrationFatalError propagation (Task 6 RED)', () => {
     expect(generateVision).toHaveBeenCalledTimes(2);
     expect(loadFn).toHaveBeenCalledTimes(1);
     expect(loadFn).toHaveBeenCalledWith(mealCase);
+  });
+});
+
+// ── Task 7 Step 4b: calibration pre-vision reservation hook ───────────────────
+// `calibrationReservation` is an optional adapter option, supplied through the
+// existing cast pattern because the option is deliberately runtime-validated
+// rather than trusted from the type alone. The hook is a per-vision-call gate:
+// it must receive the exact `{ stage, profile, caseId, sampleIndex }` key, be
+// awaited before `generateVision`, run exactly once per vision request, and
+// never run on any route that issues no vision request. A rejected hook is
+// fail-closed: no vision dispatch, and only a sanitized `CalibrationFatalError`
+// carrying no raw cause or raw message, through the adapter and through the
+// runner. The sanitized fatal is always a fresh instance — never the hook's own
+// error object — so a tainted custom property or stack cannot escape. An invalid
+// sample index is rejected before the hook runs, with a static fatal.
+
+describe('calibration reservation hook (Task 7 Step 4b)', () => {
+  const RAW_HOOK_SECRET = 'Bearer secret-token at /private/calibration-ledger.ts:42';
+
+  type MalformedReservation = [string, Record<string, unknown>];
+
+  function makeReservationAdapter(
+    calibrationReservation: unknown,
+    extra: {
+      responseText?: string;
+      fetchOffProductFn?: (barcode: string) => Promise<OffProduct | null>;
+      offSnapshotMap?: Map<string, OffProduct>;
+      onVision?: () => void;
+    } = {},
+  ) {
+    const generateVision = vi.fn(async () => {
+      extra.onVision?.();
+      return extra.responseText ?? modelText('meal');
+    });
+    const genAIAdapter: GenAIAdapter = {
+      generateChat: vi.fn(async () => ''),
+      generateVision,
+    };
+    const adapter = createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-3.8-flash',
+      genAIAdapter,
+      fetchOffProductFn: extra.fetchOffProductFn ?? (async () => null),
+      ...(extra.offSnapshotMap === undefined ? {} : { offSnapshotMap: extra.offSnapshotMap }),
+      calibrationReservation,
+    } as unknown as Parameters<typeof createLiveNutritionEvalAdapter>[0]);
+    return { adapter, generateVision };
+  }
+
+  function expectSanitizedReservationFatal(error: unknown): void {
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    const fatal = error as CalibrationFatalError;
+    expect(fatal.message).toMatch(/^calibration:[a-z0-9-]+$/);
+    const causeText = fatal.cause === undefined
+      ? ''
+      : String((fatal.cause as { message?: unknown }).message ?? fatal.cause);
+    const evidence = `${fatal.name}\n${fatal.message}\n${causeText}\n${fatal.stack ?? ''}`;
+    for (const forbidden of [RAW_HOOK_SECRET, 'Bearer', 'secret-token', 'ledger.ts:42']) {
+      expect(evidence).not.toContain(forbidden);
+    }
+  }
+
+  it('awaits the exact reservation key immediately before each vision request', async () => {
+    const keys: ReservationKey[] = [];
+    const order: string[] = [];
+    const { adapter, generateVision } = makeReservationAdapter({
+      stage: 'development',
+      profile: 'LOW',
+      onBeforeVisionRequest: async (key: ReservationKey) => {
+        order.push('hook');
+        keys.push(key);
+      },
+    }, { onVision: () => order.push('vision') });
+
+    await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
+    await adapter.analyzeCase(labelCase, imageBytes, { sampleIndex: 2 });
+
+    expect(keys).toEqual([
+      { stage: 'development', profile: 'LOW', caseId: 'meal-route', sampleIndex: 1 },
+      { stage: 'development', profile: 'LOW', caseId: 'label-route', sampleIndex: 2 },
+    ]);
+    expect(order).toEqual(['hook', 'vision', 'hook', 'vision']);
+    expect(generateVision).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the generic four-argument vision call when only the reservation hook is supplied', async () => {
+    const keys: ReservationKey[] = [];
+    const { adapter, generateVision } = makeReservationAdapter({
+      stage: 'development',
+      profile: 'LOW',
+      onBeforeVisionRequest: async (key: ReservationKey) => {
+        keys.push(key);
+      },
+    });
+
+    await adapter.analyzeCase(mealCase, imageBytes, { sampleIndex: 1 });
+
+    expect(generateVision).toHaveBeenCalledTimes(1);
+    expect(generateVision).toHaveBeenCalledWith(
+      'gemini-3.8-flash', MEAL_ANALYSIS_PROMPT, 'AP8B', 'meal',
+    );
+    expect(generateVision.mock.calls[0]).toHaveLength(4);
+    expect(keys).toEqual([
+      { stage: 'development', profile: 'LOW', caseId: 'meal-route', sampleIndex: 1 },
+    ]);
+  });
+
+  it('reserves nothing and issues no vision request when the case has no image bytes', async () => {
+    const onBeforeVisionRequest = vi.fn(async (_key: ReservationKey) => {});
+    const { adapter, generateVision } = makeReservationAdapter({
+      stage: 'development',
+      profile: 'LOW',
+      onBeforeVisionRequest,
+    });
+
+    const prediction = await adapter.analyzeCase(
+      mealCase,
+      undefined as unknown as Uint8Array,
+      { sampleIndex: 1 },
+    );
+
+    expect(prediction).toEqual({
+      parseStatus: 'failure',
+      source: 'meal',
+      decision: 'error',
+      failureCategory: 'schema',
+      failureCode: 'model_response_invalid',
+      failureDetail: 'no_image_bytes',
+    });
+    expect(onBeforeVisionRequest).not.toHaveBeenCalled();
+    expect(generateVision).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['with image bytes', imageBytes],
+    ['without image bytes', undefined as unknown as Uint8Array],
+  ] as Array<[string, Uint8Array]>)(
+    'reserves nothing and calls neither vision nor live OFF for a snapshot-isolated supplied barcode %s',
+    async (_label, bytes) => {
+      const onBeforeVisionRequest = vi.fn(async (_key: ReservationKey) => {});
+      const fetchOffProductFn = vi.fn(async (_barcode: string): Promise<OffProduct | null> => {
+        throw new Error('live OFF must not run for a snapshot-isolated supplied barcode');
+      });
+      const { adapter, generateVision } = makeReservationAdapter(
+        {
+          stage: 'development',
+          profile: 'LOW',
+          onBeforeVisionRequest,
+        },
+        {
+          fetchOffProductFn,
+          offSnapshotMap: new Map([[rawBarcode, knownOffProduct]]),
+        },
+      );
+
+      const prediction = await adapter.analyzeCase(
+        caseWithSuppliedBarcode(rawBarcode),
+        bytes,
+        { sampleIndex: 1 },
+      );
+
+      expect(prediction).toMatchObject({
+        parseStatus: 'success',
+        source: 'barcode',
+        barcode: rawBarcode,
+      });
+      expect(onBeforeVisionRequest).not.toHaveBeenCalled();
+      expect(generateVision).not.toHaveBeenCalled();
+      expect(fetchOffProductFn).not.toHaveBeenCalled();
+    },
+  );
+
+  it('blocks vision and propagates only a sanitized fatal when the hook rejects', async () => {
+    const { adapter, generateVision } = makeReservationAdapter({
+      stage: 'development',
+      profile: 'LOW',
+      onBeforeVisionRequest: async () => {
+        throw new Error(RAW_HOOK_SECRET);
+      },
+    });
+
+    const error = await adapter
+      .analyzeCase(mealCase, imageBytes, { sampleIndex: 1 })
+      .then(() => undefined, (rejection: unknown) => rejection);
+
+    expectSanitizedReservationFatal(error);
+    expect(generateVision).not.toHaveBeenCalled();
+  });
+
+  it('rebuilds a safe fatal instead of rethrowing a tainted hook fatal instance', async () => {
+    const tainted = new CalibrationFatalError('calibration:rate-limit-exceeded');
+    Object.assign(tainted, {
+      secretToken: 'sk-live-tnt-9f2c',
+      stack: `CalibrationFatalError: calibration:rate-limit-exceeded\n    at reserveLedger (${RAW_HOOK_SECRET})`,
+    });
+    const { adapter, generateVision } = makeReservationAdapter({
+      stage: 'development',
+      profile: 'LOW',
+      onBeforeVisionRequest: async () => {
+        throw tainted;
+      },
+    });
+
+    const error = await adapter
+      .analyzeCase(mealCase, imageBytes, { sampleIndex: 1 })
+      .then(() => undefined, (rejection: unknown) => rejection);
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    const fatal = error as CalibrationFatalError;
+    expect(fatal).not.toBe(tainted);
+    expect(fatal.message).toBe('calibration:rate-limit-exceeded');
+    expect(fatal).not.toHaveProperty('secretToken');
+    expect(fatal.cause).toBeUndefined();
+    expect(fatal.stack).not.toContain(RAW_HOOK_SECRET);
+    expect(fatal.stack).not.toContain('secret-live-tnt');
+    const stringified = [fatal.message, fatal.stack ?? '', String(fatal), JSON.stringify(fatal)].join('\n');
+    for (const forbidden of [RAW_HOOK_SECRET, 'Bearer', 'secret-token', 'ledger.ts:42', 'sk-live-tnt']) {
+      expect(stringified).not.toContain(forbidden);
+    }
+    expectSanitizedReservationFatal(error);
+    expect(generateVision).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['zero', 0],
+    ['negative', -1],
+    ['fractional', 1.5],
+    ['undefined', undefined],
+  ] as Array<[string, number | undefined]>)(
+    'rejects a %s sample index with a static sanitized fatal and no reservation or vision call',
+    async (_label, sampleIndex) => {
+      const onBeforeVisionRequest = vi.fn(async (_key: ReservationKey) => {});
+      const { adapter, generateVision } = makeReservationAdapter({
+        stage: 'development',
+        profile: 'LOW',
+        onBeforeVisionRequest,
+      });
+
+      const error = await adapter
+        .analyzeCase(mealCase, imageBytes, { sampleIndex } as { sampleIndex: number })
+        .then(() => undefined, (rejection: unknown) => rejection);
+
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+      expect((error as CalibrationFatalError).message)
+        .toBe('calibration:reservation-invalid-sample-index');
+      expectSanitizedReservationFatal(error);
+      expect(onBeforeVisionRequest).not.toHaveBeenCalled();
+      expect(generateVision).not.toHaveBeenCalled();
+    },
+  );
+
+  it('propagates the sanitized reservation fatal through the runner with no vision request', async () => {
+    const { adapter, generateVision } = makeReservationAdapter({
+      stage: 'development',
+      profile: 'LOW',
+      onBeforeVisionRequest: async () => {
+        throw new Error(RAW_HOOK_SECRET);
+      },
+    });
+    const loadFn = vi.fn(async () => new Uint8Array(imageBytes));
+
+    const error = await runNutritionEval(
+      [mealCase, labelCase],
+      {
+        loadImage: loadFn,
+        analyzeCase: (evalCase, bytes, options) =>
+          adapter.analyzeCase(evalCase, bytes, options),
+        nowMs: () => 1000,
+      },
+      { datasetId: 'd', adapterModelId: 'm', promptHash: 'p', codeSha: 'c', samples: 3 },
+    ).then(() => undefined, (rejection: unknown) => rejection);
+
+    expectSanitizedReservationFatal(error);
+    expect(generateVision).not.toHaveBeenCalled();
+    expect(loadFn).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['a missing callback', { stage: 'development', profile: 'LOW' }],
+    ['a non-function callback', {
+      stage: 'development',
+      profile: 'LOW',
+      onBeforeVisionRequest: 'reserve',
+    }],
+  ] as MalformedReservation[])('rejects %s at construction', (_label, calibrationReservation) => {
+    expect(() => createLiveNutritionEvalAdapter({
+      project: 'test-project',
+      location: 'europe-west1',
+      model: 'gemini-3.8-flash',
+      genAIAdapter: {
+        generateChat: vi.fn(async () => ''),
+        generateVision: vi.fn(async () => modelText('meal')),
+      },
+      fetchOffProductFn: async () => null,
+      calibrationReservation,
+    } as unknown as Parameters<typeof createLiveNutritionEvalAdapter>[0])).toThrow();
   });
 });
