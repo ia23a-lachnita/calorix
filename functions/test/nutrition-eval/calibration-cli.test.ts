@@ -89,6 +89,7 @@ import {
 } from '../../src/prompts';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { inspect } from 'node:util';
 
 const EXACT_PROJECT = 'calorix-xurschnell';
 const EXACT_LOCATION = 'us';
@@ -860,6 +861,81 @@ function validStep2Prediction(): Record<string, number> {
   return { kcal: 320, proteinG: 20, carbsG: 30, fatG: 10 };
 }
 
+// ── Task7 preflight verifier privacy correction ─────────────────────────────
+// Planted-sentinel regression: a malformed or schema-invalid committed asset
+// must never let its own bytes escape through the exported fatal. `JSON.parse`
+// embeds the offending snippet in its `SyntaxError` message, and a Zod error can
+// echo received values, so an attached raw exception is a content-leak channel
+// via `error.cause`, `error.stack`, serialization, or error inspection. The
+// exported `CalibrationFatalError` carries only its identity-naming message.
+
+const PREFLIGHT_LEAK_SENTINEL = 'SECRET-X';
+
+const MALFORMED_SENTINEL_BYTES = `{"datasetId":${PREFLIGHT_LEAK_SENTINEL}}`;
+
+/**
+ * Recursively collects every string reachable from an error's own properties,
+ * including the non-enumerable `cause`/`stack` slots, so an attached raw
+ * exception cannot hide behind a slot that `JSON.stringify` would skip.
+ */
+function collectOwnPropertyStrings(
+  value: unknown,
+  depth = 0,
+  seen: Set<unknown> = new Set<unknown>(),
+): string[] {
+  if (value === null || value === undefined || depth > 8) return [];
+  if (typeof value === 'string') return [value];
+  if (typeof value !== 'object') return [String(value)];
+  if (seen.has(value)) return [];
+  seen.add(value);
+  const collected: string[] = [];
+  for (const key of Object.getOwnPropertyNames(value)) {
+    let child: unknown;
+    try {
+      child = (value as Record<string, unknown>)[key];
+    } catch {
+      continue;
+    }
+    collected.push(key, ...collectOwnPropertyStrings(child, depth + 1, seen));
+  }
+  return collected;
+}
+
+function stringifyForLeakScan(value: unknown): string {
+  try {
+    return JSON.stringify(value) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function inspectForLeakScan(value: unknown): string {
+  try {
+    return inspect(value, { depth: null, showHidden: true, getters: true });
+  } catch {
+    return '';
+  }
+}
+
+function expectSafeFatalWithoutSentinel(error: unknown, sentinel: string): void {
+  expect(error).toBeInstanceOf(CalibrationFatalError);
+  const fatal = error as CalibrationFatalError;
+  expect(fatal.cause).toBeUndefined();
+  expect(Object.getOwnPropertyNames(fatal)).not.toContain('cause');
+  const surfaces = [
+    fatal.name,
+    fatal.message,
+    String(fatal),
+    fatal.stack ?? '',
+    stringifyForLeakScan(fatal),
+    inspectForLeakScan(fatal),
+    ...collectOwnPropertyStrings(fatal),
+  ];
+  for (const surface of surfaces) {
+    expect(surface).not.toContain(sentinel);
+  }
+}
+
 describe('calibration preflight pinned identities (Task7 Step2 RED)', () => {
   it('pins the preflight dataset id to calorix-public-v1', () => {
     expect(CALIBRATION_PREFLIGHT_DATASET_ID).toBe(STEP2_DATASET_ID);
@@ -1019,6 +1095,77 @@ describe('verifyCalibrationPreflightState (Task7 Step2 RED)', () => {
     expect(error).toBeInstanceOf(CalibrationFatalError);
     expect(reserveCall).not.toHaveBeenCalled();
     expect(createClient).not.toHaveBeenCalled();
+  });
+});
+
+describe('calibration preflight fatal error privacy (Task7 preflight correction)', () => {
+  it('rejects malformed public-manifest bytes with a safe message and no attached cause', async () => {
+    const files = makeStep2Files({ 'public-manifest': MALFORMED_SENTINEL_BYTES });
+    const reserveCall = vi.fn(async (_key: unknown) => undefined);
+    const createClient = vi.fn((_options: unknown) => ({ __mockClient: true }));
+
+    const error = await verifyCalibrationPreflightState({
+      files,
+      expected: expectedForStep2Files(makeStep2Files()),
+      reserveCall,
+      createClient,
+    }).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect((error as CalibrationFatalError).message).toBe(
+      'calibration:preflight-json-invalid:public-manifest',
+    );
+    expectSafeFatalWithoutSentinel(error, PREFLIGHT_LEAK_SENTINEL);
+    expect(reserveCall).not.toHaveBeenCalled();
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it('rejects schema-invalid public-manifest bytes with no attached validation cause', async () => {
+    const files = makeStep2Files({
+      'public-manifest': JSON.stringify({ datasetId: PREFLIGHT_LEAK_SENTINEL }),
+    });
+    const reserveCall = vi.fn(async (_key: unknown) => undefined);
+    const createClient = vi.fn((_options: unknown) => ({ __mockClient: true }));
+
+    const error = await verifyCalibrationPreflightState({
+      files,
+      expected: expectedForStep2Files(makeStep2Files()),
+      reserveCall,
+      createClient,
+    }).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect((error as CalibrationFatalError).message).toBe(
+      'calibration:preflight-manifest-invalid',
+    );
+    expectSafeFatalWithoutSentinel(error, PREFLIGHT_LEAK_SENTINEL);
+    expect(reserveCall).not.toHaveBeenCalled();
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it('rejects a JSON null public manifest with a safe message and no attached cause', async () => {
+    const files = makeStep2Files({ 'public-manifest': 'null' });
+    const reserveCall = vi.fn(async (_key: unknown) => undefined);
+
+    const error = await verifyCalibrationPreflightState({
+      files,
+      expected: expectedForStep2Files(makeStep2Files()),
+      reserveCall,
+    }).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect((error as CalibrationFatalError).message).toBe('calibration:preflight-manifest-invalid');
+    expectSafeFatalWithoutSentinel(error, PREFLIGHT_LEAK_SENTINEL);
+    expect(reserveCall).not.toHaveBeenCalled();
   });
 });
 

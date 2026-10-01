@@ -11,20 +11,37 @@
  * source of truth shared with the live adapter; the live opt-in flag
  * `CALIBRATION_LIVE_ENV_FLAG` is owned here.
  *
- * This slice is dependency-injected only. `verifyPreflightState`,
- * `executeStage`, `readLedgerSelectedProfile`, and `readLedgerModel` have no
- * built-in implementation, so an omitted hook fails closed before client
- * construction instead of dispatching. Committed-asset preflight verification
- * and the real preflight/stage execution are separate bounded slices.
+ * `verifyCalibrationPreflightState` is the committed-asset identity boundary:
+ * it validates the pinned dataset id, the semantic public-manifest and prompt
+ * hashes, the canonical three-source response-schema identity, and the raw
+ * committed lock/manifest/reference digests, then derives the deterministic
+ * first development case and records the declared historical incompatibilities.
+ * It reserves nothing and constructs no client, and any parse, identity, or
+ * tamper failure throws `CalibrationFatalError` before the caller can reach
+ * `reserveCall`/`createClient`. Every exported fatal carries only its
+ * identity-naming message and never attaches the offending parser or Zod
+ * exception, so malformed committed bytes cannot leak through the error.
+ *
+ * Stage execution (`executeCalibrationPreflight`) and the built-in
+ * `verifyPreflightState`, `executeStage`, `readLedgerSelectedProfile`, and
+ * `readLedgerModel` hooks remain unimplemented, so an omitted hook still fails
+ * closed before client construction instead of dispatching. `runCalibrationCli`
+ * stays fail-closed and dependency-injected only.
  */
+import { createHash } from 'crypto';
+
 import {
   CALIBRATION_API_VERSION,
   CALIBRATION_BASE_URL,
   CALIBRATION_MODEL,
+  CALIBRATION_SAFE_ERROR_CATEGORIES,
   CALIBRATION_TIMEOUT_MS,
   CALIBRATION_VERTEX_LOCATION,
   CALIBRATION_VERTEX_PROJECT,
 } from '../genai-adapter';
+import { hashNutritionEvalManifest, hashNutritionEvalPrompts } from './cli';
+import { CalibrationFatalError } from './fatal-error';
+import { StrictCalibrationManifestSchema } from './schema';
 
 export {
   CALIBRATION_API_VERSION,
@@ -34,6 +51,8 @@ export {
   CALIBRATION_VERTEX_LOCATION,
   CALIBRATION_VERTEX_PROJECT,
 } from '../genai-adapter';
+
+export type { CalibrationSafeErrorCategory } from '../genai-adapter';
 
 export const CALIBRATION_LIVE_ENV_FLAG = 'RUN_NUTRITION_CALIBRATION_LIVE';
 
@@ -227,6 +246,346 @@ function calibrationClientOptions(): CalibrationClientOptions {
       baseUrl: CALIBRATION_BASE_URL,
       timeout: CALIBRATION_TIMEOUT_MS,
     },
+  };
+}
+
+// ── Pinned committed-asset identities ───────────────────────────────────────
+//
+// Two distinct identity kinds are pinned here and never mixed:
+//
+// * Semantic identities. The public manifest and the prompt triple are hashed
+//   through the same canonical helpers the evaluator reports use
+//   (`hashNutritionEvalManifest` / `hashNutritionEvalPrompts`), so a byte-level
+//   reformat that preserves meaning is not a false alarm, and the values match
+//   the `datasetHash`/`promptHash` recorded in committed reports.
+// * Raw committed-byte digests. The calibration source lock, the strict
+//   calibration manifest, the OFF snapshot lock, and the historical reference
+//   are compared as raw bytes, because each one is a committed artifact whose
+//   exact serialization is part of its identity.
+
+/** Dataset identity every calibration stage runs against. */
+export const CALIBRATION_PREFLIGHT_DATASET_ID = 'calorix-public-v1';
+
+/** Canonical semantic hash of the committed 20-case public manifest. */
+export const CALIBRATION_PUBLIC_MANIFEST_HASH =
+  '2dc17d06752c2981862690953a7b134235bb6a20da4dc9b5fef5528f91f5bb56';
+
+/** Canonical semantic hash of the committed meal/label/barcode prompt triple. */
+export const CALIBRATION_PROMPT_HASH =
+  '205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263';
+
+/**
+ * Canonical parse/stringify hash of the shipped three-source response schema
+ * (`visionResponseJsonSchema` for meal, label, and barcode). Key order is the
+ * source-defined order, so a real run must supply exactly that serialization.
+ */
+export const CALIBRATION_RESPONSE_SCHEMA_HASH =
+  '1237ece38177ff83fcbb97fb0630718ca8943b0f17833721f19d4510876e94b0';
+
+/** Raw committed-byte digest of `functions/eval/nutrition/calibration-source-lock.json`. */
+export const CALIBRATION_SOURCE_LOCK_SHA256 =
+  'f1138680a38aa64eb400bc20c89ec656d771e8f3823ae09bed956a48eff2a43b';
+
+/** Raw committed-byte digest of `functions/eval/nutrition/calibration-manifest.json`. */
+export const CALIBRATION_MANIFEST_SHA256 =
+  '313c37c14cb912d5dc6410dbb3b812139c22d7533d2341678de3ac860b0c1d6d';
+
+/** Raw committed-byte digest of `functions/eval/nutrition/off-snapshot-lock.json`. */
+export const CALIBRATION_OFF_SNAPSHOT_LOCK_SHA256 =
+  '2b9d7b9baecb22ec20662f52010810fdb4f2fde3dd7c464d73b0cb56855003a1';
+
+/** Raw committed-byte digest of `functions/eval/nutrition/historical-reference-v1.json`. */
+export const CALIBRATION_HISTORICAL_REFERENCE_SHA256 =
+  'fd712bee2d4229bc8476d1cc25fce1a21172e6013c6abfe8949498cc5ce15acb';
+
+/**
+ * Privacy-safe provider categories stored in the ledger/report safe-error
+ * field. Re-exported from the single adapter authority so the classifier and
+ * the recorded taxonomy can never drift apart.
+ */
+export const CALIBRATION_PREFLIGHT_SAFE_ERROR_CATEGORIES = CALIBRATION_SAFE_ERROR_CATEGORIES;
+
+export const CALIBRATION_PREFLIGHT_FILE_NAMES = [
+  'public-manifest',
+  'prompt',
+  'response-schema',
+  'source-lock',
+  'calibration-manifest',
+  'off-lock',
+  'historical-reference',
+] as const;
+
+export type CalibrationPreflightFileName = (typeof CALIBRATION_PREFLIGHT_FILE_NAMES)[number];
+
+export interface CalibrationPreflightExpectedIdentities {
+  datasetId: string;
+  publicManifestHash: string;
+  promptHash: string;
+  responseSchemaHash: string;
+  sourceLockHash: string;
+  calibrationManifestHash: string;
+  offLockHash: string;
+  historicalReferenceHash: string;
+}
+
+/**
+ * The exact committed identities the CLI gates on. Frozen so no caller can
+ * widen the default gate; a test-only override is passed explicitly instead.
+ */
+export const CALIBRATION_PREFLIGHT_EXPECTED_IDENTITIES: Readonly<CalibrationPreflightExpectedIdentities> =
+  Object.freeze({
+    datasetId: CALIBRATION_PREFLIGHT_DATASET_ID,
+    publicManifestHash: CALIBRATION_PUBLIC_MANIFEST_HASH,
+    promptHash: CALIBRATION_PROMPT_HASH,
+    responseSchemaHash: CALIBRATION_RESPONSE_SCHEMA_HASH,
+    sourceLockHash: CALIBRATION_SOURCE_LOCK_SHA256,
+    calibrationManifestHash: CALIBRATION_MANIFEST_SHA256,
+    offLockHash: CALIBRATION_OFF_SNAPSHOT_LOCK_SHA256,
+    historicalReferenceHash: CALIBRATION_HISTORICAL_REFERENCE_SHA256,
+  });
+
+export const CALIBRATION_PREFLIGHT_COMPATIBILITY_NOTE_KEYS = [
+  'historicalCodeSha',
+  'generationProfile',
+  'mediaTypeLabel',
+  'offRoute',
+  'sliceGCaveat',
+] as const;
+
+export type CalibrationCompatibilityNoteKey =
+  (typeof CALIBRATION_PREFLIGHT_COMPATIBILITY_NOTE_KEYS)[number];
+
+export interface CalibrationCompatibilityNote {
+  readonly key: CalibrationCompatibilityNoteKey;
+  readonly detail: string;
+}
+
+/**
+ * The historical aggregate is comparable only as evidence, never as a
+ * like-for-like baseline. Each note is fixed static text: it names the pinned
+ * commit identity of the difference and never embeds prompts, responses, asset
+ * bytes, endpoint hostnames, or any other raw provider or asset content.
+ */
+export const CALIBRATION_PREFLIGHT_COMPATIBILITY_NOTES: ReadonlyArray<CalibrationCompatibilityNote> =
+  Object.freeze([
+    Object.freeze({
+      key: 'historicalCodeSha' as const,
+      detail:
+        'The frozen historical aggregate was produced by implementation tree '
+        + 'bb414d1850fb9f91cc419b4a270138354abf5535. Calibration runs from a later tree, so no '
+        + 'code-level equivalence with the historical run is claimed.',
+    }),
+    Object.freeze({
+      key: 'generationProfile' as const,
+      detail:
+        'The historical aggregate records a single unspecified generation profile with no '
+        + 'LOW/MEDIUM split, while calibration enumerates an explicit LOW profile and an explicit '
+        + 'MEDIUM profile. Per-profile results are therefore not a like-for-like replacement.',
+    }),
+    Object.freeze({
+      key: 'mediaTypeLabel' as const,
+      detail:
+        'The historical run labeled its imagery with a JPEG media type while the committed public '
+        + 'manifest and calibration corpus declare PNG bytes. Calibration passes the real '
+        + 'calibration media type, so media-type labels differ between the aggregate and this run.',
+    }),
+    Object.freeze({
+      key: 'offRoute' as const,
+      detail:
+        'The historical run resolved catalog nutrients over the live Open Food Facts route, while '
+        + 'calibration replays the committed OFF snapshot lock through the production parser. '
+        + 'Barcode and label nutrient provenance is not comparable.',
+    }),
+    Object.freeze({
+      key: 'sliceGCaveat' as const,
+      detail:
+        'The historical aggregate predates the catalog reliability fix at commit '
+        + 'd9492b60d06296b54f51d951b0d5fb4ae8c89ed8: one transient supplied-barcode catalog miss '
+        + 'fell through to a catastrophic vision estimate, so the aggregate is valid historical '
+        + 'evidence but not a like-for-like barcode-routing implementation baseline.',
+    }),
+  ]);
+
+export interface CalibrationPreflightReport {
+  datasetId: typeof CALIBRATION_PREFLIGHT_DATASET_ID;
+  publicManifestHash: string;
+  promptHash: string;
+  firstDevelopmentCaseId: string;
+  compatibilityNotes: ReadonlyArray<CalibrationCompatibilityNote>;
+  historicalCompatible: false;
+}
+
+export interface CalibrationPreflightDeps {
+  /** Raw committed bytes keyed by pinned file name; every key must be present. */
+  files: Record<CalibrationPreflightFileName, string>;
+  /**
+   * Identity overrides exist only so hermetic tests can verify bytes that have
+   * no committed counterpart. The default CLI never passes this and is always
+   * gated by `CALIBRATION_PREFLIGHT_EXPECTED_IDENTITIES`.
+   */
+  expected?: CalibrationPreflightExpectedIdentities;
+  /** Accepted for the shared hook bundle; verification itself never reserves. */
+  reserveCall?: (key: unknown) => Promise<void> | void;
+  /** Accepted for the shared hook bundle; verification constructs no client. */
+  createClient?: (options: CalibrationClientOptions) => unknown;
+}
+
+/**
+ * Builds the only fatal this slice is allowed to export. The raw parser or Zod
+ * exception is deliberately dropped instead of being attached as `cause`:
+ * `JSON.parse` embeds the offending bytes in its `SyntaxError` message, and a
+ * Zod error can echo received values, so an attached cause would let malformed
+ * committed-asset content escape through `error.cause`, `error.stack`, or any
+ * error inspection into a log, report, or ledger entry. The helper takes no
+ * cause parameter at all, so no future call site can reintroduce the channel;
+ * the safe identity-naming `message` is the entire exported error.
+ */
+function preflightFatal(message: string): CalibrationFatalError {
+  return new CalibrationFatalError(message);
+}
+
+function guardPreflight<T>(message: string, read: () => T): T {
+  try {
+    return read();
+  } catch (error) {
+    // A nested fatal already carries a safe identity-naming message; only a
+    // raw foreign exception is replaced by the message named for this step.
+    if (error instanceof CalibrationFatalError) throw error;
+    throw preflightFatal(message);
+  }
+}
+
+/**
+ * Fatal messages name the identity only, never the compared values, so a
+ * mismatch can never leak prompt text, manifest content, or asset bytes into a
+ * log, report, or ledger entry.
+ */
+function assertPreflightIdentity(identity: string, actual: string, expected: string): void {
+  if (actual !== expected) {
+    throw new CalibrationFatalError(`calibration:preflight-identity-mismatch:${identity}`);
+  }
+}
+
+function sha256Hex(bytes: string): string {
+  return createHash('sha256').update(bytes, 'utf8').digest('hex');
+}
+
+function parsePreflightJson(name: CalibrationPreflightFileName, bytes: string): unknown {
+  return guardPreflight(
+    `calibration:preflight-json-invalid:${name}`,
+    () => JSON.parse(bytes) as unknown,
+  );
+}
+
+function readPreflightFile(
+  files: Record<CalibrationPreflightFileName, string>,
+  name: CalibrationPreflightFileName,
+): string {
+  const bytes = files?.[name];
+  if (typeof bytes !== 'string') {
+    throw new CalibrationFatalError(`calibration:preflight-file-missing:${name}`);
+  }
+  return bytes;
+}
+
+function promptHashFromBytes(bytes: string): string {
+  const triple = parsePreflightJson('prompt', bytes);
+  if (!Array.isArray(triple) || triple.length !== 3
+    || triple.some((part) => typeof part !== 'string')) {
+    throw new CalibrationFatalError('calibration:preflight-prompt-invalid');
+  }
+  const [mealPrompt, labelPrompt, barcodePrompt] = triple as [string, string, string];
+  return hashNutritionEvalPrompts(mealPrompt, labelPrompt, barcodePrompt);
+}
+
+/** Canonical parse-then-stringify identity, so formatting-only edits cannot drift it. */
+function responseSchemaHashFromBytes(bytes: string): string {
+  return sha256Hex(JSON.stringify(parsePreflightJson('response-schema', bytes)) as string);
+}
+
+/**
+ * The deterministic preflight case is the first development case in committed
+ * slot order. The strict schema already pins `slotIndex` to array position and
+ * `group` to the development slot range, so this can only resolve to slot 0.
+ */
+function firstDevelopmentCaseIdFromManifest(bytes: string): string {
+  const manifest = guardPreflight(
+    'calibration:preflight-manifest-invalid',
+    () => StrictCalibrationManifestSchema.parse(parsePreflightJson('calibration-manifest', bytes)),
+  );
+  const first = manifest.cases.find((calibrationCase) => calibrationCase.group === 'development');
+  if (first === undefined) {
+    throw new CalibrationFatalError('calibration:preflight-manifest-development-missing');
+  }
+  return first.id;
+}
+
+/**
+ * Verifies every pinned committed identity before a caller may reserve a call
+ * or construct a client. Fails closed with `CalibrationFatalError` on any
+ * missing file, unparsable asset, schema violation, or identity mismatch; it
+ * never calls `reserveCall` or `createClient`, so a tampered or foreign asset
+ * cannot reach the provider boundary.
+ */
+export async function verifyCalibrationPreflightState(
+  deps: CalibrationPreflightDeps,
+): Promise<CalibrationPreflightReport> {
+  const expected = deps?.expected ?? CALIBRATION_PREFLIGHT_EXPECTED_IDENTITIES;
+  const files = deps?.files ?? ({} as Record<CalibrationPreflightFileName, string>);
+
+  const publicManifest = parsePreflightJson(
+    'public-manifest',
+    readPreflightFile(files, 'public-manifest'),
+  );
+  const publicManifestHash = guardPreflight(
+    'calibration:preflight-manifest-invalid',
+    () => hashNutritionEvalManifest(publicManifest),
+  );
+  const datasetId = (publicManifest as { datasetId?: unknown }).datasetId;
+  if (typeof datasetId !== 'string') {
+    throw new CalibrationFatalError('calibration:preflight-dataset-id-missing');
+  }
+  assertPreflightIdentity('dataset-id', datasetId, expected.datasetId);
+  assertPreflightIdentity('public-manifest', publicManifestHash, expected.publicManifestHash);
+
+  const promptHash = promptHashFromBytes(readPreflightFile(files, 'prompt'));
+  assertPreflightIdentity('prompt', promptHash, expected.promptHash);
+
+  const responseSchemaHash = responseSchemaHashFromBytes(
+    readPreflightFile(files, 'response-schema'),
+  );
+  assertPreflightIdentity('response-schema', responseSchemaHash, expected.responseSchemaHash);
+
+  assertPreflightIdentity(
+    'source-lock',
+    sha256Hex(readPreflightFile(files, 'source-lock')),
+    expected.sourceLockHash,
+  );
+  assertPreflightIdentity(
+    'off-lock',
+    sha256Hex(readPreflightFile(files, 'off-lock')),
+    expected.offLockHash,
+  );
+  assertPreflightIdentity(
+    'historical-reference',
+    sha256Hex(readPreflightFile(files, 'historical-reference')),
+    expected.historicalReferenceHash,
+  );
+
+  const calibrationManifestBytes = readPreflightFile(files, 'calibration-manifest');
+  assertPreflightIdentity(
+    'calibration-manifest',
+    sha256Hex(calibrationManifestBytes),
+    expected.calibrationManifestHash,
+  );
+
+  return {
+    datasetId: CALIBRATION_PREFLIGHT_DATASET_ID,
+    publicManifestHash,
+    promptHash,
+    firstDevelopmentCaseId: firstDevelopmentCaseIdFromManifest(calibrationManifestBytes),
+    compatibilityNotes: CALIBRATION_PREFLIGHT_COMPATIBILITY_NOTES,
+    historicalCompatible: false,
   };
 }
 
