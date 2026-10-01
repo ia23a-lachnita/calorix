@@ -711,8 +711,10 @@ function imageSafeEntry(
 
 /**
  * Records the safe category and never the failure itself. A recorder that
- * throws or rejects must not mask the fatal this stage is about to raise, so
- * its own error is dropped here rather than rethrown or attached.
+ * throws or rejects means the safe category never reached durable storage,
+ * so this throws its own `CalibrationFatalError` (no `cause`, to avoid
+ * leaking the recorder's error) instead of letting the stage's original
+ * fatal mask the lost evidence.
  */
 async function recordSafeFailure(
   recordSafeError: (entry: CalibrationPreflightSafeErrorEntry) => Promise<void> | void,
@@ -721,7 +723,7 @@ async function recordSafeFailure(
   try {
     await recordSafeError(entry);
   } catch {
-    // Swallowed on purpose: the safe category is the only durable evidence.
+    throw new CalibrationFatalError('calibration:preflight-safe-error-persist-failed');
   }
 }
 

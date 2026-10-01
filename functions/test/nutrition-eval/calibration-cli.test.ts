@@ -1357,6 +1357,68 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
     expect(serialized).not.toContain(rawMarker);
     expect(serialized).not.toContain('secret-endpoint.example');
   });
+
+  it('propagates a fatal error when recordSafeError rejects asynchronously during token-count failure', async () => {
+    const deps = makeStageDeps();
+    const sentinel = 'SECRET-RECORDER-EIO-PATH';
+    const tokenMarker = 'SECRET-TOKEN-MARKER-429';
+    deps.countTokens.mockRejectedValueOnce(
+      Object.assign(new Error(`quota exceeded ${tokenMarker}`), {
+        status: 429,
+        url: 'https://secret-endpoint.example/token',
+      }),
+    );
+    deps.recordSafeError.mockRejectedValueOnce(new Error(`recorder failure ${sentinel}`));
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expectSafeFatalWithoutSentinel(error, sentinel);
+    expectSafeFatalWithoutSentinel(error, tokenMarker);
+    const fatal = error as CalibrationFatalError;
+    expect(fatal.message).toBe('calibration:preflight-safe-error-persist-failed');
+    expect(deps.generateImage).not.toHaveBeenCalled();
+    expect(deps.reserveCall).toHaveBeenCalledTimes(1);
+    expect(deps.countTokens).toHaveBeenCalledTimes(1);
+    expect(deps.recordSafeError).toHaveBeenCalledTimes(1);
+  });
+
+  it('propagates a fatal error when recordSafeError throws synchronously during LOW image failure', async () => {
+    const deps = makeStageDeps();
+    const sentinel = 'SECRET-RECORDER-EIO-PATH';
+    const imageMarker = 'SECRET-IMAGE-MARKER-500';
+    deps.generateImage.mockRejectedValueOnce(
+      Object.assign(new Error(`backend failure ${imageMarker}`), {
+        status: 500,
+        url: 'https://secret-endpoint.example/vision',
+      }),
+    );
+    deps.recordSafeError.mockImplementationOnce(() => {
+      throw new Error(`recorder failure ${sentinel}`);
+    });
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expectSafeFatalWithoutSentinel(error, sentinel);
+    expectSafeFatalWithoutSentinel(error, imageMarker);
+    const fatal = error as CalibrationFatalError;
+    expect(fatal.message).toBe('calibration:preflight-safe-error-persist-failed');
+    expect(deps.generateImage).toHaveBeenCalledTimes(1);
+    expect(deps.reserveCall).toHaveBeenCalledTimes(2);
+    expect(deps.countTokens).toHaveBeenCalledTimes(1);
+    expect(deps.recordSafeError).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('calibration preflight safe-error taxonomy (Task7 Step2 RED)', () => {
