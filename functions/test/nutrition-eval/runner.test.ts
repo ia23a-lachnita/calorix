@@ -1389,3 +1389,204 @@ describe('runner CalibrationFatalError propagation (Task 6 RED)', () => {
     expect((analyzeFn.mock.calls[1] as unknown[])[0]).toBe(mealCase);
   });
 });
+
+// ── Task 7 Step 4a: nested calibration.analysisOnlyLatency ────────────────────
+// `RunNutritionEvalCalibrationOptions.analysisOnlyLatency` restarts the
+// per-sample timer after image loading, immediately before `analyzeCase`.
+//
+// Planned contract (docs/superpowers/plans/2026-09-23-gemini-38-nutrition-calibration.md,
+// Task 7 Step 4): calibration uses an explicit `analysisOnlyLatency` runner
+// option whose timer starts after image loading, immediately before
+// `analyzeCase`. A 500 ms image load must therefore never appear in a 100 ms
+// analysis-only measurement, while generic runs without the flag keep reporting
+// the full legacy latency and keep restarting the window for every sample.
+
+const SLOW_IMAGE_LOAD_MS = 500;
+const ANALYZE_MS = 100;
+const LEGACY_LATENCY_MS = SLOW_IMAGE_LOAD_MS + ANALYZE_MS;
+
+type LatencyOptionsExtra = Record<string, unknown>;
+
+function latencyOptions(extra: LatencyOptionsExtra = {}) {
+  return {
+    datasetId: 'd',
+    adapterModelId: 'm',
+    promptHash: 'p',
+    codeSha: 'c',
+    samples: 1,
+    ...extra,
+  } as unknown as Parameters<typeof runNutritionEval>[2];
+}
+
+// Virtual clock: loadImage costs SLOW_IMAGE_LOAD_MS, analyzeCase costs
+// ANALYZE_MS, and nowMs only ever reads that clock. No wall-clock time, no
+// provider, no Firebase, no image bytes from disk.
+function virtualLatencyDeps(analyze?: () => unknown) {
+  let clock = 10_000;
+  const loadImage = vi.fn(async () => {
+    clock += SLOW_IMAGE_LOAD_MS;
+    return new Uint8Array([0x89]);
+  });
+  const analyzeCase = vi.fn(async () => {
+    clock += ANALYZE_MS;
+    return analyze === undefined ? okMealPrediction : analyze();
+  });
+  const nowMs = vi.fn(() => clock);
+  return { deps: makeDeps({ loadImage, analyzeCase, nowMs }), loadImage, analyzeCase, nowMs };
+}
+
+describe('runner legacy latency window includes image loading (Task 7 Step 4a)', () => {
+  it('generic default run reports load plus analysis for the slow image case', async () => {
+    const { deps, loadImage, analyzeCase } = virtualLatencyDeps();
+
+    const results = await runNutritionEval([mealCase], deps, latencyOptions());
+
+    expect(loadImage).toHaveBeenCalledTimes(1);
+    expect(analyzeCase).toHaveBeenCalledTimes(1);
+    expect(results[0]?.prediction.parseStatus).toBe('success');
+    expect(results[0]?.prediction.latencyMs).toBe(LEGACY_LATENCY_MS);
+  });
+
+  it('calibration without the flag keeps the legacy 600 ms window', async () => {
+    const { deps } = virtualLatencyDeps();
+
+    const results = await runNutritionEval(
+      [mealCase],
+      deps,
+      latencyOptions({ calibration: { mode: 'strict' } }),
+    );
+
+    expect(results[0]?.prediction.latencyMs).toBe(LEGACY_LATENCY_MS);
+  });
+
+  it('legacy window restarts per sample: the second sample excludes the loaded image', async () => {
+    const { deps, loadImage, analyzeCase } = virtualLatencyDeps();
+
+    const results = await runNutritionEval([mealCase], deps, latencyOptions({ samples: 2 }));
+
+    expect(loadImage).toHaveBeenCalledTimes(1);
+    expect(analyzeCase).toHaveBeenCalledTimes(2);
+    expect(results.map((r) => r.prediction.sampleIndex)).toEqual([1, 2]);
+    expect(results.map((r) => r.prediction.latencyMs)).toEqual([
+      LEGACY_LATENCY_MS,
+      ANALYZE_MS,
+    ]);
+  });
+
+  it('analysisOnlyLatency false keeps legacy latency', async () => {
+    const { deps } = virtualLatencyDeps();
+
+    const results = await runNutritionEval(
+      [mealCase],
+      deps,
+      latencyOptions({ calibration: { analysisOnlyLatency: false } }),
+    );
+
+    expect(results[0]?.prediction.latencyMs).toBe(LEGACY_LATENCY_MS);
+  });
+
+  it('top-level analysisOnlyLatency is ignored: the flag is calibration-nested only', async () => {
+    const { deps } = virtualLatencyDeps();
+
+    const results = await runNutritionEval(
+      [mealCase],
+      deps,
+      latencyOptions({ analysisOnlyLatency: true }),
+    );
+
+    expect(results[0]?.prediction.latencyMs).toBe(LEGACY_LATENCY_MS);
+  });
+});
+
+describe('runner calibration analysisOnlyLatency (Task 7 Step 4a)', () => {
+  it('excludes the 500 ms image load and reports only the 100 ms analysis', async () => {
+    const { deps, loadImage, analyzeCase } = virtualLatencyDeps();
+
+    const results = await runNutritionEval(
+      [mealCase],
+      deps,
+      latencyOptions({ calibration: { analysisOnlyLatency: true } }),
+    );
+
+    expect(loadImage).toHaveBeenCalledTimes(1);
+    expect(analyzeCase).toHaveBeenCalledTimes(1);
+    expect(results[0]?.prediction.parseStatus).toBe('success');
+    expect(results[0]?.prediction.cached).toBe(false);
+    expect(results[0]?.prediction.latencyMs).toBe(ANALYZE_MS);
+  });
+
+  it('combines with mode strict and restarts the analysis window for every sample', async () => {
+    const { deps, loadImage, analyzeCase } = virtualLatencyDeps();
+
+    const results = await runNutritionEval(
+      [mealCase],
+      deps,
+      latencyOptions({
+        samples: 2,
+        calibration: { mode: 'strict', analysisOnlyLatency: true },
+      }),
+    );
+
+    expect(loadImage).toHaveBeenCalledTimes(1);
+    expect(analyzeCase).toHaveBeenCalledTimes(2);
+    expect(results.map((r) => r.prediction.sampleIndex)).toEqual([1, 2]);
+    expect(results.map((r) => r.prediction.latencyMs)).toEqual([ANALYZE_MS, ANALYZE_MS]);
+  });
+
+  it('keeps the analysis-only window for a per-case restart across two cases', async () => {
+    const { deps, loadImage, analyzeCase } = virtualLatencyDeps();
+
+    const results = await runNutritionEval(
+      [mealCase, labelCase],
+      deps,
+      latencyOptions({ calibration: { analysisOnlyLatency: true } }),
+    );
+
+    expect(loadImage).toHaveBeenCalledTimes(2);
+    expect(analyzeCase).toHaveBeenCalledTimes(2);
+    expect(results.map((r) => r.caseId)).toEqual([
+      'meal-dish-1565035746',
+      'label-3017624010701',
+    ]);
+    expect(results.map((r) => r.prediction.latencyMs)).toEqual([ANALYZE_MS, ANALYZE_MS]);
+  });
+
+  it('still measures only the analysis window when the provider call fails', async () => {
+    const { deps } = virtualLatencyDeps(() => {
+      throw new Error('provider failure body');
+    });
+
+    const results = await runNutritionEval(
+      [mealCase],
+      deps,
+      latencyOptions({ calibration: { analysisOnlyLatency: true } }),
+    );
+
+    expect(results[0]?.prediction.parseStatus).toBe('failure');
+    expect(results[0]?.prediction.failureCategory).toBe('provider');
+    expect(results[0]?.prediction.failureCode).toBe('provider_request_failed');
+    expect(results[0]?.prediction.latencyMs).toBe(ANALYZE_MS);
+    expect(JSON.stringify(results)).not.toContain('provider failure body');
+  });
+
+  it('stays 100 ms for a supplied barcode whose image load is skipped', async () => {
+    const { deps, loadImage, analyzeCase } = virtualLatencyDeps();
+    const suppliedBarcodeCase: NutritionEvalCase = {
+      ...barcodeCase,
+      id: 'barcode-5449000000996-analysis-only',
+      suppliedBarcode: '5449000000996',
+    };
+
+    const results = await runNutritionEval(
+      [suppliedBarcodeCase],
+      deps,
+      latencyOptions({
+        calibration: { skipImageForSuppliedBarcode: true, analysisOnlyLatency: true },
+      }),
+    );
+
+    expect(loadImage).not.toHaveBeenCalled();
+    expect(analyzeCase).toHaveBeenCalledTimes(1);
+    expect(results[0]?.prediction.latencyMs).toBe(ANALYZE_MS);
+  });
+});

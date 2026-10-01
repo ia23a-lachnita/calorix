@@ -43,6 +43,7 @@ export interface NutritionEvalCacheIdentity {
 export interface RunNutritionEvalCalibrationOptions {
   mode?: 'strict';
   skipImageForSuppliedBarcode?: boolean;
+  analysisOnlyLatency?: boolean;
 }
 
 export interface RunNutritionEvalOptions {
@@ -197,6 +198,7 @@ export async function runNutritionEval(
   if (calibration !== undefined) validateCalibration(calibration);
   const cacheStore = calibration === undefined ? deps.cacheStore : undefined;
   const cacheIdentity = cacheStore === undefined ? undefined : requireCacheIdentity(options);
+  const analysisOnlyLatency = calibration?.analysisOnlyLatency === true;
 
   const results: NutritionCaseResult[] = [];
 
@@ -210,7 +212,7 @@ export async function runNutritionEval(
       && evalCase.suppliedBarcode !== undefined;
 
     for (let sampleIndex = 1; sampleIndex <= samples; sampleIndex++) {
-      const startedAt = deps.nowMs();
+      let startedAt = deps.nowMs();
       let prediction: NutritionPrediction | undefined;
       let cached = false;
 
@@ -275,6 +277,9 @@ export async function runNutritionEval(
         if (rememberedLoadFailure !== undefined) {
           prediction = failurePrediction(evalCase, rememberedLoadFailure);
         } else if (skipImage || imageBytes !== undefined) {
+          if (analysisOnlyLatency) {
+            startedAt = deps.nowMs();
+          }
           try {
             const rawPrediction = await deps.analyzeCase(evalCase, imageBytes, { sampleIndex });
             const parsed = NutritionPredictionSchema.safeParse(rawPrediction);
