@@ -22,11 +22,20 @@
  * identity-naming message and never attaches the offending parser or Zod
  * exception, so malformed committed bytes cannot leak through the error.
  *
- * Stage execution (`executeCalibrationPreflight`) and the built-in
- * `verifyPreflightState`, `executeStage`, `readLedgerSelectedProfile`, and
- * `readLedgerModel` hooks remain unimplemented, so an omitted hook still fails
- * closed before client construction instead of dispatching. `runCalibrationCli`
- * stays fail-closed and dependency-injected only.
+ * `executeCalibrationPreflight` is the hermetic Stage 0 primitive: it reserves
+ * exactly one separately typed token-count key and then the `LOW` and `MEDIUM`
+ * image keys of the first development case, driving every provider effect
+ * through injected `countTokens`/`generateImage`/`reserveCall`/`recordSafeError`
+ * hooks. It pins the first `LOW` model version, requires `MEDIUM` to match it
+ * exactly, treats any reservation, provider, parse, or version failure as
+ * `CalibrationFatalError` with zero retry and no `MEDIUM` call after a `LOW`
+ * failure, and records only a privacy-safe `classifyCalibrationError` category
+ * (`empty_response` for a malformed normalized result). The passed client is
+ * never dispatched through: the built-in `verifyPreflightState`, `executeStage`,
+ * `readLedgerSelectedProfile`, and `readLedgerModel` hooks and any live dispatch
+ * remain unimplemented, so an omitted hook still fails closed before client
+ * construction instead of dispatching. `runCalibrationCli` stays fail-closed and
+ * dependency-injected only.
  */
 import { createHash } from 'crypto';
 
@@ -38,7 +47,14 @@ import {
   CALIBRATION_TIMEOUT_MS,
   CALIBRATION_VERTEX_LOCATION,
   CALIBRATION_VERTEX_PROJECT,
+  classifyCalibrationError,
+  type CalibrationSafeErrorCategory,
 } from '../genai-adapter';
+import type {
+  CalibrationProfile,
+  ReservationKey,
+  TokenCountReservationKey,
+} from './calibration';
 import { hashNutritionEvalManifest, hashNutritionEvalPrompts } from './cli';
 import { CalibrationFatalError } from './fatal-error';
 import { StrictCalibrationManifestSchema } from './schema';
@@ -586,6 +602,280 @@ export async function verifyCalibrationPreflightState(
     firstDevelopmentCaseId: firstDevelopmentCaseIdFromManifest(calibrationManifestBytes),
     compatibilityNotes: CALIBRATION_PREFLIGHT_COMPATIBILITY_NOTES,
     historicalCompatible: false,
+  };
+}
+
+// ── Stage 0 hermetic primitive ───────────────────────────────────────────────
+
+const PREFLIGHT_STAGE = 'preflight' as const;
+
+/** Stage 0 reserves exactly sample 1, the only sample its stage range allows. */
+export const CALIBRATION_PREFLIGHT_SAMPLE_INDEX = 1;
+
+/**
+ * Nutrient fields every Stage 0 result must carry as finite nonnegative numbers,
+ * named exactly as the shipped `NutritionPredictionSchema` names them. Any
+ * additional structured field the live adapter returns (for example `confidence`)
+ * is ignored here, so this primitive validates only the identity it pins.
+ */
+const REQUIRED_PREDICTION_FIELDS = ['kcal', 'proteinG', 'carbsG', 'fatG'] as const;
+
+/** Ordered exactly as Stage 0 must call them: pin on `LOW`, then confirm `MEDIUM`. */
+const PREFLIGHT_PROFILES = ['LOW', 'MEDIUM'] as const satisfies readonly CalibrationProfile[];
+
+export interface CalibrationPreflightTokenCountRequest {
+  model: typeof CALIBRATION_MODEL;
+}
+
+export interface CalibrationPreflightImageRequest {
+  model: typeof CALIBRATION_MODEL;
+  profile: CalibrationProfile;
+  caseId: string;
+}
+
+/**
+ * The one safe record shape Stage 0 may write. It carries only committed-asset
+ * identity and a taxonomy member: never a provider message, `cause`, stack,
+ * endpoint URL, prompt text, response text, or resolved model version, so no
+ * provider content can reach a log, report, or ledger entry through it.
+ */
+export interface CalibrationPreflightSafeErrorEntry {
+  readonly stage: typeof PREFLIGHT_STAGE;
+  readonly kind: 'token_count' | 'image';
+  readonly caseId: string;
+  readonly profile?: CalibrationProfile;
+  readonly sampleIndex?: number;
+  readonly errorCategory: CalibrationSafeErrorCategory;
+}
+
+export interface CalibrationPreflightHooks {
+  reserveCall: (key: TokenCountReservationKey | ReservationKey) => Promise<void> | void;
+  countTokens: (request: CalibrationPreflightTokenCountRequest) => Promise<unknown>;
+  generateImage: (request: CalibrationPreflightImageRequest) => Promise<unknown>;
+  recordSafeError: (entry: CalibrationPreflightSafeErrorEntry) => Promise<void> | void;
+}
+
+export interface CalibrationPreflightStageDeps extends CalibrationPreflightHooks {
+  firstDevelopmentCaseId: string;
+}
+
+export interface CalibrationPreflightStageResult {
+  readonly stage: typeof PREFLIGHT_STAGE;
+  readonly caseId: string;
+  readonly model: typeof CALIBRATION_MODEL;
+  readonly tokenCount: number;
+  readonly pinnedModelVersion: string;
+  readonly verifiedProfiles: readonly CalibrationProfile[];
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isFiniteNonNegative(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+function isStructuredPrediction(value: unknown): boolean {
+  if (!isPlainRecord(value)) return false;
+  return REQUIRED_PREDICTION_FIELDS.every((field) => isFiniteNonNegative(value[field]));
+}
+
+/** A malformed or non-string version pins nothing and fails the stage. */
+function modelVersionFrom(result: Record<string, unknown>): string | undefined {
+  const raw = result.modelVersion;
+  return typeof raw === 'string' ? nonblank(raw) : undefined;
+}
+
+function tokenCountSafeEntry(
+  caseId: string,
+  errorCategory: CalibrationSafeErrorCategory,
+): CalibrationPreflightSafeErrorEntry {
+  return { stage: PREFLIGHT_STAGE, kind: 'token_count', caseId, errorCategory };
+}
+
+function imageSafeEntry(
+  caseId: string,
+  profile: CalibrationProfile,
+  errorCategory: CalibrationSafeErrorCategory,
+): CalibrationPreflightSafeErrorEntry {
+  return {
+    stage: PREFLIGHT_STAGE,
+    kind: 'image',
+    caseId,
+    profile,
+    sampleIndex: CALIBRATION_PREFLIGHT_SAMPLE_INDEX,
+    errorCategory,
+  };
+}
+
+/**
+ * Records the safe category and never the failure itself. A recorder that
+ * throws or rejects must not mask the fatal this stage is about to raise, so
+ * its own error is dropped here rather than rethrown or attached.
+ */
+async function recordSafeFailure(
+  recordSafeError: (entry: CalibrationPreflightSafeErrorEntry) => Promise<void> | void,
+  entry: CalibrationPreflightSafeErrorEntry,
+): Promise<void> {
+  try {
+    await recordSafeError(entry);
+  } catch {
+    // Swallowed on purpose: the safe category is the only durable evidence.
+  }
+}
+
+/**
+ * Reserves the Stage 0 token-count key, then dispatches exactly one token
+ * count. The key is the separately typed shipped shape, which never shares the
+ * image reservation space or the image budget counters.
+ */
+async function runPreflightTokenCount(
+  caseId: string,
+  hooks: CalibrationPreflightHooks,
+): Promise<number> {
+  const tokenKey: TokenCountReservationKey = {
+    kind: 'token_count',
+    stage: PREFLIGHT_STAGE,
+    caseId,
+    model: CALIBRATION_MODEL,
+  };
+
+  try {
+    await hooks.reserveCall(tokenKey);
+  } catch (error) {
+    await recordSafeFailure(
+      hooks.recordSafeError,
+      tokenCountSafeEntry(caseId, classifyCalibrationError(error)),
+    );
+    throw preflightFatal('calibration:preflight-token-reservation-failed');
+  }
+
+  let raw: unknown;
+  try {
+    raw = await hooks.countTokens({ model: CALIBRATION_MODEL });
+  } catch (error) {
+    await recordSafeFailure(
+      hooks.recordSafeError,
+      tokenCountSafeEntry(caseId, classifyCalibrationError(error)),
+    );
+    throw preflightFatal('calibration:preflight-token-call-failed');
+  }
+
+  const tokenCount = isPlainRecord(raw) && isFiniteNonNegative(raw.tokenCount)
+    ? raw.tokenCount
+    : undefined;
+  if (tokenCount === undefined) {
+    await recordSafeFailure(hooks.recordSafeError, tokenCountSafeEntry(caseId, 'empty_response'));
+    throw preflightFatal('calibration:preflight-token-result-invalid');
+  }
+  return tokenCount;
+}
+
+/**
+ * Reserves one image key, dispatches exactly one generation, and returns the
+ * validated pinned model version. `pinnedModelVersion` is undefined for the
+ * first profile, which pins the version, and the exact same string for every
+ * later profile, so a drift fails the stage instead of being accepted.
+ *
+ * A version drift deliberately records no safe category: the shipped taxonomy
+ * has no member for it, and recording `unknown` or `empty_response` would state
+ * a provider failure that did not happen. The fatal message names the drift.
+ */
+async function runPreflightImage(
+  caseId: string,
+  profile: CalibrationProfile,
+  hooks: CalibrationPreflightHooks,
+  pinnedModelVersion: string | undefined,
+): Promise<string> {
+  const key: ReservationKey = {
+    stage: PREFLIGHT_STAGE,
+    profile,
+    caseId,
+    sampleIndex: CALIBRATION_PREFLIGHT_SAMPLE_INDEX,
+  };
+
+  try {
+    await hooks.reserveCall(key);
+  } catch (error) {
+    await recordSafeFailure(
+      hooks.recordSafeError,
+      imageSafeEntry(caseId, profile, classifyCalibrationError(error)),
+    );
+    throw preflightFatal('calibration:preflight-image-reservation-failed');
+  }
+
+  let raw: unknown;
+  try {
+    raw = await hooks.generateImage({ model: CALIBRATION_MODEL, profile, caseId });
+  } catch (error) {
+    await recordSafeFailure(
+      hooks.recordSafeError,
+      imageSafeEntry(caseId, profile, classifyCalibrationError(error)),
+    );
+    throw preflightFatal('calibration:preflight-image-call-failed');
+  }
+
+  const safe = imageSafeEntry.bind(undefined, caseId, profile);
+  if (!isPlainRecord(raw) || !isStructuredPrediction(raw.prediction)) {
+    await recordSafeFailure(hooks.recordSafeError, safe('empty_response'));
+    throw preflightFatal('calibration:preflight-prediction-invalid');
+  }
+
+  const modelVersion = modelVersionFrom(raw);
+  if (modelVersion === undefined) {
+    await recordSafeFailure(hooks.recordSafeError, safe('empty_response'));
+    throw preflightFatal('calibration:preflight-model-version-invalid');
+  }
+  if (pinnedModelVersion !== undefined && modelVersion !== pinnedModelVersion) {
+    throw preflightFatal('calibration:preflight-model-version-mismatch');
+  }
+  return modelVersion;
+}
+
+/**
+ * Runs Stage 0 hermetically: one token count, then the `LOW` and `MEDIUM`
+ * images of `firstDevelopmentCaseId`, in exactly that order, each behind its own
+ * reservation. Nothing here retries. The first failure throws
+ * `CalibrationFatalError` immediately, so `MEDIUM` is never reserved, called, or
+ * compared after a `LOW` failure, and the pinned version never comes from a
+ * result that failed validation.
+ *
+ * `_client` is accepted to keep the call shape identical to a later live stage
+ * but is never dispatched through: this slice has no live provider path, and
+ * every provider, reservation, and ledger effect stays injected.
+ */
+export async function executeCalibrationPreflight(
+  _client: unknown,
+  deps: CalibrationPreflightStageDeps,
+): Promise<CalibrationPreflightStageResult> {
+  const hooks = deps ?? ({} as CalibrationPreflightStageDeps);
+  const caseId = nonblank(hooks.firstDevelopmentCaseId);
+  if (caseId === undefined
+    || typeof hooks.reserveCall !== 'function'
+    || typeof hooks.countTokens !== 'function'
+    || typeof hooks.generateImage !== 'function'
+    || typeof hooks.recordSafeError !== 'function') {
+    throw preflightFatal('calibration:preflight-stage-input-invalid');
+  }
+
+  const tokenCount = await runPreflightTokenCount(caseId, hooks);
+
+  const lowVersion = await runPreflightImage(caseId, PREFLIGHT_PROFILES[0], hooks, undefined);
+  const pinnedModelVersion = await runPreflightImage(
+    caseId,
+    PREFLIGHT_PROFILES[1],
+    hooks,
+    lowVersion,
+  );
+
+  return {
+    stage: PREFLIGHT_STAGE,
+    caseId,
+    model: CALIBRATION_MODEL,
+    tokenCount,
+    pinnedModelVersion,
+    verifiedProfiles: PREFLIGHT_PROFILES,
   };
 }
 
