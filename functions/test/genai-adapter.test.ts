@@ -808,3 +808,253 @@ describe('calibration Vertex client construction (Task7 RED)', () => {
     expect(() => factory({ CALORIX_NUTRITION_EVAL_MODEL: 'gemini-2.0-flash' })).toThrow();
   });
 });
+
+// ── Task7 Step2 RED: deterministic preflight provider primitives ────────────
+// Hermetic RED for plan Task7 Step2 at the adapter layer: exact 3.8-only token
+// counting (one separate Stage0 reservation, SDK `httpOptions.timeout: 30000`,
+// no retry options) and the closed 13-category safe-error taxonomy with no raw
+// message/URL/credential persistence. Every test below fails solely on the
+// missing Step2 exports; the 24 pre-existing tests above stay green. Injected
+// fake clients only: no `new GoogleGenAI`, no real `countTokens`/`generate`
+// dispatch, no fetch, no Firebase, no network.
+//
+// Pinned contract (to be added to `functions/src/genai-adapter.ts`):
+//
+// ```ts
+// export type CalibrationSafeErrorCategory =
+//   | 'http_400' | 'http_401' | 'http_403' | 'http_404' | 'http_408'
+//   | 'http_429' | 'http_other_4xx' | 'http_5xx' | 'timeout' | 'network'
+//   | 'empty_response' | 'interrupted_reservation' | 'unknown';
+// export const CALIBRATION_SAFE_ERROR_CATEGORIES:
+//   ReadonlyArray<CalibrationSafeErrorCategory>;
+// export function classifyCalibrationError(error: unknown):
+//   CalibrationSafeErrorCategory;
+// export function countCalibrationTokens(
+//   client: { models: { countTokens: (request: {
+//     model: 'gemini-3.8-flash';
+//     contents: Array<{ role: 'user'; parts: Array<{
+//       text?: string; inlineData?: { mimeType: string; data: string };
+//     }> }>;
+//     httpOptions: { timeout: number };
+//   }) => Promise<{ totalTokens?: unknown }> } },
+//   request: { model: 'gemini-3.8-flash'; prompt: string; imageBase64: string;
+//     imageMediaType: 'image/png' | 'image/jpeg'; timeoutMs: number },
+// ): Promise<{ tokenCount: number }>;
+// ```
+//
+// The classifier maps numeric transport `status` first, then well-known Node
+// timeout/network `code`/message signals, and returns `unknown` for anything
+// else without throwing. `empty_response` and `interrupted_reservation` are
+// stage-assigned categories (proven at CLI/stage level); they appear in the
+// closed constant set but are never synthesized by the classifier from raw
+// provider text.
+
+type Step2CountTokensClient = {
+  models: {
+    countTokens: (request: Record<string, unknown>) => Promise<{ totalTokens?: unknown }>;
+  };
+};
+
+type Step2CountTokensRequest = {
+  model: string;
+  prompt: string;
+  imageBase64: string;
+  imageMediaType: string;
+  timeoutMs: number;
+};
+
+type Step2CountTokens = (
+  client: Step2CountTokensClient,
+  request: Step2CountTokensRequest,
+) => Promise<{ tokenCount: number }>;
+
+type Step2Classify = (error: unknown) => string;
+
+function requireStep2Export<T>(name: string): T {
+  const value = (GenAIAdapterModule as unknown as Record<string, unknown>)[name];
+  expect(value, `Task7 Step2 API missing: ${name} is not exported from genai-adapter.ts`).toBeDefined();
+  return value as T;
+}
+
+function requireStep2Categories(): string[] {
+  return requireStep2Export<string[]>('CALIBRATION_SAFE_ERROR_CATEGORIES');
+}
+
+const STEP2_EXPECTED_CATEGORIES = [
+  'http_400',
+  'http_401',
+  'http_403',
+  'http_404',
+  'http_408',
+  'http_429',
+  'http_other_4xx',
+  'http_5xx',
+  'timeout',
+  'network',
+  'empty_response',
+  'interrupted_reservation',
+  'unknown',
+];
+
+function makeStep2CountClient(
+  countTokens: (request: Record<string, unknown>) => Promise<{ totalTokens?: unknown }>,
+): Step2CountTokensClient {
+  return { models: { countTokens } };
+}
+
+function validStep2CountRequest(overrides: Partial<Step2CountTokensRequest> = {}): Step2CountTokensRequest {
+  return {
+    model: 'gemini-3.8-flash',
+    prompt: 'Analyze this food image',
+    imageBase64: 'base64imagedata',
+    imageMediaType: 'image/png',
+    timeoutMs: 30000,
+    ...overrides,
+  };
+}
+
+describe('calibration safe-error taxonomy constants (Task7 Step2 RED)', () => {
+  it('exposes exactly the 13 privacy-safe provider categories', () => {
+    expect([...requireStep2Categories()].sort()).toEqual([...STEP2_EXPECTED_CATEGORIES].sort());
+  });
+});
+
+describe('classifyCalibrationError (Task7 Step2 RED)', () => {
+  it.each([
+    [400, 'http_400'],
+    [401, 'http_401'],
+    [403, 'http_403'],
+    [404, 'http_404'],
+    [408, 'http_408'],
+    [429, 'http_429'],
+    [418, 'http_other_4xx'],
+    [499, 'http_other_4xx'],
+    [500, 'http_5xx'],
+    [502, 'http_5xx'],
+    [503, 'http_5xx'],
+  ])('maps numeric status %s to %s', (status, expected) => {
+    const classify = requireStep2Export<Step2Classify>('classifyCalibrationError');
+
+    expect(classify({ status })).toBe(expected);
+    expect(classify(Object.assign(new Error(`request failed with status ${status}`), { status }))).toBe(
+      expected,
+    );
+  });
+
+  it.each([
+    [{ code: 'ETIMEDOUT' }, 'timeout'],
+    [{ code: 'ESOCKETTIMEDOUT' }, 'timeout'],
+    [new Error('request timed out after 30000ms'), 'timeout'],
+    [new Error('Deadline exceeded while calling model'), 'timeout'],
+    [{ code: 'ENOTFOUND' }, 'network'],
+    [{ code: 'ECONNREFUSED' }, 'network'],
+    [{ code: 'ECONNRESET' }, 'network'],
+    [new Error('fetch failed'), 'network'],
+  ])('maps transport signal %j to %s', (error, expected) => {
+    const classify = requireStep2Export<Step2Classify>('classifyCalibrationError');
+
+    expect(classify(error)).toBe(expected);
+  });
+
+  it.each([[null], [undefined], [42], ['boom'], [{}], [new Error('weird wobble')]])(
+    'maps unrecognized input %j to unknown without throwing',
+    (error) => {
+      const classify = requireStep2Export<Step2Classify>('classifyCalibrationError');
+
+      expect(() => classify(error)).not.toThrow();
+      expect(classify(error)).toBe('unknown');
+    },
+  );
+
+  it('persists only the category for a hostile provider error', () => {
+    const classify = requireStep2Export<Step2Classify>('classifyCalibrationError');
+    const secretMessage = 'SECRET-CLASSIFY-MARKER-429 quota exceeded';
+    const hostile = Object.assign(new Error(secretMessage), {
+      status: 429,
+      url: 'https://secret-endpoint.example/token',
+      apiKey: 'SECRET-API-KEY-123',
+      response: { body: secretMessage },
+    });
+
+    const result = classify(hostile);
+
+    expect(result).toBe('http_429');
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain('SECRET-CLASSIFY-MARKER-429');
+    expect(serialized).not.toContain('secret-endpoint.example');
+    expect(serialized).not.toContain('SECRET-API-KEY-123');
+  });
+});
+
+describe('countCalibrationTokens (Task7 Step2 RED)', () => {
+  it('counts once through the injected fake with exact 3.8 identity and timeout', async () => {
+    const countTokens = vi.fn(async (_request: Record<string, unknown>) => ({ totalTokens: 1234 }));
+    const count = requireStep2Export<Step2CountTokens>('countCalibrationTokens');
+
+    const result = await count(makeStep2CountClient(countTokens), validStep2CountRequest());
+
+    expect(result).toEqual({ tokenCount: 1234 });
+    expect(countTokens).toHaveBeenCalledTimes(1);
+    const request = countTokens.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(request.model).toBe('gemini-3.8-flash');
+    const serialized = JSON.stringify(request);
+    expect(serialized).toContain('Analyze this food image');
+    expect(serialized).toContain('base64imagedata');
+    expect(serialized).toContain('image/png');
+    expect(serialized).toContain('30000');
+    expect(serialized).not.toContain('retryOptions');
+    expect(request).not.toHaveProperty('retryOptions');
+  });
+
+  it('sends the passed image/jpeg manifest media type', async () => {
+    const countTokens = vi.fn(async (_request: Record<string, unknown>) => ({ totalTokens: 7 }));
+    const count = requireStep2Export<Step2CountTokens>('countCalibrationTokens');
+
+    await count(
+      makeStep2CountClient(countTokens),
+      validStep2CountRequest({ imageMediaType: 'image/jpeg' }),
+    );
+
+    const serialized = JSON.stringify(countTokens.mock.calls[0]?.[0]);
+    expect(serialized).toContain('image/jpeg');
+  });
+
+  it.each(['gemini-2.5-flash', 'gemini-3.7-flash', 'firestore-future-model'])(
+    'rejects model %s before the fake is called',
+    async (model) => {
+      const countTokens = vi.fn(async (_request: Record<string, unknown>) => ({ totalTokens: 1 }));
+      const count = requireStep2Export<Step2CountTokens>('countCalibrationTokens');
+
+      await expect(
+        count(makeStep2CountClient(countTokens), validStep2CountRequest({ model })),
+      ).rejects.toThrow();
+      expect(countTokens).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects non-finite or non-positive timeoutMs %s before the fake is called',
+    async (timeoutMs) => {
+      const countTokens = vi.fn(async (_request: Record<string, unknown>) => ({ totalTokens: 1 }));
+      const count = requireStep2Export<Step2CountTokens>('countCalibrationTokens');
+
+      await expect(
+        count(makeStep2CountClient(countTokens), validStep2CountRequest({ timeoutMs })),
+      ).rejects.toThrow();
+      expect(countTokens).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([[{}], [{ totalTokens: -1 }], [{ totalTokens: 'lots' }], [{ totalTokens: Number.NaN }]])(
+    'rejects malformed token response %j with no retry',
+    async (response) => {
+      const countTokens = vi.fn(async (_request: Record<string, unknown>) => response);
+      const count = requireStep2Export<Step2CountTokens>('countCalibrationTokens');
+
+      await expect(
+        count(makeStep2CountClient(countTokens), validStep2CountRequest()),
+      ).rejects.toThrow();
+      expect(countTokens).toHaveBeenCalledTimes(1);
+    },
+  );
+});

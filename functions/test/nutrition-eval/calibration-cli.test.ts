@@ -47,26 +47,48 @@
  * ```
  *
  * Hermetic contract: tests use dependency injection only. No provider
- * dispatch, no `fetch`, no filesystem, no Firebase, no network. Every
- * rejection test asserts the client factory was never called, proving the
- * malformed config returns before `GoogleGenAI` client construction.
+ * dispatch, no `fetch`, no writes to disk, no Firebase, no network. The only
+ * filesystem access is `readFileSync` of committed `functions/eval/nutrition/`
+ * fixtures used as read-only local inputs; nothing is written, mutated, or
+ * downloaded. Every rejection test asserts the client factory was never
+ * called, proving the malformed config returns before `GoogleGenAI` client
+ * construction.
  */
 import { describe, expect, it, vi } from 'vitest';
 
 import {
   CALIBRATION_API_VERSION,
   CALIBRATION_BASE_URL,
+  CALIBRATION_HISTORICAL_REFERENCE_SHA256,
   CALIBRATION_LIVE_ENV_FLAG,
+  CALIBRATION_MANIFEST_SHA256,
   CALIBRATION_MODEL,
+  CALIBRATION_OFF_SNAPSHOT_LOCK_SHA256,
+  CALIBRATION_PREFLIGHT_DATASET_ID,
+  CALIBRATION_PREFLIGHT_SAFE_ERROR_CATEGORIES,
+  CALIBRATION_PROMPT_HASH,
+  CALIBRATION_PUBLIC_MANIFEST_HASH,
+  CALIBRATION_SOURCE_LOCK_SHA256,
   CALIBRATION_TIMEOUT_MS,
   CALIBRATION_VERTEX_LOCATION,
   CALIBRATION_VERTEX_PROJECT,
+  executeCalibrationPreflight,
   runCalibrationCli,
+  verifyCalibrationPreflightState,
 } from '../../src/nutrition-eval/calibration-cli';
 import type {
   CalibrationCliDeps,
   CalibrationCliResult,
 } from '../../src/nutrition-eval/calibration-cli';
+import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
+import { hashNutritionEvalManifest, hashNutritionEvalPrompts } from '../../src/nutrition-eval/cli';
+import {
+  BARCODE_ANALYSIS_PROMPT,
+  LABEL_ANALYSIS_PROMPT,
+  MEAL_ANALYSIS_PROMPT,
+} from '../../src/prompts';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 
 const EXACT_PROJECT = 'calorix-xurschnell';
 const EXACT_LOCATION = 'us';
@@ -632,5 +654,623 @@ describe('calibration CLI stage execution', () => {
     expect(harness.executeStage.mock.calls[0]?.[0]).toBe('preflight');
     const constructedClient = harness.createClient.mock.results[0]?.value;
     expect(harness.executeStage.mock.calls[0]?.[1]).toBe(constructedClient);
+  });
+});
+
+// ── Task7 Step2 RED: deterministic preflight + Stage0 boundary ──────────────
+// Hermetic RED contract for plan Task7 Step2. The CLI module is still absent,
+// so every test below is RED at import time for the same single reason as
+// Step1 (missing `calibration-cli.ts`) until Step4 implements the real CLI +
+// preflight boundary. No provider dispatch, no fetch, no Firebase, no network:
+// every committed byte is injected, every
+// reservation/client/token/image interaction is an injected fake, and no
+// actual SDK method is ever called. Committed 40-case calibration and 20-case
+// public manifests are loaded read-only from `functions/eval/nutrition/` as
+// hermetic local fixtures; no live download occurs.
+//
+// Pinned contract:
+//
+// ```ts
+// export const CALIBRATION_PREFLIGHT_DATASET_ID = 'calorix-public-v1';
+// export const CALIBRATION_PUBLIC_MANIFEST_HASH =
+//   '2dc17d06752c2981862690953a7b134235bb6a20da4dc9b5fef5528f91f5bb56';
+// export const CALIBRATION_PROMPT_HASH =
+//   '205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263';
+// export const CALIBRATION_SOURCE_LOCK_SHA256 =
+//   'f1138680a38aa64eb400bc20c89ec656d771e8f3823ae09bed956a48eff2a43b';
+// export const CALIBRATION_MANIFEST_SHA256 =
+//   '313c37c14cb912d5dc6410dbb3b812139c22d7533d2341678de3ac860b0c1d6d';
+// export const CALIBRATION_OFF_SNAPSHOT_LOCK_SHA256 =
+//   '2b9d7b9baecb22ec20662f52010810fdb4f2fde3dd7c464d73b0cb56855003a1';
+// export const CALIBRATION_HISTORICAL_REFERENCE_SHA256 =
+//   'fd712bee2d4229bc8476d1cc25fce1a21172e6013c6abfe8949498cc5ce15acb';
+// export const CALIBRATION_PREFLIGHT_SAFE_ERROR_CATEGORIES = [
+//   'http_400', 'http_401', 'http_403', 'http_404', 'http_408', 'http_429',
+//   'http_other_4xx', 'http_5xx', 'timeout', 'network', 'empty_response',
+//   'interrupted_reservation', 'unknown',
+// ] as const;
+//
+// export type CalibrationPreflightFileName =
+//   | 'public-manifest' | 'prompt' | 'response-schema' | 'source-lock'
+//   | 'calibration-manifest' | 'off-lock' | 'historical-reference';
+//
+// export interface CalibrationPreflightReport {
+//   datasetId: 'calorix-public-v1';
+//   publicManifestHash: string;
+//   promptHash: string;
+//   firstDevelopmentCaseId: string;
+//   compatibilityNotes: ReadonlyArray<{ key: string; detail: string }>;
+//   historicalCompatible: false;
+// }
+//
+// export function verifyCalibrationPreflightState(deps: {
+//   files: Record<CalibrationPreflightFileName, string>;
+//   expected?: {
+//     datasetId: string; publicManifestHash: string; promptHash: string;
+//     responseSchemaHash: string; sourceLockHash: string;
+//     calibrationManifestHash: string; offLockHash: string;
+//     historicalReferenceHash: string;
+//   };
+//   reserveCall?: (key: unknown) => Promise<void> | void;
+//   createClient?: (options: unknown) => unknown;
+// }): Promise<CalibrationPreflightReport>;
+//
+// export function executeCalibrationPreflight(
+//   client: unknown,
+//   deps: {
+//     firstDevelopmentCaseId: string;
+//     reserveCall: (
+//       key:
+//         | { kind: 'token_count'; stage: 'preflight'; caseId: string; model: 'gemini-3.8-flash' }
+//         | { stage: 'preflight'; profile: 'LOW' | 'MEDIUM'; caseId: string; sampleIndex: number },
+//     ) => Promise<void>;
+//     countTokens: (request: { model: 'gemini-3.8-flash' }) =>
+//       Promise<{ tokenCount: number }>;
+//     generateImage: (request: {
+//       model: 'gemini-3.8-flash'; profile: 'LOW' | 'MEDIUM'; caseId: string;
+//     }) => Promise<{ prediction: Record<string, number> | null;
+//       modelVersion: unknown }>;
+//     recordSafeError?: (entry: Record<string, unknown>) => void;
+//   },
+// ): Promise<{ pinnedModelVersion: string }>;
+// ```
+//
+// Public-manifest/prompt values are semantic hashes via the existing canonical
+// `hashNutritionEvalManifest(parsed)` / `hashNutritionEvalPrompts(meal,label,
+// barcode)` helpers, not raw file SHA. Response-schema uses canonical JSON
+// (parse then stringify then SHA). Raw SHA remains only for source-lock,
+// calibration-manifest, OFF-lock, and historical-reference. `expected`
+// overrides keep tamper tests self-consistent against injected bytes; the
+// default-pinned tests prove the real constants gate foreign bytes
+// fail-closed, while the canonical-hash tests prove the defaults accept the
+// committed assets. Tamper coverage is a single 8-identity matrix at unit
+// level plus representative CLI wiring; hermetic CLI success against the real
+// pins is impossible without the real committed bytes, so CLI success
+// mechanics are proven at unit level while the CLI tests prove fail-closed
+// gating with the verify fake omitted (no hook bypass is possible when the
+// fake is absent).
+
+const STEP2_DATASET_ID = 'calorix-public-v1';
+const STEP2_PUBLIC_MANIFEST_HASH =
+  '2dc17d06752c2981862690953a7b134235bb6a20da4dc9b5fef5528f91f5bb56';
+const STEP2_PROMPT_HASH =
+  '205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263';
+const STEP2_SOURCE_LOCK_SHA256 =
+  'f1138680a38aa64eb400bc20c89ec656d771e8f3823ae09bed956a48eff2a43b';
+const STEP2_CALIBRATION_MANIFEST_SHA256 =
+  '313c37c14cb912d5dc6410dbb3b812139c22d7533d2341678de3ac860b0c1d6d';
+const STEP2_OFF_LOCK_SHA256 =
+  '2b9d7b9baecb22ec20662f52010810fdb4f2fde3dd7c464d73b0cb56855003a1';
+const STEP2_HISTORICAL_REFERENCE_SHA256 =
+  'fd712bee2d4229bc8476d1cc25fce1a21172e6013c6abfe8949498cc5ce15acb';
+const STEP2_FIRST_DEV_CASE_ID = 'calibration-dish_1565117892';
+const STEP2_MODEL = 'gemini-3.8-flash';
+const STEP2_PINNED_VERSION = 'gemini-3.8-20260923';
+
+const COMMITTED_PUBLIC_MANIFEST_BYTES = readFileSync(
+  new URL('../../eval/nutrition/public-manifest.json', import.meta.url),
+  'utf8',
+);
+const COMMITTED_CALIBRATION_MANIFEST_BYTES = readFileSync(
+  new URL('../../eval/nutrition/calibration-manifest.json', import.meta.url),
+  'utf8',
+);
+const STEP2_COMMITTED_PROMPT_TRIPLE = [
+  MEAL_ANALYSIS_PROMPT,
+  LABEL_ANALYSIS_PROMPT,
+  BARCODE_ANALYSIS_PROMPT,
+] as const;
+const STEP2_COMMITTED_PROMPT_BYTES = JSON.stringify([...STEP2_COMMITTED_PROMPT_TRIPLE]);
+
+const STEP2_SAFE_CATEGORIES = [
+  'http_400',
+  'http_401',
+  'http_403',
+  'http_404',
+  'http_408',
+  'http_429',
+  'http_other_4xx',
+  'http_5xx',
+  'timeout',
+  'network',
+  'empty_response',
+  'interrupted_reservation',
+  'unknown',
+] as const;
+
+type Step2FileName =
+  | 'public-manifest'
+  | 'prompt'
+  | 'response-schema'
+  | 'source-lock'
+  | 'calibration-manifest'
+  | 'off-lock'
+  | 'historical-reference';
+
+type Step2Files = Record<Step2FileName, string>;
+
+function step2Sha256Hex(input: string): string {
+  return createHash('sha256').update(input, 'utf8').digest('hex');
+}
+
+function step2CanonicalJsonHash(input: string): string {
+  return createHash('sha256').update(JSON.stringify(JSON.parse(input)), 'utf8').digest('hex');
+}
+
+function step2PublicManifestHash(publicManifestBytes: string): string {
+  return hashNutritionEvalManifest(JSON.parse(publicManifestBytes) as unknown);
+}
+
+function step2PromptHash(promptBytes: string): string {
+  const triple = JSON.parse(promptBytes) as [string, string, string];
+  return hashNutritionEvalPrompts(triple[0], triple[1], triple[2]);
+}
+
+function makeStep2Files(overrides: Partial<Step2Files> = {}): Step2Files {
+  return {
+    'public-manifest': COMMITTED_PUBLIC_MANIFEST_BYTES,
+    prompt: STEP2_COMMITTED_PROMPT_BYTES,
+    'response-schema': JSON.stringify({ type: 'object', version: 1 }),
+    'source-lock': 'synthetic source-lock bytes',
+    'calibration-manifest': COMMITTED_CALIBRATION_MANIFEST_BYTES,
+    'off-lock': 'synthetic off-lock bytes',
+    'historical-reference': 'synthetic historical-reference bytes',
+    ...overrides,
+  };
+}
+
+function expectedForStep2Files(
+  files: Step2Files,
+  overrides: Record<string, string> = {},
+): Record<string, string> {
+  return {
+    datasetId: STEP2_DATASET_ID,
+    publicManifestHash: step2PublicManifestHash(files['public-manifest']),
+    promptHash: step2PromptHash(files.prompt),
+    responseSchemaHash: step2CanonicalJsonHash(files['response-schema']),
+    sourceLockHash: step2Sha256Hex(files['source-lock']),
+    calibrationManifestHash: step2Sha256Hex(files['calibration-manifest']),
+    offLockHash: step2Sha256Hex(files['off-lock']),
+    historicalReferenceHash: step2Sha256Hex(files['historical-reference']),
+    ...overrides,
+  };
+}
+
+function validStep2Prediction(): Record<string, number> {
+  return { kcal: 320, proteinG: 20, carbsG: 30, fatG: 10 };
+}
+
+describe('calibration preflight pinned identities (Task7 Step2 RED)', () => {
+  it('pins the preflight dataset id to calorix-public-v1', () => {
+    expect(CALIBRATION_PREFLIGHT_DATASET_ID).toBe(STEP2_DATASET_ID);
+  });
+
+  it('pins the public-manifest semantic hash', () => {
+    expect(CALIBRATION_PUBLIC_MANIFEST_HASH).toBe(STEP2_PUBLIC_MANIFEST_HASH);
+  });
+
+  it('pins the prompt semantic hash', () => {
+    expect(CALIBRATION_PROMPT_HASH).toBe(STEP2_PROMPT_HASH);
+  });
+
+  it('pins the committed source-lock hash', () => {
+    expect(CALIBRATION_SOURCE_LOCK_SHA256).toBe(STEP2_SOURCE_LOCK_SHA256);
+  });
+
+  it('pins the committed calibration-manifest hash', () => {
+    expect(CALIBRATION_MANIFEST_SHA256).toBe(STEP2_CALIBRATION_MANIFEST_SHA256);
+  });
+
+  it('pins the committed OFF-lock hash', () => {
+    expect(CALIBRATION_OFF_SNAPSHOT_LOCK_SHA256).toBe(STEP2_OFF_LOCK_SHA256);
+  });
+
+  it('pins the committed historical-reference hash', () => {
+    expect(CALIBRATION_HISTORICAL_REFERENCE_SHA256).toBe(STEP2_HISTORICAL_REFERENCE_SHA256);
+  });
+
+  it('accepts the committed public-manifest via the canonical manifest hash', () => {
+    const parsed = JSON.parse(COMMITTED_PUBLIC_MANIFEST_BYTES) as unknown;
+    expect(hashNutritionEvalManifest(parsed)).toBe(STEP2_PUBLIC_MANIFEST_HASH);
+  });
+
+  it('accepts the committed prompts via the canonical prompt hash', () => {
+    expect(
+      hashNutritionEvalPrompts(
+        MEAL_ANALYSIS_PROMPT,
+        LABEL_ANALYSIS_PROMPT,
+        BARCODE_ANALYSIS_PROMPT,
+      ),
+    ).toBe(STEP2_PROMPT_HASH);
+  });
+});
+
+describe('verifyCalibrationPreflightState (Task7 Step2 RED)', () => {
+  it('accepts self-consistent bytes without touching reservation or client fakes', async () => {
+    const files = makeStep2Files();
+    const reserveCall = vi.fn(async (_key: unknown) => undefined);
+    const createClient = vi.fn((_options: unknown) => ({ __mockClient: true }));
+
+    const report = await verifyCalibrationPreflightState({
+      files,
+      expected: expectedForStep2Files(files),
+      reserveCall,
+      createClient,
+    });
+
+    expect(report.datasetId).toBe(STEP2_DATASET_ID);
+    expect(report.publicManifestHash).toBe(step2PublicManifestHash(files['public-manifest']));
+    expect(report.promptHash).toBe(step2PromptHash(files.prompt));
+    expect(report.firstDevelopmentCaseId).toBe(STEP2_FIRST_DEV_CASE_ID);
+    expect(report.historicalCompatible).toBe(false);
+    const noteKeys = report.compatibilityNotes.map((note) => note.key).sort();
+    expect(noteKeys).toEqual(
+      ['generationProfile', 'historicalCodeSha', 'mediaTypeLabel', 'offRoute', 'sliceGCaveat'].sort(),
+    );
+    for (const note of report.compatibilityNotes) {
+      expect(note.detail.trim().length).toBeGreaterThan(0);
+    }
+    expect(reserveCall).not.toHaveBeenCalled();
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it('derives the first development case id from the committed 40-case fixture', async () => {
+    const committed = JSON.parse(COMMITTED_CALIBRATION_MANIFEST_BYTES) as {
+      datasetId: string;
+      cases: ReadonlyArray<{ id: string; group: string }>;
+    };
+    const developmentCases = committed.cases.filter((entry) => entry.group === 'development');
+    expect(committed.datasetId).toBe('calorix-n5k-calibration-v1');
+    expect(committed.cases).toHaveLength(40);
+    expect(developmentCases.length).toBeGreaterThan(0);
+
+    const files = makeStep2Files();
+    const report = await verifyCalibrationPreflightState({
+      files,
+      expected: expectedForStep2Files(files),
+    });
+
+    expect(report.firstDevelopmentCaseId).toBe(developmentCases[0]?.id);
+    expect(report.firstDevelopmentCaseId).toBe(STEP2_FIRST_DEV_CASE_ID);
+  });
+
+  it.each([
+    ['dataset id', { kind: 'dataset' } as const],
+    ['public-manifest bytes', { kind: 'file', name: 'public-manifest' } as const],
+    ['prompt bytes', { kind: 'file', name: 'prompt' } as const],
+    ['response-schema bytes', { kind: 'file', name: 'response-schema' } as const],
+    ['source-lock bytes', { kind: 'file', name: 'source-lock' } as const],
+    ['calibration-manifest bytes', { kind: 'file', name: 'calibration-manifest' } as const],
+    ['off-lock bytes', { kind: 'file', name: 'off-lock' } as const],
+    ['historical-reference bytes', { kind: 'file', name: 'historical-reference' } as const],
+  ])('rejects tampered %s as fatal before any reservation or client', async (_label, tamper) => {
+    const files = makeStep2Files();
+    const expected = expectedForStep2Files(files);
+    if (tamper.kind === 'dataset') {
+      files['public-manifest'] = JSON.stringify({ datasetId: 'other-dataset', version: 1, cases: [] });
+    } else {
+      files[tamper.name as Step2FileName] = `${files[tamper.name as Step2FileName]}-tampered`;
+    }
+    const reserveCall = vi.fn(async (_key: unknown) => undefined);
+    const createClient = vi.fn((_options: unknown) => ({ __mockClient: true }));
+
+    const error = await verifyCalibrationPreflightState({
+      files,
+      expected,
+      reserveCall,
+      createClient,
+    }).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect(reserveCall).not.toHaveBeenCalled();
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it('rejects a malformed public-manifest envelope as fatal', async () => {
+    const files = makeStep2Files({ 'public-manifest': 'not-json{' });
+    const reserveCall = vi.fn(async (_key: unknown) => undefined);
+
+    const error = await verifyCalibrationPreflightState({
+      files,
+      expected: expectedForStep2Files(makeStep2Files()),
+      reserveCall,
+    }).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect(reserveCall).not.toHaveBeenCalled();
+  });
+
+  it('rejects synthetic lock bytes against the default pinned identities', async () => {
+    const files = makeStep2Files();
+    const reserveCall = vi.fn(async (_key: unknown) => undefined);
+    const createClient = vi.fn((_options: unknown) => ({ __mockClient: true }));
+
+    const error = await verifyCalibrationPreflightState({ files, reserveCall, createClient }).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect(reserveCall).not.toHaveBeenCalled();
+    expect(createClient).not.toHaveBeenCalled();
+  });
+});
+
+describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
+  function makeStageDeps(overrides: {
+    mediumVersion?: unknown;
+    lowVersion?: unknown;
+  } = {}): {
+    reserveCall: ReturnType<typeof vi.fn>;
+    countTokens: ReturnType<typeof vi.fn>;
+    generateImage: ReturnType<typeof vi.fn>;
+    recordSafeError: ReturnType<typeof vi.fn>;
+  } {
+    const lowVersion = 'lowVersion' in overrides ? overrides.lowVersion : STEP2_PINNED_VERSION;
+    const mediumVersion = 'mediumVersion' in overrides ? overrides.mediumVersion : STEP2_PINNED_VERSION;
+    const reserveCall = vi.fn(async (_key: unknown) => undefined);
+    const countTokens = vi.fn(async (_request: unknown) => ({ tokenCount: 42 }));
+    const generateImage = vi.fn(async (request: { profile: string }) => ({
+      prediction: validStep2Prediction(),
+      modelVersion: request.profile === 'LOW' ? lowVersion : mediumVersion,
+    }));
+    const recordSafeError = vi.fn((_entry: unknown) => undefined);
+    return { reserveCall, countTokens, generateImage, recordSafeError };
+  }
+
+  it('reserves one token count then exactly LOW and MEDIUM images on the first dev case', async () => {
+    const deps = makeStageDeps();
+    const client = { __mockClient: true };
+
+    const result = await executeCalibrationPreflight(client, {
+      firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID,
+      ...deps,
+    });
+
+    expect(result.pinnedModelVersion).toBe(STEP2_PINNED_VERSION);
+    expect(deps.reserveCall).toHaveBeenCalledTimes(3);
+    expect(deps.reserveCall.mock.calls.map((call) => call[0])).toEqual([
+      {
+        kind: 'token_count',
+        stage: 'preflight',
+        caseId: STEP2_FIRST_DEV_CASE_ID,
+        model: STEP2_MODEL,
+      },
+      {
+        stage: 'preflight',
+        profile: 'LOW',
+        caseId: STEP2_FIRST_DEV_CASE_ID,
+        sampleIndex: 1,
+      },
+      {
+        stage: 'preflight',
+        profile: 'MEDIUM',
+        caseId: STEP2_FIRST_DEV_CASE_ID,
+        sampleIndex: 1,
+      },
+    ]);
+    expect(deps.countTokens).toHaveBeenCalledTimes(1);
+    expect(deps.countTokens.mock.calls[0]?.[0]).toEqual({ model: STEP2_MODEL });
+    expect(deps.generateImage).toHaveBeenCalledTimes(2);
+    expect(deps.generateImage.mock.calls[0]?.[0]).toEqual({
+      model: STEP2_MODEL,
+      profile: 'LOW',
+      caseId: STEP2_FIRST_DEV_CASE_ID,
+    });
+    expect(deps.generateImage.mock.calls[1]?.[0]).toEqual({
+      model: STEP2_MODEL,
+      profile: 'MEDIUM',
+      caseId: STEP2_FIRST_DEV_CASE_ID,
+    });
+    const order = (spy: ReturnType<typeof vi.fn>): number =>
+      spy.mock.invocationCallOrder[0] ?? Number.NaN;
+    expect(order(deps.reserveCall)).toBeLessThan(order(deps.countTokens));
+    expect(order(deps.countTokens)).toBeLessThan(order(deps.generateImage));
+    const imageOrders = deps.generateImage.mock.invocationCallOrder;
+    expect(imageOrders[0]).toBeLessThan(imageOrders[1] ?? Number.NaN);
+  });
+
+  it('fails fatal with no retry when the MEDIUM model version drifts', async () => {
+    const deps = makeStageDeps({ mediumVersion: 'gemini-3.8-other' });
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect(deps.countTokens).toHaveBeenCalledTimes(1);
+    expect(deps.generateImage).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([['blank string', ''], ['missing', undefined], ['non-string', 42]])(
+    'fails fatal with no retry on %s model version',
+    async (_label, modelVersion) => {
+      const deps = makeStageDeps({ lowVersion: modelVersion, mediumVersion: modelVersion });
+
+      const error = await executeCalibrationPreflight(
+        { __mockClient: true },
+        { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+      ).then(
+        () => null,
+        (cause: unknown) => cause,
+      );
+
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+      expect(deps.generateImage).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it.each([
+    ['non-record prediction', 'not-a-record'],
+    ['negative nutrient', { kcal: -5, proteinG: 20, carbsG: 30, fatG: 10 }],
+    ['null prediction', null],
+  ])('fails fatal with no retry on %s', async (_label, prediction) => {
+    const deps = makeStageDeps();
+    deps.generateImage.mockImplementation(async () => ({
+      prediction: prediction as Record<string, number> | null,
+      modelVersion: STEP2_PINNED_VERSION,
+    }));
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect(deps.generateImage).toHaveBeenCalledTimes(1);
+  });
+
+  it('records only the safe category when the token call fails and never reaches images', async () => {
+    const deps = makeStageDeps();
+    const rawMarker = 'SECRET-TOKEN-MARKER-429';
+    deps.countTokens.mockRejectedValueOnce(
+      Object.assign(new Error(`quota exceeded ${rawMarker}`), {
+        status: 429,
+        url: 'https://secret-endpoint.example/token',
+      }),
+    );
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect(deps.generateImage).not.toHaveBeenCalled();
+    expect(deps.countTokens).toHaveBeenCalledTimes(1);
+    expect(deps.recordSafeError).toHaveBeenCalledTimes(1);
+    const entry = deps.recordSafeError.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(entry.errorCategory).toBe('http_429');
+    const serialized = JSON.stringify(entry);
+    expect(serialized).not.toContain(rawMarker);
+    expect(serialized).not.toContain('secret-endpoint.example');
+    expect(serialized).not.toContain('https://');
+  });
+
+  it('records only the safe category when the LOW image call fails and never retries MEDIUM', async () => {
+    const deps = makeStageDeps();
+    const rawMarker = 'SECRET-IMAGE-MARKER-500';
+    deps.generateImage.mockRejectedValueOnce(
+      Object.assign(new Error(`backend failure ${rawMarker}`), {
+        status: 500,
+        url: 'https://secret-endpoint.example/vision',
+      }),
+    );
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(
+      () => null,
+      (cause: unknown) => cause,
+    );
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect(deps.generateImage).toHaveBeenCalledTimes(1);
+    expect(deps.recordSafeError).toHaveBeenCalledTimes(1);
+    const entry = deps.recordSafeError.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(entry.errorCategory).toBe('http_5xx');
+    const serialized = JSON.stringify(entry);
+    expect(serialized).not.toContain(rawMarker);
+    expect(serialized).not.toContain('secret-endpoint.example');
+  });
+});
+
+describe('calibration preflight safe-error taxonomy (Task7 Step2 RED)', () => {
+  it('exposes exactly the 13 privacy-safe provider categories', () => {
+    expect([...CALIBRATION_PREFLIGHT_SAFE_ERROR_CATEGORIES].sort()).toEqual(
+      [...STEP2_SAFE_CATEGORIES].sort(),
+    );
+  });
+});
+
+describe('calibration CLI preflight provider wiring (Task7 Step2 RED)', () => {
+  function syntheticFiles(): Record<string, string> {
+    const files = makeStep2Files();
+    return { ...files };
+  }
+
+  it('fails closed before any client/token/image work when the verify fake rejects', async () => {
+    const harness = makeHarness();
+    harness.verifyPreflightState.mockRejectedValueOnce(new Error('tampered manifest'));
+    const countTokens = vi.fn(async () => ({ tokenCount: 1 }));
+    const generateImage = vi.fn(async () => ({
+      prediction: validStep2Prediction(),
+      modelVersion: STEP2_PINNED_VERSION,
+    }));
+
+    const result = await runCalibrationCli(['preflight'], liveEnv(), {
+      ...harness.deps,
+      countTokens,
+      generateImage,
+    } as CalibrationCliDeps);
+
+    expect(result.exitCode).toBe(1);
+    expect(harness.createClient).not.toHaveBeenCalled();
+    expect(harness.executeStage).not.toHaveBeenCalled();
+    expect(countTokens).not.toHaveBeenCalled();
+    expect(generateImage).not.toHaveBeenCalled();
+  });
+
+  it('fails closed with no hook bypass when the verify fake is omitted and bytes are synthetic', async () => {
+    const createClient = vi.fn((_options: unknown) => ({ __mockClient: true }));
+    const countTokens = vi.fn(async () => ({ tokenCount: 1 }));
+    const generateImage = vi.fn(async () => ({
+      prediction: validStep2Prediction(),
+      modelVersion: STEP2_PINNED_VERSION,
+    }));
+    const reserveCall = vi.fn(async (_key: unknown) => undefined);
+
+    const result = await runCalibrationCli(['preflight'], liveEnv(), {
+      createClient,
+      readCommittedFile: async (name: string) => syntheticFiles()[name] ?? '',
+      reserveCall,
+      countTokens,
+      generateImage,
+      readLedgerSelectedProfile: () => undefined,
+      readLedgerModel: () => STEP2_MODEL,
+    } as unknown as CalibrationCliDeps);
+
+    expect(result.exitCode).toBe(1);
+    expect(createClient).not.toHaveBeenCalled();
+    expect(reserveCall).not.toHaveBeenCalled();
+    expect(countTokens).not.toHaveBeenCalled();
+    expect(generateImage).not.toHaveBeenCalled();
   });
 });
