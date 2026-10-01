@@ -159,6 +159,11 @@ export interface CalibrationLedger {
     onFatal: (error: unknown) => void,
   ) => void;
   reserveTokenCount: (key: TokenCountReservationKey) => void;
+  completeTokenCount: (key: TokenCountReservationKey, count: number) => void;
+  failTokenCount: (
+    key: TokenCountReservationKey,
+    errorCategory: CalibrationSafeErrorCategory,
+  ) => void;
   getCounts: () => { tokenCountReserved: number; imageReserved: number };
   appendResultJournal: (entry: JournalEntry) => string;
   complete: (key: ReservationKey, journalHash: string) => void;
@@ -202,6 +207,10 @@ const STAGE_SAMPLE_RANGE: Record<StageName, { min: number; max: number }> = {
 
 function canonicalReservationKey(key: ReservationKey): string {
   return `${key.stage}|${key.profile}|${key.caseId}|${key.sampleIndex}`;
+}
+
+function canonicalTokenKey(key: TokenCountReservationKey): string {
+  return `${key.kind}|${key.stage}|${key.caseId}|${key.model}`;
 }
 
 function sameOwner(left: CalibrationOwner, right: CalibrationOwner): boolean {
@@ -317,14 +326,51 @@ const KNOWN_LEDGER_EVENT_TYPES = new Set([
   'completed',
   'failed',
   'token_count_reserved',
+  'token_count_completed',
+  'token_count_failed',
   'lock_recovery',
   'synthetic_reserved',
 ]);
+
+const TOKEN_TERMINAL_ERROR_CATEGORIES = new Set<CalibrationSafeErrorCategory>([
+  'http_400',
+  'http_401',
+  'http_403',
+  'http_404',
+  'http_408',
+  'http_429',
+  'http_other_4xx',
+  'http_5xx',
+  'timeout',
+  'network',
+  'empty_response',
+  'interrupted_reservation',
+  'unknown',
+]);
+
+function isValidTokenCompletionCount(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0;
+}
+
+function isValidTokenFailureCategory(
+  value: unknown,
+): value is CalibrationSafeErrorCategory {
+  return (
+    typeof value === 'string' &&
+    value !== 'none' &&
+    TOKEN_TERMINAL_ERROR_CATEGORIES.has(value as CalibrationSafeErrorCategory)
+  );
+}
 
 interface ReservationRecord {
   key: ReservationKey;
   status: 'reserved' | 'completed' | 'interrupted_reservation';
   journalHash?: string;
+}
+
+interface TokenReservationState {
+  key: TokenCountReservationKey;
+  status: 'reserved' | 'completed' | 'failed' | 'poisoned';
 }
 
 export function createCalibrationLedger(
@@ -346,6 +392,7 @@ export function createCalibrationLedger(
   const pendingJournalHashes = new Map<string, string>();
   let tokenCountReserved = 0;
   let imageReserved = 0;
+  let tokenReservation: TokenReservationState | undefined;
   let heldOwner: CalibrationOwner | undefined;
 
   function requireLock(): void {
@@ -468,6 +515,61 @@ export function createCalibrationLedger(
           );
         }
         tokenCountReserved += 1;
+        tokenReservation = { key: event.key, status: 'reserved' };
+        break;
+      }
+      case 'token_count_completed': {
+        if (
+          !isValidTokenKeyRecord(event.key) ||
+          !isValidTokenCompletionCount(event.count)
+        ) {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-malformed:token_count_completed',
+          );
+        }
+        if (tokenReservation === undefined) {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-out-of-order:token_count_completed',
+          );
+        }
+        if (canonicalTokenKey(tokenReservation.key) !== canonicalTokenKey(event.key)) {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-mismatched-key:token_count_completed',
+          );
+        }
+        if (tokenReservation.status !== 'reserved') {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-invalid-transition:token_count_completed',
+          );
+        }
+        tokenReservation.status = 'completed';
+        break;
+      }
+      case 'token_count_failed': {
+        if (
+          !isValidTokenKeyRecord(event.key) ||
+          !isValidTokenFailureCategory(event.errorCategory)
+        ) {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-malformed:token_count_failed',
+          );
+        }
+        if (tokenReservation === undefined) {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-out-of-order:token_count_failed',
+          );
+        }
+        if (canonicalTokenKey(tokenReservation.key) !== canonicalTokenKey(event.key)) {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-mismatched-key:token_count_failed',
+          );
+        }
+        if (tokenReservation.status !== 'reserved') {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-invalid-transition:token_count_failed',
+          );
+        }
+        tokenReservation.status = 'failed';
         break;
       }
       case 'lock_recovery':
@@ -712,6 +814,65 @@ export function createCalibrationLedger(
     }
     persistLedgerEvent({ type: 'token_count_reserved', key, at: deps.nowIso() });
     tokenCountReserved += 1;
+    tokenReservation = { key, status: 'reserved' };
+  }
+
+  function requireReservedTokenKey(key: TokenCountReservationKey): void {
+    if (tokenReservation === undefined) {
+      throw new CalibrationFatalError('calibration:token-terminal-not-reserved');
+    }
+    if (canonicalTokenKey(tokenReservation.key) !== canonicalTokenKey(key)) {
+      throw new CalibrationFatalError('calibration:token-terminal-key-mismatch');
+    }
+    if (tokenReservation.status !== 'reserved') {
+      throw new CalibrationFatalError('calibration:token-terminal-already-finalized');
+    }
+  }
+
+  function persistTokenTerminalEvent(event: unknown, key: TokenCountReservationKey): void {
+    try {
+      deps.appendLedgerEvent(event);
+      deps.fsyncLedgerFile();
+      deps.fsyncLedgerDir();
+    } catch {
+      if (tokenReservation !== undefined && canonicalTokenKey(tokenReservation.key) === canonicalTokenKey(key)) {
+        tokenReservation.status = 'poisoned';
+      }
+      throw new CalibrationFatalError('calibration:token-terminal-persist-failed');
+    }
+  }
+
+  function completeTokenCount(key: TokenCountReservationKey, count: number): void {
+    requireLock();
+    requireReservedTokenKey(key);
+    if (!isValidTokenCompletionCount(count)) {
+      throw new CalibrationFatalError('calibration:token-terminal-invalid-count');
+    }
+    persistTokenTerminalEvent(
+      { type: 'token_count_completed', key, count, at: deps.nowIso() },
+      key,
+    );
+    if (tokenReservation !== undefined) {
+      tokenReservation.status = 'completed';
+    }
+  }
+
+  function failTokenCount(
+    key: TokenCountReservationKey,
+    errorCategory: CalibrationSafeErrorCategory,
+  ): void {
+    requireLock();
+    requireReservedTokenKey(key);
+    if (!isValidTokenFailureCategory(errorCategory)) {
+      throw new CalibrationFatalError('calibration:token-terminal-invalid-category');
+    }
+    persistTokenTerminalEvent(
+      { type: 'token_count_failed', key, errorCategory, at: deps.nowIso() },
+      key,
+    );
+    if (tokenReservation !== undefined) {
+      tokenReservation.status = 'failed';
+    }
   }
 
   function getCounts(): { tokenCountReserved: number; imageReserved: number } {
@@ -804,6 +965,8 @@ export function createCalibrationLedger(
     reserve,
     reserveSynthetic,
     reserveTokenCount,
+    completeTokenCount,
+    failTokenCount,
     getCounts,
     appendResultJournal,
     complete,

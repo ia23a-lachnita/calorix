@@ -60,6 +60,7 @@ import type {
   CalibrationIdentity,
   CalibrationLedgerDeps,
   CalibrationOwner,
+  CalibrationSafeErrorCategory,
   JournalEntry,
   ReservationKey,
   StageName,
@@ -220,6 +221,34 @@ function makeJournal(key: ReservationKey): JournalEntry {
     errorCategory: 'none',
     responseModelVersion: 'gemini-3.8-flash-001',
   };
+}
+
+function makeTokenKey(
+  overrides: Partial<TokenCountReservationKey> = {},
+): TokenCountReservationKey {
+  return {
+    kind: 'token_count',
+    stage: 'preflight',
+    caseId: DEV_CASE_A,
+    model: 'gemini-3.8-flash',
+    ...overrides,
+  };
+}
+
+// Task 7 Step 4c-b: `completeTokenCount`/`failTokenCount` are part of
+// `CalibrationLedger`. This typed accessor keeps call sites below unchanged.
+type LedgerWithTokenCountTerminal = ReturnType<typeof createCalibrationLedger> & {
+  completeTokenCount: (key: TokenCountReservationKey, count: number) => void;
+  failTokenCount: (
+    key: TokenCountReservationKey,
+    errorCategory: CalibrationSafeErrorCategory,
+  ) => void;
+};
+
+function withTokenTerminal(
+  ledger: ReturnType<typeof createCalibrationLedger>,
+): LedgerWithTokenCountTerminal {
+  return ledger as unknown as LedgerWithTokenCountTerminal;
 }
 
 describe('calibration ledger identity', () => {
@@ -2187,6 +2216,239 @@ describe('calibration Stage 0 token-count reservation', () => {
 });
 
 /**
+ * Task 7 Step 4c-b: Stage 0 token-count terminal transitions.
+ *
+ * Covers `ledger.completeTokenCount(key, count)` and
+ * `ledger.failTokenCount(key, errorCategory)`. `withTokenTerminal` remains a
+ * typed accessor for these methods on `CalibrationLedger`. Persistence is
+ * always append-then-file-fsync-then-dir-fsync, and the in-memory terminal
+ * state transitions only after that full sequence succeeds, mirroring the
+ * existing `complete()`/`persistLedgerEvent()` ordering already proven for
+ * image reservations. No real fs, /proc, provider, Firebase, or network
+ * access occurs here.
+ */
+describe('calibration Stage 0 token-count completion and failure', () => {
+  it('completes a reserved token-count key, persisting append/file-fsync/dir-fsync before the event is observable', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const tokenKey = makeTokenKey();
+    ledger.reserveTokenCount(tokenKey);
+    const mark = world.ops.length;
+    withTokenTerminal(ledger).completeTokenCount(tokenKey, 1234);
+    const tail = world.ops.slice(mark);
+    const appendIndex = tail.indexOf('appendLedgerEvent');
+    const fileIndex = tail.indexOf('fsyncLedgerFile');
+    const dirIndex = tail.indexOf('fsyncLedgerDir');
+    expect(appendIndex).toBeGreaterThanOrEqual(0);
+    expect(fileIndex).toBeGreaterThan(appendIndex);
+    expect(dirIndex).toBeGreaterThan(fileIndex);
+    expect(world.events[world.events.length - 1]).toMatchObject({
+      type: 'token_count_completed',
+      key: tokenKey,
+      count: 1234,
+    });
+  });
+
+  it('fails a reserved token-count key, persisting append/file-fsync/dir-fsync before the event is observable', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const tokenKey = makeTokenKey();
+    ledger.reserveTokenCount(tokenKey);
+    const mark = world.ops.length;
+    withTokenTerminal(ledger).failTokenCount(tokenKey, 'timeout');
+    const tail = world.ops.slice(mark);
+    const appendIndex = tail.indexOf('appendLedgerEvent');
+    const fileIndex = tail.indexOf('fsyncLedgerFile');
+    const dirIndex = tail.indexOf('fsyncLedgerDir');
+    expect(appendIndex).toBeGreaterThanOrEqual(0);
+    expect(fileIndex).toBeGreaterThan(appendIndex);
+    expect(dirIndex).toBeGreaterThan(fileIndex);
+    expect(world.events[world.events.length - 1]).toMatchObject({
+      type: 'token_count_failed',
+      key: tokenKey,
+      errorCategory: 'timeout',
+    });
+  });
+
+  it('fails closed on ledger file fsync before marking a token-count key completed', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const tokenKey = makeTokenKey();
+    ledger.reserveTokenCount(tokenKey);
+    let fsyncFileCalls = 0;
+    world.deps.fsyncLedgerFile = () => {
+      fsyncFileCalls += 1;
+      world.ops.push('fsyncLedgerFile');
+      if (fsyncFileCalls === 1) {
+        throw new Error('EIO: ledger file fsync failed');
+      }
+    };
+    expect(() => withTokenTerminal(ledger).completeTokenCount(tokenKey, 10)).toThrow(
+      CalibrationFatalError,
+    );
+    // The append already landed before the fsync fault, poisoning in-memory
+    // state: a retry on the same key must throw rather than silently
+    // succeed, and exactly one terminal event may exist for the key.
+    expect(() => withTokenTerminal(ledger).failTokenCount(tokenKey, 'timeout')).toThrow(
+      CalibrationFatalError,
+    );
+    const terminalEvents = (world.events as Array<{ type: string }>).filter(
+      (event) => event.type === 'token_count_completed' || event.type === 'token_count_failed',
+    );
+    expect(terminalEvents).toHaveLength(1);
+  });
+
+  it('fails closed on ledger directory fsync before marking a token-count key failed', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const tokenKey = makeTokenKey();
+    ledger.reserveTokenCount(tokenKey);
+    let fsyncDirCalls = 0;
+    world.deps.fsyncLedgerDir = () => {
+      fsyncDirCalls += 1;
+      world.ops.push('fsyncLedgerDir');
+      if (fsyncDirCalls === 1) {
+        throw new Error('EIO: ledger directory fsync failed');
+      }
+    };
+    expect(() => withTokenTerminal(ledger).failTokenCount(tokenKey, 'timeout')).toThrow(
+      CalibrationFatalError,
+    );
+    // The append already landed before the fsync fault, poisoning in-memory
+    // state: a retry on the same key must throw rather than silently
+    // succeed, and exactly one terminal event may exist for the key.
+    expect(() => withTokenTerminal(ledger).completeTokenCount(tokenKey, 10)).toThrow(
+      CalibrationFatalError,
+    );
+    const terminalEvents = (world.events as Array<{ type: string }>).filter(
+      (event) => event.type === 'token_count_completed' || event.type === 'token_count_failed',
+    );
+    expect(terminalEvents).toHaveLength(1);
+  });
+
+  it('rejects completing a token-count key without holding the lock', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    const tokenKey = makeTokenKey();
+    expect(() => withTokenTerminal(ledger).completeTokenCount(tokenKey, 1)).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it('rejects failing a token-count key without holding the lock', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    const tokenKey = makeTokenKey();
+    expect(() => withTokenTerminal(ledger).failTokenCount(tokenKey, 'timeout')).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it('rejects completing a token-count key that was never reserved', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const tokenKey = makeTokenKey();
+    expect(() => withTokenTerminal(ledger).completeTokenCount(tokenKey, 1)).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it('rejects failing a token-count key that was never reserved', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const tokenKey = makeTokenKey();
+    expect(() => withTokenTerminal(ledger).failTokenCount(tokenKey, 'timeout')).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it('rejects completing a token-count key that does not match the reserved key', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    ledger.reserveTokenCount(makeTokenKey({ caseId: DEV_CASE_A }));
+    const mismatched = makeTokenKey({ caseId: DEV_CASE_B });
+    expect(() => withTokenTerminal(ledger).completeTokenCount(mismatched, 1)).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it('rejects failing a token-count key that does not match the reserved key', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    ledger.reserveTokenCount(makeTokenKey({ caseId: DEV_CASE_A }));
+    const mismatched = makeTokenKey({ caseId: DEV_CASE_B });
+    expect(() => withTokenTerminal(ledger).failTokenCount(mismatched, 'timeout')).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it('rejects completing a token-count key that is already completed', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const tokenKey = makeTokenKey();
+    ledger.reserveTokenCount(tokenKey);
+    withTokenTerminal(ledger).completeTokenCount(tokenKey, 10);
+    expect(() => withTokenTerminal(ledger).completeTokenCount(tokenKey, 20)).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it('rejects failing a token-count key that is already completed', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const tokenKey = makeTokenKey();
+    ledger.reserveTokenCount(tokenKey);
+    withTokenTerminal(ledger).completeTokenCount(tokenKey, 10);
+    expect(() => withTokenTerminal(ledger).failTokenCount(tokenKey, 'timeout')).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it.each([
+    ['fractional', 12.5],
+    ['negative', -1],
+    ['NaN', Number.NaN],
+    ['Infinity', Number.POSITIVE_INFINITY],
+  ])('rejects completing a token-count key with a %s count', (_label, count) => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const tokenKey = makeTokenKey();
+    ledger.reserveTokenCount(tokenKey);
+    expect(() => withTokenTerminal(ledger).completeTokenCount(tokenKey, count)).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it.each([
+    ['none', 'none'],
+    ['an unrecognized', 'bogus_category'],
+  ])('rejects failing a token-count key with %s error category', (_label, category) => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const tokenKey = makeTokenKey();
+    ledger.reserveTokenCount(tokenKey);
+    expect(() =>
+      withTokenTerminal(ledger).failTokenCount(
+        tokenKey,
+        category as CalibrationSafeErrorCategory,
+      ),
+    ).toThrow(CalibrationFatalError);
+  });
+});
+
+/**
  * Task 6 RED review-correction slice: journal parent-directory fsync fault.
  *
  * Covers ONLY the injected `fsyncJournalDir` ordinary-`Error` fault after a
@@ -2922,6 +3184,124 @@ describe('calibration ledger replay rejects malformed, duplicate, and out-of-ord
     const recovered = ledger.recoverAfterCrash();
     expect(recovered.interrupted).toContainEqual(key);
     expect(() => ledger.reserve(key)).toThrow(CalibrationFatalError);
+  });
+});
+
+/**
+ * Task 7 Step 4c-b: ledger replay of Stage 0 token-count terminal events.
+ * `token_count_completed`/`token_count_failed` are recognized ledger-event
+ * types with strict replay validation: the "accepts" cases below succeed
+ * only when the event matches an open token-count reservation exactly, and
+ * the "rejects" cases throw for their named reason. No real fs, /proc,
+ * provider, Firebase, or network access occurs here.
+ */
+describe('calibration ledger replay accepts and rejects token-count terminal events', () => {
+  it('accepts a replayed token-count completed event matching its reservation', () => {
+    const world = makeWorld();
+    const tokenKey = makeTokenKey();
+    world.deps.appendLedgerEvent({
+      type: 'token_count_reserved',
+      key: tokenKey,
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'token_count_completed',
+      key: tokenKey,
+      count: 999,
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).not.toThrow();
+  });
+
+  it('accepts a replayed token-count failed event matching its reservation', () => {
+    const world = makeWorld();
+    const tokenKey = makeTokenKey();
+    world.deps.appendLedgerEvent({
+      type: 'token_count_reserved',
+      key: tokenKey,
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'token_count_failed',
+      key: tokenKey,
+      errorCategory: 'timeout',
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).not.toThrow();
+  });
+
+  it('rejects a replayed token-count completed event with no matching reservation', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({
+      type: 'token_count_completed',
+      key: makeTokenKey(),
+      count: 999,
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).toThrow(
+      /^calibration:ledger-event-out-of-order:token_count_completed$/,
+    );
+  });
+
+  it('rejects a replayed token-count completed event for a key that does not match the reservation', () => {
+    const world = makeWorld();
+    world.deps.appendLedgerEvent({
+      type: 'token_count_reserved',
+      key: makeTokenKey({ caseId: DEV_CASE_A }),
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'token_count_completed',
+      key: makeTokenKey({ caseId: DEV_CASE_B }),
+      count: 999,
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).toThrow(
+      /^calibration:ledger-event-mismatched-key:token_count_completed$/,
+    );
+  });
+
+  it('rejects a duplicate replayed token-count completed event for the same key', () => {
+    const world = makeWorld();
+    const tokenKey = makeTokenKey();
+    world.deps.appendLedgerEvent({
+      type: 'token_count_reserved',
+      key: tokenKey,
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'token_count_completed',
+      key: tokenKey,
+      count: 999,
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'token_count_completed',
+      key: tokenKey,
+      count: 999,
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).toThrow(
+      /^calibration:ledger-event-invalid-transition:token_count_completed$/,
+    );
+  });
+
+  it('rejects a malformed replayed token-count failed event missing its error category', () => {
+    const world = makeWorld();
+    const tokenKey = makeTokenKey();
+    world.deps.appendLedgerEvent({
+      type: 'token_count_reserved',
+      key: tokenKey,
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'token_count_failed',
+      key: tokenKey,
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).toThrow(
+      /^calibration:ledger-event-malformed:token_count_failed$/,
+    );
   });
 });
 
