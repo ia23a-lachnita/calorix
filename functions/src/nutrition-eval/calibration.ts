@@ -25,6 +25,10 @@ export const CALIBRATION_ROOT =
 export const PLANNED_IMAGE_CALLS = 146;
 export const HARD_CALL_CEILING = 300;
 
+const FIXED_PROTOCOL_VERSION = 'v1';
+const FIXED_PROVIDER = 'vertex-ai';
+const FIXED_MODEL = 'gemini-3.8-flash';
+
 // ── Shared types ─────────────────────────────────────────────────────────────
 
 export type StageName = 'preflight' | 'development' | 'validation' | 'benchmark';
@@ -200,10 +204,6 @@ function canonicalReservationKey(key: ReservationKey): string {
   return `${key.stage}|${key.profile}|${key.caseId}|${key.sampleIndex}`;
 }
 
-function canonicalTokenKey(key: TokenCountReservationKey): string {
-  return `${key.kind}|${key.stage}|${key.caseId}|${key.model}`;
-}
-
 function sameOwner(left: CalibrationOwner, right: CalibrationOwner): boolean {
   return (
     left.hostname === right.hostname &&
@@ -230,6 +230,52 @@ function asFatal(error: unknown, message: string): CalibrationFatalError {
   return new CalibrationFatalError(message, { cause: error });
 }
 
+function isNonBlank(value: string): boolean {
+  return value.trim().length > 0;
+}
+
+const NONBLANK_IDENTITY_FIELDS: ReadonlyArray<keyof CalibrationIdentity> = [
+  'functionsTreeId',
+  'implementationCommit',
+  'datasetHash',
+  'promptHash',
+  'responseSchemaHash',
+  'sourceLockHash',
+  'manifestHash',
+  'publicManifestHash',
+  'snapshotLockHash',
+  'historicalReferenceHash',
+];
+
+/**
+ * Fail closed before any replay, lock, or reservation state is touched: a
+ * new Gemini 2.5 (or any other non-fixed) identity must never reach this far.
+ * Distinct from `ledger.assertIdentity`, which checks a later *candidate*
+ * identity for drift against this already-fixed one.
+ */
+function assertFixedIdentity(identity: CalibrationIdentity): void {
+  if (identity.protocolVersion !== FIXED_PROTOCOL_VERSION) {
+    throw new CalibrationFatalError('calibration:identity-invalid:protocolVersion');
+  }
+  if (identity.provider !== FIXED_PROVIDER) {
+    throw new CalibrationFatalError('calibration:identity-invalid:provider');
+  }
+  if (identity.model !== FIXED_MODEL) {
+    throw new CalibrationFatalError('calibration:identity-invalid:model');
+  }
+  if (identity.plannedImageCalls !== PLANNED_IMAGE_CALLS) {
+    throw new CalibrationFatalError('calibration:identity-invalid:plannedImageCalls');
+  }
+  if (identity.hardCeiling !== HARD_CALL_CEILING) {
+    throw new CalibrationFatalError('calibration:identity-invalid:hardCeiling');
+  }
+  for (const field of NONBLANK_IDENTITY_FIELDS) {
+    if (!isNonBlank(identity[field] as string)) {
+      throw new CalibrationFatalError(`calibration:identity-invalid:${field}`);
+    }
+  }
+}
+
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -248,6 +294,7 @@ function isValidTokenKeyRecord(value: unknown): value is TokenCountReservationKe
     value.kind === 'token_count' &&
     typeof value.stage === 'string' &&
     typeof value.caseId === 'string' &&
+    value.caseId.trim().length > 0 &&
     typeof value.model === 'string'
   );
 }
@@ -285,6 +332,7 @@ export function createCalibrationLedger(
   identity: CalibrationIdentity,
   allowedKeys: readonly ReservationKey[],
 ): CalibrationLedger {
+  assertFixedIdentity(identity);
   if (allowedKeys.length > identity.plannedImageCalls) {
     throw new CalibrationFatalError('calibration:allowed-keys-exceed-planned-ceiling');
   }
@@ -296,7 +344,6 @@ export function createCalibrationLedger(
   const reservationOrder: string[] = [];
   const journalHashesByKey = new Map<string, Set<string>>();
   const pendingJournalHashes = new Map<string, string>();
-  const tokenReservations = new Set<string>();
   let tokenCountReserved = 0;
   let imageReserved = 0;
   let heldOwner: CalibrationOwner | undefined;
@@ -305,6 +352,21 @@ export function createCalibrationLedger(
     if (heldOwner === undefined) {
       throw new CalibrationFatalError('calibration:lock-not-held');
     }
+  }
+
+  // Stage 0's token-count key is fixed shape, not just well-typed: it must
+  // name this ledger's own (already-validated) fixed model and the
+  // `preflight` stage. Protocol v1 permits exactly one durable token-count
+  // reservation ever, so this checks shape only; the single-reservation
+  // invariant itself is enforced by the `tokenCountReserved` counter below.
+  function isAllowedTokenKey(key: TokenCountReservationKey): boolean {
+    return (
+      key.kind === 'token_count' &&
+      key.stage === 'preflight' &&
+      typeof key.caseId === 'string' &&
+      key.caseId.trim().length > 0 &&
+      key.model === identity.model
+    );
   }
 
   function indexJournalHash(id: string, hash: string): void {
@@ -395,14 +457,16 @@ export function createCalibrationLedger(
             'calibration:ledger-event-malformed:token_count_reserved',
           );
         }
-        const key = event.key;
-        const id = canonicalTokenKey(key);
-        if (tokenReservations.has(id)) {
+        if (!isAllowedTokenKey(event.key)) {
+          throw new CalibrationFatalError(
+            'calibration:ledger-event-invalid-key:token_count_reserved',
+          );
+        }
+        if (tokenCountReserved >= 1) {
           throw new CalibrationFatalError(
             'calibration:ledger-event-duplicate:token_count_reserved',
           );
         }
-        tokenReservations.add(id);
         tokenCountReserved += 1;
         break;
       }
@@ -640,11 +704,12 @@ export function createCalibrationLedger(
 
   function reserveTokenCount(key: TokenCountReservationKey): void {
     requireLock();
-    const id = canonicalTokenKey(key);
-    if (tokenReservations.has(id)) {
+    if (!isAllowedTokenKey(key)) {
+      throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
+    }
+    if (tokenCountReserved >= 1) {
       throw new CalibrationFatalError('calibration:token-reservation-duplicate');
     }
-    tokenReservations.add(id);
     persistLedgerEvent({ type: 'token_count_reserved', key, at: deps.nowIso() });
     tokenCountReserved += 1;
   }

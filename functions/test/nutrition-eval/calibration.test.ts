@@ -118,6 +118,14 @@ function makeKey(overrides: Partial<ReservationKey> = {}): ReservationKey {
   };
 }
 
+// Generates `count` distinct-by-`caseId` development keys for exercising the
+// fixed protocol v1 146-call ceiling without weakening `plannedImageCalls`.
+function makeManyKeys(count: number): ReservationKey[] {
+  return Array.from({ length: count }, (_, index) =>
+    makeKey({ caseId: `calibration-dish_ceiling_${index}` }),
+  );
+}
+
 interface FakeWorld {
   deps: CalibrationLedgerDeps;
   ops: string[];
@@ -243,6 +251,74 @@ describe('calibration ledger identity', () => {
     expect(() =>
       ledger.assertIdentity(makeIdentity({ hardCeiling: 301 })),
     ).toThrow(CalibrationFatalError);
+  });
+});
+
+/**
+ * Task 6 Step 5 slice: fixed protocol v1 identity construction gate.
+ *
+ * `createCalibrationLedger` must reject any identity that deviates from the
+ * frozen protocol v1 contract — exact `protocolVersion`, `provider`, `model`,
+ * `plannedImageCalls`, `hardCeiling`, and nonblank `functionsTreeId`/
+ * `implementationCommit`/hash fields — before it touches ledger/journal
+ * replay, the lock, or any reservation. This is distinct from
+ * `ledger.assertIdentity`, which detects drift of a *candidate* identity
+ * against an already-constructed ledger's own (already-fixed) identity.
+ */
+describe('calibration ledger enforces the fixed protocol v1 identity at construction', () => {
+  it('accepts the exact fixed protocol v1 identity', () => {
+    const world = makeWorld();
+    expect(() => createCalibrationLedger(world.deps, makeIdentity(), [])).not.toThrow();
+  });
+
+  it('rejects an invalid identity before reading ledger/journal replay state', () => {
+    const world = makeWorld();
+    const readLedgerEventsSpy = vi.fn(world.deps.readLedgerEvents);
+    const readJournalEntriesSpy = vi.fn(world.deps.readJournalEntries);
+    world.deps.readLedgerEvents = readLedgerEventsSpy;
+    world.deps.readJournalEntries = readJournalEntriesSpy;
+    const identity = makeIdentity({ model: 'gemini-2.5-flash' });
+    expect(() => createCalibrationLedger(world.deps, identity, [])).toThrow(
+      CalibrationFatalError,
+    );
+    expect(readLedgerEventsSpy).not.toHaveBeenCalled();
+    expect(readJournalEntriesSpy).not.toHaveBeenCalled();
+  });
+
+  it('rejects a new Gemini 2.5 identity outright, never a scored provider path', () => {
+    const world = makeWorld();
+    const identity = makeIdentity({ model: 'gemini-2.5-flash' });
+    expect(() => createCalibrationLedger(world.deps, identity, [])).toThrow(
+      CalibrationFatalError,
+    );
+  });
+
+  it.each([
+    ['protocolVersion other than v1', { protocolVersion: 'v2' }],
+    ['provider other than vertex-ai', { provider: 'gemini-api' }],
+    ['model other than gemini-3.8-flash', { model: 'gemini-3.9-flash' }],
+    ['plannedImageCalls under 146', { plannedImageCalls: 145 }],
+    ['plannedImageCalls over 146', { plannedImageCalls: 147 }],
+    ['hardCeiling under 300', { hardCeiling: 299 }],
+    ['hardCeiling over 300', { hardCeiling: 301 }],
+    ['blank functionsTreeId', { functionsTreeId: '' }],
+    ['whitespace-only functionsTreeId', { functionsTreeId: '   ' }],
+    ['blank implementationCommit', { implementationCommit: '' }],
+    ['whitespace-only implementationCommit', { implementationCommit: '  \t ' }],
+    ['blank datasetHash', { datasetHash: '' }],
+    ['blank promptHash', { promptHash: '' }],
+    ['blank responseSchemaHash', { responseSchemaHash: '' }],
+    ['blank sourceLockHash', { sourceLockHash: '' }],
+    ['blank manifestHash', { manifestHash: '' }],
+    ['blank publicManifestHash', { publicManifestHash: '' }],
+    ['blank snapshotLockHash', { snapshotLockHash: '' }],
+    ['blank historicalReferenceHash', { historicalReferenceHash: '' }],
+  ] as const)('rejects invalid fixed identity: %s', (_label, overrides) => {
+    const world = makeWorld();
+    const identity = makeIdentity(overrides as Partial<CalibrationIdentity>);
+    expect(() => createCalibrationLedger(world.deps, identity, [])).toThrow(
+      CalibrationFatalError,
+    );
   });
 });
 
@@ -2045,6 +2121,69 @@ describe('calibration Stage 0 token-count reservation', () => {
       imageReserved: 1,
     });
   });
+
+  it('permits exactly one durable token-count reservation for protocol v1, rejecting a second distinct key', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const first: TokenCountReservationKey = {
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: DEV_CASE_A,
+      model: 'gemini-3.8-flash',
+    };
+    const second: TokenCountReservationKey = {
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: DEV_CASE_B,
+      model: 'gemini-3.8-flash',
+    };
+    ledger.reserveTokenCount(first);
+    expect(() => ledger.reserveTokenCount(second)).toThrow(CalibrationFatalError);
+    expect(ledger.getCounts()).toMatchObject({ tokenCountReserved: 1, imageReserved: 0 });
+  });
+
+  it('rejects a token-count key whose stage is not preflight', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const badKey = {
+      kind: 'token_count',
+      stage: 'development',
+      caseId: DEV_CASE_A,
+      model: 'gemini-3.8-flash',
+    } as unknown as TokenCountReservationKey;
+    expect(() => ledger.reserveTokenCount(badKey)).toThrow(CalibrationFatalError);
+    expect(ledger.getCounts().tokenCountReserved).toBe(0);
+  });
+
+  it('rejects a token-count key with a blank caseId', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const badKey: TokenCountReservationKey = {
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: '',
+      model: 'gemini-3.8-flash',
+    };
+    expect(() => ledger.reserveTokenCount(badKey)).toThrow(CalibrationFatalError);
+    expect(ledger.getCounts().tokenCountReserved).toBe(0);
+  });
+
+  it('rejects a token-count key whose model is not the fixed protocol v1 model', () => {
+    const world = makeWorld();
+    const ledger = makeLedger(world, []);
+    ledger.acquireLock(makeOwner());
+    const badKey: TokenCountReservationKey = {
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: DEV_CASE_A,
+      model: 'gemini-2.5-flash',
+    };
+    expect(() => ledger.reserveTokenCount(badKey)).toThrow(CalibrationFatalError);
+    expect(ledger.getCounts().tokenCountReserved).toBe(0);
+  });
 });
 
 /**
@@ -2695,6 +2834,33 @@ describe('calibration ledger replay rejects malformed, duplicate, and out-of-ord
     expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
   });
 
+  it('rejects a second distinct persisted token-count reserved event, since protocol v1 permits only one ever', () => {
+    const world = makeWorld();
+    const first: TokenCountReservationKey = {
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: DEV_CASE_A,
+      model: 'gemini-3.8-flash',
+    };
+    const second: TokenCountReservationKey = {
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: DEV_CASE_B,
+      model: 'gemini-3.8-flash',
+    };
+    world.deps.appendLedgerEvent({
+      type: 'token_count_reserved',
+      key: first,
+      at: world.deps.nowIso(),
+    });
+    world.deps.appendLedgerEvent({
+      type: 'token_count_reserved',
+      key: second,
+      at: world.deps.nowIso(),
+    });
+    expect(() => makeLedger(world, [])).toThrow(CalibrationFatalError);
+  });
+
   it('rejects a completed event with a missing journal hash', () => {
     const world = makeWorld();
     const key = makeKey();
@@ -2793,28 +2959,21 @@ describe('calibration ledger replay-read failures convert to typed fatal errors'
   });
 });
 
-describe('calibration allowed-key list is bounded by the planned image-call ceiling', () => {
-  it('rejects an allowed-key list that exceeds the planned image-call ceiling', () => {
+describe('calibration allowed-key list is bounded by the fixed protocol v1 planned image-call ceiling', () => {
+  it('rejects an allowed-key list of 147 keys, one over the fixed protocol v1 ceiling of 146', () => {
     const world = makeWorld();
-    const identity = makeIdentity({ plannedImageCalls: 2 });
-    const allowed = [
-      makeKey({ caseId: DEV_CASE_A, sampleIndex: 1 }),
-      makeKey({ caseId: DEV_CASE_B, sampleIndex: 1 }),
-      makeKey({ caseId: DEV_CASE_A, profile: 'LOW', sampleIndex: 1 }),
-    ];
-    expect(() => createCalibrationLedger(world.deps, identity, allowed)).toThrow(
+    const allowed = makeManyKeys(PLANNED_IMAGE_CALLS + 1);
+    expect(() => createCalibrationLedger(world.deps, makeIdentity(), allowed)).toThrow(
       CalibrationFatalError,
     );
   });
 
-  it('accepts an allowed-key list exactly at the planned image-call ceiling', () => {
+  it('accepts an allowed-key list of exactly 146 keys, the fixed protocol v1 ceiling', () => {
     const world = makeWorld();
-    const identity = makeIdentity({ plannedImageCalls: 2 });
-    const allowed = [
-      makeKey({ caseId: DEV_CASE_A, sampleIndex: 1 }),
-      makeKey({ caseId: DEV_CASE_B, sampleIndex: 1 }),
-    ];
-    expect(() => createCalibrationLedger(world.deps, identity, allowed)).not.toThrow();
+    const allowed = makeManyKeys(PLANNED_IMAGE_CALLS);
+    expect(() =>
+      createCalibrationLedger(world.deps, makeIdentity(), allowed),
+    ).not.toThrow();
   });
 });
 
