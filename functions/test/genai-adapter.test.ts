@@ -5,6 +5,7 @@ import {
   resolveVisionGenerationProfile,
   type VisionGenerationOptions,
 } from '../src/genai-adapter';
+import * as GenAIAdapterModule from '../src/genai-adapter';
 
 type VisionSource = 'meal' | 'label' | 'barcode';
 
@@ -630,5 +631,180 @@ describe('generateVision calibration profile', () => {
       }),
     ).rejects.toThrow();
     expect(generateContent).not.toHaveBeenCalled();
+  });
+});
+
+// ── Task7 Step1 RED: dedicated calibration Vertex client boundary ─────────────
+// The Task7 calibration CLI needs a hermetic, never-dispatched client factory in
+// `functions/src/genai-adapter.ts` that validates its environment BEFORE
+// constructing `GoogleGenAI` and then constructs exactly:
+//   { vertexai: true, project: 'calorix-xurschnell', location: 'us',
+//     apiVersion: 'v1',
+//     httpOptions: { baseUrl: 'https://aiplatform.us.rep.googleapis.com/',
+//                    timeout: 30000 } }
+// with no API key and no retryOptions, immune to unrelated GOOGLE_API_KEY and
+// GOOGLE_CLOUD_* variables. The factory and its identity constants do not exist
+// yet, so every test below is RED with `Task7 API missing` until Task7 Step4
+// extends `genai-adapter.ts`. All pre-existing tests above keep passing.
+// Hermetic: the success-path tests inspect an unmocked, never-dispatched
+// client (no `generateContent` call, no fetch, no Firebase, no network).
+
+type CalibrationClientEnv = Record<string, string | undefined>;
+
+type CalibrationClientFactory = (env?: CalibrationClientEnv) => unknown;
+
+function task7Factory(): CalibrationClientFactory | undefined {
+  return (GenAIAdapterModule as unknown as Record<string, unknown>)
+    .createCalibrationGenAIClient as CalibrationClientFactory | undefined;
+}
+
+function task7Constant(name: string): unknown {
+  return (GenAIAdapterModule as unknown as Record<string, unknown>)[name];
+}
+
+function requireTask7Factory(): CalibrationClientFactory {
+  const factory = task7Factory();
+  expect(
+    factory,
+    'Task7 API missing: createCalibrationGenAIClient is not exported from genai-adapter.ts',
+  ).toBeDefined();
+  return factory as CalibrationClientFactory;
+}
+
+function requireTask7Constant(name: string, expected: unknown): void {
+  expect(task7Constant(name), `Task7 API missing: ${name} is not exported from genai-adapter.ts`).toBe(
+    expected,
+  );
+}
+
+function clientRecord(client: unknown): Record<string, unknown> {
+  expect(client).toBeDefined();
+  return client as Record<string, unknown>;
+}
+
+function httpOptionsOf(client: Record<string, unknown>): Record<string, unknown> {
+  return client.httpOptions as Record<string, unknown>;
+}
+
+describe('calibration Vertex client identity constants (Task7 RED)', () => {
+  it('pins CALIBRATION_VERTEX_PROJECT to calorix-xurschnell', () => {
+    requireTask7Constant('CALIBRATION_VERTEX_PROJECT', 'calorix-xurschnell');
+  });
+
+  it('pins CALIBRATION_VERTEX_LOCATION to us', () => {
+    requireTask7Constant('CALIBRATION_VERTEX_LOCATION', 'us');
+  });
+
+  it('pins CALIBRATION_MODEL to gemini-3.8-flash', () => {
+    requireTask7Constant('CALIBRATION_MODEL', 'gemini-3.8-flash');
+  });
+
+  it('pins CALIBRATION_API_VERSION to v1', () => {
+    requireTask7Constant('CALIBRATION_API_VERSION', 'v1');
+  });
+
+  it('pins CALIBRATION_BASE_URL to the regional Vertex endpoint', () => {
+    requireTask7Constant('CALIBRATION_BASE_URL', 'https://aiplatform.us.rep.googleapis.com/');
+  });
+
+  it('pins CALIBRATION_TIMEOUT_MS to 30000', () => {
+    requireTask7Constant('CALIBRATION_TIMEOUT_MS', 30000);
+  });
+});
+
+describe('calibration Vertex client construction (Task7 RED)', () => {
+  it('exposes a createCalibrationGenAIClient factory', () => {
+    requireTask7Factory();
+  });
+
+  it('constructs an unmocked client with the exact Vertex identity and no dispatch', () => {
+    const factory = requireTask7Factory();
+    const client = clientRecord(factory({}));
+
+    expect(client.vertexai).toBe(true);
+    expect(client.project).toBe('calorix-xurschnell');
+    expect(client.location).toBe('us');
+    expect(client.apiVersion).toBe('v1');
+    expect(httpOptionsOf(client)).toMatchObject({
+      baseUrl: 'https://aiplatform.us.rep.googleapis.com/',
+      timeout: 30000,
+    });
+  });
+
+  it('sets no API key and no retry options on the unmocked client', () => {
+    const factory = requireTask7Factory();
+    const client = clientRecord(factory({}));
+
+    expect(client.apiKey).toBeUndefined();
+    expect(client).not.toHaveProperty('retryOptions');
+    expect(httpOptionsOf(client)).not.toHaveProperty('retryOptions');
+    const apiClient = client.apiClient as Record<string, unknown> | undefined;
+    const resolvedHttp = (apiClient?.clientOptions as Record<string, unknown> | undefined)
+      ?.httpOptions as Record<string, unknown> | undefined;
+    expect(resolvedHttp).toMatchObject({
+      baseUrl: 'https://aiplatform.us.rep.googleapis.com/',
+      timeout: 30000,
+    });
+    expect(resolvedHttp).not.toHaveProperty('retryOptions');
+  });
+
+  it('is unaffected by unrelated GOOGLE_API_KEY and GOOGLE_CLOUD_* variables', () => {
+    const factory = requireTask7Factory();
+    const client = clientRecord(
+      factory({
+        GOOGLE_API_KEY: 'unrelated-test-key',
+        GOOGLE_CLOUD_PROJECT: 'some-other-project',
+        GOOGLE_CLOUD_REGION: 'some-other-region',
+      }),
+    );
+
+    expect(client.project).toBe('calorix-xurschnell');
+    expect(client.location).toBe('us');
+    expect(client.apiKey).toBeUndefined();
+    expect(httpOptionsOf(client)).toMatchObject({
+      baseUrl: 'https://aiplatform.us.rep.googleapis.com/',
+      timeout: 30000,
+    });
+  });
+
+  it.each(['GOOGLE_VERTEX_BASE_URL', 'GOOGLE_GEMINI_BASE_URL'])(
+    'rejects nonblank %s before GoogleGenAI construction',
+    (envKey) => {
+      const factory = requireTask7Factory();
+
+      expect(() =>
+        factory({ [envKey]: 'https://example.com/custom-endpoint' }),
+      ).toThrow();
+    },
+  );
+
+  it('rejects whitespace-padded base-URL overrides before construction', () => {
+    const factory = requireTask7Factory();
+
+    expect(() =>
+      factory({ GOOGLE_VERTEX_BASE_URL: '  https://example.com/custom  ' }),
+    ).toThrow();
+  });
+
+  it('rejects 2.5 anywhere in the calibration environment before construction', () => {
+    const factory = requireTask7Factory();
+
+    expect(() => factory({ CALORIX_NUTRITION_EVAL_MODEL: 'gemini-2.5-flash' })).toThrow();
+    expect(() => factory({ SOME_UNRELATED_NOTE: 'uses gemini-2.5-flash' })).toThrow();
+  });
+
+  it('rejects provider retry overrides before construction', () => {
+    const factory = requireTask7Factory();
+
+    expect(() => factory({ GOOGLE_GENAI_RETRY_OPTIONS: '{"maxRetries":3}' })).toThrow();
+    expect(() => factory({ CALIBRATION_MAX_RETRIES: '3' })).toThrow();
+  });
+
+  it('rejects a wrong project/location/model before construction', () => {
+    const factory = requireTask7Factory();
+
+    expect(() => factory({ CALORIX_NUTRITION_EVAL_PROJECT: 'wrong-project' })).toThrow();
+    expect(() => factory({ CALORIX_NUTRITION_EVAL_LOCATION: 'us-central1' })).toThrow();
+    expect(() => factory({ CALORIX_NUTRITION_EVAL_MODEL: 'gemini-2.0-flash' })).toThrow();
   });
 });
