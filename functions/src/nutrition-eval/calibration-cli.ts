@@ -26,7 +26,8 @@
  * exactly one separately typed token-count key and then the `LOW` and `MEDIUM`
  * image keys of the first development case, driving every provider effect
  * through injected `countTokens`/`generateImage`/`reserveCall`/token-terminal/
- * `recordSafeError` hooks. It pins the first `LOW` model version, requires `MEDIUM` to match it
+ * image-journal-and-completion/`recordSafeError` hooks. It pins the first `LOW` model version,
+ * requires `MEDIUM` to match it
  * exactly, treats any reservation, provider, parse, or version failure as
  * `CalibrationFatalError` with zero retry and no `MEDIUM` call after a `LOW`
  * failure, and records only a privacy-safe `classifyCalibrationError` category
@@ -52,6 +53,7 @@ import {
 } from '../genai-adapter';
 import type {
   CalibrationProfile,
+  JournalEntry,
   ReservationKey,
   TokenCountReservationKey,
 } from './calibration';
@@ -619,6 +621,8 @@ export const CALIBRATION_PREFLIGHT_SAMPLE_INDEX = 1;
  * is ignored here, so this primitive validates only the identity it pins.
  */
 const REQUIRED_PREDICTION_FIELDS = ['kcal', 'proteinG', 'carbsG', 'fatG'] as const;
+/** Match the file store's bounded, single-line response-model-version contract. */
+const PREFLIGHT_MODEL_VERSION_PATTERN = /^[A-Za-z0-9_./-]{1,128}$/;
 
 /** Ordered exactly as Stage 0 must call them: pin on `LOW`, then confirm `MEDIUM`. */
 const PREFLIGHT_PROFILES = ['LOW', 'MEDIUM'] as const satisfies readonly CalibrationProfile[];
@@ -657,6 +661,8 @@ export interface CalibrationPreflightHooks {
     errorCategory: CalibrationSafeErrorCategory,
   ) => Promise<void> | void;
   generateImage: (request: CalibrationPreflightImageRequest) => Promise<unknown>;
+  appendResultJournal: (entry: JournalEntry) => Promise<string> | string;
+  completeImage: (key: ReservationKey, journalHash: string) => Promise<void> | void;
   recordSafeError: (entry: CalibrationPreflightSafeErrorEntry) => Promise<void> | void;
 }
 
@@ -681,15 +687,19 @@ function isFiniteNonNegative(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
-function isStructuredPrediction(value: unknown): boolean {
+type PreflightPrediction = Record<(typeof REQUIRED_PREDICTION_FIELDS)[number], number>;
+
+function isStructuredPrediction(value: unknown): value is PreflightPrediction {
   if (!isPlainRecord(value)) return false;
   return REQUIRED_PREDICTION_FIELDS.every((field) => isFiniteNonNegative(value[field]));
 }
 
-/** A malformed or non-string version pins nothing and fails the stage. */
+/** Unsafe or malformed version metadata pins nothing and never reaches a journal. */
 function modelVersionFrom(result: Record<string, unknown>): string | undefined {
   const raw = result.modelVersion;
-  return typeof raw === 'string' ? nonblank(raw) : undefined;
+  return typeof raw === 'string' && PREFLIGHT_MODEL_VERSION_PATTERN.test(raw)
+    ? raw
+    : undefined;
 }
 
 function tokenCountSafeEntry(
@@ -739,6 +749,58 @@ async function recordTokenTerminal(operation: () => Promise<void> | void): Promi
   } catch {
     throw preflightFatal('calibration:preflight-token-terminal-persist-failed');
   }
+}
+
+/** A journal or completion fault must escape without its raw cause or a second write. */
+async function recordImageTerminal(
+  key: ReservationKey,
+  entry: JournalEntry,
+  hooks: CalibrationPreflightHooks,
+): Promise<void> {
+  try {
+    const journalHash = await hooks.appendResultJournal(entry);
+    if (typeof journalHash !== 'string' || journalHash.trim().length === 0) {
+      throw new Error('invalid journal hash');
+    }
+    await hooks.completeImage(key, journalHash);
+  } catch {
+    throw preflightFatal('calibration:preflight-image-terminal-persist-failed');
+  }
+}
+
+function failedImageJournalEntry(
+  key: ReservationKey,
+  errorCategory: CalibrationSafeErrorCategory,
+): JournalEntry {
+  return {
+    key,
+    predictionHash: errorCategory,
+    normalizedPrediction: null,
+    analysisLatencyMs: 0,
+    errorCategory,
+    responseModelVersion: 'n/a',
+  };
+}
+
+function successfulImageJournalEntry(
+  key: ReservationKey,
+  prediction: PreflightPrediction,
+  modelVersion: string,
+): JournalEntry {
+  const normalizedPrediction = {
+    kcal: prediction.kcal,
+    proteinG: prediction.proteinG,
+    carbsG: prediction.carbsG,
+    fatG: prediction.fatG,
+  };
+  return {
+    key,
+    predictionHash: createHash('sha256').update(JSON.stringify(normalizedPrediction)).digest('hex'),
+    normalizedPrediction,
+    analysisLatencyMs: 0,
+    errorCategory: 'none',
+    responseModelVersion: modelVersion,
+  };
 }
 
 /**
@@ -818,6 +880,18 @@ async function runPreflightImage(
     sampleIndex: CALIBRATION_PREFLIGHT_SAMPLE_INDEX,
   };
 
+  async function failImage(
+    errorCategory: CalibrationSafeErrorCategory,
+    fatalMessage: string,
+  ): Promise<never> {
+    await recordImageTerminal(key, failedImageJournalEntry(key, errorCategory), hooks);
+    await recordSafeFailure(
+      hooks.recordSafeError,
+      imageSafeEntry(caseId, profile, errorCategory),
+    );
+    throw preflightFatal(fatalMessage);
+  }
+
   try {
     await hooks.reserveCall(key);
   } catch (error) {
@@ -832,27 +906,21 @@ async function runPreflightImage(
   try {
     raw = await hooks.generateImage({ model: CALIBRATION_MODEL, profile, caseId });
   } catch (error) {
-    await recordSafeFailure(
-      hooks.recordSafeError,
-      imageSafeEntry(caseId, profile, classifyCalibrationError(error)),
-    );
-    throw preflightFatal('calibration:preflight-image-call-failed');
+    return failImage(classifyCalibrationError(error), 'calibration:preflight-image-call-failed');
   }
 
-  const safe = imageSafeEntry.bind(undefined, caseId, profile);
   if (!isPlainRecord(raw) || !isStructuredPrediction(raw.prediction)) {
-    await recordSafeFailure(hooks.recordSafeError, safe('empty_response'));
-    throw preflightFatal('calibration:preflight-prediction-invalid');
+    return failImage('empty_response', 'calibration:preflight-prediction-invalid');
   }
 
   const modelVersion = modelVersionFrom(raw);
   if (modelVersion === undefined) {
-    await recordSafeFailure(hooks.recordSafeError, safe('empty_response'));
-    throw preflightFatal('calibration:preflight-model-version-invalid');
+    return failImage('empty_response', 'calibration:preflight-model-version-invalid');
   }
   if (pinnedModelVersion !== undefined && modelVersion !== pinnedModelVersion) {
     throw preflightFatal('calibration:preflight-model-version-mismatch');
   }
+  await recordImageTerminal(key, successfulImageJournalEntry(key, raw.prediction, modelVersion), hooks);
   return modelVersion;
 }
 
@@ -880,6 +948,8 @@ export async function executeCalibrationPreflight(
     || typeof hooks.completeTokenCount !== 'function'
     || typeof hooks.failTokenCount !== 'function'
     || typeof hooks.generateImage !== 'function'
+    || typeof hooks.appendResultJournal !== 'function'
+    || typeof hooks.completeImage !== 'function'
     || typeof hooks.recordSafeError !== 'function') {
     throw preflightFatal('calibration:preflight-stage-input-invalid');
   }

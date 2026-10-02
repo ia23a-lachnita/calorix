@@ -1180,6 +1180,8 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
     failTokenCount: ReturnType<typeof vi.fn>;
     generateImage: ReturnType<typeof vi.fn>;
     recordSafeError: ReturnType<typeof vi.fn>;
+    appendResultJournal: ReturnType<typeof vi.fn>;
+    completeImage: ReturnType<typeof vi.fn>;
   } {
     const lowVersion = 'lowVersion' in overrides ? overrides.lowVersion : STEP2_PINNED_VERSION;
     const mediumVersion = 'mediumVersion' in overrides ? overrides.mediumVersion : STEP2_PINNED_VERSION;
@@ -1192,6 +1194,8 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
       modelVersion: request.profile === 'LOW' ? lowVersion : mediumVersion,
     }));
     const recordSafeError = vi.fn((_entry: unknown) => undefined);
+    const appendResultJournal = vi.fn(async (_entry: unknown) => 'fixed-journal-hash');
+    const completeImage = vi.fn(async (_key: unknown, _hash: string) => undefined);
     return {
       reserveCall,
       countTokens,
@@ -1199,6 +1203,8 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
       failTokenCount,
       generateImage,
       recordSafeError,
+      appendResultJournal,
+      completeImage,
     };
   }
 
@@ -1265,6 +1271,133 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
     expect(imageOrders[0]).toBeLessThan(imageOrders[1] ?? Number.NaN);
   });
 
+  it('journals only safe prediction numerics and completes each image before the next reservation', async () => {
+    const deps = makeStageDeps();
+    const secret = 'SECRET-IMAGE-RESPONSE-FIELD';
+    deps.generateImage.mockImplementation(async () => ({
+      prediction: { ...validStep2Prediction(), rawDescription: secret },
+      modelVersion: STEP2_PINNED_VERSION,
+      rawResponse: secret,
+    }));
+
+    await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    );
+
+    expect(deps.appendResultJournal).toHaveBeenCalledTimes(2);
+    expect(deps.completeImage).toHaveBeenCalledTimes(2);
+    for (const [index, profile] of ['LOW', 'MEDIUM'].entries()) {
+      const key = {
+        stage: 'preflight', profile, caseId: STEP2_FIRST_DEV_CASE_ID, sampleIndex: 1,
+      };
+      expect(deps.appendResultJournal.mock.calls[index]?.[0]).toEqual({
+        key,
+        predictionHash: 'cd0a4d9593c12371e005285b6d49c535764e5fa12afadeadfc0de8c0f03f4f7e',
+        normalizedPrediction: { kcal: 320, proteinG: 20, carbsG: 30, fatG: 10 },
+        analysisLatencyMs: 0,
+        errorCategory: 'none',
+        responseModelVersion: STEP2_PINNED_VERSION,
+      });
+      expect(deps.completeImage.mock.calls[index]).toEqual([key, 'fixed-journal-hash']);
+      expect(deps.generateImage.mock.invocationCallOrder[index]).toBeLessThan(
+        deps.appendResultJournal.mock.invocationCallOrder[index] ?? Number.NaN,
+      );
+      expect(deps.appendResultJournal.mock.invocationCallOrder[index]).toBeLessThan(
+        deps.completeImage.mock.invocationCallOrder[index] ?? Number.NaN,
+      );
+    }
+    expect(deps.completeImage.mock.invocationCallOrder[0]).toBeLessThan(
+      deps.reserveCall.mock.invocationCallOrder[2] ?? Number.NaN,
+    );
+    expect(JSON.stringify(deps.appendResultJournal.mock.calls)).not.toContain(secret);
+    expect(deps.recordSafeError).not.toHaveBeenCalled();
+  });
+
+  it.each(['appendResultJournal', 'completeImage'] as const)(
+    'fails before any reservation when %s is missing',
+    async (hookName) => {
+      const deps = makeStageDeps();
+      const malformed = {
+        firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID,
+        ...deps,
+        [hookName]: undefined,
+      };
+
+      const error = await executeCalibrationPreflight(
+        { __mockClient: true },
+        malformed as unknown as Parameters<typeof executeCalibrationPreflight>[1],
+      ).then(() => null, (cause: unknown) => cause);
+
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+      expect((error as CalibrationFatalError).message).toBe('calibration:preflight-stage-input-invalid');
+      expect(deps.reserveCall).not.toHaveBeenCalled();
+      expect(deps.countTokens).not.toHaveBeenCalled();
+      expect(deps.generateImage).not.toHaveBeenCalled();
+    },
+  );
+
+  it('leaves a drifted MEDIUM reservation pending without inventing a provider failure', async () => {
+    const deps = makeStageDeps({ mediumVersion: 'gemini-3.8-other' });
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(() => null, (cause: unknown) => cause);
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect((error as CalibrationFatalError).message).toBe('calibration:preflight-model-version-mismatch');
+    expect(deps.reserveCall).toHaveBeenCalledTimes(3);
+    expect(deps.appendResultJournal).toHaveBeenCalledTimes(1);
+    expect(deps.completeImage).toHaveBeenCalledTimes(1);
+    expect(deps.appendResultJournal.mock.calls[0]?.[0]).toMatchObject({
+      key: { profile: 'LOW' }, errorCategory: 'none',
+    });
+    expect(deps.recordSafeError).not.toHaveBeenCalled();
+  });
+
+  it.each(['appendResultJournal', 'completeImage'] as const)(
+    'stops with a fresh causeless fatal and no second write when %s fails',
+    async (hookName) => {
+      const deps = makeStageDeps();
+      const secret = `SECRET-IMAGE-TERMINAL-${hookName}`;
+      deps[hookName].mockRejectedValueOnce(new Error(`disk failure ${secret}`));
+
+      const error = await executeCalibrationPreflight(
+        { __mockClient: true },
+        { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+      ).then(() => null, (cause: unknown) => cause);
+
+      expectSafeFatalWithoutSentinel(error, secret);
+      expect((error as CalibrationFatalError).message).toBe('calibration:preflight-image-terminal-persist-failed');
+      expect(deps.appendResultJournal).toHaveBeenCalledTimes(1);
+      expect(deps.completeImage).toHaveBeenCalledTimes(hookName === 'completeImage' ? 1 : 0);
+      expect(deps.recordSafeError).not.toHaveBeenCalled();
+      expect(deps.reserveCall).toHaveBeenCalledTimes(2);
+      expect(deps.generateImage).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it.each(['', '  ', undefined])(
+    'does not complete an image with an unusable journal hash %s',
+    async (journalHash) => {
+      const deps = makeStageDeps();
+      deps.appendResultJournal.mockResolvedValueOnce(journalHash);
+
+      const error = await executeCalibrationPreflight(
+        { __mockClient: true },
+        { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+      ).then(() => null, (cause: unknown) => cause);
+
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+      expect((error as CalibrationFatalError).message).toBe('calibration:preflight-image-terminal-persist-failed');
+      expect(deps.appendResultJournal).toHaveBeenCalledTimes(1);
+      expect(deps.completeImage).not.toHaveBeenCalled();
+      expect(deps.recordSafeError).not.toHaveBeenCalled();
+      expect(deps.reserveCall).toHaveBeenCalledTimes(2);
+    },
+  );
+
   it('fails fatal with no retry when the MEDIUM model version drifts', async () => {
     const deps = makeStageDeps({ mediumVersion: 'gemini-3.8-other' });
 
@@ -1299,6 +1432,32 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
     },
   );
 
+  it('rejects unsafe model-version metadata before it reaches an image journal', async () => {
+    const sentinel = 'SECRET-MODEL-VERSION-METADATA';
+    const unsafeVersion = `${STEP2_PINNED_VERSION}\nhttps://private.example/${sentinel}`;
+    const deps = makeStageDeps({ lowVersion: unsafeVersion });
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(() => null, (cause: unknown) => cause);
+
+    expectSafeFatalWithoutSentinel(error, sentinel);
+    expect((error as CalibrationFatalError).message).toBe('calibration:preflight-model-version-invalid');
+    expect(deps.generateImage).toHaveBeenCalledTimes(1);
+    expect(deps.appendResultJournal).toHaveBeenCalledTimes(1);
+    expect(deps.appendResultJournal.mock.calls[0]?.[0]).toMatchObject({
+      normalizedPrediction: null,
+      errorCategory: 'empty_response',
+      responseModelVersion: 'n/a',
+    });
+    expect(JSON.stringify(deps.appendResultJournal.mock.calls)).not.toContain(sentinel);
+    expect(deps.completeImage).toHaveBeenCalledTimes(1);
+    expect(deps.recordSafeError).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(deps.recordSafeError.mock.calls)).not.toContain(sentinel);
+    expect(deps.reserveCall).toHaveBeenCalledTimes(2);
+  });
+
   it.each([
     ['non-record prediction', 'not-a-record'],
     ['negative nutrient', { kcal: -5, proteinG: 20, carbsG: 30, fatG: 10 }],
@@ -1320,6 +1479,17 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
 
     expect(error).toBeInstanceOf(CalibrationFatalError);
     expect(deps.generateImage).toHaveBeenCalledTimes(1);
+    expect(deps.appendResultJournal).toHaveBeenCalledTimes(1);
+    expect(deps.appendResultJournal.mock.calls[0]?.[0]).toMatchObject({
+      key: { stage: 'preflight', profile: 'LOW', caseId: STEP2_FIRST_DEV_CASE_ID, sampleIndex: 1 },
+      normalizedPrediction: null,
+      errorCategory: 'empty_response',
+      responseModelVersion: 'n/a',
+    });
+    expect(deps.completeImage).toHaveBeenCalledWith(
+      { stage: 'preflight', profile: 'LOW', caseId: STEP2_FIRST_DEV_CASE_ID, sampleIndex: 1 },
+      'fixed-journal-hash',
+    );
   });
 
   it('records only the safe category when the token call fails and never reaches images', async () => {
@@ -1495,6 +1665,19 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
 
     expect(error).toBeInstanceOf(CalibrationFatalError);
     expect(deps.generateImage).toHaveBeenCalledTimes(1);
+    expect(deps.appendResultJournal).toHaveBeenCalledTimes(1);
+    expect(deps.appendResultJournal.mock.calls[0]?.[0]).toMatchObject({
+      normalizedPrediction: null,
+      errorCategory: 'http_5xx',
+      responseModelVersion: 'n/a',
+    });
+    expect(deps.completeImage).toHaveBeenCalledTimes(1);
+    expect(deps.appendResultJournal.mock.invocationCallOrder[0]).toBeLessThan(
+      deps.completeImage.mock.invocationCallOrder[0] ?? Number.NaN,
+    );
+    expect(deps.completeImage.mock.invocationCallOrder[0]).toBeLessThan(
+      deps.recordSafeError.mock.invocationCallOrder[0] ?? Number.NaN,
+    );
     expect(deps.recordSafeError).toHaveBeenCalledTimes(1);
     const entry = deps.recordSafeError.mock.calls[0]?.[0] as Record<string, unknown>;
     expect(entry.errorCategory).toBe('http_5xx');
