@@ -1176,6 +1176,8 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
   } = {}): {
     reserveCall: ReturnType<typeof vi.fn>;
     countTokens: ReturnType<typeof vi.fn>;
+    completeTokenCount: ReturnType<typeof vi.fn>;
+    failTokenCount: ReturnType<typeof vi.fn>;
     generateImage: ReturnType<typeof vi.fn>;
     recordSafeError: ReturnType<typeof vi.fn>;
   } {
@@ -1183,12 +1185,21 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
     const mediumVersion = 'mediumVersion' in overrides ? overrides.mediumVersion : STEP2_PINNED_VERSION;
     const reserveCall = vi.fn(async (_key: unknown) => undefined);
     const countTokens = vi.fn(async (_request: unknown) => ({ tokenCount: 42 }));
+    const completeTokenCount = vi.fn(async (_key: unknown, _count: number) => undefined);
+    const failTokenCount = vi.fn(async (_key: unknown, _category: string) => undefined);
     const generateImage = vi.fn(async (request: { profile: string }) => ({
       prediction: validStep2Prediction(),
       modelVersion: request.profile === 'LOW' ? lowVersion : mediumVersion,
     }));
     const recordSafeError = vi.fn((_entry: unknown) => undefined);
-    return { reserveCall, countTokens, generateImage, recordSafeError };
+    return {
+      reserveCall,
+      countTokens,
+      completeTokenCount,
+      failTokenCount,
+      generateImage,
+      recordSafeError,
+    };
   }
 
   it('reserves one token count then exactly LOW and MEDIUM images on the first dev case', async () => {
@@ -1224,6 +1235,14 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
     ]);
     expect(deps.countTokens).toHaveBeenCalledTimes(1);
     expect(deps.countTokens.mock.calls[0]?.[0]).toEqual({ model: STEP2_MODEL });
+    expect(deps.completeTokenCount).toHaveBeenCalledTimes(1);
+    expect(deps.completeTokenCount).toHaveBeenCalledWith({
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: STEP2_FIRST_DEV_CASE_ID,
+      model: STEP2_MODEL,
+    }, 42);
+    expect(deps.failTokenCount).not.toHaveBeenCalled();
     expect(deps.generateImage).toHaveBeenCalledTimes(2);
     expect(deps.generateImage.mock.calls[0]?.[0]).toEqual({
       model: STEP2_MODEL,
@@ -1238,7 +1257,10 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
     const order = (spy: ReturnType<typeof vi.fn>): number =>
       spy.mock.invocationCallOrder[0] ?? Number.NaN;
     expect(order(deps.reserveCall)).toBeLessThan(order(deps.countTokens));
-    expect(order(deps.countTokens)).toBeLessThan(order(deps.generateImage));
+    expect(order(deps.countTokens)).toBeLessThan(order(deps.completeTokenCount));
+    expect(order(deps.completeTokenCount)).toBeLessThan(
+      deps.reserveCall.mock.invocationCallOrder[1] ?? Number.NaN,
+    );
     const imageOrders = deps.generateImage.mock.invocationCallOrder;
     expect(imageOrders[0]).toBeLessThan(imageOrders[1] ?? Number.NaN);
   });
@@ -1321,13 +1343,136 @@ describe('executeCalibrationPreflight Stage0 (Task7 Step2 RED)', () => {
     expect(error).toBeInstanceOf(CalibrationFatalError);
     expect(deps.generateImage).not.toHaveBeenCalled();
     expect(deps.countTokens).toHaveBeenCalledTimes(1);
+    expect(deps.failTokenCount).toHaveBeenCalledTimes(1);
+    expect(deps.failTokenCount).toHaveBeenCalledWith({
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: STEP2_FIRST_DEV_CASE_ID,
+      model: STEP2_MODEL,
+    }, 'http_429');
+    expect(deps.completeTokenCount).not.toHaveBeenCalled();
     expect(deps.recordSafeError).toHaveBeenCalledTimes(1);
+    expect(deps.failTokenCount.mock.invocationCallOrder[0]).toBeLessThan(
+      deps.recordSafeError.mock.invocationCallOrder[0] ?? Number.NaN,
+    );
     const entry = deps.recordSafeError.mock.calls[0]?.[0] as Record<string, unknown>;
     expect(entry.errorCategory).toBe('http_429');
     const serialized = JSON.stringify(entry);
     expect(serialized).not.toContain(rawMarker);
     expect(serialized).not.toContain('secret-endpoint.example');
     expect(serialized).not.toContain('https://');
+  });
+
+  it.each([
+    ['fractional', { tokenCount: 12.5 }],
+    ['negative', { tokenCount: -1 }],
+    ['not a number', { tokenCount: Number.NaN }],
+    ['null count', { tokenCount: null }],
+    ['missing count', {}],
+    ['null response', null],
+  ])('fails the token terminal with empty_response for %s', async (_label, response) => {
+    const deps = makeStageDeps();
+    deps.countTokens.mockResolvedValueOnce(response);
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(() => null, (cause: unknown) => cause);
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect((error as CalibrationFatalError).message).toBe('calibration:preflight-token-result-invalid');
+    expect(deps.failTokenCount).toHaveBeenCalledTimes(1);
+    expect(deps.failTokenCount).toHaveBeenCalledWith({
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: STEP2_FIRST_DEV_CASE_ID,
+      model: STEP2_MODEL,
+    }, 'empty_response');
+    expect(deps.completeTokenCount).not.toHaveBeenCalled();
+    expect(deps.recordSafeError).toHaveBeenCalledTimes(1);
+    expect(deps.generateImage).not.toHaveBeenCalled();
+    expect(deps.reserveCall).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not finalize a token count when reservation fails', async () => {
+    const deps = makeStageDeps();
+    deps.reserveCall.mockRejectedValueOnce(new Error('reservation denied'));
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(() => null, (cause: unknown) => cause);
+
+    expect(error).toBeInstanceOf(CalibrationFatalError);
+    expect((error as CalibrationFatalError).message).toBe('calibration:preflight-token-reservation-failed');
+    expect(deps.completeTokenCount).not.toHaveBeenCalled();
+    expect(deps.failTokenCount).not.toHaveBeenCalled();
+    expect(deps.countTokens).not.toHaveBeenCalled();
+    expect(deps.generateImage).not.toHaveBeenCalled();
+  });
+
+  it.each(['completeTokenCount', 'failTokenCount'] as const)(
+    'fails closed before dispatch when %s is missing',
+    async (hookName) => {
+      const deps = makeStageDeps();
+      const malformed = {
+        firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID,
+        ...deps,
+        [hookName]: undefined,
+      };
+
+      const error = await executeCalibrationPreflight(
+        { __mockClient: true },
+        malformed as unknown as Parameters<typeof executeCalibrationPreflight>[1],
+      ).then(() => null, (cause: unknown) => cause);
+
+      expect(error).toBeInstanceOf(CalibrationFatalError);
+      expect((error as CalibrationFatalError).message).toBe('calibration:preflight-stage-input-invalid');
+      expect(deps.reserveCall).not.toHaveBeenCalled();
+      expect(deps.countTokens).not.toHaveBeenCalled();
+      expect(deps.generateImage).not.toHaveBeenCalled();
+    },
+  );
+
+  it('stops without a second write after token completion persistence fails', async () => {
+    const deps = makeStageDeps();
+    const sentinel = 'SECRET-TOKEN-TERMINAL-COMPLETE-EIO';
+    deps.completeTokenCount.mockRejectedValueOnce(new Error(`disk failure ${sentinel}`));
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(() => null, (cause: unknown) => cause);
+
+    expectSafeFatalWithoutSentinel(error, sentinel);
+    expect((error as CalibrationFatalError).message).toBe('calibration:preflight-token-terminal-persist-failed');
+    expect(deps.completeTokenCount).toHaveBeenCalledTimes(1);
+    expect(deps.failTokenCount).not.toHaveBeenCalled();
+    expect(deps.recordSafeError).not.toHaveBeenCalled();
+    expect(deps.generateImage).not.toHaveBeenCalled();
+    expect(deps.reserveCall).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops without a second write after token failure persistence fails', async () => {
+    const deps = makeStageDeps();
+    const sentinel = 'SECRET-TOKEN-TERMINAL-FAIL-EIO';
+    deps.countTokens.mockRejectedValueOnce(Object.assign(new Error('quota'), { status: 429 }));
+    deps.failTokenCount.mockImplementationOnce(() => {
+      throw new Error(`disk failure ${sentinel}`);
+    });
+
+    const error = await executeCalibrationPreflight(
+      { __mockClient: true },
+      { firstDevelopmentCaseId: STEP2_FIRST_DEV_CASE_ID, ...deps },
+    ).then(() => null, (cause: unknown) => cause);
+
+    expectSafeFatalWithoutSentinel(error, sentinel);
+    expect((error as CalibrationFatalError).message).toBe('calibration:preflight-token-terminal-persist-failed');
+    expect(deps.failTokenCount).toHaveBeenCalledTimes(1);
+    expect(deps.completeTokenCount).not.toHaveBeenCalled();
+    expect(deps.recordSafeError).not.toHaveBeenCalled();
+    expect(deps.generateImage).not.toHaveBeenCalled();
+    expect(deps.reserveCall).toHaveBeenCalledTimes(1);
   });
 
   it('records only the safe category when the LOW image call fails and never retries MEDIUM', async () => {

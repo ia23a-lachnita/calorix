@@ -25,8 +25,8 @@
  * `executeCalibrationPreflight` is the hermetic Stage 0 primitive: it reserves
  * exactly one separately typed token-count key and then the `LOW` and `MEDIUM`
  * image keys of the first development case, driving every provider effect
- * through injected `countTokens`/`generateImage`/`reserveCall`/`recordSafeError`
- * hooks. It pins the first `LOW` model version, requires `MEDIUM` to match it
+ * through injected `countTokens`/`generateImage`/`reserveCall`/token-terminal/
+ * `recordSafeError` hooks. It pins the first `LOW` model version, requires `MEDIUM` to match it
  * exactly, treats any reservation, provider, parse, or version failure as
  * `CalibrationFatalError` with zero retry and no `MEDIUM` call after a `LOW`
  * failure, and records only a privacy-safe `classifyCalibrationError` category
@@ -651,6 +651,11 @@ export interface CalibrationPreflightSafeErrorEntry {
 export interface CalibrationPreflightHooks {
   reserveCall: (key: TokenCountReservationKey | ReservationKey) => Promise<void> | void;
   countTokens: (request: CalibrationPreflightTokenCountRequest) => Promise<unknown>;
+  completeTokenCount: (key: TokenCountReservationKey, count: number) => Promise<void> | void;
+  failTokenCount: (
+    key: TokenCountReservationKey,
+    errorCategory: CalibrationSafeErrorCategory,
+  ) => Promise<void> | void;
   generateImage: (request: CalibrationPreflightImageRequest) => Promise<unknown>;
   recordSafeError: (entry: CalibrationPreflightSafeErrorEntry) => Promise<void> | void;
 }
@@ -727,10 +732,19 @@ async function recordSafeFailure(
   }
 }
 
+/** A terminal persistence fault must not be masked by a second ledger write. */
+async function recordTokenTerminal(operation: () => Promise<void> | void): Promise<void> {
+  try {
+    await operation();
+  } catch {
+    throw preflightFatal('calibration:preflight-token-terminal-persist-failed');
+  }
+}
+
 /**
  * Reserves the Stage 0 token-count key, then dispatches exactly one token
- * count. The key is the separately typed shipped shape, which never shares the
- * image reservation space or the image budget counters.
+ * count. It durably completes or fails that key before any image reservation.
+ * The separately typed key never shares image reservation space or budget.
  */
 async function runPreflightTokenCount(
   caseId: string,
@@ -757,20 +771,27 @@ async function runPreflightTokenCount(
   try {
     raw = await hooks.countTokens({ model: CALIBRATION_MODEL });
   } catch (error) {
+    const errorCategory = classifyCalibrationError(error);
+    await recordTokenTerminal(() => hooks.failTokenCount(tokenKey, errorCategory));
     await recordSafeFailure(
       hooks.recordSafeError,
-      tokenCountSafeEntry(caseId, classifyCalibrationError(error)),
+      tokenCountSafeEntry(caseId, errorCategory),
     );
     throw preflightFatal('calibration:preflight-token-call-failed');
   }
 
-  const tokenCount = isPlainRecord(raw) && isFiniteNonNegative(raw.tokenCount)
+  const tokenCount = isPlainRecord(raw)
+    && typeof raw.tokenCount === 'number'
+    && Number.isInteger(raw.tokenCount)
+    && raw.tokenCount >= 0
     ? raw.tokenCount
     : undefined;
   if (tokenCount === undefined) {
+    await recordTokenTerminal(() => hooks.failTokenCount(tokenKey, 'empty_response'));
     await recordSafeFailure(hooks.recordSafeError, tokenCountSafeEntry(caseId, 'empty_response'));
     throw preflightFatal('calibration:preflight-token-result-invalid');
   }
+  await recordTokenTerminal(() => hooks.completeTokenCount(tokenKey, tokenCount));
   return tokenCount;
 }
 
@@ -856,6 +877,8 @@ export async function executeCalibrationPreflight(
   if (caseId === undefined
     || typeof hooks.reserveCall !== 'function'
     || typeof hooks.countTokens !== 'function'
+    || typeof hooks.completeTokenCount !== 'function'
+    || typeof hooks.failTokenCount !== 'function'
     || typeof hooks.generateImage !== 'function'
     || typeof hooks.recordSafeError !== 'function') {
     throw preflightFatal('calibration:preflight-stage-input-invalid');
