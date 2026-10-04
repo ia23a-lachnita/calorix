@@ -2,14 +2,16 @@
  * Task 7 hermetic preflight session (bounded slice).
  *
  * Composes the existing file store, ledger, ledger bridge, and preflight
- * primitive with success-only lock release. The caller supplies the fixed
- * calibration identity, process owner, base directory, first development
- * case ID, provider callbacks, and required safe-error recorder. No default
+ * primitive with success-only lock release. `runCalibrationPreflightSession`
+ * uses a caller-supplied required safe-error recorder, while
+ * `runCalibrationPreflightDurableSession` always records safe errors through
+ * its own locked file ledger and rejects any caller recorder. No default
  * CLI, owner derivation, provider client, recovery, or retry lives here.
  */
 import { createCalibrationLedger } from './calibration';
 import type {
   CalibrationIdentity,
+  CalibrationLedger,
   CalibrationOwner,
   ReservationKey,
 } from './calibration';
@@ -27,6 +29,11 @@ export interface CalibrationPreflightSessionDeps
   owner: CalibrationOwner;
   firstDevelopmentCaseId: string;
 }
+
+export type CalibrationPreflightDurableSessionDeps = Omit<
+  CalibrationPreflightSessionDeps,
+  'recordSafeError'
+> & { readonly recordSafeError?: never };
 
 function invalid(): never {
   throw new CalibrationFatalError('calibration:preflight-session-input-invalid');
@@ -49,19 +56,18 @@ const identityTextFields = [
   'historicalReferenceHash',
 ] as const satisfies readonly (keyof CalibrationIdentity)[];
 
-function assertSessionDeps(value: unknown): asserts value is CalibrationPreflightSessionDeps {
-  if (!record(value)) invalid();
-  const identity = value.identity;
-  const owner = value.owner;
+function assertSharedSessionDeps(
+  value: Record<string, unknown>,
+  identity: unknown,
+  owner: unknown,
+): void {
   if (
     typeof value.baseDir !== 'string' ||
     !value.baseDir.trim() ||
     typeof value.firstDevelopmentCaseId !== 'string' ||
-    !value.firstDevelopmentCaseId.trim() ||
-    value.firstDevelopmentCaseId !== value.firstDevelopmentCaseId.trim() ||
+    !/^[A-Za-z0-9_-]{1,128}$/.test(value.firstDevelopmentCaseId) ||
     typeof value.countTokens !== 'function' ||
     typeof value.generateImage !== 'function' ||
-    typeof value.recordSafeError !== 'function' ||
     !record(identity) ||
     !record(owner)
   ) {
@@ -98,10 +104,39 @@ function assertSessionDeps(value: unknown): asserts value is CalibrationPrefligh
   }
 }
 
-export async function runCalibrationPreflightSession(
-  deps: CalibrationPreflightSessionDeps,
+function assertSessionDeps(value: unknown): asserts value is CalibrationPreflightSessionDeps {
+  if (!record(value)) invalid();
+  assertSharedSessionDeps(value, value.identity, value.owner);
+  if (typeof value.recordSafeError !== 'function') {
+    invalid();
+  }
+}
+
+function assertDurableSessionDeps(
+  value: unknown,
+): asserts value is CalibrationPreflightDurableSessionDeps {
+  if (!record(value)) invalid();
+  if ('recordSafeError' in value) {
+    invalid();
+  }
+  assertSharedSessionDeps(value, value.identity, value.owner);
+}
+
+interface SharedSessionCoreDeps {
+  baseDir: string;
+  identity: CalibrationIdentity;
+  owner: CalibrationOwner;
+  firstDevelopmentCaseId: string;
+  countTokens: CalibrationPreflightLedgerProviderHooks['countTokens'];
+  generateImage: CalibrationPreflightLedgerProviderHooks['generateImage'];
+}
+
+async function runSharedPreflightSessionCore(
+  deps: SharedSessionCoreDeps,
+  resolveRecorder: (
+    ledger: CalibrationLedger,
+  ) => CalibrationPreflightLedgerProviderHooks['recordSafeError'],
 ): Promise<CalibrationPreflightStageResult> {
-  assertSessionDeps(deps);
   const caseId = deps.firstDevelopmentCaseId;
   const allowedKeys: ReservationKey[] = [
     { stage: 'preflight', profile: 'LOW', caseId, sampleIndex: 1 },
@@ -110,10 +145,11 @@ export async function runCalibrationPreflightSession(
   const fileDeps = createFileCalibrationLedgerDeps(deps.baseDir);
   const ledger = createCalibrationLedger(fileDeps, deps.identity, allowedKeys);
   ledger.acquireLock(deps.owner);
+  const recordSafeError = resolveRecorder(ledger);
   const hooks = createCalibrationPreflightLedgerHooks(ledger, {
     countTokens: deps.countTokens,
     generateImage: deps.generateImage,
-    recordSafeError: deps.recordSafeError,
+    recordSafeError,
   });
   const result = await executeCalibrationPreflight(undefined, {
     firstDevelopmentCaseId: caseId,
@@ -121,4 +157,21 @@ export async function runCalibrationPreflightSession(
   });
   ledger.releaseLock(deps.owner);
   return result;
+}
+
+export async function runCalibrationPreflightSession(
+  deps: CalibrationPreflightSessionDeps,
+): Promise<CalibrationPreflightStageResult> {
+  assertSessionDeps(deps);
+  return runSharedPreflightSessionCore(deps, () => deps.recordSafeError);
+}
+
+export async function runCalibrationPreflightDurableSession(
+  deps: CalibrationPreflightDurableSessionDeps,
+): Promise<CalibrationPreflightStageResult> {
+  assertDurableSessionDeps(deps);
+  return runSharedPreflightSessionCore(
+    deps,
+    (ledger) => (entry) => ledger.recordSafeError(entry),
+  );
 }
