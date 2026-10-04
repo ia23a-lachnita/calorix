@@ -93,6 +93,22 @@ export type CalibrationSafeErrorCategory =
   | 'interrupted_reservation'
   | 'unknown';
 
+export type CalibrationLedgerSafeErrorEntry =
+  | {
+      readonly stage: 'preflight';
+      readonly kind: 'token_count';
+      readonly caseId: string;
+      readonly errorCategory: CalibrationSafeErrorCategory;
+    }
+  | {
+      readonly stage: 'preflight';
+      readonly kind: 'image';
+      readonly caseId: string;
+      readonly profile: CalibrationProfile;
+      readonly sampleIndex: 1;
+      readonly errorCategory: CalibrationSafeErrorCategory;
+    };
+
 export interface JournalEntry {
   key: ReservationKey;
   predictionHash: string;
@@ -169,6 +185,7 @@ export interface CalibrationLedger {
   complete: (key: ReservationKey, journalHash: string) => void;
   rebuildReport: () => { completed: ReservationKey[] };
   recoverAfterCrash: () => CalibrationRecoveryReport;
+  recordSafeError: (entry: CalibrationLedgerSafeErrorEntry) => void;
 }
 
 // ── Ledger internals ─────────────────────────────────────────────────────────
@@ -328,6 +345,7 @@ const KNOWN_LEDGER_EVENT_TYPES = new Set([
   'token_count_reserved',
   'token_count_completed',
   'token_count_failed',
+  'safe_error',
   'lock_recovery',
   'synthetic_reserved',
 ]);
@@ -362,6 +380,124 @@ function isValidTokenFailureCategory(
   );
 }
 
+const SAFE_ERROR_CASE_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
+const CANONICAL_ISO_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+
+const TOKEN_SAFE_ENTRY_KEYS = ['stage', 'kind', 'caseId', 'errorCategory'] as const;
+const TOKEN_SAFE_ENTRY_KEY_SET = new Set<string>(TOKEN_SAFE_ENTRY_KEYS);
+const IMAGE_SAFE_ENTRY_KEYS = [
+  'stage',
+  'kind',
+  'caseId',
+  'profile',
+  'sampleIndex',
+  'errorCategory',
+] as const;
+const IMAGE_SAFE_ENTRY_KEY_SET = new Set<string>(IMAGE_SAFE_ENTRY_KEYS);
+const SAFE_ERROR_EVENT_KEYS = ['type', 'entry', 'at'] as const;
+const SAFE_ERROR_EVENT_KEY_SET = new Set<string>(SAFE_ERROR_EVENT_KEYS);
+
+function assertCanonicalSafeErrorTimestamp(at: unknown): void {
+  if (typeof at !== 'string' || !CANONICAL_ISO_PATTERN.test(at)) {
+    throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+  }
+  const parsed = Date.parse(at);
+  if (!Number.isFinite(parsed)) {
+    throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+  }
+  if (new Date(at).toISOString() !== at) {
+    throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+  }
+}
+
+function assertValidSafeErrorEntry(value: unknown): asserts value is CalibrationLedgerSafeErrorEntry {
+  if (!isPlainRecord(value) || typeof value.kind !== 'string') {
+    throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+  }
+  if (value.kind === 'token_count') {
+    const keys = Object.keys(value);
+    if (
+      keys.length !== TOKEN_SAFE_ENTRY_KEYS.length ||
+      keys.some((key) => !TOKEN_SAFE_ENTRY_KEY_SET.has(key))
+    ) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    if (value.stage !== 'preflight') {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    if (typeof value.caseId !== 'string' || !SAFE_ERROR_CASE_ID_PATTERN.test(value.caseId)) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    if (!isValidTokenFailureCategory(value.errorCategory)) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    return;
+  }
+  if (value.kind === 'image') {
+    const keys = Object.keys(value);
+    if (
+      keys.length !== IMAGE_SAFE_ENTRY_KEYS.length ||
+      keys.some((key) => !IMAGE_SAFE_ENTRY_KEY_SET.has(key))
+    ) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    if (value.stage !== 'preflight') {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    if (typeof value.caseId !== 'string' || !SAFE_ERROR_CASE_ID_PATTERN.test(value.caseId)) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    if (value.profile !== 'LOW' && value.profile !== 'MEDIUM') {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    if (value.sampleIndex !== 1) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    if (!isValidTokenFailureCategory(value.errorCategory)) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    return;
+  }
+  throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+}
+
+function snapshotSafeErrorEntry(entry: unknown): Record<string, unknown> {
+  let keys: string[];
+  try {
+    if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    keys = Object.keys(entry);
+  } catch (error) {
+    if (error instanceof CalibrationFatalError) throw error;
+    throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+  }
+  const snapshot: Record<string, unknown> = Object.create(null);
+  try {
+    for (const key of keys) {
+      snapshot[key] = (entry as Record<string, unknown>)[key];
+    }
+  } catch {
+    throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+  }
+  return snapshot;
+}
+
+function assertValidSafeErrorEvent(event: Record<string, unknown>): void {
+  const keys = Object.keys(event);
+  if (
+    keys.length !== SAFE_ERROR_EVENT_KEYS.length ||
+    keys.some((key) => !SAFE_ERROR_EVENT_KEY_SET.has(key))
+  ) {
+    throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+  }
+  if (event.type !== 'safe_error') {
+    throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+  }
+  assertValidSafeErrorEntry(event.entry);
+  assertCanonicalSafeErrorTimestamp(event.at);
+}
+
 interface ReservationRecord {
   key: ReservationKey;
   status: 'reserved' | 'completed' | 'interrupted_reservation';
@@ -385,6 +521,27 @@ export function createCalibrationLedger(
   const allowedKeySet = new Set(allowedKeys.map(canonicalReservationKey));
   if (allowedKeySet.size !== allowedKeys.length) {
     throw new CalibrationFatalError('calibration:allowed-keys-duplicate');
+  }
+  const plannedPreflightCaseIds = new Set(
+    allowedKeys.filter((key) => key.stage === 'preflight').map((key) => key.caseId),
+  );
+
+  function assertPlannedSafeErrorEntry(entry: CalibrationLedgerSafeErrorEntry): void {
+    if (entry.kind === 'token_count') {
+      if (!plannedPreflightCaseIds.has(entry.caseId)) {
+        throw new CalibrationFatalError('calibration:ledger-event-unplanned:safe_error');
+      }
+      return;
+    }
+    const id = canonicalReservationKey({
+      stage: entry.stage,
+      profile: entry.profile,
+      caseId: entry.caseId,
+      sampleIndex: entry.sampleIndex,
+    });
+    if (!allowedKeySet.has(id)) {
+      throw new CalibrationFatalError('calibration:ledger-event-unplanned:safe_error');
+    }
   }
   const reservations = new Map<string, ReservationRecord>();
   const reservationOrder: string[] = [];
@@ -570,6 +727,11 @@ export function createCalibrationLedger(
           );
         }
         tokenReservation.status = 'failed';
+        break;
+      }
+      case 'safe_error': {
+        assertValidSafeErrorEvent(event);
+        assertPlannedSafeErrorEntry(event.entry as CalibrationLedgerSafeErrorEntry);
         break;
       }
       case 'lock_recovery':
@@ -879,6 +1041,16 @@ export function createCalibrationLedger(
     return { tokenCountReserved, imageReserved };
   }
 
+  function recordSafeError(entry: CalibrationLedgerSafeErrorEntry): void {
+    requireLock();
+    const snapshot = snapshotSafeErrorEntry(entry);
+    assertValidSafeErrorEntry(snapshot);
+    assertPlannedSafeErrorEntry(snapshot as CalibrationLedgerSafeErrorEntry);
+    const at = deps.nowIso();
+    assertCanonicalSafeErrorTimestamp(at);
+    persistLedgerEvent({ type: 'safe_error', entry: snapshot, at });
+  }
+
   function appendResultJournal(entry: JournalEntry): string {
     requireLock();
     const id = canonicalReservationKey(entry.key);
@@ -972,6 +1144,7 @@ export function createCalibrationLedger(
     complete,
     rebuildReport,
     recoverAfterCrash,
+    recordSafeError,
   };
 }
 

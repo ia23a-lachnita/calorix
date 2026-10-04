@@ -52,6 +52,7 @@ import {
   type CalibrationSafeErrorCategory,
 } from '../genai-adapter';
 import type {
+  CalibrationLedgerSafeErrorEntry,
   CalibrationProfile,
   JournalEntry,
   ReservationKey,
@@ -642,15 +643,11 @@ export interface CalibrationPreflightImageRequest {
  * identity and a taxonomy member: never a provider message, `cause`, stack,
  * endpoint URL, prompt text, response text, or resolved model version, so no
  * provider content can reach a log, report, or ledger entry through it.
+ *
+ * Public alias preserving the existing Stage 0 name over the shared ledger
+ * entry type; no runtime behavior change.
  */
-export interface CalibrationPreflightSafeErrorEntry {
-  readonly stage: typeof PREFLIGHT_STAGE;
-  readonly kind: 'token_count' | 'image';
-  readonly caseId: string;
-  readonly profile?: CalibrationProfile;
-  readonly sampleIndex?: number;
-  readonly errorCategory: CalibrationSafeErrorCategory;
-}
+export type CalibrationPreflightSafeErrorEntry = CalibrationLedgerSafeErrorEntry;
 
 export interface CalibrationPreflightHooks {
   reserveCall: (key: TokenCountReservationKey | ReservationKey) => Promise<void> | void;
