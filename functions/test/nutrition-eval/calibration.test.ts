@@ -365,23 +365,41 @@ describe('calibration wx lock recovery', () => {
   it('recovers a provably dead same-host owner only after a durable audit event', () => {
     const world = makeWorld('dead');
     const ledger = makeLedger(world, []);
-    ledger.acquireLock(makeOwner());
+    // Seed a different dead process directly: the stale lock was written by
+    // another process, not by this ledger instance.
+    world.lockFile = makeOwner();
     const stale = world.lockFile;
     expect(stale).toBeDefined();
+    // Instrument refresh reads so the durable recovery order is observable
+    // on the injected hooks (readers otherwise leave no ops trace).
+    const baseReadLedger = world.deps.readLedgerEvents;
+    const baseReadJournal = world.deps.readJournalEntries;
+    world.deps.readLedgerEvents = () => {
+      world.ops.push('readLedgerEvents');
+      return baseReadLedger();
+    };
+    world.deps.readJournalEntries = () => {
+      world.ops.push('readJournalEntries');
+      return baseReadJournal();
+    };
     ledger.acquireLock(makeOwner({ pid: 7777, startTicks: 111 }));
-    // Durable recovery order on the injected hooks: audit event, ledger file
-    // fsync, parent-directory fsync, stale-lock archive, then the new
-    // exclusive lock.
+    // Durable recovery order: archive stale lock, write new wx lock, refresh
+    // journal/events under exclusive ownership, then audit event + fsyncs.
+    const archiveIndex = world.ops.indexOf('archiveLock');
+    const writeIndex = world.ops.lastIndexOf('writeLockExclusive');
+    const journalRead = world.ops.indexOf('readJournalEntries');
+    const ledgerRead = world.ops.indexOf('readLedgerEvents');
     const auditIndex = world.ops.indexOf('appendLedgerEvent');
     const fileIndex = world.ops.indexOf('fsyncLedgerFile');
     const dirIndex = world.ops.indexOf('fsyncLedgerDir');
-    const archiveIndex = world.ops.indexOf('archiveLock');
-    const writeIndex = world.ops.lastIndexOf('writeLockExclusive');
-    expect(auditIndex).toBeGreaterThanOrEqual(0);
+    expect(archiveIndex).toBeGreaterThanOrEqual(0);
+    expect(writeIndex).toBeGreaterThan(archiveIndex);
+    expect(journalRead).toBeGreaterThan(writeIndex);
+    expect(ledgerRead).toBeGreaterThan(writeIndex);
+    expect(auditIndex).toBeGreaterThan(journalRead);
+    expect(auditIndex).toBeGreaterThan(ledgerRead);
     expect(fileIndex).toBeGreaterThan(auditIndex);
     expect(dirIndex).toBeGreaterThan(fileIndex);
-    expect(archiveIndex).toBeGreaterThan(dirIndex);
-    expect(writeIndex).toBeGreaterThan(archiveIndex);
     expect(world.events.length).toBeGreaterThan(0);
   });
 
@@ -2620,7 +2638,8 @@ describe('calibration lock dependency fatal conversion', () => {
   it('converts a probeOwnerLiveness failure to a fatal error preserving the cause', () => {
     const world = makeWorld();
     const ledger = makeLedger(world, []);
-    ledger.acquireLock(makeOwner());
+    // Stale lock belongs to another process, not this ledger instance.
+    world.lockFile = makeOwner();
     const original = new Error('ESRCH: cannot read /proc/<pid>/stat');
     world.deps.probeOwnerLiveness = () => {
       throw original;
@@ -2638,7 +2657,8 @@ describe('calibration lock dependency fatal conversion', () => {
   it('converts an archiveLock failure during dead-owner recovery to a fatal error preserving the cause', () => {
     const world = makeWorld('dead');
     const ledger = makeLedger(world, []);
-    ledger.acquireLock(makeOwner());
+    // Stale lock belongs to another process, not this ledger instance.
+    world.lockFile = makeOwner();
     const original = new Error('EACCES: cannot archive stale lock');
     world.deps.archiveLock = () => {
       throw original;
@@ -2656,7 +2676,8 @@ describe('calibration lock dependency fatal conversion', () => {
   it('converts a writeLockExclusive failure during dead-owner recovery to a fatal error preserving the cause', () => {
     const world = makeWorld('dead');
     const ledger = makeLedger(world, []);
-    ledger.acquireLock(makeOwner());
+    // Stale lock belongs to another process, not this ledger instance.
+    world.lockFile = makeOwner();
     const original = new Error('EIO: cannot write recovered lock file');
     world.deps.writeLockExclusive = () => {
       throw original;

@@ -18,8 +18,8 @@
 
 ## Task 1 — Atomic stale archive claim and authoritative locked replay
 
-- [ ] Write tests only, witness focused RED.
-- [ ] Implement the smallest source fix, inspect and witness GREEN.
+- [x] Write tests only, witness focused RED.
+- [x] Implement the smallest source fix, inspect and witness GREEN.
 - [ ] Run focused/full/build/lint, obtain external and independent review, update tracking, commit/push.
 
 **Files:** modify `functions/src/nutrition-eval/calibration.ts`, `calibration-file-store.ts`; add `functions/test/nutrition-eval/calibration-replay-lock.test.ts`, `calibration-archive-claim.test.ts`; update the existing recovery-order expectation in `calibration.test.ts` only where it asserts the unsafe old order.

@@ -21,12 +21,13 @@ import {
   closeSync as nodeCloseSync,
   chmodSync,
   fsyncSync as nodeFsyncSync,
+  linkSync as nodeLinkSync,
   lstatSync,
   mkdirSync,
   openSync as nodeOpenSync,
   readFileSync as nodeReadFileSync,
   renameSync as nodeRenameSync,
-  unlinkSync,
+  unlinkSync as nodeUnlinkSync,
   writeSync as nodeWriteSync,
 } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
@@ -69,6 +70,10 @@ export interface CalibrationFileStoreOverrides {
   fsyncFileSync?: (path: string) => void;
   renameSync?: (from: string, to: string) => void;
   fsyncDirSync?: (dir: string) => void;
+  /** Archive-only atomic sibling-claim seam; defaults to native link. */
+  linkSync?: (from: string, to: string) => void;
+  /** Archive-only old-lock removal seam; defaults to native unlink. */
+  unlinkSync?: (path: string) => void;
   /** Low-level writable-fd byte seam; must return bytes written (> 0). */
   fdWriteSync?: (fd: number, buffer: Buffer, offset: number, length: number) => number;
   /** Low-level writable-fd durability seam; runs while the fd is still open. */
@@ -444,7 +449,7 @@ export function createFileCalibrationLedgerDeps(
         // Close failure during cleanup must not mask the original error.
       }
       try {
-        unlinkSync(path);
+        nodeUnlinkSync(path);
       } catch {
         // Best effort: orphan temp files are ignored by canonical readers.
       }
@@ -454,7 +459,7 @@ export function createFileCalibrationLedgerDeps(
       fdCloseSync(fd);
     } catch (error) {
       try {
-        unlinkSync(path);
+        nodeUnlinkSync(path);
       } catch {
         // Best effort orphan cleanup.
       }
@@ -488,6 +493,11 @@ export function createFileCalibrationLedgerDeps(
   void legacyFsyncFileSync;
   const renameSync = overrides.renameSync ?? defaultRenameSync;
   const fsyncDirSync = overrides.fsyncDirSync ?? defaultFsyncDirSync;
+  // Archive-only seams: the JSON-array atomic path keeps using renameSync
+  // above, and removeLock/temp cleanup keeps native unlink below. Only
+  // archiveLock dispatches through these two seams.
+  const archiveLinkSync = overrides.linkSync ?? nodeLinkSync;
+  const archiveUnlinkSync = overrides.unlinkSync ?? nodeUnlinkSync;
 
   function readJsonArray(path: string, label: string): unknown[] {
     ensureCanonicalChain();
@@ -534,7 +544,7 @@ export function createFileCalibrationLedgerDeps(
       renameSync(tempPath, finalPath);
     } catch (error) {
       try {
-        unlinkSync(tempPath);
+        nodeUnlinkSync(tempPath);
       } catch {
         // Orphan temp remains; canonical readers ignore it.
       }
@@ -632,34 +642,64 @@ export function createFileCalibrationLedgerDeps(
   function archiveLock(owner: CalibrationOwner): void {
     ensureCanonicalChain();
     const path = lockPath();
-    assertNotSymlink(path, 'lock');
+    // Validate the live lock is a regular non-symlink file owned by the
+    // stale claimant, then capture its expected device/inode identity.
+    const lockStat = lstatTarget(path, 'lock');
+    if (lockStat === undefined || !lockStat.isFile()) {
+      throw new CalibrationFatalError('calibration:lock-archive-not-regular-file');
+    }
     const current = readLock();
     if (current === undefined || !sameOwner(current, owner)) {
       throw new CalibrationFatalError('calibration:lock-archive-foreign-owner');
     }
+    const expectedDev = lockStat.dev;
+    const expectedIno = lockStat.ino;
     const archiveName = `lock.archive.${owner.pid}.${owner.startTicks}.json`;
     const archivePath = containedPath(archiveName);
-    // Lstat (never follow) the destination: an existing file or symlink there
-    // must block the rename so neither the live lock nor the old archive is
-    // ever clobbered by a same-pid/startTicks collision.
-    let archiveExists: boolean;
+    // Atomically claim the sibling archive name with a hard link. An
+    // existing file or symlink destination fails EEXIST here and must never
+    // fall back to overwrite/rename; crash leftovers require operator action.
     try {
-      lstatSync(archivePath);
-      archiveExists = true;
+      archiveLinkSync(path, archivePath);
     } catch (error) {
-      const code = (error as NodeJS.ErrnoException).code;
-      if (code !== 'ENOENT') {
-        throw fatal('calibration:lock-archive-lstat-failed', error);
+      if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
+        throw new CalibrationFatalError('calibration:lock-archive-destination-exists');
       }
-      archiveExists = false;
-    }
-    if (archiveExists) {
-      throw new CalibrationFatalError('calibration:lock-archive-destination-exists');
-    }
-    try {
-      renameSync(path, archivePath);
-    } catch (error) {
       throw fatal('calibration:lock-archive-failed', error);
+    }
+    // Persist the new sibling name before removing the old lock name.
+    try {
+      fsyncDirSync(canonicalDir);
+    } catch (error) {
+      throw fatal('calibration:lock-archive-dir-fsync-failed', error);
+    }
+    // Re-verify both names still reference the same regular non-symlink
+    // inode/device captured above, and the live lock still names the stale
+    // owner (the owner check covers inode-reuse replacement). Any drift
+    // fails closed before unlinking, preserving the replacement.
+    const lockRecheck = lstatTarget(path, 'lock');
+    const archiveRecheck = lstatTarget(archivePath, 'lock-archive');
+    if (
+      lockRecheck === undefined ||
+      !lockRecheck.isFile() ||
+      lockRecheck.dev !== expectedDev ||
+      lockRecheck.ino !== expectedIno ||
+      archiveRecheck === undefined ||
+      !archiveRecheck.isFile() ||
+      archiveRecheck.dev !== expectedDev ||
+      archiveRecheck.ino !== expectedIno
+    ) {
+      throw new CalibrationFatalError('calibration:lock-archive-drift');
+    }
+    const reread = readLock();
+    if (reread === undefined || !sameOwner(reread, owner)) {
+      throw new CalibrationFatalError('calibration:lock-archive-drift');
+    }
+    // Archive-only unlink seam: removeLock/temp paths keep native unlink.
+    try {
+      archiveUnlinkSync(path);
+    } catch (error) {
+      throw fatal('calibration:lock-archive-unlink-failed', error);
     }
     try {
       fsyncDirSync(canonicalDir);
@@ -677,7 +717,7 @@ export function createFileCalibrationLedgerDeps(
       throw new CalibrationFatalError('calibration:lock-release-foreign-owner');
     }
     try {
-      unlinkSync(path);
+      nodeUnlinkSync(path);
     } catch (error) {
       throw fatal('calibration:lock-remove-failed', error);
     }

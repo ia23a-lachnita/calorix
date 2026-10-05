@@ -551,11 +551,31 @@ export function createCalibrationLedger(
   let imageReserved = 0;
   let tokenReservation: TokenReservationState | undefined;
   let heldOwner: CalibrationOwner | undefined;
+  let poisoned = false;
+
+  function throwPoisoned(): never {
+    throw new CalibrationFatalError('calibration:ledger-poisoned');
+  }
+
+  function checkPoison(): void {
+    if (poisoned) throwPoisoned();
+  }
 
   function requireLock(): void {
+    checkPoison();
     if (heldOwner === undefined) {
       throw new CalibrationFatalError('calibration:lock-not-held');
     }
+  }
+
+  function clearReplayState(): void {
+    reservations.clear();
+    reservationOrder.length = 0;
+    journalHashesByKey.clear();
+    pendingJournalHashes.clear();
+    tokenCountReserved = 0;
+    imageReserved = 0;
+    tokenReservation = undefined;
   }
 
   // Stage 0's token-count key is fixed shape, not just well-typed: it must
@@ -744,36 +764,58 @@ export function createCalibrationLedger(
     }
   }
 
-  let replayJournalEntries: readonly JournalEntry[];
-  try {
-    const result = deps.readJournalEntries();
-    if (!Array.isArray(result)) {
-      throw new CalibrationFatalError('calibration:journal-replay-not-array');
+  // Shared construction + under-lock authoritative replay. Clears ALL
+  // replay state first so no stale partial memory survives, then rereads
+  // journal/events exactly once. Initial construction calls this directly
+  // (read-only, error behavior compatible); under-lock acquisition wraps it
+  // in refreshUnderLock for permanent poison on ANY failure.
+  function resetAndReplay(): void {
+    clearReplayState();
+    let replayJournalEntries: readonly JournalEntry[];
+    try {
+      const result = deps.readJournalEntries();
+      if (!Array.isArray(result)) {
+        throw new CalibrationFatalError('calibration:journal-replay-not-array');
+      }
+      replayJournalEntries = result;
+    } catch (error) {
+      throw asFatal(error, 'calibration:journal-replay-read-failed');
     }
-    replayJournalEntries = result;
-  } catch (error) {
-    throw asFatal(error, 'calibration:journal-replay-read-failed');
-  }
-  for (const entry of replayJournalEntries) {
-    if (!isValidJournalEntryRecord(entry)) {
-      throw new CalibrationFatalError('calibration:journal-entry-malformed');
+    for (const entry of replayJournalEntries) {
+      if (!isValidJournalEntryRecord(entry)) {
+        throw new CalibrationFatalError('calibration:journal-entry-malformed');
+      }
+      indexJournalHash(canonicalReservationKey(entry.key), computeJournalHash(entry));
     }
-    indexJournalHash(canonicalReservationKey(entry.key), computeJournalHash(entry));
+
+    let replayLedgerEvents: readonly unknown[];
+    try {
+      const result = deps.readLedgerEvents();
+      if (!Array.isArray(result)) {
+        throw new CalibrationFatalError('calibration:ledger-replay-not-array');
+      }
+      replayLedgerEvents = result;
+    } catch (error) {
+      throw asFatal(error, 'calibration:ledger-replay-read-failed');
+    }
+    for (const event of replayLedgerEvents) {
+      replayLedgerEvent(event);
+    }
   }
 
-  let replayLedgerEvents: readonly unknown[];
-  try {
-    const result = deps.readLedgerEvents();
-    if (!Array.isArray(result)) {
-      throw new CalibrationFatalError('calibration:ledger-replay-not-array');
+  // Authoritative refresh under exclusive ownership. ANY failure (foreign
+  // I/O, corrupt events, or malicious typed fatals) permanently poisons the
+  // instance with a fresh static causeless fatal; the held lock is retained.
+  function refreshUnderLock(): void {
+    try {
+      resetAndReplay();
+    } catch {
+      poisoned = true;
+      throw new CalibrationFatalError('calibration:ledger-poisoned');
     }
-    replayLedgerEvents = result;
-  } catch (error) {
-    throw asFatal(error, 'calibration:ledger-replay-read-failed');
   }
-  for (const event of replayLedgerEvents) {
-    replayLedgerEvent(event);
-  }
+
+  resetAndReplay();
 
   function safeReadLock(): CalibrationOwner | undefined {
     try {
@@ -846,6 +888,10 @@ export function createCalibrationLedger(
   }
 
   function acquireLock(owner: CalibrationOwner, opts?: { runDir?: string }): void {
+    checkPoison();
+    if (heldOwner !== undefined) {
+      throw new CalibrationFatalError('calibration:lock-already-held');
+    }
     const effectiveRoot = opts?.runDir ?? deps.getRoot();
     if (effectiveRoot !== CALIBRATION_ROOT) {
       throw new CalibrationFatalError('calibration:root-redirected');
@@ -854,6 +900,7 @@ export function createCalibrationLedger(
     if (existing === undefined) {
       safeWriteLockExclusive(owner);
       heldOwner = owner;
+      refreshUnderLock();
       return;
     }
     if (existing.hostname !== owner.hostname || existing.bootId !== owner.bootId) {
@@ -863,18 +910,20 @@ export function createCalibrationLedger(
     if (liveness !== 'dead') {
       throw new CalibrationFatalError(`calibration:lock-held-${liveness}`);
     }
+    safeArchiveLock(existing);
+    safeWriteLockExclusive(owner);
+    heldOwner = owner;
+    refreshUnderLock();
     persistLedgerEvent({
       type: 'lock_recovery',
       staleOwner: existing,
       recoveringOwner: owner,
       at: deps.nowIso(),
     });
-    safeArchiveLock(existing);
-    safeWriteLockExclusive(owner);
-    heldOwner = owner;
   }
 
   function releaseLock(owner: CalibrationOwner): void {
+    checkPoison();
     if (heldOwner === undefined || !sameOwner(heldOwner, owner)) {
       throw new CalibrationFatalError('calibration:lock-release-foreign-owner');
     }
@@ -883,6 +932,7 @@ export function createCalibrationLedger(
   }
 
   function assertIdentity(candidate: CalibrationIdentity): void {
+    checkPoison();
     for (const field of IDENTITY_FIELDS) {
       if (candidate[field] !== identity[field]) {
         throw new CalibrationFatalError(`calibration:identity-drift:${field}`);
@@ -891,6 +941,7 @@ export function createCalibrationLedger(
   }
 
   function assertGitState(state: CalibrationGitState): void {
+    checkPoison();
     if (state.dirtyPaths.length > 0) {
       throw new CalibrationFatalError('calibration:git-dirty-tree');
     }
@@ -904,6 +955,7 @@ export function createCalibrationLedger(
     to: StageName,
     summary: CalibrationStageGateSummary,
   ): void {
+    checkPoison();
     requireLock();
     if (summary.stage !== from) {
       throw new CalibrationFatalError('calibration:stage-summary-mismatch');
@@ -922,6 +974,7 @@ export function createCalibrationLedger(
   }
 
   function reserve(key: ReservationKey): void {
+    checkPoison();
     requireLock();
     if (!isValidReservationKeyShape(key)) {
       throw new CalibrationFatalError('calibration:reservation-invalid-shape');
@@ -946,6 +999,7 @@ export function createCalibrationLedger(
     descriptor: { reason: string; index: number },
     onFatal: (error: unknown) => void,
   ): void {
+    checkPoison();
     requireLock();
     const attemptNumber = descriptor.index + 1;
     if (attemptNumber > HARD_CALL_CEILING) {
@@ -967,6 +1021,7 @@ export function createCalibrationLedger(
   }
 
   function reserveTokenCount(key: TokenCountReservationKey): void {
+    checkPoison();
     requireLock();
     if (!isAllowedTokenKey(key)) {
       throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
@@ -1005,6 +1060,7 @@ export function createCalibrationLedger(
   }
 
   function completeTokenCount(key: TokenCountReservationKey, count: number): void {
+    checkPoison();
     requireLock();
     requireReservedTokenKey(key);
     if (!isValidTokenCompletionCount(count)) {
@@ -1023,6 +1079,7 @@ export function createCalibrationLedger(
     key: TokenCountReservationKey,
     errorCategory: CalibrationSafeErrorCategory,
   ): void {
+    checkPoison();
     requireLock();
     requireReservedTokenKey(key);
     if (!isValidTokenFailureCategory(errorCategory)) {
@@ -1038,10 +1095,12 @@ export function createCalibrationLedger(
   }
 
   function getCounts(): { tokenCountReserved: number; imageReserved: number } {
+    checkPoison();
     return { tokenCountReserved, imageReserved };
   }
 
   function recordSafeError(entry: CalibrationLedgerSafeErrorEntry): void {
+    checkPoison();
     requireLock();
     const snapshot = snapshotSafeErrorEntry(entry);
     assertValidSafeErrorEntry(snapshot);
@@ -1052,6 +1111,7 @@ export function createCalibrationLedger(
   }
 
   function appendResultJournal(entry: JournalEntry): string {
+    checkPoison();
     requireLock();
     const id = canonicalReservationKey(entry.key);
     const record = reservations.get(id);
@@ -1075,6 +1135,7 @@ export function createCalibrationLedger(
   }
 
   function complete(key: ReservationKey, journalHash: string): void {
+    checkPoison();
     requireLock();
     const id = canonicalReservationKey(key);
     const record = reservations.get(id);
@@ -1092,6 +1153,7 @@ export function createCalibrationLedger(
   }
 
   function rebuildReport(): { completed: ReservationKey[] } {
+    checkPoison();
     const completed: ReservationKey[] = [];
     for (const id of reservationOrder) {
       const record = reservations.get(id);
@@ -1105,6 +1167,8 @@ export function createCalibrationLedger(
   }
 
   function recoverAfterCrash(): CalibrationRecoveryReport {
+    checkPoison();
+    requireLock();
     const interrupted: ReservationKey[] = [];
     const failed: CalibrationFailedReservation[] = [];
     for (const id of reservationOrder) {
