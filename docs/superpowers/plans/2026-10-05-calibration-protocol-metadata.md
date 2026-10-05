@@ -10,7 +10,7 @@
 
 **Tech Stack:** TypeScript, Node synchronous filesystem primitives, Vitest; no new dependencies.
 
-**Spec:** `docs/superpowers/plans/2026-09-23-gemini-38-nutrition-calibration.md` and its approved calibration design, plus the independently reproduced lock/replay defects recorded in implementation status.
+**Spec:** `docs/superpowers/specs/2026-09-23-gemini-38-nutrition-calibration-design.md`, parent `docs/superpowers/plans/2026-09-23-gemini-38-nutrition-calibration.md`, and independently reproduced lock/replay defects recorded in implementation status.
 
 **Global constraints:** no new 2.5 calls; exact 146 planned images/300 ceiling; v1/vertex-ai/gemini-3.8-flash; no retry; no production mutation; protected user files preserved.
 
@@ -20,7 +20,7 @@
 
 - [x] Write tests only, witness focused RED.
 - [x] Implement the smallest source fix, inspect and witness GREEN.
-- [ ] Run focused/full/build/lint, obtain external and independent review, update tracking, commit/push.
+- [x] Run focused/full/build/lint, obtain external and independent review, update tracking, commit/push.
 
 **Files:** modify `functions/src/nutrition-eval/calibration.ts`, `calibration-file-store.ts`; add `functions/test/nutrition-eval/calibration-replay-lock.test.ts`, `calibration-archive-claim.test.ts`; update the existing recovery-order expectation in `calibration.test.ts` only where it asserts the unsafe old order.
 
@@ -49,6 +49,10 @@ Strict replay requires event zero `protocol_identity` with exact 15 identity fie
 `profile_selected`: one immutable LOW/MEDIUM plus closed reason, after passed development summary, completed preflight and full 48 terminal development keys. Key resolver runs under replay/lock on selection, validates unique stage/profile/sample shape and exact stage counts, preserves all initial 50 keys, and expands to exactly 146 (50 + 48 validation + 48 benchmark). No key from another downstream profile. Resolver failure is static causeless fatal; no provider callbacks.
 
 `stage_completed`: ordered once-only stage plus `passed:true` and timestamp; a method requires matching passed gate summary with already completed predecessor stages. Preflight requires successful token count, two successful images and version pin; development requires 48 terminal outcomes and selection; validation requires 48 terminal outcomes and prior development/selection/version; benchmark requires 48 terminal image outcomes and prior validation. Replay enforces the same structure/coverage. Repeated identical completion is no-op; contradictions fatal. Coverage is not proof of accuracy gates or the 12 barcode outcomes; those remain explicit activation blockers.
+
+Reservation sequencing is part of the strict replay grammar, not merely the future driver: token count precedes LOW; LOW is terminal-successful and version-pinned before MEDIUM; no development reservation before durable preflight completion, no validation before durable development completion/selection, no benchmark before durable validation completion. No reservation in a completed stage. Reject the same forbidden sequence both on new writes and replay. The first pin requires completed token count plus an active LOW reservation. Gate summaries supply exactly already completed predecessor stages (`[]` for preflight, `['preflight']` for development/selection, and so on); this is structural evidence, never a claim that nutrition thresholds have been independently measured.
+
+Task 1 nonblocking follow-ups belong to this task's tests: make both new regression-suite headers timeless, add backing journal/token arrivals after construction, exact once-per-acquire journal/events reads, and pending-hash reset across release/reacquire. Preserve original RED evidence and all assertions.
 
 Tests: strict header initialization under fresh/recovered lock; constructor no metadata writes; identity/hash/extra-field/duplicate/headerless rejection; frozen defensive snapshots and private getter/toJSON failures; restart pin/profile/stage replay; model drift and success-version mismatch; all closed reasons and invalid reasons; complete terminal coverage and ordered gates; dynamic resolver 50→146 invariant and rejection of 242/both profiles; lifecycle/journal mismatch; poisoned methods; legacy strict-header refusal without changing old hermetic APIs.
 
