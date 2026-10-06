@@ -10,15 +10,18 @@
  * importing this module has no read/write/network side effects.
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { hostname } from 'node:os';
 import { isAbsolute, resolve } from 'node:path';
 import type { CalibrationIdentity, CalibrationLedger, CalibrationOwner } from './calibration';
+import type { CalibrationProfile, ReservationKey } from './calibration';
 import { HARD_CALL_CEILING, PLANNED_IMAGE_CALLS } from './calibration';
 import {
   CALIBRATION_HISTORICAL_REFERENCE_SHA256,
   CALIBRATION_MANIFEST_SHA256,
   CALIBRATION_OFF_SNAPSHOT_LOCK_SHA256,
+  CALIBRATION_PUBLIC_MANIFEST_HASH,
   CALIBRATION_RESPONSE_SCHEMA_HASH,
   CALIBRATION_SOURCE_LOCK_SHA256,
   verifyCalibrationPreflightState,
@@ -36,7 +39,8 @@ import {
   LABEL_ANALYSIS_PROMPT,
   MEAL_ANALYSIS_PROMPT,
 } from '../prompts';
-import { resolveNutritionEvalRuntimePaths } from './cli';
+import { hashNutritionEvalManifest, resolveNutritionEvalRuntimePaths } from './cli';
+import { parseNutritionEvalManifest, StrictCalibrationManifestSchema } from './schema';
 
 export type CalibrationBootstrapGitState =
   Parameters<CalibrationLedger['assertGitState']>[0] & { implementationCommit: string };
@@ -582,4 +586,284 @@ export async function prepareCalibrationBootstrapContext(
     files: frozenFiles,
   };
   return Object.freeze(context) as CalibrationPreparedContext;
+}
+
+/**
+ * Task 3 canonical allowed-keys planner (pure, synchronous).
+ *
+ * Derives the exact image reservation keys from the two committed manifests
+ * only; it does NOT authorize full setup and never touches the other five
+ * preflight files. Inputs are raw committed bytes keyed by preflight file
+ * name. Only `calibration-manifest` and `public-manifest` are read.
+ *
+ * Gates:
+ * - `calibration-manifest` bytes must hash (raw sha256) to
+ *   `CALIBRATION_MANIFEST_SHA256`, parse as JSON, and validate through the
+ *   strict `StrictCalibrationManifestSchema` (unknown fields, duplicates,
+ *   wrong slot ranges all fail closed).
+ * - `public-manifest` bytes must parse as JSON, validate through the existing
+ *   backward-compatible `parseNutritionEvalManifest`, contain no unknown
+ *   raw fields at any depth (recursive raw/parsed key-set comparison, so
+ *   formatting-only reserialization stays valid), and hash semantically to
+ *   `CALIBRATION_PUBLIC_MANIFEST_HASH` via `hashNutritionEvalManifest`.
+ *
+ * Shapes:
+ * - no profile: exactly 50 keys (preflight LOW+MEDIUM sample 1 on the first
+ *   development case, plus 24 development cases x LOW/MEDIUM sample 1).
+ * - selected LOW/MEDIUM: exactly 146 keys (unchanged 50 prefix, plus 16
+ *   validation cases x 3 samples plus 16 public meal/label cases x 3
+ *   benchmark samples, all in the selected profile). Barcode cases receive
+ *   zero image keys; benchmark keys are never derived from the 40
+ *   calibration cases.
+ *
+ * Pure: never invokes caller `toJSON` or custom iterators, never mutates the
+ * input, returns a deeply frozen array of frozen keys. Every failure is a
+ * fresh static causeless `CalibrationFatalError` with no private payload.
+ */
+export function deriveCanonicalAllowedKeys(
+  files: Record<CalibrationPreflightFileName, string>,
+  selectedProfile?: CalibrationProfile,
+): readonly ReservationKey[] {
+  let calibrationBytes: unknown;
+  let publicBytes: unknown;
+  let selected: CalibrationProfile | undefined;
+  try {
+    if (
+      typeof files !== 'object' ||
+      files === null ||
+      Array.isArray(files)
+    ) {
+      throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+    }
+    calibrationBytes =
+      (files as Record<string, unknown>)['calibration-manifest'];
+    publicBytes = (files as Record<string, unknown>)['public-manifest'];
+    if (typeof calibrationBytes !== 'string' || typeof publicBytes !== 'string') {
+      throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+    }
+    if (selectedProfile === undefined) {
+      selected = undefined;
+    } else if (selectedProfile === 'LOW' || selectedProfile === 'MEDIUM') {
+      selected = selectedProfile;
+    } else {
+      throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+    }
+  } catch {
+    // Never trust a foreign typed error or revoked-proxy TypeError: any
+    // caller-structural failure becomes a fresh static causeless fatal.
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+
+  const calibrationText: string = calibrationBytes;
+  const publicText: string = publicBytes;
+
+  if (
+    createHash('sha256').update(calibrationText, 'utf8').digest('hex') !==
+    CALIBRATION_MANIFEST_SHA256
+  ) {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+  let calibrationRaw: unknown;
+  try {
+    calibrationRaw = JSON.parse(calibrationText) as unknown;
+  } catch {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+  let calibrationManifest: {
+    cases: Array<{ id: string; group: string }>;
+  };
+  try {
+    calibrationManifest = StrictCalibrationManifestSchema.parse(
+      calibrationRaw,
+    ) as unknown as { cases: Array<{ id: string; group: string }> };
+  } catch {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+
+  let publicRaw: unknown;
+  try {
+    publicRaw = JSON.parse(publicText) as unknown;
+  } catch {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+  let publicParsed: { cases: Array<{ id: string; scanMode: string }> };
+  try {
+    publicParsed = parseNutritionEvalManifest(publicRaw) as unknown as {
+      cases: Array<{ id: string; scanMode: string }>;
+    };
+  } catch {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+  assertNoUnknownPublicKeys(publicRaw, publicParsed);
+  let publicHash: string;
+  try {
+    publicHash = hashNutritionEvalManifest(publicParsed);
+  } catch {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+  if (publicHash !== CALIBRATION_PUBLIC_MANIFEST_HASH) {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+
+  const devIds: string[] = [];
+  const validationIds: string[] = [];
+  const calibrationCases = calibrationManifest.cases;
+  const calibrationCount = calibrationCases.length;
+  for (let index = 0; index < calibrationCount; index += 1) {
+    const entry = calibrationCases[index] as { id: string; group: string };
+    if (entry.group === 'development') {
+      devIds.push(entry.id);
+    } else if (entry.group === 'validation') {
+      validationIds.push(entry.id);
+    } else {
+      throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+    }
+  }
+  if (devIds.length !== 24 || validationIds.length !== 16) {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+  const firstDev = devIds[0] as string;
+  if (typeof firstDev !== 'string' || firstDev.length === 0) {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+
+  const benchmarkIds: string[] = [];
+  const publicCases = publicParsed.cases;
+  const publicCount = publicCases.length;
+  for (let index = 0; index < publicCount; index += 1) {
+    const entry = publicCases[index] as { id: string; scanMode: string };
+    if (entry.scanMode === 'meal' || entry.scanMode === 'label') {
+      benchmarkIds.push(entry.id);
+    } else if (entry.scanMode === 'barcode') {
+      continue;
+    } else {
+      throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+    }
+  }
+  if (benchmarkIds.length !== 16) {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+
+  const keys: ReservationKey[] = [];
+  keys.push({ stage: 'preflight', profile: 'LOW', caseId: firstDev, sampleIndex: 1 });
+  keys.push({ stage: 'preflight', profile: 'MEDIUM', caseId: firstDev, sampleIndex: 1 });
+  for (let index = 0; index < devIds.length; index += 1) {
+    const caseId = devIds[index] as string;
+    keys.push({ stage: 'development', profile: 'LOW', caseId, sampleIndex: 1 });
+    keys.push({ stage: 'development', profile: 'MEDIUM', caseId, sampleIndex: 1 });
+  }
+  if (selected !== undefined) {
+    for (let index = 0; index < validationIds.length; index += 1) {
+      const caseId = validationIds[index] as string;
+      for (let sample = 1; sample <= 3; sample += 1) {
+        keys.push({ stage: 'validation', profile: selected, caseId, sampleIndex: sample });
+      }
+    }
+    for (let index = 0; index < benchmarkIds.length; index += 1) {
+      const caseId = benchmarkIds[index] as string;
+      for (let sample = 1; sample <= 3; sample += 1) {
+        keys.push({ stage: 'benchmark', profile: selected, caseId, sampleIndex: sample });
+      }
+    }
+  }
+
+  const expectedLength = selected === undefined ? 50 : 146;
+  if (keys.length !== expectedLength) {
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+  const seen = new Set<string>();
+  for (let index = 0; index < keys.length; index += 1) {
+    const key = keys[index] as ReservationKey;
+    const id = `${key.stage}|${key.profile}|${key.caseId}|${key.sampleIndex}`;
+    if (seen.has(id)) {
+      throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+    }
+    seen.add(id);
+    Object.freeze(key);
+  }
+  return Object.freeze(keys) as readonly ReservationKey[];
+}
+
+/**
+ * Recursive raw/parsed key-set comparison for the public manifest. The
+ * generic public schema stays stripping-tolerant and backward compatible;
+ * an unknown raw field at any depth fails closed here instead. Formatting
+ * or key-order differences are legitimate: only the presence of a raw key
+ * absent from the parsed output is rejected, never a serialization
+ * round-trip string comparison.
+ */
+function assertNoUnknownPublicKeys(raw: unknown, parsed: unknown): void {
+  try {
+    if (Array.isArray(raw)) {
+      if (!Array.isArray(parsed)) {
+        throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+      }
+      const parsedArray = parsed as readonly unknown[];
+      let rawLength: unknown;
+      let parsedLength: unknown;
+      try {
+        rawLength = (raw as readonly unknown[]).length;
+        parsedLength = parsedArray.length;
+      } catch {
+        throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+      }
+      if (rawLength !== parsedLength) {
+        throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+      }
+      const count = rawLength as number;
+      for (let index = 0; index < count; index += 1) {
+        let rawItem: unknown;
+        let parsedItem: unknown;
+        try {
+          rawItem = (raw as readonly unknown[])[index];
+          parsedItem = parsedArray[index];
+        } catch {
+          throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+        }
+        assertNoUnknownPublicKeys(rawItem, parsedItem);
+      }
+      return;
+    }
+    if (typeof raw === 'object' && raw !== null) {
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+      }
+      const rawRecord = raw as Record<string, unknown>;
+      const parsedRecord = parsed as Record<string, unknown>;
+      let rawKeys: string[];
+      try {
+        rawKeys = Object.keys(rawRecord);
+      } catch {
+        throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+      }
+      for (let index = 0; index < rawKeys.length; index += 1) {
+        const key = rawKeys[index] as string;
+        let has: boolean;
+        try {
+          has = Object.prototype.hasOwnProperty.call(parsedRecord, key);
+        } catch {
+          throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+        }
+        if (!has) {
+          throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+        }
+      }
+      for (let index = 0; index < rawKeys.length; index += 1) {
+        const key = rawKeys[index] as string;
+        let rawChild: unknown;
+        let parsedChild: unknown;
+        try {
+          rawChild = rawRecord[key];
+          parsedChild = parsedRecord[key];
+        } catch {
+          throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+        }
+        assertNoUnknownPublicKeys(rawChild, parsedChild);
+      }
+    }
+  } catch {
+    // Any revoked-proxy, foreign getter, or reflection failure fails closed
+    // with a fresh static causeless fatal; never retain the foreign error.
+    throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
 }

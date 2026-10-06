@@ -62,8 +62,8 @@ RED/GREEN: focused `calibration-protocol-ledger.test.ts` plus all Task 1 ledger/
 
 ## Task 3 — Canonical keys and explicit strict preflight session
 
-- [ ] Write tests only, witness focused RED.
-- [ ] Implement new explicit composition, inspect and witness GREEN.
+- [x] Write tests only, witness focused RED.
+- [x] Implement new explicit composition, inspect and witness GREEN.
 - [ ] Run focused/full/build/lint, obtain external and independent review, update parent/status tracking, commit/push.
 
 **Files:** modify `calibration-bootstrap.ts`, `calibration-preflight-session.ts` (and bridge only if required); add `functions/test/nutrition-eval/calibration-canonical-keys.test.ts`, `calibration-protocol-session.test.ts`.
