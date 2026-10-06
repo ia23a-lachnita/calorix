@@ -64,7 +64,7 @@ RED/GREEN: focused `calibration-protocol-ledger.test.ts` plus all Task 1 ledger/
 
 - [x] Write tests only, witness focused RED.
 - [x] Implement new explicit composition, inspect and witness GREEN.
-- [ ] Run focused/full/build/lint, obtain external and independent review, update parent/status tracking, commit/push.
+- [x] Run focused/full/build/lint, obtain external and independent review, update parent/status tracking, commit/push.
 
 **Files:** modify `calibration-bootstrap.ts`, `calibration-preflight-session.ts` (and bridge only if required); add `functions/test/nutrition-eval/calibration-canonical-keys.test.ts`, `calibration-protocol-session.test.ts`.
 
