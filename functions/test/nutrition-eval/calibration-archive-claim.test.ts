@@ -1,20 +1,15 @@
 /**
- * Task 1 RED: atomic stale archive claim via link (not rename).
+ * Atomic stale archive claim via link, not rename (timeless).
  *
- * Desired fix (not yet applied): validate canonical chain, regular
- * non-symlink lock and matching stale owner, capture expected dev/ino, then
- * atomically `linkSync(lock, archive)` to the existing sibling
- * `lock.archive.<pid>.<ticks>.json` name. EEXIST maps to static
- * `calibration:lock-archive-destination-exists` with no overwrite/rename
- * fallback. Fsync directory before unlink, re-verify archive/current lock
- * remain regular with expected inode/device and stale owner, then unlink old
- * lock and fsync directory again. Archive-specific `linkSync`/`unlinkSync`
- * seams must not affect JSON-array rename or removeLock paths.
- *
- * Current source archives with `renameSync`, ignoring the proposed
- * link/unlink seams. Every interleaving/order/fault test below therefore
- * REDs (hook never runs, rename fallback used, single fsync, replacement
- * clobbered) while preexisting-file/symlink guards stay GREEN.
+ * Contract: validate canonical chain, regular non-symlink lock and matching
+ * stale owner, capture expected dev/ino, then atomically `linkSync(lock,
+ * archive)` to the existing sibling `lock.archive.<pid>.<ticks>.json` name.
+ * EEXIST maps to static `calibration:lock-archive-destination-exists` with no
+ * overwrite/rename fallback. Fsync directory before unlink, re-verify
+ * archive/current lock remain regular with expected inode/device and stale
+ * owner, then unlink old lock and fsync directory again. Archive-specific
+ * `linkSync`/`unlinkSync` seams do not affect JSON-array rename or removeLock
+ * paths.
  *
  * Real temp dirs only; no provider/Firebase/network access.
  */

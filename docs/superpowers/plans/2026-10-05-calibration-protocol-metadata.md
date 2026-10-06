@@ -34,8 +34,8 @@ RED/GREEN: `npm --prefix functions test -- --reporter=dot test/nutrition-eval/ca
 
 ## Task 2 — Strict protocol factory and durable metadata grammar
 
-- [ ] Write tests only, witness focused RED.
-- [ ] Implement and inspect the shared-core strict factory; witness GREEN.
+- [x] Write tests only, witness focused RED.
+- [x] Implement and inspect the shared-core strict factory; witness GREEN.
 - [ ] Run focused/full/build/lint, obtain external and independent review, update tracking, commit/push.
 
 **Files:** modify `calibration.ts`; add `functions/test/nutrition-eval/calibration-protocol-ledger.test.ts`. Keep source refactoring bounded; split private strict helpers into a new module if necessary, without circular runtime imports.
@@ -51,6 +51,8 @@ Strict replay requires event zero `protocol_identity` with exact 15 identity fie
 `stage_completed`: ordered once-only stage plus `passed:true` and timestamp; a method requires matching passed gate summary with already completed predecessor stages. Preflight requires successful token count, two successful images and version pin; development requires 48 terminal outcomes and selection; validation requires 48 terminal outcomes and prior development/selection/version; benchmark requires 48 terminal image outcomes and prior validation. Replay enforces the same structure/coverage. Repeated identical completion is no-op; contradictions fatal. Coverage is not proof of accuracy gates or the 12 barcode outcomes; those remain explicit activation blockers.
 
 Reservation sequencing is part of the strict replay grammar, not merely the future driver: token count precedes LOW; LOW is terminal-successful and version-pinned before MEDIUM; no development reservation before durable preflight completion, no validation before durable development completion/selection, no benchmark before durable validation completion. No reservation in a completed stage. Reject the same forbidden sequence both on new writes and replay. The first pin requires completed token count plus an active LOW reservation. Gate summaries supply exactly already completed predecessor stages (`[]` for preflight, `['preflight']` for development/selection, and so on); this is structural evidence, never a claim that nutrition thresholds have been independently measured.
+
+**Corrective review requirements (2026-10-06, independently reproduced, MCP 3.7 plan agree/none):** all three new metadata writers call `requireLock()` first (permanent poison precedes input access and idempotent returns). Strict inherited root/options/owner/liveness/recovery-clock/transition boundaries require guarded snapshots and static causeless errors; recovery audit uses fresh closed owner snapshots and retains ownership/poison on uncertain persistence failure. The legacy `reserveSynthetic` facility is unsupported in strict v1: reject before descriptor/callback access and reject `synthetic_reserved` on strict replay, leaving legacy APIs untouched. Event zero must have the exact guarded `protocol_identity` discriminator. After complete replay/selected expansion, reconcile every journal key to the allowed set and actual reservation, preserving a reserved journal without a terminal event as a valid crash window. A recovery `failed` event must bind its same-key canonical interrupted journal (interrupted marker/category, null prediction, `n/a`, zero latency), never a successful/provider-failure outcome. Add exact-category/no-effects regressions and witness RED before applying these repairs; draft 342/342 and full 1708+1 skip did not cover these defects.
 
 Task 1 nonblocking follow-ups belong to this task's tests: make both new regression-suite headers timeless, add backing journal/token arrivals after construction, exact once-per-acquire journal/events reads, and pending-hash reset across release/reacquire. Preserve original RED evidence and all assertions.
 

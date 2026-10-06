@@ -1,17 +1,14 @@
 /**
- * Task 1 RED: authoritative locked replay, ordered recovery audit, poison.
+ * Authoritative locked replay, ordered recovery audit, and poison (timeless).
  *
- * Desired fix (not yet applied): `acquireLock` must archive the stale owner,
- * acquire the new wx lock, mark held owner, reset all replay state and reread
- * journal/events under exclusive ownership, then append the recovery audit.
+ * Contract: `acquireLock` archives the stale owner, acquires the new wx
+ * lock, marks held owner, resets all replay state and rereads
+ * journal/events under exclusive ownership, then appends the recovery audit.
  * Fresh acquisition also refreshes. No audit/write on failed archive/wx.
  * Failed under-lock refresh permanently poisons the instance: every public
  * method (including getters, release, acquire, recover) throws a fresh static
  * causeless fatal before any dependency operation, retaining the lock.
  * Crash recovery requires held ownership.
- *
- * Current source replays only at construction and audits before archive, so
- * the backing-store update, ordering, poison, and ownership tests below RED.
  *
  * Injected fakes only; no real fs/proc/provider/network access.
  */
@@ -508,5 +505,124 @@ describe('calibration under-lock refresh poison retains lock and blocks every me
     expect(() => ledger.releaseLock(owner)).toThrow(CalibrationFatalError);
     expect(backing.ops.length).toBe(opsBefore);
     expect(JSON.stringify(backing.events)).not.toContain(backing.privateMarker);
+  });
+});
+
+describe('calibration reset characterization across release and reacquire', () => {
+  it('observes late backing journal and token arrivals with exactly one read each per acquire', () => {
+    const backing = makeBacking('live');
+    const key = makeKey();
+    const tokenKey = makeTokenKey();
+    const ledger = createCalibrationLedger(backing.deps, makeIdentity(), [key]);
+    // Initial construction reads journal and events exactly once each.
+    const journalReadsAfterConstruction = backing.ops.filter(
+      (op) => op === 'readJournalEntries',
+    ).length;
+    const ledgerReadsAfterConstruction = backing.ops.filter(
+      (op) => op === 'readLedgerEvents',
+    ).length;
+    expect(journalReadsAfterConstruction).toBe(1);
+    expect(ledgerReadsAfterConstruction).toBe(1);
+    expect(ledger.getCounts().imageReserved).toBe(0);
+    // Late external arrivals land in the raw backing stores between
+    // construction and the fresh wx acquisition (not via this host ledger).
+    const journal = makeJournal(key);
+    const hash = journalHashFor(journal);
+    backing.journals.push(journal);
+    backing.events.push({ type: 'reserved', key, at: backing.deps.nowIso() });
+    backing.events.push({
+      type: 'completed',
+      key,
+      journalHash: hash,
+      at: backing.deps.nowIso(),
+    });
+    backing.events.push({ type: 'token_count_reserved', key: tokenKey, at: backing.deps.nowIso() });
+    backing.events.push({
+      type: 'token_count_completed',
+      key: tokenKey,
+      count: 42,
+      at: backing.deps.nowIso(),
+    });
+    const owner = makeOwner();
+    backing.ops.length = 0;
+    const readsBeforeAcquire = 0;
+    ledger.acquireLock(owner);
+    expect(
+      backing.ops.filter((op) => op === 'readJournalEntries').length,
+    ).toBe(readsBeforeAcquire + 1);
+    expect(
+      backing.ops.filter((op) => op === 'readLedgerEvents').length,
+    ).toBe(readsBeforeAcquire + 1);
+    // Host observes the external arrivals authoritatively, exactly once.
+    expect(ledger.getCounts().imageReserved).toBe(1);
+    expect(ledger.getCounts().tokenCountReserved).toBe(1);
+    expect(ledger.rebuildReport().completed).toContainEqual(key);
+    // Token terminal is already finalized; a second terminal rejects.
+    expect(() => ledger.completeTokenCount(tokenKey, 43)).toThrow(CalibrationFatalError);
+    expect(() => ledger.reserve(key)).toThrow(CalibrationFatalError);
+    ledger.releaseLock(owner);
+    // Reacquire rereads exactly once per store and preserves durability.
+    backing.ops.length = 0;
+    ledger.acquireLock(makeOwner({ pid: 5555, startTicks: 5 }));
+    expect(
+      backing.ops.filter((op) => op === 'readJournalEntries').length,
+    ).toBe(1);
+    expect(backing.ops.filter((op) => op === 'readLedgerEvents').length).toBe(1);
+    expect(ledger.rebuildReport().completed).toContainEqual(key);
+    expect(ledger.getCounts().tokenCountReserved).toBe(1);
+    expect(ledger.getCounts().imageReserved).toBe(1);
+  });
+
+  it('clears pending journal state across release and reacquire', () => {
+    const backing = makeBacking('live');
+    const key = makeKey();
+    const ledger = createCalibrationLedger(backing.deps, makeIdentity(), [key]);
+    const owner = makeOwner();
+    ledger.acquireLock(owner);
+    ledger.reserve(key);
+    const journal = makeJournal(key);
+    const firstHash = ledger.appendResultJournal(journal);
+    expect(firstHash).toBe(journalHashFor(journal));
+    // Release while a journal is pending but the completion never landed;
+    // the durable history holds the reservation plus the journal only.
+    ledger.releaseLock(owner);
+    expect(backing.journals).toHaveLength(1);
+    expect(
+      backing.events.filter((e) => (e as { type: string }).type === 'completed'),
+    ).toHaveLength(0);
+    ledger.acquireLock(makeOwner({ pid: 5555, startTicks: 5 }));
+    // The stale in-memory pending entry must not survive the authoritative
+    // refresh, but the durable reservation does: a second journal for the
+    // still-reserved key is allowed because the old pending hash was cleared
+    // (the hash index tolerates the existing durable entry), then completes.
+    const secondHash = ledger.appendResultJournal(journal);
+    expect(secondHash).toBe(firstHash);
+    ledger.complete(key, secondHash);
+    expect(ledger.rebuildReport().completed).toContainEqual(key);
+    expect(ledger.getCounts().imageReserved).toBe(1);
+  });
+
+  it('observes an externally completed key as sealed across reacquire', () => {
+    const backing = makeBacking('live');
+    const key = makeKey();
+    const ledger = createCalibrationLedger(backing.deps, makeIdentity(), [key]);
+    const owner = makeOwner();
+    ledger.acquireLock(owner);
+    ledger.reserve(key);
+    const journal = makeJournal(key);
+    const pendingHash = ledger.appendResultJournal(journal);
+    ledger.releaseLock(owner);
+    // Another process durably completes the same key with the same hash.
+    backing.events.push({
+      type: 'completed',
+      key,
+      journalHash: pendingHash,
+      at: backing.deps.nowIso(),
+    });
+    ledger.acquireLock(makeOwner({ pid: 5555, startTicks: 5 }));
+    // The key is already completed, so a second completion with the same
+    // hash fails closed instead of double-completing.
+    expect(ledger.rebuildReport().completed).toContainEqual(key);
+    expect(() => ledger.complete(key, pendingHash)).toThrow(CalibrationFatalError);
   });
 });

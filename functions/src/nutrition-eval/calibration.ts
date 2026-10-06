@@ -509,22 +509,820 @@ interface TokenReservationState {
   status: 'reserved' | 'completed' | 'failed' | 'poisoned';
 }
 
+// ── Strict protocol ledger (Task 7 Step 4a / protocol-metadata Task 2) ────────
+// One shared private ledger core below serves both the legacy factory and the
+// strict protocol factory; strict behavior is a mode of that core, never a
+// duplicated parallel ledger.
+
+export type CalibrationProfileSelectionReason =
+  | 'fewer_unsafe'
+  | 'higher_parse'
+  | 'fewer_catastrophic'
+  | 'lower_macro_error'
+  | 'lower_kcal_error'
+  | 'lower_latency'
+  | 'default_medium_tie_breaker';
+
+export type CalibrationKeyResolver = (
+  selectedProfile?: CalibrationProfile,
+) => readonly ReservationKey[];
+
+export interface CalibrationProtocolLedger extends CalibrationLedger {
+  pinModelVersion: (version: string) => void;
+  getPinnedModelVersion: () => string | undefined;
+  recordProfileSelection: (
+    profile: CalibrationProfile,
+    reason: CalibrationProfileSelectionReason,
+    gateSummary: CalibrationStageGateSummary,
+  ) => void;
+  getSelectedProfile: () => CalibrationProfile | undefined;
+  completeStage: (stage: StageName, gateSummary: CalibrationStageGateSummary) => void;
+  getCompletedStages: () => readonly StageName[];
+}
+
+const STRICT_LEDGER_EVENT_TYPES: ReadonlySet<string> = new Set([
+  'protocol_identity',
+  'model_version_pinned',
+  'profile_selected',
+  'stage_completed',
+]);
+
+const SELECTION_REASONS: ReadonlySet<string> = new Set([
+  'fewer_unsafe',
+  'higher_parse',
+  'fewer_catastrophic',
+  'lower_macro_error',
+  'lower_kcal_error',
+  'lower_latency',
+  'default_medium_tie_breaker',
+]);
+
+const STRICT_JOURNAL_ERROR_CATEGORIES: ReadonlySet<string> = new Set([
+  'none',
+  'http_400',
+  'http_401',
+  'http_403',
+  'http_404',
+  'http_408',
+  'http_429',
+  'http_other_4xx',
+  'http_5xx',
+  'timeout',
+  'network',
+  'empty_response',
+  'interrupted_reservation',
+  'unknown',
+]);
+
+const MODEL_VERSION_PATTERN = /^[A-Za-z0-9_./-]{1,128}$/;
+const STRICT_PREDICTION_HASH_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
+const STRICT_CASE_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
+const HEX40_PATTERN = /^[0-9a-f]{40}$/;
+const HEX64_PATTERN = /^[0-9a-f]{64}$/;
+
+const HEX64_IDENTITY_FIELDS: ReadonlyArray<keyof CalibrationIdentity> = [
+  'datasetHash',
+  'promptHash',
+  'responseSchemaHash',
+  'sourceLockHash',
+  'manifestHash',
+  'publicManifestHash',
+  'snapshotLockHash',
+  'historicalReferenceHash',
+];
+
+const EXPECTED_STAGE_PREDECESSORS: Record<StageName, readonly StageName[]> = {
+  preflight: [],
+  development: ['preflight'],
+  validation: ['preflight', 'development'],
+  benchmark: ['preflight', 'development', 'validation'],
+};
+
+const STRICT_HEADER_KEYS: readonly string[] = ['type', 'identity', 'at'];
+const STRICT_PIN_KEYS: readonly string[] = ['type', 'responseModelVersion', 'at'];
+const STRICT_SELECTION_KEYS: readonly string[] = ['type', 'profile', 'reason', 'at'];
+const STRICT_STAGE_KEYS: readonly string[] = ['type', 'stage', 'passed', 'at'];
+const STRICT_RESERVED_KEYS: readonly string[] = ['type', 'key', 'at'];
+const STRICT_COMPLETED_KEYS: readonly string[] = ['type', 'key', 'journalHash', 'at'];
+const STRICT_FAILED_KEYS: readonly string[] = ['type', 'key', 'journalHash', 'at'];
+const STRICT_TOKEN_RESERVED_KEYS: readonly string[] = ['type', 'key', 'at'];
+const STRICT_TOKEN_COMPLETED_KEYS: readonly string[] = ['type', 'key', 'count', 'at'];
+const STRICT_TOKEN_FAILED_KEYS: readonly string[] = ['type', 'key', 'errorCategory', 'at'];
+const STRICT_LOCK_RECOVERY_KEYS: readonly string[] = [
+  'type',
+  'staleOwner',
+  'recoveringOwner',
+  'at',
+];
+const STRICT_JOURNAL_KEYS: readonly string[] = [
+  'key',
+  'predictionHash',
+  'normalizedPrediction',
+  'analysisLatencyMs',
+  'errorCategory',
+  'responseModelVersion',
+];
+const STRICT_RESERVATION_KEY_FIELDS: readonly string[] = [
+  'stage',
+  'profile',
+  'caseId',
+  'sampleIndex',
+];
+const STRICT_TOKEN_KEY_FIELDS: readonly string[] = ['kind', 'stage', 'caseId', 'model'];
+const STRICT_GATE_SUMMARY_KEYS: readonly string[] = ['stage', 'passed', 'completedStages'];
+
+const STRICT_INITIAL_KEY_COUNT = 50;
+const STRICT_EXPANDED_KEY_COUNT = 146;
+const STRICT_PREFLIGHT_KEY_COUNT = 2;
+const STRICT_DEVELOPMENT_KEY_COUNT = 48;
+const STRICT_VALIDATION_KEY_COUNT = 48;
+const STRICT_BENCHMARK_KEY_COUNT = 48;
+const STRICT_STAGE_TERMINAL_COUNT = 48;
+
+/** Guarded clone of the 15 exact identity fields; never invokes caller toJSON. */
+function cloneStrictIdentity(input: unknown): CalibrationIdentity {
+  try {
+    if (typeof input !== 'object' || input === null || Array.isArray(input)) {
+      throw new CalibrationFatalError('calibration:identity-invalid');
+    }
+    const record = input as Record<string, unknown>;
+    const clone = {} as Record<string, unknown>;
+    for (const field of IDENTITY_FIELDS) {
+      clone[field] = record[field];
+    }
+    return clone as unknown as CalibrationIdentity;
+  } catch {
+    // Never trust a foreign typed error: any caller getter/callback failure
+    // becomes a fresh static causeless fatal with no private payload.
+    throw new CalibrationFatalError('calibration:identity-invalid');
+  }
+}
+
+/** Fixed v1/vertex-ai/gemini-3.8-flash/146/300 plus exact lowercase hex binding. */
+function assertExactStrictIdentity(identity: CalibrationIdentity): void {
+  let values: Record<string, unknown>;
+  try {
+    values = {} as Record<string, unknown>;
+    for (const field of IDENTITY_FIELDS) {
+      values[field] = (identity as unknown as Record<string, unknown>)[field];
+    }
+  } catch {
+    throw new CalibrationFatalError('calibration:identity-invalid');
+  }
+  if (values.protocolVersion !== FIXED_PROTOCOL_VERSION) {
+    throw new CalibrationFatalError('calibration:identity-invalid:protocolVersion');
+  }
+  if (values.provider !== FIXED_PROVIDER) {
+    throw new CalibrationFatalError('calibration:identity-invalid:provider');
+  }
+  if (values.model !== FIXED_MODEL) {
+    throw new CalibrationFatalError('calibration:identity-invalid:model');
+  }
+  if (values.plannedImageCalls !== PLANNED_IMAGE_CALLS) {
+    throw new CalibrationFatalError('calibration:identity-invalid:plannedImageCalls');
+  }
+  if (values.hardCeiling !== HARD_CALL_CEILING) {
+    throw new CalibrationFatalError('calibration:identity-invalid:hardCeiling');
+  }
+  if (typeof values.implementationCommit !== 'string' || !HEX40_PATTERN.test(values.implementationCommit)) {
+    throw new CalibrationFatalError('calibration:identity-invalid:implementationCommit');
+  }
+  if (typeof values.functionsTreeId !== 'string' || !HEX40_PATTERN.test(values.functionsTreeId)) {
+    throw new CalibrationFatalError('calibration:identity-invalid:functionsTreeId');
+  }
+  for (const field of HEX64_IDENTITY_FIELDS) {
+    const value = values[field];
+    if (typeof value !== 'string' || !HEX64_PATTERN.test(value)) {
+      throw new CalibrationFatalError(`calibration:identity-invalid:${field}`);
+    }
+  }
+}
+
+/** Guarded single-field read; foreign getter failures become static causeless. */
+function readStrictField(
+  record: Record<string, unknown>,
+  field: string,
+  label: string,
+): unknown {
+  try {
+    return record[field];
+  } catch {
+    throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+  }
+}
+
+/** Closed exact-keys envelope; order-insensitive, never serializes caller data. */
+function assertStrictEnvelope(
+  event: unknown,
+  expectedKeys: readonly string[],
+  label: string,
+): Record<string, unknown> {
+  try {
+    if (typeof event !== 'object' || event === null || Array.isArray(event)) {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+    const record = event as Record<string, unknown>;
+    const keys = Object.keys(record);
+    if (keys.length !== expectedKeys.length) {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+    for (const key of expectedKeys) {
+      if (!Object.prototype.hasOwnProperty.call(record, key)) {
+        throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+      }
+    }
+    return record;
+  } catch {
+    throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+  }
+}
+
+function assertCanonicalStrictTimestamp(at: unknown, label: string): void {
+  try {
+    if (typeof at !== 'string' || !CANONICAL_ISO_PATTERN.test(at)) {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+    const parsed = Date.parse(at);
+    if (!Number.isFinite(parsed)) {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+    if (new Date(at).toISOString() !== at) {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+  } catch {
+    throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+  }
+}
+
+/** Guarded reservation-key snapshot with exact fields and strict shape. */
+function snapshotStrictReservationKey(value: unknown, _label: string): ReservationKey {
+  try {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new CalibrationFatalError('calibration:reservation-invalid-shape');
+    }
+    const record = value as Record<string, unknown>;
+    if (Object.keys(record).length !== STRICT_RESERVATION_KEY_FIELDS.length) {
+      throw new CalibrationFatalError('calibration:reservation-invalid-shape');
+    }
+    for (const field of STRICT_RESERVATION_KEY_FIELDS) {
+      if (!Object.prototype.hasOwnProperty.call(record, field)) {
+        throw new CalibrationFatalError('calibration:reservation-invalid-shape');
+      }
+    }
+    const stage = record.stage;
+    const profile = record.profile;
+    const caseId = record.caseId;
+    const sampleIndex = record.sampleIndex;
+    if (stage !== 'preflight' && stage !== 'development' && stage !== 'validation' && stage !== 'benchmark') {
+      throw new CalibrationFatalError('calibration:reservation-invalid-shape');
+    }
+    if (profile !== 'LOW' && profile !== 'MEDIUM') {
+      throw new CalibrationFatalError('calibration:reservation-invalid-shape');
+    }
+    if (typeof caseId !== 'string' || !STRICT_CASE_ID_PATTERN.test(caseId)) {
+      throw new CalibrationFatalError('calibration:reservation-invalid-shape');
+    }
+    const range = STAGE_SAMPLE_RANGE[stage];
+    if (range === undefined || typeof sampleIndex !== 'number' || !Number.isInteger(sampleIndex)) {
+      throw new CalibrationFatalError('calibration:reservation-invalid-shape');
+    }
+    if (sampleIndex < range.min || sampleIndex > range.max) {
+      throw new CalibrationFatalError('calibration:reservation-invalid-shape');
+    }
+    return { stage, profile, caseId, sampleIndex };
+  } catch {
+    throw new CalibrationFatalError('calibration:reservation-invalid-shape');
+  }
+}
+
+function snapshotStrictTokenKey(value: unknown): TokenCountReservationKey {
+  try {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
+    }
+    const record = value as Record<string, unknown>;
+    if (Object.keys(record).length !== STRICT_TOKEN_KEY_FIELDS.length) {
+      throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
+    }
+    for (const field of STRICT_TOKEN_KEY_FIELDS) {
+      if (!Object.prototype.hasOwnProperty.call(record, field)) {
+        throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
+      }
+    }
+    const kind = record.kind;
+    const stage = record.stage;
+    const caseId = record.caseId;
+    const model = record.model;
+    if (kind !== 'token_count') {
+      throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
+    }
+    if (typeof stage !== 'string' || typeof model !== 'string') {
+      throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
+    }
+    if (typeof caseId !== 'string' || caseId.trim().length === 0) {
+      throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
+    }
+    return { kind: 'token_count', stage: stage as StageName, caseId, model };
+  } catch {
+    throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
+  }
+}
+
+function snapshotStrictGateSummary(value: unknown, label: string): CalibrationStageGateSummary {
+  try {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+    const record = value as Record<string, unknown>;
+    if (Object.keys(record).length !== STRICT_GATE_SUMMARY_KEYS.length) {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+    for (const field of STRICT_GATE_SUMMARY_KEYS) {
+      if (!Object.prototype.hasOwnProperty.call(record, field)) {
+        throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+      }
+    }
+    const stage = record.stage;
+    const passed = record.passed;
+    const completedStages = record.completedStages;
+    if (stage !== 'preflight' && stage !== 'development' && stage !== 'validation' && stage !== 'benchmark') {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+    if (passed !== true) {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+    if (!Array.isArray(completedStages)) {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+    const stages = completedStages as readonly unknown[];
+    const count = stages.length;
+    const snapshot: StageName[] = [];
+    for (let index = 0; index < count; index += 1) {
+      const entry = stages[index];
+      if (entry !== 'preflight' && entry !== 'development' && entry !== 'validation' && entry !== 'benchmark') {
+        throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+      }
+      snapshot.push(entry);
+    }
+    return { stage, passed: true, completedStages: snapshot };
+  } catch {
+    throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+  }
+}
+
+/** Guarded full journal snapshot in canonical field order (hash-stable). */
+function snapshotStrictJournalEntry(value: unknown): JournalEntry {
+  try {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new CalibrationFatalError('calibration:journal-entry-malformed');
+    }
+    const record = value as Record<string, unknown>;
+    if (Object.keys(record).length !== STRICT_JOURNAL_KEYS.length) {
+      throw new CalibrationFatalError('calibration:journal-entry-malformed:fields');
+    }
+    for (const field of STRICT_JOURNAL_KEYS) {
+      if (!Object.prototype.hasOwnProperty.call(record, field)) {
+        throw new CalibrationFatalError('calibration:journal-entry-malformed:fields');
+      }
+    }
+    const key = snapshotStrictReservationKey(record.key, 'journal');
+    const predictionHash = record.predictionHash;
+    if (typeof predictionHash !== 'string' || !STRICT_PREDICTION_HASH_PATTERN.test(predictionHash)) {
+      throw new CalibrationFatalError('calibration:journal-entry-malformed:predictionHash');
+    }
+    const rawPrediction = record.normalizedPrediction;
+    let normalizedPrediction: Record<string, unknown> | null = null;
+    if (rawPrediction !== null) {
+      if (typeof rawPrediction !== 'object' || Array.isArray(rawPrediction)) {
+        throw new CalibrationFatalError('calibration:journal-privacy-rejected');
+      }
+      const predictionRecord = rawPrediction as Record<string, unknown>;
+      const predictionKeys = Object.keys(predictionRecord);
+      if (predictionKeys.length === 0) {
+        throw new CalibrationFatalError('calibration:journal-privacy-rejected:empty');
+      }
+      const cloned: Record<string, unknown> = {};
+      for (const name of predictionKeys) {
+        if (
+          name !== 'kcal' &&
+          name !== 'calories' &&
+          name !== 'proteinG' &&
+          name !== 'carbsG' &&
+          name !== 'fatG' &&
+          name !== 'estimatedTotalMassG'
+        ) {
+          throw new CalibrationFatalError('calibration:journal-privacy-rejected');
+        }
+        const numeric = predictionRecord[name];
+        if (typeof numeric !== 'number' || !Number.isFinite(numeric) || numeric < 0) {
+          throw new CalibrationFatalError('calibration:journal-privacy-rejected');
+        }
+        cloned[name] = numeric;
+      }
+      normalizedPrediction = cloned;
+    }
+    const analysisLatencyMs = record.analysisLatencyMs;
+    if (typeof analysisLatencyMs !== 'number' || !Number.isFinite(analysisLatencyMs) || analysisLatencyMs < 0) {
+      throw new CalibrationFatalError('calibration:journal-entry-malformed:analysisLatencyMs');
+    }
+    const errorCategory = record.errorCategory;
+    if (typeof errorCategory !== 'string' || !STRICT_JOURNAL_ERROR_CATEGORIES.has(errorCategory)) {
+      throw new CalibrationFatalError('calibration:journal-entry-malformed:errorCategory');
+    }
+    const responseModelVersion = record.responseModelVersion;
+    if (typeof responseModelVersion !== 'string' || !MODEL_VERSION_PATTERN.test(responseModelVersion)) {
+      throw new CalibrationFatalError('calibration:journal-entry-malformed:responseModelVersion');
+    }
+    if (errorCategory === 'none') {
+      if (!HEX64_PATTERN.test(predictionHash) || normalizedPrediction === null) {
+        throw new CalibrationFatalError('calibration:journal-entry-malformed');
+      }
+    } else {
+      if (
+        predictionHash !== errorCategory ||
+        normalizedPrediction !== null ||
+        responseModelVersion !== 'n/a'
+      ) {
+        throw new CalibrationFatalError('calibration:journal-entry-malformed');
+      }
+    }
+    return {
+      key,
+      predictionHash,
+      normalizedPrediction,
+      analysisLatencyMs,
+      errorCategory: errorCategory as JournalEntry['errorCategory'],
+      responseModelVersion,
+    };
+  } catch {
+    throw new CalibrationFatalError('calibration:journal-entry-malformed');
+  }
+}
+
+function snapshotStrictSafeErrorEntry(value: unknown): Record<string, unknown> {
+  try {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+    }
+    const record = value as Record<string, unknown>;
+    const kind = record.kind;
+    if (kind === 'token_count') {
+      if (Object.keys(record).length !== TOKEN_SAFE_ENTRY_KEYS.length) {
+        throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+      }
+      for (const field of TOKEN_SAFE_ENTRY_KEYS) {
+        if (!Object.prototype.hasOwnProperty.call(record, field)) {
+          throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+        }
+      }
+      return {
+        stage: record.stage,
+        kind: 'token_count',
+        caseId: record.caseId,
+        errorCategory: record.errorCategory,
+      };
+    }
+    if (kind === 'image') {
+      if (Object.keys(record).length !== IMAGE_SAFE_ENTRY_KEYS.length) {
+        throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+      }
+      for (const field of IMAGE_SAFE_ENTRY_KEYS) {
+        if (!Object.prototype.hasOwnProperty.call(record, field)) {
+          throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+        }
+      }
+      return {
+        stage: record.stage,
+        kind: 'image',
+        caseId: record.caseId,
+        profile: record.profile,
+        sampleIndex: record.sampleIndex,
+        errorCategory: record.errorCategory,
+      };
+    }
+    throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+  } catch {
+    throw new CalibrationFatalError('calibration:ledger-event-malformed:safe_error');
+  }
+}
+
+function snapshotStrictOwner(value: unknown): CalibrationOwner {
+  try {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new CalibrationFatalError('calibration:lock-owner-invalid');
+    }
+    const record = value as Record<string, unknown>;
+    const hostname = record.hostname;
+    const bootId = record.bootId;
+    const pid = record.pid;
+    const startTicks = record.startTicks;
+    const acquiredAt = record.acquiredAt;
+    if (typeof hostname !== 'string' || hostname.trim().length === 0) {
+      throw new CalibrationFatalError('calibration:lock-owner-invalid');
+    }
+    if (typeof bootId !== 'string' || bootId.trim().length === 0) {
+      throw new CalibrationFatalError('calibration:lock-owner-invalid');
+    }
+    if (typeof pid !== 'number' || !Number.isInteger(pid) || pid <= 0) {
+      throw new CalibrationFatalError('calibration:lock-owner-invalid');
+    }
+    if (typeof startTicks !== 'number' || !Number.isFinite(startTicks) || startTicks < 0) {
+      throw new CalibrationFatalError('calibration:lock-owner-invalid');
+    }
+    if (typeof acquiredAt !== 'string' || acquiredAt.length === 0) {
+      throw new CalibrationFatalError('calibration:lock-owner-invalid');
+    }
+    return { hostname, bootId, pid, startTicks, acquiredAt };
+  } catch {
+    throw new CalibrationFatalError('calibration:lock-owner-invalid');
+  }
+}
+
+function assertExactPredecessors(
+  actual: readonly StageName[],
+  expected: readonly StageName[],
+  label: string,
+): void {
+  if (actual.length !== expected.length) {
+    throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+  }
+  for (let index = 0; index < expected.length; index += 1) {
+    if (actual[index] !== expected[index]) {
+      throw new CalibrationFatalError(`calibration:ledger-event-malformed:${label}`);
+    }
+  }
+}
+
+/** Dynamic resolver call with indexed (iterator-free) snapshot; all failures static. */
+function invokeStrictResolver(
+  keyResolver: CalibrationKeyResolver,
+  selectedProfile: CalibrationProfile | undefined,
+): ReservationKey[] {
+  let result: unknown;
+  try {
+    result = keyResolver(selectedProfile);
+  } catch {
+    throw new CalibrationFatalError('calibration:resolver-failed');
+  }
+  try {
+    if (!Array.isArray(result)) {
+      throw new CalibrationFatalError('calibration:resolver-failed');
+    }
+    const items = result as readonly unknown[];
+    const count = items.length;
+    if (!Number.isInteger(count)) {
+      throw new CalibrationFatalError('calibration:resolver-failed');
+    }
+    const snapshot: ReservationKey[] = [];
+    for (let index = 0; index < count; index += 1) {
+      snapshot.push(snapshotStrictReservationKey(items[index], 'resolver'));
+    }
+    return snapshot;
+  } catch {
+    throw new CalibrationFatalError('calibration:resolver-failed');
+  }
+}
+
+function validateStrictInitialKeys(keys: readonly ReservationKey[]): void {
+  if (keys.length !== STRICT_INITIAL_KEY_COUNT) {
+    throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+  }
+  const seen = new Set<string>();
+  const preflightCaseIds = new Set<string>();
+  const developmentLowCases = new Set<string>();
+  const developmentMediumCases = new Set<string>();
+  for (let index = 0; index < keys.length; index += 1) {
+    const key = keys[index] as ReservationKey;
+    const id = canonicalReservationKey(key);
+    if (seen.has(id)) {
+      throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+    }
+    seen.add(id);
+    if (key.stage === 'preflight') {
+      if (key.sampleIndex !== 1) {
+        throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+      }
+      preflightCaseIds.add(key.caseId);
+    } else if (key.stage === 'development') {
+      if (key.sampleIndex !== 1) {
+        throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+      }
+      if (key.profile === 'LOW') developmentLowCases.add(key.caseId);
+      else developmentMediumCases.add(key.caseId);
+    } else {
+      throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+    }
+  }
+  // Both preflight keys name the same first development case; both
+  // development profiles cover the same 24 case IDs.
+  if (preflightCaseIds.size !== 1) {
+    throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+  }
+  if (developmentLowCases.size !== 24 || developmentMediumCases.size !== 24) {
+    throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+  }
+  for (const caseId of developmentLowCases) {
+    if (!developmentMediumCases.has(caseId)) {
+      throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+    }
+  }
+  for (const caseId of preflightCaseIds) {
+    if (!developmentLowCases.has(caseId)) {
+      throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+    }
+  }
+}
+
+function validateStrictExpandedKeys(
+  initial: readonly ReservationKey[],
+  expanded: readonly ReservationKey[],
+  selectedProfile: CalibrationProfile,
+): void {
+  if (expanded.length !== STRICT_EXPANDED_KEY_COUNT) {
+    throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+  }
+  const initialIds = new Set<string>();
+  for (let index = 0; index < initial.length; index += 1) {
+    initialIds.add(canonicalReservationKey(initial[index] as ReservationKey));
+  }
+  const seen = new Set<string>();
+  let preflight = 0;
+  let development = 0;
+  let validation = 0;
+  let benchmark = 0;
+  const validationSamples = new Map<string, Set<number>>();
+  const benchmarkSamples = new Map<string, Set<number>>();
+  for (let index = 0; index < expanded.length; index += 1) {
+    const key = expanded[index] as ReservationKey;
+    const id = canonicalReservationKey(key);
+    if (seen.has(id)) {
+      throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+    }
+    seen.add(id);
+    if (key.stage === 'preflight') {
+      preflight += 1;
+    } else if (key.stage === 'development') {
+      development += 1;
+    } else if (key.stage === 'validation') {
+      if (key.profile !== selectedProfile) {
+        throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+      }
+      validation += 1;
+      let samples = validationSamples.get(key.caseId);
+      if (samples === undefined) {
+        samples = new Set();
+        validationSamples.set(key.caseId, samples);
+      }
+      samples.add(key.sampleIndex);
+    } else if (key.stage === 'benchmark') {
+      if (key.profile !== selectedProfile) {
+        throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+      }
+      benchmark += 1;
+      let samples = benchmarkSamples.get(key.caseId);
+      if (samples === undefined) {
+        samples = new Set();
+        benchmarkSamples.set(key.caseId, samples);
+      }
+      samples.add(key.sampleIndex);
+    } else {
+      throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+    }
+  }
+  if (
+    preflight !== STRICT_PREFLIGHT_KEY_COUNT ||
+    development !== STRICT_DEVELOPMENT_KEY_COUNT ||
+    validation !== STRICT_VALIDATION_KEY_COUNT ||
+    benchmark !== STRICT_BENCHMARK_KEY_COUNT
+  ) {
+    throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+  }
+  for (let index = 0; index < initial.length; index += 1) {
+    if (!seen.has(canonicalReservationKey(initial[index] as ReservationKey))) {
+      throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+    }
+  }
+  if (validationSamples.size !== 16 || benchmarkSamples.size !== 16) {
+    throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+  }
+  for (const samples of validationSamples.values()) {
+    if (samples.size !== 3 || !samples.has(1) || !samples.has(2) || !samples.has(3)) {
+      throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+    }
+  }
+  for (const samples of benchmarkSamples.values()) {
+    if (samples.size !== 3 || !samples.has(1) || !samples.has(2) || !samples.has(3)) {
+      throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+    }
+  }
+}
+
+/**
+ * Shared canonical interrupted-outcome predicate keeping the recovery writer
+ * and strict replay aligned: marker plus category, null prediction, `n/a`
+ * version, and zero latency. Operates on internal snapshots only.
+ */
+function isCanonicalInterruptedJournal(entry: JournalEntry): boolean {
+  return (
+    entry.errorCategory === 'interrupted_reservation' &&
+    entry.predictionHash === 'interrupted_reservation' &&
+    entry.normalizedPrediction === null &&
+    entry.responseModelVersion === 'n/a' &&
+    entry.analysisLatencyMs === 0
+  );
+}
+
+/** Indexed (iterator-free) copy of a replay array; foreign read failures are static. */
+function snapshotStrictReplayArray(value: unknown, message: string): unknown[] {
+  try {
+    if (!Array.isArray(value)) {
+      throw new CalibrationFatalError(message);
+    }
+    const items = value as readonly unknown[];
+    const count = items.length;
+    if (!Number.isInteger(count) || count < 0) {
+      throw new CalibrationFatalError(message);
+    }
+    const snapshot: unknown[] = [];
+    for (let index = 0; index < count; index += 1) {
+      snapshot.push(items[index]);
+    }
+    return snapshot;
+  } catch {
+    throw new CalibrationFatalError(message);
+  }
+}
+
 export function createCalibrationLedger(
   deps: CalibrationLedgerDeps,
   identity: CalibrationIdentity,
   allowedKeys: readonly ReservationKey[],
 ): CalibrationLedger {
-  assertFixedIdentity(identity);
-  if (allowedKeys.length > identity.plannedImageCalls) {
-    throw new CalibrationFatalError('calibration:allowed-keys-exceed-planned-ceiling');
+  return createLedgerCore(deps, identity, { allowedKeys });
+}
+
+export function createProtocolCalibrationLedger(
+  deps: CalibrationLedgerDeps,
+  identity: CalibrationIdentity,
+  keyResolver: CalibrationKeyResolver,
+): CalibrationProtocolLedger {
+  return createLedgerCore(deps, identity, { keyResolver }) as CalibrationProtocolLedger;
+}
+
+function createLedgerCore(
+  deps: CalibrationLedgerDeps,
+  identityInput: CalibrationIdentity,
+  init: { allowedKeys: readonly ReservationKey[] } | { keyResolver: CalibrationKeyResolver },
+): CalibrationLedger {
+  const isStrict = !('allowedKeys' in init);
+  const strictKeyResolver = isStrict
+    ? (init as { keyResolver: CalibrationKeyResolver }).keyResolver
+    : undefined;
+  if (isStrict && typeof strictKeyResolver !== 'function') {
+    throw new CalibrationFatalError('calibration:resolver-failed');
   }
-  const allowedKeySet = new Set(allowedKeys.map(canonicalReservationKey));
-  if (allowedKeySet.size !== allowedKeys.length) {
+  const identity = isStrict ? cloneStrictIdentity(identityInput) : identityInput;
+  if (isStrict) {
+    assertExactStrictIdentity(identity);
+  } else {
+    assertFixedIdentity(identity);
+  }
+  let initialAllowedKeys: ReservationKey[];
+  if (isStrict) {
+    const loaded = invokeStrictResolver(strictKeyResolver as CalibrationKeyResolver, undefined);
+    validateStrictInitialKeys(loaded);
+    initialAllowedKeys = loaded;
+  } else {
+    const provided = (init as { allowedKeys: readonly ReservationKey[] }).allowedKeys;
+    if (provided.length > identity.plannedImageCalls) {
+      throw new CalibrationFatalError('calibration:allowed-keys-exceed-planned-ceiling');
+    }
+    initialAllowedKeys = [...provided];
+  }
+  let currentAllowedKeys: ReservationKey[] = initialAllowedKeys.map((key) => ({ ...key }));
+  let allowedKeySet = new Set(currentAllowedKeys.map(canonicalReservationKey));
+  if (!isStrict && allowedKeySet.size !== initialAllowedKeys.length) {
     throw new CalibrationFatalError('calibration:allowed-keys-duplicate');
   }
-  const plannedPreflightCaseIds = new Set(
-    allowedKeys.filter((key) => key.stage === 'preflight').map((key) => key.caseId),
+  if (isStrict) {
+    validateStrictInitialKeys(currentAllowedKeys);
+    if (allowedKeySet.size !== currentAllowedKeys.length) {
+      throw new CalibrationFatalError('calibration:resolver-invalid-keys');
+    }
+  }
+  let plannedPreflightCaseIds = new Set(
+    currentAllowedKeys.filter((key) => key.stage === 'preflight').map((key) => key.caseId),
   );
+  let preflightLowId = '';
+  let preflightMediumId = '';
+  for (const key of currentAllowedKeys) {
+    if (key.stage === 'preflight' && key.profile === 'LOW') {
+      preflightLowId = canonicalReservationKey(key);
+    }
+    if (key.stage === 'preflight' && key.profile === 'MEDIUM') {
+      preflightMediumId = canonicalReservationKey(key);
+    }
+  }
 
   function assertPlannedSafeErrorEntry(entry: CalibrationLedgerSafeErrorEntry): void {
     if (entry.kind === 'token_count') {
@@ -547,11 +1345,16 @@ export function createCalibrationLedger(
   const reservationOrder: string[] = [];
   const journalHashesByKey = new Map<string, Set<string>>();
   const pendingJournalHashes = new Map<string, string>();
+  const journalByHash = new Map<string, JournalEntry>();
   let tokenCountReserved = 0;
   let imageReserved = 0;
   let tokenReservation: TokenReservationState | undefined;
   let heldOwner: CalibrationOwner | undefined;
   let poisoned = false;
+  let pinnedModelVersion: string | undefined;
+  let selectedProfile: CalibrationProfile | undefined;
+  let selectedReason: CalibrationProfileSelectionReason | undefined;
+  let completedStages: StageName[] = [];
 
   function throwPoisoned(): never {
     throw new CalibrationFatalError('calibration:ledger-poisoned');
@@ -573,9 +1376,19 @@ export function createCalibrationLedger(
     reservationOrder.length = 0;
     journalHashesByKey.clear();
     pendingJournalHashes.clear();
+    journalByHash.clear();
     tokenCountReserved = 0;
     imageReserved = 0;
     tokenReservation = undefined;
+    pinnedModelVersion = undefined;
+    selectedProfile = undefined;
+    selectedReason = undefined;
+    completedStages = [];
+    currentAllowedKeys = initialAllowedKeys.map((key) => ({ ...key }));
+    allowedKeySet = new Set(currentAllowedKeys.map(canonicalReservationKey));
+    plannedPreflightCaseIds = new Set(
+      currentAllowedKeys.filter((key) => key.stage === 'preflight').map((key) => key.caseId),
+    );
   }
 
   // Stage 0's token-count key is fixed shape, not just well-typed: it must
@@ -608,6 +1421,9 @@ export function createCalibrationLedger(
     }
     const event = raw;
     const type: string = raw.type;
+    if (!isStrict && STRICT_LEDGER_EVENT_TYPES.has(type)) {
+      throw new CalibrationFatalError('calibration:protocol-ledger-required');
+    }
     if (!KNOWN_LEDGER_EVENT_TYPES.has(type)) {
       throw new CalibrationFatalError(`calibration:ledger-event-unknown-type:${type}`);
     }
@@ -769,9 +1585,9 @@ export function createCalibrationLedger(
   // journal/events exactly once. Initial construction calls this directly
   // (read-only, error behavior compatible); under-lock acquisition wraps it
   // in refreshUnderLock for permanent poison on ANY failure.
-  function resetAndReplay(): void {
+  function resetAndReplay(): { eventCount: number; journalCount: number } {
     clearReplayState();
-    let replayJournalEntries: readonly JournalEntry[];
+    let replayJournalEntries: readonly unknown[];
     try {
       const result = deps.readJournalEntries();
       if (!Array.isArray(result)) {
@@ -779,13 +1595,27 @@ export function createCalibrationLedger(
       }
       replayJournalEntries = result;
     } catch (error) {
+      if (isStrict) {
+        throw new CalibrationFatalError('calibration:journal-replay-read-failed');
+      }
       throw asFatal(error, 'calibration:journal-replay-read-failed');
     }
-    for (const entry of replayJournalEntries) {
-      if (!isValidJournalEntryRecord(entry)) {
-        throw new CalibrationFatalError('calibration:journal-entry-malformed');
+    let journalItems: readonly unknown[] = replayJournalEntries;
+    if (isStrict) {
+      journalItems = snapshotStrictReplayArray(
+        replayJournalEntries,
+        'calibration:journal-replay-read-failed',
+      );
+      for (let index = 0; index < journalItems.length; index += 1) {
+        strictIndexReplayJournal(journalItems[index]);
       }
-      indexJournalHash(canonicalReservationKey(entry.key), computeJournalHash(entry));
+    } else {
+      for (const entry of replayJournalEntries as readonly JournalEntry[]) {
+        if (!isValidJournalEntryRecord(entry)) {
+          throw new CalibrationFatalError('calibration:journal-entry-malformed');
+        }
+        indexJournalHash(canonicalReservationKey(entry.key), computeJournalHash(entry));
+      }
     }
 
     let replayLedgerEvents: readonly unknown[];
@@ -796,11 +1626,34 @@ export function createCalibrationLedger(
       }
       replayLedgerEvents = result;
     } catch (error) {
+      if (isStrict) {
+        throw new CalibrationFatalError('calibration:ledger-replay-read-failed');
+      }
       throw asFatal(error, 'calibration:ledger-replay-read-failed');
+    }
+    if (isStrict) {
+      const eventItems = snapshotStrictReplayArray(
+        replayLedgerEvents,
+        'calibration:ledger-replay-read-failed',
+      );
+      if (eventItems.length === 0) {
+        if (journalItems.length > 0) {
+          throw new CalibrationFatalError('calibration:ledger-header-missing');
+        }
+      } else {
+        strictValidateHeaderEvent(eventItems[0]);
+        for (let index = 1; index < eventItems.length; index += 1) {
+          strictReplayLedgerEvent(eventItems[index]);
+        }
+      }
+      strictValidateJournalVersions();
+      strictAssertJournalKeysReconciled();
+      return { eventCount: eventItems.length, journalCount: journalItems.length };
     }
     for (const event of replayLedgerEvents) {
       replayLedgerEvent(event);
     }
+    return { eventCount: replayLedgerEvents.length, journalCount: journalItems.length };
   }
 
   // Authoritative refresh under exclusive ownership. ANY failure (foreign
@@ -808,7 +1661,12 @@ export function createCalibrationLedger(
   // instance with a fresh static causeless fatal; the held lock is retained.
   function refreshUnderLock(): void {
     try {
-      resetAndReplay();
+      const counts = resetAndReplay();
+      if (isStrict && counts.eventCount === 0 && counts.journalCount === 0) {
+        // Durably initialize the header exactly once; in-memory state is
+        // already empty and consistent, so no second reread follows.
+        persistLedgerEvent(strictProtocolIdentityEvent());
+      }
     } catch {
       poisoned = true;
       throw new CalibrationFatalError('calibration:ledger-poisoned');
@@ -821,6 +1679,9 @@ export function createCalibrationLedger(
     try {
       return deps.readLock();
     } catch (error) {
+      if (isStrict) {
+        throw new CalibrationFatalError('calibration:lock-read-failed');
+      }
       throw asFatal(error, 'calibration:lock-read-failed');
     }
   }
@@ -829,6 +1690,9 @@ export function createCalibrationLedger(
     try {
       deps.writeLockExclusive(owner);
     } catch (error) {
+      if (isStrict) {
+        throw new CalibrationFatalError('calibration:lock-write-failed');
+      }
       throw asFatal(error, 'calibration:lock-write-failed');
     }
   }
@@ -837,6 +1701,9 @@ export function createCalibrationLedger(
     try {
       deps.archiveLock(owner);
     } catch (error) {
+      if (isStrict) {
+        throw new CalibrationFatalError('calibration:lock-archive-failed');
+      }
       throw asFatal(error, 'calibration:lock-archive-failed');
     }
   }
@@ -845,6 +1712,9 @@ export function createCalibrationLedger(
     try {
       deps.removeLock(owner);
     } catch (error) {
+      if (isStrict) {
+        throw new CalibrationFatalError('calibration:lock-remove-failed');
+      }
       throw asFatal(error, 'calibration:lock-remove-failed');
     }
   }
@@ -853,11 +1723,18 @@ export function createCalibrationLedger(
     try {
       return deps.probeOwnerLiveness(owner);
     } catch (error) {
+      if (isStrict) {
+        throw new CalibrationFatalError('calibration:lock-probe-failed');
+      }
       throw asFatal(error, 'calibration:lock-probe-failed');
     }
   }
 
   function persistLedgerEvent(event: unknown): void {
+    if (isStrict) {
+      strictPersistLedgerEvent(event);
+      return;
+    }
     try {
       deps.appendLedgerEvent(event);
       deps.fsyncLedgerFile();
@@ -865,6 +1742,39 @@ export function createCalibrationLedger(
     } catch (error) {
       throw asFatal(error, 'calibration:ledger-persist-failed');
     }
+  }
+
+  function strictPersistLedgerEvent(event: unknown): void {
+    try {
+      deps.appendLedgerEvent(event);
+      deps.fsyncLedgerFile();
+      deps.fsyncLedgerDir();
+    } catch {
+      poisoned = true;
+      throw new CalibrationFatalError('calibration:ledger-persist-failed');
+    }
+  }
+
+  function strictPersistJournal(entry: JournalEntry): void {
+    try {
+      deps.appendJournal(entry);
+      deps.fsyncJournalFile();
+      deps.fsyncJournalDir();
+    } catch {
+      poisoned = true;
+      throw new CalibrationFatalError('calibration:journal-persist-failed');
+    }
+  }
+
+  function strictNowIso(): string {
+    let at: unknown;
+    try {
+      at = deps.nowIso();
+    } catch {
+      throw new CalibrationFatalError('calibration:clock-failed');
+    }
+    assertCanonicalStrictTimestamp(at, 'clock');
+    return at as string;
   }
 
   function persistFailureJournal(key: ReservationKey): string {
@@ -889,10 +1799,22 @@ export function createCalibrationLedger(
 
   function acquireLock(owner: CalibrationOwner, opts?: { runDir?: string }): void {
     checkPoison();
+    if (isStrict) {
+      owner = snapshotStrictOwner(owner);
+    }
     if (heldOwner !== undefined) {
       throw new CalibrationFatalError('calibration:lock-already-held');
     }
-    const effectiveRoot = opts?.runDir ?? deps.getRoot();
+    let effectiveRoot: unknown;
+    if (isStrict) {
+      try {
+        effectiveRoot = opts?.runDir ?? deps.getRoot();
+      } catch {
+        throw new CalibrationFatalError('calibration:root-redirected');
+      }
+    } else {
+      effectiveRoot = opts?.runDir ?? deps.getRoot();
+    }
     if (effectiveRoot !== CALIBRATION_ROOT) {
       throw new CalibrationFatalError('calibration:root-redirected');
     }
@@ -903,17 +1825,34 @@ export function createCalibrationLedger(
       refreshUnderLock();
       return;
     }
-    if (existing.hostname !== owner.hostname || existing.bootId !== owner.bootId) {
+    // Strict: snapshot the stale owner into fresh closed five-field data
+    // before any comparison, liveness probe, or audit persistence. Harmless
+    // extra properties and non-enumerable toJSON hooks are dropped, never
+    // invoked or copied; foreign getter failures are fresh static causeless.
+    const staleOwner = isStrict ? snapshotStrictOwner(existing) : existing;
+    if (staleOwner.hostname !== owner.hostname || staleOwner.bootId !== owner.bootId) {
       throw new CalibrationFatalError('calibration:lock-cross-host');
     }
-    const liveness = safeProbeOwnerLiveness(existing);
+    const liveness = safeProbeOwnerLiveness(staleOwner);
+    if (isStrict && liveness !== 'live' && liveness !== 'dead' && liveness !== 'unknown') {
+      throw new CalibrationFatalError('calibration:lock-held-unknown');
+    }
     if (liveness !== 'dead') {
       throw new CalibrationFatalError(`calibration:lock-held-${liveness}`);
     }
-    safeArchiveLock(existing);
+    safeArchiveLock(staleOwner);
     safeWriteLockExclusive(owner);
     heldOwner = owner;
     refreshUnderLock();
+    if (isStrict) {
+      persistLedgerEvent({
+        type: 'lock_recovery',
+        staleOwner,
+        recoveringOwner: owner,
+        at: strictNowIso(),
+      });
+      return;
+    }
     persistLedgerEvent({
       type: 'lock_recovery',
       staleOwner: existing,
@@ -924,6 +1863,9 @@ export function createCalibrationLedger(
 
   function releaseLock(owner: CalibrationOwner): void {
     checkPoison();
+    if (isStrict) {
+      owner = snapshotStrictOwner(owner);
+    }
     if (heldOwner === undefined || !sameOwner(heldOwner, owner)) {
       throw new CalibrationFatalError('calibration:lock-release-foreign-owner');
     }
@@ -933,6 +1875,10 @@ export function createCalibrationLedger(
 
   function assertIdentity(candidate: CalibrationIdentity): void {
     checkPoison();
+    if (isStrict) {
+      strictAssertIdentity(candidate);
+      return;
+    }
     for (const field of IDENTITY_FIELDS) {
       if (candidate[field] !== identity[field]) {
         throw new CalibrationFatalError(`calibration:identity-drift:${field}`);
@@ -942,6 +1888,10 @@ export function createCalibrationLedger(
 
   function assertGitState(state: CalibrationGitState): void {
     checkPoison();
+    if (isStrict) {
+      strictAssertGitState(state);
+      return;
+    }
     if (state.dirtyPaths.length > 0) {
       throw new CalibrationFatalError('calibration:git-dirty-tree');
     }
@@ -957,6 +1907,10 @@ export function createCalibrationLedger(
   ): void {
     checkPoison();
     requireLock();
+    if (isStrict) {
+      strictAssertStageTransition(from, to, summary);
+      return;
+    }
     if (summary.stage !== from) {
       throw new CalibrationFatalError('calibration:stage-summary-mismatch');
     }
@@ -976,6 +1930,10 @@ export function createCalibrationLedger(
   function reserve(key: ReservationKey): void {
     checkPoison();
     requireLock();
+    if (isStrict) {
+      strictReserve(key);
+      return;
+    }
     if (!isValidReservationKeyShape(key)) {
       throw new CalibrationFatalError('calibration:reservation-invalid-shape');
     }
@@ -1001,6 +1959,9 @@ export function createCalibrationLedger(
   ): void {
     checkPoison();
     requireLock();
+    if (isStrict) {
+      throw new CalibrationFatalError('calibration:synthetic-unsupported');
+    }
     const attemptNumber = descriptor.index + 1;
     if (attemptNumber > HARD_CALL_CEILING) {
       throw new CalibrationFatalError(
@@ -1023,6 +1984,10 @@ export function createCalibrationLedger(
   function reserveTokenCount(key: TokenCountReservationKey): void {
     checkPoison();
     requireLock();
+    if (isStrict) {
+      strictReserveTokenCount(key);
+      return;
+    }
     if (!isAllowedTokenKey(key)) {
       throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
     }
@@ -1052,6 +2017,10 @@ export function createCalibrationLedger(
       deps.fsyncLedgerFile();
       deps.fsyncLedgerDir();
     } catch {
+      if (isStrict) {
+        poisoned = true;
+        throw new CalibrationFatalError('calibration:token-terminal-persist-failed');
+      }
       if (tokenReservation !== undefined && canonicalTokenKey(tokenReservation.key) === canonicalTokenKey(key)) {
         tokenReservation.status = 'poisoned';
       }
@@ -1062,6 +2031,10 @@ export function createCalibrationLedger(
   function completeTokenCount(key: TokenCountReservationKey, count: number): void {
     checkPoison();
     requireLock();
+    if (isStrict) {
+      strictCompleteTokenCount(key, count);
+      return;
+    }
     requireReservedTokenKey(key);
     if (!isValidTokenCompletionCount(count)) {
       throw new CalibrationFatalError('calibration:token-terminal-invalid-count');
@@ -1081,6 +2054,10 @@ export function createCalibrationLedger(
   ): void {
     checkPoison();
     requireLock();
+    if (isStrict) {
+      strictFailTokenCount(key, errorCategory);
+      return;
+    }
     requireReservedTokenKey(key);
     if (!isValidTokenFailureCategory(errorCategory)) {
       throw new CalibrationFatalError('calibration:token-terminal-invalid-category');
@@ -1102,6 +2079,10 @@ export function createCalibrationLedger(
   function recordSafeError(entry: CalibrationLedgerSafeErrorEntry): void {
     checkPoison();
     requireLock();
+    if (isStrict) {
+      strictRecordSafeError(entry);
+      return;
+    }
     const snapshot = snapshotSafeErrorEntry(entry);
     assertValidSafeErrorEntry(snapshot);
     assertPlannedSafeErrorEntry(snapshot as CalibrationLedgerSafeErrorEntry);
@@ -1113,6 +2094,9 @@ export function createCalibrationLedger(
   function appendResultJournal(entry: JournalEntry): string {
     checkPoison();
     requireLock();
+    if (isStrict) {
+      return strictAppendResultJournal(entry);
+    }
     const id = canonicalReservationKey(entry.key);
     const record = reservations.get(id);
     if (record === undefined || record.status !== 'reserved') {
@@ -1137,6 +2121,10 @@ export function createCalibrationLedger(
   function complete(key: ReservationKey, journalHash: string): void {
     checkPoison();
     requireLock();
+    if (isStrict) {
+      strictComplete(key, journalHash);
+      return;
+    }
     const id = canonicalReservationKey(key);
     const record = reservations.get(id);
     if (record === undefined || record.status !== 'reserved') {
@@ -1161,7 +2149,7 @@ export function createCalibrationLedger(
       if (record.journalHash === undefined) continue;
       const validHashes = journalHashesByKey.get(id);
       if (validHashes === undefined || !validHashes.has(record.journalHash)) continue;
-      completed.push(record.key);
+      completed.push(isStrict ? { ...record.key } : record.key);
     }
     return { completed };
   }
@@ -1169,6 +2157,9 @@ export function createCalibrationLedger(
   function recoverAfterCrash(): CalibrationRecoveryReport {
     checkPoison();
     requireLock();
+    if (isStrict) {
+      return strictRecoverAfterCrash();
+    }
     const interrupted: ReservationKey[] = [];
     const failed: CalibrationFailedReservation[] = [];
     for (const id of reservationOrder) {
@@ -1186,13 +2177,980 @@ export function createCalibrationLedger(
       interrupted.push(record.key);
       failed.push({ key: record.key, status: 'interrupted_reservation' });
     }
-    const resumable = allowedKeys.filter(
+    const resumable = currentAllowedKeys.filter(
       (key) => !reservations.has(canonicalReservationKey(key)),
     );
     return { interrupted, failed, resumable: [...resumable] };
   }
 
-  return {
+  // ── Strict protocol closures (shared core state, static causeless errors) ──
+
+  function strictProtocolIdentityEvent(): Record<string, unknown> {
+    const snapshot = {} as Record<string, unknown>;
+    for (const field of IDENTITY_FIELDS) {
+      snapshot[field] = (identity as unknown as Record<string, unknown>)[field];
+    }
+    return { type: 'protocol_identity', identity: snapshot, at: strictNowIso() };
+  }
+
+  function strictAssertIdentity(candidate: unknown): void {
+    const snapshot = cloneStrictIdentity(candidate);
+    for (const field of IDENTITY_FIELDS) {
+      if (
+        (snapshot as unknown as Record<string, unknown>)[field] !==
+        (identity as unknown as Record<string, unknown>)[field]
+      ) {
+        throw new CalibrationFatalError(`calibration:identity-drift:${field}`);
+      }
+    }
+  }
+
+  function strictAssertGitState(state: unknown): void {
+    let dirtyCount = 0;
+    let treeId: unknown;
+    try {
+      if (typeof state !== 'object' || state === null || Array.isArray(state)) {
+        throw new CalibrationFatalError('calibration:git-invalid');
+      }
+      const record = state as Record<string, unknown>;
+      const dirtyPaths = record.dirtyPaths;
+      if (!Array.isArray(dirtyPaths)) {
+        throw new CalibrationFatalError('calibration:git-dirty-tree');
+      }
+      dirtyCount = (dirtyPaths as readonly unknown[]).length;
+      treeId = record.functionsTreeId;
+    } catch {
+      throw new CalibrationFatalError('calibration:git-invalid');
+    }
+    if (dirtyCount > 0) {
+      throw new CalibrationFatalError('calibration:git-dirty-tree');
+    }
+    if (treeId !== identity.functionsTreeId) {
+      throw new CalibrationFatalError('calibration:git-tree-drift');
+    }
+  }
+
+  function strictIndexReplayJournal(entry: unknown): void {
+    const snapshot = snapshotStrictJournalEntry(entry);
+    const hash = computeJournalHash(snapshot);
+    indexJournalHash(canonicalReservationKey(snapshot.key), hash);
+    journalByHash.set(hash, snapshot);
+  }
+
+  function strictValidateJournalVersions(): void {
+    for (const entry of journalByHash.values()) {
+      if (entry.errorCategory === 'none') {
+        if (pinnedModelVersion === undefined || entry.responseModelVersion !== pinnedModelVersion) {
+          throw new CalibrationFatalError('calibration:journal-version-mismatch');
+        }
+      } else if (entry.responseModelVersion !== 'n/a') {
+        throw new CalibrationFatalError('calibration:journal-version-mismatch');
+      }
+    }
+  }
+
+  function strictValidateHeaderEvent(event: unknown): void {
+    const record = assertStrictEnvelope(event, STRICT_HEADER_KEYS, 'protocol_identity');
+    const rawType = readStrictField(record, 'type', 'protocol_identity');
+    if (rawType !== 'protocol_identity') {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:protocol_identity');
+    }
+    const rawIdentity = readStrictField(record, 'identity', 'protocol_identity');
+    let identityRecord: Record<string, unknown>;
+    try {
+      if (typeof rawIdentity !== 'object' || rawIdentity === null || Array.isArray(rawIdentity)) {
+        throw new CalibrationFatalError('calibration:ledger-event-malformed:protocol_identity');
+      }
+      identityRecord = rawIdentity as Record<string, unknown>;
+      if (Object.keys(identityRecord).length !== IDENTITY_FIELDS.length) {
+        throw new CalibrationFatalError('calibration:ledger-event-malformed:protocol_identity');
+      }
+      for (const field of IDENTITY_FIELDS) {
+        if (!Object.prototype.hasOwnProperty.call(identityRecord, field)) {
+          throw new CalibrationFatalError('calibration:ledger-event-malformed:protocol_identity');
+        }
+      }
+    } catch {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:protocol_identity');
+    }
+    for (const field of IDENTITY_FIELDS) {
+      let value: unknown;
+      try {
+        value = identityRecord[field];
+      } catch {
+        throw new CalibrationFatalError('calibration:ledger-event-malformed:protocol_identity');
+      }
+      if (value !== (identity as unknown as Record<string, unknown>)[field]) {
+        throw new CalibrationFatalError(`calibration:identity-drift:${field}`);
+      }
+    }
+    assertCanonicalStrictTimestamp(
+      readStrictField(record, 'at', 'protocol_identity'),
+      'protocol_identity',
+    );
+  }
+
+  function strictAssertTokenKeyAllowed(key: TokenCountReservationKey): void {
+    if (key.stage !== 'preflight' || key.model !== identity.model) {
+      throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
+    }
+    if (!plannedPreflightCaseIds.has(key.caseId)) {
+      throw new CalibrationFatalError('calibration:token-reservation-invalid-key');
+    }
+  }
+
+  function requireReservedTokenKeyStrict(key: TokenCountReservationKey): void {
+    if (tokenReservation === undefined) {
+      throw new CalibrationFatalError('calibration:token-terminal-not-reserved');
+    }
+    if (canonicalTokenKey(tokenReservation.key) !== canonicalTokenKey(key)) {
+      throw new CalibrationFatalError('calibration:token-terminal-key-mismatch');
+    }
+    if (tokenReservation.status !== 'reserved') {
+      throw new CalibrationFatalError('calibration:token-terminal-already-finalized');
+    }
+  }
+
+  function strictAssertStageTransition(
+    from: StageName,
+    to: StageName,
+    summary: CalibrationStageGateSummary,
+  ): void {
+    let observedFrom: unknown;
+    let observedTo: unknown;
+    try {
+      observedFrom = from;
+      observedTo = to;
+    } catch {
+      throw new CalibrationFatalError('calibration:stage-transition-invalid');
+    }
+    if (
+      observedFrom !== 'preflight' &&
+      observedFrom !== 'development' &&
+      observedFrom !== 'validation' &&
+      observedFrom !== 'benchmark'
+    ) {
+      throw new CalibrationFatalError('calibration:stage-transition-invalid');
+    }
+    if (
+      observedTo !== 'preflight' &&
+      observedTo !== 'development' &&
+      observedTo !== 'validation' &&
+      observedTo !== 'benchmark'
+    ) {
+      throw new CalibrationFatalError('calibration:stage-transition-invalid');
+    }
+    // Guarded snapshot of caller fields; preserves the legacy
+    // completion-inclusive summary semantics (the summary names the completed
+    // `from` stage), not the predecessor-only completeStage shape.
+    const snapshot = snapshotStrictGateSummary(summary, 'stage_transition');
+    if (snapshot.stage !== observedFrom) {
+      throw new CalibrationFatalError('calibration:stage-summary-mismatch');
+    }
+    if (snapshot.passed !== true) {
+      throw new CalibrationFatalError(
+        `calibration:stage-gate-failed:${observedFrom as StageName}`,
+      );
+    }
+    if (!snapshot.completedStages.includes(observedFrom as StageName)) {
+      throw new CalibrationFatalError('calibration:stage-not-completed');
+    }
+    const fromIndex = STAGE_ORDER.indexOf(observedFrom as StageName);
+    const toIndex = STAGE_ORDER.indexOf(observedTo as StageName);
+    if (fromIndex === -1 || toIndex === -1 || toIndex !== fromIndex + 1) {
+      throw new CalibrationFatalError('calibration:stage-transition-invalid');
+    }
+  }
+
+  function strictTerminalSuccess(reservationId: string): boolean {
+    const record = reservations.get(reservationId);
+    if (record === undefined || record.status !== 'completed' || record.journalHash === undefined) {
+      return false;
+    }
+    const entry = journalByHash.get(record.journalHash);
+    if (entry === undefined) {
+      return false;
+    }
+    return (
+      pinnedModelVersion !== undefined &&
+      entry.errorCategory === 'none' &&
+      entry.normalizedPrediction !== null &&
+      entry.responseModelVersion === pinnedModelVersion
+    );
+  }
+
+  function countStrictTerminalOutcomes(stage: StageName): number {
+    let count = 0;
+    for (const record of reservations.values()) {
+      if (record.key.stage !== stage) {
+        continue;
+      }
+      if (record.status === 'completed' || record.status === 'interrupted_reservation') {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
+  function strictAssertReserveAllowed(key: ReservationKey): void {
+    if (key.stage === 'preflight') {
+      if (key.profile === 'LOW') {
+        if (tokenReservation === undefined || tokenReservation.status !== 'completed') {
+          throw new CalibrationFatalError('calibration:reservation-out-of-order');
+        }
+      } else if (!strictTerminalSuccess(preflightLowId)) {
+        throw new CalibrationFatalError('calibration:reservation-out-of-order');
+      }
+      return;
+    }
+    if (key.stage === 'development') {
+      if (!completedStages.includes('preflight')) {
+        throw new CalibrationFatalError('calibration:reservation-out-of-order');
+      }
+      return;
+    }
+    if (key.stage === 'validation') {
+      if (!completedStages.includes('development') || selectedProfile === undefined) {
+        throw new CalibrationFatalError('calibration:reservation-out-of-order');
+      }
+      if (key.profile !== selectedProfile) {
+        throw new CalibrationFatalError('calibration:reservation-wrong-profile');
+      }
+      return;
+    }
+    if (!completedStages.includes('validation')) {
+      throw new CalibrationFatalError('calibration:reservation-out-of-order');
+    }
+    if (selectedProfile === undefined || key.profile !== selectedProfile) {
+      throw new CalibrationFatalError('calibration:reservation-wrong-profile');
+    }
+  }
+
+  function strictAssertStageReady(stage: StageName): void {
+    if (stage === 'preflight') {
+      if (tokenReservation === undefined || tokenReservation.status !== 'completed') {
+        throw new CalibrationFatalError('calibration:stage-not-ready');
+      }
+      if (!strictTerminalSuccess(preflightLowId) || !strictTerminalSuccess(preflightMediumId)) {
+        throw new CalibrationFatalError('calibration:stage-not-ready');
+      }
+      if (pinnedModelVersion === undefined) {
+        throw new CalibrationFatalError('calibration:stage-not-ready');
+      }
+      return;
+    }
+    if (stage === 'development') {
+      if (!completedStages.includes('preflight')) {
+        throw new CalibrationFatalError('calibration:stage-not-ready');
+      }
+      if (selectedProfile === undefined || pinnedModelVersion === undefined) {
+        throw new CalibrationFatalError('calibration:stage-not-ready');
+      }
+      if (countStrictTerminalOutcomes('development') !== STRICT_STAGE_TERMINAL_COUNT) {
+        throw new CalibrationFatalError('calibration:stage-not-ready');
+      }
+      return;
+    }
+    if (stage === 'validation') {
+      if (!completedStages.includes('development')) {
+        throw new CalibrationFatalError('calibration:stage-not-ready');
+      }
+      if (selectedProfile === undefined || pinnedModelVersion === undefined) {
+        throw new CalibrationFatalError('calibration:stage-not-ready');
+      }
+      if (countStrictTerminalOutcomes('validation') !== STRICT_STAGE_TERMINAL_COUNT) {
+        throw new CalibrationFatalError('calibration:stage-not-ready');
+      }
+      return;
+    }
+    if (!completedStages.includes('validation')) {
+      throw new CalibrationFatalError('calibration:stage-not-ready');
+    }
+    if (pinnedModelVersion === undefined) {
+      throw new CalibrationFatalError('calibration:stage-not-ready');
+    }
+    if (countStrictTerminalOutcomes('benchmark') !== STRICT_STAGE_TERMINAL_COUNT) {
+      throw new CalibrationFatalError('calibration:stage-not-ready');
+    }
+  }
+
+  function strictReplayReserved(record: Record<string, unknown>): void {
+    const envelope = assertStrictEnvelope(record, STRICT_RESERVED_KEYS, 'reserved');
+    const key = snapshotStrictReservationKey(
+      readStrictField(envelope, 'key', 'reserved'),
+      'reserved',
+    );
+    assertCanonicalStrictTimestamp(readStrictField(envelope, 'at', 'reserved'), 'reserved');
+    const id = canonicalReservationKey(key);
+    if (!allowedKeySet.has(id)) {
+      throw new CalibrationFatalError('calibration:ledger-event-unplanned:reserved');
+    }
+    if (reservations.has(id)) {
+      throw new CalibrationFatalError('calibration:ledger-event-duplicate:reserved');
+    }
+    strictAssertReserveAllowed(key);
+    if (imageReserved + 1 > HARD_CALL_CEILING) {
+      throw new CalibrationFatalError('calibration:reservation-ceiling-exceeded');
+    }
+    reservations.set(id, { key, status: 'reserved' });
+    reservationOrder.push(id);
+    imageReserved += 1;
+  }
+
+  function strictReplayCompleted(record: Record<string, unknown>): void {
+    const envelope = assertStrictEnvelope(record, STRICT_COMPLETED_KEYS, 'completed');
+    const key = snapshotStrictReservationKey(
+      readStrictField(envelope, 'key', 'completed'),
+      'completed',
+    );
+    const rawHash = readStrictField(envelope, 'journalHash', 'completed');
+    if (typeof rawHash !== 'string' || rawHash.length === 0) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:completed');
+    }
+    assertCanonicalStrictTimestamp(readStrictField(envelope, 'at', 'completed'), 'completed');
+    const id = canonicalReservationKey(key);
+    if (!allowedKeySet.has(id)) {
+      throw new CalibrationFatalError('calibration:ledger-event-unplanned:completed');
+    }
+    const existing = reservations.get(id);
+    if (existing === undefined) {
+      throw new CalibrationFatalError('calibration:ledger-event-out-of-order:completed');
+    }
+    if (existing.status !== 'reserved') {
+      throw new CalibrationFatalError('calibration:ledger-event-invalid-transition:completed');
+    }
+    const validHashes = journalHashesByKey.get(id);
+    if (validHashes === undefined || !validHashes.has(rawHash)) {
+      throw new CalibrationFatalError('calibration:ledger-event-completed-missing-journal');
+    }
+    existing.status = 'completed';
+    existing.journalHash = rawHash;
+  }
+
+  function strictAssertJournalKeysReconciled(): void {
+    // Every replayed journal key must be currently allowed and actually
+    // reserved. Crash-window journals (reserved, no terminal event) and
+    // post-expansion downstream journals reconcile; unplanned or
+    // planned-but-never-reserved journals fail closed.
+    for (const entry of journalByHash.values()) {
+      const id = canonicalReservationKey(entry.key);
+      if (!allowedKeySet.has(id)) {
+        throw new CalibrationFatalError('calibration:journal-unplanned');
+      }
+      if (!reservations.has(id)) {
+        throw new CalibrationFatalError('calibration:journal-not-reserved');
+      }
+    }
+  }
+
+  function strictReplayFailed(record: Record<string, unknown>): void {
+    const envelope = assertStrictEnvelope(record, STRICT_FAILED_KEYS, 'failed');
+    const key = snapshotStrictReservationKey(
+      readStrictField(envelope, 'key', 'failed'),
+      'failed',
+    );
+    const rawHash = readStrictField(envelope, 'journalHash', 'failed');
+    if (typeof rawHash !== 'string' || rawHash.length === 0) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:failed');
+    }
+    assertCanonicalStrictTimestamp(readStrictField(envelope, 'at', 'failed'), 'failed');
+    const id = canonicalReservationKey(key);
+    if (!allowedKeySet.has(id)) {
+      throw new CalibrationFatalError('calibration:ledger-event-unplanned:failed');
+    }
+    const existing = reservations.get(id);
+    if (existing === undefined) {
+      throw new CalibrationFatalError('calibration:ledger-event-out-of-order:failed');
+    }
+    if (existing.status !== 'reserved') {
+      throw new CalibrationFatalError('calibration:ledger-event-invalid-transition:failed');
+    }
+    const validHashes = journalHashesByKey.get(id);
+    if (validHashes === undefined || !validHashes.has(rawHash)) {
+      throw new CalibrationFatalError('calibration:ledger-event-failed-missing-journal');
+    }
+    // The bound terminal must be the canonical interrupted outcome for this
+    // same key: a success digest or provider-failure digest is not proof.
+    const bound = journalByHash.get(rawHash);
+    if (bound === undefined || !isCanonicalInterruptedJournal(bound)) {
+      throw new CalibrationFatalError('calibration:ledger-event-failed-missing-journal');
+    }
+    existing.status = 'interrupted_reservation';
+  }
+
+  function strictReplayTokenReserved(record: Record<string, unknown>): void {
+    const envelope = assertStrictEnvelope(
+      record,
+      STRICT_TOKEN_RESERVED_KEYS,
+      'token_count_reserved',
+    );
+    const key = snapshotStrictTokenKey(readStrictField(envelope, 'key', 'token_count_reserved'));
+    strictAssertTokenKeyAllowed(key);
+    assertCanonicalStrictTimestamp(
+      readStrictField(envelope, 'at', 'token_count_reserved'),
+      'token_count_reserved',
+    );
+    if (tokenCountReserved >= 1) {
+      throw new CalibrationFatalError('calibration:ledger-event-duplicate:token_count_reserved');
+    }
+    tokenCountReserved += 1;
+    tokenReservation = { key, status: 'reserved' };
+  }
+
+  function strictReplayTokenCompleted(record: Record<string, unknown>): void {
+    const envelope = assertStrictEnvelope(
+      record,
+      STRICT_TOKEN_COMPLETED_KEYS,
+      'token_count_completed',
+    );
+    const key = snapshotStrictTokenKey(readStrictField(envelope, 'key', 'token_count_completed'));
+    const rawCount = readStrictField(envelope, 'count', 'token_count_completed');
+    if (!isValidTokenCompletionCount(rawCount)) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:token_count_completed');
+    }
+    assertCanonicalStrictTimestamp(
+      readStrictField(envelope, 'at', 'token_count_completed'),
+      'token_count_completed',
+    );
+    strictAssertTokenKeyAllowed(key);
+    if (tokenReservation === undefined) {
+      throw new CalibrationFatalError('calibration:ledger-event-out-of-order:token_count_completed');
+    }
+    if (canonicalTokenKey(tokenReservation.key) !== canonicalTokenKey(key)) {
+      throw new CalibrationFatalError('calibration:ledger-event-mismatched-key:token_count_completed');
+    }
+    if (tokenReservation.status !== 'reserved') {
+      throw new CalibrationFatalError(
+        'calibration:ledger-event-invalid-transition:token_count_completed',
+      );
+    }
+    tokenReservation.status = 'completed';
+  }
+
+  function strictReplayTokenFailed(record: Record<string, unknown>): void {
+    const envelope = assertStrictEnvelope(
+      record,
+      STRICT_TOKEN_FAILED_KEYS,
+      'token_count_failed',
+    );
+    const key = snapshotStrictTokenKey(readStrictField(envelope, 'key', 'token_count_failed'));
+    const rawCategory = readStrictField(envelope, 'errorCategory', 'token_count_failed');
+    if (!isValidTokenFailureCategory(rawCategory)) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:token_count_failed');
+    }
+    assertCanonicalStrictTimestamp(
+      readStrictField(envelope, 'at', 'token_count_failed'),
+      'token_count_failed',
+    );
+    strictAssertTokenKeyAllowed(key);
+    if (tokenReservation === undefined) {
+      throw new CalibrationFatalError('calibration:ledger-event-out-of-order:token_count_failed');
+    }
+    if (canonicalTokenKey(tokenReservation.key) !== canonicalTokenKey(key)) {
+      throw new CalibrationFatalError('calibration:ledger-event-mismatched-key:token_count_failed');
+    }
+    if (tokenReservation.status !== 'reserved') {
+      throw new CalibrationFatalError(
+        'calibration:ledger-event-invalid-transition:token_count_failed',
+      );
+    }
+    tokenReservation.status = 'failed';
+  }
+
+  function strictReplaySafeError(record: Record<string, unknown>): void {
+    const envelope = assertStrictEnvelope(record, SAFE_ERROR_EVENT_KEYS, 'safe_error');
+    const snapshot = snapshotStrictSafeErrorEntry(readStrictField(envelope, 'entry', 'safe_error'));
+    assertValidSafeErrorEntry(snapshot);
+    assertPlannedSafeErrorEntry(snapshot as CalibrationLedgerSafeErrorEntry);
+    assertCanonicalStrictTimestamp(readStrictField(envelope, 'at', 'safe_error'), 'safe_error');
+  }
+
+  function strictReplayPin(record: Record<string, unknown>): void {
+    const envelope = assertStrictEnvelope(record, STRICT_PIN_KEYS, 'model_version_pinned');
+    const rawVersion = readStrictField(envelope, 'responseModelVersion', 'model_version_pinned');
+    if (
+      typeof rawVersion !== 'string' ||
+      !MODEL_VERSION_PATTERN.test(rawVersion) ||
+      rawVersion === 'n/a'
+    ) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:model_version_pinned');
+    }
+    assertCanonicalStrictTimestamp(
+      readStrictField(envelope, 'at', 'model_version_pinned'),
+      'model_version_pinned',
+    );
+    if (pinnedModelVersion === undefined) {
+      if (tokenReservation === undefined || tokenReservation.status !== 'completed') {
+        throw new CalibrationFatalError('calibration:ledger-event-out-of-order:model_version_pinned');
+      }
+      const lowRecord = reservations.get(preflightLowId);
+      if (lowRecord === undefined || lowRecord.status !== 'reserved') {
+        throw new CalibrationFatalError('calibration:ledger-event-out-of-order:model_version_pinned');
+      }
+      pinnedModelVersion = rawVersion;
+    } else if (pinnedModelVersion !== rawVersion) {
+      throw new CalibrationFatalError('calibration:ledger-event-version-drift');
+    }
+  }
+
+  function strictReplaySelection(record: Record<string, unknown>): void {
+    const envelope = assertStrictEnvelope(record, STRICT_SELECTION_KEYS, 'profile_selected');
+    const rawProfile = readStrictField(envelope, 'profile', 'profile_selected');
+    const rawReason = readStrictField(envelope, 'reason', 'profile_selected');
+    if (rawProfile !== 'LOW' && rawProfile !== 'MEDIUM') {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:profile_selected');
+    }
+    if (typeof rawReason !== 'string' || !SELECTION_REASONS.has(rawReason)) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:profile_selected');
+    }
+    if (rawReason === 'default_medium_tie_breaker' && rawProfile !== 'MEDIUM') {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:profile_selected');
+    }
+    assertCanonicalStrictTimestamp(
+      readStrictField(envelope, 'at', 'profile_selected'),
+      'profile_selected',
+    );
+    const nextProfile = rawProfile as CalibrationProfile;
+    const nextReason = rawReason as CalibrationProfileSelectionReason;
+    if (selectedProfile !== undefined) {
+      if (selectedProfile === nextProfile && selectedReason === nextReason) {
+        return;
+      }
+      throw new CalibrationFatalError('calibration:profile-selection-conflict');
+    }
+    if (!completedStages.includes('preflight')) {
+      throw new CalibrationFatalError('calibration:ledger-event-out-of-order:profile_selected');
+    }
+    if (countStrictTerminalOutcomes('development') !== STRICT_STAGE_TERMINAL_COUNT) {
+      throw new CalibrationFatalError('calibration:ledger-event-out-of-order:profile_selected');
+    }
+    const resolver = strictKeyResolver;
+    if (resolver === undefined) {
+      throw new CalibrationFatalError('calibration:resolver-failed');
+    }
+    const expanded = invokeStrictResolver(resolver, nextProfile);
+    validateStrictExpandedKeys(initialAllowedKeys, expanded, nextProfile);
+    selectedProfile = nextProfile;
+    selectedReason = nextReason;
+    currentAllowedKeys = expanded;
+    allowedKeySet = new Set(expanded.map(canonicalReservationKey));
+  }
+
+  function strictReplayStage(record: Record<string, unknown>): void {
+    const envelope = assertStrictEnvelope(record, STRICT_STAGE_KEYS, 'stage_completed');
+    const rawStage = readStrictField(envelope, 'stage', 'stage_completed');
+    const rawPassed = readStrictField(envelope, 'passed', 'stage_completed');
+    if (
+      rawStage !== 'preflight' &&
+      rawStage !== 'development' &&
+      rawStage !== 'validation' &&
+      rawStage !== 'benchmark'
+    ) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:stage_completed');
+    }
+    if (rawPassed !== true) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:stage_completed');
+    }
+    assertCanonicalStrictTimestamp(
+      readStrictField(envelope, 'at', 'stage_completed'),
+      'stage_completed',
+    );
+    const nextStage = rawStage as StageName;
+    if (completedStages.includes(nextStage)) {
+      return;
+    }
+    for (const predecessor of EXPECTED_STAGE_PREDECESSORS[nextStage]) {
+      if (!completedStages.includes(predecessor)) {
+        throw new CalibrationFatalError('calibration:ledger-event-out-of-order:stage_completed');
+      }
+    }
+    strictAssertStageReady(nextStage);
+    completedStages.push(nextStage);
+  }
+
+  function strictReplayLedgerEvent(event: unknown): void {
+    let record: Record<string, unknown>;
+    let type: unknown;
+    try {
+      if (typeof event !== 'object' || event === null || Array.isArray(event)) {
+        throw new CalibrationFatalError('calibration:ledger-event-malformed');
+      }
+      record = event as Record<string, unknown>;
+      type = record.type;
+    } catch {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed');
+    }
+    switch (type) {
+      case 'reserved':
+        strictReplayReserved(record);
+        break;
+      case 'completed':
+        strictReplayCompleted(record);
+        break;
+      case 'failed':
+        strictReplayFailed(record);
+        break;
+      case 'token_count_reserved':
+        strictReplayTokenReserved(record);
+        break;
+      case 'token_count_completed':
+        strictReplayTokenCompleted(record);
+        break;
+      case 'token_count_failed':
+        strictReplayTokenFailed(record);
+        break;
+      case 'safe_error':
+        strictReplaySafeError(record);
+        break;
+      case 'lock_recovery': {
+        const envelope = assertStrictEnvelope(record, STRICT_LOCK_RECOVERY_KEYS, 'lock_recovery');
+        assertCanonicalStrictTimestamp(
+          readStrictField(envelope, 'at', 'lock_recovery'),
+          'lock_recovery',
+        );
+        break;
+      }
+      case 'synthetic_reserved':
+        throw new CalibrationFatalError('calibration:ledger-event-malformed:synthetic_reserved');
+      case 'model_version_pinned':
+        strictReplayPin(record);
+        break;
+      case 'profile_selected':
+        strictReplaySelection(record);
+        break;
+      case 'stage_completed':
+        strictReplayStage(record);
+        break;
+      default:
+        throw new CalibrationFatalError('calibration:ledger-event-unknown-type');
+    }
+  }
+
+  function strictReserve(key: ReservationKey): void {
+    const snapshot = snapshotStrictReservationKey(key, 'reserved');
+    const id = canonicalReservationKey(snapshot);
+    if (completedStages.includes(snapshot.stage)) {
+      throw new CalibrationFatalError('calibration:reservation-sealed');
+    }
+    strictAssertReserveAllowed(snapshot);
+    if (!allowedKeySet.has(id)) {
+      throw new CalibrationFatalError('calibration:reservation-unplanned');
+    }
+    if (reservations.has(id)) {
+      throw new CalibrationFatalError('calibration:reservation-duplicate');
+    }
+    if (imageReserved + 1 > HARD_CALL_CEILING) {
+      throw new CalibrationFatalError('calibration:reservation-ceiling-exceeded');
+    }
+    persistLedgerEvent({ type: 'reserved', key: snapshot, at: strictNowIso() });
+    reservations.set(id, { key: snapshot, status: 'reserved' });
+    reservationOrder.push(id);
+    imageReserved += 1;
+  }
+
+  function strictReserveTokenCount(key: TokenCountReservationKey): void {
+    const snapshot = snapshotStrictTokenKey(key);
+    strictAssertTokenKeyAllowed(snapshot);
+    if (tokenCountReserved >= 1) {
+      throw new CalibrationFatalError('calibration:token-reservation-duplicate');
+    }
+    persistLedgerEvent({ type: 'token_count_reserved', key: snapshot, at: strictNowIso() });
+    tokenCountReserved += 1;
+    tokenReservation = { key: snapshot, status: 'reserved' };
+  }
+
+  function strictCompleteTokenCount(key: TokenCountReservationKey, count: number): void {
+    const snapshot = snapshotStrictTokenKey(key);
+    strictAssertTokenKeyAllowed(snapshot);
+    requireReservedTokenKeyStrict(snapshot);
+    if (!isValidTokenCompletionCount(count)) {
+      throw new CalibrationFatalError('calibration:token-terminal-invalid-count');
+    }
+    persistTokenTerminalEvent(
+      { type: 'token_count_completed', key: snapshot, count, at: strictNowIso() },
+      snapshot,
+    );
+    if (tokenReservation !== undefined) {
+      tokenReservation.status = 'completed';
+    }
+  }
+
+  function strictFailTokenCount(
+    key: TokenCountReservationKey,
+    errorCategory: CalibrationSafeErrorCategory,
+  ): void {
+    const snapshot = snapshotStrictTokenKey(key);
+    strictAssertTokenKeyAllowed(snapshot);
+    requireReservedTokenKeyStrict(snapshot);
+    let observed: unknown;
+    try {
+      observed = errorCategory;
+    } catch {
+      throw new CalibrationFatalError('calibration:token-terminal-invalid-category');
+    }
+    if (!isValidTokenFailureCategory(observed)) {
+      throw new CalibrationFatalError('calibration:token-terminal-invalid-category');
+    }
+    persistTokenTerminalEvent(
+      { type: 'token_count_failed', key: snapshot, errorCategory: observed, at: strictNowIso() },
+      snapshot,
+    );
+    if (tokenReservation !== undefined) {
+      tokenReservation.status = 'failed';
+    }
+  }
+
+  function strictAppendResultJournal(entry: JournalEntry): string {
+    const snapshot = snapshotStrictJournalEntry(entry);
+    const id = canonicalReservationKey(snapshot.key);
+    const record = reservations.get(id);
+    if (record === undefined || record.status !== 'reserved') {
+      throw new CalibrationFatalError('calibration:journal-not-reserved');
+    }
+    if (pendingJournalHashes.has(id)) {
+      throw new CalibrationFatalError('calibration:journal-duplicate');
+    }
+    if (snapshot.errorCategory === 'none') {
+      if (pinnedModelVersion === undefined) {
+        throw new CalibrationFatalError('calibration:journal-version-unpinned');
+      }
+      if (snapshot.responseModelVersion !== pinnedModelVersion) {
+        throw new CalibrationFatalError('calibration:journal-version-mismatch');
+      }
+    } else if (snapshot.responseModelVersion !== 'n/a') {
+      throw new CalibrationFatalError('calibration:journal-version-mismatch');
+    }
+    const hash = computeJournalHash(snapshot);
+    strictPersistJournal(snapshot);
+    pendingJournalHashes.set(id, hash);
+    indexJournalHash(id, hash);
+    journalByHash.set(hash, snapshot);
+    return hash;
+  }
+
+  function strictComplete(key: ReservationKey, journalHash: string): void {
+    const snapshot = snapshotStrictReservationKey(key, 'completed');
+    let observedHash: unknown;
+    try {
+      observedHash = journalHash;
+    } catch {
+      throw new CalibrationFatalError('calibration:complete-missing-journal');
+    }
+    if (typeof observedHash !== 'string' || observedHash.length === 0) {
+      throw new CalibrationFatalError('calibration:complete-missing-journal');
+    }
+    const id = canonicalReservationKey(snapshot);
+    const record = reservations.get(id);
+    if (record === undefined || record.status !== 'reserved') {
+      throw new CalibrationFatalError('calibration:complete-not-reserved');
+    }
+    const expectedHash = pendingJournalHashes.get(id);
+    if (expectedHash === undefined || expectedHash !== observedHash) {
+      throw new CalibrationFatalError('calibration:complete-missing-journal');
+    }
+    persistLedgerEvent({
+      type: 'completed',
+      key: snapshot,
+      journalHash: observedHash,
+      at: strictNowIso(),
+    });
+    record.status = 'completed';
+    record.journalHash = observedHash;
+    pendingJournalHashes.delete(id);
+  }
+
+  function strictRecordSafeError(entry: CalibrationLedgerSafeErrorEntry): void {
+    const snapshot = snapshotStrictSafeErrorEntry(entry);
+    assertValidSafeErrorEntry(snapshot);
+    assertPlannedSafeErrorEntry(snapshot as CalibrationLedgerSafeErrorEntry);
+    const at = strictNowIso();
+    assertCanonicalStrictTimestamp(at, 'safe_error');
+    persistLedgerEvent({ type: 'safe_error', entry: snapshot, at });
+  }
+
+  function strictRecoverAfterCrash(): CalibrationRecoveryReport {
+    const interrupted: ReservationKey[] = [];
+    const failed: CalibrationFailedReservation[] = [];
+    for (const id of reservationOrder) {
+      const record = reservations.get(id);
+      if (record === undefined || record.status !== 'reserved') {
+        continue;
+      }
+      const keySnapshot: ReservationKey = {
+        stage: record.key.stage,
+        profile: record.key.profile,
+        caseId: record.key.caseId,
+        sampleIndex: record.key.sampleIndex,
+      };
+      const failureEntry: JournalEntry = {
+        key: { ...keySnapshot },
+        predictionHash: 'interrupted_reservation',
+        normalizedPrediction: null,
+        analysisLatencyMs: 0,
+        errorCategory: 'interrupted_reservation',
+        responseModelVersion: 'n/a',
+      };
+      const journalHash = computeJournalHash(failureEntry);
+      strictPersistJournal(failureEntry);
+      indexJournalHash(id, journalHash);
+      journalByHash.set(journalHash, failureEntry);
+      persistLedgerEvent({ type: 'failed', key: keySnapshot, journalHash, at: strictNowIso() });
+      record.status = 'interrupted_reservation';
+      interrupted.push({ ...keySnapshot });
+      failed.push({ key: { ...keySnapshot }, status: 'interrupted_reservation' });
+    }
+    const resumable = currentAllowedKeys.filter(
+      (key) => !reservations.has(canonicalReservationKey(key)),
+    );
+    return { interrupted, failed, resumable: resumable.map((key) => ({ ...key })) };
+  }
+
+  function strictPinModelVersion(version: string): void {
+    requireLock();
+    let observed: unknown;
+    try {
+      observed = version;
+    } catch {
+      throw new CalibrationFatalError('calibration:version-invalid');
+    }
+    if (typeof observed !== 'string' || !MODEL_VERSION_PATTERN.test(observed) || observed === 'n/a') {
+      throw new CalibrationFatalError('calibration:version-invalid');
+    }
+    if (pinnedModelVersion !== undefined) {
+      if (pinnedModelVersion === observed) {
+        return;
+      }
+      throw new CalibrationFatalError('calibration:version-drift');
+    }
+    if (tokenReservation === undefined || tokenReservation.status !== 'completed') {
+      throw new CalibrationFatalError('calibration:pin-before-token');
+    }
+    const lowRecord = reservations.get(preflightLowId);
+    if (lowRecord === undefined || lowRecord.status !== 'reserved') {
+      throw new CalibrationFatalError('calibration:pin-without-low');
+    }
+    persistLedgerEvent({
+      type: 'model_version_pinned',
+      responseModelVersion: observed,
+      at: strictNowIso(),
+    });
+    pinnedModelVersion = observed;
+  }
+
+  function strictGetPinnedModelVersion(): string | undefined {
+    checkPoison();
+    return pinnedModelVersion;
+  }
+
+  function strictRecordProfileSelection(
+    profile: CalibrationProfile,
+    reason: CalibrationProfileSelectionReason,
+    gateSummary: CalibrationStageGateSummary,
+  ): void {
+    requireLock();
+    let observedProfile: unknown;
+    let observedReason: unknown;
+    try {
+      observedProfile = profile;
+      observedReason = reason;
+    } catch {
+      throw new CalibrationFatalError('calibration:profile-selection-invalid');
+    }
+    const summary = snapshotStrictGateSummary(gateSummary, 'profile_selected');
+    if (observedProfile !== 'LOW' && observedProfile !== 'MEDIUM') {
+      throw new CalibrationFatalError('calibration:profile-selection-invalid');
+    }
+    if (typeof observedReason !== 'string' || !SELECTION_REASONS.has(observedReason)) {
+      throw new CalibrationFatalError('calibration:profile-selection-invalid');
+    }
+    if (observedReason === 'default_medium_tie_breaker' && observedProfile !== 'MEDIUM') {
+      throw new CalibrationFatalError('calibration:profile-selection-invalid');
+    }
+    if (summary.stage !== 'development' || summary.passed !== true) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:profile_selected');
+    }
+    assertExactPredecessors(
+      summary.completedStages,
+      EXPECTED_STAGE_PREDECESSORS.development,
+      'profile_selected',
+    );
+    const nextProfile = observedProfile as CalibrationProfile;
+    const nextReason = observedReason as CalibrationProfileSelectionReason;
+    if (selectedProfile !== undefined) {
+      if (selectedProfile === nextProfile && selectedReason === nextReason) {
+        return;
+      }
+      throw new CalibrationFatalError('calibration:profile-selection-conflict');
+    }
+    if (!completedStages.includes('preflight')) {
+      throw new CalibrationFatalError('calibration:profile-selection-not-ready');
+    }
+    if (countStrictTerminalOutcomes('development') !== STRICT_STAGE_TERMINAL_COUNT) {
+      throw new CalibrationFatalError('calibration:profile-selection-not-ready');
+    }
+    const resolver = strictKeyResolver;
+    if (resolver === undefined) {
+      throw new CalibrationFatalError('calibration:resolver-failed');
+    }
+    const expanded = invokeStrictResolver(resolver, nextProfile);
+    validateStrictExpandedKeys(initialAllowedKeys, expanded, nextProfile);
+    persistLedgerEvent({
+      type: 'profile_selected',
+      profile: nextProfile,
+      reason: nextReason,
+      at: strictNowIso(),
+    });
+    selectedProfile = nextProfile;
+    selectedReason = nextReason;
+    currentAllowedKeys = expanded;
+    allowedKeySet = new Set(expanded.map(canonicalReservationKey));
+  }
+
+  function strictGetSelectedProfile(): CalibrationProfile | undefined {
+    checkPoison();
+    return selectedProfile;
+  }
+
+  function strictCompleteStage(stage: StageName, gateSummary: CalibrationStageGateSummary): void {
+    requireLock();
+    let observedStage: unknown;
+    try {
+      observedStage = stage;
+    } catch {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:stage_completed');
+    }
+    if (
+      observedStage !== 'preflight' &&
+      observedStage !== 'development' &&
+      observedStage !== 'validation' &&
+      observedStage !== 'benchmark'
+    ) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:stage_completed');
+    }
+    const nextStage = observedStage as StageName;
+    const summary = snapshotStrictGateSummary(gateSummary, 'stage_completed');
+    if (summary.stage !== nextStage || summary.passed !== true) {
+      throw new CalibrationFatalError('calibration:ledger-event-malformed:stage_completed');
+    }
+    assertExactPredecessors(
+      summary.completedStages,
+      EXPECTED_STAGE_PREDECESSORS[nextStage],
+      'stage_completed',
+    );
+    if (completedStages.includes(nextStage)) {
+      return;
+    }
+    strictAssertStageReady(nextStage);
+    persistLedgerEvent({ type: 'stage_completed', stage: nextStage, passed: true, at: strictNowIso() });
+    completedStages.push(nextStage);
+  }
+
+  function strictGetCompletedStages(): readonly StageName[] {
+    checkPoison();
+    return Object.freeze([...completedStages]);
+  }
+
+  const baseLedger: CalibrationLedger = {
     acquireLock,
     releaseLock,
     assertIdentity,
@@ -1210,6 +3168,19 @@ export function createCalibrationLedger(
     recoverAfterCrash,
     recordSafeError,
   };
+  if (!isStrict) {
+    return baseLedger;
+  }
+  const protocolLedger: CalibrationProtocolLedger = {
+    ...baseLedger,
+    pinModelVersion: strictPinModelVersion,
+    getPinnedModelVersion: strictGetPinnedModelVersion,
+    recordProfileSelection: strictRecordProfileSelection,
+    getSelectedProfile: strictGetSelectedProfile,
+    completeStage: strictCompleteStage,
+    getCompletedStages: strictGetCompletedStages,
+  };
+  return protocolLedger;
 }
 
 // ── Pure profile selection ───────────────────────────────────────────────────
