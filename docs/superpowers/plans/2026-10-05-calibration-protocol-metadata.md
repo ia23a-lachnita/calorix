@@ -36,7 +36,7 @@ RED/GREEN: `npm --prefix functions test -- --reporter=dot test/nutrition-eval/ca
 
 - [x] Write tests only, witness focused RED.
 - [x] Implement and inspect the shared-core strict factory; witness GREEN.
-- [ ] Run focused/full/build/lint, obtain external and independent review, update tracking, commit/push.
+- [x] Run focused/full/build/lint, obtain external and independent review, update tracking, commit/push.
 
 **Files:** modify `calibration.ts`; add `functions/test/nutrition-eval/calibration-protocol-ledger.test.ts`. Keep source refactoring bounded; split private strict helpers into a new module if necessary, without circular runtime imports.
 
