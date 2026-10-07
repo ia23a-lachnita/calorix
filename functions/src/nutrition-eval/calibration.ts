@@ -15,7 +15,8 @@
 import { createHash } from 'crypto';
 import { CalibrationFatalError } from './fatal-error';
 import { CALIBRATION_PROTOCOL_VERSION } from './schema';
-import type { NutritionCaseResult } from './schema';
+import type { NutritionCaseResult, NutritionPrediction } from './schema';
+import { captureCalibrationReportJournalEntry } from './calibration-report-journal';
 
 // ── Identity / root constants ───────────────────────────────────────────────
 
@@ -116,6 +117,7 @@ export interface JournalEntry {
   analysisLatencyMs: number;
   errorCategory: CalibrationSafeErrorCategory;
   responseModelVersion: string;
+  reportPrediction?: NutritionPrediction;
 }
 
 export interface CalibrationLedgerDeps {
@@ -527,6 +529,11 @@ export type CalibrationKeyResolver = (
   selectedProfile?: CalibrationProfile,
 ) => readonly ReservationKey[];
 
+export interface CalibrationCompletedReportPrediction {
+  readonly key: ReservationKey;
+  readonly prediction: NutritionPrediction;
+}
+
 export interface CalibrationProtocolLedger extends CalibrationLedger {
   pinModelVersion: (version: string) => void;
   getPinnedModelVersion: () => string | undefined;
@@ -538,6 +545,7 @@ export interface CalibrationProtocolLedger extends CalibrationLedger {
   getSelectedProfile: () => CalibrationProfile | undefined;
   completeStage: (stage: StageName, gateSummary: CalibrationStageGateSummary) => void;
   getCompletedStages: () => readonly StageName[];
+  getCompletedReportPredictions: () => readonly CalibrationCompletedReportPrediction[];
 }
 
 const STRICT_LEDGER_EVENT_TYPES: ReadonlySet<string> = new Set([
@@ -872,6 +880,20 @@ function snapshotStrictGateSummary(value: unknown, label: string): CalibrationSt
 
 /** Guarded full journal snapshot in canonical field order (hash-stable). */
 function snapshotStrictJournalEntry(value: unknown): JournalEntry {
+  let hasReportExtension = false;
+  try {
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, 'reportPrediction');
+      if (descriptor !== undefined) {
+        hasReportExtension = true;
+      }
+    }
+  } catch {
+    throw new CalibrationFatalError('calibration:journal-entry-malformed');
+  }
+  if (hasReportExtension) {
+    return captureCalibrationReportJournalEntry(value);
+  }
   try {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
       throw new CalibrationFatalError('calibration:journal-entry-malformed');
@@ -3150,6 +3172,61 @@ function createLedgerCore(
     return Object.freeze([...completedStages]);
   }
 
+  function strictGetCompletedReportPredictions(): readonly CalibrationCompletedReportPrediction[] {
+    checkPoison();
+    const out: CalibrationCompletedReportPrediction[] = [];
+    for (const id of reservationOrder) {
+      const record = reservations.get(id);
+      if (record === undefined || record.status !== 'completed') continue;
+      if (record.journalHash === undefined) continue;
+      const validHashes = journalHashesByKey.get(id);
+      if (validHashes === undefined || !validHashes.has(record.journalHash)) continue;
+      const entry = journalByHash.get(record.journalHash);
+      if (entry === undefined) {
+        throw new CalibrationFatalError('calibration:report-prediction-missing');
+      }
+      let hasReport = false;
+      try {
+        if (typeof entry === 'object' && entry !== null) {
+          const descriptor = Object.getOwnPropertyDescriptor(entry, 'reportPrediction');
+          if (descriptor !== undefined) {
+            hasReport = true;
+          }
+        }
+      } catch {
+        throw new CalibrationFatalError('calibration:report-prediction-missing');
+      }
+      if (!hasReport) {
+        throw new CalibrationFatalError('calibration:report-prediction-missing');
+      }
+      let validated: JournalEntry;
+      try {
+        validated = captureCalibrationReportJournalEntry(entry);
+      } catch {
+        throw new CalibrationFatalError('calibration:report-prediction-missing');
+      }
+      const report = validated.reportPrediction as unknown as NutritionPrediction;
+      if (report === undefined) {
+        throw new CalibrationFatalError('calibration:report-prediction-missing');
+      }
+      const keyCopy: ReservationKey = {
+        stage: validated.key.stage,
+        profile: validated.key.profile,
+        caseId: validated.key.caseId,
+        sampleIndex: validated.key.sampleIndex,
+      };
+      Object.freeze(keyCopy);
+      const row: CalibrationCompletedReportPrediction = {
+        key: keyCopy,
+        prediction: report,
+      };
+      Object.freeze(row);
+      out.push(row);
+    }
+    Object.freeze(out);
+    return out;
+  }
+
   const baseLedger: CalibrationLedger = {
     acquireLock,
     releaseLock,
@@ -3179,6 +3256,7 @@ function createLedgerCore(
     getSelectedProfile: strictGetSelectedProfile,
     completeStage: strictCompleteStage,
     getCompletedStages: strictGetCompletedStages,
+    getCompletedReportPredictions: strictGetCompletedReportPredictions,
   };
   return protocolLedger;
 }

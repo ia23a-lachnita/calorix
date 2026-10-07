@@ -42,6 +42,7 @@ import { createFileCalibrationLedgerDeps } from './calibration-file-store';
 import { createCalibrationPreflightLedgerHooks } from './calibration-preflight-ledger';
 import type { CalibrationPreflightLedgerProviderHooks } from './calibration-preflight-ledger';
 import { CalibrationFatalError } from './fatal-error';
+import { captureCalibrationReportJournalEntry } from './calibration-report-journal';
 
 export interface CalibrationPreflightSessionDeps
   extends CalibrationPreflightLedgerProviderHooks {
@@ -364,6 +365,43 @@ interface ProtocolJournalPinSnapshot {
  */
 function snapshotProtocolJournalForPin(entry: unknown): ProtocolJournalPinSnapshot {
   try {
+    let hasReportExtension = false;
+    try {
+      if (typeof entry === 'object' && entry !== null && !Array.isArray(entry)) {
+        const descriptor = Object.getOwnPropertyDescriptor(entry, 'reportPrediction');
+        if (descriptor !== undefined) {
+          hasReportExtension = true;
+        }
+      }
+    } catch {
+      protocolJournalInvalid();
+    }
+    if (hasReportExtension) {
+      const owned = captureCalibrationReportJournalEntry(
+        entry,
+      ) as unknown as Record<string, unknown>;
+      const ownedKey = owned['key'] as Record<string, unknown>;
+      const ownedError = owned['errorCategory'] as string;
+      const ownedNormalized = owned['normalizedPrediction'] as Record<string, unknown> | null;
+      const ownedVersion = owned['responseModelVersion'] as string;
+      const shouldPinExtended =
+        ownedError === 'none' &&
+        ownedNormalized !== null &&
+        (ownedKey['stage'] as string) === 'preflight' &&
+        (ownedKey['profile'] as string) === 'LOW';
+      if (shouldPinExtended) {
+        return {
+          plain: owned as unknown as ProtocolJournalPinSnapshot['plain'],
+          shouldPin: true,
+          version: ownedVersion,
+        };
+      }
+      return {
+        plain: owned as unknown as ProtocolJournalPinSnapshot['plain'],
+        shouldPin: false,
+        version: ownedVersion,
+      };
+    }
     if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
       protocolJournalInvalid();
     }

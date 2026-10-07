@@ -40,6 +40,7 @@ import type {
   ReservationKey,
 } from './calibration';
 import { CalibrationFatalError } from './fatal-error';
+import { captureCalibrationReportJournalEntry } from './calibration-report-journal';
 
 const LEDGER_FILE = 'ledger.json';
 const JOURNAL_FILE = 'journal.json';
@@ -203,6 +204,20 @@ function isValidJournalKeyShape(value: unknown): value is ReservationKey {
  * of a raw TypeError.
  */
 function assertValidJournalEntry(value: unknown): JournalEntry {
+  let hasReportExtension = false;
+  try {
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, 'reportPrediction');
+      if (descriptor !== undefined) {
+        hasReportExtension = true;
+      }
+    }
+  } catch {
+    throw new CalibrationFatalError('calibration:journal-entry-malformed');
+  }
+  if (hasReportExtension) {
+    return captureCalibrationReportJournalEntry(value);
+  }
   if (!isPlainRecord(value)) {
     throw new CalibrationFatalError('calibration:journal-entry-malformed');
   }
