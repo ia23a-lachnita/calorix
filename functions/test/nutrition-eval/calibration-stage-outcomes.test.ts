@@ -3238,3 +3238,36 @@ describe("stage boundary regressions", () => {
 
   });
 });
+
+describe('report options reject before resolver effects', () => {
+  it.each(['accessor', 'hidden', 'symbol', 'prototype'] as const)(
+    'rejects %s report options with zero resolver, plan, clock or persistence calls', (kind) => {
+      const files = buildVerifiedFiles();
+      const tracker = { calls: 0, selected: [] as unknown[] };
+      const clock = { calls: 0 };
+      const effects = { appends: 0, fsyncs: 0 };
+      let planCalls = 0;
+      let getterReads = 0;
+      const callback = () => { planCalls++; return loadOutcomePlanner()(files); };
+      const options: Record<string | symbol, unknown> = { getReportOutcomePlan: callback };
+      if (kind === 'accessor') Object.defineProperty(options, 'getReportOutcomePlan', {
+        enumerable: true, get: () => { getterReads++; return callback; },
+      });
+      if (kind === 'hidden') Object.defineProperty(options, 'hidden', { value: 'private', enumerable: false });
+      if (kind === 'symbol') options[Symbol('extra')] = 'private';
+      if (kind === 'prototype') Object.setPrototypeOf(options, { hidden: 'private' });
+      expect(() => openStrictLedger(makeTempDir(), { files, tracker, clock, effects, reportOptions: options })).toThrow(CalibrationFatalError);
+      expect(tracker.calls).toBe(0); expect(planCalls).toBe(0); expect(getterReads).toBe(0);
+      expect(clock.calls).toBe(0); expect(effects).toEqual({ appends: 0, fsyncs: 0 });
+    });
+  it('valid options still capture the resolver and report plan once', () => {
+    const files = buildVerifiedFiles(); const tracker = { calls: 0, selected: [] as unknown[] };
+    let planCalls = 0;
+    const { ledger } = openStrictLedger(makeTempDir(), { files, tracker, reportOptions: {
+      getReportOutcomePlan: () => { planCalls++; return loadOutcomePlanner()(files); },
+    } });
+    expect(tracker.calls).toBe(1); expect(planCalls).toBe(1);
+    expect(loadStageSnapshot(ledger)('preflight', 'LOW').counts.imageCallsReserved).toBe(0);
+    expect(tracker.calls).toBe(1); expect(planCalls).toBe(1);
+  });
+});

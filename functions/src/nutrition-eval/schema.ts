@@ -398,6 +398,9 @@ const CalibrationThinkingLevelSchema = z.enum(['LOW', 'MEDIUM']);
 
 const CalibrationStageSchema = z.enum(['preflight', 'development', 'validation', 'benchmark']);
 
+const CalibrationReportErrorCategories = ['http_400', 'http_401', 'http_403', 'http_404', 'http_408', 'http_429',
+  'http_other_4xx', 'http_5xx', 'timeout', 'network', 'empty_response', 'interrupted_reservation', 'unknown'] as const;
+
 export const CalibrationInfoSchema = z.object({
   protocolVersion: z.literal(CALIBRATION_PROTOCOL_VERSION),
   project: z.string().min(1),
@@ -409,6 +412,14 @@ export const CalibrationInfoSchema = z.object({
   imageCallsReserved: z.number().int().nonnegative().max(300),
   imageCallsCompleted: z.number().int().nonnegative(),
   imageCallsFailed: z.number().int().nonnegative(),
+  safeErrors: z.array(z.strictObject({
+    caseId: z.string().regex(/^[A-Za-z0-9_-]{1,128}$/),
+    sampleIndex: z.number().int().min(1).max(3),
+    errorCategory: z.enum(CalibrationReportErrorCategories),
+  })).optional(),
+  latencyCoverage: z.strictObject({
+    measuredCases: z.number().int().nonnegative(), missingCases: z.number().int().nonnegative(),
+  }).optional(),
 });
 
 const ZeroSafeSummaryFields = {
@@ -594,7 +605,86 @@ function inferHistoricalVisibilityCounts(value: unknown): unknown {
   return { ...record, publicCases: cases.length / samples, privateCases: 0 };
 }
 
-export const NutritionEvalReportSchema = z.preprocess(inferHistoricalVisibilityCounts, z.object({
+// Capture only the new metadata boundary before Zod's ordinary property reads.
+// Reports without either addition retain the historical preprocessing path.
+function captureReportCalibrationMetadata(value: unknown, context: z.RefinementCtx): unknown {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+  try {
+    const calibrationDescriptor = Object.getOwnPropertyDescriptor(value, 'calibration');
+    if (!calibrationDescriptor || !('value' in calibrationDescriptor)) {
+      return value;
+    }
+    const raw = calibrationDescriptor.value as unknown;
+    if (typeof raw !== 'object' || raw === null ||
+      (!Reflect.has(raw, 'safeErrors') && !Reflect.has(raw, 'latencyCoverage'))) {
+      return value;
+    }
+
+    const reject = (): never => { throw new Error('invalid calibration metadata'); };
+    const record = (input: unknown, required: readonly string[], optional: readonly string[] = []): Record<string, unknown> => {
+      if (typeof input !== 'object' || input === null || Array.isArray(input)) return reject();
+      const prototype = Object.getPrototypeOf(input);
+      if (prototype !== Object.prototype && prototype !== null) return reject();
+      const owned: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
+      for (const key of Reflect.ownKeys(input)) {
+        if (typeof key !== 'string' || (!required.includes(key) && !optional.includes(key))) return reject();
+        const descriptor = Object.getOwnPropertyDescriptor(input, key);
+        if (!descriptor || !descriptor.enumerable || !('value' in descriptor)) return reject();
+        owned[key] = descriptor.value as unknown;
+      }
+      if (required.some((key) => !Object.prototype.hasOwnProperty.call(owned, key))) return reject();
+      return owned;
+    };
+    const stringFields = ['protocolVersion', 'project', 'location', 'model', 'thinkingLevel', 'schemaHash', 'stage'];
+    const numberFields = ['imageCallsReserved', 'imageCallsCompleted', 'imageCallsFailed'];
+    const calibration = record(raw, [...stringFields, ...numberFields], ['safeErrors', 'latencyCoverage']);
+    if (stringFields.some((key) => typeof calibration[key] !== 'string') ||
+      numberFields.some((key) => typeof calibration[key] !== 'number')) return reject();
+    if (Object.prototype.hasOwnProperty.call(calibration, 'safeErrors')) {
+      const errors = calibration.safeErrors;
+      if (!Array.isArray(errors) || Object.getPrototypeOf(errors) !== Array.prototype) return reject();
+      const lengthDescriptor = Object.getOwnPropertyDescriptor(errors, 'length');
+      if (!lengthDescriptor || !('value' in lengthDescriptor) || lengthDescriptor.enumerable) return reject();
+      const length: unknown = lengthDescriptor.value;
+      if (typeof length !== 'number' || !Number.isInteger(length) || length < 0 || length > 300) return reject();
+      const keys = Reflect.ownKeys(errors);
+      if (keys.length !== length + 1 || keys.some((key) => typeof key !== 'string' ||
+        (key !== 'length' && !/^(0|[1-9]\d*)$/.test(key)))) return reject();
+      const ownedErrors = [];
+      for (let index = 0; index < length; index++) {
+        const descriptor = Object.getOwnPropertyDescriptor(errors, String(index));
+        if (!descriptor || !descriptor.enumerable || !('value' in descriptor)) return reject();
+        const row = record(descriptor.value, ['caseId', 'sampleIndex', 'errorCategory']);
+        if (typeof row.caseId !== 'string' || typeof row.sampleIndex !== 'number' ||
+          typeof row.errorCategory !== 'string') return reject();
+        if (!/^[A-Za-z0-9_-]{1,128}$/.test(row.caseId) || !Number.isInteger(row.sampleIndex) ||
+          row.sampleIndex < 1 || row.sampleIndex > 3 ||
+          !CalibrationReportErrorCategories.some((category) => category === row.errorCategory)) return reject();
+        ownedErrors.push(Object.freeze(row));
+      }
+      calibration.safeErrors = Object.freeze(ownedErrors);
+    }
+    if (Object.prototype.hasOwnProperty.call(calibration, 'latencyCoverage')) {
+      const coverage = record(calibration.latencyCoverage, ['measuredCases', 'missingCases']);
+      if (typeof coverage.measuredCases !== 'number' || !Number.isInteger(coverage.measuredCases) || coverage.measuredCases < 0 ||
+        typeof coverage.missingCases !== 'number' || !Number.isInteger(coverage.missingCases) || coverage.missingCases < 0) return reject();
+      calibration.latencyCoverage = Object.freeze(coverage);
+    }
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    descriptors.calibration = { ...calibrationDescriptor, value: Object.freeze(calibration) };
+    const ownedReport: unknown = Object.create(Object.getPrototypeOf(value), descriptors);
+    return ownedReport;
+  } catch {
+    // Never inspect, stringify, retain or chain a foreign reflection exception.
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration'], message: 'invalid calibration metadata', fatal: true });
+    return z.NEVER;
+  }
+}
+
+export const NutritionEvalReportSchema = z.preprocess((value, context) =>
+  inferHistoricalVisibilityCounts(captureReportCalibrationMetadata(value, context)), z.object({
   version: z.literal(1),
   runId: z.string().trim().min(1),
   timestamp: z.string().datetime({ offset: true }),
@@ -650,6 +740,32 @@ export const NutritionEvalReportSchema = z.preprocess(inferHistoricalVisibilityC
   }
   const calibration = report.calibration;
   if (calibration?.protocolVersion !== CALIBRATION_PROTOCOL_VERSION) return;
+  for (const field of ['safeErrors', 'latencyCoverage'] as const) {
+    if (Object.prototype.hasOwnProperty.call(calibration, field) && calibration[field] === undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', field], message: 'present metadata must be defined' });
+    }
+  }
+  if (calibration.safeErrors !== undefined) {
+    if (calibration.safeErrors.length !== calibration.imageCallsFailed) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', 'safeErrors'], message: 'safe errors must account for failed images' });
+    }
+    const seen = new Set<string>();
+    for (const error of calibration.safeErrors) {
+      const key = `${error.caseId}|${error.sampleIndex}`;
+      const row = report.cases.find((row) => row.caseId === error.caseId && row.prediction.sampleIndex === error.sampleIndex);
+      if (seen.has(key) || row === undefined || row.prediction.parseStatus !== 'failure' ||
+        (error.errorCategory === 'interrupted_reservation' && row.prediction.failureCode !== 'interrupted_reservation')) {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', 'safeErrors'], message: 'safe error must bind a unique failure sample' });
+      }
+      seen.add(key);
+    }
+  }
+  if (calibration.latencyCoverage !== undefined) {
+    const measured = report.cases.filter((row) => row.prediction.latencyMs !== undefined).length;
+    if (calibration.latencyCoverage.measuredCases !== measured || calibration.latencyCoverage.missingCases !== caseCount - measured) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', 'latencyCoverage'], message: 'latency coverage must match measured samples' });
+    }
+  }
   if (calibration.project !== 'calorix-xurschnell') {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', 'project'], message: 'calibration project must be calorix-xurschnell' });
   }

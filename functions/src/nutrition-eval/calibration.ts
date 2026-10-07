@@ -1566,6 +1566,9 @@ function createLedgerCore(
   if (isStrict && typeof strictKeyResolver !== 'function') {
     throw new CalibrationFatalError('calibration:resolver-failed');
   }
+  const reportOptions = isStrict && rawReportOptions !== undefined
+    ? captureStrictReportOptions(rawReportOptions)
+    : undefined;
   const identity = isStrict ? cloneStrictIdentity(identityInput) : identityInput;
   if (isStrict) {
     assertExactStrictIdentity(identity);
@@ -1608,11 +1611,9 @@ function createLedgerCore(
       preflightMediumId = canonicalReservationKey(key);
     }
   }
-  let reportOptions: CalibrationProtocolReportOptions | undefined;
   let cachedInitialPlan: readonly CalibrationPlannedReportOutcome[] | undefined;
   let cachedExpandedPlan: readonly CalibrationPlannedReportOutcome[] | undefined;
-  if (isStrict && rawReportOptions !== undefined) {
-    reportOptions = captureStrictReportOptions(rawReportOptions);
+  if (reportOptions !== undefined) {
     const initialRows = invokeStrictPlanCallback(reportOptions.getReportOutcomePlan, undefined);
     validateStrictPlanRows(initialRows, STRICT_INITIAL_KEY_COUNT, currentAllowedKeys, undefined);
     cachedInitialPlan = freezeStrictPlanRows(initialRows);

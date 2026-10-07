@@ -241,6 +241,15 @@ export function renderNutritionEvalMarkdown(report: NutritionEvalReport): string
       `imageCallsReserved: ${report.calibration.imageCallsReserved}`,
       `imageCallsCompleted: ${report.calibration.imageCallsCompleted}`,
       `imageCallsFailed: ${report.calibration.imageCallsFailed}`,
+      ...(report.calibration.latencyCoverage === undefined ? [] : [
+        `latencyMeasuredCases: ${report.calibration.latencyCoverage.measuredCases}`,
+        `latencyMissingCases: ${report.calibration.latencyCoverage.missingCases}`,
+      ]),
+      ...(report.calibration.safeErrors === undefined ? [] : [
+        'safeErrors:',
+        ...report.calibration.safeErrors.map((error) =>
+          `- ${markdownCell(error.caseId)} / sample ${error.sampleIndex}: ${error.errorCategory}`),
+      ]),
     ] : []),
     '', '## Aggregate metrics',
     `totalCases: ${summary.totalCases}`,
