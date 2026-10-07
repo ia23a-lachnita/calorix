@@ -186,7 +186,7 @@ const event = {type: 'non_reservation_result' as const, key: owned.key,
 ```
 
 - [x] **Step 4: Main GREEN/review.** Focused531, Functions build/lint0/full2033pass1existing skip, newfile/staged whitespace and protectedSHA. Primary3.8 transport timeout recorded; fallback3.7 substantive review carried response noise, then same-conversation clean explicit agree/MUST_FIXnone Task1CODE receipt. One fresh native whole-plan review occurs after Task2, not duplicated here. No live dispatch/accuracy/readiness approval.
-- [ ] **Step 5: Checkpoint/task-done.** Commit only source/test/tracking `Preserve durable non-reservation report outcomes`, push exactbranch/liveorigin equality, postcommit task-done full suite, tracking-close. Record next Task2 and exact hashes. Do not claim reports/driver/146 proof complete from this readmodel alone.
+- [x] **Step 5: Checkpoint/task-done.** Commit f4bb5a94a7d52912af0547a125e905e2a1bad0bb pushed0/liveorigin equality; postcommit task-done full2033pass1existing skip2034 exit0,41files. Tracking-close follows, next Task2. This readmodel is not report/driver/live146 proof.
 
 Focused:
 
