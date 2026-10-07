@@ -52,7 +52,7 @@ export interface CreateLiveNutritionEvalAdapterOptions {
   mealPrompt?: string;
   labelPrompt?: string;
   barcodePrompt?: string;
-  offSnapshotMap?: ReadonlyMap<string, OffProduct>;
+  offSnapshotMap?: Pick<ReadonlyMap<string, OffProduct>, 'get'>;
   calibrationReservation?: CalibrationReservationOptions;
 }
 
