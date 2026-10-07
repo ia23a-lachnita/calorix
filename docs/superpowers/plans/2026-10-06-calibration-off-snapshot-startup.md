@@ -21,6 +21,7 @@
 - Never alter committed OFF payloads/lock, expose private caller errors, or perform live OFF fetches.
 - Host edits planning/tracking only; source/tests use editing workers; workers never commit/push.
 - No deployment, cloud data mutation, device/UI operations or production-readiness/accuracy claims.
+- Pi `/tmp` is RAM-backed: all further commands inherit disk-backed `TMPDIR=/home/agent-runner/projects/calorix/.superpowers/sdd/2026-10-06-calibration-off-snapshot-startup/tmp`; store logs in this plan's sibling `logs/`, not `/tmp`. Clean only explicitly owned task artifacts after completion. The ext4 backing filesystem was verified on 2026-10-07.
 
 ## Review focus
 
@@ -76,6 +77,10 @@ npm --prefix functions test -- --reporter=dot --maxWorkers=1 --minWorkers=1
 Expected: build/lint exit zero; full suite passes with only the existing public-manifest skip. Serial workers change scheduling, not coverage. Flutter/APK/device/UI/provider/emulator gates are intentionally omitted for this unused, explicit offline helper; full integrated CLI `test:verify` remains a parent activation gate.
 
 ## Sequencing and remaining boundaries
+
+**Paused handoff (2026-10-07):** user switched to desktop setup. Application changes are saved in scoped stash `e1277823fe36c01461b99979b88a7e9caf1fd79b`; worker focused209/209 only, no host full/final review approval. Restore explicitly with `git stash apply e1277823fe36c01461b99979b88a7e9caf1fd79b` after checking checkout state; keep the stash until verification. Continue mandatory host focused/build/lint/full, native review and MCP CODE gate before marking this task complete.
+
+**Corrective guard review (2026-10-06/07):** main read-only probes and MCP3.7 PLAN agree/none reproduced foreign reflection fatal/cause escape, hidden own-key bypass and repeated virtual property reads. Add guard regressions before correction; use `Reflect.ownKeys` for the exact two names, capture required own data `descriptor.value` fields once without caller property gets, and catch all guard failures as fresh static causeless input-invalid errors without `instanceof`. Keep the already-tested unconditional startup catch. The altered-lock fixture must actually differ from committed bytes (four-space indentation); two-space stringify is identical to the actual raw file. These repairs implement the existing promised boundary, not broad generic-helper hardening. Seven added cases contain five actual RED and two preservation GREEN.
 
 The future driver must supply `lockText` from its verified prepared context, read committed snapshot strings using a source-bound native reader, and await this factory before any ledger reservation. This helper does not prove that future sequencing or ambient Git/account identity. Parent Task 5 complete startup wiring and Task 7 whole-driver, durable metric/report reconstruction, stage report hashes, exact 146 image execution and 60 benchmark outcomes remain pending. A twelve-outcome barcode proof is structural/local catalog evidence, not live-model calorie accuracy.
 
