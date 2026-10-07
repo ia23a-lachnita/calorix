@@ -14,6 +14,8 @@
 
 ## Global Constraints
 
+Scoped user exception (2026-10-07T15:08:10Z): explicit “sure go on” authorizes the main host to make remaining application/test edits directly for this approved two-task report plan only. Earlier pending-authority statements are historical. All test-first, review, verification, commit/push, privacy and no-deploy/default/live-expansion gates remain. Current Task1 step: appended-fixture correction with original111016-byte prefix and source/config frozen, followed by host genuine RED before core-only guard fixes; checkpoint HEAD2e35f8e, implementation BASEf3052d1.
+
 Documentation-only blocker checkpoint: same-conversation primarygemini-3.8-flash review corrected stale HEAD wording to implementationBASEf3052d1, then explicit agree/MUST_FIXnone, scopeONLYtrackingdocs. No Task1source/test acceptance, CODE/security/readiness green or completedtask checkbox follows from this receipt. Incomplete source/tests remain local/unstaged; docscheckpoint preserves failures/rulings/pendingauthority rather than publishing implementation.
 
 Task1 blocked verification (2026-10-07T16:40:23+02:00): main focused6 **498pass/34fail532**, preserving all430existing+61original. 31real guardfailures, 3worker fixturefaults (premature sealedstage setup, out-of-scope helper, duplicate acquire). Currentnewtestlint4unused-variable errors. Paid lastactualcapconfirmed, session100% reset18:59; allstrongerfresh routes failed/unusable with exact history in status. No Task1codeacceptance/commit/fullsuite/CODEgreen/Task2; originaltestprefix/source/config frozen. Next: valid appendedfixtures/genuineRED first, core-onlyguardfix second, all original verification/review/checkpoints still required. Userdirecteditingexception question pending, NEVER inferred from defaultoption.
@@ -170,7 +172,7 @@ expect(Object.isFrozen(snapshot.nonReservations[0]?.prediction)).toBe(true);
 Required cases: six-field legacy bytes/hash/oldAPI preservation; absent report options; missing/completed numeric-only metadata; real live/replayed interruption retains exact recorded hash and no measured latency/prediction; alternate same-key journal cannot replace recorded completed/failed digest; pending counts; stage/profile filter and first timestamp stable acrossread/restart with zero clock/effects; dataset outcome0reservations; actual barcode success and product failure0reservations; duplicate/conflict/late reserve/cross-source/profile/sample; digest/value/removal/unknown-event tamper; identity/callback/descriptor/ownKeys/coercion traps and post-call mutation; persistence failure poisoning. Barcode fixture may use simple valid closed outputs here; actual snapshot/normalizer proof belongs Task2. Do not count existing protections as new RED.
 
 - [x] **Step 2: Host RED.** Main runs focused below and changed-test lint; existing suites green, new failures missing exports/methods or rejected newevent. Correct fixture errors through worker before source; freeze tests and verify original source/protected hashes.
-- [ ] **Step 3: Source only.** Worker implements shared types/codecs, optional planner routing, durable collector, failed hash retention and single getter on the stated allowlist. No test weakening or extra refactor. Implementation core for hash/order is explicit:
+- [x] **Step 3: Source only.** Worker implements shared types/codecs, optional planner routing, durable collector, failed hash retention and single getter on the stated allowlist. Scoped user exception permits host guard correction. No test weakening or extra refactor. Implementation core for hash/order is explicit:
 
 ```ts
 const at = strictNowIso();
@@ -183,7 +185,7 @@ const event = {type: 'non_reservation_result' as const, key: owned.key,
 // only successful persistence enters private non-reservation/stage-start indexes.
 ```
 
-- [ ] **Step 4: Main GREEN/review.** Focused, Functions build/lint/full serial suite, staged/newfile whitespace and protectedSHA. Mandatory MCP CODE/result review in this feature conversation, apply mustfixes tests-first until agree/none. One fresh native whole-plan review occurs after Task2, not duplicated here. Record all results/rulings/minors.
+- [x] **Step 4: Main GREEN/review.** Focused531, Functions build/lint0/full2033pass1existing skip, newfile/staged whitespace and protectedSHA. Primary3.8 transport timeout recorded; fallback3.7 substantive review carried response noise, then same-conversation clean explicit agree/MUST_FIXnone Task1CODE receipt. One fresh native whole-plan review occurs after Task2, not duplicated here. No live dispatch/accuracy/readiness approval.
 - [ ] **Step 5: Checkpoint/task-done.** Commit only source/test/tracking `Preserve durable non-reservation report outcomes`, push exactbranch/liveorigin equality, postcommit task-done full suite, tracking-close. Record next Task2 and exact hashes. Do not claim reports/driver/146 proof complete from this readmodel alone.
 
 Focused:

@@ -30,6 +30,7 @@ import type {
   CalibrationPreflightFileName,
   CalibrationPreflightReport,
 } from './calibration-cli';
+import type { CalibrationPlannedReportOutcome } from './calibration-report-state';
 import { parseProcStartTicks } from './calibration-file-store';
 import { CalibrationFatalError } from './fatal-error';
 import { CALIBRATION_MODEL } from '../genai-adapter';
@@ -865,5 +866,208 @@ function assertNoUnknownPublicKeys(raw: unknown, parsed: unknown): void {
     // Any revoked-proxy, foreign getter, or reflection failure fails closed
     // with a fresh static causeless fatal; never retain the foreign error.
     throw new CalibrationFatalError('calibration:canonical-keys-invalid');
+  }
+}
+
+// ── Canonical report outcome planner (Task 1 Step 3, bootstrap piece) ───────
+
+const CALIBRATION_REPORT_PLAN_FILE_NAMES: readonly CalibrationPreflightFileName[] = [
+  'public-manifest',
+  'prompt',
+  'response-schema',
+  'source-lock',
+  'calibration-manifest',
+  'off-lock',
+  'historical-reference',
+];
+
+/** Descriptor-only exact seven-field capture; rejects any coercive/hidden shape. */
+function captureReportPlanFilesRecord(
+  value: unknown,
+): Record<CalibrationPreflightFileName, string> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error('calibration-bootstrap:report-plan-files-invalid');
+  }
+  let proto: unknown;
+  try {
+    proto = Object.getPrototypeOf(value);
+  } catch {
+    throw new Error('calibration-bootstrap:report-plan-files-invalid');
+  }
+  if (proto !== Object.prototype && proto !== null) {
+    throw new Error('calibration-bootstrap:report-plan-files-invalid');
+  }
+  let names: string[];
+  let symbols: symbol[];
+  try {
+    names = Object.getOwnPropertyNames(value);
+    symbols = Object.getOwnPropertySymbols(value);
+  } catch {
+    throw new Error('calibration-bootstrap:report-plan-files-invalid');
+  }
+  if (symbols.length !== 0) {
+    throw new Error('calibration-bootstrap:report-plan-files-invalid');
+  }
+  if (names.length !== CALIBRATION_REPORT_PLAN_FILE_NAMES.length) {
+    throw new Error('calibration-bootstrap:report-plan-files-invalid');
+  }
+  const allowedSet = new Set<string>(CALIBRATION_REPORT_PLAN_FILE_NAMES);
+  const owned: Record<string, string> = {};
+  for (const name of names) {
+    if (!allowedSet.has(name)) {
+      throw new Error('calibration-bootstrap:report-plan-files-invalid');
+    }
+    let descriptor: PropertyDescriptor | undefined;
+    try {
+      descriptor = Object.getOwnPropertyDescriptor(value, name);
+    } catch {
+      throw new Error('calibration-bootstrap:report-plan-files-invalid');
+    }
+    if (
+      descriptor === undefined ||
+      descriptor.enumerable !== true ||
+      !('value' in descriptor) ||
+      'get' in descriptor ||
+      'set' in descriptor
+    ) {
+      throw new Error('calibration-bootstrap:report-plan-files-invalid');
+    }
+    const raw = descriptor.value;
+    if (typeof raw !== 'string') {
+      throw new Error('calibration-bootstrap:report-plan-files-invalid');
+    }
+    owned[name] = raw;
+  }
+  for (const name of CALIBRATION_REPORT_PLAN_FILE_NAMES) {
+    if (!(name in owned)) {
+      throw new Error('calibration-bootstrap:report-plan-files-invalid');
+    }
+  }
+  return owned as Record<CalibrationPreflightFileName, string>;
+}
+
+interface ReportOutcomeRow {
+  key: {
+    stage: 'preflight' | 'development' | 'validation' | 'benchmark';
+    profile: CalibrationProfile;
+    caseId: string;
+    sampleIndex: number;
+  };
+  scanMode: 'meal' | 'label' | 'barcode';
+}
+
+/**
+ * Source-derived frozen outcome plan (pure, synchronous). Calls the
+ * unchanged `deriveCanonicalAllowedKeys` on the same owned strings to prove
+ * pinned bytes/hash/unknown-field policy, then independently re-parses the
+ * identical validated strings (never re-reads the hash) to recover each
+ * case's source `scanMode` and manifest slot/sample order, which
+ * `deriveCanonicalAllowedKeys` does not expose. No case truth/URLs are
+ * copied into the plan; every row/key is frozen and owned.
+ */
+export function deriveCanonicalReportOutcomePlan(
+  files: Record<CalibrationPreflightFileName, string>,
+  selectedProfile?: CalibrationProfile,
+): readonly CalibrationPlannedReportOutcome[] {
+  try {
+    const owned = captureReportPlanFilesRecord(files);
+    let selected: CalibrationProfile | undefined;
+    if (selectedProfile === undefined) {
+      selected = undefined;
+    } else if (selectedProfile === 'LOW' || selectedProfile === 'MEDIUM') {
+      selected = selectedProfile;
+    } else {
+      throw new Error('calibration-bootstrap:report-plan-profile-invalid');
+    }
+
+    // Unchanged pinned-bytes/hash/unknown-field policy proof on the same
+    // owned strings; its own allowed-key set is not reused here, only its
+    // fail-closed validation of calibration/public manifest bytes.
+    deriveCanonicalAllowedKeys(owned, selected);
+
+    const calibrationRaw = JSON.parse(owned['calibration-manifest']) as unknown;
+    const calibrationManifest = StrictCalibrationManifestSchema.parse(calibrationRaw) as unknown as {
+      cases: Array<{ id: string; group: string }>;
+    };
+    const devIds: string[] = [];
+    const validationIds: string[] = [];
+    for (const entry of calibrationManifest.cases) {
+      if (entry.group === 'development') devIds.push(entry.id);
+      else if (entry.group === 'validation') validationIds.push(entry.id);
+    }
+    if (devIds.length !== 24 || validationIds.length !== 16) {
+      throw new Error('calibration-bootstrap:report-plan-manifest-invalid');
+    }
+    const firstDev = devIds[0] as string;
+
+    const publicRaw = JSON.parse(owned['public-manifest']) as unknown;
+    const publicParsed = parseNutritionEvalManifest(publicRaw) as unknown as {
+      cases: Array<{ id: string; scanMode: string }>;
+    };
+    if (publicParsed.cases.length !== 20) {
+      throw new Error('calibration-bootstrap:report-plan-manifest-invalid');
+    }
+
+    const rows: ReportOutcomeRow[] = [];
+    rows.push({
+      key: { stage: 'preflight', profile: 'LOW', caseId: firstDev, sampleIndex: 1 },
+      scanMode: 'meal',
+    });
+    rows.push({
+      key: { stage: 'preflight', profile: 'MEDIUM', caseId: firstDev, sampleIndex: 1 },
+      scanMode: 'meal',
+    });
+    for (const caseId of devIds) {
+      rows.push({ key: { stage: 'development', profile: 'LOW', caseId, sampleIndex: 1 }, scanMode: 'meal' });
+      rows.push({ key: { stage: 'development', profile: 'MEDIUM', caseId, sampleIndex: 1 }, scanMode: 'meal' });
+    }
+
+    if (selected !== undefined) {
+      for (const caseId of validationIds) {
+        for (let sampleIndex = 1; sampleIndex <= 3; sampleIndex += 1) {
+          rows.push({
+            key: { stage: 'validation', profile: selected, caseId, sampleIndex },
+            scanMode: 'meal',
+          });
+        }
+      }
+      // Source case/sample order: iterate the public manifest exactly as
+      // committed (12 meal, 4 barcode, 4 label in this corpus) so barcode
+      // rows stay interleaved at their source position, never appended
+      // after all vision rows.
+      for (const entry of publicParsed.cases) {
+        const scanMode = entry.scanMode;
+        if (scanMode !== 'meal' && scanMode !== 'label' && scanMode !== 'barcode') {
+          throw new Error('calibration-bootstrap:report-plan-scan-mode-invalid');
+        }
+        for (let sampleIndex = 1; sampleIndex <= 3; sampleIndex += 1) {
+          rows.push({
+            key: { stage: 'benchmark', profile: selected, caseId: entry.id, sampleIndex },
+            scanMode,
+          });
+        }
+      }
+    }
+
+    const expectedLength = selected === undefined ? 50 : 158;
+    if (rows.length !== expectedLength) {
+      throw new Error('calibration-bootstrap:report-plan-length-invalid');
+    }
+
+    const seen = new Set<string>();
+    const frozenRows: CalibrationPlannedReportOutcome[] = [];
+    for (const row of rows) {
+      const id = `${row.key.stage}|${row.key.profile}|${row.key.caseId}|${row.key.sampleIndex}`;
+      if (seen.has(id)) {
+        throw new Error('calibration-bootstrap:report-plan-duplicate-key');
+      }
+      seen.add(id);
+      const key = Object.freeze({ ...row.key });
+      const frozenRow = Object.freeze({ key, scanMode: row.scanMode });
+      frozenRows.push(frozenRow as unknown as CalibrationPlannedReportOutcome);
+    }
+    return Object.freeze(frozenRows) as readonly CalibrationPlannedReportOutcome[];
+  } catch {
+    throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
   }
 }

@@ -17,6 +17,18 @@ import { CalibrationFatalError } from './fatal-error';
 import { CALIBRATION_PROTOCOL_VERSION } from './schema';
 import type { NutritionCaseResult, NutritionPrediction } from './schema';
 import { captureCalibrationReportJournalEntry } from './calibration-report-journal';
+import {
+  captureCalibrationNonReservationEntry,
+  captureCalibrationNonReservationEvent,
+  captureCalibrationStageReportSnapshot,
+} from './calibration-report-state';
+import type {
+  CalibrationNonReservationEntry,
+  CalibrationNonReservationOutcome,
+  CalibrationPlannedReportOutcome,
+  CalibrationProtocolReportOptions,
+  CalibrationStageReportSnapshot,
+} from './calibration-report-state';
 
 // ── Identity / root constants ───────────────────────────────────────────────
 
@@ -546,6 +558,11 @@ export interface CalibrationProtocolLedger extends CalibrationLedger {
   completeStage: (stage: StageName, gateSummary: CalibrationStageGateSummary) => void;
   getCompletedStages: () => readonly StageName[];
   getCompletedReportPredictions: () => readonly CalibrationCompletedReportPrediction[];
+  recordNonReservationResult: (entry: CalibrationNonReservationEntry) => string;
+  getStageReportSnapshot: (
+    stage: StageName,
+    profile: CalibrationProfile,
+  ) => CalibrationStageReportSnapshot;
 }
 
 const STRICT_LEDGER_EVENT_TYPES: ReadonlySet<string> = new Set([
@@ -1275,6 +1292,246 @@ function snapshotStrictReplayArray(value: unknown, message: string): unknown[] {
   }
 }
 
+const STRICT_EXPANDED_PLAN_ROW_COUNT = 158;
+const CALIBRATION_REPORT_OPTIONS_KEYS: readonly string[] = ['getReportOutcomePlan'];
+const CALIBRATION_PLAN_ROW_KEYS: readonly string[] = ['key', 'scanMode'];
+
+/** New report boundaries never execute property getters or inspect foreign errors. */
+function captureStrictReportRecord(
+  value: unknown,
+  fields: readonly string[],
+  message: string,
+): Record<string, unknown> {
+  try {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new CalibrationFatalError(message);
+    }
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw new CalibrationFatalError(message);
+    }
+    const keys = Reflect.ownKeys(value);
+    if (keys.length !== fields.length || keys.some((key) => typeof key !== 'string' || !fields.includes(key))) {
+      throw new CalibrationFatalError(message);
+    }
+    const owned: Record<string, unknown> = {};
+    for (const field of fields) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, field);
+      if (descriptor === undefined || descriptor.enumerable !== true || !('value' in descriptor)) {
+        throw new CalibrationFatalError(message);
+      }
+      owned[field] = descriptor.value;
+    }
+    return owned;
+  } catch {
+    throw new CalibrationFatalError(message);
+  }
+}
+
+function captureStrictReportArray(value: unknown): unknown[] {
+  const message = 'calibration:report-outcome-plan-invalid';
+  try {
+    if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype) {
+      throw new CalibrationFatalError(message);
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(value, 'length');
+    const length: unknown = descriptor?.value;
+    if (descriptor === undefined || descriptor.enumerable !== false ||
+      typeof length !== 'number' || !Number.isInteger(length) ||
+      (length !== STRICT_INITIAL_KEY_COUNT && length !== STRICT_EXPANDED_PLAN_ROW_COUNT)) {
+      throw new CalibrationFatalError(message);
+    }
+    const keys = Reflect.ownKeys(value);
+    if (keys.length !== length + 1 || keys.some((key) => typeof key !== 'string')) {
+      throw new CalibrationFatalError(message);
+    }
+    const owned: unknown[] = [];
+    for (let index = 0; index < length; index += 1) {
+      const item = Object.getOwnPropertyDescriptor(value, String(index));
+      if (item === undefined || item.enumerable !== true || !('value' in item)) {
+        throw new CalibrationFatalError(message);
+      }
+      owned.push(item.value);
+    }
+    return owned;
+  } catch {
+    throw new CalibrationFatalError(message);
+  }
+}
+
+/** Descriptor-only exact single-callback capture; rejects hidden/symbol/extra fields. */
+function captureStrictReportOptions(value: unknown): CalibrationProtocolReportOptions {
+  const envelope = captureStrictReportRecord(value, CALIBRATION_REPORT_OPTIONS_KEYS, 'calibration:report-options-invalid');
+  const callback = envelope.getReportOutcomePlan;
+  if (typeof callback !== 'function') {
+    throw new CalibrationFatalError('calibration:report-options-invalid');
+  }
+  return Object.freeze({ getReportOutcomePlan: callback as CalibrationProtocolReportOptions['getReportOutcomePlan'] });
+}
+
+/** Guarded single plan-row snapshot; reuses the existing reservation-key shape. */
+function snapshotStrictPlanRow(
+  value: unknown,
+): { key: ReservationKey; scanMode: 'meal' | 'label' | 'barcode' } {
+  const message = 'calibration:report-outcome-plan-invalid';
+  const envelope = captureStrictReportRecord(value, CALIBRATION_PLAN_ROW_KEYS, message);
+  const key = snapshotStrictReservationKey(
+    captureStrictReportRecord(envelope.key, STRICT_RESERVATION_KEY_FIELDS, message),
+    'report-outcome-plan-row',
+  );
+  const scanMode = envelope.scanMode;
+  if (scanMode !== 'meal' && scanMode !== 'label' && scanMode !== 'barcode') {
+    throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+  }
+  return { key, scanMode };
+}
+
+/** Invokes the captured callback exactly once; any foreign throw becomes fresh static. */
+function invokeStrictPlanCallback(
+  callback: CalibrationProtocolReportOptions['getReportOutcomePlan'],
+  selectedProfile: CalibrationProfile | undefined,
+): Array<{ key: ReservationKey; scanMode: 'meal' | 'label' | 'barcode' }> {
+  let result: unknown;
+  try {
+    result = callback(selectedProfile);
+  } catch {
+    throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+  }
+  const rawRows = captureStrictReportArray(result);
+  return rawRows.map((row) => snapshotStrictPlanRow(row));
+}
+
+/** Cardinality/uniqueness/image-key-correspondence proof for a captured plan. */
+function validateStrictPlanRows(
+  rows: readonly { key: ReservationKey; scanMode: 'meal' | 'label' | 'barcode' }[],
+  expectedLength: number,
+  imageKeys: readonly ReservationKey[],
+  selectedProfile: CalibrationProfile | undefined,
+  initialPlan?: readonly CalibrationPlannedReportOutcome[],
+): void {
+  if (rows.length !== expectedLength) {
+    throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+  }
+  const imageKeySet = new Set(imageKeys.map(canonicalReservationKey));
+  const seen = new Set<string>();
+  const nonBarcodeIds = new Set<string>();
+  const benchmarkCases = new Map<string, { mode: 'meal' | 'label' | 'barcode'; samples: Set<number> }>();
+  let barcodeCount = 0;
+  for (const row of rows) {
+    const id = canonicalReservationKey(row.key);
+    if (seen.has(id)) {
+      throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+    }
+    seen.add(id);
+    if (row.key.stage !== 'benchmark' && row.scanMode !== 'meal') {
+      throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+    }
+    if (row.key.stage === 'benchmark') {
+      if (selectedProfile === undefined || row.key.profile !== selectedProfile) {
+        throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+      }
+      const existing = benchmarkCases.get(row.key.caseId);
+      if (existing !== undefined && existing.mode !== row.scanMode) {
+        throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+      }
+      const group = existing ?? { mode: row.scanMode, samples: new Set<number>() };
+      group.samples.add(row.key.sampleIndex);
+      benchmarkCases.set(row.key.caseId, group);
+    }
+    if (row.scanMode === 'barcode') {
+      barcodeCount += 1;
+      if (
+        selectedProfile === undefined ||
+        row.key.stage !== 'benchmark' ||
+        row.key.profile !== selectedProfile ||
+        imageKeySet.has(id)
+      ) {
+        throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+      }
+    } else {
+      nonBarcodeIds.add(id);
+      if (!imageKeySet.has(id)) {
+        throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+      }
+    }
+  }
+  const expectedBarcode = selectedProfile === undefined ? 0 : 12;
+  if (barcodeCount !== expectedBarcode || nonBarcodeIds.size !== imageKeySet.size) {
+    throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+  }
+  if (selectedProfile !== undefined) {
+    const modeCounts = { meal: 0, label: 0, barcode: 0 };
+    for (const group of benchmarkCases.values()) {
+      if (group.samples.size !== 3 || ![1, 2, 3].every((sample) => group.samples.has(sample))) {
+        throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+      }
+      modeCounts[group.mode] += 1;
+    }
+    if (modeCounts.meal !== 12 || modeCounts.label !== 4 || modeCounts.barcode !== 4 ||
+      initialPlan === undefined || initialPlan.length !== STRICT_INITIAL_KEY_COUNT) {
+      throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+    }
+    for (let index = 0; index < initialPlan.length; index += 1) {
+      const initial = initialPlan[index]!;
+      const expanded = rows[index]!;
+      if (canonicalReservationKey(initial.key) !== canonicalReservationKey(expanded.key) || initial.scanMode !== expanded.scanMode) {
+        throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
+      }
+    }
+  }
+}
+
+/** Freezes a validated plan into the owned public row shape. */
+function freezeStrictPlanRows(
+  rows: readonly { key: ReservationKey; scanMode: 'meal' | 'label' | 'barcode' }[],
+): readonly CalibrationPlannedReportOutcome[] {
+  const frozen = rows.map((row) => {
+    const key = Object.freeze({ ...row.key });
+    return Object.freeze({ key, scanMode: row.scanMode }) as unknown as CalibrationPlannedReportOutcome;
+  });
+  return Object.freeze(frozen);
+}
+
+/** Shared sample/source/reason association proof for one non-reservation outcome. */
+function assertStrictNonReservationAssociation(
+  entry: CalibrationNonReservationEntry,
+  planRow: { key: ReservationKey; scanMode: 'meal' | 'label' | 'barcode' },
+): void {
+  const predictionRecord = entry.prediction as unknown as Record<string, unknown>;
+  if (predictionRecord['sampleIndex'] !== entry.key.sampleIndex) {
+    throw new CalibrationFatalError('calibration:non-reservation-sample-mismatch');
+  }
+  if (entry.reason === 'dataset') {
+    if (
+      planRow.scanMode === 'barcode' ||
+      predictionRecord['source'] !== planRow.scanMode ||
+      predictionRecord['parseStatus'] !== 'failure' ||
+      predictionRecord['failureCategory'] !== 'dataset'
+    ) {
+      throw new CalibrationFatalError('calibration:non-reservation-dataset-invalid');
+    }
+    return;
+  }
+  if (planRow.scanMode !== 'barcode' || predictionRecord['source'] !== 'barcode') {
+    throw new CalibrationFatalError('calibration:non-reservation-barcode-invalid');
+  }
+  const parseStatus = predictionRecord['parseStatus'];
+  if (parseStatus === 'success') {
+    return;
+  }
+  if (parseStatus === 'failure') {
+    const failureCategory = predictionRecord['failureCategory'];
+    const failureCode = predictionRecord['failureCode'];
+    if (
+      failureCategory === 'product' &&
+      (failureCode === 'off_product_invalid' || failureCode === 'off_product_not_found')
+    ) {
+      return;
+    }
+  }
+  throw new CalibrationFatalError('calibration:non-reservation-barcode-invalid');
+}
+
 export function createCalibrationLedger(
   deps: CalibrationLedgerDeps,
   identity: CalibrationIdentity,
@@ -1287,18 +1544,24 @@ export function createProtocolCalibrationLedger(
   deps: CalibrationLedgerDeps,
   identity: CalibrationIdentity,
   keyResolver: CalibrationKeyResolver,
+  reportOptions?: CalibrationProtocolReportOptions,
 ): CalibrationProtocolLedger {
-  return createLedgerCore(deps, identity, { keyResolver }) as CalibrationProtocolLedger;
+  return createLedgerCore(deps, identity, { keyResolver, reportOptions }) as CalibrationProtocolLedger;
 }
 
 function createLedgerCore(
   deps: CalibrationLedgerDeps,
   identityInput: CalibrationIdentity,
-  init: { allowedKeys: readonly ReservationKey[] } | { keyResolver: CalibrationKeyResolver },
+  init:
+    | { allowedKeys: readonly ReservationKey[] }
+    | { keyResolver: CalibrationKeyResolver; reportOptions?: CalibrationProtocolReportOptions | undefined },
 ): CalibrationLedger {
   const isStrict = !('allowedKeys' in init);
   const strictKeyResolver = isStrict
     ? (init as { keyResolver: CalibrationKeyResolver }).keyResolver
+    : undefined;
+  const rawReportOptions = isStrict
+    ? (init as { reportOptions?: CalibrationProtocolReportOptions }).reportOptions
     : undefined;
   if (isStrict && typeof strictKeyResolver !== 'function') {
     throw new CalibrationFatalError('calibration:resolver-failed');
@@ -1345,6 +1608,15 @@ function createLedgerCore(
       preflightMediumId = canonicalReservationKey(key);
     }
   }
+  let reportOptions: CalibrationProtocolReportOptions | undefined;
+  let cachedInitialPlan: readonly CalibrationPlannedReportOutcome[] | undefined;
+  let cachedExpandedPlan: readonly CalibrationPlannedReportOutcome[] | undefined;
+  if (isStrict && rawReportOptions !== undefined) {
+    reportOptions = captureStrictReportOptions(rawReportOptions);
+    const initialRows = invokeStrictPlanCallback(reportOptions.getReportOutcomePlan, undefined);
+    validateStrictPlanRows(initialRows, STRICT_INITIAL_KEY_COUNT, currentAllowedKeys, undefined);
+    cachedInitialPlan = freezeStrictPlanRows(initialRows);
+  }
 
   function assertPlannedSafeErrorEntry(entry: CalibrationLedgerSafeErrorEntry): void {
     if (entry.kind === 'token_count') {
@@ -1368,6 +1640,8 @@ function createLedgerCore(
   const journalHashesByKey = new Map<string, Set<string>>();
   const pendingJournalHashes = new Map<string, string>();
   const journalByHash = new Map<string, JournalEntry>();
+  const nonReservationsByKey = new Map<string, CalibrationNonReservationOutcome>();
+  const firstStageProfileAt = new Map<string, string>();
   let tokenCountReserved = 0;
   let imageReserved = 0;
   let tokenReservation: TokenReservationState | undefined;
@@ -1399,6 +1673,8 @@ function createLedgerCore(
     journalHashesByKey.clear();
     pendingJournalHashes.clear();
     journalByHash.clear();
+    nonReservationsByKey.clear();
+    firstStageProfileAt.clear();
     tokenCountReserved = 0;
     imageReserved = 0;
     tokenReservation = undefined;
@@ -2502,12 +2778,13 @@ function createLedgerCore(
       readStrictField(envelope, 'key', 'reserved'),
       'reserved',
     );
-    assertCanonicalStrictTimestamp(readStrictField(envelope, 'at', 'reserved'), 'reserved');
+    const at = readStrictField(envelope, 'at', 'reserved');
+    assertCanonicalStrictTimestamp(at, 'reserved');
     const id = canonicalReservationKey(key);
     if (!allowedKeySet.has(id)) {
       throw new CalibrationFatalError('calibration:ledger-event-unplanned:reserved');
     }
-    if (reservations.has(id)) {
+    if (reservations.has(id) || nonReservationsByKey.has(id)) {
       throw new CalibrationFatalError('calibration:ledger-event-duplicate:reserved');
     }
     strictAssertReserveAllowed(key);
@@ -2517,6 +2794,10 @@ function createLedgerCore(
     reservations.set(id, { key, status: 'reserved' });
     reservationOrder.push(id);
     imageReserved += 1;
+    const stageProfileId = `${key.stage}|${key.profile}`;
+    if (!firstStageProfileAt.has(stageProfileId)) {
+      firstStageProfileAt.set(stageProfileId, at as string);
+    }
   }
 
   function strictReplayCompleted(record: Record<string, unknown>): void {
@@ -2598,6 +2879,7 @@ function createLedgerCore(
       throw new CalibrationFatalError('calibration:ledger-event-failed-missing-journal');
     }
     existing.status = 'interrupted_reservation';
+    existing.journalHash = rawHash;
   }
 
   function strictReplayTokenReserved(record: Record<string, unknown>): void {
@@ -2752,6 +3034,11 @@ function createLedgerCore(
     }
     const expanded = invokeStrictResolver(resolver, nextProfile);
     validateStrictExpandedKeys(initialAllowedKeys, expanded, nextProfile);
+    if (reportOptions !== undefined) {
+      const expandedRows = cachedExpandedPlan ?? invokeStrictPlanCallback(reportOptions.getReportOutcomePlan, nextProfile);
+      validateStrictPlanRows(expandedRows, STRICT_EXPANDED_PLAN_ROW_COUNT, expanded, nextProfile, cachedInitialPlan);
+      cachedExpandedPlan = freezeStrictPlanRows(expandedRows);
+    }
     selectedProfile = nextProfile;
     selectedReason = nextReason;
     currentAllowedKeys = expanded;
@@ -2843,6 +3130,9 @@ function createLedgerCore(
       case 'stage_completed':
         strictReplayStage(record);
         break;
+      case 'non_reservation_result':
+        strictReplayNonReservationResult(record);
+        break;
       default:
         throw new CalibrationFatalError('calibration:ledger-event-unknown-type');
     }
@@ -2854,6 +3144,9 @@ function createLedgerCore(
     if (completedStages.includes(snapshot.stage)) {
       throw new CalibrationFatalError('calibration:reservation-sealed');
     }
+    if (nonReservationsByKey.has(id)) {
+      throw new CalibrationFatalError('calibration:reservation-nonreservation-conflict');
+    }
     strictAssertReserveAllowed(snapshot);
     if (!allowedKeySet.has(id)) {
       throw new CalibrationFatalError('calibration:reservation-unplanned');
@@ -2864,10 +3157,15 @@ function createLedgerCore(
     if (imageReserved + 1 > HARD_CALL_CEILING) {
       throw new CalibrationFatalError('calibration:reservation-ceiling-exceeded');
     }
-    persistLedgerEvent({ type: 'reserved', key: snapshot, at: strictNowIso() });
+    const at = strictNowIso();
+    persistLedgerEvent({ type: 'reserved', key: snapshot, at });
     reservations.set(id, { key: snapshot, status: 'reserved' });
     reservationOrder.push(id);
     imageReserved += 1;
+    const stageProfileId = `${snapshot.stage}|${snapshot.profile}`;
+    if (!firstStageProfileAt.has(stageProfileId)) {
+      firstStageProfileAt.set(stageProfileId, at);
+    }
   }
 
   function strictReserveTokenCount(key: TokenCountReservationKey): void {
@@ -3018,6 +3316,7 @@ function createLedgerCore(
       journalByHash.set(journalHash, failureEntry);
       persistLedgerEvent({ type: 'failed', key: keySnapshot, journalHash, at: strictNowIso() });
       record.status = 'interrupted_reservation';
+      record.journalHash = journalHash;
       interrupted.push({ ...keySnapshot });
       failed.push({ key: { ...keySnapshot }, status: 'interrupted_reservation' });
     }
@@ -3116,12 +3415,21 @@ function createLedgerCore(
     }
     const expanded = invokeStrictResolver(resolver, nextProfile);
     validateStrictExpandedKeys(initialAllowedKeys, expanded, nextProfile);
+    let pendingExpandedPlan: readonly CalibrationPlannedReportOutcome[] | undefined;
+    if (reportOptions !== undefined) {
+      const expandedRows = cachedExpandedPlan ?? invokeStrictPlanCallback(reportOptions.getReportOutcomePlan, nextProfile);
+      validateStrictPlanRows(expandedRows, STRICT_EXPANDED_PLAN_ROW_COUNT, expanded, nextProfile, cachedInitialPlan);
+      pendingExpandedPlan = freezeStrictPlanRows(expandedRows);
+    }
     persistLedgerEvent({
       type: 'profile_selected',
       profile: nextProfile,
       reason: nextReason,
       at: strictNowIso(),
     });
+    if (pendingExpandedPlan !== undefined) {
+      cachedExpandedPlan = pendingExpandedPlan;
+    }
     selectedProfile = nextProfile;
     selectedReason = nextReason;
     currentAllowedKeys = expanded;
@@ -3227,6 +3535,225 @@ function createLedgerCore(
     return out;
   }
 
+  function strictAssertNonReservationStage(key: ReservationKey): void {
+    if (completedStages.includes(key.stage)) {
+      throw new CalibrationFatalError('calibration:non-reservation-stage-sealed');
+    }
+    strictAssertReserveAllowed(key);
+  }
+
+  function strictRecordNonReservationResult(entry: unknown): string {
+    checkPoison();
+    requireLock();
+    if (reportOptions === undefined) {
+      throw new CalibrationFatalError('calibration:non-reservation-plan-required');
+    }
+    const captured = captureCalibrationNonReservationEntry(entry);
+    const id = canonicalReservationKey(captured.key as unknown as ReservationKey);
+    if (reservations.has(id)) {
+      throw new CalibrationFatalError('calibration:non-reservation-already-reserved');
+    }
+    if (nonReservationsByKey.has(id)) {
+      throw new CalibrationFatalError('calibration:non-reservation-duplicate');
+    }
+    const activePlan = (selectedProfile === undefined ? cachedInitialPlan : cachedExpandedPlan) ?? [];
+    const planRow = activePlan.find(
+      (row) => canonicalReservationKey(row.key as unknown as ReservationKey) === id,
+    );
+    if (planRow === undefined) {
+      throw new CalibrationFatalError('calibration:non-reservation-unplanned');
+    }
+    assertStrictNonReservationAssociation(
+      captured,
+      planRow as unknown as { key: ReservationKey; scanMode: 'meal' | 'label' | 'barcode' },
+    );
+    strictAssertNonReservationStage(captured.key);
+    const at = strictNowIso();
+    const contentDigest = createHash('sha256')
+      .update(
+        JSON.stringify({ key: captured.key, reason: captured.reason, prediction: captured.prediction, at }),
+        'utf8',
+      )
+      .digest('hex');
+    const event = captureCalibrationNonReservationEvent({
+      type: 'non_reservation_result',
+      key: captured.key,
+      reason: captured.reason,
+      prediction: captured.prediction,
+      contentDigest,
+      at,
+    });
+    persistLedgerEvent(event);
+    nonReservationsByKey.set(id, {
+      key: event.key,
+      reason: event.reason,
+      prediction: event.prediction,
+      contentDigest: event.contentDigest,
+      at: event.at,
+    });
+    const stageProfileId = `${event.key.stage}|${event.key.profile}`;
+    if (!firstStageProfileAt.has(stageProfileId)) {
+      firstStageProfileAt.set(stageProfileId, event.at);
+    }
+    return event.contentDigest;
+  }
+
+  function strictReplayNonReservationResult(record: Record<string, unknown>): void {
+    if (reportOptions === undefined) {
+      throw new CalibrationFatalError('calibration:non-reservation-plan-required');
+    }
+    const validated = captureCalibrationNonReservationEvent(record);
+    const id = canonicalReservationKey(validated.key as unknown as ReservationKey);
+    if (reservations.has(id) || nonReservationsByKey.has(id)) {
+      throw new CalibrationFatalError('calibration:non-reservation-duplicate');
+    }
+    const activePlan = (selectedProfile === undefined ? cachedInitialPlan : cachedExpandedPlan) ?? [];
+    const planRow = activePlan.find(
+      (row) => canonicalReservationKey(row.key as unknown as ReservationKey) === id,
+    );
+    if (planRow === undefined) {
+      throw new CalibrationFatalError('calibration:non-reservation-unplanned');
+    }
+    assertStrictNonReservationAssociation(
+      validated,
+      planRow as unknown as { key: ReservationKey; scanMode: 'meal' | 'label' | 'barcode' },
+    );
+    strictAssertNonReservationStage(validated.key);
+    nonReservationsByKey.set(id, {
+      key: validated.key,
+      reason: validated.reason,
+      prediction: validated.prediction,
+      contentDigest: validated.contentDigest,
+      at: validated.at,
+    });
+    const stageProfileId = `${validated.key.stage}|${validated.key.profile}`;
+    if (!firstStageProfileAt.has(stageProfileId)) {
+      firstStageProfileAt.set(stageProfileId, validated.at);
+    }
+  }
+
+  function strictGetStageReportSnapshot(
+    stageInput: unknown,
+    profileInput: unknown,
+  ): CalibrationStageReportSnapshot {
+    checkPoison();
+    if (
+      stageInput !== 'preflight' &&
+      stageInput !== 'development' &&
+      stageInput !== 'validation' &&
+      stageInput !== 'benchmark'
+    ) {
+      throw new CalibrationFatalError('calibration:stage-report-state-invalid');
+    }
+    if (profileInput !== 'LOW' && profileInput !== 'MEDIUM') {
+      throw new CalibrationFatalError('calibration:stage-report-state-invalid');
+    }
+    const stage = stageInput;
+    const profile = profileInput;
+    const images: Array<Record<string, unknown>> = [];
+    let reservedCount = 0;
+    let completedCount = 0;
+    let failedCount = 0;
+    for (const id of reservationOrder) {
+      const record = reservations.get(id);
+      if (record === undefined || record.key.stage !== stage || record.key.profile !== profile) {
+        continue;
+      }
+      reservedCount += 1;
+      if (record.status === 'reserved') {
+        continue;
+      }
+      if (record.journalHash === undefined) {
+        throw new CalibrationFatalError('calibration:stage-report-state-invalid');
+      }
+      const entry = journalByHash.get(record.journalHash);
+      if (entry === undefined) {
+        throw new CalibrationFatalError('calibration:stage-report-state-invalid');
+      }
+      if (record.status === 'interrupted_reservation') {
+        if (!isCanonicalInterruptedJournal(entry)) {
+          throw new CalibrationFatalError('calibration:stage-report-state-invalid');
+        }
+        images.push({
+          status: 'interrupted_reservation' as const,
+          key: { ...record.key },
+          journalHash: record.journalHash,
+        });
+        failedCount += 1;
+        continue;
+      }
+      let hasReport = false;
+      try {
+        if (typeof entry === 'object' && entry !== null) {
+          const descriptor = Object.getOwnPropertyDescriptor(entry, 'reportPrediction');
+          if (descriptor !== undefined) {
+            hasReport = true;
+          }
+        }
+      } catch {
+        throw new CalibrationFatalError('calibration:report-prediction-missing');
+      }
+      if (!hasReport) {
+        throw new CalibrationFatalError('calibration:report-prediction-missing');
+      }
+      let validatedJournal: JournalEntry;
+      try {
+        validatedJournal = captureCalibrationReportJournalEntry(entry);
+      } catch {
+        throw new CalibrationFatalError('calibration:report-prediction-missing');
+      }
+      images.push({
+        status: 'completed' as const,
+        key: { ...record.key },
+        journalHash: record.journalHash,
+        journal: validatedJournal,
+      });
+      if (validatedJournal.errorCategory === 'none') {
+        completedCount += 1;
+      } else {
+        failedCount += 1;
+      }
+    }
+    const pendingCount = reservedCount - completedCount - failedCount;
+    if (pendingCount < 0) {
+      throw new CalibrationFatalError('calibration:stage-report-state-invalid');
+    }
+
+    const nonReservations: CalibrationNonReservationOutcome[] = [];
+    for (const outcome of nonReservationsByKey.values()) {
+      if (outcome.key.stage === stage && outcome.key.profile === profile) {
+        nonReservations.push(outcome);
+      }
+    }
+
+    const stageProfileId = `${stage}|${profile}`;
+    const startedAt = firstStageProfileAt.get(stageProfileId);
+
+    const snapshotInput: Record<string, unknown> = {
+      stage,
+      profile,
+      identity: { ...identity },
+      counts: {
+        imageCallsReserved: reservedCount,
+        imageCallsCompleted: completedCount,
+        imageCallsFailed: failedCount,
+        imageCallsPending: pendingCount,
+      },
+      images,
+      nonReservations,
+    };
+    if (startedAt !== undefined) {
+      snapshotInput['startedAt'] = startedAt;
+    }
+    if (selectedProfile !== undefined) {
+      snapshotInput['selectedProfile'] = selectedProfile;
+    }
+    if (pinnedModelVersion !== undefined) {
+      snapshotInput['pinnedModelVersion'] = pinnedModelVersion;
+    }
+    return captureCalibrationStageReportSnapshot(snapshotInput);
+  }
+
   const baseLedger: CalibrationLedger = {
     acquireLock,
     releaseLock,
@@ -3257,6 +3784,8 @@ function createLedgerCore(
     completeStage: strictCompleteStage,
     getCompletedStages: strictGetCompletedStages,
     getCompletedReportPredictions: strictGetCompletedReportPredictions,
+    recordNonReservationResult: strictRecordNonReservationResult,
+    getStageReportSnapshot: strictGetStageReportSnapshot,
   };
   return protocolLedger;
 }
