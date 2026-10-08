@@ -70,7 +70,7 @@ Paths are exactly `resolve(ownedBaseDir, CALIBRATION_ROOT, 'reports', stage + '-
 
 **Produces:** frozen report plus stage/profile/runId/raw-UTF8 byte hashes only after both canonical artifacts match and are fsynced. This is a byte publication result, NOT a ledger event, authenticated proof, profile-selection or gate approval.
 
-- [ ] **Step 1: Write real-file tests only.** New local fixture prepares actual committed assets with injected clean Git/owner identity, creates actual file store/strict ledger and report plan, acquires lock, records token plus LOW/MEDIUM preflight image terminals, and keeps the lock held. Build journals exactly like existing assembly fixtures; do not import a test module with side-effecting describes or modify its private fixture. Minimal fixture setup:
+- [x] **Step 1: Write real-file tests only.** New local fixture prepares actual committed assets with injected clean Git/owner identity, creates actual file store/strict ledger and report plan, acquires lock, records token plus LOW/MEDIUM preflight image terminals, and keeps the lock held. Build journals exactly like existing assembly fixtures; do not import a test module with side-effecting describes or modify its private fixture. Minimal fixture setup:
 
 ```ts
 const context = await prepareCalibrationBootstrapContext({
@@ -119,9 +119,9 @@ Assert actual mode0700 reports dir/mode0600 artifacts, no changed base/canonical
 
 Low-level faults: native fdWrite wrapped to write at most3bytes; verify complete exact output. Reject0/negative/NaN/fractional/oversized byte counts. Trace actual fd fsync/close/link/unlink/dirfsync to assert ordering; throw at each boundary, including second final link and final directory fsync. No success receipt on any failure; retry may reuse matching already-published bytes and finish missing counterpart only. Keep lock held on failures; publisher never releases it. Cleanup only tracked per-invocation temp files after exclusive creation; never sweep other temp names or remove final artifacts on failure.
 
-- [ ] **Step 2: Host RED and freeze.** Run focused command below and changed-test ESLint from functions cwd. Existing five suites must pass; all new failures must be real missing-publication behavior, not fixture defects. Correct fixtures through editing worker before source, then freeze test/source/config hashes.
+- [x] **Step 2: Host RED and freeze.** Corrected focused6:100 missing-module failures only/372 existing pass,248.06s; changed-test lint0. Frozen test SHAbee1e05bfe0c046b570e35bff9741df4b54cf541426c94b66d36c8940f61acaa, existing source/test hash-check0 and protected config9c962 unchanged. Real-file Step1 tests accepted; source-only Step3 follows under the explicit native-edit exception.
 
-- [ ] **Step 3: Worker source only.** Implement exact module interface and closed input capture. Before first await capture baseDir/owner and request callbacks; assemble once through existing assembler so all source strings and snapshot are owned. Verify actual matching stage lock before file effects. Render owned JSON/Markdown; validate fixed canonical path components/regular artifacts without symlink traversal, create private reports directory only if absent. Existing wrong permissions/hardlinks/nonregular artifacts fail, not repaired.
+- [x] **Step 3: Worker source only (native exception).** Exact module implemented under explicit plan-only direct-edit authority. Input/source capture, held-lock validation, fixed paths, private no-replace publication/readback and static errors verified with frozen new tests and both reviews. Existing source/test/config untouched. Focused6 GREEN472/472,356.06s; final build0/lint0. Full serial suite remains pending Step4.
 
 Publication algorithm (no alternate paths or generic-writer refactor):
 
@@ -144,7 +144,7 @@ for (const [target,text] of documents) {
 
 Use Node fs.constants.O_NOFOLLOW and fstat on opened artifacts, exclusive temp mode0600 and newly-created directory mode0700; never follow final symlinks. Native missing-file detection may inspect only own-data errno codes (ENOENT/EEXIST) under guarded reflection, never foreign message/stack/cause. Fs errors become fresh static `calibration:report-publication-failed`; structural overrides/request errors `calibration:report-publication-input-invalid`; lock mismatch `calibration:report-publication-lock-invalid`; conflicting artifact `calibration:report-file-tampered`. Existing assembler errors remain its documented fresh static stage-report codes. No blanket authenticated or hostile-same-UID race-safety claim.
 
-- [ ] **Step 4: Host GREEN and review.** Run focused/build/lint/full serial, whitespace and protected-config checks. Obtain final native whole-plan read-only review under executing-plans, handle Important/Critical in one tests-first pass, defer Minor; mandatory same-publication-workstream Antigravity CODE agree/none. No live/APK/Flutter/emulator/provider gates for unused offline module; parent full eval fixtures/test:verify/dispatch remain pending.
+- [x] **Step 4: Host GREEN and review.** Final focused472/472,356.06s/build0/lint0/full serial2230pass1existing skip2231,43files,300.17s exit0; whitespace0/old-source-testmanifest0/protectedconfig9c962/source830ba5c9/testbee1e05 unchanged. Fresh native review no Critical/Important and mandatory primary3.8 CODE agree/none; all rulings/deferred minors retained below. No live/APK/Flutter/provider gates: intentionally unused offline module, not parent completion or accuracy/readiness approval.
 
 - [ ] **Step 5: Commit/push/task-done/closure.** Update status/plan, commit module/newtest/tracking only (`Publish durable calibration stage reports`), push and verify liveorigin exact. Postcommit task-done full serial before checked completion. Preserve every ruling/minor before cleaning only this plan's workspace. Keep branch/worktree. Next parent ledger receipt+gate binding, then per-outcome runner/resumable dispatch, then nativeCLI; not a new live/accuracy/readiness claim.
 
@@ -166,6 +166,29 @@ Controller research conversation calorix-calibration-stage-controller-20261008:3
 Plan self-review amendment: existing file-store.readLock has directory creation/chmod side effects and is not suitable for this module's lock read. Replace the proposed reuse with a private fixed-path descriptor/fd reader, bounded owner bytes and dev/ino continuity. Add missing-root/wrong-mode/no-repair, identical-owner lock replacement and oversized-artifact read-refusal regressions. Main detected this before source; initial pending PLAN response applies to an older draft until the amended exact plan receives agreement.
 
 ## Execution checkpoint — 2026-10-08
+
+- Final full serial Functions2230passed/1existing public-manifest skip2231,43files,300.17s exit0. Focused472/build0/lint0 and both reviews accepted; Step5 implementation checkpoint/push/liveorigin verification then postcommit full serial task-done still pending. Exact4file allowlist only, source/test/config hashes retained. Existing Vite CJS/SDK project notices are baseline warnings, not new failures.
+- Final focused6 exit0:472/472,356.06s; final build0/lint0/source830ba5c9/testbee1e05/config9c962 unchanged. Current Task Step4 full serial Functions running with diskTMPDIR; Step5 checkpoint/push/postcommit task-done pending. Both required reviews green; no live gates for unused offline module (intentional scope, not missing provider evidence).
+- Final native whole-plan read-only review gpt-6-astra/high: no Critical/Important; final primarygemini-3.8-flash MCP CODE in calorix-calibration-report-publication-20261008 explicitly agree/MUST_FIXnone/SHOULD_FIXnone for source830ba5c9/testbee1e05. No fallback, mutation or live/security/readiness approval. Final build0/lint0; focused6/full serial still pending.
+
+### Final review rulings and deferred minors
+
+Every ruling below is retained from this plan's ledger; no Critical/Important native review fix pass was needed.
+
+1. Fault assertions follow actual publication phase; unlink-fault JSON is retained because link precedes temp unlink and final artifacts must never be deleted on failure. Cost if wrong: broad retention assertions could miss premature publication; the separate actual fd/link ordering test constrains it.
+2. Recovery guarantees matching single-link partial files, not all byte-matching crash remnants. Death between link/temp unlink leaves nlink2, which mandatory hardlink rejection/current-invocation-only cleanup refuses; separately authorized remediation is required. Cost if wrong: interrupted runs may need operator intervention rather than automatic retry.
+3. Missing JSON plus conflicting Markdown may create JSON then reject without a receipt or touching Markdown; the approved sequential algorithm does not promise absence of every new file on conflict. Cost if wrong: a valid partial JSON remains requiring later reconciliation.
+4. Hostile same-UID directory replacement/authenticated storage are not established under the serialized cooperating-controller boundary. Cost if wrong: hostile local writers can defeat assumptions; no security approval is claimed.
+5. Parent receipt acceptance, stage gates, resumable dispatch and CLI remain pending; this unused publication module never advances the ledger. Cost if wrong: confusing byte publication with gate approval bypasses unfinished integration.
+6. Production readiness, model accuracy and security approval remain unestablished by offline byte/fs tests and read-only review. Cost if wrong: inflated readiness claims could release an unvalidated tracker.
+7. Native review's unexecuted verification list is not a pass; host must collect fresh focused/full/build/lint and MCP agreement. Cost if wrong: unobserved regressions would be reported as verified.
+
+Deferred minors:
+- Add hard-link crash-remnant guidance to future controller/operator recovery documentation (limitation is retained here/status; no broader cleanup added).
+- Nominal final-directory-fsync fault test triggers at the earlier Markdown directory sync, not the final sync after both readbacks. Code has final-sync failure handling and successful final ordering coverage; more precisely targeted final-sync fault coverage/description remains followup.
+
+- Corrected tests frozen SHAbee1e05: focused RED100 genuine missing-module failures/372existinggreen,248.06s; testlint0/config9c962/old-source-testmanifest0. Native source initial GREEN100/100,54.93s/build0. Changed-file lint found two explicit finally-throw statements; replaced with native read-lock close helper preserving static fresh failure mapping, tests unchanged. Current source SHA830ba5c9; final focused6/full/lint/build and fresh whole-plan/MCP CODE gates pending. No new live inference or release claim.
+- **Current explicit exception (2026-10-08T01:56:43Z):** user answered `sure` to the host's request to complete THIS approved publication slice directly while keeping all test/review gates after permitted editing routes failed/session-limited. Native edits to ONLY new module/test and tracking are now authorized for this plan; exception ends at this plan's completion and does not cover parent tasks. Functional scope/architecture unchanged. Tiny phase-correct tests, corrected RED/lint/freeze, source, GREEN/full/native/MCP reviews and commit/push/task-done remain mandatory.
 
 - User approved this exact functional plan after primarygemini-3.8-flash PLAN agree/MUST_FIXnone/SHOULD_FIXnone for original SHA96dcd84c. Ordinary worker editing policy applies; no host application-edit exception carries over or is inferred from approval.
 - Task1 BASEdacfeecb220d46c1e06a29cd731f2f0a48733a29 on existing fix/scan-photo-flow-viewer branch. No shared-task interfaces. Tests-only paidclaude-sonnet-5 actual route worked after all documented stronger-route failures. No existing source/test/package/config edits. Source publication module remains absent; steps1–5 remain unchecked.
