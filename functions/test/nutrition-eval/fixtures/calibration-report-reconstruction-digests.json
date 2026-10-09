@@ -1,0 +1,41 @@
+{
+  "fixtureVersion": 1,
+  "assemblerSha": "8e0b6a2819a4b5357d776284bee32e93d77e3152b97e4d3c2dd13809858f3356",
+  "functionsTree": "ea9365bd9c5cdbd58b1e8582b4f75386b9624e05",
+  "measured": true,
+  "note": "Measured 2026-10-08 via task-owned scratch Node helper on unchanged old assembler (lib built from src SHA8e0b6a28) and genuine bootstrap/ledger fixtures; eight old JSON/Markdown SHA256 pairs. Fixture uses injected b/c IDs, token42, pin gemini-3.8-fixture-pin, meal/label 120kcal latency17, barcode product failures latency17, mixed LOW dataset latency9 with 23 measured/1 missing (interruption only).",
+  "digests": {
+    "preflight/LOW": {
+      "jsonSha256": "ef1344c5372a1be2890dc693d7884ae35927cf7f76c7426ab594c9b520173337",
+      "markdownSha256": "cf57289bfc2e6dbf655e3fd8ac2c393a1a00fbdc547a0ed2a75c1c95869cc16e"
+    },
+    "preflight/MEDIUM": {
+      "jsonSha256": "4935c038c3cf57bdb005e2ba3d69cc4401c2ee16e49daf2ae1a444d2021506de",
+      "markdownSha256": "d6bd7e48f0c8bb4654deae1244b4e316df9eac75b9f69c242c88a88826061632"
+    },
+    "development/LOW": {
+      "jsonSha256": "cc0db8eeff6542462fcb9552fe5f13be6650243c324a34cd2e946368e36ceb5a",
+      "markdownSha256": "91712bfc09cf3fbb83b5ff539a6f263879c844bcb21106bbf6377c197698f959"
+    },
+    "development/MEDIUM": {
+      "jsonSha256": "98b1f9713ab545544a03aa05c7b57f52e4d42ff46edf6c795a06b36c8368e853",
+      "markdownSha256": "e6c796aeb98b70378b81b01853e24976376c2d72f7becc713d4f2f8248055754"
+    },
+    "validation/MEDIUM": {
+      "jsonSha256": "7b220fbe643ba00c7165a8c56edf5bae70b938e45a8109494b9afa1d63f35fac",
+      "markdownSha256": "dba46bc28ef407d659db18cc2305a04011d8a1930693f10d0ac94d0bd889fa01"
+    },
+    "benchmark/MEDIUM": {
+      "jsonSha256": "f9b677a2cc04b50c9e1252b8822a4d56d6022ac938f3d627f8d605da756afc43",
+      "markdownSha256": "172c384ec7390aff00711567ea7d4eff8f3c3e077b86de996f1d5502aed9bf07"
+    },
+    "mixed-development/LOW": {
+      "jsonSha256": "cd176906776fce56392eacdfa170d21c816a833ce2abe42587602102927a7001",
+      "markdownSha256": "2b67d4998fbc46a090e4d825d0cc0ba3e375b71330d7d52957a3c19adebad01c"
+    },
+    "mixed-development/MEDIUM": {
+      "jsonSha256": "ed213021ac58d304fb575c8c922bb552e8a9714e2f4cdceeb13dfa55a19e730f",
+      "markdownSha256": "7068de847574efce055015f56479b3d1db6065cd6b7083a6c24217023a7dcfde"
+    }
+  }
+}

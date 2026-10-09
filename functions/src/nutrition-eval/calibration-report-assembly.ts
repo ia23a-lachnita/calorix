@@ -22,6 +22,14 @@ export interface AssembleCalibrationStageReportParams {
   readonly context: Readonly<CalibrationPreparedContext>;
   readonly readSnapshot: (stage: StageName, profile: CalibrationProfile) => CalibrationStageReportSnapshot;
 }
+export interface ReconstructCalibrationStageReportParams {
+  readonly stage: StageName;
+  readonly profile: CalibrationProfile;
+  readonly snapshot: CalibrationStageReportSnapshot;
+}
+export interface CalibrationStageReportReconstructor {
+  readonly reconstruct: (params: unknown) => NutritionEvalReport;
+}
 const INVALID = 'calibration:stage-report-invalid';
 const INCOMPLETE = 'calibration:stage-report-incomplete';
 const IDENTITY_FIELDS = ['protocolVersion', 'provider', 'model', 'implementationCommit', 'functionsTreeId',
@@ -52,63 +60,46 @@ function freezeOwned(value: unknown): void {
 }
 function tuple(caseId: string, sample: number): string { return `${caseId}|${sample}`; }
 
-export async function assembleCalibrationStageReport(params: unknown): Promise<NutritionEvalReport> {
-  const request = ownRecord(params, ['stage', 'profile', 'context', 'readSnapshot']);
-  const stage = request.stage;
-  const profile = request.profile;
-  if ((stage !== 'preflight' && stage !== 'development' && stage !== 'validation' && stage !== 'benchmark') ||
-    (profile !== 'LOW' && profile !== 'MEDIUM') || typeof request.readSnapshot !== 'function') {
+/** Owned, frozen source populations captured once before the first await. */
+type OwnedTrainingCase = NutritionEvalCase & { readonly group: string };
+interface OwnedReportSource {
+  readonly identity: Readonly<Record<string, unknown>>;
+  readonly firstDevelopmentCaseId: string;
+  readonly trainingCases: readonly OwnedTrainingCase[];
+  readonly publicCases: readonly NutritionEvalCase[];
+  readonly trainingDatasetId: string;
+  readonly publicDatasetId: string;
+}
+
+/**
+ * ONE shared synchronous snapshot-to-report body. Both the prepared
+ * reconstructor and the legacy async wrapper delegate here; it allocates all
+ * per-call maps/results and never retains or freezes caller data.
+ */
+function buildCalibrationStageReport(
+  source: OwnedReportSource,
+  rawStage: unknown,
+  rawProfile: unknown,
+  rawSnapshot: unknown,
+): NutritionEvalReport {
+  if ((rawStage !== 'preflight' && rawStage !== 'development' && rawStage !== 'validation' && rawStage !== 'benchmark') ||
+    (rawProfile !== 'LOW' && rawProfile !== 'MEDIUM')) {
     throw new CalibrationFatalError(INVALID);
   }
-  const readSnapshot = request.readSnapshot as AssembleCalibrationStageReportParams['readSnapshot'];
-  const context = ownRecord(request.context, ['baseDir', 'identity', 'owner', 'firstDevelopmentCaseId', 'report', 'files']);
-  const identity = ownRecord(context.identity, IDENTITY_FIELDS);
-  const rawFiles = ownRecord(context.files, CALIBRATION_PREFLIGHT_FILE_NAMES);
-  const files = {} as Record<CalibrationPreflightFileName, string>;
-  for (const name of CALIBRATION_PREFLIGHT_FILE_NAMES) {
-    const text = rawFiles[name];
-    if (typeof text !== 'string') throw new CalibrationFatalError(INVALID);
-    files[name] = text;
-  }
-  // Capture all primitive identities before the first await, not caller-owned values later.
-  if (typeof identity.implementationCommit !== 'string' || !/^[0-9a-f]{40}$/.test(identity.implementationCommit) ||
-    typeof identity.functionsTreeId !== 'string' || !/^[0-9a-f]{40}$/.test(identity.functionsTreeId)) throw new CalibrationFatalError(INVALID);
-  const pinned = CALIBRATION_PREFLIGHT_EXPECTED_IDENTITIES;
-  const expectedIdentity: Record<string, unknown> = {
-    protocolVersion: 'v1', provider: 'vertex-ai', model: 'gemini-3.8-flash',
-    implementationCommit: identity.implementationCommit, functionsTreeId: identity.functionsTreeId,
-    datasetHash: pinned.publicManifestHash, promptHash: pinned.promptHash, responseSchemaHash: pinned.responseSchemaHash,
-    sourceLockHash: pinned.sourceLockHash, manifestHash: pinned.calibrationManifestHash,
-    publicManifestHash: pinned.publicManifestHash, snapshotLockHash: pinned.offLockHash,
-    historicalReferenceHash: pinned.historicalReferenceHash, plannedImageCalls: 146, hardCeiling: 300,
-  };
-  if (IDENTITY_FIELDS.some((field) => identity[field] !== expectedIdentity[field])) throw new CalibrationFatalError(INVALID);
-  const firstDevelopmentCaseId = context.firstDevelopmentCaseId;
-  let sourceCases: NutritionEvalCase[];
-  let datasetId: string;
-  try {
-    const verified = await verifyCalibrationPreflightState({ files });
-    if (firstDevelopmentCaseId !== verified.firstDevelopmentCaseId) throw new Error();
-    const training = StrictCalibrationManifestSchema.parse(JSON.parse(files['calibration-manifest']));
-    const publicManifest = parseNutritionEvalManifest(JSON.parse(files['public-manifest']));
-    // Source planner additionally enforces canonical manifests' closed-key policy.
-    deriveCanonicalReportOutcomePlan(files, stage === 'validation' || stage === 'benchmark' ? profile : undefined);
-    sourceCases = stage === 'benchmark' ? publicManifest.cases : training.cases.filter((row) =>
-      stage === 'preflight' ? row.id === verified.firstDevelopmentCaseId : row.group === stage);
-    datasetId = stage === 'benchmark' ? publicManifest.datasetId : training.datasetId;
-  } catch { throw new CalibrationFatalError(INVALID); }
-  let rawSnapshot: unknown;
-  try { rawSnapshot = readSnapshot(stage, profile); }
-  catch { throw new CalibrationFatalError('calibration:stage-report-read-failed'); }
+  const stage: StageName = rawStage;
+  const profile: CalibrationProfile = rawProfile;
   let snapshot: CalibrationStageReportSnapshot;
   try { snapshot = captureCalibrationStageReportSnapshot(rawSnapshot); }
   catch { throw new CalibrationFatalError(INVALID); }
   if (snapshot.stage !== stage || snapshot.profile !== profile ||
-    IDENTITY_FIELDS.some((field) => snapshot.identity[field] !== identity[field]) ||
+    IDENTITY_FIELDS.some((field) => snapshot.identity[field] !== source.identity[field]) ||
     ((stage === 'validation' || stage === 'benchmark') && snapshot.selectedProfile !== profile)) {
     throw new CalibrationFatalError(INVALID);
   }
   if (snapshot.startedAt === undefined || snapshot.counts.imageCallsPending !== 0) throw new CalibrationFatalError(INCOMPLETE);
+  const sourceCases = stage === 'benchmark' ? source.publicCases : source.trainingCases.filter((row) =>
+    stage === 'preflight' ? row.id === source.firstDevelopmentCaseId : row.group === stage);
+  const datasetId = stage === 'benchmark' ? source.publicDatasetId : source.trainingDatasetId;
   const samples = stage === 'preflight' || stage === 'development' ? [1] : [1, 2, 3];
   const casesById = new Map(sourceCases.map((evalCase) => [evalCase.id, evalCase]));
   const predictions = new Map<string, NutritionPrediction>();
@@ -167,4 +158,81 @@ export async function assembleCalibrationStageReport(params: unknown): Promise<N
     renderNutritionEvalJson(report); renderNutritionEvalMarkdown(report);
     freezeOwned(report); return report;
   } catch { throw new CalibrationFatalError(INVALID); }
+}
+
+/** Frozen closure retains ONLY the owned source context. */
+function createCalibrationStageReportReconstructor(source: OwnedReportSource): Readonly<CalibrationStageReportReconstructor> {
+  const reconstruct = (params: unknown): NutritionEvalReport => {
+    const request = ownRecord(params, ['stage', 'profile', 'snapshot']);
+    return buildCalibrationStageReport(source, request.stage, request.profile, request.snapshot);
+  };
+  return Object.freeze({ reconstruct });
+}
+
+/**
+ * Owns and freezes the verified source once. All caller/identity/files
+ * primitives are captured before the first await; the returned closure keeps
+ * only owned identity, source populations and dataset identifiers.
+ */
+export async function prepareCalibrationStageReportReconstructor(
+  context: unknown,
+): Promise<Readonly<CalibrationStageReportReconstructor>> {
+  const owned = ownRecord(context, ['baseDir', 'identity', 'owner', 'firstDevelopmentCaseId', 'report', 'files']);
+  const identity = ownRecord(owned.identity, IDENTITY_FIELDS);
+  const rawFiles = ownRecord(owned.files, CALIBRATION_PREFLIGHT_FILE_NAMES);
+  const files = {} as Record<CalibrationPreflightFileName, string>;
+  for (const name of CALIBRATION_PREFLIGHT_FILE_NAMES) {
+    const text = rawFiles[name];
+    if (typeof text !== 'string') throw new CalibrationFatalError(INVALID);
+    files[name] = text;
+  }
+  // Capture all primitive identities before the first await, not caller-owned values later.
+  if (typeof identity.implementationCommit !== 'string' || !/^[0-9a-f]{40}$/.test(identity.implementationCommit) ||
+    typeof identity.functionsTreeId !== 'string' || !/^[0-9a-f]{40}$/.test(identity.functionsTreeId)) throw new CalibrationFatalError(INVALID);
+  const pinned = CALIBRATION_PREFLIGHT_EXPECTED_IDENTITIES;
+  const expectedIdentity: Record<string, unknown> = {
+    protocolVersion: 'v1', provider: 'vertex-ai', model: 'gemini-3.8-flash',
+    implementationCommit: identity.implementationCommit, functionsTreeId: identity.functionsTreeId,
+    datasetHash: pinned.publicManifestHash, promptHash: pinned.promptHash, responseSchemaHash: pinned.responseSchemaHash,
+    sourceLockHash: pinned.sourceLockHash, manifestHash: pinned.calibrationManifestHash,
+    publicManifestHash: pinned.publicManifestHash, snapshotLockHash: pinned.offLockHash,
+    historicalReferenceHash: pinned.historicalReferenceHash, plannedImageCalls: 146, hardCeiling: 300,
+  };
+  if (IDENTITY_FIELDS.some((field) => identity[field] !== expectedIdentity[field])) throw new CalibrationFatalError(INVALID);
+  const firstDevelopmentCaseId = owned.firstDevelopmentCaseId;
+  try {
+    const verified = await verifyCalibrationPreflightState({ files });
+    if (firstDevelopmentCaseId !== verified.firstDevelopmentCaseId) throw new Error();
+    const training = StrictCalibrationManifestSchema.parse(JSON.parse(files['calibration-manifest']));
+    const publicManifest = parseNutritionEvalManifest(JSON.parse(files['public-manifest']));
+    // Source planner additionally enforces canonical manifests' closed-key policy.
+    deriveCanonicalReportOutcomePlan(files);
+    const source: OwnedReportSource = {
+      identity: Object.freeze({ ...identity }),
+      firstDevelopmentCaseId: verified.firstDevelopmentCaseId,
+      trainingCases: training.cases,
+      publicCases: publicManifest.cases,
+      trainingDatasetId: training.datasetId,
+      publicDatasetId: publicManifest.datasetId,
+    };
+    freezeOwned(source);
+    return createCalibrationStageReportReconstructor(source);
+  } catch { throw new CalibrationFatalError(INVALID); }
+}
+
+export async function assembleCalibrationStageReport(params: unknown): Promise<NutritionEvalReport> {
+  const request = ownRecord(params, ['stage', 'profile', 'context', 'readSnapshot']);
+  const stage = request.stage;
+  const profile = request.profile;
+  if ((stage !== 'preflight' && stage !== 'development' && stage !== 'validation' && stage !== 'benchmark') ||
+    (profile !== 'LOW' && profile !== 'MEDIUM') || typeof request.readSnapshot !== 'function') {
+    throw new CalibrationFatalError(INVALID);
+  }
+  const readSnapshot = request.readSnapshot as AssembleCalibrationStageReportParams['readSnapshot'];
+  // The factory captures descriptors/source synchronously before it suspends.
+  const ready = await prepareCalibrationStageReportReconstructor(request.context);
+  let snapshot: unknown;
+  try { snapshot = readSnapshot(stage, profile); }
+  catch { throw new CalibrationFatalError('calibration:stage-report-read-failed'); }
+  return ready.reconstruct({ stage, profile, snapshot });
 }
