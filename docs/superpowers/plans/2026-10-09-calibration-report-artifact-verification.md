@@ -65,7 +65,7 @@ Native failures use fresh causeless static codes only:
 
 Use private LOCK/TAMPER/FAILED symbols for native-phase classification, comparing only identity; never inspect a foreign message/cause/stack/prototype. Lock operation failures always map LOCK. Missing artifact lstat maps TAMPER by reading only a native errno's own data `code` descriptor; other artifact lstat failures map FAILED. Source reconstruction is outside this native catch so its static errors are not relabeled. A primary native failure survives cleanup failures; any close failure on an otherwise successful call changes success to READ_FAILED. Always attempt closure of every acquired descriptor; no blind retry after close (Linux may already have released it).
 
-## Task1: Owned preparation and synchronous native artifact reader
+## Task 1: Owned preparation and synchronous native artifact reader
 
 **Consumes:** exact prepared reconstructor, genuine bootstrap/legacy4arg ledger snapshots, unchanged publisher, existing canonical root/result types/renderers.
 
@@ -328,4 +328,6 @@ Self-review: exact artifact byte fidelity is separate from gate success/durabili
 
 Functional plan SHA`a1ab4d21349527e2d2c68217981764c7698b9c25ec92ee82dbbcfd805790f2e8` received fallback`gemini-3.7-flash` exact PLAN agreement in `calorix-calibration-artifact-admission-20261009`: `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`. Primary3.8 priorc0cf8dc1 plan timed out after300s; exact tool error recorded before fallback, not quota exhaustion or approval. Host independently added all-six genuine artifact coverage and corrected result-row modality before fallback; originalc0 never approved. Reviewer off-by-one326line wording is not source evidence; host count was325 before this tracking append. No reviewer mutation/noisy wrapper. This appended receipt is tracking-only; functional requirements above are unchanged.
 
-Current Task: required human review of this written plan BEFORE ordinary editing workers, new tests/digest/source or task-start. Preserve host-led execution and existing branch/checkout. No implementation approval inferred from research, exact PLAN agreement or this handoff. Parent receipt/gate/controller/live/calorie-accuracy/production/security boundaries stay pending; no live/UIrun IDs/routes/diff counts/auditLimited/visualClassificationStatus (N/A), no visual validation performed.
+Handoff status at publication: required human review before implementation. Subsequently approved by the user with “looks good continue”. Execution uses ordinary editing workers and the existing branch/checkout. No live, deployment, model-default or broader readiness authority is added.
+
+Execution ruling: normalize the heading from `Task1` to `Task 1` so the required task-start script can extract its brief; no functional requirement changes. Cost if wrong: tracking extraction only.
