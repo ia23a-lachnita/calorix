@@ -2,6 +2,10 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for this single prerequisite. Preserve the approved host-led workflow: ordinary strongest-first workers edit, host verifies/reviews/commits/pushes, one fresh whole-plan reviewer. No inherited native application-edit exception.
 
+Current actor override (2026-10-10): user explicitly approved native Codex apply_patch for this plan's four permitted files only after ordinary routes failed or refused scope. This new exception supersedes worker-only actor wording below, not test-first ordering or any functional, privacy, verification, review, commit/push or completion gate. It expires when this plan completes.
+
+Execution progress (2026-10-10): Step1 draft corrections complete under this exception, final NEWtest2122lines10a1c932. Initial focused5 on32ce89e8:224missing-module-only RED/363existingpass,399.38s; primary3.8 test-spec review agree/MUST_FIXnone/SHOULD_FIXnone. One additional host-diagnosed temporary-lock close test setup corrected afterward; final lint0 and exact final focused5/supplemental same-workstream review running. Step2/freeze/source and later gates remain incomplete. Protected seven-file manifest0; userconfig untouched; no functional plan deviation or new ruling/minor.
+
 **Goal:** Independently read the actual canonical published JSON/Markdown and verify both against source-bound synchronous reconstruction, without admitting receipts to the ledger or evaluating stage gates.
 
 **Architecture:** A new standalone asynchronous factory captures the native path/owner and prepares the existing owned reconstructor once. Its frozen synchronous verifier reconstructs the expected report from a closed request, inspects actual files while checking the cooperative lock, and returns the existing publication result/receipt types with hashes from verified actual bytes. Keep the audited publisher, reconstructor, ledger, codecs and existing tests unchanged.
@@ -71,7 +75,7 @@ Use private LOCK/TAMPER/FAILED symbols for native-phase classification, comparin
 
 **Produces:** immutable sync actual-byte verification result only. Parent receipt/gate/controller integration remains a separate task.
 
-- [ ] **Step1: Worker NEW TEST ONLY.** Strongest-first ordinary editing route. No source file yet. Add local real-file fixture, do not import existing test modules (their describes execute). Test setup consumes existing source functions; all files are inside tracked task disk mkdtemp directories cleaned afterEach/afterAll. File-local60s test/hook allowance only, no config edits. Here is the complete preflight fixture body (normal imports are existing native fs/path/url/crypto/Vitest and the named source modules):
+- [x] **Step1: Worker NEW TEST ONLY.** Strongest-first ordinary editing route. No source file yet. Add local real-file fixture, do not import existing test modules (their describes execute). Test setup consumes existing source functions; all files are inside tracked task disk mkdtemp directories cleaned afterEach/afterAll. File-local60s test/hook allowance only, no config edits. Here is the complete preflight fixture body (normal imports are existing native fs/path/url/crypto/Vitest and the named source modules):
 
 ```ts
 const repo = fileURLToPath(new URL('../../../', import.meta.url));
