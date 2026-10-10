@@ -144,6 +144,8 @@ New static runtime errors additionally include `calibration:report-authority-mod
 
 ## Task 1: Add the pure report measurement bridge
 
+Execution ruling (2026-10-10): checkpoint the compile-clean preliminary test scaffold and tracking after worker recovery, before the remaining discriminating controls. The plan allows multiple bounded commits per task; this preserves unfinished work without native host test/source edits. Cost if wrong: this feature branch intentionally contains missing-module RED tests and known test-specification gaps until the source checkpoint. This does not check off Step1/2, freeze tests, authorize source work, replace CODE review, or mark Task1 complete. Functional contracts remain unchanged from approved plan87c65b48; Task1BASE remains e43e8ef.
+
 **Files:** new measurement source/test and test-only fixture, modified ledger imports/re-exports/types only, plan/status.
 
 **Consumes:** existing NutritionEvalReportSchema and aggregateNutritionResults; existing aggregateCalibrationMealMetrics behavior. **Produces:** interfaces above; no fifth option or receipt events yet.
