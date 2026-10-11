@@ -2559,17 +2559,27 @@ describe('re-admission conflicts, duplicates and replay shapes', () => {
     );
     expect(receiptEvent).not.toBe(undefined);
     fixture.appendRawLedgerEvent(JSON.parse(JSON.stringify(receiptEvent)));
-    const next = await fixture.reopen(makeAuthoritativeOwner(78), { acquire: false });
-    tracked.push(next);
+    const verifierBefore = fixture.effects.verifierCalls;
+    const nativeBefore = fixture.effects.nativeVerifierCalls;
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
     let caught: unknown;
     try {
-      next.ledger.acquireLock({ ...next.owner });
+      fixture.createLedger(fixture.reportOptions, fixture.verifierOptions);
     } catch (error) {
       caught = error;
     }
     expect(caught).toBeInstanceOf(CalibrationFatalError);
-    expect((caught as Error).message).toBe('calibration:ledger-poisoned');
+    expect((caught as Error).message).toBe('calibration:ledger-event-malformed:artifact_receipt_admitted');
     expect(asRecord(caught).cause).toBeUndefined();
+    expect(fixture.effects.verifierCalls).toBe(verifierBefore);
+    expect(fixture.effects.nativeVerifierCalls).toBe(nativeBefore);
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
   });
   it('receipt events carry no owner, path, report or provider text', async () => {
     const fixture = await openFixture();
@@ -3420,5 +3430,1252 @@ describe('nativeTrace helper positive controls (genuine artifacts only)', () => 
     const last = trace[trace.length - 1]!;
     expect(last.imageCallsReserved).toBe(reservedBefore);
     expect(last.stage).toBe('preflight');
+  });
+});
+describe('exact envelope and receipt descriptor capture', () => {
+  it('accepts valid closed receipt with lowercase hashes and frozen params', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    const receipt = fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    expect(receipt.stage).toBe('preflight');
+    expect(receipt.profile).toBe('LOW');
+    expect(Object.keys(receipt).sort()).toEqual(
+      ['jsonSha256', 'markdownSha256', 'profile', 'runId', 'stage'].sort(),
+    );
+    expect(receipt.jsonSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(receipt.markdownSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(Object.isFrozen(receipt)).toBe(true);
+  });
+
+  const malformedEnvelopeRows: ReadonlyArray<
+    [string, (genuine: Record<string, unknown>, bump: () => void) => unknown]
+  > = [
+    [
+      'envelope receipt getter trap never invoked',
+      (genuine, bump) => {
+        const malformed: Record<string, unknown> = { report: genuine['report'] };
+        Object.defineProperty(malformed, 'receipt', {
+          enumerable: true,
+          configurable: true,
+          get: () => {
+            bump();
+            return { ...(genuine['receipt'] as Record<string, unknown>) };
+          },
+        });
+        return malformed;
+      },
+    ],
+    [
+      'envelope report getter trap never invoked',
+      (genuine, bump) => {
+        const malformed: Record<string, unknown> = {
+          receipt: { ...(genuine['receipt'] as Record<string, unknown>) },
+        };
+        Object.defineProperty(malformed, 'report', {
+          enumerable: true,
+          configurable: true,
+          get: () => {
+            bump();
+            return genuine['report'];
+          },
+        });
+        return malformed;
+      },
+    ],
+    [
+      'envelope symbol-keyed extra own key',
+      (genuine, _bump) => ({
+        report: genuine['report'],
+        receipt: { ...(genuine['receipt'] as Record<string, unknown>) },
+        [Symbol('extra')]: 'value',
+      }),
+    ],
+    [
+      'envelope hidden nonenumerable extra own key',
+      (genuine, _bump) => {
+        const malformed: Record<string, unknown> = {
+          report: genuine['report'],
+          receipt: { ...(genuine['receipt'] as Record<string, unknown>) },
+        };
+        Object.defineProperty(malformed, 'hiddenExtra', {
+          value: 'value',
+          enumerable: false,
+          configurable: true,
+        });
+        return malformed;
+      },
+    ],
+    [
+      'envelope foreign prototype',
+      (genuine, _bump) => {
+        class ForeignEnvelope {}
+        return Object.assign(new ForeignEnvelope(), {
+          report: genuine['report'],
+          receipt: { ...(genuine['receipt'] as Record<string, unknown>) },
+        });
+      },
+    ],
+    [
+      'envelope receipt present but undefined',
+      (genuine, _bump) => ({
+        report: genuine['report'],
+        receipt: undefined,
+      }),
+    ],
+    [
+      'envelope missing report key',
+      (genuine, _bump) => ({
+        receipt: { ...(genuine['receipt'] as Record<string, unknown>) },
+      }),
+    ],
+    [
+      'envelope extra unexpected own key',
+      (genuine, _bump) => ({
+        report: genuine['report'],
+        receipt: { ...(genuine['receipt'] as Record<string, unknown>) },
+        unexpected: 'value',
+      }),
+    ],
+    [
+      'receipt jsonSha256 getter trap never invoked',
+      (genuine, bump) => {
+        const receiptSource = genuine['receipt'] as Record<string, unknown>;
+        const malformedReceipt: Record<string, unknown> = {
+          stage: receiptSource['stage'],
+          profile: receiptSource['profile'],
+          runId: receiptSource['runId'],
+          markdownSha256: receiptSource['markdownSha256'],
+        };
+        Object.defineProperty(malformedReceipt, 'jsonSha256', {
+          enumerable: true,
+          configurable: true,
+          get: () => {
+            bump();
+            return receiptSource['jsonSha256'];
+          },
+        });
+        return { report: genuine['report'], receipt: malformedReceipt };
+      },
+    ],
+    ...(['stage', 'profile', 'runId', 'markdownSha256'] as const).map(
+      (field) =>
+        [
+          `receipt ${field} getter trap never invoked`,
+          (genuine: Record<string, unknown>, bump: () => void) => {
+            const receiptSource = genuine['receipt'] as Record<string, unknown>;
+            const malformedReceipt: Record<string, unknown> = {};
+            for (const key of ['stage', 'profile', 'runId', 'jsonSha256', 'markdownSha256'] as const) {
+              if (key === field) continue;
+              malformedReceipt[key] = receiptSource[key];
+            }
+            Object.defineProperty(malformedReceipt, field, {
+              enumerable: true,
+              configurable: true,
+              get: () => {
+                bump();
+                return receiptSource[field];
+              },
+            });
+            return { report: genuine['report'], receipt: malformedReceipt };
+          },
+        ] as [string, (genuine: Record<string, unknown>, bump: () => void) => unknown],
+    ),
+    [
+      'receipt symbol-keyed extra own key',
+      (genuine, _bump) => ({
+        report: genuine['report'],
+        receipt: Object.assign(
+          { ...(genuine['receipt'] as Record<string, unknown>) },
+          { [Symbol('extra')]: 'value' },
+        ),
+      }),
+    ],
+    [
+      'receipt hidden nonenumerable extra own key',
+      (genuine, _bump) => {
+        const receipt: Record<string, unknown> = { ...(genuine['receipt'] as Record<string, unknown>) };
+        Object.defineProperty(receipt, 'hiddenExtra', {
+          value: 'value',
+          enumerable: false,
+          configurable: true,
+        });
+        return { report: genuine['report'], receipt };
+      },
+    ],
+    [
+      'receipt foreign prototype',
+      (genuine, _bump) => {
+        class ForeignReceipt {}
+        return {
+          report: genuine['report'],
+          receipt: Object.assign(new ForeignReceipt(), { ...(genuine['receipt'] as Record<string, unknown>) }),
+        };
+      },
+    ],
+    [
+      'receipt markdownSha256 present but undefined',
+      (genuine, _bump) => ({
+        report: genuine['report'],
+        receipt: { ...(genuine['receipt'] as Record<string, unknown>), markdownSha256: undefined },
+      }),
+    ],
+    [
+      'receipt missing runId key',
+      (genuine, _bump) => {
+        const receipt: Record<string, unknown> = { ...(genuine['receipt'] as Record<string, unknown>) };
+        delete receipt['runId'];
+        return { report: genuine['report'], receipt };
+      },
+    ],
+    [
+      'receipt extra unexpected own key',
+      (genuine, _bump) => ({
+        report: genuine['report'],
+        receipt: { ...(genuine['receipt'] as Record<string, unknown>), unexpected: 'value' },
+      }),
+    ],
+    [
+      'receipt stage mismatched from requested stage',
+      (genuine, _bump) => ({
+        report: genuine['report'],
+        receipt: { ...(genuine['receipt'] as Record<string, unknown>), stage: 'development' },
+      }),
+    ],
+    [
+      'receipt profile mismatched from requested profile',
+      (genuine, _bump) => ({
+        report: genuine['report'],
+        receipt: { ...(genuine['receipt'] as Record<string, unknown>), profile: 'MEDIUM' },
+      }),
+    ],
+    [
+      'receipt runId blank',
+      (genuine, _bump) => ({
+        report: genuine['report'],
+        receipt: { ...(genuine['receipt'] as Record<string, unknown>), runId: '' },
+      }),
+    ],
+    [
+      'receipt runId noncanonical format',
+      (genuine, _bump) => ({
+        report: genuine['report'],
+        receipt: { ...(genuine['receipt'] as Record<string, unknown>), runId: 'not-a-canonical-run-id' },
+      }),
+    ],
+    [
+      'receipt jsonSha256 uppercase hex',
+      (genuine, _bump) => {
+        const receiptSource = genuine['receipt'] as Record<string, unknown>;
+        const original = receiptSource['jsonSha256'] as string;
+        const upper = original.toUpperCase();
+        if (upper === original || !/[A-F]/.test(upper)) {
+          throw new Error('authoritative-test-precondition: expected genuine hash to contain a-f hex letters');
+        }
+        return {
+          report: genuine['report'],
+          receipt: { ...receiptSource, jsonSha256: upper },
+        };
+      },
+    ],
+    [
+      'receipt jsonSha256 wrong length',
+      (genuine, _bump) => {
+        const receiptSource = genuine['receipt'] as Record<string, unknown>;
+        return {
+          report: genuine['report'],
+          receipt: {
+            ...receiptSource,
+            jsonSha256: (receiptSource['jsonSha256'] as string).slice(0, 63),
+          },
+        };
+      },
+    ],
+    [
+      'receipt jsonSha256 non-hex character',
+      (genuine, _bump) => {
+        const receiptSource = genuine['receipt'] as Record<string, unknown>;
+        return {
+          report: genuine['report'],
+          receipt: {
+            ...receiptSource,
+            jsonSha256: `g${(receiptSource['jsonSha256'] as string).slice(1)}`,
+          },
+        };
+      },
+    ],
+    [
+      'receipt markdownSha256 uppercase hex',
+      (genuine, _bump) => {
+        const receiptSource = genuine['receipt'] as Record<string, unknown>;
+        const original = receiptSource['markdownSha256'] as string;
+        const upper = original.toUpperCase();
+        if (upper === original || !/[A-F]/.test(upper)) {
+          throw new Error('authoritative-test-precondition: expected genuine hash to contain a-f hex letters');
+        }
+        return {
+          report: genuine['report'],
+          receipt: { ...receiptSource, markdownSha256: upper },
+        };
+      },
+    ],
+  ];
+
+  it.each(malformedEnvelopeRows)(
+    '%s is rejected with zero effects then poisons the ledger',
+    async (_label, mutate) => {
+      const fixture = await openFixture();
+      await fixture.finishPreflight();
+      await fixture.publish('preflight', 'LOW');
+      await fixture.publish('preflight', 'MEDIUM');
+      const snapshot = fixture.ledger.getStageReportSnapshot('preflight', 'LOW');
+      const genuine = fixture.nativeVerify({
+        stage: 'preflight',
+        profile: 'LOW',
+        snapshot,
+      }) as unknown as Record<string, unknown>;
+      let probeCalls = 0;
+      const malformed = mutate(genuine, () => {
+        probeCalls += 1;
+      });
+      fixture.setVerifierOverride(() => malformed as never);
+      const appendsBefore = fixture.effects.ledgerAppends;
+      const journalBefore = fixture.effects.journalAppends;
+      const fsyncsBefore = fixture.effects.fsyncs;
+      const clocksBefore = fixture.effects.clockReads;
+      let caught: unknown;
+      try {
+        fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(CalibrationFatalError);
+      expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+      expect(asRecord(caught).cause).toBeUndefined();
+      expect(probeCalls).toBe(0);
+      expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+      expect(fixture.effects.journalAppends).toBe(journalBefore);
+      expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+      expect(fixture.effects.clockReads).toBe(clocksBefore);
+      expect(() => statSync(fixture.lockPath())).not.toThrow();
+      let second: unknown;
+      try {
+        fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      } catch (error) {
+        second = error;
+      }
+      expect(second).toBeInstanceOf(CalibrationFatalError);
+      expect((second as Error).message).toBe('calibration:ledger-poisoned');
+      expect(asRecord(second).cause).toBeUndefined();
+      expect(second === caught).toBe(false);
+      expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+      expect(fixture.effects.journalAppends).toBe(journalBefore);
+      expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+      expect(fixture.effects.clockReads).toBe(clocksBefore);
+      fixture.setVerifierOverride(undefined);
+    },
+  );
+
+  it('rejects receipt runId bound to a different profile than requested', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    const lowSnapshot = fixture.ledger.getStageReportSnapshot('preflight', 'LOW');
+    const mediumSnapshot = fixture.ledger.getStageReportSnapshot('preflight', 'MEDIUM');
+    const genuineLow = fixture.nativeVerify({ stage: 'preflight', profile: 'LOW', snapshot: lowSnapshot });
+    const genuineMedium = fixture.nativeVerify({
+      stage: 'preflight',
+      profile: 'MEDIUM',
+      snapshot: mediumSnapshot,
+    });
+    expect(genuineMedium.receipt.runId).not.toBe(genuineLow.receipt.runId);
+    fixture.setVerifierOverride(
+      () =>
+        ({
+          report: genuineLow.report,
+          receipt: { ...genuineLow.receipt, runId: genuineMedium.receipt.runId },
+        }) as never,
+    );
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
+    let caught: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    let second: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      second = error;
+    }
+    fixture.setVerifierOverride(undefined);
+    expect(second).toBeInstanceOf(CalibrationFatalError);
+    expect((second as Error).message).toBe('calibration:ledger-poisoned');
+    expect(asRecord(second).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+  });
+});
+
+function flipHexHash(hash: string): string {
+  return `${hash[0] === '0' ? '1' : '0'}${hash.slice(1)}`;
+}
+
+function ledgerJsonPath(fixture: AuthoritativeFixture): string {
+  return resolve(dirname(fixture.lockPath()), 'ledger.json');
+}
+function journalJsonPath(fixture: AuthoritativeFixture): string {
+  return resolve(dirname(fixture.lockPath()), 'journal.json');
+}
+function readLedgerArray(fixture: AuthoritativeFixture): unknown[] {
+  return JSON.parse(readFileSync(ledgerJsonPath(fixture), 'utf8')) as unknown[];
+}
+function writeLedgerArray(fixture: AuthoritativeFixture, events: readonly unknown[]): void {
+  writeFileSync(ledgerJsonPath(fixture), JSON.stringify(events));
+}
+function moveEventBefore(events: readonly unknown[], movingIndex: number, beforeIndex: number): unknown[] {
+  const moving = events[movingIndex];
+  const without = events.filter((_event, idx) => idx !== movingIndex);
+  const adjustedBefore = movingIndex < beforeIndex ? beforeIndex - 1 : beforeIndex;
+  return [...without.slice(0, adjustedBefore), moving, ...without.slice(adjustedBefore)];
+}
+
+describe('report-binding discrimination against the admitted stage/profile', () => {
+  const bindingMismatchRows: ReadonlyArray<
+    [string, (report: Record<string, unknown>) => Record<string, unknown>]
+  > = [
+    [
+      'schemaHash differs from the actual pinned response schema identity',
+      (report) => ({
+        ...report,
+        calibration: {
+          ...(report['calibration'] as Record<string, unknown>),
+          schemaHash: flipHexHash((report['calibration'] as Record<string, unknown>)['schemaHash'] as string),
+        },
+      }),
+    ],
+    [
+      'promptHash differs from the actual pinned prompt identity',
+      (report) => ({
+        ...report,
+        promptHash: flipHexHash(report['promptHash'] as string),
+      }),
+    ],
+    [
+      'codeSha differs from the actual implementation commit identity (still 40 lowercase hex)',
+      (report) => ({
+        ...report,
+        codeSha: flipHexHash(report['codeSha'] as string),
+      }),
+    ],
+    [
+      'population swaps public/private coverage while preserving the total',
+      (report) => ({
+        ...report,
+        publicCases: 0,
+        privateCases: report['publicCases'] as number,
+      }),
+    ],
+    [
+      'calibration.thinkingLevel disagrees with the admitted profile',
+      (report) => ({
+        ...report,
+        calibration: {
+          ...(report['calibration'] as Record<string, unknown>),
+          thinkingLevel: 'MEDIUM',
+        },
+      }),
+    ],
+    [
+      'calibration.stage disagrees with the admitted stage',
+      (report) => ({
+        ...report,
+        calibration: {
+          ...(report['calibration'] as Record<string, unknown>),
+          stage: 'development',
+        },
+      }),
+    ],
+  ];
+
+  it.each(bindingMismatchRows)(
+    '%s: pure measurement succeeds, admission still rejects with zero effects then poisons',
+    async (_label, mutateReport) => {
+      const fixture = await openFixture();
+      await fixture.finishPreflight();
+      await fixture.publish('preflight', 'LOW');
+      await fixture.publish('preflight', 'MEDIUM');
+      const snapshot = fixture.ledger.getStageReportSnapshot('preflight', 'LOW');
+      const genuine = fixture.nativeVerify({ stage: 'preflight', profile: 'LOW', snapshot });
+      const mutatedReport = mutateReport(genuine.report as unknown as Record<string, unknown>);
+      expect(() => measureCalibrationStageReport(mutatedReport)).not.toThrow();
+      fixture.setVerifierOverride(() => ({ report: mutatedReport, receipt: genuine.receipt }) as never);
+      const appendsBefore = fixture.effects.ledgerAppends;
+      const journalBefore = fixture.effects.journalAppends;
+      const fsyncsBefore = fixture.effects.fsyncs;
+      const clocksBefore = fixture.effects.clockReads;
+      let caught: unknown;
+      try {
+        fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(CalibrationFatalError);
+      expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+      expect(asRecord(caught).cause).toBeUndefined();
+      expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+      expect(fixture.effects.journalAppends).toBe(journalBefore);
+      expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+      expect(fixture.effects.clockReads).toBe(clocksBefore);
+      expect(() => statSync(fixture.lockPath())).not.toThrow();
+      let second: unknown;
+      try {
+        fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      } catch (error) {
+        second = error;
+      }
+      fixture.setVerifierOverride(undefined);
+      expect(second).toBeInstanceOf(CalibrationFatalError);
+      expect((second as Error).message).toBe('calibration:ledger-poisoned');
+      expect(asRecord(second).cause).toBeUndefined();
+      expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+      expect(fixture.effects.journalAppends).toBe(journalBefore);
+      expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+      expect(fixture.effects.clockReads).toBe(clocksBefore);
+    },
+  );
+
+  it('ledger-runId binding fails even when report and receipt runId mutually agree on a different syntactically valid ID', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    const snapshot = fixture.ledger.getStageReportSnapshot('preflight', 'LOW');
+    const genuine = fixture.nativeVerify({ stage: 'preflight', profile: 'LOW', snapshot });
+    const parts = genuine.receipt.runId.split('-');
+    parts[3] = flipHexHash(parts[3]!);
+    const differentRunId = parts.join('-');
+    expect(differentRunId).not.toBe(genuine.receipt.runId);
+    const mutatedReport = { ...(genuine.report as unknown as Record<string, unknown>), runId: differentRunId };
+    expect(() => measureCalibrationStageReport(mutatedReport)).not.toThrow();
+    fixture.setVerifierOverride(
+      () => ({ report: mutatedReport, receipt: { ...genuine.receipt, runId: differentRunId } }) as never,
+    );
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
+    let caught: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    let second: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      second = error;
+    }
+    fixture.setVerifierOverride(undefined);
+    expect(second).toBeInstanceOf(CalibrationFatalError);
+    expect((second as Error).message).toBe('calibration:ledger-poisoned');
+    expect(asRecord(second).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+  });
+
+  const captureRejectionRows: ReadonlyArray<
+    [string, (report: Record<string, unknown>) => Record<string, unknown>]
+  > = [
+    [
+      'calibration.project mismatch fails pure capture (schema-enforced identity), not binding',
+      (report) => ({
+        ...report,
+        calibration: { ...(report['calibration'] as Record<string, unknown>), project: 'not-calorix-xurschnell' },
+      }),
+    ],
+    [
+      'calibration.location mismatch fails pure capture (schema-enforced identity), not binding',
+      (report) => ({
+        ...report,
+        calibration: { ...(report['calibration'] as Record<string, unknown>), location: 'eu' },
+      }),
+    ],
+    [
+      'calibration.model-only mismatch fails pure capture (schema-enforced identity), not binding',
+      (report) => ({
+        ...report,
+        calibration: { ...(report['calibration'] as Record<string, unknown>), model: 'gemini-9-fake' },
+      }),
+    ],
+    [
+      'adapterModelId-only mismatch fails pure capture (must equal calibration.model), not binding',
+      (report) => ({
+        ...report,
+        adapterModelId: 'gemini-9-fake',
+      }),
+    ],
+  ];
+
+  it.each(captureRejectionRows)(
+    '%s: pure measurement throws, admission still rejects with zero effects then poisons',
+    async (_label, mutateReport) => {
+      const fixture = await openFixture();
+      await fixture.finishPreflight();
+      await fixture.publish('preflight', 'LOW');
+      await fixture.publish('preflight', 'MEDIUM');
+      const snapshot = fixture.ledger.getStageReportSnapshot('preflight', 'LOW');
+      const genuine = fixture.nativeVerify({ stage: 'preflight', profile: 'LOW', snapshot });
+      const mutatedReport = mutateReport(genuine.report as unknown as Record<string, unknown>);
+      expect(() => measureCalibrationStageReport(mutatedReport)).toThrow(CalibrationFatalError);
+      fixture.setVerifierOverride(() => ({ report: mutatedReport, receipt: genuine.receipt }) as never);
+      const appendsBefore = fixture.effects.ledgerAppends;
+      const journalBefore = fixture.effects.journalAppends;
+      const fsyncsBefore = fixture.effects.fsyncs;
+      const clocksBefore = fixture.effects.clockReads;
+      let caught: unknown;
+      try {
+        fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(CalibrationFatalError);
+      expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+      expect(asRecord(caught).cause).toBeUndefined();
+      expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+      expect(fixture.effects.journalAppends).toBe(journalBefore);
+      expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+      expect(fixture.effects.clockReads).toBe(clocksBefore);
+      expect(() => statSync(fixture.lockPath())).not.toThrow();
+      let second: unknown;
+      try {
+        fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      } catch (error) {
+        second = error;
+      }
+      fixture.setVerifierOverride(undefined);
+      expect(second).toBeInstanceOf(CalibrationFatalError);
+      expect((second as Error).message).toBe('calibration:ledger-poisoned');
+      expect(asRecord(second).cause).toBeUndefined();
+      expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+      expect(fixture.effects.journalAppends).toBe(journalBefore);
+      expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+      expect(fixture.effects.clockReads).toBe(clocksBefore);
+    },
+  );
+});
+
+describe('capture-phase reentry safety (one trap, one real public target, per row)', () => {
+  it('ownKeys trap reentering recoverAfterCrash fails closed without corrupting the outer admission', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    let trapInvocations = 0;
+    let guardFired = false;
+    let nestedCaught: unknown;
+    fixture.setVerifierOverride((params) => {
+      const real = fixture.nativeVerify(params as never) as unknown as Record<string, unknown>;
+      const ownedCopy: Record<string, unknown> = {
+        report: real['report'],
+        receipt: { ...(real['receipt'] as Record<string, unknown>) },
+      };
+      return new Proxy(ownedCopy, {
+        ownKeys(target) {
+          trapInvocations += 1;
+          if (!guardFired) {
+            guardFired = true;
+            try {
+              fixture.ledger.recoverAfterCrash();
+            } catch (error) {
+              nestedCaught = error;
+            }
+          }
+          return Reflect.ownKeys(target);
+        },
+      }) as never;
+    });
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
+    let caught: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      caught = error;
+    }
+    expect(trapInvocations).toBeGreaterThan(0);
+    expect(nestedCaught).toBeInstanceOf(CalibrationFatalError);
+    expect((nestedCaught as Error).message).toBe('calibration:reentrant-call');
+    expect(asRecord(nestedCaught).cause).toBeUndefined();
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(caught === nestedCaught).toBe(false);
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    let second: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      second = error;
+    }
+    fixture.setVerifierOverride(undefined);
+    expect(second).toBeInstanceOf(CalibrationFatalError);
+    expect((second as Error).message).toBe('calibration:ledger-poisoned');
+    expect(asRecord(second).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+  });
+
+  it('ownKeys trap reentering getCounts (a genuine public read) fails closed without corrupting the outer admission', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    let trapInvocations = 0;
+    let guardFired = false;
+    let nestedCaught: unknown;
+    fixture.setVerifierOverride((params) => {
+      const real = fixture.nativeVerify(params as never) as unknown as Record<string, unknown>;
+      const ownedCopy: Record<string, unknown> = {
+        report: real['report'],
+        receipt: { ...(real['receipt'] as Record<string, unknown>) },
+      };
+      return new Proxy(ownedCopy, {
+        ownKeys(target) {
+          trapInvocations += 1;
+          if (!guardFired) {
+            guardFired = true;
+            try {
+              fixture.ledger.getCounts();
+            } catch (error) {
+              nestedCaught = error;
+            }
+          }
+          return Reflect.ownKeys(target);
+        },
+      }) as never;
+    });
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
+    let caught: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      caught = error;
+    }
+    expect(trapInvocations).toBeGreaterThan(0);
+    expect(nestedCaught).toBeInstanceOf(CalibrationFatalError);
+    expect((nestedCaught as Error).message).toBe('calibration:reentrant-call');
+    expect(asRecord(nestedCaught).cause).toBeUndefined();
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(caught === nestedCaught).toBe(false);
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    let second: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      second = error;
+    }
+    fixture.setVerifierOverride(undefined);
+    expect(second).toBeInstanceOf(CalibrationFatalError);
+    expect((second as Error).message).toBe('calibration:ledger-poisoned');
+    expect(asRecord(second).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+  });
+
+  it('getOwnPropertyDescriptor trap reentering releaseLock fails closed without corrupting the outer admission', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    const ownerClone = { ...fixture.owner };
+    let trapInvocations = 0;
+    let guardFired = false;
+    let nestedCaught: unknown;
+    fixture.setVerifierOverride((params) => {
+      const real = fixture.nativeVerify(params as never) as unknown as Record<string, unknown>;
+      const ownedCopy: Record<string, unknown> = {
+        report: real['report'],
+        receipt: { ...(real['receipt'] as Record<string, unknown>) },
+      };
+      return new Proxy(ownedCopy, {
+        getOwnPropertyDescriptor(target, key) {
+          trapInvocations += 1;
+          if (!guardFired) {
+            guardFired = true;
+            try {
+              fixture.ledger.releaseLock({ ...ownerClone });
+            } catch (error) {
+              nestedCaught = error;
+            }
+          }
+          return Reflect.getOwnPropertyDescriptor(target, key);
+        },
+      }) as never;
+    });
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
+    let caught: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      caught = error;
+    }
+    expect(trapInvocations).toBeGreaterThan(0);
+    expect(nestedCaught).toBeInstanceOf(CalibrationFatalError);
+    expect((nestedCaught as Error).message).toBe('calibration:reentrant-call');
+    expect(asRecord(nestedCaught).cause).toBeUndefined();
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(caught === nestedCaught).toBe(false);
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    let second: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      second = error;
+    }
+    fixture.setVerifierOverride(undefined);
+    expect(second).toBeInstanceOf(CalibrationFatalError);
+    expect((second as Error).message).toBe('calibration:ledger-poisoned');
+    expect(asRecord(second).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+  });
+
+  it('getPrototypeOf trap reentering admitStageReportReceipt fails closed without corrupting the outer admission', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    const stageArg = 'preflight' as const;
+    const profileArg = 'LOW' as const;
+    let trapInvocations = 0;
+    let guardFired = false;
+    let nestedCaught: unknown;
+    fixture.setVerifierOverride((params) => {
+      const real = fixture.nativeVerify(params as never) as unknown as Record<string, unknown>;
+      const ownedCopy: Record<string, unknown> = {
+        report: real['report'],
+        receipt: { ...(real['receipt'] as Record<string, unknown>) },
+      };
+      return new Proxy(ownedCopy, {
+        getPrototypeOf(target) {
+          trapInvocations += 1;
+          if (!guardFired) {
+            guardFired = true;
+            try {
+              fixture.ledger.admitStageReportReceipt(stageArg, profileArg);
+            } catch (error) {
+              nestedCaught = error;
+            }
+          }
+          return Reflect.getPrototypeOf(target);
+        },
+      }) as never;
+    });
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
+    let caught: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      caught = error;
+    }
+    expect(trapInvocations).toBeGreaterThan(0);
+    expect(nestedCaught).toBeInstanceOf(CalibrationFatalError);
+    expect((nestedCaught as Error).message).toBe('calibration:reentrant-call');
+    expect(asRecord(nestedCaught).cause).toBeUndefined();
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(caught === nestedCaught).toBe(false);
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    let second: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      second = error;
+    }
+    fixture.setVerifierOverride(undefined);
+    expect(second).toBeInstanceOf(CalibrationFatalError);
+    expect((second as Error).message).toBe('calibration:ledger-poisoned');
+    expect(asRecord(second).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+  });
+});
+
+describe('receipt-event replay shape and chronology faults (constructor-phase, in-place replacement)', () => {
+  const receiptShapeRows: ReadonlyArray<
+    [string, (event: Record<string, unknown>) => Record<string, unknown>, string]
+  > = [
+    [
+      'outer extra unexpected own key',
+      (event) => ({ ...event, unexpected: 'value' }),
+      'calibration:ledger-event-malformed:artifact_receipt_admitted',
+    ],
+    [
+      'outer missing at key',
+      (event) => {
+        const next = { ...event };
+        delete next['at'];
+        return next;
+      },
+      'calibration:ledger-event-malformed:artifact_receipt_admitted',
+    ],
+    [
+      'outer at is not a canonical timestamp',
+      (event) => ({ ...event, at: 'not-a-timestamp' }),
+      'calibration:ledger-event-malformed:artifact_receipt_admitted',
+    ],
+    [
+      'outer type is unrecognized (falls back to the generic unknown-type contract)',
+      (event) => ({ ...event, type: 'artifact_receipt_admitted_v2' }),
+      'calibration:ledger-event-unknown-type',
+    ],
+    [
+      'nested receipt extra unexpected own key',
+      (event) => ({
+        ...event,
+        receipt: { ...(event['receipt'] as Record<string, unknown>), unexpected: 'value' },
+      }),
+      'calibration:ledger-event-malformed:artifact_receipt_admitted',
+    ],
+    [
+      'nested receipt missing stage key',
+      (event) => {
+        const receipt: Record<string, unknown> = { ...(event['receipt'] as Record<string, unknown>) };
+        delete receipt['stage'];
+        return { ...event, receipt };
+      },
+      'calibration:ledger-event-malformed:artifact_receipt_admitted',
+    ],
+    [
+      'nested receipt stage is invalid',
+      (event) => ({
+        ...event,
+        receipt: { ...(event['receipt'] as Record<string, unknown>), stage: 'not-a-stage' },
+      }),
+      'calibration:ledger-event-malformed:artifact_receipt_admitted',
+    ],
+    [
+      'nested receipt profile is invalid',
+      (event) => ({
+        ...event,
+        receipt: { ...(event['receipt'] as Record<string, unknown>), profile: 'HIGH' },
+      }),
+      'calibration:ledger-event-malformed:artifact_receipt_admitted',
+    ],
+    [
+      'nested receipt runId is blank',
+      (event) => ({
+        ...event,
+        receipt: { ...(event['receipt'] as Record<string, unknown>), runId: '' },
+      }),
+      'calibration:ledger-event-malformed:artifact_receipt_admitted',
+    ],
+    [
+      'nested receipt jsonSha256 is not 64 hex characters',
+      (event) => ({
+        ...event,
+        receipt: { ...(event['receipt'] as Record<string, unknown>), jsonSha256: 'short' },
+      }),
+      'calibration:ledger-event-malformed:artifact_receipt_admitted',
+    ],
+  ];
+
+  it.each(receiptShapeRows)(
+    '%s on the replaced sole receipt event fails closed at construction',
+    async (_label, corrupt, expectedMessage) => {
+      const fixture = await openFixture();
+      await fixture.finishPreflight();
+      await fixture.publish('preflight', 'LOW');
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      const before = readLedgerArray(fixture);
+      const index = before.findIndex(
+        (event) =>
+          typeof event === 'object' &&
+          event !== null &&
+          (event as Record<string, unknown>)['type'] === 'artifact_receipt_admitted',
+      );
+      expect(index).toBeGreaterThan(-1);
+      const original = before[index] as Record<string, unknown>;
+      const corrupted = corrupt(JSON.parse(JSON.stringify(original)) as Record<string, unknown>);
+      const replaced = [...before];
+      replaced[index] = corrupted;
+      expect(replaced.length).toBe(before.length);
+      for (let otherIndex = 0; otherIndex < before.length; otherIndex += 1) {
+        if (otherIndex === index) continue;
+        expect(JSON.stringify(replaced[otherIndex])).toBe(JSON.stringify(before[otherIndex]));
+      }
+      writeLedgerArray(fixture, replaced);
+      const verifierBefore = fixture.effects.verifierCalls;
+      const nativeBefore = fixture.effects.nativeVerifierCalls;
+      const appendsBefore = fixture.effects.ledgerAppends;
+      const journalBefore = fixture.effects.journalAppends;
+      const fsyncsBefore = fixture.effects.fsyncs;
+      const clocksBefore = fixture.effects.clockReads;
+      let caught: unknown;
+      try {
+        fixture.createLedger(fixture.reportOptions, fixture.verifierOptions);
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(CalibrationFatalError);
+      expect((caught as Error).message).toBe(expectedMessage);
+      expect(asRecord(caught).cause).toBeUndefined();
+      expect(fixture.effects.verifierCalls).toBe(verifierBefore);
+      expect(fixture.effects.nativeVerifierCalls).toBe(nativeBefore);
+      expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+      expect(fixture.effects.journalAppends).toBe(journalBefore);
+      expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+      expect(fixture.effects.clockReads).toBe(clocksBefore);
+    },
+  );
+
+  it('a receipt event moved right after the header, before its own required completed outcomes, is out-of-order at construction', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    const before = readLedgerArray(fixture);
+    const receiptIndex = before.findIndex(
+      (event) => typeof event === 'object' && event !== null && (event as Record<string, unknown>)['type'] === 'artifact_receipt_admitted',
+    );
+    expect(receiptIndex).toBeGreaterThan(0);
+    const moved = moveEventBefore(before, receiptIndex, 1);
+    expect(moved.length).toBe(before.length);
+    writeLedgerArray(fixture, moved);
+    const verifierBefore = fixture.effects.verifierCalls;
+    const nativeBefore = fixture.effects.nativeVerifierCalls;
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
+    let caught: unknown;
+    try {
+      fixture.createLedger(fixture.reportOptions, fixture.verifierOptions);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:ledger-event-out-of-order:artifact_receipt_admitted');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(fixture.effects.verifierCalls).toBe(verifierBefore);
+    expect(fixture.effects.nativeVerifierCalls).toBe(nativeBefore);
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+  });
+
+  it('profile_selected moved before its development receipts is out-of-order at construction (receipt dependency isolated)', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    const before = readLedgerArray(fixture);
+    const selectionIndex = before.findIndex(
+      (event) => typeof event === 'object' && event !== null && (event as Record<string, unknown>)['type'] === 'profile_selected',
+    );
+    const firstDevReceiptIndex = before.findIndex(
+      (event) =>
+        typeof event === 'object' &&
+        event !== null &&
+        (event as Record<string, unknown>)['type'] === 'artifact_receipt_admitted' &&
+        ((event as Record<string, unknown>)['receipt'] as Record<string, unknown>)['stage'] === 'development',
+    );
+    expect(selectionIndex).toBeGreaterThan(-1);
+    expect(firstDevReceiptIndex).toBeGreaterThan(-1);
+    expect(selectionIndex).toBeGreaterThan(firstDevReceiptIndex);
+    const moved = moveEventBefore(before, selectionIndex, firstDevReceiptIndex);
+    expect(moved.length).toBe(before.length);
+    writeLedgerArray(fixture, moved);
+    const verifierBefore = fixture.effects.verifierCalls;
+    const nativeBefore = fixture.effects.nativeVerifierCalls;
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
+    let caught: unknown;
+    try {
+      fixture.createLedger(fixture.reportOptions, fixture.verifierOptions);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:ledger-event-out-of-order:profile_selected');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(fixture.effects.verifierCalls).toBe(verifierBefore);
+    expect(fixture.effects.nativeVerifierCalls).toBe(nativeBefore);
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+  });
+
+  it('stage_completed moved before its own preflight receipts is out-of-order at construction (receipt dependency isolated)', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    const before = readLedgerArray(fixture);
+    const stageCompletedIndex = before.findIndex(
+      (event) =>
+        typeof event === 'object' &&
+        event !== null &&
+        (event as Record<string, unknown>)['type'] === 'stage_completed' &&
+        (event as Record<string, unknown>)['stage'] === 'preflight',
+    );
+    const firstPreflightReceiptIndex = before.findIndex(
+      (event) =>
+        typeof event === 'object' &&
+        event !== null &&
+        (event as Record<string, unknown>)['type'] === 'artifact_receipt_admitted' &&
+        ((event as Record<string, unknown>)['receipt'] as Record<string, unknown>)['stage'] === 'preflight',
+    );
+    expect(stageCompletedIndex).toBeGreaterThan(-1);
+    expect(firstPreflightReceiptIndex).toBeGreaterThan(-1);
+    expect(stageCompletedIndex).toBeGreaterThan(firstPreflightReceiptIndex);
+    const moved = moveEventBefore(before, stageCompletedIndex, firstPreflightReceiptIndex);
+    expect(moved.length).toBe(before.length);
+    writeLedgerArray(fixture, moved);
+    const verifierBefore = fixture.effects.verifierCalls;
+    const nativeBefore = fixture.effects.nativeVerifierCalls;
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
+    let caught: unknown;
+    try {
+      fixture.createLedger(fixture.reportOptions, fixture.verifierOptions);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:ledger-event-out-of-order:stage_completed');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(fixture.effects.verifierCalls).toBe(verifierBefore);
+    expect(fixture.effects.nativeVerifierCalls).toBe(nativeBefore);
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+  });
+});
+
+describe('genuine nonempty journal with a missing ledger header (existing negative control)', () => {
+  it('replacing ledger.json with an empty array while journal.json stays populated fails closed at construction', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    const journalBefore = JSON.parse(readFileSync(journalJsonPath(fixture), 'utf8')) as unknown[];
+    expect(journalBefore.length).toBeGreaterThan(0);
+    const firstEntry = journalBefore[0];
+    expect(typeof firstEntry).toBe('object');
+    expect(firstEntry).not.toBe(null);
+    fixture.releaseLockViaNativeDeps();
+    writeLedgerArray(fixture, []);
+    const nativeBefore = fixture.effects.nativeVerifierCalls;
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalAppendsBefore = fixture.effects.journalAppends;
+    const fsyncsBefore = fixture.effects.fsyncs;
+    const clocksBefore = fixture.effects.clockReads;
+    let caught: unknown;
+    try {
+      fixture.createLedger(fixture.reportOptions, fixture.verifierOptions);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:ledger-header-missing');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(fixture.effects.nativeVerifierCalls).toBe(nativeBefore);
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalAppendsBefore);
+    expect(fixture.effects.fsyncs).toBe(fsyncsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+    const journalAfter = JSON.parse(readFileSync(journalJsonPath(fixture), 'utf8')) as unknown[];
+    expect(journalAfter).toEqual(journalBefore);
   });
 });
