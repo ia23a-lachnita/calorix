@@ -20,13 +20,19 @@
  * - Meal-only macro medians computed through moved helper
  * - 33/36 density distinction: carb density eligible excludes zero-truth carbs
  */
-import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { scoreNutritionCase } from '../../src/nutrition-eval/scorer';
 import { buildNutritionEvalReport } from '../../src/nutrition-eval/report';
 import { parseNutritionEvalManifest, StrictCalibrationManifestSchema } from '../../src/nutrition-eval/schema';
-import { prepareCalibrationBootstrapContext } from '../../src/nutrition-eval/calibration-bootstrap';
+import {
+  deriveCanonicalAllowedKeys,
+  deriveCanonicalReportOutcomePlan,
+  prepareCalibrationBootstrapContext,
+} from '../../src/nutrition-eval/calibration-bootstrap';
+import type { CalibrationPreparedContext } from '../../src/nutrition-eval/calibration-bootstrap';
 import {
   CALIBRATION_MANIFEST_SHA256,
   CALIBRATION_PUBLIC_MANIFEST_HASH,
@@ -38,7 +44,36 @@ import type {
   NutritionCaseResult,
   CalibrationInfo,
 } from '../../src/nutrition-eval/schema';
-import type { StageName, CalibrationProfile } from '../../src/nutrition-eval/calibration';
+import {
+  CALIBRATION_ROOT,
+  createProtocolCalibrationLedger,
+} from '../../src/nutrition-eval/calibration';
+import type {
+  CalibrationIdentity,
+  CalibrationKeyResolver,
+  CalibrationLedgerDeps,
+  CalibrationOwner,
+  CalibrationProfile,
+  CalibrationProtocolLedger,
+  JournalEntry,
+  ReservationKey,
+  StageName,
+  TokenCountReservationKey,
+} from '../../src/nutrition-eval/calibration';
+import type {
+  CalibrationProtocolReportOptions,
+  CalibrationStageReportSnapshot,
+} from '../../src/nutrition-eval/calibration-report-state';
+import { captureCalibrationReportPrediction } from '../../src/nutrition-eval/calibration-report-journal';
+import { createFileCalibrationLedgerDeps } from '../../src/nutrition-eval/calibration-file-store';
+import { publishCalibrationStageReport } from '../../src/nutrition-eval/calibration-report-publication';
+import type {
+  CalibrationPublishedReportReceipt,
+  CalibrationReportPublicationResult,
+} from '../../src/nutrition-eval/calibration-report-publication';
+import { prepareCalibrationStageReportArtifactVerifier } from '../../src/nutrition-eval/calibration-report-artifact-verification';
+import type { CalibrationStageReportArtifactVerifier } from '../../src/nutrition-eval/calibration-report-artifact-verification';
+import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
 
 const repoRoot = fileURLToPath(new URL('../../../', import.meta.url));
 
@@ -707,4 +742,492 @@ export async function makeNonzeroMappingReport(): Promise<NutritionEvalReport> {
 /** Test-owned deep clone typed as an owned report (mutation cases only). */
 export function cloneOwnedReport(report: NutritionEvalReport): NutritionEvalReport {
   return JSON.parse(JSON.stringify(report)) as NutritionEvalReport;
+}
+
+// ── Task 2 authoritative fixture support (additive; Task 1 sections above unchanged) ──
+
+const AUTHORITATIVE_TMP_ROOT =
+  '/home/agent-runner/projects/calorix/.superpowers/sdd/2026-10-10-calibration-authoritative-report-gates/tmp';
+const AUTHORITATIVE_PIN = 'gemini-3.8-fixture-pin';
+const AUTHORITATIVE_TOKEN_COUNT = 42;
+const AUTHORITATIVE_FAILURE_LATENCY_MS = 200;
+
+export type AuthoritativeScenario = 'exact' | 'provider_failure' | 'interruption';
+
+export interface AuthoritativeFixtureEffects {
+  ledgerAppends: number;
+  journalAppends: number;
+  fsyncs: number;
+  clockReads: number;
+  verifierCalls: number;
+  providerCalls: number;
+  networkCalls: number;
+}
+
+export interface TestAuthoritativeVerifyOptions {
+  readonly verifyStageReportArtifacts: (
+    params: Readonly<{
+      stage: StageName;
+      profile: CalibrationProfile;
+      snapshot: CalibrationStageReportSnapshot;
+    }>,
+  ) => Readonly<CalibrationReportPublicationResult>;
+}
+
+export interface AuthoritativeTestLedger extends CalibrationProtocolLedger {
+  admitStageReportReceipt(
+    stage: StageName,
+    profile: CalibrationProfile,
+  ): Readonly<CalibrationPublishedReportReceipt>;
+}
+
+export interface AuthoritativeFixture {
+  readonly ledger: AuthoritativeTestLedger;
+  readonly owner: Readonly<CalibrationOwner>;
+  readonly baseDir: string;
+  readonly identity: Readonly<CalibrationIdentity>;
+  readonly effects: AuthoritativeFixtureEffects;
+  readonly reportOptions: CalibrationProtocolReportOptions;
+  readonly verifierOptions: TestAuthoritativeVerifyOptions;
+  publish(stage: StageName, profile: CalibrationProfile): Promise<void>;
+  finishPreflight(): Promise<void>;
+  finishDevelopment(profile: CalibrationProfile, scenario: AuthoritativeScenario): Promise<void>;
+  finishValidation(profile: CalibrationProfile, scenario: AuthoritativeScenario): Promise<void>;
+  finishBenchmark(profile: CalibrationProfile, scenario: AuthoritativeScenario): Promise<void>;
+  reopen(newOwner: Readonly<CalibrationOwner>): Promise<AuthoritativeFixture>;
+  receiptEvents(): ReadonlyArray<Record<string, unknown>>;
+  ledgerEvents(): ReadonlyArray<unknown>;
+  artifactPath(stage: StageName, profile: CalibrationProfile, extension: 'json' | 'md'): string;
+  lockPath(): string;
+  createLedger(
+    reportOptions: CalibrationProtocolReportOptions | undefined,
+    authoritativeOptions: TestAuthoritativeVerifyOptions | undefined,
+  ): AuthoritativeTestLedger;
+  appendRawLedgerEvent(event: unknown): void;
+  setVerifierOverride(
+    override: ((params: unknown) => Readonly<CalibrationReportPublicationResult>) | undefined,
+  ): void;
+  cleanup(): void;
+}
+
+export function makeAuthoritativeOwner(suffix: number): CalibrationOwner {
+  return {
+    hostname: 'authoritative-fixture',
+    bootId: 'authoritative-boot',
+    pid: 4242 + suffix,
+    startTicks: 4242 + suffix,
+    acquiredAt: '2026-10-11T00:00:00.000Z',
+  };
+}
+
+interface AuthoritativeSource {
+  readonly context: CalibrationPreparedContext;
+  readonly trainingCases: ReadonlyArray<NutritionEvalCase & { readonly group: string }>;
+  readonly publicCases: ReadonlyArray<NutritionEvalCase>;
+}
+
+async function loadAuthoritativeSource(
+  baseDir: string,
+  owner: Readonly<CalibrationOwner>,
+): Promise<AuthoritativeSource> {
+  const bootstrap = await prepareCalibrationBootstrapContext({
+    baseDir,
+    readGitState: () => ({
+      headCommit: 'a'.repeat(40),
+      implementationCommit: 'b'.repeat(40),
+      functionsTreeId: 'c'.repeat(40),
+      dirtyPaths: [],
+    }),
+    readCommittedFile: (path, _commit) => readFileSync(resolve(repoRoot, path), 'utf8'),
+    readOwner: () => ({
+      hostname: owner.hostname,
+      bootId: owner.bootId,
+      pid: owner.pid,
+      startTicks: owner.startTicks,
+      acquiredAt: owner.acquiredAt,
+    }),
+  });
+  const calibrationManifest = StrictCalibrationManifestSchema.parse(
+    JSON.parse(bootstrap.files['calibration-manifest']),
+  );
+  const publicManifest = parseNutritionEvalManifest(JSON.parse(bootstrap.files['public-manifest']));
+  return {
+    context: bootstrap,
+    trainingCases: calibrationManifest.cases,
+    publicCases: publicManifest.cases,
+  };
+}
+
+function buildAuthoritativeFailurePrediction(
+  scanMode: 'meal' | 'label' | 'barcode',
+  sampleIndex: number,
+): NutritionPrediction {
+  return captureCalibrationReportPrediction({
+    parseStatus: 'failure',
+    source: scanMode,
+    decision: 'error',
+    failureCategory: 'provider',
+    failureCode: 'provider_request_failed',
+    latencyMs: AUTHORITATIVE_FAILURE_LATENCY_MS,
+    sampleIndex,
+    cached: false,
+  });
+}
+
+function buildSuccessJournal(
+  key: ReservationKey,
+  prediction: NutritionPrediction,
+  truth: NutritionEvalCase['truth'],
+): JournalEntry {
+  const four = {
+    kcal: truth.kcal,
+    proteinG: truth.proteinG,
+    carbsG: truth.carbsG,
+    fatG: truth.fatG,
+  };
+  const mass = prediction.diagnostics?.estimatedTotalMassG;
+  return {
+    key: { ...key },
+    predictionHash: createHash('sha256').update(JSON.stringify(four)).digest('hex'),
+    normalizedPrediction: mass === undefined ? { ...four } : { ...four, estimatedTotalMassG: mass },
+    analysisLatencyMs: prediction.latencyMs ?? 1500,
+    errorCategory: 'none',
+    responseModelVersion: AUTHORITATIVE_PIN,
+    reportPrediction: prediction,
+  };
+}
+
+function buildFailureJournal(key: ReservationKey, prediction: NutritionPrediction): JournalEntry {
+  return {
+    key: { ...key },
+    predictionHash: 'http_5xx',
+    normalizedPrediction: null,
+    analysisLatencyMs: prediction.latencyMs ?? AUTHORITATIVE_FAILURE_LATENCY_MS,
+    errorCategory: 'http_5xx',
+    responseModelVersion: 'n/a',
+    reportPrediction: prediction,
+  };
+}
+
+function recordImageTerminal(
+  ledger: CalibrationProtocolLedger,
+  evalCase: NutritionEvalCase,
+  key: ReservationKey,
+  rawPrediction: NutritionPrediction,
+): void {
+  ledger.reserve(key);
+  if (key.stage === 'preflight' && key.profile === 'LOW') {
+    ledger.pinModelVersion(AUTHORITATIVE_PIN);
+  }
+  const scored = scoreNutritionCase(evalCase, rawPrediction);
+  const owned = captureCalibrationReportPrediction(scored.prediction);
+  const journal =
+    owned.parseStatus === 'success'
+      ? buildSuccessJournal(key, owned, evalCase.truth)
+      : buildFailureJournal(key, owned);
+  ledger.complete(key, ledger.appendResultJournal(journal));
+}
+
+function finishPreflightFlow(ledger: CalibrationProtocolLedger, source: AuthoritativeSource): void {
+  const firstId = source.context.firstDevelopmentCaseId;
+  const trainingCases = source.trainingCases;
+  const evalCase = trainingCases.find((c) => c.id === firstId) ?? trainingCases[0];
+  if (evalCase === undefined) {
+    throw new CalibrationFatalError('calibration:authoritative-fixture-empty-training');
+  }
+  const tokenKey: TokenCountReservationKey = {
+    kind: 'token_count',
+    stage: 'preflight',
+    caseId: firstId,
+    model: 'gemini-3.8-flash',
+  };
+  ledger.reserveTokenCount(tokenKey);
+  ledger.completeTokenCount(tokenKey, AUTHORITATIVE_TOKEN_COUNT);
+  for (const profile of ['LOW', 'MEDIUM'] as const) {
+    const key: ReservationKey = { stage: 'preflight', profile, caseId: firstId, sampleIndex: 1 };
+    recordImageTerminal(ledger, evalCase, key, createExactPrediction(evalCase, 1));
+  }
+}
+
+function finishDevelopmentFlow(
+  ledger: CalibrationProtocolLedger,
+  source: AuthoritativeSource,
+  profile: CalibrationProfile,
+  scenario: AuthoritativeScenario,
+): void {
+  const devCases = source.trainingCases.filter((c) => c.group === 'development');
+  for (const evalCase of devCases) {
+    const key: ReservationKey = { stage: 'development', profile, caseId: evalCase.id, sampleIndex: 1 };
+    const faulted = scenario !== 'exact' && evalCase.id === devCases[0]?.id;
+    if (faulted && scenario === 'interruption') {
+      ledger.reserve(key);
+      ledger.recoverAfterCrash();
+      continue;
+    }
+    const raw =
+      faulted && scenario === 'provider_failure'
+        ? buildAuthoritativeFailurePrediction(evalCase.scanMode, 1)
+        : createExactPrediction(evalCase, 1);
+    recordImageTerminal(ledger, evalCase, key, raw);
+  }
+}
+
+function finishValidationFlow(
+  ledger: CalibrationProtocolLedger,
+  source: AuthoritativeSource,
+  profile: CalibrationProfile,
+  scenario: AuthoritativeScenario,
+): void {
+  const valCases = source.trainingCases.filter((c) => c.group === 'validation');
+  for (const evalCase of valCases) {
+    for (const sampleIndex of [1, 2, 3]) {
+      const key: ReservationKey = { stage: 'validation', profile, caseId: evalCase.id, sampleIndex };
+      const faulted = scenario !== 'exact' && evalCase.id === valCases[0]?.id && sampleIndex === 1;
+      if (faulted && scenario === 'interruption') {
+        ledger.reserve(key);
+        ledger.recoverAfterCrash();
+        continue;
+      }
+      const raw =
+        faulted && scenario === 'provider_failure'
+          ? buildAuthoritativeFailurePrediction(evalCase.scanMode, sampleIndex)
+          : createExactPrediction(evalCase, sampleIndex);
+      recordImageTerminal(ledger, evalCase, key, raw);
+    }
+  }
+}
+
+function finishBenchmarkFlow(
+  ledger: CalibrationProtocolLedger,
+  source: AuthoritativeSource,
+  profile: CalibrationProfile,
+  scenario: AuthoritativeScenario,
+): void {
+  const publicCases = source.publicCases;
+  const firstMealId = publicCases.find((c) => c.scanMode === 'meal')?.id;
+  for (const evalCase of publicCases) {
+    for (const sampleIndex of [1, 2, 3]) {
+      const key: ReservationKey = { stage: 'benchmark', profile, caseId: evalCase.id, sampleIndex };
+      if (evalCase.scanMode === 'barcode') {
+        const scored = scoreNutritionCase(evalCase, createExactPrediction(evalCase, sampleIndex));
+        const owned = captureCalibrationReportPrediction(scored.prediction);
+        ledger.recordNonReservationResult({ key, reason: 'barcode', prediction: owned });
+        continue;
+      }
+      const faulted = scenario !== 'exact' && evalCase.id === firstMealId && sampleIndex === 1;
+      if (faulted && scenario === 'interruption') {
+        ledger.reserve(key);
+        ledger.recoverAfterCrash();
+        continue;
+      }
+      const raw =
+        faulted && scenario === 'provider_failure'
+          ? buildAuthoritativeFailurePrediction(evalCase.scanMode, sampleIndex)
+          : createExactPrediction(evalCase, sampleIndex);
+      recordImageTerminal(ledger, evalCase, key, raw);
+    }
+  }
+}
+
+type AuthoritativeLedgerFactory = (
+  deps: CalibrationLedgerDeps,
+  identity: CalibrationIdentity,
+  keyResolver: CalibrationKeyResolver,
+  reportOptions?: CalibrationProtocolReportOptions,
+  authoritativeOptions?: TestAuthoritativeVerifyOptions,
+) => AuthoritativeTestLedger;
+
+async function openAuthoritativeFixture(
+  baseDir: string,
+  owner: Readonly<CalibrationOwner>,
+  acquire: boolean,
+): Promise<AuthoritativeFixture> {
+  const effects: AuthoritativeFixtureEffects = {
+    ledgerAppends: 0,
+    journalAppends: 0,
+    fsyncs: 0,
+    clockReads: 0,
+    verifierCalls: 0,
+    providerCalls: 0,
+    networkCalls: 0,
+  };
+  let ticks = 0;
+  const source = await loadAuthoritativeSource(baseDir, owner);
+  const preparedVerifier: Readonly<CalibrationStageReportArtifactVerifier> =
+    await prepareCalibrationStageReportArtifactVerifier({
+      baseDir,
+      identity: { ...source.context.identity },
+      owner: { ...owner },
+      firstDevelopmentCaseId: source.context.firstDevelopmentCaseId,
+      report: source.context.report,
+      files: { ...source.context.files },
+    });
+  let verifierOverride:
+    | ((params: unknown) => Readonly<CalibrationReportPublicationResult>)
+    | undefined;
+  const dispatchVerify = (
+    params: Readonly<{
+      stage: StageName;
+      profile: CalibrationProfile;
+      snapshot: CalibrationStageReportSnapshot;
+    }>,
+  ): Readonly<CalibrationReportPublicationResult> => {
+    effects.verifierCalls += 1;
+    if (verifierOverride !== undefined) return verifierOverride(params);
+    return preparedVerifier.verify(params);
+  };
+  const standardReportOptions: CalibrationProtocolReportOptions = {
+    getReportOutcomePlan: (selectedProfile) =>
+      deriveCanonicalReportOutcomePlan({ ...source.context.files }, selectedProfile),
+  };
+  const standardVerifierOptions: TestAuthoritativeVerifyOptions = {
+    verifyStageReportArtifacts: dispatchVerify,
+  };
+  const factory = createProtocolCalibrationLedger as unknown as AuthoritativeLedgerFactory;
+  const openLedger = (
+    reportOptions: CalibrationProtocolReportOptions | undefined,
+    authoritativeOptions: TestAuthoritativeVerifyOptions | undefined,
+  ): AuthoritativeTestLedger => {
+    const baseDeps = createFileCalibrationLedgerDeps(baseDir);
+    const deps: CalibrationLedgerDeps = {
+      ...baseDeps,
+      appendLedgerEvent: (event) => {
+        effects.ledgerAppends += 1;
+        baseDeps.appendLedgerEvent(event);
+      },
+      fsyncLedgerFile: () => {
+        effects.fsyncs += 1;
+        baseDeps.fsyncLedgerFile();
+      },
+      fsyncLedgerDir: () => {
+        effects.fsyncs += 1;
+        baseDeps.fsyncLedgerDir();
+      },
+      appendJournal: (entry) => {
+        effects.journalAppends += 1;
+        baseDeps.appendJournal(entry);
+      },
+      fsyncJournalFile: () => {
+        effects.fsyncs += 1;
+        baseDeps.fsyncJournalFile();
+      },
+      fsyncJournalDir: () => {
+        effects.fsyncs += 1;
+        baseDeps.fsyncJournalDir();
+      },
+      nowIso: () => {
+        effects.clockReads += 1;
+        const at = new Date(Date.UTC(2026, 9, 11) + ticks * 1000).toISOString();
+        ticks += 1;
+        return at;
+      },
+    };
+    const keyResolver: CalibrationKeyResolver = (selectedProfile) =>
+      deriveCanonicalAllowedKeys({ ...source.context.files }, selectedProfile);
+    return factory(
+      deps,
+      { ...source.context.identity },
+      keyResolver,
+      reportOptions,
+      authoritativeOptions,
+    );
+  };
+  const readDeps = createFileCalibrationLedgerDeps(baseDir);
+  const ledger = openLedger(standardReportOptions, standardVerifierOptions);
+  const readSnapshot = (stage: StageName, profile: CalibrationProfile) =>
+    ledger.getStageReportSnapshot(stage, profile);
+  const fixture: AuthoritativeFixture = {
+    ledger,
+    owner: { ...owner },
+    baseDir,
+    identity: source.context.identity,
+    effects,
+    reportOptions: standardReportOptions,
+    verifierOptions: standardVerifierOptions,
+    publish: async (stage, profile) => {
+      const published = await publishCalibrationStageReport({
+        stage,
+        profile,
+        context: {
+          baseDir: source.context.baseDir,
+          identity: { ...source.context.identity },
+          owner: { ...owner },
+          firstDevelopmentCaseId: source.context.firstDevelopmentCaseId,
+          report: source.context.report,
+          files: { ...source.context.files },
+        },
+        readSnapshot,
+      });
+      const snapshot = ledger.getStageReportSnapshot(stage, profile);
+      const verified = dispatchVerify({ stage, profile, snapshot });
+      if (
+        verified.receipt.runId !== published.receipt.runId ||
+        verified.receipt.jsonSha256 !== published.receipt.jsonSha256 ||
+        verified.receipt.markdownSha256 !== published.receipt.markdownSha256
+      ) {
+        throw new CalibrationFatalError('calibration:authoritative-publish-verify-mismatch');
+      }
+    },
+    finishPreflight: async () => {
+      finishPreflightFlow(ledger, source);
+    },
+    finishDevelopment: async (profile, scenario) => {
+      finishDevelopmentFlow(ledger, source, profile, scenario);
+    },
+    finishValidation: async (profile, scenario) => {
+      finishValidationFlow(ledger, source, profile, scenario);
+    },
+    finishBenchmark: async (profile, scenario) => {
+      finishBenchmarkFlow(ledger, source, profile, scenario);
+    },
+    reopen: async (newOwner) => {
+      ledger.releaseLock({ ...owner });
+      return openAuthoritativeFixture(baseDir, newOwner, true);
+    },
+    receiptEvents: () =>
+      readDeps
+        .readLedgerEvents()
+        .filter(
+          (event): event is Record<string, unknown> =>
+            typeof event === 'object' &&
+            event !== null &&
+            !Array.isArray(event) &&
+            (event as Record<string, unknown>).type === 'artifact_receipt_admitted',
+        )
+        .map((event) => JSON.parse(JSON.stringify(event)) as Record<string, unknown>),
+    ledgerEvents: () =>
+      JSON.parse(JSON.stringify(readDeps.readLedgerEvents())) as ReadonlyArray<unknown>,
+    artifactPath: (stage, profile, extension) =>
+      resolve(baseDir, CALIBRATION_ROOT, 'reports', `${stage}-${profile.toLowerCase()}.${extension}`),
+    lockPath: () => resolve(baseDir, CALIBRATION_ROOT, 'lock.json'),
+    createLedger: (reportOptions, authoritativeOptions) =>
+      openLedger(reportOptions, authoritativeOptions),
+    appendRawLedgerEvent: (event) => {
+      effects.ledgerAppends += 1;
+      readDeps.appendLedgerEvent(event);
+    },
+    setVerifierOverride: (override) => {
+      verifierOverride = override;
+    },
+    cleanup: () => {
+      try {
+        ledger.releaseLock({ ...owner });
+      } catch {
+        // Best effort: directory removal below is authoritative.
+      }
+      rmSync(baseDir, { recursive: true, force: true });
+    },
+  };
+  if (acquire) {
+    ledger.acquireLock({ ...owner });
+  }
+  return fixture;
+}
+
+export async function makeAuthoritativeFixture(
+  owner: Readonly<CalibrationOwner> = makeAuthoritativeOwner(0),
+  opts?: Readonly<{ acquire?: boolean }>,
+): Promise<AuthoritativeFixture> {
+  const baseDir = mkdtempSync(resolve(AUTHORITATIVE_TMP_ROOT, 'authoritative-reports-'));
+  return openAuthoritativeFixture(baseDir, owner, opts?.acquire ?? true);
 }
