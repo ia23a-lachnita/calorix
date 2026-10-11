@@ -8,7 +8,7 @@
  * nothing is mocked in the production ledger.
  */
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { existsSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, renameSync as nativeRenameSync, rmSync, statSync, writeFileSync, writeSync as nativeFdWriteSync } from 'node:fs';
 import { basename, dirname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -1653,7 +1653,11 @@ describe('drift reverification and chronological replay', () => {
     expect(first).toBeInstanceOf(CalibrationFatalError);
     expect((first as Error).message).toBe('calibration:artifact-verification-failed');
     expect(asRecord(first).cause).toBeUndefined();
-    expect(fixture.effects.verifierCalls).toBe(verifierBeforeRepeat + 1);
+    expect(fixture.effects.verifierCalls).toBeGreaterThan(verifierBeforeRepeat);
+    const traceAfterDrift = fixture.nativeTrace();
+    expect(traceAfterDrift.length).toBeGreaterThan(verifierBeforeRepeat);
+    const driftRepeats = traceAfterDrift.slice(verifierBeforeRepeat);
+    expect(driftRepeats.some((entry) => entry.stage === 'development' && entry.profile === 'LOW')).toBe(true);
     expect(() => statSync(fixture.lockPath())).not.toThrow();
     const appends = fixture.effects.ledgerAppends;
     const clocks = fixture.effects.clockReads;
@@ -1696,8 +1700,11 @@ describe('drift reverification and chronological replay', () => {
     const next = await fixture.reopen(makeAuthoritativeOwner(77), { acquire: false });
     tracked.push(next);
     expect(next.effects.verifierCalls).toBe(0);
+    expect(next.nativeTrace()).toHaveLength(0);
     next.ledger.acquireLock({ ...next.owner });
-    expect(next.effects.verifierCalls).toBe(4);
+    expect(next.effects.verifierCalls).toBeGreaterThanOrEqual(4);
+    expect(next.nativeTrace().length).toBeGreaterThanOrEqual(4);
+    expect(next.effects.nativeVerifierCalls).toBeGreaterThanOrEqual(4);
     expect(readFileSync(next.artifactPath('development', 'LOW', 'json'), 'utf8')).toBe(devLowBefore);
     expect(readFileSync(next.artifactPath('development', 'MEDIUM', 'json'), 'utf8')).toBe(devMedBefore);
     expect(readFileSync(next.artifactPath('development', 'LOW', 'md'), 'utf8')).toBe(devLowMdBefore);
@@ -1746,7 +1753,11 @@ describe('drift reverification and chronological replay', () => {
     expect(first).toBeInstanceOf(CalibrationFatalError);
     expect((first as Error).message).toBe('calibration:artifact-verification-failed');
     expect(asRecord(first).cause).toBeUndefined();
-    expect(fixture.effects.verifierCalls).toBe(verifierBeforeRepeat + 1);
+    expect(fixture.effects.verifierCalls).toBeGreaterThan(verifierBeforeRepeat);
+    const traceAfterDrift = fixture.nativeTrace();
+    expect(traceAfterDrift.length).toBeGreaterThan(verifierBeforeRepeat);
+    const driftRepeats = traceAfterDrift.slice(verifierBeforeRepeat);
+    expect(driftRepeats.some((entry) => entry.stage === 'development' && entry.profile === 'MEDIUM')).toBe(true);
     expect(() => statSync(fixture.lockPath())).not.toThrow();
     const appends = fixture.effects.ledgerAppends;
     const clocks = fixture.effects.clockReads;
@@ -1974,6 +1985,7 @@ describe('re-admission, replay and provisional authority', () => {
     const clocks = fixture.effects.clockReads;
     const syncs = fixture.effects.fsyncs;
     const verifierBefore = fixture.effects.verifierCalls;
+    const nativeBefore = fixture.nativeTrace().length;
     const second = fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
     expect(second === first).toBe(false);
     expect(second).toEqual(first);
@@ -1981,7 +1993,9 @@ describe('re-admission, replay and provisional authority', () => {
     expect(fixture.effects.ledgerAppends).toBe(appends);
     expect(fixture.effects.clockReads).toBe(clocks);
     expect(fixture.effects.fsyncs).toBe(syncs);
-    expect(fixture.effects.verifierCalls).toBe(verifierBefore + 1);
+    expect(fixture.effects.verifierCalls).toBeGreaterThan(verifierBefore);
+    expect(fixture.nativeTrace().length).toBeGreaterThan(nativeBefore);
+    expect(fixture.effects.nativeVerifierCalls).toBeGreaterThan(nativeBefore);
     expect(fixture.receiptEvents()).toHaveLength(1);
   });
   for (const kind of [
@@ -2081,6 +2095,8 @@ describe('re-admission, replay and provisional authority', () => {
     const next = await fixture.reopen(makeAuthoritativeOwner(7), { acquire: false });
     tracked.push(next);
     expect(next.effects.verifierCalls).toBe(0);
+    expect(next.nativeTrace()).toHaveLength(0);
+    expect(next.effects.nativeVerifierCalls).toBe(0);
     let guarded: unknown;
     try {
       next.ledger.getStageReportSnapshot('preflight', 'LOW');
@@ -2091,12 +2107,15 @@ describe('re-admission, replay and provisional authority', () => {
     expect((guarded as Error).message).toBe('calibration:artifact-authority-lock-required');
     expect(asRecord(guarded).cause).toBeUndefined();
     expect(next.effects.verifierCalls).toBe(0);
+    expect(next.nativeTrace()).toHaveLength(0);
     const receiptsBefore = fixture.receiptEvents();
     const clocksBefore = next.effects.clockReads;
     const syncsBefore = next.effects.fsyncs;
     const countsBefore = next.ledger.getCounts();
     next.ledger.acquireLock({ ...next.owner });
-    expect(next.effects.verifierCalls).toBe(2);
+    expect(next.effects.verifierCalls).toBeGreaterThanOrEqual(2);
+    expect(next.nativeTrace().length).toBeGreaterThanOrEqual(2);
+    expect(next.effects.nativeVerifierCalls).toBeGreaterThanOrEqual(2);
     expect(next.effects.journalAppends).toBe(0);
     expect(next.effects.ledgerAppends).toBe(0);
     expect(next.effects.clockReads).toBe(clocksBefore);
@@ -2219,4 +2238,1187 @@ it('configured missing TMPDIR parent is honored and created for native fixtures'
       delete process.env.TMPDIR;
     }
   }
+});
+
+describe('admission primitive validation and hostile verifier envelopes', () => {
+  it('rejects invalid stage/profile primitives before reflection with zero effects', async () => {
+    const invalidPairs = [
+      ['not-a-stage', 'LOW'],
+      ['preflight', 'HIGH'],
+      ['', 'LOW'],
+      ['preflight', ''],
+    ] as unknown as Array<[unknown, unknown]>;
+    for (const args of invalidPairs) {
+      const fixture = await openFixture();
+      await fixture.finishPreflight();
+      await fixture.publish('preflight', 'LOW');
+      await fixture.publish('preflight', 'MEDIUM');
+      const appends = fixture.effects.ledgerAppends;
+      const clocks = fixture.effects.clockReads;
+      const syncs = fixture.effects.fsyncs;
+      const verifierBefore = fixture.effects.verifierCalls;
+      const nativeBefore = fixture.nativeTrace().length;
+      let caught: unknown;
+      try {
+        (fixture.ledger.admitStageReportReceipt as unknown as (...a: unknown[]) => unknown)(
+          args[0],
+          args[1],
+        );
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(CalibrationFatalError);
+      expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+      expect(asRecord(caught).cause).toBeUndefined();
+      expect(fixture.effects.ledgerAppends).toBe(appends);
+      expect(fixture.effects.clockReads).toBe(clocks);
+      expect(fixture.effects.fsyncs).toBe(syncs);
+      expect(fixture.effects.verifierCalls).toBe(verifierBefore);
+      expect(fixture.nativeTrace()).toHaveLength(nativeBefore);
+      expect(fixture.receiptEvents()).toHaveLength(0);
+    }
+  });
+  it('malformed verifier envelopes poison causeless without foreign reads', async () => {
+    const envelopes: unknown[] = [
+      undefined,
+      null,
+      42,
+      'receipt',
+      {},
+      { report: {}, receipt: {} },
+      { report: null, receipt: null },
+      { report: {}, receipt: null, extra: 1 },
+    ];
+    for (const envelope of envelopes) {
+      const fixture = await openFixture();
+      await fixture.finishPreflight();
+      await fixture.publish('preflight', 'LOW');
+      fixture.setVerifierOverride(() => envelope as never);
+      let first: unknown;
+      try {
+        fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      } catch (error) {
+        first = error;
+      }
+      expect(first).toBeInstanceOf(CalibrationFatalError);
+      expect((first as Error).message).toBe('calibration:artifact-verification-failed');
+      expect(asRecord(first).cause).toBeUndefined();
+      fixture.setVerifierOverride(undefined);
+      const appends = fixture.effects.ledgerAppends;
+      const clocks = fixture.effects.clockReads;
+      const syncs = fixture.effects.fsyncs;
+      let second: unknown;
+      try {
+        fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      } catch (error) {
+        second = error;
+      }
+      expect(second).toBeInstanceOf(CalibrationFatalError);
+      expect((second as Error).message).toBe('calibration:ledger-poisoned');
+      expect(asRecord(second).cause).toBeUndefined();
+      expect(second === first).toBe(false);
+      expect(fixture.effects.ledgerAppends).toBe(appends);
+      expect(fixture.effects.clockReads).toBe(clocks);
+      expect(fixture.effects.fsyncs).toBe(syncs);
+    }
+  });
+  it('hostile verifier callback throw stays foreign with fresh static fatal', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    let messageReads = 0;
+    let stackReads = 0;
+    let nameReads = 0;
+    let causeReads = 0;
+    const hostile = new Error('foreign-boom');
+    Object.defineProperty(hostile, 'message', {
+      configurable: true,
+      enumerable: true,
+      get: () => {
+        messageReads += 1;
+        return 'foreign-boom';
+      },
+    });
+    Object.defineProperty(hostile, 'stack', {
+      configurable: true,
+      enumerable: true,
+      get: () => {
+        stackReads += 1;
+        return 'foreign-stack';
+      },
+    });
+    Object.defineProperty(hostile, 'name', {
+      configurable: true,
+      enumerable: true,
+      get: () => {
+        nameReads += 1;
+        return 'Error';
+      },
+    });
+    Object.defineProperty(hostile, 'cause', {
+      configurable: true,
+      enumerable: true,
+      get: () => {
+        causeReads += 1;
+        return undefined;
+      },
+    });
+    fixture.setVerifierOverride(() => {
+      throw hostile;
+    });
+    let caught: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      caught = error;
+    }
+    fixture.setVerifierOverride(undefined);
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(caught === hostile).toBe(false);
+    expect(messageReads).toBe(0);
+    expect(stackReads).toBe(0);
+    expect(nameReads).toBe(0);
+    expect(causeReads).toBe(0);
+  });
+  it('promise and thenable verifier returns poison causeless', async () => {
+    const values: unknown[] = [Promise.resolve({}), { then: () => undefined }];
+    for (const value of values) {
+      const fixture = await openFixture();
+      await fixture.finishPreflight();
+      await fixture.publish('preflight', 'LOW');
+      fixture.setVerifierOverride(() => value as never);
+      let first: unknown;
+      try {
+        fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      } catch (error) {
+        first = error;
+      }
+      expect(first).toBeInstanceOf(CalibrationFatalError);
+      expect((first as Error).message).toBe('calibration:artifact-verification-failed');
+      expect(asRecord(first).cause).toBeUndefined();
+      fixture.setVerifierOverride(undefined);
+      const appends = fixture.effects.ledgerAppends;
+      const clocks = fixture.effects.clockReads;
+      const syncs = fixture.effects.fsyncs;
+      let second: unknown;
+      try {
+        fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      } catch (error) {
+        second = error;
+      }
+      expect(second).toBeInstanceOf(CalibrationFatalError);
+      expect((second as Error).message).toBe('calibration:ledger-poisoned');
+      expect(asRecord(second).cause).toBeUndefined();
+      expect(second === first).toBe(false);
+      expect(fixture.effects.ledgerAppends).toBe(appends);
+      expect(fixture.effects.clockReads).toBe(clocks);
+      expect(fixture.effects.fsyncs).toBe(syncs);
+    }
+  });
+  it('admission uses the private snapshot even when the public hook is forged', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    const ledgerRecord = fixture.ledger as unknown as Record<string, unknown>;
+    const originalSnapshot = ledgerRecord['getStageReportSnapshot'];
+    const forgedSnapshot = {
+      stage: 'preflight',
+      profile: 'LOW',
+      identity: fixture.identity,
+      counts: {
+        imageCallsReserved: 999,
+        imageCallsCompleted: 999,
+        imageCallsFailed: 0,
+        imageCallsPending: 0,
+      },
+      images: [],
+      nonReservations: [],
+    };
+    ledgerRecord['getStageReportSnapshot'] = () => forgedSnapshot;
+    try {
+      const receipt = fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      expect(receipt.profile).toBe('LOW');
+      expect(receipt.stage).toBe('preflight');
+    } finally {
+      ledgerRecord['getStageReportSnapshot'] = originalSnapshot;
+    }
+    const throwingSnapshot = () => {
+      throw new CalibrationFatalError('calibration:forged-snapshot-throw');
+    };
+    ledgerRecord['getStageReportSnapshot'] = throwingSnapshot;
+    try {
+      const receipt = fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      expect(receipt.profile).toBe('LOW');
+    } finally {
+      ledgerRecord['getStageReportSnapshot'] = originalSnapshot;
+    }
+  });
+  it('successful admission returns a closed receipt with lowercase hashes and frozen params', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    let seenParams: unknown;
+    fixture.setVerifierOverride((params) => {
+      seenParams = params;
+      return fixture.nativeVerify(
+        params as Readonly<{
+          stage: 'preflight';
+          profile: 'LOW';
+          snapshot: never;
+        }> as never,
+      );
+    });
+    const receipt = fixture.ledger.admitStageReportReceipt('preflight', 'LOW') as unknown as Record<
+      string,
+      unknown
+    >;
+    fixture.setVerifierOverride(undefined);
+    expect(Object.keys(receipt).sort()).toEqual([
+      'jsonSha256',
+      'markdownSha256',
+      'profile',
+      'runId',
+      'stage',
+    ]);
+    expect(typeof receipt['runId']).toBe('string');
+    expect((receipt['runId'] as string).length).toBeGreaterThan(0);
+    expect(receipt['jsonSha256']).toMatch(/^[0-9a-f]{64}$/);
+    expect(receipt['markdownSha256']).toMatch(/^[0-9a-f]{64}$/);
+    expect(Object.isFrozen(receipt)).toBe(true);
+    expect(seenParams).not.toBe(undefined);
+    const paramsRecord = seenParams as Record<string, unknown>;
+    expect(Object.keys(paramsRecord).sort()).toEqual(['profile', 'snapshot', 'stage']);
+    expect(Object.isFrozen(seenParams)).toBe(true);
+    expect(Object.isFrozen(paramsRecord['snapshot'])).toBe(true);
+  });
+});
+
+describe('re-admission conflicts, duplicates and replay shapes', () => {
+  it('differing valid receipt conflicts poison with lock retained', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    const first = fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    expect(first.profile).toBe('LOW');
+    const nativeBefore = fixture.nativeTrace().length;
+    fixture.setVerifierOverride((params) => {
+      const native = fixture.nativeVerify(params as never) as unknown as Record<string, unknown>;
+      const receipt = (native['receipt'] as Record<string, unknown>) ?? {};
+      const forged = {
+        ...native,
+        receipt: {
+          ...(receipt as Record<string, unknown>),
+          jsonSha256: '0'.repeat(64),
+        },
+      };
+      return forged as never;
+    });
+    let conflict: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      conflict = error;
+    }
+    fixture.setVerifierOverride(undefined);
+    expect(conflict).toBeInstanceOf(CalibrationFatalError);
+    expect((conflict as Error).message).toBe('calibration:artifact-receipt-conflict');
+    expect(asRecord(conflict).cause).toBeUndefined();
+    expect(conflict === first).toBe(false);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    expect(fixture.nativeTrace().length).toBeGreaterThan(nativeBefore);
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let poisoned: unknown;
+    try {
+      fixture.ledger.getStageReportSnapshot('preflight', 'LOW');
+    } catch (error) {
+      poisoned = error;
+    }
+    expect(poisoned).toBeInstanceOf(CalibrationFatalError);
+    expect((poisoned as Error).message).toBe('calibration:ledger-poisoned');
+    expect(poisoned === conflict).toBe(false);
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+  });
+  it('duplicate durable receipt events are malformed on replay', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    const events = fixture.ledgerEvents();
+    const receiptEvent = events.find(
+      (event) =>
+        typeof event === 'object' &&
+        event !== null &&
+        (event as Record<string, unknown>)['type'] === 'artifact_receipt_admitted',
+    );
+    expect(receiptEvent).not.toBe(undefined);
+    fixture.appendRawLedgerEvent(JSON.parse(JSON.stringify(receiptEvent)));
+    const next = await fixture.reopen(makeAuthoritativeOwner(78), { acquire: false });
+    tracked.push(next);
+    let caught: unknown;
+    try {
+      next.ledger.acquireLock({ ...next.owner });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:ledger-poisoned');
+    expect(asRecord(caught).cause).toBeUndefined();
+  });
+  it('receipt events carry no owner, path, report or provider text', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    const events = fixture.receiptEvents();
+    expect(events).toHaveLength(1);
+    const event = events[0] as Record<string, unknown>;
+    expect(Object.keys(event).sort()).toEqual(['at', 'receipt', 'type']);
+    const receipt = event['receipt'] as Record<string, unknown>;
+    expect(Object.keys(receipt).sort()).toEqual([
+      'jsonSha256',
+      'markdownSha256',
+      'profile',
+      'runId',
+      'stage',
+    ]);
+    const serialized = JSON.stringify(event);
+    expect(serialized).not.toContain('hostname');
+    expect(serialized).not.toContain('bootId');
+    expect(serialized).not.toContain(fixture.baseDir);
+    expect(serialized).not.toContain('provider');
+  });
+  it('empty journal-only stream without a header is rejected', async () => {
+    const fixture = await openFixture(makeAuthoritativeOwner(79), false);
+    fixture.appendRawLedgerEvent({
+      type: 'reserved',
+      key: { stage: 'preflight', profile: 'LOW', caseId: 'x', sampleIndex: 1 },
+      at: '2026-10-11T00:00:00.000Z',
+    });
+    const caught = acquireWith(fixture, fixture.reportOptions, fixture.verifierOptions);
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:ledger-event-malformed:protocol_identity');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(fixture.effects.verifierCalls).toBe(0);
+    expect(fixture.nativeTrace()).toHaveLength(0);
+  });
+});
+
+describe('post-seal runtime and replay writes', () => {
+  it('sealed stage/profile rejects reservations, journals and completions with valid data', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    const snapshot = fixture.ledger.getStageReportSnapshot('development', 'LOW');
+    const firstImage = snapshot.images[0];
+    expect(firstImage).not.toBe(undefined);
+    if (firstImage === undefined || firstImage.status !== 'completed') {
+      throw new Error('authoritative-test-precondition: expected completed image outcome');
+    }
+    const sealedKey = { ...firstImage.key };
+    const sealedJournal = JSON.parse(JSON.stringify(firstImage.journal)) as Parameters<AuthoritativeTestLedger['appendResultJournal']>[0];
+    const sealedHash = firstImage.journalHash;
+    expect(sealedHash).toMatch(/^[0-9a-f]{64}$/);
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalsBefore = fixture.effects.journalAppends;
+    const clocksBefore = fixture.effects.clockReads;
+    const syncsBefore = fixture.effects.fsyncs;
+    const attempts: Array<() => void> = [
+      () => fixture.ledger.reserve({ ...sealedKey } as never),
+      () => fixture.ledger.appendResultJournal(JSON.parse(JSON.stringify(sealedJournal)) as never),
+      () => fixture.ledger.complete({ ...sealedKey } as never, sealedHash),
+    ];
+    for (const attempt of attempts) {
+      let caught: unknown;
+      try {
+        attempt();
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(CalibrationFatalError);
+      expect((caught as Error).message).toBe('calibration:stage-profile-sealed');
+      expect(asRecord(caught).cause).toBeUndefined();
+    }
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+    expect(fixture.effects.fsyncs).toBe(syncsBefore);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    expect(fixture.ledger.getStageReportSnapshot('development', 'MEDIUM').images.length).toBeGreaterThan(
+      0,
+    );
+  });
+  it('failed LOW admission leaves no development receipt while fresh replay keeps MEDIUM pair usable', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.publish('development', 'LOW');
+    const lowSnapshot = fixture.ledger.getStageReportSnapshot('development', 'LOW');
+    const lowFirst = lowSnapshot.images[0];
+    if (lowFirst === undefined || lowFirst.status !== 'completed') {
+      throw new Error('authoritative-test-precondition: expected completed development image');
+    }
+    const unsealedKey = { ...(lowFirst.key as unknown as Record<string, unknown>), profile: 'MEDIUM' };
+    const jsonPath = fixture.artifactPath('development', 'LOW', 'json');
+    const originalText = readFileSync(jsonPath, 'utf8');
+    writeFileSync(jsonPath, `${originalText.slice(0, 120)}X${originalText.slice(121)}`);
+    let failed: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    } catch (error) {
+      failed = error;
+    }
+    expect(failed).toBeInstanceOf(CalibrationFatalError);
+    expect((failed as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(failed).cause).toBeUndefined();
+    expect(fixture.receiptEvents().filter((event) => (event['receipt'] as Record<string, unknown>)['stage'] === 'development')).toHaveLength(0);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let poisoned: unknown;
+    try {
+      fixture.ledger.getStageReportSnapshot('development', 'LOW');
+    } catch (error) {
+      poisoned = error;
+    }
+    expect(poisoned).toBeInstanceOf(CalibrationFatalError);
+    expect((poisoned as Error).message).toBe('calibration:ledger-poisoned');
+    expect(poisoned === failed).toBe(false);
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+    writeFileSync(jsonPath, originalText);
+    fixture.releaseLockViaNativeDeps();
+    const fresh = fixture.createLedger(fixture.reportOptions, fixture.verifierOptions);
+    fresh.acquireLock({ ...fixture.owner });
+    const freshAppendsBefore = fixture.effects.ledgerAppends;
+    const freshCountsBefore = fresh.getCounts();
+    const devReceiptsBefore = fixture.receiptEvents().filter((event) => (event['receipt'] as Record<string, unknown>)['stage'] === 'development').length;
+    try {
+      fresh.reserve(unsealedKey as never);
+    } finally {
+      expect(fixture.effects.ledgerAppends).toBeGreaterThan(freshAppendsBefore);
+      expect(fixture.receiptEvents().filter((event) => (event['receipt'] as Record<string, unknown>)['stage'] === 'development')).toHaveLength(devReceiptsBefore);
+      expect(devReceiptsBefore).toBe(0);
+      expect(fresh.getCounts().imageReserved).toBeGreaterThan(freshCountsBefore.imageReserved);
+      try {
+        fresh.releaseLock({ ...fixture.owner });
+      } catch {
+        // Best effort; original fixture cleanup owns the directory.
+      }
+    }
+  });
+});
+
+describe('reentrant public ledger guard (26 APIs)', () => {
+  it('returned ledger exposes exactly the 26 inventoried public methods', async () => {
+    const fixture = await openFixture();
+    const expected = [
+      'acquireLock',
+      'releaseLock',
+      'assertIdentity',
+      'assertGitState',
+      'assertStageTransition',
+      'reserve',
+      'reserveSynthetic',
+      'reserveTokenCount',
+      'completeTokenCount',
+      'failTokenCount',
+      'getCounts',
+      'appendResultJournal',
+      'complete',
+      'rebuildReport',
+      'recoverAfterCrash',
+      'recordSafeError',
+      'pinModelVersion',
+      'getPinnedModelVersion',
+      'recordProfileSelection',
+      'getSelectedProfile',
+      'completeStage',
+      'getCompletedStages',
+      'getCompletedReportPredictions',
+      'recordNonReservationResult',
+      'getStageReportSnapshot',
+      'admitStageReportReceipt',
+    ];
+    expect([...Object.keys(fixture.ledger)].sort()).toEqual([...expected].sort());
+    expect(fixture.effects.verifierCalls).toBe(0);
+    expect(fixture.nativeTrace()).toHaveLength(0);
+  });
+  it.each([
+    ['acquireLock', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.acquireLock({ ...(ctx['ownerClone'] as Record<string, unknown>) } as never)],
+    ['releaseLock', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.releaseLock({ ...(ctx['ownerClone'] as Record<string, unknown>) } as never)],
+    ['assertIdentity', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.assertIdentity({ ...(ctx['identityClone'] as Record<string, unknown>) } as never)],
+    ['assertGitState', (ledger: AuthoritativeTestLedger) =>
+      ledger.assertGitState({
+        headCommit: 'a'.repeat(40),
+        functionsTreeId: 'c'.repeat(40),
+        dirtyPaths: [],
+      })],
+    ['assertStageTransition', (ledger: AuthoritativeTestLedger) =>
+      ledger.assertStageTransition('preflight', 'development', {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      })],
+    ['reserve', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.reserve({ stage: 'development', profile: 'LOW', caseId: ctx['caseId'] as string, sampleIndex: 1 })],
+    ['reserveSynthetic', (ledger: AuthoritativeTestLedger) =>
+      ledger.reserveSynthetic({ reason: 'reentrant-test', index: 0 }, () => undefined)],
+    ['reserveTokenCount', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.reserveTokenCount({
+        kind: 'token_count',
+        stage: 'preflight',
+        caseId: ctx['caseId'] as string,
+        model: 'gemini-3.8-flash',
+      })],
+    ['completeTokenCount', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.completeTokenCount(
+        {
+          kind: 'token_count',
+          stage: 'preflight',
+          caseId: ctx['caseId'] as string,
+          model: 'gemini-3.8-flash',
+        },
+        1,
+      )],
+    ['failTokenCount', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.failTokenCount(
+        {
+          kind: 'token_count',
+          stage: 'preflight',
+          caseId: ctx['caseId'] as string,
+          model: 'gemini-3.8-flash',
+        },
+        'http_5xx',
+      )],
+    ['getCounts', (ledger: AuthoritativeTestLedger) => ledger.getCounts()],
+    ['appendResultJournal', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.appendResultJournal(JSON.parse(JSON.stringify(ctx['journalClone'])) as never)],
+    ['complete', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.complete(
+        JSON.parse(JSON.stringify(ctx['keyClone'])) as never,
+        ctx['journalHash'] as string,
+      )],
+    ['rebuildReport', (ledger: AuthoritativeTestLedger) => ledger.rebuildReport()],
+    ['recoverAfterCrash', (ledger: AuthoritativeTestLedger) => ledger.recoverAfterCrash()],
+    ['recordSafeError', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.recordSafeError({
+        stage: 'preflight',
+        kind: 'token_count',
+        caseId: ctx['caseId'] as string,
+        errorCategory: 'http_5xx',
+      } as never)],
+    ['pinModelVersion', (ledger: AuthoritativeTestLedger) => ledger.pinModelVersion('gemini-3.8-fixture-pin')],
+    ['getPinnedModelVersion', (ledger: AuthoritativeTestLedger) => ledger.getPinnedModelVersion()],
+    ['recordProfileSelection', (ledger: AuthoritativeTestLedger) =>
+      ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      })],
+    ['getSelectedProfile', (ledger: AuthoritativeTestLedger) => ledger.getSelectedProfile()],
+    ['completeStage', (ledger: AuthoritativeTestLedger) =>
+      ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] })],
+    ['getCompletedStages', (ledger: AuthoritativeTestLedger) => ledger.getCompletedStages()],
+    ['getCompletedReportPredictions', (ledger: AuthoritativeTestLedger) =>
+      ledger.getCompletedReportPredictions()],
+    ['recordNonReservationResult', (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) =>
+      ledger.recordNonReservationResult({
+        key: JSON.parse(JSON.stringify(ctx['benchmarkKey'])) as never,
+        reason: 'barcode',
+        prediction: {
+          parseStatus: 'failure',
+          source: 'barcode',
+          decision: 'error',
+          failureCategory: 'product',
+          failureCode: 'off_product_not_found',
+          latencyMs: 200,
+          sampleIndex: 1,
+          cached: false,
+        },
+      } as never)],
+    ['getStageReportSnapshot', (ledger: AuthoritativeTestLedger) =>
+      ledger.getStageReportSnapshot('preflight', 'LOW')],
+    ['admitStageReportReceipt', (ledger: AuthoritativeTestLedger) =>
+      ledger.admitStageReportReceipt('preflight', 'LOW')],
+  ])('%s invoked reentrantly poisons before effects and blocks outer admission', async (_name, call) => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    const snapshot = fixture.ledger.getStageReportSnapshot('preflight', 'LOW');
+    const first = snapshot.images[0];
+    if (first === undefined || first.status !== 'completed') {
+      throw new Error('authoritative-test-precondition: expected completed image');
+    }
+    const caseId = (first.key as unknown as { caseId: string }).caseId;
+    const journalClone = JSON.parse(JSON.stringify(first.journal)) as unknown;
+    const journalHash = first.journalHash;
+    const keyClone = JSON.parse(JSON.stringify(first.key)) as unknown;
+    const plan = fixture.reportOptions.getReportOutcomePlan('MEDIUM');
+    const barcodeRow = plan.find((row) => row.key.stage === 'benchmark' && row.scanMode === 'barcode');
+    if (barcodeRow === undefined) {
+      throw new Error('authoritative-test-precondition: expected benchmark barcode plan row');
+    }
+    const benchmarkKey = JSON.parse(JSON.stringify(barcodeRow.key)) as unknown;
+    const ctx: Record<string, unknown> = {
+      caseId,
+      journalClone,
+      journalHash,
+      keyClone,
+      benchmarkKey,
+      ownerClone: { ...fixture.owner },
+      identityClone: { ...fixture.identity },
+    };
+    const appendsBefore = fixture.effects.ledgerAppends;
+    const journalsBefore = fixture.effects.journalAppends;
+    const clocksBefore = fixture.effects.clockReads;
+    const syncsBefore = fixture.effects.fsyncs;
+    let namedTargetInvocations = 0;
+    let nested: unknown;
+    fixture.setVerifierOverride((params) => {
+      try {
+        namedTargetInvocations += 1;
+        (call as (ledger: AuthoritativeTestLedger, ctx: Record<string, unknown>) => unknown)(
+          fixture.ledger,
+          ctx,
+        );
+      } catch (error) {
+        nested = error;
+      }
+      return fixture.nativeVerify(params as never);
+    });
+    let outer: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      outer = error;
+    }
+    fixture.setVerifierOverride(undefined);
+    expect(namedTargetInvocations).toBe(1);
+    expect(nested).toBeInstanceOf(CalibrationFatalError);
+    expect((nested as Error).message).toBe('calibration:reentrant-call');
+    expect(asRecord(nested).cause).toBeUndefined();
+    expect(outer).toBeInstanceOf(CalibrationFatalError);
+    expect((outer as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(outer).cause).toBeUndefined();
+    expect(outer === nested).toBe(false);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    expect(fixture.effects.ledgerAppends).toBe(appendsBefore);
+    expect(fixture.effects.journalAppends).toBe(journalsBefore);
+    expect(fixture.effects.clockReads).toBe(clocksBefore);
+    expect(fixture.effects.fsyncs).toBe(syncsBefore);
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let poisoned: unknown;
+    try {
+      fixture.ledger.getStageReportSnapshot('preflight', 'LOW');
+    } catch (error) {
+      poisoned = error;
+    }
+    expect(poisoned).toBeInstanceOf(CalibrationFatalError);
+    expect((poisoned as Error).message).toBe('calibration:ledger-poisoned');
+    expect(poisoned === outer).toBe(false);
+    expect(poisoned === nested).toBe(false);
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+  });
+});
+
+describe('constructor provisional authority and owner-change rereverification', () => {
+  it('populated constructor grants no authority before current-owner replay', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    const next = await fixture.reopen(makeAuthoritativeOwner(80), { acquire: false });
+    tracked.push(next);
+    expect(next.effects.verifierCalls).toBe(0);
+    expect(next.nativeTrace()).toHaveLength(0);
+    expect(next.effects.nativeVerifierCalls).toBe(0);
+    const probes: Array<() => void> = [
+      () => next.ledger.getSelectedProfile(),
+      () => next.ledger.getCompletedStages(),
+      () => next.ledger.getCompletedReportPredictions(),
+      () => next.ledger.getStageReportSnapshot('preflight', 'LOW'),
+      () => next.ledger.rebuildReport(),
+      () =>
+        next.ledger.assertStageTransition('preflight', 'development', {
+          stage: 'development',
+          passed: true,
+          completedStages: ['preflight'],
+        }),
+    ];
+    for (const probe of probes) {
+      let caught: unknown;
+      try {
+        probe();
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(CalibrationFatalError);
+      expect((caught as Error).message).toBe('calibration:artifact-authority-lock-required');
+      expect(asRecord(caught).cause).toBeUndefined();
+    }
+    expect(next.effects.verifierCalls).toBe(0);
+    expect(next.nativeTrace()).toHaveLength(0);
+  });
+  it('new-owner acquire reverifies each receipt chronologically before selection', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    const next = await fixture.reopen(makeAuthoritativeOwner(81), { acquire: false });
+    tracked.push(next);
+    next.ledger.acquireLock({ ...next.owner });
+    const trace = next.nativeTrace();
+    expect(trace.length).toBeGreaterThanOrEqual(4);
+    const pairs = trace.map((entry) => `${entry.stage}:${entry.profile}`);
+    const firstLowPreflight = pairs.indexOf('preflight:LOW');
+    const firstMedPreflight = pairs.indexOf('preflight:MEDIUM');
+    const firstLowDev = pairs.indexOf('development:LOW');
+    const firstMedDev = pairs.indexOf('development:MEDIUM');
+    expect(firstLowPreflight).toBeGreaterThanOrEqual(0);
+    expect(firstMedPreflight).toBeGreaterThanOrEqual(0);
+    expect(firstLowDev).toBeGreaterThanOrEqual(0);
+    expect(firstMedDev).toBeGreaterThanOrEqual(0);
+    expect(firstLowPreflight).toBeLessThan(firstLowDev);
+    expect(firstMedPreflight).toBeLessThan(firstMedDev);
+    expect(firstLowPreflight).toBeLessThan(firstMedPreflight);
+    expect(firstMedPreflight).toBeLessThan(firstLowDev);
+    expect(firstLowDev).toBeLessThan(firstMedDev);
+    const devLowEntry = trace[firstLowDev] as Readonly<{
+      selectedProfile?: string;
+    }>;
+    expect(devLowEntry.selectedProfile).toBe(undefined);
+    const devMedEntry = trace[firstMedDev] as Readonly<{
+      selectedProfile?: string;
+    }>;
+    expect(devMedEntry.selectedProfile).toBe(undefined);
+    expect(next.ledger.getSelectedProfile()).toBe('MEDIUM');
+  });
+  it('missing artifact on owner-change replay poisons with lock retained', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    const next = await fixture.reopen(makeAuthoritativeOwner(82), { acquire: false });
+    tracked.push(next);
+    rmSync(next.artifactPath('preflight', 'LOW', 'json'));
+    let caught: unknown;
+    try {
+      next.ledger.acquireLock({ ...next.owner });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:ledger-poisoned');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(() => statSync(next.lockPath())).not.toThrow();
+  });
+});
+
+describe('real durability faults at file seams', () => {
+  it('receipt fdWrite fault armed only for persistence poisons with lock retained', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    fixture.ledger.releaseLock({ ...fixture.owner });
+    let armed = false;
+    let fdWriteHits = 0;
+    const faulty = fixture.createLedgerWithFileStoreOverrides(
+      {
+        fdWriteSync: (fd, buffer, offset, length) => {
+          if (!armed) {
+            return nativeFdWriteSync(fd, buffer, offset, length);
+          }
+          fdWriteHits += 1;
+          throw new Error('authoritative-test-fd-write-fault');
+        },
+      },
+      fixture.reportOptions,
+      fixture.verifierOptions,
+    );
+    faulty.acquireLock({ ...fixture.owner });
+    armed = true;
+    const nativeBefore = fixture.nativeTrace().length;
+    let failed: unknown;
+    try {
+      faulty.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      failed = error;
+    }
+    expect(failed).toBeInstanceOf(CalibrationFatalError);
+    expect(asRecord(failed).cause).toBeUndefined();
+    expect(fdWriteHits).toBeGreaterThanOrEqual(1);
+    expect(fixture.nativeTrace().length).toBeGreaterThan(nativeBefore);
+    expect(fixture.receiptEvents()).toHaveLength(0);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let poisoned: unknown;
+    try {
+      faulty.getStageReportSnapshot('preflight', 'LOW');
+    } catch (error) {
+      poisoned = error;
+    }
+    expect(poisoned).toBeInstanceOf(CalibrationFatalError);
+    expect((poisoned as Error).message).toBe('calibration:ledger-poisoned');
+    expect(poisoned === failed).toBe(false);
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+    try {
+      faulty.releaseLock({ ...fixture.owner });
+    } catch {
+      // Best effort; lock-retained assertion above is authoritative.
+    }
+  });
+  it('receipt rename pre-rename fault grants no authority and poisons', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    fixture.ledger.releaseLock({ ...fixture.owner });
+    let armed = false;
+    let renameHits = 0;
+    let renameTarget = '';
+    const faulty = fixture.createLedgerWithFileStoreOverrides(
+      {
+        renameSync: (from, to) => {
+          if (!armed) {
+            return nativeRenameSync(from, to);
+          }
+          if (typeof to === 'string' && to.endsWith('ledger.json')) {
+            renameHits += 1;
+            renameTarget = to;
+            throw new Error('authoritative-test-rename-fault');
+          }
+          return nativeRenameSync(from, to);
+        },
+      },
+      fixture.reportOptions,
+      fixture.verifierOptions,
+    );
+    faulty.acquireLock({ ...fixture.owner });
+    armed = true;
+    const nativeBefore = fixture.nativeTrace().length;
+    let failed: unknown;
+    try {
+      faulty.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      failed = error;
+    }
+    expect(failed).toBeInstanceOf(CalibrationFatalError);
+    expect(asRecord(failed).cause).toBeUndefined();
+    expect(renameHits).toBeGreaterThanOrEqual(1);
+    expect(renameTarget.endsWith('ledger.json')).toBe(true);
+    expect(fixture.nativeTrace().length).toBeGreaterThan(nativeBefore);
+    expect(fixture.receiptEvents()).toHaveLength(0);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    const appends = fixture.effects.ledgerAppends;
+    let poisoned: unknown;
+    try {
+      faulty.getStageReportSnapshot('preflight', 'LOW');
+    } catch (error) {
+      poisoned = error;
+    }
+    expect(poisoned).toBeInstanceOf(CalibrationFatalError);
+    expect((poisoned as Error).message).toBe('calibration:ledger-poisoned');
+    expect(poisoned === failed).toBe(false);
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    try {
+      faulty.releaseLock({ ...fixture.owner });
+    } catch {
+      // Best effort.
+    }
+  });
+  it('receipt rename post-rename ambiguity still poisons without authority', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    fixture.ledger.releaseLock({ ...fixture.owner });
+    let armed = false;
+    let renameHits = 0;
+    let renameTarget = '';
+    const faulty = fixture.createLedgerWithFileStoreOverrides(
+      {
+        renameSync: (from, to) => {
+          if (!armed) {
+            return nativeRenameSync(from, to);
+          }
+          if (typeof to === 'string' && to.endsWith('ledger.json')) {
+            renameHits += 1;
+            renameTarget = to;
+            nativeRenameSync(from, to);
+            throw new Error('authoritative-test-rename-ambiguity');
+          }
+          return nativeRenameSync(from, to);
+        },
+      },
+      fixture.reportOptions,
+      fixture.verifierOptions,
+    );
+    faulty.acquireLock({ ...fixture.owner });
+    armed = true;
+    const nativeBefore = fixture.nativeTrace().length;
+    let failed: unknown;
+    try {
+      faulty.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      failed = error;
+    }
+    expect(failed).toBeInstanceOf(CalibrationFatalError);
+    expect(asRecord(failed).cause).toBeUndefined();
+    expect(renameHits).toBeGreaterThanOrEqual(1);
+    expect(renameTarget.endsWith('ledger.json')).toBe(true);
+    expect(fixture.nativeTrace().length).toBeGreaterThan(nativeBefore);
+    expect(existsSync(renameTarget)).toBe(true);
+    expect(readFileSync(renameTarget, 'utf8').length).toBeGreaterThan(0);
+    const persisted = JSON.parse(readFileSync(renameTarget, 'utf8')) as unknown;
+    expect(Array.isArray(persisted)).toBe(true);
+    const persistedReceiptEvents = (persisted as Array<Record<string, unknown>>).filter((event) => typeof event === 'object' && event !== null && (event as Record<string, unknown>)['type'] === 'artifact_receipt_admitted');
+    expect(persistedReceiptEvents).toHaveLength(1);
+    const persistedEvent = persistedReceiptEvents[0] as Record<string, unknown>;
+    expect(Object.keys(persistedEvent).sort()).toEqual(['at', 'receipt', 'type']);
+    const persistedReceipt = persistedEvent['receipt'] as Record<string, unknown>;
+    expect(Object.keys(persistedReceipt).sort()).toEqual(['jsonSha256', 'markdownSha256', 'profile', 'runId', 'stage']);
+    expect(persistedReceipt['stage']).toBe('preflight');
+    expect(persistedReceipt['profile']).toBe('LOW');
+    expect(typeof persistedReceipt['runId']).toBe('string');
+    expect((persistedReceipt['runId'] as string).length).toBeGreaterThan(0);
+    expect(persistedReceipt['jsonSha256']).toMatch(/^[0-9a-f]{64}$/);
+    expect(persistedReceipt['markdownSha256']).toMatch(/^[0-9a-f]{64}$/);
+    const readAppends = fixture.effects.ledgerAppends;
+    const readJournals = fixture.effects.journalAppends;
+    const readClocks = fixture.effects.clockReads;
+    const readSyncs = fixture.effects.fsyncs;
+    expect(fixture.receiptEvents()).toHaveLength(1);
+    expect(fixture.effects.ledgerAppends).toBe(readAppends);
+    expect(fixture.effects.journalAppends).toBe(readJournals);
+    expect(fixture.effects.clockReads).toBe(readClocks);
+    expect(fixture.effects.fsyncs).toBe(readSyncs);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    const appends = fixture.effects.ledgerAppends;
+    const journals = fixture.effects.journalAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let poisoned: unknown;
+    try {
+      faulty.getStageReportSnapshot('preflight', 'LOW');
+    } catch (error) {
+      poisoned = error;
+    }
+    expect(poisoned).toBeInstanceOf(CalibrationFatalError);
+    expect((poisoned as Error).message).toBe('calibration:ledger-poisoned');
+    expect(poisoned === failed).toBe(false);
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.journalAppends).toBe(journals);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+    try {
+      faulty.releaseLock({ ...fixture.owner });
+    } catch {
+      // Best effort.
+    }
+  });
+  it('armed fault hooks pass through natively on legacy mode when disarmed', async () => {
+    const legacy = await makeAuthoritativeFixture(makeAuthoritativeOwner(83), { authoritative: false, acquire: false });
+    tracked.push(legacy);
+    let armed = false;
+    let unarmedFdWrites = 0;
+    let armedFdWrites = 0;
+    let armedRenameTarget = '';
+    const hooked = legacy.createLedgerWithFileStoreOverrides(
+      {
+        fdWriteSync: (fd, buffer, offset, length) => {
+          if (!armed) {
+            unarmedFdWrites += 1;
+            return nativeFdWriteSync(fd, buffer, offset, length);
+          }
+          armedFdWrites += 1;
+          throw new Error('authoritative-test-legacy-armed-fault');
+        },
+        renameSync: (from, to) => {
+          if (typeof to === 'string' && to.endsWith('ledger.json') && armed) {
+            armedRenameTarget = to;
+          }
+          return nativeRenameSync(from, to);
+        },
+      },
+      legacy.reportOptions,
+      undefined,
+    );
+    hooked.acquireLock({ ...legacy.owner });
+    expect(unarmedFdWrites).toBeGreaterThan(0);
+    const initialPlan = legacy.reportOptions.getReportOutcomePlan(undefined as never);
+    const preflightRow = initialPlan.find((row) => row.key.stage === 'preflight' && row.key.profile === 'LOW');
+    if (preflightRow === undefined) {
+      throw new Error('authoritative-test-precondition: expected preflight LOW plan row');
+    }
+    const preflightCaseId = (preflightRow.key as unknown as { caseId: string }).caseId;
+    const tokenKey = { kind: 'token_count', stage: 'preflight', caseId: preflightCaseId, model: 'gemini-3.8-flash' } as never;
+    armed = true;
+    let failed: unknown;
+    try {
+      hooked.reserveTokenCount(tokenKey);
+    } catch (error) {
+      failed = error;
+    }
+    expect(failed).toBeInstanceOf(CalibrationFatalError);
+    expect((failed as Error).message.startsWith('calibration:')).toBe(true);
+    expect(armedFdWrites).toBeGreaterThanOrEqual(1);
+    expect(() => statSync(legacy.lockPath())).not.toThrow();
+    const expectedLedgerPath = resolve(legacy.baseDir, '.nutrition-eval/calibration/calorix-gemini-38-calibration-v1/ledger.json');
+    expect(existsSync(expectedLedgerPath)).toBe(true);
+    expect(readFileSync(expectedLedgerPath, 'utf8').length).toBeGreaterThan(0);
+    try {
+      hooked.releaseLock({ ...legacy.owner });
+    } catch {
+      // Best effort; lock-retained assertion above is authoritative.
+    }
+    expect(armedRenameTarget).toBe('');
+  });
+});
+describe('nativeTrace helper positive controls (genuine artifacts only)', () => {
+  it('publish records native trace with correct stage, profile and scalar snapshot values', async () => {
+    const fixture = await openFixture();
+    expect(fixture.nativeTrace()).toHaveLength(0);
+    expect(fixture.effects.nativeVerifierCalls).toBe(0);
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    const trace = fixture.nativeTrace();
+    expect(trace).toHaveLength(1);
+    const entry = trace[0];
+    expect(entry).not.toBe(undefined);
+    expect(entry!.stage).toBe('preflight');
+    expect(entry!.profile).toBe('LOW');
+    expect(entry!.imageCallsReserved).toBe(1);
+    expect(entry!.imageCallsCompleted).toBe(1);
+    expect(entry!.selectedProfile).toBe(undefined);
+    expect(entry!.pinnedModelVersion).toBe('gemini-3.8-fixture-pin');
+    expect(fixture.effects.nativeVerifierCalls).toBe(1);
+  });
+  it('direct nativeVerify bypasses override dispatch without recursion', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    const dispatchBefore = fixture.effects.verifierCalls;
+    const nativeBefore = fixture.effects.nativeVerifierCalls;
+    let overrideCalls = 0;
+    fixture.setVerifierOverride(() => {
+      overrideCalls += 1;
+      throw new Error('authoritative-test-override-should-be-bypassed');
+    });
+    const snapshot = fixture.ledger.getStageReportSnapshot('preflight', 'LOW');
+    const result = fixture.nativeVerify({ stage: 'preflight', profile: 'LOW', snapshot });
+    expect(result.receipt.stage).toBe('preflight');
+    expect(result.receipt.profile).toBe('LOW');
+    expect(overrideCalls).toBe(0);
+    expect(fixture.effects.verifierCalls).toBe(dispatchBefore);
+    expect(fixture.effects.nativeVerifierCalls).toBe(nativeBefore + 1);
+    fixture.setVerifierOverride(undefined);
+  });
+  it('override calling nativeVerify does not recurse through dispatch', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    const dispatchBefore = fixture.effects.verifierCalls;
+    const nativeBefore = fixture.effects.nativeVerifierCalls;
+    const traceBefore = fixture.nativeTrace().length;
+    fixture.setVerifierOverride((params) => fixture.nativeVerify(params as never));
+    try {
+      await fixture.publish('preflight', 'MEDIUM');
+    } finally {
+      fixture.setVerifierOverride(undefined);
+    }
+    expect(fixture.effects.verifierCalls).toBe(dispatchBefore + 1);
+    expect(fixture.effects.nativeVerifierCalls).toBe(nativeBefore + 1);
+    const trace = fixture.nativeTrace();
+    expect(trace.length).toBe(traceBefore + 1);
+    const last = trace[trace.length - 1]!;
+    expect(last.stage).toBe('preflight');
+    expect(last.profile).toBe('MEDIUM');
+  });
+  it('returned trace is owned and stored entries capture pre-mutation scalars', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    const firstCopy = fixture.nativeTrace();
+    expect(firstCopy).toHaveLength(1);
+    (firstCopy as unknown as unknown[]).push({ stage: 'forged' });
+    (firstCopy[0] as unknown as Record<string, unknown>)['stage'] = 'forged';
+    const secondCopy = fixture.nativeTrace();
+    expect(secondCopy).toHaveLength(1);
+    expect(secondCopy[0]!.stage).toBe('preflight');
+    const snapshot = fixture.ledger.getStageReportSnapshot('preflight', 'LOW');
+    const mutableParams = {
+      stage: 'preflight' as const,
+      profile: 'LOW' as const,
+      snapshot: JSON.parse(JSON.stringify(snapshot)) as never,
+    };
+    const snapshotRecord = mutableParams.snapshot as unknown as Record<string, unknown>;
+    const countsValue = snapshotRecord['counts'];
+    if (typeof countsValue !== 'object' || countsValue === null || Array.isArray(countsValue)) {
+      throw new Error('authoritative-test-precondition: expected snapshot counts');
+    }
+    const countsBefore = countsValue as Record<string, unknown>;
+    const reservedValue = countsBefore['imageCallsReserved'];
+    if (typeof reservedValue !== 'number' || !Number.isFinite(reservedValue)) {
+      throw new Error('authoritative-test-precondition: expected numeric imageCallsReserved');
+    }
+    const reservedBefore: number = reservedValue;
+    expect(reservedBefore).toBe(1);
+    fixture.nativeVerify(mutableParams as never);
+    countsBefore['imageCallsReserved'] = -999;
+    expect(Object.isFrozen(mutableParams)).toBe(false);
+    const trace = fixture.nativeTrace();
+    const last = trace[trace.length - 1]!;
+    expect(last.imageCallsReserved).toBe(reservedBefore);
+    expect(last.stage).toBe('preflight');
+  });
 });

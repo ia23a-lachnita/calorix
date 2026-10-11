@@ -66,6 +66,7 @@ import type {
 } from '../../src/nutrition-eval/calibration-report-state';
 import { captureCalibrationReportPrediction } from '../../src/nutrition-eval/calibration-report-journal';
 import { createFileCalibrationLedgerDeps } from '../../src/nutrition-eval/calibration-file-store';
+import type { CalibrationFileStoreOverrides } from '../../src/nutrition-eval/calibration-file-store';
 import { publishCalibrationStageReport } from '../../src/nutrition-eval/calibration-report-publication';
 import type {
   CalibrationPublishedReportReceipt,
@@ -784,6 +785,16 @@ export interface AuthoritativeFixtureEffects {
   fsyncs: number;
   clockReads: number;
   verifierCalls: number;
+  nativeVerifierCalls: number;
+}
+
+export interface AuthoritativeNativeTraceEntry {
+  readonly stage: StageName;
+  readonly profile: CalibrationProfile;
+  readonly imageCallsReserved: number;
+  readonly imageCallsCompleted: number;
+  readonly selectedProfile: CalibrationProfile | undefined;
+  readonly pinnedModelVersion: string | undefined;
 }
 
 export interface TestAuthoritativeVerifyOptions {
@@ -811,6 +822,14 @@ export interface AuthoritativeFixture {
   readonly effects: AuthoritativeFixtureEffects;
   readonly reportOptions: CalibrationProtocolReportOptions;
   readonly verifierOptions: TestAuthoritativeVerifyOptions;
+  readonly nativeVerify: (
+    params: Readonly<{
+      stage: StageName;
+      profile: CalibrationProfile;
+      snapshot: CalibrationStageReportSnapshot;
+    }>,
+  ) => Readonly<CalibrationReportPublicationResult>;
+  nativeTrace(): ReadonlyArray<Readonly<AuthoritativeNativeTraceEntry>>;
   publish(stage: StageName, profile: CalibrationProfile): Promise<void>;
   finishPreflight(): Promise<void>;
   finishDevelopment(profile: CalibrationProfile, scenario: AuthoritativeScenarioInput): Promise<void>;
@@ -828,10 +847,16 @@ export interface AuthoritativeFixture {
     reportOptions: CalibrationProtocolReportOptions | undefined,
     authoritativeOptions: TestAuthoritativeVerifyOptions | undefined,
   ): AuthoritativeTestLedger;
+  createLedgerWithFileStoreOverrides(
+    overrides: CalibrationFileStoreOverrides,
+    reportOptions: CalibrationProtocolReportOptions | undefined,
+    authoritativeOptions: TestAuthoritativeVerifyOptions | undefined,
+  ): AuthoritativeTestLedger;
   appendRawLedgerEvent(event: unknown): void;
   setVerifierOverride(
     override: ((params: unknown) => Readonly<CalibrationReportPublicationResult>) | undefined,
   ): void;
+  releaseLockViaNativeDeps(): void;
   cleanup(): void;
 }
 
@@ -1161,6 +1186,7 @@ async function openAuthoritativeFixture(
     fsyncs: 0,
     clockReads: 0,
     verifierCalls: 0,
+    nativeVerifierCalls: 0,
   };
   let ticks = 0;
   const source = await loadAuthoritativeSource(baseDir, owner);
@@ -1176,6 +1202,36 @@ async function openAuthoritativeFixture(
   let verifierOverride:
     | ((params: unknown) => Readonly<CalibrationReportPublicationResult>)
     | undefined;
+  const nativeTraceEntries: AuthoritativeNativeTraceEntry[] = [];
+  const nativeVerify = (
+    params: Readonly<{
+      stage: StageName;
+      profile: CalibrationProfile;
+      snapshot: CalibrationStageReportSnapshot;
+    }>,
+  ): Readonly<CalibrationReportPublicationResult> => {
+    const snapshotRecord = params.snapshot as unknown as Record<string, unknown>;
+    const countsRecord =
+      (snapshotRecord['counts'] as Record<string, unknown> | undefined) ?? {};
+    const toCount = (value: unknown): number =>
+      typeof value === 'number' && Number.isFinite(value) ? value : -1;
+    const selectedRaw = snapshotRecord['selectedProfile'];
+    const pinnedRaw = snapshotRecord['pinnedModelVersion'];
+    const entry: AuthoritativeNativeTraceEntry = Object.freeze({
+      stage: params.stage,
+      profile: params.profile,
+      imageCallsReserved: toCount(countsRecord['imageCallsReserved']),
+      imageCallsCompleted: toCount(countsRecord['imageCallsCompleted']),
+      selectedProfile:
+        selectedRaw === 'LOW' || selectedRaw === 'MEDIUM'
+          ? (selectedRaw as CalibrationProfile)
+          : undefined,
+      pinnedModelVersion: typeof pinnedRaw === 'string' ? pinnedRaw : undefined,
+    });
+    nativeTraceEntries.push(entry);
+    effects.nativeVerifierCalls += 1;
+    return preparedVerifier.verify(params);
+  };
   const dispatchVerify = (
     params: Readonly<{
       stage: StageName;
@@ -1185,7 +1241,7 @@ async function openAuthoritativeFixture(
   ): Readonly<CalibrationReportPublicationResult> => {
     effects.verifierCalls += 1;
     if (verifierOverride !== undefined) return verifierOverride(params);
-    return preparedVerifier.verify(params);
+    return nativeVerify(params);
   };
   const standardReportOptions: CalibrationProtocolReportOptions = {
     getReportOutcomePlan: (selectedProfile) =>
@@ -1195,11 +1251,9 @@ async function openAuthoritativeFixture(
     verifyStageReportArtifacts: dispatchVerify,
   };
   const factory = createProtocolCalibrationLedger as unknown as AuthoritativeLedgerFactory;
-  const openLedger = (
-    reportOptions: CalibrationProtocolReportOptions | undefined,
-    authoritativeOptions: TestAuthoritativeVerifyOptions | undefined,
-  ): AuthoritativeTestLedger => {
-    const baseDeps = createFileCalibrationLedgerDeps(baseDir);
+  const wrapDeps = (
+    baseDeps: CalibrationLedgerDeps,
+  ): CalibrationLedgerDeps => {
     const deps: CalibrationLedgerDeps = {
       ...baseDeps,
       appendLedgerEvent: (event) => {
@@ -1233,6 +1287,31 @@ async function openAuthoritativeFixture(
         return at;
       },
     };
+    return deps;
+  };
+  const openLedger = (
+    reportOptions: CalibrationProtocolReportOptions | undefined,
+    authoritativeOptions: TestAuthoritativeVerifyOptions | undefined,
+  ): AuthoritativeTestLedger => {
+    const baseDeps = createFileCalibrationLedgerDeps(baseDir);
+    const deps = wrapDeps(baseDeps);
+    const keyResolver: CalibrationKeyResolver = (selectedProfile) =>
+      deriveCanonicalAllowedKeys({ ...source.context.files }, selectedProfile);
+    return factory(
+      deps,
+      { ...source.context.identity },
+      keyResolver,
+      reportOptions,
+      authoritativeOptions,
+    );
+  };
+  const openLedgerWithFileStoreOverrides = (
+    overrides: CalibrationFileStoreOverrides,
+    reportOptions: CalibrationProtocolReportOptions | undefined,
+    authoritativeOptions: TestAuthoritativeVerifyOptions | undefined,
+  ): AuthoritativeTestLedger => {
+    const baseDeps = createFileCalibrationLedgerDeps(baseDir, overrides);
+    const deps = wrapDeps(baseDeps);
     const keyResolver: CalibrationKeyResolver = (selectedProfile) =>
       deriveCanonicalAllowedKeys({ ...source.context.files }, selectedProfile);
     return factory(
@@ -1255,6 +1334,11 @@ async function openAuthoritativeFixture(
     effects,
     reportOptions: standardReportOptions,
     verifierOptions: standardVerifierOptions,
+    nativeVerify,
+    nativeTrace: () =>
+      nativeTraceEntries.map((entry) => ({ ...entry })) as ReadonlyArray<
+        Readonly<AuthoritativeNativeTraceEntry>
+      >,
     publish: async (stage, profile) => {
       const published = await publishCalibrationStageReport({
         stage,
@@ -1318,9 +1402,14 @@ async function openAuthoritativeFixture(
     lockPath: () => resolve(baseDir, CALIBRATION_ROOT, 'lock.json'),
     createLedger: (reportOptions, authoritativeOptions) =>
       openLedger(reportOptions, authoritativeOptions),
+    createLedgerWithFileStoreOverrides: (overrides, reportOptions, authoritativeOptions) =>
+      openLedgerWithFileStoreOverrides(overrides, reportOptions, authoritativeOptions),
     appendRawLedgerEvent: (event) => {
       effects.ledgerAppends += 1;
       readDeps.appendLedgerEvent(event);
+    },
+    releaseLockViaNativeDeps: () => {
+      createFileCalibrationLedgerDeps(baseDir).removeLock({ ...owner });
     },
     setVerifierOverride: (override) => {
       verifierOverride = override;
