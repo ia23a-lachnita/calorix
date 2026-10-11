@@ -15,7 +15,11 @@
 import { createHash } from 'crypto';
 import { CalibrationFatalError } from './fatal-error';
 import { CALIBRATION_PROTOCOL_VERSION } from './schema';
-import type { NutritionCaseResult, NutritionPrediction } from './schema';
+import type { NutritionPrediction } from './schema';
+import type {
+  CalibrationProfileMetrics,
+  CalibrationStageGateMetrics,
+} from './calibration-report-measurements';
 import { captureCalibrationReportJournalEntry } from './calibration-report-journal';
 import {
   captureCalibrationNonReservationEntry,
@@ -3793,15 +3797,6 @@ function createLedgerCore(
 
 // ── Pure profile selection ───────────────────────────────────────────────────
 
-interface CalibrationProfileMetrics {
-  unsafeCount: number;
-  parseCount: number;
-  catastrophicCount: number;
-  meanZeroSafeMacroError?: number;
-  medianKcalError?: number;
-  p90AnalysisLatencyMs?: number;
-}
-
 function effectiveDownstreamMetric(
   value: number | undefined,
   parseCount: number,
@@ -3880,43 +3875,6 @@ export function selectCalibrationProfile(
 }
 
 // ── Pure stage gates ─────────────────────────────────────────────────────────
-
-interface CalibrationStageGateMetrics {
-  totalCases?: number;
-  runCases?: number;
-  totalOutcomes?: number;
-  parseCases?: number;
-  unsafeCompletionCount?: number;
-  failureCount?: number;
-  catastrophicCount?: number;
-  medianRelativeCalorieError?: number;
-  p90RelativeCalorieError?: number;
-  meanZeroSafeMacroRelativeError?: number;
-  medianProteinRelativeError?: number;
-  medianCarbsRelativeError?: number;
-  medianFatRelativeError?: number;
-  medianMealMassRelativeError?: number;
-  p90AnalysisLatencyMs?: number;
-  parsedMealCount?: number;
-  mealMassEligibleCount?: number;
-  mealDensityCoverageCount?: number;
-  mealCarbDensityEligibleCount?: number;
-  mealFatDensityEligibleCount?: number;
-  meanMacroRelativeError?: number;
-  meanMealMassRelativeError?: number;
-  meanMealCarbDensityRelativeError?: number;
-  meanMealFatDensityRelativeError?: number;
-  medianMealProteinRelativeError?: number;
-  medianMealCarbsRelativeError?: number;
-  medianMealFatRelativeError?: number;
-  mealOutcomeCount?: number;
-  suppliedBarcodeOutcomeCount?: number;
-  labelOutcomeCount?: number;
-  visionCallCount?: number;
-  suppliedBarcodeImageCallCount?: number;
-  suppliedBarcodeVisionCallCount?: number;
-  suppliedBarcodeLiveOffCallCount?: number;
-}
 
 export interface CalibrationStageGateResult {
   passed: boolean;
@@ -4095,110 +4053,7 @@ export function evaluateCalibrationStageGate(
 
 // ── Meal-only metric aggregation ─────────────────────────────────────────────
 
-const MEAL_MACRO_FIELDS = ['proteinG', 'carbsG', 'fatG'] as const;
-type MealMacroField = (typeof MEAL_MACRO_FIELDS)[number];
+// Moved to ./calibration-report-measurements; re-exported here for existing callers.
 
-export interface CalibrationMealMetrics {
-  parsedMealCount: number;
-  proteinEligibleCount: number;
-  carbsEligibleCount: number;
-  fatEligibleCount: number;
-  medianMealProteinRelativeError?: number;
-  medianMealCarbsRelativeError?: number;
-  medianMealFatRelativeError?: number;
-  proteinZeroTruthCount: number;
-  carbsZeroTruthCount: number;
-  fatZeroTruthCount: number;
-  proteinZeroTruthMeanAbsoluteError?: number;
-  proteinZeroTruthMedianAbsoluteError?: number;
-  carbsZeroTruthMeanAbsoluteError?: number;
-  carbsZeroTruthMedianAbsoluteError?: number;
-  fatZeroTruthMeanAbsoluteError?: number;
-  fatZeroTruthMedianAbsoluteError?: number;
-}
-
-function linearInterp(sorted: readonly number[], idx: number): number {
-  const lo = Math.floor(idx);
-  const hi = Math.ceil(idx);
-  if (lo === hi || hi >= sorted.length) return sorted[lo] as number;
-  const frac = idx - lo;
-  return (sorted[lo] as number) + frac * ((sorted[hi] as number) - (sorted[lo] as number));
-}
-
-function percentile(sorted: readonly number[], p: number): number {
-  if (sorted.length === 0) return 0;
-  const idx = (p / 100) * (sorted.length - 1);
-  return linearInterp(sorted, idx);
-}
-
-function medianOf(values: readonly number[]): number | undefined {
-  if (values.length === 0) return undefined;
-  const sorted = [...values].sort((a, b) => a - b);
-  return percentile(sorted, 50);
-}
-
-function meanOf(values: readonly number[]): number | undefined {
-  if (values.length === 0) return undefined;
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-export function aggregateCalibrationMealMetrics(
-  results: readonly NutritionCaseResult[],
-): CalibrationMealMetrics {
-  let parsedMealCount = 0;
-  const relative: Record<MealMacroField, number[]> = {
-    proteinG: [],
-    carbsG: [],
-    fatG: [],
-  };
-  const zeroTruthAbsolute: Record<MealMacroField, number[]> = {
-    proteinG: [],
-    carbsG: [],
-    fatG: [],
-  };
-
-  for (const result of results) {
-    if (result.prediction.parseStatus !== 'success') continue;
-    if (result.prediction.source !== 'meal') continue;
-    parsedMealCount += 1;
-    for (const field of MEAL_MACRO_FIELDS) {
-      const metric = result.numeric[field];
-      const truthValue = result.truth?.[field];
-      if (metric === undefined || truthValue === undefined) continue;
-      if (truthValue > 0) {
-        relative[field].push(metric.absoluteError / truthValue);
-      } else if (truthValue === 0) {
-        zeroTruthAbsolute[field].push(metric.absoluteError);
-      }
-    }
-  }
-
-  const medianProtein = medianOf(relative.proteinG);
-  const medianCarbs = medianOf(relative.carbsG);
-  const medianFat = medianOf(relative.fatG);
-  const proteinZeroMean = meanOf(zeroTruthAbsolute.proteinG);
-  const proteinZeroMedian = medianOf(zeroTruthAbsolute.proteinG);
-  const carbsZeroMean = meanOf(zeroTruthAbsolute.carbsG);
-  const carbsZeroMedian = medianOf(zeroTruthAbsolute.carbsG);
-  const fatZeroMean = meanOf(zeroTruthAbsolute.fatG);
-  const fatZeroMedian = medianOf(zeroTruthAbsolute.fatG);
-
-  return {
-    parsedMealCount,
-    proteinEligibleCount: relative.proteinG.length,
-    carbsEligibleCount: relative.carbsG.length,
-    fatEligibleCount: relative.fatG.length,
-    ...(medianProtein !== undefined ? { medianMealProteinRelativeError: medianProtein } : {}),
-    ...(medianCarbs !== undefined ? { medianMealCarbsRelativeError: medianCarbs } : {}),
-    ...(medianFat !== undefined ? { medianMealFatRelativeError: medianFat } : {}),
-    proteinZeroTruthCount: zeroTruthAbsolute.proteinG.length,
-    carbsZeroTruthCount: zeroTruthAbsolute.carbsG.length,
-    fatZeroTruthCount: zeroTruthAbsolute.fatG.length,
-    ...(proteinZeroMean !== undefined ? { proteinZeroTruthMeanAbsoluteError: proteinZeroMean } : {}),
-    ...(proteinZeroMedian !== undefined ? { proteinZeroTruthMedianAbsoluteError: proteinZeroMedian } : {}),
-    ...(carbsZeroMean !== undefined ? { carbsZeroTruthMeanAbsoluteError: carbsZeroMean } : {}),
-    ...(carbsZeroMedian !== undefined ? { carbsZeroTruthMedianAbsoluteError: carbsZeroMedian } : {}),
-    ...(fatZeroMean !== undefined ? { fatZeroTruthMeanAbsoluteError: fatZeroMean } : {}),
-    ...(fatZeroMedian !== undefined ? { fatZeroTruthMedianAbsoluteError: fatZeroMedian } : {}),
-  };
-}
+export type { CalibrationMealMetrics } from './calibration-report-measurements';
+export { aggregateCalibrationMealMetrics } from './calibration-report-measurements';

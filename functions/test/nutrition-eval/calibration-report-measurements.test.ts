@@ -1115,8 +1115,13 @@ describe('descriptor capture matrix', () => {
     } catch (error) {
       caught = error;
     }
+    expect(messageReads).toBe(0);
+    expect(causeReads).toBe(0);
+    if (stackTracked) {
+      expect(stackReads).toBe(0);
+    }
     expect(caught).toBeInstanceOf(CalibrationFatalError);
-    expect(caught).not.toBe(foreign);
+    expect(caught === foreign).toBe(false);
     expect((caught as unknown as Error).message).toBe('calibration:report-measurements-invalid');
     expect(asRecord(caught).cause).toBeUndefined();
     expect(messageReads).toBe(0);
@@ -1257,5 +1262,72 @@ describe('meal-only medians exclude nonmeal distortions', () => {
     expect(measured.stage.medianMealMassRelativeError).toBeCloseTo(1, 9);
     expect(measured.stage.meanMealCarbDensityRelativeError).toBeCloseTo(0.5, 9);
     expect(measured.stage.meanMealFatDensityRelativeError).toBeCloseTo(0.5, 9);
+  });
+});
+
+describe('reflected cases key identity', () => {
+  const swappedKeyReplacements: ReadonlyArray<{
+    readonly name: string;
+    readonly keyFor: (length: number) => string | symbol;
+  }> = [
+    { name: 'symbol key', keyFor: () => Symbol('extra') },
+    { name: 'extra string key', keyFor: () => 'extra' },
+    { name: 'non-canonical 00 key', keyFor: () => '00' },
+    { name: 'out-of-range index key', keyFor: (length) => String(length) },
+  ];
+  for (const { name, keyFor } of swappedKeyReplacements) {
+    it(`swapped reflected cases key (${name}) is rejected without indexed descriptor reads`, async () => {
+      const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
+      const measure = await loadMeasure();
+      const mutable = cloneMutable(report);
+      const rawCases = asUnknownArray(mutable.cases);
+      const swapped = Reflect.ownKeys(rawCases).map((key) => (key === '0' ? keyFor(rawCases.length) : key));
+      let indexedDescriptorReads = 0;
+      const swappedCases = new Proxy(rawCases, {
+        ownKeys(): Array<string | symbol> {
+          return swapped;
+        },
+        getOwnPropertyDescriptor(target, key): PropertyDescriptor | undefined {
+          if (key !== 'length') indexedDescriptorReads += 1;
+          return Reflect.getOwnPropertyDescriptor(target, key);
+        },
+      });
+      mutable.cases = swappedCases;
+      let caught: unknown;
+      try {
+        measure(mutable);
+      } catch (error) {
+        caught = error;
+      }
+      expect(indexedDescriptorReads).toBe(0);
+      expect(caught).toBeInstanceOf(CalibrationFatalError);
+      expect((caught as unknown as Error).message).toBe('calibration:report-measurements-invalid');
+      expect(asRecord(caught).cause).toBeUndefined();
+    });
+  }
+  it('reordered cases ownKeys with the exact same key set still measures', async () => {
+    const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
+    const callerJson = JSON.stringify(report);
+    const measure = await loadMeasure();
+    const mutable = cloneMutable(report);
+    const rawCases = asUnknownArray(mutable.cases);
+    const reordered = [...Reflect.ownKeys(rawCases)].reverse();
+    const reorderedCases = new Proxy(rawCases, {
+      ownKeys(): Array<string | symbol> {
+        return reordered;
+      },
+      getOwnPropertyDescriptor(target, key): PropertyDescriptor | undefined {
+        return Reflect.getOwnPropertyDescriptor(target, key);
+      },
+    });
+    mutable.cases = reorderedCases;
+    const measured = measure(mutable);
+    expect(measured.profile.parseCount).toBe(24);
+    expect(measured.stage.totalOutcomes).toBe(24);
+    expect(measured.latency).toEqual({ measuredCases: 24, missingCases: 0 });
+    expect(Object.isFrozen(measured.report)).toBe(true);
+    expect(Object.isFrozen(measured.report.cases)).toBe(true);
+    expect(Object.isFrozen(rawCases)).toBe(false);
+    expect(JSON.stringify(report)).toBe(callerJson);
   });
 });
