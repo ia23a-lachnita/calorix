@@ -760,8 +760,6 @@ export interface AuthoritativeFixtureEffects {
   fsyncs: number;
   clockReads: number;
   verifierCalls: number;
-  providerCalls: number;
-  networkCalls: number;
 }
 
 export interface TestAuthoritativeVerifyOptions {
@@ -794,7 +792,10 @@ export interface AuthoritativeFixture {
   finishDevelopment(profile: CalibrationProfile, scenario: AuthoritativeScenario): Promise<void>;
   finishValidation(profile: CalibrationProfile, scenario: AuthoritativeScenario): Promise<void>;
   finishBenchmark(profile: CalibrationProfile, scenario: AuthoritativeScenario): Promise<void>;
-  reopen(newOwner: Readonly<CalibrationOwner>): Promise<AuthoritativeFixture>;
+  reopen(
+    newOwner: Readonly<CalibrationOwner>,
+    opts?: Readonly<{ acquire?: boolean }>,
+  ): Promise<AuthoritativeFixture>;
   receiptEvents(): ReadonlyArray<Record<string, unknown>>;
   ledgerEvents(): ReadonlyArray<unknown>;
   artifactPath(stage: StageName, profile: CalibrationProfile, extension: 'json' | 'md'): string;
@@ -1048,8 +1049,6 @@ async function openAuthoritativeFixture(
     fsyncs: 0,
     clockReads: 0,
     verifierCalls: 0,
-    providerCalls: 0,
-    networkCalls: 0,
   };
   let ticks = 0;
   const source = await loadAuthoritativeSource(baseDir, owner);
@@ -1180,9 +1179,9 @@ async function openAuthoritativeFixture(
     finishBenchmark: async (profile, scenario) => {
       finishBenchmarkFlow(ledger, source, profile, scenario);
     },
-    reopen: async (newOwner) => {
+    reopen: async (newOwner, opts) => {
       ledger.releaseLock({ ...owner });
-      return openAuthoritativeFixture(baseDir, newOwner, true);
+      return openAuthoritativeFixture(baseDir, newOwner, opts?.acquire ?? true);
     },
     receiptEvents: () =>
       readDeps
@@ -1229,5 +1228,10 @@ export async function makeAuthoritativeFixture(
   opts?: Readonly<{ acquire?: boolean }>,
 ): Promise<AuthoritativeFixture> {
   const baseDir = mkdtempSync(resolve(AUTHORITATIVE_TMP_ROOT, 'authoritative-reports-'));
-  return openAuthoritativeFixture(baseDir, owner, opts?.acquire ?? true);
+  try {
+    return await openAuthoritativeFixture(baseDir, owner, opts?.acquire ?? true);
+  } catch (error) {
+    rmSync(baseDir, { recursive: true, force: true });
+    throw error;
+  }
 }
