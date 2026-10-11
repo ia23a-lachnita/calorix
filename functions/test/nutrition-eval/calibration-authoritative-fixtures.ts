@@ -161,6 +161,22 @@ function createProviderFailurePrediction(
   };
 }
 
+function createProductFailurePrediction(
+  evalCase: NutritionEvalCase,
+  sampleIndex: number,
+): NutritionPrediction {
+  return {
+    parseStatus: 'failure',
+    source: evalCase.scanMode,
+    decision: 'error',
+    failureCategory: 'product',
+    failureCode: 'barcode_not_found',
+    latencyMs: 200,
+    sampleIndex,
+    cached: false,
+  };
+}
+
 function createInterruptedPrediction(
   evalCase: NutritionEvalCase,
   sampleIndex: number,
@@ -315,8 +331,10 @@ export async function rebuildReportFromEntries(
   );
   const totalCases = results.length;
   const imageOutcomes = entries.filter(({ evalCase }) => evalCase.scanMode !== 'barcode').length;
-  const failures = results.filter((r) => r.prediction.parseStatus === 'failure');
-  const safeErrors = failures.map((failed) => ({
+  const imageFailures = results.filter((r, index) =>
+    entries[index]!.evalCase.scanMode !== 'barcode' && r.prediction.parseStatus === 'failure',
+  );
+  const safeErrors = imageFailures.map((failed) => ({
     caseId: failed.caseId,
     sampleIndex: failed.prediction.sampleIndex ?? 1,
     errorCategory: (failed.prediction.failureCode === 'interrupted_reservation'
@@ -333,8 +351,8 @@ export async function rebuildReportFromEntries(
     schemaHash: ctx.identity.responseSchemaHash,
     stage,
     imageCallsReserved: imageOutcomes,
-    imageCallsCompleted: imageOutcomes - failures.length,
-    imageCallsFailed: failures.length,
+    imageCallsCompleted: imageOutcomes - imageFailures.length,
+    imageCallsFailed: imageFailures.length,
     safeErrors,
     latencyCoverage: { measuredCases, missingCases: totalCases - measuredCases },
   };
@@ -406,7 +424,10 @@ export async function makeAllFailureReport(params: AllFailureParams): Promise<Nu
   const entries: RebuildEntry[] = [];
   for (const evalCase of sourceCases) {
     for (const sampleIndex of samples) {
-      entries.push({ evalCase, prediction: createProviderFailurePrediction(evalCase, sampleIndex) });
+      const prediction = evalCase.scanMode === 'barcode'
+        ? createProductFailurePrediction(evalCase, sampleIndex)
+        : createProviderFailurePrediction(evalCase, sampleIndex);
+      entries.push({ evalCase, prediction });
     }
   }
   return rebuildReportFromEntries(params.stage, params.profile, entries, samples);
@@ -480,6 +501,207 @@ export async function makeNonMealDistortedReport(
     }
   }
   return rebuildReportFromEntries('benchmark', params.profile, entries, samples);
+}
+
+export interface BenchmarkCaseLimitParams {
+  readonly profile: CalibrationProfile;
+}
+
+/**
+ * Genuine 61-outcome benchmark report: 61 unique test-owned case ids cloned
+ * from genuine committed-source cases (training + public pools), each with a
+ * single exact sample. This report is deliberately not source-admissible
+ * against the locked manifest; pure measurement never source-binds. Rebuilt
+ * through the unchanged scorer + report builder, never a forged summary.
+ */
+export async function makeBenchmarkCaseLimitReport(
+  params: BenchmarkCaseLimitParams,
+): Promise<NutritionEvalReport> {
+  const ctx = await getFixtureContext();
+  const genuineCases: readonly NutritionEvalCase[] = [...ctx.trainingCases, ...ctx.publicCases];
+  const entries: RebuildEntry[] = [];
+  for (let index = 0; index < 61; index += 1) {
+    const source = genuineCases[index % genuineCases.length]!;
+    const clonedCase: NutritionEvalCase = { ...source, id: `${source.id}-cap61-${index}` };
+    entries.push({ evalCase: clonedCase, prediction: createExactPrediction(clonedCase, 1) });
+  }
+  return rebuildReportFromEntries('benchmark', params.profile, entries, [1]);
+}
+
+export interface NodeBudgetReportParams {
+  readonly profile: CalibrationProfile;
+}
+
+const NODE_BUDGET_REFERENCE_VECTOR = {
+  kcal: 1, proteinG: 1, carbsG: 1, fatG: 1, amount: 50, unit: 'g' as const,
+};
+
+function createNodeBudgetPrediction(
+  evalCase: NutritionEvalCase,
+  sampleIndex: number,
+): NutritionPrediction {
+  const base = createExactPrediction(evalCase, sampleIndex) as unknown as Record<string, unknown>;
+  base.reviewReasons = new Array(256).fill('package_quantity_missing');
+  const existingDiagnostics = (base.diagnostics as Record<string, unknown> | undefined) ?? {};
+  base.diagnostics = {
+    rawNutrients: { kcal: 1, proteinG: 1, carbsG: 1, fatG: 1 },
+    detectedItemCount: 1,
+    estimatedTotalMassG: 100,
+    declaredBasis: 'portion',
+    declaredAmount: 1,
+    declaredUnit: 'portion',
+    observedAmount: 50,
+    observedUnit: 'g',
+    packageReference: NODE_BUDGET_REFERENCE_VECTOR,
+    per100Reference: NODE_BUDGET_REFERENCE_VECTOR,
+    servingReference: NODE_BUDGET_REFERENCE_VECTOR,
+    ...existingDiagnostics,
+  };
+  return base as unknown as NutritionPrediction;
+}
+
+/**
+ * Genuine benchmark60report whose predictions are enriched with a full,
+ * schema-valid 256-entry reviewReasons array plus rich (but structurally
+ * valid) diagnostic reference vectors, pushing the serialized JSON node
+ * count comfortably past 20000 while staying within every other capture
+ * bound (strings<=4096, arrays<=256, depth<32) and leaving the scorer's
+ * genuine summary untouched.
+ */
+export async function makeNodeBudgetReport(
+  params: NodeBudgetReportParams,
+): Promise<NutritionEvalReport> {
+  const ctx = await getFixtureContext();
+  const samples: readonly number[] = [1, 2, 3];
+  const entries: RebuildEntry[] = [];
+  for (const evalCase of ctx.publicCases) {
+    for (const sampleIndex of samples) {
+      entries.push({ evalCase, prediction: createNodeBudgetPrediction(evalCase, sampleIndex) });
+    }
+  }
+  return rebuildReportFromEntries('benchmark', params.profile, entries, samples);
+}
+
+export interface MealMedianDiscriminatorParams {
+  readonly profile: CalibrationProfile;
+}
+
+function createMealMedianPrediction(
+  evalCase: NutritionEvalCase,
+  sampleIndex: number,
+  ratio: number,
+): NutritionPrediction {
+  const base = createExactPrediction(evalCase, sampleIndex) as unknown as Record<string, unknown>;
+  const truth = evalCase.truth;
+  base.proteinG = truth.proteinG * ratio;
+  base.carbsG = truth.carbsG * ratio;
+  base.fatG = truth.fatG * ratio;
+  const diagnostics = base.diagnostics as Record<string, unknown> | undefined;
+  if (diagnostics !== undefined) {
+    diagnostics.rawNutrients = {
+      kcal: truth.kcal,
+      proteinG: truth.proteinG * ratio,
+      carbsG: truth.carbsG * ratio,
+      fatG: truth.fatG * ratio,
+    };
+  }
+  return base as unknown as NutritionPrediction;
+}
+
+function createNonMealCatastrophicPrediction(
+  evalCase: NutritionEvalCase,
+  sampleIndex: number,
+): NutritionPrediction {
+  const truth = evalCase.truth;
+  const prediction: Record<string, unknown> = {
+    parseStatus: 'success',
+    source: evalCase.scanMode,
+    kcal: truth.kcal * 3 + 50,
+    proteinG: truth.proteinG > 0 ? truth.proteinG * 6 : 0,
+    carbsG: truth.carbsG > 0 ? truth.carbsG * 6 : 0,
+    fatG: truth.fatG > 0 ? truth.fatG * 6 : 0,
+    confidence: 0.85,
+    basis: truth.basis,
+    amount: truth.amount,
+    unit: truth.unit,
+    decision: 'complete',
+    reviewReasons: [],
+    latencyMs: 1500,
+    sampleIndex,
+    cached: false,
+  };
+  if (evalCase.expectedBarcode !== undefined) {
+    prediction.barcode = evalCase.expectedBarcode;
+  }
+  return prediction as unknown as NutritionPrediction;
+}
+
+/**
+ * Genuine benchmark60report discriminating meal-only macro medians from
+ * whole-report medians. The first six meal cases (by public manifest order)
+ * get protein/carbs/fat quadrupled (relative error 3); the last six meal
+ * cases get them doubled (relative error 1); meal kcal stays exact with
+ * decision needs_review (never catastrophic/unsafe). All eight nonmeal
+ * cases get positive macros multiplied by 6 (relative error 5, zero macros
+ * stay zero) and kcal = 3*truth+50 with decision complete, making every
+ * nonmeal outcome catastrophic and unsafe (including the 0-kcal case,
+ * since the +50 offset still exceeds 2x truth). Truth/manifests are never
+ * mutated; summaries are genuinely recomputed through the unchanged
+ * scorer + report builder.
+ */
+export async function makeMealMedianDiscriminatorReport(
+  params: MealMedianDiscriminatorParams,
+): Promise<NutritionEvalReport> {
+  const ctx = await getFixtureContext();
+  const samples: readonly number[] = [1, 2, 3];
+  const mealCases = ctx.publicCases.filter((c) => c.scanMode === 'meal');
+  const nonMealCases = ctx.publicCases.filter((c) => c.scanMode !== 'meal');
+  const entries: RebuildEntry[] = [];
+  mealCases.forEach((evalCase, index) => {
+    const ratio = index < 6 ? 4 : 2;
+    for (const sampleIndex of samples) {
+      entries.push({ evalCase, prediction: createMealMedianPrediction(evalCase, sampleIndex, ratio) });
+    }
+  });
+  for (const evalCase of nonMealCases) {
+    for (const sampleIndex of samples) {
+      entries.push({ evalCase, prediction: createNonMealCatastrophicPrediction(evalCase, sampleIndex) });
+    }
+  }
+  return rebuildReportFromEntries('benchmark', params.profile, entries, samples);
+}
+
+/**
+ * Single-outcome development-population helper exercising nonzero kcal/mass/
+ * density mapping (not the degenerate all-zero case). Takes the second
+ * committed development training case (positive kcal/carbs/fat and
+ * referenceMassG), scales predicted kcal to 1.5x truth and the estimated
+ * meal mass to 2x truth.referenceMassG while keeping raw macro values exact,
+ * so carb/fat density halves (relative error 0.5) and mass doubles (relative
+ * error 1). This deliberately partial 1-outcome population is a pure-helper
+ * input only, not a locked native-source-admissible development-24 report;
+ * truth/summary/manifests are never mutated, and the summary is genuinely
+ * recomputed through the unchanged scorer + report builder.
+ */
+export async function makeNonzeroMappingReport(): Promise<NutritionEvalReport> {
+  const ctx = await getFixtureContext();
+  const developmentCases = ctx.trainingCases.filter((c) => c.group === 'development');
+  const evalCase = developmentCases[1]!;
+  const truth = evalCase.truth;
+  const base = createExactPrediction(evalCase, 1) as unknown as Record<string, unknown>;
+  base.kcal = truth.kcal * 1.5;
+  const diagnostics = base.diagnostics as Record<string, unknown> | undefined;
+  if (diagnostics !== undefined) {
+    diagnostics.estimatedTotalMassG = (truth.referenceMassG ?? 0) * 2;
+    diagnostics.rawNutrients = {
+      kcal: truth.kcal * 1.5,
+      proteinG: truth.proteinG,
+      carbsG: truth.carbsG,
+      fatG: truth.fatG,
+    };
+  }
+  const prediction = base as unknown as NutritionPrediction;
+  return rebuildReportFromEntries('development', 'LOW', [{ evalCase, prediction }], [1]);
 }
 
 /** Test-owned deep clone typed as an owned report (mutation cases only). */

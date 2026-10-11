@@ -5,13 +5,18 @@ import { fileURLToPath } from 'node:url';
 import {
   cloneOwnedReport,
   makeAllFailureReport,
+  makeBenchmarkCaseLimitReport,
   makeEmptyCalibrationReport,
   makeLatencyControlReport,
   makeMeasuredReport,
+  makeMealMedianDiscriminatorReport,
+  makeNonzeroMappingReport,
+  makeNodeBudgetReport,
   makeNonMealDistortedReport,
   makeValidationTwoFailureReport,
 } from './calibration-authoritative-fixtures';
 import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
+import { NutritionEvalReportSchema } from '../../src/nutrition-eval/schema';
 import type {
   NutritionCaseResult,
   NutritionEvalReport,
@@ -127,6 +132,23 @@ async function loadMealHelper(): Promise<MealHelperFn> {
   return fn as unknown as MealHelperFn;
 }
 
+/** Counts every container (object/array) and primitive value; never counts key names or array `.length`. */
+function countJsonNodes(value: unknown): number {
+  if (Array.isArray(value)) {
+    let count = 1;
+    for (const item of value) count += countJsonNodes(item);
+    return count;
+  }
+  if (value !== null && typeof value === 'object') {
+    let count = 1;
+    for (const key of Object.keys(value as Record<string, unknown>)) {
+      count += countJsonNodes((value as Record<string, unknown>)[key]);
+    }
+    return count;
+  }
+  return 1;
+}
+
 describe('fixture controls (no measurement import)', () => {
   it('development exact has 24 public outcomes with truth from committed training manifest', async () => {
     const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
@@ -178,6 +200,72 @@ describe('fixture controls (no measurement import)', () => {
     for (const c of report.cases) {
       expect(c.prediction).not.toHaveProperty('diagnostics');
     }
+  });
+  it('node-budget fixture is schema-valid and exceeds the 20000-node graph bound', async () => {
+    const report = await makeNodeBudgetReport({ profile: 'MEDIUM' });
+    expect(report.cases).toHaveLength(60);
+    const pairs = new Set(report.cases.map((c) => `${c.caseId}:${c.prediction.sampleIndex}`));
+    expect(pairs.size).toBe(60);
+    for (const c of report.cases) {
+      expect(c.prediction.cached).toBe(false);
+      expect(c.prediction.parseStatus).toBe('success');
+      expect(c.prediction.reviewReasons).toHaveLength(256);
+    }
+    expect(report.summary.parseCases).toBe(60);
+    const parsed = NutritionEvalReportSchema.safeParse(report);
+    expect(parsed.success).toBe(true);
+    expect(countJsonNodes(report)).toBeGreaterThan(20000);
+  });
+  it('meal-median discriminator fixture is schema-valid with literal eligibility/medians and legacy parity', async () => {
+    const report = await makeMealMedianDiscriminatorReport({ profile: 'MEDIUM' });
+    expect(report.cases).toHaveLength(60);
+    expect(report.summary.parseCases).toBe(60);
+    const failed = report.cases.filter((c) => c.prediction.parseStatus === 'failure');
+    expect(failed).toHaveLength(0);
+    expect(report.summary.catastrophicCount).toBe(24);
+    expect(report.summary.unsafeCompletionCount).toBe(24);
+    expect(report.summary.proteinEligibleCount).toBe(54);
+    expect(report.summary.carbsEligibleCount).toBe(54);
+    expect(report.summary.fatEligibleCount).toBe(54);
+    expect(report.summary.medianProteinRelativeError).toBeCloseTo(3, 9);
+    expect(report.summary.medianCarbsRelativeError).toBeCloseTo(3, 9);
+    expect(report.summary.medianFatRelativeError).toBeCloseTo(3, 9);
+    expect(report.summary.parsedMealCount).toBe(36);
+    expect(report.summary.mealMassEligibleCount).toBe(36);
+    expect(report.summary.mealDensityCoverageCount).toBe(36);
+    expect(report.summary.mealCarbDensityEligibleCount).toBe(33);
+    expect(report.summary.mealFatDensityEligibleCount).toBe(36);
+    expect(report.summary.meanMealFatDensityRelativeError).toBeCloseTo(2, 9);
+    expect(report.summary.meanMealCarbDensityRelativeError).toBeCloseTo(21 / 11, 9);
+    expect(report.summary.meanMealMassRelativeError).toBe(0);
+    expect(report.summary.medianMealMassRelativeError).toBe(0);
+    const { aggregateCalibrationMealMetrics } = await import(
+      '../../src/nutrition-eval/calibration'
+    );
+    const legacy = aggregateCalibrationMealMetrics(report.cases);
+    expect(legacy.parsedMealCount).toBe(36);
+    expect(legacy.proteinEligibleCount).toBe(36);
+    expect(legacy.carbsEligibleCount).toBe(33);
+    expect(legacy.fatEligibleCount).toBe(36);
+    expect(legacy.medianMealProteinRelativeError).toBeCloseTo(2, 9);
+    expect(legacy.medianMealCarbsRelativeError).toBeCloseTo(1, 9);
+    expect(legacy.medianMealFatRelativeError).toBeCloseTo(2, 9);
+    const parsed = NutritionEvalReportSchema.safeParse(report);
+    expect(parsed.success).toBe(true);
+  });
+  it('nonzero-mapping fixture is schema-valid with literal kcal/mass/density relative errors', async () => {
+    const report = await makeNonzeroMappingReport();
+    expect(report.cases).toHaveLength(1);
+    expect(report.summary.parseCases).toBe(1);
+    expect(report.summary.medianRelativeCalorieError).toBeCloseTo(0.5, 9);
+    expect(report.summary.p90RelativeCalorieError).toBeCloseTo(0.5, 9);
+    expect(report.summary.meanMealMassRelativeError).toBeCloseTo(1, 9);
+    expect(report.summary.medianMealMassRelativeError).toBeCloseTo(1, 9);
+    expect(report.summary.mealDensityCoverageCount).toBe(1);
+    expect(report.summary.meanMealCarbDensityRelativeError).toBeCloseTo(0.5, 9);
+    expect(report.summary.meanMealFatDensityRelativeError).toBeCloseTo(0.5, 9);
+    const parsed = NutritionEvalReportSchema.safeParse(report);
+    expect(parsed.success).toBe(true);
   });
 });
 
@@ -273,11 +361,16 @@ describe('pure bridge representative mapping (breaks wrong denominator/branch)',
     const measure = await loadMeasure();
     expect(() => measure(forged)).toThrow('calibration:report-measurements-invalid');
   });
-  it('duplicate sample pairs are rejected (breaks double-count)', async () => {
+  it('duplicate case/sample pairs are rejected while schema-valid (breaks double-count)', async () => {
     const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
     const duped = cloneMutable(report);
-    const dupedCases = asUnknownArray(duped.cases);
-    dupedCases.push(JSON.parse(JSON.stringify(dupedCases[0])) as unknown);
+    const first = caseAt(duped, 0);
+    const second = caseAt(duped, 1);
+    expect(predictionAt(duped, 0).sampleIndex).toBe(1);
+    expect(predictionAt(duped, 1).sampleIndex).toBe(1);
+    second.caseId = first.caseId;
+    const parsed = NutritionEvalReportSchema.safeParse(duped);
+    expect(parsed.success).toBe(true);
     const measure = await loadMeasure();
     expect(() => measure(duped)).toThrow('calibration:report-measurements-invalid');
   });
@@ -497,15 +590,22 @@ describe('pure bridge representative mapping (breaks wrong denominator/branch)',
     predictionAt(undefed, 0).kcal = undefined;
     expect(() => measure(undefed)).toThrow('calibration:report-measurements-invalid');
   });
-  it('oversize strings and dense arrays are rejected at capture limits (breaks unbounded capture)', async () => {
+  it('rejects strings beyond 4096 code units while a 4096-length runId measures', async () => {
     const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
-    const measure = await loadMeasure();
     const big = cloneMutable(report);
     big.runId = `x${'y'.repeat(5000)}`;
+    const atLimit = cloneMutable(report);
+    atLimit.runId = 'r'.repeat(4096);
+    const overLimit = cloneMutable(report);
+    overLimit.runId = 'r'.repeat(4097);
+    expect(NutritionEvalReportSchema.safeParse(big).success).toBe(true);
+    expect(NutritionEvalReportSchema.safeParse(atLimit).success).toBe(true);
+    expect(NutritionEvalReportSchema.safeParse(overLimit).success).toBe(true);
+    const measure = await loadMeasure();
     expect(() => measure(big)).toThrow('calibration:report-measurements-invalid');
-    const dense = cloneMutable(report);
-    dense.cases = new Array(61).fill(asUnknownArray(dense.cases)[0] as unknown) as unknown;
-    expect(() => measure(dense)).toThrow('calibration:report-measurements-invalid');
+    const measuredAtLimit = measure(atLimit);
+    expect(measuredAtLimit.profile.parseCount).toBe(24);
+    expect(() => measure(overLimit)).toThrow('calibration:report-measurements-invalid');
   });
 });
 
@@ -526,6 +626,8 @@ describe('validation two-failure genuine population (46 parsed / 48 outcomes)', 
       expect(c.prediction.sampleIndex).toBeGreaterThanOrEqual(1);
     }
     expect(report.summary.parseCases).toBe(46);
+    expect(report.summary.mealCarbDensityEligibleCount).toBe(46);
+    expect(report.summary.mealFatDensityEligibleCount).toBe(46);
     expect(report.calibration?.safeErrors).toHaveLength(2);
     expect(report.calibration?.latencyCoverage).toEqual({ measuredCases: 48, missingCases: 0 });
   });
@@ -540,8 +642,8 @@ describe('validation two-failure genuine population (46 parsed / 48 outcomes)', 
     expect(measured.stage.parsedMealCount).toBe(46);
     expect(measured.stage.mealMassEligibleCount).toBe(46);
     expect(measured.stage.mealDensityCoverageCount).toBe(46);
-    expect(measured.stage.mealCarbDensityEligibleCount).toBe(report.summary.mealCarbDensityEligibleCount);
-    expect(measured.stage.mealFatDensityEligibleCount).toBe(report.summary.mealFatDensityEligibleCount);
+    expect(measured.stage.mealCarbDensityEligibleCount).toBe(46);
+    expect(measured.stage.mealFatDensityEligibleCount).toBe(46);
     expect(measured.latency).toEqual({ measuredCases: 48, missingCases: 0 });
     expect(Number.isFinite(measured.profile.p90AnalysisLatencyMs)).toBe(true);
     expect(Number.isFinite(measured.stage.p90AnalysisLatencyMs)).toBe(true);
@@ -594,6 +696,46 @@ describe('failure and empty populations', () => {
     expect(hasOwn(measured.stage, 'meanZeroSafeMacroRelativeError')).toBe(false);
     expect(measured.stage.p90AnalysisLatencyMs).toBe(report.summary.latencyMs?.p90);
     expect(measured.latency).toEqual({ measuredCases: 24, missingCases: 0 });
+  });
+  it('benchmark all-failure report splits image provider failures from barcode product failures', async () => {
+    const report = await makeAllFailureReport({ stage: 'benchmark', profile: 'MEDIUM' });
+    expect(report.cases).toHaveLength(60);
+    for (const c of report.cases) {
+      expect(c.prediction.parseStatus).toBe('failure');
+    }
+    expect(report.summary.parseCases).toBe(0);
+    expect(report.summary.totalCases).toBe(60);
+    const barcodeFailures = report.cases.filter((c) => c.prediction.source === 'barcode');
+    expect(barcodeFailures).toHaveLength(12);
+    for (const c of barcodeFailures) {
+      expect(c.prediction.failureCategory).toBe('product');
+      expect(c.prediction.cached).toBe(false);
+      expect(c.prediction.latencyMs).toBe(200);
+    }
+    const nonBarcodeFailures = report.cases.filter((c) => c.prediction.source !== 'barcode');
+    expect(nonBarcodeFailures).toHaveLength(48);
+    for (const c of nonBarcodeFailures) {
+      expect(c.prediction.failureCategory).toBe('provider');
+      expect(c.prediction.latencyMs).toBe(200);
+    }
+    expect(report.calibration?.imageCallsReserved).toBe(48);
+    expect(report.calibration?.imageCallsCompleted).toBe(0);
+    expect(report.calibration?.imageCallsFailed).toBe(48);
+    expect(report.calibration?.safeErrors).toHaveLength(48);
+    expect(report.calibration?.latencyCoverage).toEqual({ measuredCases: 60, missingCases: 0 });
+  });
+  it('measures benchmark all-failure outcomes with failureCount 60, not the 48 image-only count', async () => {
+    const report = await makeAllFailureReport({ stage: 'benchmark', profile: 'MEDIUM' });
+    const measure = await loadMeasure();
+    const measured = measure(report);
+    expect(measured.profile.parseCount).toBe(0);
+    expect(measured.stage.totalOutcomes).toBe(60);
+    expect(measured.stage.parseCases).toBe(0);
+    expect(measured.stage.failureCount).toBe(60);
+    expect(measured.stage.mealOutcomeCount).toBe(36);
+    expect(measured.stage.labelOutcomeCount).toBe(12);
+    expect(measured.stage.suppliedBarcodeOutcomeCount).toBe(12);
+    expect(measured.latency).toEqual({ measuredCases: 60, missingCases: 0 });
   });
   it('empty report has absent latency and downstream metrics with required zero aggregates', async () => {
     const report = await makeEmptyCalibrationReport({ stage: 'development', profile: 'LOW' });
@@ -777,6 +919,36 @@ describe('descriptor capture matrix', () => {
     (predictionAt(nestedSymbol, 0) as unknown as Record<symbol, unknown>)[sym] = 2;
     expect(() => measure(nestedSymbol)).toThrow('calibration:report-measurements-invalid');
   });
+  it('null-prototype root report and nested prediction are accepted with a genuine summary', async () => {
+    const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
+    const mutable = cloneMutable(report);
+    const firstCase = caseAt(mutable, 0);
+    const nullPrototypePrediction = Object.assign(
+      Object.create(null) as Record<string, unknown>,
+      predictionAt(mutable, 0),
+    );
+    firstCase.prediction = nullPrototypePrediction;
+    const nullPrototypeReport = Object.assign(Object.create(null) as Record<string, unknown>, mutable);
+    expect(Object.getPrototypeOf(nullPrototypeReport)).toBeNull();
+    expect(Object.getPrototypeOf(nullPrototypePrediction)).toBeNull();
+    const parsed = NutritionEvalReportSchema.safeParse(nullPrototypeReport);
+    expect(parsed.success).toBe(true);
+    const measure = await loadMeasure();
+    const measured = measure(nullPrototypeReport);
+    expect(measured.profile.parseCount).toBe(24);
+    expect(measured.stage.totalOutcomes).toBe(24);
+    expect(Object.isFrozen(nullPrototypeReport)).toBe(false);
+    expect(Object.isFrozen(nullPrototypePrediction)).toBe(false);
+    expect(Object.isFrozen(measured.report)).toBe(true);
+    expect(Object.isFrozen(measured.report.cases)).toBe(true);
+    expect(Object.isFrozen(measured.profile)).toBe(true);
+    expect(Object.isFrozen(measured.stage)).toBe(true);
+    expect(Object.isFrozen(measured.latency)).toBe(true);
+    expect(Object.isFrozen(measured)).toBe(true);
+    expect(measured.report).not.toBe(nullPrototypeReport);
+    expect(measured.report.cases[0]!.prediction).not.toBe(nullPrototypePrediction);
+    expect(Object.isFrozen(measured.report.cases[0]!.prediction)).toBe(true);
+  });
   it('foreign object prototypes are rejected', async () => {
     const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
     const measure = await loadMeasure();
@@ -786,6 +958,24 @@ describe('descriptor capture matrix', () => {
     const foreignNested = cloneMutable(report);
     Object.setPrototypeOf(predictionAt(foreignNested, 0), { marker: 2 });
     expect(() => measure(foreignNested)).toThrow('calibration:report-measurements-invalid');
+  });
+  it('foreign array prototypes are rejected without getter or coercion reads', async () => {
+    const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
+    const measure = await loadMeasure();
+    let reads = 0;
+    const foreignArrayProto: Record<string, unknown> = {};
+    Object.defineProperty(foreignArrayProto, 'marker', {
+      enumerable: true,
+      get: (): number => { reads += 1; return 1; },
+    });
+    (foreignArrayProto as unknown as { [Symbol.toPrimitive]: () => number })[Symbol.toPrimitive] = (): number => {
+      reads += 1;
+      return 0;
+    };
+    const tainted = cloneMutable(report);
+    Object.setPrototypeOf(asUnknownArray(tainted.cases), foreignArrayProto);
+    expect(() => measure(tainted)).toThrow('calibration:report-measurements-invalid');
+    expect(reads).toBe(0);
   });
   it('sparse arrays, extra array keys, and accessor slots are rejected', async () => {
     const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
@@ -827,6 +1017,35 @@ describe('descriptor capture matrix', () => {
       asRecord(diagnostics).self = nestedCycle;
     }
     expect(() => measure(nestedCycle)).toThrow('calibration:report-measurements-invalid');
+  });
+  it('acyclic shared truth references across sibling cases are accepted, not treated as a cycle', async () => {
+    const report = await makeMeasuredReport({ stage: 'validation', profile: 'MEDIUM', scenario: 'exact' });
+    const callerJson = JSON.stringify(report);
+    const mutable = cloneMutable(report);
+    const first = caseAt(mutable, 0);
+    const second = caseAt(mutable, 1);
+    expect(second.caseId).toBe(first.caseId);
+    expect(predictionAt(mutable, 0).sampleIndex).toBe(1);
+    expect(predictionAt(mutable, 1).sampleIndex).toBe(2);
+    expect(second.truth).toEqual(first.truth);
+    second.truth = first.truth;
+    const parsed = NutritionEvalReportSchema.safeParse(mutable);
+    expect(parsed.success).toBe(true);
+    const measure = await loadMeasure();
+    const measured = measure(mutable);
+    expect(measured.profile.parseCount).toBe(48);
+    expect(measured.stage.totalOutcomes).toBe(48);
+    expect(Object.isFrozen(mutable)).toBe(false);
+    expect(Object.isFrozen(measured.report)).toBe(true);
+    expect(Object.isFrozen(measured.report.cases)).toBe(true);
+    expect(Object.isFrozen(first.truth)).toBe(false);
+    const ownedFirstTruth = measured.report.cases[0]!.truth;
+    const ownedSecondTruth = measured.report.cases[1]!.truth;
+    expect(ownedFirstTruth).not.toBe(first.truth);
+    expect(ownedSecondTruth).not.toBe(first.truth);
+    expect(Object.isFrozen(ownedFirstTruth)).toBe(true);
+    expect(Object.isFrozen(ownedSecondTruth)).toBe(true);
+    expect(JSON.stringify(report)).toBe(callerJson);
   });
   it('bigint, function, NaN, and Infinity values are rejected', async () => {
     const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
@@ -920,19 +1139,27 @@ describe('capture bounds', () => {
     const measured = measure(boundary);
     expect(measured.profile.parseCount).toBe(24);
   });
-  it('rejects node counts beyond the graph bound', async () => {
-    const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
+  it('rejects node counts beyond the graph bound without summary drift or other cap violations', async () => {
+    const report = await makeNodeBudgetReport({ profile: 'MEDIUM' });
+    expect(countJsonNodes(report)).toBeGreaterThan(20000);
+    const parsed = NutritionEvalReportSchema.safeParse(report);
+    expect(parsed.success).toBe(true);
     const measure = await loadMeasure();
-    const bushy = cloneMutable(report);
-    const codes = asRecord(asRecord(bushy.summary).failuresByCode);
-    for (let i = 0; i < 21000; i += 1) {
-      codes[`code_${i}`] = 0;
-    }
-    expect(() => measure(bushy)).toThrow('calibration:report-measurements-invalid');
+    expect(() => measure(report)).toThrow('calibration:report-measurements-invalid');
   });
-  it('rejects nesting beyond the depth bound', async () => {
+  it('rejects nesting beyond the depth bound without ever reflecting the Proxy leaf', async () => {
     const report = await makeMeasuredReport({ stage: 'development', profile: 'LOW', scenario: 'exact' });
-    const measure = await loadMeasure();
+    let leafReflections = 0;
+    const leaf = new Proxy({}, {
+      ownKeys(): Array<string | symbol> {
+        leafReflections += 1;
+        return [];
+      },
+      getOwnPropertyDescriptor(): PropertyDescriptor | undefined {
+        leafReflections += 1;
+        return undefined;
+      },
+    });
     const deep: Record<string, unknown> = {};
     let cursor = deep;
     for (let i = 0; i < 40; i += 1) {
@@ -940,18 +1167,34 @@ describe('capture bounds', () => {
       cursor.nested = next;
       cursor = next;
     }
+    cursor.nested = leaf;
     const input = cloneMutable(report);
     input.deep = deep;
+    const measure = await loadMeasure();
     expect(() => measure(input)).toThrow('calibration:report-measurements-invalid');
+    expect(leafReflections).toBe(0);
   });
-  it('rejects a 61st case while 60 canonical outcomes remain measurable', async () => {
+  it('rejects a 61st-outcome report only after its own preconditions pass, loading measurement last', async () => {
     const report = await makeMeasuredReport({ stage: 'benchmark', profile: 'MEDIUM', scenario: 'exact' });
+    const over = await makeBenchmarkCaseLimitReport({ profile: 'MEDIUM' });
+    expect(over.cases).toHaveLength(61);
+    expect(over.publicCases).toBe(61);
+    expect(over.privateCases).toBe(0);
+    expect(over.samples).toBe(1);
+    const pairs = new Set(over.cases.map((c) => `${c.caseId}:${c.prediction.sampleIndex}`));
+    expect(pairs.size).toBe(61);
+    for (const c of over.cases) {
+      expect(c.prediction.cached).toBe(false);
+      expect(c.prediction.sampleIndex).toBe(1);
+      expect(c.caseId.length).toBeLessThanOrEqual(4096);
+    }
+    expect(over.calibration?.safeErrors ?? []).toHaveLength(0);
+    expect(over.calibration?.latencyCoverage).toEqual({ measuredCases: 61, missingCases: 0 });
+    const parsed = NutritionEvalReportSchema.safeParse(over);
+    expect(parsed.success).toBe(true);
     const measure = await loadMeasure();
     const measured = measure(report);
     expect(measured.stage.totalOutcomes).toBe(60);
-    const over = cloneMutable(report);
-    const overCases = asUnknownArray(over.cases);
-    overCases.push(JSON.parse(JSON.stringify(overCases[0])) as unknown);
     expect(() => measure(over)).toThrow('calibration:report-measurements-invalid');
   });
 });
@@ -981,5 +1224,38 @@ describe('meal-only medians exclude nonmeal distortions', () => {
     expect(legacy.medianMealFatRelativeError).toBe(0);
     const next = await loadMealHelper();
     expect(next(report.cases)).toEqual(legacy);
+  });
+  it('measures meal-only medians distinct from whole-report medians with literal catastrophic/unsafe counts', async () => {
+    const report = await makeMealMedianDiscriminatorReport({ profile: 'MEDIUM' });
+    const measure = await loadMeasure();
+    const measured = measure(report);
+    expect(measured.stage.medianMealProteinRelativeError).toBeCloseTo(2, 9);
+    expect(measured.stage.medianMealCarbsRelativeError).toBeCloseTo(1, 9);
+    expect(measured.stage.medianMealFatRelativeError).toBeCloseTo(2, 9);
+    expect(measured.stage.medianProteinRelativeError).toBeCloseTo(3, 9);
+    expect(measured.stage.medianCarbsRelativeError).toBeCloseTo(3, 9);
+    expect(measured.stage.medianFatRelativeError).toBeCloseTo(3, 9);
+    expect(measured.profile.meanZeroSafeMacroError).toBeCloseTo(82 / 27, 9);
+    expect(measured.stage.meanZeroSafeMacroRelativeError).toBeCloseTo(82 / 27, 9);
+    expect(measured.stage.meanMealFatDensityRelativeError).toBeCloseTo(2, 9);
+    expect(measured.stage.meanMealCarbDensityRelativeError).toBeCloseTo(21 / 11, 9);
+    expect(measured.profile.unsafeCount).toBe(24);
+    expect(measured.profile.catastrophicCount).toBe(24);
+    expect(measured.stage.unsafeCompletionCount).toBe(24);
+    expect(measured.stage.catastrophicCount).toBe(24);
+    expect(measured.stage.failureCount).toBe(0);
+    expect(measured.stage.parseCases).toBe(60);
+  });
+  it('measures nonzero kcal/mass/density mappings instead of a constant-zero substitute', async () => {
+    const report = await makeNonzeroMappingReport();
+    const measure = await loadMeasure();
+    const measured = measure(report);
+    expect(measured.profile.medianKcalError).toBeCloseTo(0.5, 9);
+    expect(measured.stage.medianRelativeCalorieError).toBeCloseTo(0.5, 9);
+    expect(measured.stage.p90RelativeCalorieError).toBeCloseTo(0.5, 9);
+    expect(measured.stage.meanMealMassRelativeError).toBeCloseTo(1, 9);
+    expect(measured.stage.medianMealMassRelativeError).toBeCloseTo(1, 9);
+    expect(measured.stage.meanMealCarbDensityRelativeError).toBeCloseTo(0.5, 9);
+    expect(measured.stage.meanMealFatDensityRelativeError).toBeCloseTo(0.5, 9);
   });
 });
