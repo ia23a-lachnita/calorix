@@ -7,9 +7,10 @@
  * (trailing fifth option, mode marker, admission API) fails at runtime;
  * nothing is mocked in the production ledger.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { existsSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, resolve, sep } from 'node:path';
+import { basename, dirname, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   makeAuthoritativeFixture,
   makeAuthoritativeOwner,
@@ -23,7 +24,20 @@ import type { CalibrationOwner } from '../../src/nutrition-eval/calibration';
 import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
 
 const sdkGuard = vi.hoisted(() => ({ constructCalls: 0 }));
-const networkGuard = vi.hoisted(() => ({ attemptCalls: 0 }));
+const networkGuard = vi.hoisted(() => {
+  const state = { attemptCalls: 0 };
+  const holder = globalThis as unknown as Record<string, unknown> & {
+    __authoritativeFetchGuard?: { original: unknown; hadOwn: boolean };
+  };
+  const original = (globalThis as unknown as Record<string, unknown>)['fetch'];
+  const hadOwn = Object.prototype.hasOwnProperty.call(globalThis, 'fetch');
+  holder.__authoritativeFetchGuard = { original, hadOwn };
+  (globalThis as unknown as Record<string, unknown>)['fetch'] = (..._args: unknown[]) => {
+    state.attemptCalls += 1;
+    throw new Error('authoritative-test-network-guard: fetch forbidden');
+  };
+  return state;
+});
 const fsObserver = vi.hoisted(() => ({ mkdtempPaths: [] as string[] }));
 
 vi.mock('@google/genai', async (importOriginal) => {
@@ -39,11 +53,29 @@ vi.mock('@google/genai', async (importOriginal) => {
 
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>();
-  const ownedRoot =
-    '/home/agent-runner/projects/calorix/.superpowers/sdd/2026-10-10-calibration-authoritative-report-gates/tmp/authoritative-reports-';
+  const path = await import('node:path');
+  const url = await import('node:url');
+  const resolveExpectedParent = (): string => {
+    const configured = process.env.TMPDIR;
+    if (typeof configured === 'string' && configured.trim().length > 0) {
+      return path.resolve(configured);
+    }
+    return path.resolve(
+      url.fileURLToPath(new URL('.', import.meta.url)),
+      '../../lib/calibration-authoritative-test-tmp',
+    );
+  };
   const wrappedMkdtempSync = (...args: Parameters<typeof actual.mkdtempSync>): string => {
+    const parent = resolveExpectedParent();
+    const expectedPrefix = path.resolve(parent, 'authoritative-reports-');
     const created = (actual.mkdtempSync as (...a: typeof args) => string)(...args);
-    if (typeof created === 'string' && created.startsWith(ownedRoot)) {
+    const requestedPrefix = args[0] as unknown;
+    if (
+      requestedPrefix === expectedPrefix &&
+      typeof created === 'string' &&
+      path.dirname(created) === parent &&
+      path.basename(created).startsWith('authoritative-reports-')
+    ) {
       (fsObserver.mkdtempPaths as string[]).push(created);
     }
     return created;
@@ -51,29 +83,35 @@ vi.mock('node:fs', async (importOriginal) => {
   return { ...actual, mkdtempSync: wrappedMkdtempSync };
 });
 
-const OWNED_TMP_PREFIX =
-  '/home/agent-runner/projects/calorix/.superpowers/sdd/2026-10-10-calibration-authoritative-report-gates/tmp/authoritative-reports-';
-
 const tracked: AuthoritativeFixture[] = [];
-let savedFetch: typeof fetch | undefined;
+// This guards SDK construction/fetch only, not every possible transport or
+// full controller dispatch.
+beforeAll(() => {
+  expect(sdkGuard.constructCalls).toBe(0);
+  expect(networkGuard.attemptCalls).toBe(0);
+});
 beforeEach(() => {
-  sdkGuard.constructCalls = 0;
-  networkGuard.attemptCalls = 0;
-  fsObserver.mkdtempPaths.length = 0;
-  savedFetch = globalThis.fetch;
-  globalThis.fetch = (async (..._args: unknown[]) => {
-    networkGuard.attemptCalls += 1;
-    throw new Error('authoritative-test-network-guard: fetch forbidden');
-  }) as typeof fetch;
+  try {
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  } finally {
+    sdkGuard.constructCalls = 0;
+    networkGuard.attemptCalls = 0;
+    fsObserver.mkdtempPaths.length = 0;
+  }
 });
 afterEach(() => {
   try {
     expect(sdkGuard.constructCalls).toBe(0);
     expect(networkGuard.attemptCalls).toBe(0);
   } finally {
-    if (savedFetch !== undefined) {
-      globalThis.fetch = savedFetch;
-      savedFetch = undefined;
+    while (tracked.length > 0) {
+      const fixture = tracked.pop();
+      try {
+        fixture?.cleanup();
+      } catch {
+        // Best effort.
+      }
     }
     const owned = [...fsObserver.mkdtempPaths];
     fsObserver.mkdtempPaths.length = 0;
@@ -84,14 +122,20 @@ afterEach(() => {
         // Best-effort fallback only; in-test assertions own the contract.
       }
     }
-    while (tracked.length > 0) {
-      const fixture = tracked.pop();
-      try {
-        fixture?.cleanup();
-      } catch {
-        // Best effort.
-      }
+  }
+});
+afterAll(() => {
+  const holder = globalThis as unknown as Record<string, unknown> & {
+    __authoritativeFetchGuard?: { original: unknown; hadOwn: boolean };
+  };
+  const saved = holder.__authoritativeFetchGuard;
+  if (saved !== undefined) {
+    if (saved.hadOwn) {
+      (globalThis as unknown as Record<string, unknown>)['fetch'] = saved.original;
+    } else {
+      delete (globalThis as unknown as Record<string, unknown>)['fetch'];
     }
+    delete holder.__authoritativeFetchGuard;
   }
 });
 async function openFixture(
@@ -735,7 +779,17 @@ describe('failing initial fixture setup cleanup (regression)', () => {
     expect(fsObserver.mkdtempPaths.length - ownedBefore).toBe(1);
     const created = fsObserver.mkdtempPaths[fsObserver.mkdtempPaths.length - 1] as string;
     expect(typeof created).toBe('string');
-    expect(created.startsWith(OWNED_TMP_PREFIX)).toBe(true);
+    const configuredTmp = process.env.TMPDIR;
+    const expectedParent =
+      typeof configuredTmp === 'string' && configuredTmp.trim().length > 0
+        ? resolve(configuredTmp)
+        : resolve(
+            fileURLToPath(new URL('.', import.meta.url)),
+            '../../lib/calibration-authoritative-test-tmp',
+          );
+    expect(dirname(created)).toBe(expectedParent);
+    expect(basename(created).startsWith('authoritative-reports-')).toBe(true);
+    expect(created).toBe(resolve(expectedParent, basename(created)));
     expect(sdkGuard.constructCalls).toBe(0);
     expect(networkGuard.attemptCalls).toBe(0);
     expect(existsSync(created)).toBe(false);

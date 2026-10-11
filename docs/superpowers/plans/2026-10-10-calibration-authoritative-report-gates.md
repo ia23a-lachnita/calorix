@@ -276,6 +276,8 @@ Final reporting includes checkpoint SHA/push equality, new/old focused and full 
 
 ## Research and Handoff
 
+- Task2 current resume: portable import-phase guard and exact-owned cleanup harness verified12881 (noEmit/lint0,8configured controls7.87s,8unsetTMPDIR15.01s); bounded CODE fallback3.7 agree/MUSTnone after primary3.8 MCP300s timeout in calorix-authoritative-harness-20261011. Next stage/ranking/scenario tests then receipt/reentry/seal/replay/real-durability coverage, independent five-file RED/freeze before source. All Task2 checkboxes remain unchecked, BASE3a2 retained; no live/default/deploy/readiness claim.
+
 - Task2 bounded portability receipt: configured missing-parent test RED1/39skip40/5.71s, immutabletest helper-only fix then eight native controls GREEN/7.18s, Task1295/29512.88s, noEmit/lint0; primary3.8 bounded CODE agree/MUSTnone in calorix-authoritative-fixture-portability-20261011. No application source changes/finalfeatureRED/freeze/Task2 completion. Next portable exact-owned-child observer/import-time guard lifecycle, then full remaining stage/ranking/reentry/seal/replay/fault/benchmark coverage.
 
 - Primary3.8 research timed out after300s; exact failure/time is in status. Fallback3.7 initially agreed but host rejected selective-import fs isolation, blanket failure-latency, zero-carb-case-count and tamper-proof wording, clarified constructor journal reads and mandatory rereverification/mode downgrade rules.
