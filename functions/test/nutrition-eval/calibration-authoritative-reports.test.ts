@@ -21,6 +21,11 @@ import type {
   TestAuthoritativeVerifyOptions,
 } from './calibration-authoritative-fixtures';
 import type { CalibrationOwner } from '../../src/nutrition-eval/calibration';
+import {
+  evaluateCalibrationStageGate,
+  selectCalibrationProfile,
+} from '../../src/nutrition-eval/calibration';
+import { measureCalibrationStageReport } from '../../src/nutrition-eval/calibration-report-measurements';
 import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
 
 const sdkGuard = vi.hoisted(() => ({ constructCalls: 0 }));
@@ -145,6 +150,24 @@ async function openFixture(
   const fixture = await makeAuthoritativeFixture(owner, { acquire });
   tracked.push(fixture);
   return fixture;
+}
+async function completeOptOutPreflight(fixture: AuthoritativeFixture): Promise<void> {
+  fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+}
+async function advanceOptOutToValidation(fixture: AuthoritativeFixture): Promise<void> {
+  fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+  await fixture.finishDevelopment('LOW', 'exact');
+  await fixture.finishDevelopment('MEDIUM', 'exact');
+  fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+    stage: 'development',
+    passed: true,
+    completedStages: ['preflight'],
+  });
+  fixture.ledger.completeStage('development', {
+    stage: 'development',
+    passed: true,
+    completedStages: ['preflight'],
+  });
 }
 function asRecord(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
@@ -566,6 +589,1376 @@ describe('preflight admission gates completion (representative)', () => {
       completedStages: [],
     });
     expect(fixture.ledger.getCompletedStages()).toEqual(['preflight']);
+  });
+});
+describe('preflight native authority (both receipts, measured success)', () => {
+  it('requires both native receipts with successful 1/1 measured reports', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    const low = fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    const medium = fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    expect(low.stage).toBe('preflight');
+    expect(low.profile).toBe('LOW');
+    expect(medium.stage).toBe('preflight');
+    expect(medium.profile).toBe('MEDIUM');
+    expect(typeof low.runId).toBe('string');
+    expect(low.runId.length).toBeGreaterThan(0);
+    expect(low.jsonSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(low.markdownSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(Object.isFrozen(low)).toBe(true);
+    expect(Object.isFrozen(medium)).toBe(true);
+    expect(fixture.receiptEvents()).toHaveLength(2);
+    for (const profile of ['LOW', 'MEDIUM'] as const) {
+      const text = readFileSync(fixture.artifactPath('preflight', profile, 'json'), 'utf8');
+      const measured = measureCalibrationStageReport(JSON.parse(text));
+      expect(measured.profile.parseCount).toBe(1);
+      expect(measured.profile.unsafeCount).toBe(0);
+      expect(measured.profile.catastrophicCount).toBe(0);
+      expect(measured.stage.totalOutcomes).toBe(1);
+      expect(measured.stage.parseCases).toBe(1);
+      expect(measured.stage.failureCount).toBe(0);
+      expect(measured.latency.measuredCases).toBe(1);
+      expect(measured.latency.missingCases).toBe(0);
+    }
+    const tokenCounts = fixture.ledger.getCounts();
+    expect(tokenCounts.tokenCountReserved).toBeGreaterThan(0);
+    expect(fixture.identity).toBeDefined();
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  });
+  it('caller passed true cannot manufacture preflight success without both receipts', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let caught: unknown;
+    try {
+      fixture.ledger.completeStage('preflight', {
+        stage: 'preflight',
+        passed: true,
+        completedStages: [],
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-receipt-required');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(fixture.ledger.getCompletedStages()).toEqual([]);
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+    expect(fixture.receiptEvents()).toHaveLength(1);
+  });
+});
+describe('development measured winner and reason (seven genuine rows)', () => {
+  const rows = [
+    {
+      name: 'unsafe lower wins',
+      low: 'exact' as const,
+      medium: { unsafeIndices: [0] } as const,
+      winner: 'LOW' as const,
+      reason: 'fewer_unsafe' as const,
+    },
+    {
+      name: 'parse higher wins',
+      low: 'exact' as const,
+      medium: { failures: [0] } as const,
+      winner: 'LOW' as const,
+      reason: 'higher_parse' as const,
+    },
+    {
+      name: 'catastrophic fewer wins',
+      low: 'exact' as const,
+      medium: { catastrophicIndices: [0] } as const,
+      winner: 'LOW' as const,
+      reason: 'fewer_catastrophic' as const,
+    },
+    {
+      name: 'macro lower wins',
+      low: 'exact' as const,
+      medium: { proteinScale: 1.5 } as const,
+      winner: 'LOW' as const,
+      reason: 'lower_macro_error' as const,
+    },
+    {
+      name: 'kcal lower wins',
+      low: 'exact' as const,
+      medium: { kcalScale: 1.5 } as const,
+      winner: 'LOW' as const,
+      reason: 'lower_kcal_error' as const,
+    },
+    {
+      name: 'latency lower wins',
+      low: { latencyMs: 1000 } as const,
+      medium: { latencyMs: 2000 } as const,
+      winner: 'LOW' as const,
+      reason: 'lower_latency' as const,
+    },
+    {
+      name: 'complete tie breaks MEDIUM',
+      low: 'exact' as const,
+      medium: 'exact' as const,
+      winner: 'MEDIUM' as const,
+      reason: 'default_medium_tie_breaker' as const,
+    },
+  ];
+  for (const row of rows) {
+    it(`measured ${row.name} selects ${row.winner} for ${row.reason}`, async () => {
+      const fixture = await openFixture();
+      await fixture.finishPreflight();
+      await fixture.publish('preflight', 'LOW');
+      await fixture.publish('preflight', 'MEDIUM');
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+      fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+      fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+      await fixture.finishDevelopment('LOW', row.low);
+      await fixture.finishDevelopment('MEDIUM', row.medium);
+      await fixture.publish('development', 'LOW');
+      await fixture.publish('development', 'MEDIUM');
+      fixture.ledger.admitStageReportReceipt('development', 'LOW');
+      fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+      const lowNative = measureCalibrationStageReport(
+        JSON.parse(readFileSync(fixture.artifactPath('development', 'LOW', 'json'), 'utf8')),
+      );
+      const medNative = measureCalibrationStageReport(
+        JSON.parse(readFileSync(fixture.artifactPath('development', 'MEDIUM', 'json'), 'utf8')),
+      );
+      if (row.name === 'unsafe lower wins') {
+        expect(lowNative.profile.unsafeCount).toBe(0);
+        expect(medNative.profile.unsafeCount).toBe(1);
+      } else if (row.name === 'parse higher wins') {
+        expect(lowNative.profile.parseCount).toBe(24);
+        expect(medNative.profile.parseCount).toBe(23);
+      } else if (row.name === 'catastrophic fewer wins') {
+        expect(lowNative.profile.catastrophicCount).toBe(0);
+        expect(medNative.profile.catastrophicCount).toBe(1);
+      } else if (row.name === 'macro lower wins') {
+        expect(lowNative.stage.meanZeroSafeMacroRelativeError).toBe(0);
+        expect(medNative.stage.meanZeroSafeMacroRelativeError).toBeGreaterThan(0);
+      } else if (row.name === 'kcal lower wins') {
+        expect(lowNative.stage.medianRelativeCalorieError).toBe(0);
+        expect(medNative.stage.medianRelativeCalorieError).toBeGreaterThan(0);
+      } else if (row.name === 'latency lower wins') {
+        expect(lowNative.stage.p90AnalysisLatencyMs).toBe(1000);
+        expect(medNative.stage.p90AnalysisLatencyMs).toBe(2000);
+      } else {
+        expect(lowNative.profile.parseCount).toBe(24);
+        expect(medNative.profile.parseCount).toBe(24);
+        expect(lowNative.stage.medianRelativeCalorieError).toBe(0);
+        expect(medNative.stage.medianRelativeCalorieError).toBe(0);
+      }
+      fixture.ledger.recordProfileSelection(row.winner, row.reason, {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      });
+      expect(fixture.ledger.getSelectedProfile()).toBe(row.winner);
+      expect(sdkGuard.constructCalls).toBe(0);
+      expect(networkGuard.attemptCalls).toBe(0);
+    });
+  }
+  it('rejects wrong profile and wrong reason before effects then accepts exact decision', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', { latencyMs: 1000 });
+    await fixture.finishDevelopment('MEDIUM', { latencyMs: 2000 });
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    const lowMeasured = measureCalibrationStageReport(
+      JSON.parse(readFileSync(fixture.artifactPath('development', 'LOW', 'json'), 'utf8')),
+    );
+    const medMeasured = measureCalibrationStageReport(
+      JSON.parse(readFileSync(fixture.artifactPath('development', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(lowMeasured.stage.p90AnalysisLatencyMs).toBe(1000);
+    expect(medMeasured.stage.p90AnalysisLatencyMs).toBe(2000);
+    expect(lowMeasured.profile.parseCount).toBe(24);
+    expect(medMeasured.profile.parseCount).toBe(24);
+    let first: unknown;
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    try {
+      fixture.ledger.recordProfileSelection('MEDIUM', 'lower_latency', {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      });
+    } catch (error) {
+      first = error;
+    }
+    expect(first).toBeInstanceOf(CalibrationFatalError);
+    expect((first as Error).message).toBe('calibration:artifact-selection-mismatch');
+    expect(asRecord(first).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+    let second: unknown;
+    try {
+      fixture.ledger.recordProfileSelection('LOW', 'fewer_unsafe', {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      });
+    } catch (error) {
+      second = error;
+    }
+    expect(second).toBeInstanceOf(CalibrationFatalError);
+    expect((second as Error).message).toBe('calibration:artifact-selection-mismatch');
+    expect(fixture.ledger.getSelectedProfile()).toBeUndefined();
+    fixture.ledger.recordProfileSelection('LOW', 'lower_latency', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    expect(fixture.ledger.getSelectedProfile()).toBe('LOW');
+  });
+  it('scaled macro faults yield literal 24/23 measured means before admission exists', async () => {
+    const fixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(92), { authoritative: false });
+    tracked.push(fixture);
+    await fixture.finishPreflight();
+    await completeOptOutPreflight(fixture);
+    await fixture.finishDevelopment('LOW', { proteinScale: 2, carbsScale: 2, fatScale: 2 });
+    await fixture.finishDevelopment('MEDIUM', { failures: [0] });
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    const lowText = readFileSync(fixture.artifactPath('development', 'LOW', 'json'), 'utf8');
+    const medText = readFileSync(fixture.artifactPath('development', 'MEDIUM', 'json'), 'utf8');
+    const lowMeasured = measureCalibrationStageReport(JSON.parse(lowText));
+    const medMeasured = measureCalibrationStageReport(JSON.parse(medText));
+    expect(lowMeasured.stage.totalOutcomes).toBe(24);
+    expect(lowMeasured.stage.parseCases).toBe(24);
+    expect(lowMeasured.stage.medianRelativeCalorieError).toBe(0);
+    expect(lowMeasured.stage.meanZeroSafeMacroRelativeError).toBe(1);
+    expect(lowMeasured.profile.unsafeCount).toBe(0);
+    expect(lowMeasured.profile.catastrophicCount).toBe(0);
+    expect(medMeasured.stage.totalOutcomes).toBe(24);
+    expect(medMeasured.stage.parseCases).toBe(23);
+    expect(medMeasured.stage.medianRelativeCalorieError).toBe(0);
+    expect(medMeasured.stage.meanZeroSafeMacroRelativeError).toBe(0);
+    expect(medMeasured.profile.unsafeCount).toBe(0);
+    expect(medMeasured.profile.catastrophicCount).toBe(0);
+    const lowGate = evaluateCalibrationStageGate('development', lowMeasured.stage);
+    expect(lowGate.passed).toBe(false);
+    expect(lowGate.failedChecks).toContain('meanZeroSafeMacroRelativeError');
+    const medGate = evaluateCalibrationStageGate('development', medMeasured.stage);
+    expect(medGate.passed).toBe(true);
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  });
+  it('failing measured winner cannot be overridden by a worse but passing profile', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', { proteinScale: 2, carbsScale: 2, fatScale: 2 });
+    await fixture.finishDevelopment('MEDIUM', { failures: [0] });
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let winnerFail: unknown;
+    try {
+      fixture.ledger.recordProfileSelection('LOW', 'higher_parse', {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      });
+    } catch (error) {
+      winnerFail = error;
+    }
+    expect(winnerFail).toBeInstanceOf(CalibrationFatalError);
+    expect((winnerFail as Error).message).toBe('calibration:artifact-gate-failed');
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+    let substituteFail: unknown;
+    try {
+      fixture.ledger.recordProfileSelection('MEDIUM', 'higher_parse', {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      });
+    } catch (error) {
+      substituteFail = error;
+    }
+    expect(substituteFail).toBeInstanceOf(CalibrationFatalError);
+    expect((substituteFail as Error).message).toBe('calibration:artifact-selection-mismatch');
+    expect(fixture.ledger.getSelectedProfile()).toBeUndefined();
+  });
+  it('development completion without the exact selected winner is blocked', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    const appends = fixture.effects.ledgerAppends;
+    let caught: unknown;
+    try {
+      fixture.ledger.completeStage('development', {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:stage-not-ready');
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.ledger.getCompletedStages()).toEqual(['preflight']);
+  });
+});
+describe('validation measured authority (48 outcomes, 46 parsed)', () => {
+  it('two ordinary failures yield 46 parsed meals with honest finite latency', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    fixture.ledger.completeStage('development', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    await fixture.finishValidation('MEDIUM', { failures: [0, 1] });
+    await fixture.publish('validation', 'MEDIUM');
+    const receipt = fixture.ledger.admitStageReportReceipt('validation', 'MEDIUM');
+    expect(receipt.stage).toBe('validation');
+    expect(receipt.profile).toBe('MEDIUM');
+    const text = readFileSync(fixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8');
+    const measured = measureCalibrationStageReport(JSON.parse(text));
+    expect(measured.stage.totalOutcomes).toBe(48);
+    expect(measured.stage.parseCases).toBe(46);
+    expect(measured.stage.parsedMealCount).toBe(46);
+    expect(measured.stage.mealMassEligibleCount).toBe(46);
+    expect(measured.stage.mealDensityCoverageCount).toBe(46);
+    expect(measured.stage.mealCarbDensityEligibleCount).toBe(46);
+    expect(measured.stage.mealFatDensityEligibleCount).toBe(46);
+    expect(measured.latency.measuredCases).toBe(48);
+    expect(measured.latency.missingCases).toBe(0);
+    expect(measured.profile.parseCount).toBe(46);
+    fixture.ledger.completeStage('validation', {
+      stage: 'validation',
+      passed: true,
+      completedStages: ['preflight', 'development'],
+    });
+    expect(fixture.ledger.getCompletedStages()).toEqual(['preflight', 'development', 'validation']);
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  });
+  it('interruptions report missing latency without invented zero', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    fixture.ledger.completeStage('development', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    await fixture.finishValidation('MEDIUM', { interruptions: [0] });
+    await fixture.publish('validation', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('validation', 'MEDIUM');
+    const text = readFileSync(fixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8');
+    const measured = measureCalibrationStageReport(JSON.parse(text));
+    expect(measured.latency.missingCases).toBeGreaterThan(0);
+    expect(measured.latency.measuredCases + measured.latency.missingCases).toBe(48);
+  });
+  it('failing measured validation cannot be overridden by passed true', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    fixture.ledger.completeStage('development', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    await fixture.finishValidation('MEDIUM', { proteinScale: 2 });
+    await fixture.publish('validation', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('validation', 'MEDIUM');
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let caught: unknown;
+    try {
+      fixture.ledger.completeStage('validation', {
+        stage: 'validation',
+        passed: true,
+        completedStages: ['preflight', 'development'],
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-gate-failed');
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+  });
+});
+describe('pure gate literal boundaries (new file only)', () => {
+  it('development numeric thresholds pass on boundary and fail one over', () => {
+    const base = {
+      totalCases: 24,
+      runCases: 24,
+      totalOutcomes: 24,
+      parseCases: 24,
+      unsafeCompletionCount: 0,
+      catastrophicCount: 0,
+      failureCount: 0,
+      medianRelativeCalorieError: 0.35,
+      meanZeroSafeMacroRelativeError: 0.5,
+      p90AnalysisLatencyMs: 30000,
+    };
+    const devBase = evaluateCalibrationStageGate('development', base);
+    expect(devBase.passed).toBe(true);
+    expect(devBase.failedChecks).toEqual([]);
+    for (const totalCases of [23, 25]) {
+      const result = evaluateCalibrationStageGate('development', { ...base, totalCases });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('totalCases');
+    }
+    for (const runCases of [23, 25]) {
+      const result = evaluateCalibrationStageGate('development', { ...base, runCases });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('runCases');
+    }
+    expect(evaluateCalibrationStageGate('development', { ...base, parseCases: 24 }).passed).toBe(true);
+    expect(evaluateCalibrationStageGate('development', { ...base, parseCases: 23 }).passed).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('development', { ...base, parseCases: 22 });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('parseCases');
+    }
+    {
+      const result = evaluateCalibrationStageGate('development', { ...base, unsafeCompletionCount: 1 });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('unsafeCompletionCount');
+    }
+    expect(evaluateCalibrationStageGate('development', { ...base, catastrophicCount: 0 }).passed).toBe(true);
+    expect(evaluateCalibrationStageGate('development', { ...base, catastrophicCount: 6 }).passed).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('development', { ...base, catastrophicCount: 7 });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('catastrophicCount');
+    }
+    expect(
+      evaluateCalibrationStageGate('development', { ...base, medianRelativeCalorieError: 0.34 }).passed,
+    ).toBe(true);
+    expect(
+      evaluateCalibrationStageGate('development', { ...base, medianRelativeCalorieError: 0.35 }).passed,
+    ).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('development', {
+        ...base,
+        medianRelativeCalorieError: 0.36,
+      });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('medianRelativeCalorieError');
+    }
+    expect(
+      evaluateCalibrationStageGate('development', { ...base, meanZeroSafeMacroRelativeError: 0.49 })
+        .passed,
+    ).toBe(true);
+    expect(
+      evaluateCalibrationStageGate('development', { ...base, meanZeroSafeMacroRelativeError: 0.5 })
+        .passed,
+    ).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('development', {
+        ...base,
+        meanZeroSafeMacroRelativeError: 0.51,
+      });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('meanZeroSafeMacroRelativeError');
+    }
+    expect(
+      evaluateCalibrationStageGate('development', { ...base, p90AnalysisLatencyMs: 29999 }).passed,
+    ).toBe(true);
+    expect(
+      evaluateCalibrationStageGate('development', { ...base, p90AnalysisLatencyMs: 30000 }).passed,
+    ).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('development', {
+        ...base,
+        p90AnalysisLatencyMs: 30001,
+      });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('p90AnalysisLatencyMs');
+    }
+  });
+  it('validation numeric thresholds pass on boundary and fail one over', () => {
+    const base = {
+      totalCases: 48,
+      runCases: 48,
+      totalOutcomes: 48,
+      parseCases: 48,
+      unsafeCompletionCount: 0,
+      catastrophicCount: 8,
+      failureCount: 0,
+      medianRelativeCalorieError: 0.25,
+      p90RelativeCalorieError: 0.9,
+      meanZeroSafeMacroRelativeError: 0.45,
+      medianProteinRelativeError: 0.35,
+      medianCarbsRelativeError: 0.35,
+      medianFatRelativeError: 0.35,
+      medianMealMassRelativeError: 0.35,
+      p90AnalysisLatencyMs: 30000,
+      parsedMealCount: 48,
+      mealMassEligibleCount: 48,
+      mealDensityCoverageCount: 48,
+      mealCarbDensityEligibleCount: 48,
+      mealFatDensityEligibleCount: 48,
+    };
+    const valBase = evaluateCalibrationStageGate('validation', base);
+    expect(valBase.passed).toBe(true);
+    expect(valBase.failedChecks).toEqual([]);
+    for (const totalCases of [47, 49]) {
+      const result = evaluateCalibrationStageGate('validation', { ...base, totalCases });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('totalCases');
+    }
+    for (const runCases of [47, 49]) {
+      const result = evaluateCalibrationStageGate('validation', { ...base, runCases });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('runCases');
+    }
+    {
+      const matched46 = {
+        ...base,
+        parseCases: 46,
+        parsedMealCount: 46,
+        mealMassEligibleCount: 46,
+        mealDensityCoverageCount: 46,
+        mealCarbDensityEligibleCount: 46,
+        mealFatDensityEligibleCount: 46,
+      };
+      expect(evaluateCalibrationStageGate('validation', matched46).passed).toBe(true);
+    }
+    {
+      const matched45 = {
+        ...base,
+        parseCases: 45,
+        parsedMealCount: 45,
+        mealMassEligibleCount: 45,
+        mealDensityCoverageCount: 45,
+        mealCarbDensityEligibleCount: 45,
+        mealFatDensityEligibleCount: 45,
+      };
+      const result = evaluateCalibrationStageGate('validation', matched45);
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('parseCases');
+    }
+    {
+      const result = evaluateCalibrationStageGate('validation', { ...base, unsafeCompletionCount: 1 });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('unsafeCompletionCount');
+    }
+    expect(evaluateCalibrationStageGate('validation', { ...base, catastrophicCount: 8 }).passed).toBe(
+      true,
+    );
+    {
+      const result = evaluateCalibrationStageGate('validation', { ...base, catastrophicCount: 9 });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('catastrophicCount');
+    }
+    expect(
+      evaluateCalibrationStageGate('validation', { ...base, medianRelativeCalorieError: 0.24 }).passed,
+    ).toBe(true);
+    expect(
+      evaluateCalibrationStageGate('validation', { ...base, medianRelativeCalorieError: 0.25 }).passed,
+    ).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('validation', {
+        ...base,
+        medianRelativeCalorieError: 0.26,
+      });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('medianRelativeCalorieError');
+    }
+    expect(
+      evaluateCalibrationStageGate('validation', { ...base, p90RelativeCalorieError: 0.89 }).passed,
+    ).toBe(true);
+    expect(
+      evaluateCalibrationStageGate('validation', { ...base, p90RelativeCalorieError: 0.9 }).passed,
+    ).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('validation', {
+        ...base,
+        p90RelativeCalorieError: 0.91,
+      });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('p90RelativeCalorieError');
+    }
+    expect(
+      evaluateCalibrationStageGate('validation', { ...base, meanZeroSafeMacroRelativeError: 0.44 })
+        .passed,
+    ).toBe(true);
+    expect(
+      evaluateCalibrationStageGate('validation', { ...base, meanZeroSafeMacroRelativeError: 0.45 })
+        .passed,
+    ).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('validation', {
+        ...base,
+        meanZeroSafeMacroRelativeError: 0.46,
+      });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('meanZeroSafeMacroRelativeError');
+    }
+    for (const field of [
+      'medianProteinRelativeError',
+      'medianCarbsRelativeError',
+      'medianFatRelativeError',
+      'medianMealMassRelativeError',
+    ] as const) {
+      expect(evaluateCalibrationStageGate('validation', { ...base, [field]: 0.34 }).passed).toBe(
+        true,
+      );
+      expect(evaluateCalibrationStageGate('validation', { ...base, [field]: 0.35 }).passed).toBe(
+        true,
+      );
+      const result = evaluateCalibrationStageGate('validation', { ...base, [field]: 0.36 });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain(field);
+    }
+    expect(
+      evaluateCalibrationStageGate('validation', { ...base, p90AnalysisLatencyMs: 29999 }).passed,
+    ).toBe(true);
+    expect(
+      evaluateCalibrationStageGate('validation', { ...base, p90AnalysisLatencyMs: 30000 }).passed,
+    ).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('validation', {
+        ...base,
+        p90AnalysisLatencyMs: 30001,
+      });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('p90AnalysisLatencyMs');
+    }
+    {
+      const result = evaluateCalibrationStageGate('validation', { ...base, parsedMealCount: 47 });
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('parsedMealCount');
+    }
+    {
+      const matched46 = {
+        ...base,
+        parseCases: 46,
+        parsedMealCount: 46,
+        mealMassEligibleCount: 46,
+        mealDensityCoverageCount: 46,
+        mealCarbDensityEligibleCount: 46,
+        mealFatDensityEligibleCount: 46,
+      };
+      expect(evaluateCalibrationStageGate('validation', matched46).passed).toBe(true);
+      for (const field of [
+        'parsedMealCount',
+        'mealMassEligibleCount',
+        'mealDensityCoverageCount',
+        'mealCarbDensityEligibleCount',
+        'mealFatDensityEligibleCount',
+      ] as const) {
+        for (const value of [45, 47]) {
+          const result = evaluateCalibrationStageGate('validation', { ...matched46, [field]: value });
+          expect(result.passed).toBe(false);
+          expect(result.failedChecks).toContain(field);
+        }
+      }
+    }
+  });
+  it('report-based development kcal, mean macro and latency fail the intended gate field', async () => {
+    const kcalFixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(96), { authoritative: false });
+    tracked.push(kcalFixture);
+    await kcalFixture.finishPreflight();
+    await completeOptOutPreflight(kcalFixture);
+    await kcalFixture.finishDevelopment('LOW', 'exact');
+    await kcalFixture.finishDevelopment('MEDIUM', { kcalScale: 2 });
+    await kcalFixture.publish('development', 'LOW');
+    await kcalFixture.publish('development', 'MEDIUM');
+    const kcalLow = measureCalibrationStageReport(
+      JSON.parse(readFileSync(kcalFixture.artifactPath('development', 'LOW', 'json'), 'utf8')),
+    );
+    const kcalMed = measureCalibrationStageReport(
+      JSON.parse(readFileSync(kcalFixture.artifactPath('development', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(evaluateCalibrationStageGate('development', kcalLow.stage).passed).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('development', kcalMed.stage);
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('medianRelativeCalorieError');
+    }
+    const meanFixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(97), { authoritative: false });
+    tracked.push(meanFixture);
+    await meanFixture.finishPreflight();
+    await completeOptOutPreflight(meanFixture);
+    await meanFixture.finishDevelopment('LOW', 'exact');
+    await meanFixture.finishDevelopment('MEDIUM', { proteinScale: 2, carbsScale: 2, fatScale: 2 });
+    await meanFixture.publish('development', 'LOW');
+    await meanFixture.publish('development', 'MEDIUM');
+    const meanMed = measureCalibrationStageReport(
+      JSON.parse(readFileSync(meanFixture.artifactPath('development', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(meanMed.stage.medianRelativeCalorieError).toBe(0);
+    {
+      const result = evaluateCalibrationStageGate('development', meanMed.stage);
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('meanZeroSafeMacroRelativeError');
+    }
+    const latencyFixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(98), { authoritative: false });
+    tracked.push(latencyFixture);
+    await latencyFixture.finishPreflight();
+    await completeOptOutPreflight(latencyFixture);
+    await latencyFixture.finishDevelopment('LOW', { latencyMs: 1000 });
+    await latencyFixture.finishDevelopment('MEDIUM', { latencyMs: 30001 });
+    await latencyFixture.publish('development', 'LOW');
+    await latencyFixture.publish('development', 'MEDIUM');
+    const latLow = measureCalibrationStageReport(
+      JSON.parse(readFileSync(latencyFixture.artifactPath('development', 'LOW', 'json'), 'utf8')),
+    );
+    const latMed = measureCalibrationStageReport(
+      JSON.parse(readFileSync(latencyFixture.artifactPath('development', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(evaluateCalibrationStageGate('development', latLow.stage).passed).toBe(true);
+    {
+      const result = evaluateCalibrationStageGate('development', latMed.stage);
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('p90AnalysisLatencyMs');
+    }
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  });
+  it('report-based validation kcal, protein, carbs, fat, mass and latency fail the intended field', async () => {
+    const fixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(99), { authoritative: false });
+    tracked.push(fixture);
+    await fixture.finishPreflight();
+    await advanceOptOutToValidation(fixture);
+    await fixture.finishValidation('MEDIUM', 'exact');
+    await fixture.publish('validation', 'MEDIUM');
+    const exactMeasured = measureCalibrationStageReport(
+      JSON.parse(readFileSync(fixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(evaluateCalibrationStageGate('validation', exactMeasured.stage).passed).toBe(true);
+    const cases: Array<{ scenario: { kcalScale?: number; proteinScale?: number; carbsScale?: number; fatScale?: number; massScale?: number; latencyMs?: number }; field: string }> = [
+      { scenario: { kcalScale: 1.5 }, field: 'medianRelativeCalorieError' },
+      { scenario: { proteinScale: 1.5 }, field: 'medianProteinRelativeError' },
+      { scenario: { carbsScale: 1.5 }, field: 'medianCarbsRelativeError' },
+      { scenario: { fatScale: 1.5 }, field: 'medianFatRelativeError' },
+      { scenario: { massScale: 1.5 }, field: 'medianMealMassRelativeError' },
+      { scenario: { latencyMs: 30001 }, field: 'p90AnalysisLatencyMs' },
+    ];
+    let suffix = 100;
+    for (const entry of cases) {
+      suffix += 1;
+      const faulted = await makeAuthoritativeFixture(makeAuthoritativeOwner(suffix), {
+        authoritative: false,
+      });
+      tracked.push(faulted);
+      await faulted.finishPreflight();
+      await advanceOptOutToValidation(faulted);
+      await faulted.finishValidation('MEDIUM', entry.scenario);
+      await faulted.publish('validation', 'MEDIUM');
+      const measured = measureCalibrationStageReport(
+        JSON.parse(readFileSync(faulted.artifactPath('validation', 'MEDIUM', 'json'), 'utf8')),
+      );
+      const result = evaluateCalibrationStageGate('validation', measured.stage);
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain(entry.field);
+    }
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  });
+  it('report-based validation p90, pooled mean and parse diagnostics isolate the intended field', async () => {
+    const p90Outliers: Array<number | undefined> = new Array(48).fill(undefined);
+    for (let index = 42; index < 48; index += 1) {
+      p90Outliers[index] = 2;
+    }
+    const p90Fixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(110), { authoritative: false });
+    tracked.push(p90Fixture);
+    await p90Fixture.finishPreflight();
+    await advanceOptOutToValidation(p90Fixture);
+    await p90Fixture.finishValidation('MEDIUM', { perOutcomeKcalScale: p90Outliers });
+    await p90Fixture.publish('validation', 'MEDIUM');
+    const p90Measured = measureCalibrationStageReport(
+      JSON.parse(readFileSync(p90Fixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(p90Measured.stage.medianRelativeCalorieError).toBe(0);
+    expect(p90Measured.stage.p90RelativeCalorieError).toBeCloseTo(1, 9);
+    expect(p90Measured.stage.catastrophicCount).toBe(0);
+    {
+      const result = evaluateCalibrationStageGate('validation', p90Measured.stage);
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('p90RelativeCalorieError');
+    }
+    const meanOutliers: Array<number | undefined> = new Array(48).fill(undefined);
+    for (let index = 0; index < 12; index += 1) {
+      meanOutliers[index] = 5;
+    }
+    const meanFixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(111), { authoritative: false });
+    tracked.push(meanFixture);
+    await meanFixture.finishPreflight();
+    await advanceOptOutToValidation(meanFixture);
+    await meanFixture.finishValidation('MEDIUM', { perOutcomeMacroScale: meanOutliers });
+    await meanFixture.publish('validation', 'MEDIUM');
+    const meanMeasured = measureCalibrationStageReport(
+      JSON.parse(readFileSync(meanFixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(meanMeasured.stage.medianProteinRelativeError).toBe(0);
+    expect(meanMeasured.stage.medianCarbsRelativeError).toBe(0);
+    expect(meanMeasured.stage.medianFatRelativeError).toBe(0);
+    {
+      const result = evaluateCalibrationStageGate('validation', meanMeasured.stage);
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('meanZeroSafeMacroRelativeError');
+    }
+    const parseFixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(112), { authoritative: false });
+    tracked.push(parseFixture);
+    await parseFixture.finishPreflight();
+    await advanceOptOutToValidation(parseFixture);
+    await parseFixture.finishValidation('MEDIUM', { failures: [0, 1, 2] });
+    await parseFixture.publish('validation', 'MEDIUM');
+    const parseMeasured = measureCalibrationStageReport(
+      JSON.parse(readFileSync(parseFixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(parseMeasured.stage.parseCases).toBe(45);
+    expect(parseMeasured.stage.parsedMealCount).toBe(45);
+    {
+      const result = evaluateCalibrationStageGate('validation', parseMeasured.stage);
+      expect(result.passed).toBe(false);
+      expect(result.failedChecks).toContain('parseCases');
+    }
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  });
+  it('selector retains original validation error order for simultaneous invalid inputs', () => {
+    const good = {
+      unsafeCount: 0,
+      parseCount: 24,
+      catastrophicCount: 0,
+      meanZeroSafeMacroError: 0,
+      medianKcalError: 0,
+      p90AnalysisLatencyMs: 1500,
+    };
+    let caught: unknown;
+    try {
+      selectCalibrationProfile(
+        { ...good, unsafeCount: -1 },
+        { ...good, unsafeCount: -1 },
+      );
+    } catch (error) {
+      caught = error;
+    }
+    expect((caught as Error).message).toBe(
+      'calibration:profile-selection-invalid-count:low.unsafeCount',
+    );
+    caught = undefined;
+    try {
+      selectCalibrationProfile(good, { ...good, parseCount: -1 });
+    } catch (error) {
+      caught = error;
+    }
+    expect((caught as Error).message).toBe(
+      'calibration:profile-selection-invalid-count:medium.parseCount',
+    );
+    caught = undefined;
+    try {
+      selectCalibrationProfile(
+        { ...good, meanZeroSafeMacroError: Number.NaN },
+        { ...good, meanZeroSafeMacroError: Number.NaN },
+      );
+    } catch (error) {
+      caught = error;
+    }
+    expect((caught as Error).message).toBe(
+      'calibration:profile-selection-invalid-metric:low.meanZeroSafeMacroError',
+    );
+  });
+});
+describe('benchmark native admission remains fail-closed (60 outcomes)', () => {
+  it('admits a complete 60-outcome report then blocks completion for runtime evidence', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    fixture.ledger.completeStage('development', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    await fixture.finishValidation('MEDIUM', 'exact');
+    await fixture.publish('validation', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('validation', 'MEDIUM');
+    fixture.ledger.completeStage('validation', {
+      stage: 'validation',
+      passed: true,
+      completedStages: ['preflight', 'development'],
+    });
+    await fixture.finishBenchmark('MEDIUM', 'exact');
+    await fixture.publish('benchmark', 'MEDIUM');
+    const receipt = fixture.ledger.admitStageReportReceipt('benchmark', 'MEDIUM');
+    expect(receipt.stage).toBe('benchmark');
+    expect(receipt.profile).toBe('MEDIUM');
+    const text = readFileSync(fixture.artifactPath('benchmark', 'MEDIUM', 'json'), 'utf8');
+    const measured = measureCalibrationStageReport(JSON.parse(text));
+    expect(measured.stage.totalOutcomes).toBe(60);
+    expect(measured.stage.mealOutcomeCount).toBe(36);
+    expect(measured.stage.labelOutcomeCount).toBe(12);
+    expect(measured.stage.suppliedBarcodeOutcomeCount).toBe(12);
+    expect(measured.stage.parsedMealCount).toBe(36);
+    const snapshot = fixture.ledger.getStageReportSnapshot('benchmark', 'MEDIUM');
+    expect(snapshot.images.length + snapshot.nonReservations.length).toBe(60);
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let caught: unknown;
+    try {
+      fixture.ledger.completeStage('benchmark', {
+        stage: 'benchmark',
+        passed: true,
+        completedStages: ['preflight', 'development', 'validation'],
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:benchmark-runtime-evidence-required');
+    expect(asRecord(caught).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  });
+});
+describe('drift reverification and chronological replay', () => {
+  it('drift after admission poisons idempotent selection with lock retained', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    expect(fixture.ledger.getSelectedProfile()).toBe('MEDIUM');
+    const verifierBeforeRepeat = fixture.effects.verifierCalls;
+    const jsonPath = fixture.artifactPath('development', 'LOW', 'json');
+    const text = readFileSync(jsonPath, 'utf8');
+    writeFileSync(jsonPath, text.slice(0, 120) + 'X' + text.slice(121));
+    let first: unknown;
+    try {
+      fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      });
+    } catch (error) {
+      first = error;
+    }
+    expect(first).toBeInstanceOf(CalibrationFatalError);
+    expect((first as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(first).cause).toBeUndefined();
+    expect(fixture.effects.verifierCalls).toBe(verifierBeforeRepeat + 1);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let second: unknown;
+    try {
+      fixture.ledger.getStageReportSnapshot('development', 'LOW');
+    } catch (error) {
+      second = error;
+    }
+    expect(second).toBeInstanceOf(CalibrationFatalError);
+    expect((second as Error).message).toBe('calibration:ledger-poisoned');
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+  });
+  it('chronological replay preserves early bytes across later selection', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    const devLowBefore = readFileSync(fixture.artifactPath('development', 'LOW', 'json'), 'utf8');
+    const devMedBefore = readFileSync(fixture.artifactPath('development', 'MEDIUM', 'json'), 'utf8');
+    const devLowMdBefore = readFileSync(fixture.artifactPath('development', 'LOW', 'md'), 'utf8');
+    const devMedMdBefore = readFileSync(fixture.artifactPath('development', 'MEDIUM', 'md'), 'utf8');
+    const next = await fixture.reopen(makeAuthoritativeOwner(77), { acquire: false });
+    tracked.push(next);
+    expect(next.effects.verifierCalls).toBe(0);
+    next.ledger.acquireLock({ ...next.owner });
+    expect(next.effects.verifierCalls).toBe(4);
+    expect(readFileSync(next.artifactPath('development', 'LOW', 'json'), 'utf8')).toBe(devLowBefore);
+    expect(readFileSync(next.artifactPath('development', 'MEDIUM', 'json'), 'utf8')).toBe(devMedBefore);
+    expect(readFileSync(next.artifactPath('development', 'LOW', 'md'), 'utf8')).toBe(devLowMdBefore);
+    expect(readFileSync(next.artifactPath('development', 'MEDIUM', 'md'), 'utf8')).toBe(devMedMdBefore);
+    expect(next.ledger.getSelectedProfile()).toBe('MEDIUM');
+  });
+  it('idempotent completion rereads artifacts and poisons with lock retained', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    fixture.ledger.completeStage('development', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    expect(fixture.ledger.getCompletedStages()).toEqual(['preflight', 'development']);
+    const verifierBeforeRepeat = fixture.effects.verifierCalls;
+    const jsonPath = fixture.artifactPath('development', 'MEDIUM', 'json');
+    const text = readFileSync(jsonPath, 'utf8');
+    writeFileSync(jsonPath, text.slice(0, 120) + 'X' + text.slice(121));
+    let first: unknown;
+    try {
+      fixture.ledger.completeStage('development', {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      });
+    } catch (error) {
+      first = error;
+    }
+    expect(first).toBeInstanceOf(CalibrationFatalError);
+    expect((first as Error).message).toBe('calibration:artifact-verification-failed');
+    expect(asRecord(first).cause).toBeUndefined();
+    expect(fixture.effects.verifierCalls).toBe(verifierBeforeRepeat + 1);
+    expect(() => statSync(fixture.lockPath())).not.toThrow();
+    const appends = fixture.effects.ledgerAppends;
+    const clocks = fixture.effects.clockReads;
+    const syncs = fixture.effects.fsyncs;
+    let second: unknown;
+    try {
+      fixture.ledger.getStageReportSnapshot('development', 'MEDIUM');
+    } catch (error) {
+      second = error;
+    }
+    expect(second).toBeInstanceOf(CalibrationFatalError);
+    expect((second as Error).message).toBe('calibration:ledger-poisoned');
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
+  });
+});
+describe('report-based gate failures from genuine scored faults', () => {
+  it('development selection requires both native 24 receipts', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    const appends = fixture.effects.ledgerAppends;
+    let caught: unknown;
+    try {
+      fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+        stage: 'development',
+        passed: true,
+        completedStages: ['preflight'],
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-receipt-required');
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+  });
+  it('validation diagnostic omissions fail the measured gate from genuine reports', async () => {
+    const fixture = await openFixture();
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('development', 'LOW');
+    fixture.ledger.admitStageReportReceipt('development', 'MEDIUM');
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    fixture.ledger.completeStage('development', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    const missing: number[] = [];
+    for (let index = 0; index < 48; index += 1) {
+      missing.push(index);
+    }
+    await fixture.finishValidation('MEDIUM', { missingDiagnostics: missing });
+    await fixture.publish('validation', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('validation', 'MEDIUM');
+    const text = readFileSync(fixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8');
+    const measured = measureCalibrationStageReport(JSON.parse(text));
+    expect(measured.stage.parseCases).toBe(48);
+    expect(measured.stage.parsedMealCount).toBe(48);
+    expect(measured.stage.mealMassEligibleCount).toBe(0);
+    expect(measured.stage.mealDensityCoverageCount).toBe(0);
+    expect(measured.stage.mealCarbDensityEligibleCount).toBe(0);
+    expect(measured.stage.mealFatDensityEligibleCount).toBe(0);
+    expect(measured.stage.medianMealMassRelativeError).toBeUndefined();
+    let caught: unknown;
+    try {
+      fixture.ledger.completeStage('validation', {
+        stage: 'validation',
+        passed: true,
+        completedStages: ['preflight', 'development'],
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:artifact-gate-failed');
+  });
+});
+describe('opt-out fixture mode and legacy genuine generation', () => {
+  it('opt-out ledger refuses admission with mode-required and still generates genuine reports', async () => {
+    const fixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(90), { authoritative: false });
+    tracked.push(fixture);
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    const text = readFileSync(fixture.artifactPath('preflight', 'LOW', 'json'), 'utf8');
+    const measured = measureCalibrationStageReport(JSON.parse(text));
+    expect(measured.profile.parseCount).toBe(1);
+    expect(measured.stage.totalOutcomes).toBe(1);
+    let caught: unknown;
+    try {
+      fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
+    expect((caught as Error).message).toBe('calibration:report-authority-mode-required');
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  });
+  it('legacy opt-out chain generates genuine development reports before admission exists', async () => {
+    const fixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(91), { authoritative: false });
+    tracked.push(fixture);
+    await fixture.finishPreflight();
+    fixture.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    await fixture.finishDevelopment('LOW', 'exact');
+    await fixture.finishDevelopment('MEDIUM', 'exact');
+    await fixture.publish('development', 'LOW');
+    await fixture.publish('development', 'MEDIUM');
+    for (const profile of ['LOW', 'MEDIUM'] as const) {
+      const devText = readFileSync(fixture.artifactPath('development', profile, 'json'), 'utf8');
+      const devMeasured = measureCalibrationStageReport(JSON.parse(devText));
+      expect(devMeasured.stage.totalOutcomes).toBe(24);
+      expect(devMeasured.stage.parseCases).toBe(24);
+    }
+    fixture.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    fixture.ledger.completeStage('development', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    await fixture.finishValidation('MEDIUM', 'exact');
+    await fixture.publish('validation', 'MEDIUM');
+    const text = readFileSync(fixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8');
+    const measured = measureCalibrationStageReport(JSON.parse(text));
+    expect(measured.stage.totalOutcomes).toBe(48);
+    expect(measured.stage.parseCases).toBe(48);
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  });
+  it('opt-out validation helpers genuinely yield missing, failure and interruption counts', async () => {
+    const missingFixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(93), { authoritative: false });
+    tracked.push(missingFixture);
+    await missingFixture.finishPreflight();
+    await advanceOptOutToValidation(missingFixture);
+    const missing: number[] = [];
+    for (let index = 0; index < 48; index += 1) {
+      missing.push(index);
+    }
+    await missingFixture.finishValidation('MEDIUM', { missingDiagnostics: missing });
+    await missingFixture.publish('validation', 'MEDIUM');
+    const missingMeasured = measureCalibrationStageReport(
+      JSON.parse(readFileSync(missingFixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(missingMeasured.stage.parseCases).toBe(48);
+    expect(missingMeasured.stage.parsedMealCount).toBe(48);
+    expect(missingMeasured.stage.mealMassEligibleCount).toBe(0);
+    expect(missingMeasured.stage.mealDensityCoverageCount).toBe(0);
+    const failFixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(94), { authoritative: false });
+    tracked.push(failFixture);
+    await failFixture.finishPreflight();
+    await advanceOptOutToValidation(failFixture);
+    await failFixture.finishValidation('MEDIUM', { failures: [0, 1] });
+    await failFixture.publish('validation', 'MEDIUM');
+    const failMeasured = measureCalibrationStageReport(
+      JSON.parse(readFileSync(failFixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(failMeasured.stage.totalOutcomes).toBe(48);
+    expect(failMeasured.stage.parseCases).toBe(46);
+    expect(failMeasured.stage.parsedMealCount).toBe(46);
+    const interruptFixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(95), { authoritative: false });
+    tracked.push(interruptFixture);
+    await interruptFixture.finishPreflight();
+    await advanceOptOutToValidation(interruptFixture);
+    await interruptFixture.finishValidation('MEDIUM', { interruptions: [0] });
+    await interruptFixture.publish('validation', 'MEDIUM');
+    const interruptMeasured = measureCalibrationStageReport(
+      JSON.parse(readFileSync(interruptFixture.artifactPath('validation', 'MEDIUM', 'json'), 'utf8')),
+    );
+    expect(interruptMeasured.latency.measuredCases).toBe(47);
+    expect(interruptMeasured.latency.missingCases).toBe(1);
+    expect(interruptMeasured.latency.measuredCases + interruptMeasured.latency.missingCases).toBe(48);
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+  });
+  it('generic pure preflight evaluator remains not-defined', () => {
+    const result = evaluateCalibrationStageGate('preflight', {
+      totalCases: 1,
+      runCases: 1,
+      totalOutcomes: 1,
+      parseCases: 1,
+      unsafeCompletionCount: 0,
+      catastrophicCount: 0,
+      failureCount: 0,
+    } as never);
+    expect(result.passed).toBe(false);
+    expect(result.failedChecks).toEqual(['preflight-gate-not-defined']);
   });
 });
 

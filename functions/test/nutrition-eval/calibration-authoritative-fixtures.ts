@@ -761,6 +761,22 @@ const AUTHORITATIVE_TOKEN_COUNT = 42;
 const AUTHORITATIVE_FAILURE_LATENCY_MS = 200;
 
 export type AuthoritativeScenario = 'exact' | 'provider_failure' | 'interruption';
+export interface AuthoritativeScenarioSpec {
+  readonly failures?: readonly number[];
+  readonly interruptions?: readonly number[];
+  readonly unsafeIndices?: readonly number[];
+  readonly catastrophicIndices?: readonly number[];
+  readonly missingDiagnostics?: readonly number[];
+  readonly kcalScale?: number;
+  readonly proteinScale?: number;
+  readonly carbsScale?: number;
+  readonly fatScale?: number;
+  readonly massScale?: number;
+  readonly latencyMs?: number;
+  readonly perOutcomeKcalScale?: ReadonlyArray<number | undefined>;
+  readonly perOutcomeMacroScale?: ReadonlyArray<number | undefined>;
+}
+export type AuthoritativeScenarioInput = AuthoritativeScenario | AuthoritativeScenarioSpec;
 
 export interface AuthoritativeFixtureEffects {
   ledgerAppends: number;
@@ -797,8 +813,8 @@ export interface AuthoritativeFixture {
   readonly verifierOptions: TestAuthoritativeVerifyOptions;
   publish(stage: StageName, profile: CalibrationProfile): Promise<void>;
   finishPreflight(): Promise<void>;
-  finishDevelopment(profile: CalibrationProfile, scenario: AuthoritativeScenario): Promise<void>;
-  finishValidation(profile: CalibrationProfile, scenario: AuthoritativeScenario): Promise<void>;
+  finishDevelopment(profile: CalibrationProfile, scenario: AuthoritativeScenarioInput): Promise<void>;
+  finishValidation(profile: CalibrationProfile, scenario: AuthoritativeScenarioInput): Promise<void>;
   finishBenchmark(profile: CalibrationProfile, scenario: AuthoritativeScenario): Promise<void>;
   reopen(
     newOwner: Readonly<CalibrationOwner>,
@@ -883,16 +899,65 @@ function buildAuthoritativeFailurePrediction(
   });
 }
 
+function hasSpecIndex(values: readonly number[] | undefined, index: number): boolean {
+  return values !== undefined && values.includes(index);
+}
+function applySpecScales(
+  base: NutritionPrediction,
+  spec: AuthoritativeScenarioSpec,
+  outcomeIndex: number,
+): NutritionPrediction {
+  const record = JSON.parse(JSON.stringify(base)) as Record<string, unknown>;
+  if (hasSpecIndex(spec.missingDiagnostics, outcomeIndex)) {
+    delete record['diagnostics'];
+  }
+  const perKcal = spec.perOutcomeKcalScale?.[outcomeIndex];
+  const perMacro = spec.perOutcomeMacroScale?.[outcomeIndex];
+  const kcalScale = perKcal ?? spec.kcalScale ?? 1;
+  const proteinScale = perMacro ?? spec.proteinScale ?? 1;
+  const carbsScale = perMacro ?? spec.carbsScale ?? 1;
+  const fatScale = perMacro ?? spec.fatScale ?? 1;
+  const massScale = spec.massScale ?? 1;
+  if (hasSpecIndex(spec.catastrophicIndices, outcomeIndex)) {
+    if (typeof record['kcal'] === 'number') {
+      record['kcal'] = (record['kcal'] as number) * 2.5;
+    }
+  } else {
+    if (typeof record['kcal'] === 'number') {
+      record['kcal'] = (record['kcal'] as number) * kcalScale;
+    }
+    if (typeof record['proteinG'] === 'number') {
+      record['proteinG'] = (record['proteinG'] as number) * proteinScale;
+    }
+    if (typeof record['carbsG'] === 'number') {
+      record['carbsG'] = (record['carbsG'] as number) * carbsScale;
+    }
+    if (typeof record['fatG'] === 'number') {
+      record['fatG'] = (record['fatG'] as number) * fatScale;
+    }
+  }
+  if (hasSpecIndex(spec.unsafeIndices, outcomeIndex)) {
+    record['decision'] = 'complete';
+  }
+  const diagnostics = record['diagnostics'] as Record<string, unknown> | undefined;
+  if (diagnostics !== undefined && typeof diagnostics['estimatedTotalMassG'] === 'number') {
+    diagnostics['estimatedTotalMassG'] =
+      (diagnostics['estimatedTotalMassG'] as number) * massScale;
+  }
+  if (spec.latencyMs !== undefined) {
+    record['latencyMs'] = spec.latencyMs;
+  }
+  return record as unknown as NutritionPrediction;
+}
 function buildSuccessJournal(
   key: ReservationKey,
   prediction: NutritionPrediction,
-  truth: NutritionEvalCase['truth'],
 ): JournalEntry {
   const four = {
-    kcal: truth.kcal,
-    proteinG: truth.proteinG,
-    carbsG: truth.carbsG,
-    fatG: truth.fatG,
+    kcal: prediction.kcal as number,
+    proteinG: prediction.proteinG as number,
+    carbsG: prediction.carbsG as number,
+    fatG: prediction.fatG as number,
   };
   const mass = prediction.diagnostics?.estimatedTotalMassG;
   return {
@@ -932,7 +997,7 @@ function recordImageTerminal(
   const owned = captureCalibrationReportPrediction(scored.prediction);
   const journal =
     owned.parseStatus === 'success'
-      ? buildSuccessJournal(key, owned, evalCase.truth)
+      ? buildSuccessJournal(key, owned)
       : buildFailureJournal(key, owned);
   ledger.complete(key, ledger.appendResultJournal(journal));
 }
@@ -962,11 +1027,28 @@ function finishDevelopmentFlow(
   ledger: CalibrationProtocolLedger,
   source: AuthoritativeSource,
   profile: CalibrationProfile,
-  scenario: AuthoritativeScenario,
+  scenario: AuthoritativeScenarioInput,
 ): void {
   const devCases = source.trainingCases.filter((c) => c.group === 'development');
+  let outcomeIndex = 0;
   for (const evalCase of devCases) {
     const key: ReservationKey = { stage: 'development', profile, caseId: evalCase.id, sampleIndex: 1 };
+    const index = outcomeIndex;
+    outcomeIndex += 1;
+    if (typeof scenario !== 'string') {
+      if (hasSpecIndex(scenario.interruptions, index)) {
+        ledger.reserve(key);
+        ledger.recoverAfterCrash();
+        continue;
+      }
+      if (hasSpecIndex(scenario.failures, index)) {
+        recordImageTerminal(ledger, evalCase, key, buildAuthoritativeFailurePrediction(evalCase.scanMode, 1));
+        continue;
+      }
+      const base = createExactPrediction(evalCase, 1);
+      recordImageTerminal(ledger, evalCase, key, applySpecScales(base, scenario, index));
+      continue;
+    }
     const faulted = scenario !== 'exact' && evalCase.id === devCases[0]?.id;
     if (faulted && scenario === 'interruption') {
       ledger.reserve(key);
@@ -985,12 +1067,29 @@ function finishValidationFlow(
   ledger: CalibrationProtocolLedger,
   source: AuthoritativeSource,
   profile: CalibrationProfile,
-  scenario: AuthoritativeScenario,
+  scenario: AuthoritativeScenarioInput,
 ): void {
   const valCases = source.trainingCases.filter((c) => c.group === 'validation');
+  let outcomeIndex = 0;
   for (const evalCase of valCases) {
     for (const sampleIndex of [1, 2, 3]) {
       const key: ReservationKey = { stage: 'validation', profile, caseId: evalCase.id, sampleIndex };
+      const index = outcomeIndex;
+      outcomeIndex += 1;
+      if (typeof scenario !== 'string') {
+        if (hasSpecIndex(scenario.interruptions, index)) {
+          ledger.reserve(key);
+          ledger.recoverAfterCrash();
+          continue;
+        }
+        if (hasSpecIndex(scenario.failures, index)) {
+          recordImageTerminal(ledger, evalCase, key, buildAuthoritativeFailurePrediction(evalCase.scanMode, sampleIndex));
+          continue;
+        }
+        const base = createExactPrediction(evalCase, sampleIndex);
+        recordImageTerminal(ledger, evalCase, key, applySpecScales(base, scenario, index));
+        continue;
+      }
       const faulted = scenario !== 'exact' && evalCase.id === valCases[0]?.id && sampleIndex === 1;
       if (faulted && scenario === 'interruption') {
         ledger.reserve(key);
@@ -1046,10 +1145,15 @@ type AuthoritativeLedgerFactory = (
   authoritativeOptions?: TestAuthoritativeVerifyOptions,
 ) => AuthoritativeTestLedger;
 
+export interface AuthoritativeFixtureOpts {
+  readonly acquire?: boolean;
+  readonly authoritative?: boolean;
+}
 async function openAuthoritativeFixture(
   baseDir: string,
   owner: Readonly<CalibrationOwner>,
   acquire: boolean,
+  authoritative = true,
 ): Promise<AuthoritativeFixture> {
   const effects: AuthoritativeFixtureEffects = {
     ledgerAppends: 0,
@@ -1140,7 +1244,7 @@ async function openAuthoritativeFixture(
     );
   };
   const readDeps = createFileCalibrationLedgerDeps(baseDir);
-  const ledger = openLedger(standardReportOptions, standardVerifierOptions);
+  const ledger = openLedger(standardReportOptions, authoritative ? standardVerifierOptions : undefined);
   const readSnapshot = (stage: StageName, profile: CalibrationProfile) =>
     ledger.getStageReportSnapshot(stage, profile);
   const fixture: AuthoritativeFixture = {
@@ -1189,7 +1293,12 @@ async function openAuthoritativeFixture(
     },
     reopen: async (newOwner, opts) => {
       ledger.releaseLock({ ...owner });
-      return openAuthoritativeFixture(baseDir, newOwner, opts?.acquire ?? true);
+      return openAuthoritativeFixture(
+        baseDir,
+        newOwner,
+        opts?.acquire ?? true,
+        authoritative,
+      );
     },
     receiptEvents: () =>
       readDeps
@@ -1233,13 +1342,18 @@ async function openAuthoritativeFixture(
 
 export async function makeAuthoritativeFixture(
   owner: Readonly<CalibrationOwner> = makeAuthoritativeOwner(0),
-  opts?: Readonly<{ acquire?: boolean }>,
+  opts?: AuthoritativeFixtureOpts,
 ): Promise<AuthoritativeFixture> {
   const chosenParent = resolveAuthoritativeTempParent();
   mkdirSync(chosenParent, { recursive: true, mode: 0o700 });
   const baseDir = mkdtempSync(resolve(chosenParent, 'authoritative-reports-'));
   try {
-    return await openAuthoritativeFixture(baseDir, owner, opts?.acquire ?? true);
+    return await openAuthoritativeFixture(
+      baseDir,
+      owner,
+      opts?.acquire ?? true,
+      opts?.authoritative ?? true,
+    );
   } catch (error) {
     rmSync(baseDir, { recursive: true, force: true });
     throw error;
