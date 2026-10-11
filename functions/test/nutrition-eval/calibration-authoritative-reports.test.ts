@@ -9,7 +9,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { existsSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { dirname, resolve, sep } from 'node:path';
 import {
   makeAuthoritativeFixture,
   makeAuthoritativeOwner,
@@ -740,4 +740,36 @@ describe('failing initial fixture setup cleanup (regression)', () => {
     expect(networkGuard.attemptCalls).toBe(0);
     expect(existsSync(created)).toBe(false);
   });
+});
+
+it('configured missing TMPDIR parent is honored and created for native fixtures', async () => {
+  const first = await openFixture(makeAuthoritativeOwner(70));
+  const configuredParent = resolve(first.baseDir, 'configured-missing-temp-parent');
+  expect(existsSync(configuredParent)).toBe(false);
+  const hadTmpdir = Object.prototype.hasOwnProperty.call(process.env, 'TMPDIR');
+  const savedTmpdir = process.env.TMPDIR;
+  const ownedBefore = fsObserver.mkdtempPaths.length;
+  process.env.TMPDIR = configuredParent;
+  try {
+    const second = await makeAuthoritativeFixture(makeAuthoritativeOwner(71));
+    tracked.push(second);
+    expect(second.baseDir.startsWith(configuredParent + sep)).toBe(true);
+    expect(existsSync(configuredParent)).toBe(true);
+    expect(existsSync(second.baseDir)).toBe(true);
+    expect(statSync(configuredParent).isDirectory()).toBe(true);
+    expect(statSync(second.baseDir).isDirectory()).toBe(true);
+    expect(statSync(configuredParent).mode & 0o777).toBe(0o700);
+    expect(statSync(second.baseDir).mode & 0o777).toBe(0o700);
+    expect(sdkGuard.constructCalls).toBe(0);
+    expect(networkGuard.attemptCalls).toBe(0);
+    expect(fsObserver.mkdtempPaths.length - ownedBefore).toBe(1);
+    const created = fsObserver.mkdtempPaths[fsObserver.mkdtempPaths.length - 1] as string;
+    expect(created.startsWith(configuredParent + sep)).toBe(true);
+  } finally {
+    if (hadTmpdir) {
+      process.env.TMPDIR = savedTmpdir as string;
+    } else {
+      delete process.env.TMPDIR;
+    }
+  }
 });

@@ -21,7 +21,7 @@
  * - 33/36 density distinction: carb density eligible excludes zero-truth carbs
  */
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { scoreNutritionCase } from '../../src/nutrition-eval/scorer';
@@ -746,8 +746,16 @@ export function cloneOwnedReport(report: NutritionEvalReport): NutritionEvalRepo
 
 // ── Task 2 authoritative fixture support (additive; Task 1 sections above unchanged) ──
 
-const AUTHORITATIVE_TMP_ROOT =
-  '/home/agent-runner/projects/calorix/.superpowers/sdd/2026-10-10-calibration-authoritative-report-gates/tmp';
+function resolveAuthoritativeTempParent(): string {
+  const configured = process.env.TMPDIR;
+  if (typeof configured === 'string' && configured.trim().length > 0) {
+    return resolve(configured);
+  }
+  return resolve(
+    fileURLToPath(new URL('.', import.meta.url)),
+    '../../lib/calibration-authoritative-test-tmp',
+  );
+}
 const AUTHORITATIVE_PIN = 'gemini-3.8-fixture-pin';
 const AUTHORITATIVE_TOKEN_COUNT = 42;
 const AUTHORITATIVE_FAILURE_LATENCY_MS = 200;
@@ -1227,7 +1235,9 @@ export async function makeAuthoritativeFixture(
   owner: Readonly<CalibrationOwner> = makeAuthoritativeOwner(0),
   opts?: Readonly<{ acquire?: boolean }>,
 ): Promise<AuthoritativeFixture> {
-  const baseDir = mkdtempSync(resolve(AUTHORITATIVE_TMP_ROOT, 'authoritative-reports-'));
+  const chosenParent = resolveAuthoritativeTempParent();
+  mkdirSync(chosenParent, { recursive: true, mode: 0o700 });
+  const baseDir = mkdtempSync(resolve(chosenParent, 'authoritative-reports-'));
   try {
     return await openAuthoritativeFixture(baseDir, owner, opts?.acquire ?? true);
   } catch (error) {
