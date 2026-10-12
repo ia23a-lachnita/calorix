@@ -17,9 +17,15 @@ import { CalibrationFatalError } from './fatal-error';
 import { CALIBRATION_PROTOCOL_VERSION } from './schema';
 import type { NutritionPrediction } from './schema';
 import type {
+  CalibrationReportMeasurements,
   CalibrationProfileMetrics,
   CalibrationStageGateMetrics,
 } from './calibration-report-measurements';
+import { measureCalibrationStageReport } from './calibration-report-measurements';
+import type {
+  CalibrationPublishedReportReceipt,
+  CalibrationReportPublicationResult,
+} from './calibration-report-publication';
 import { captureCalibrationReportJournalEntry } from './calibration-report-journal';
 import {
   captureCalibrationNonReservationEntry,
@@ -551,6 +557,7 @@ export interface CalibrationCompletedReportPrediction {
 }
 
 export interface CalibrationProtocolLedger extends CalibrationLedger {
+  admitStageReportReceipt: (stage: StageName, profile: CalibrationProfile) => Readonly<CalibrationPublishedReportReceipt>;
   pinModelVersion: (version: string) => void;
   getPinnedModelVersion: () => string | undefined;
   recordProfileSelection: (
@@ -567,6 +574,15 @@ export interface CalibrationProtocolLedger extends CalibrationLedger {
     stage: StageName,
     profile: CalibrationProfile,
   ) => CalibrationStageReportSnapshot;
+}
+
+/** Trusted synchronous seam; normal callers prepare the native reader outside this core. */
+export interface CalibrationAuthoritativeReportOptions {
+  readonly verifyStageReportArtifacts: (params: Readonly<{
+    stage: StageName;
+    profile: CalibrationProfile;
+    snapshot: CalibrationStageReportSnapshot;
+  }>) => Readonly<CalibrationReportPublicationResult>;
 }
 
 const STRICT_LEDGER_EVENT_TYPES: ReadonlySet<string> = new Set([
@@ -1549,8 +1565,9 @@ export function createProtocolCalibrationLedger(
   identity: CalibrationIdentity,
   keyResolver: CalibrationKeyResolver,
   reportOptions?: CalibrationProtocolReportOptions,
+  authoritativeOptions?: CalibrationAuthoritativeReportOptions,
 ): CalibrationProtocolLedger {
-  return createLedgerCore(deps, identity, { keyResolver, reportOptions }) as CalibrationProtocolLedger;
+  return createLedgerCore(deps, identity, { keyResolver, reportOptions, authoritativeOptions }) as CalibrationProtocolLedger;
 }
 
 function createLedgerCore(
@@ -1558,7 +1575,8 @@ function createLedgerCore(
   identityInput: CalibrationIdentity,
   init:
     | { allowedKeys: readonly ReservationKey[] }
-    | { keyResolver: CalibrationKeyResolver; reportOptions?: CalibrationProtocolReportOptions | undefined },
+    | { keyResolver: CalibrationKeyResolver; reportOptions?: CalibrationProtocolReportOptions | undefined;
+      authoritativeOptions?: CalibrationAuthoritativeReportOptions | undefined },
 ): CalibrationLedger {
   const isStrict = !('allowedKeys' in init);
   const strictKeyResolver = isStrict
@@ -1567,12 +1585,27 @@ function createLedgerCore(
   const rawReportOptions = isStrict
     ? (init as { reportOptions?: CalibrationProtocolReportOptions }).reportOptions
     : undefined;
+  const rawAuthority = isStrict
+    ? (init as { authoritativeOptions?: CalibrationAuthoritativeReportOptions }).authoritativeOptions
+    : undefined;
+  let verifyArtifacts: CalibrationAuthoritativeReportOptions['verifyStageReportArtifacts'] | undefined;
+  if (rawAuthority !== undefined) {
+    const options = captureStrictReportRecord(rawAuthority, ['verifyStageReportArtifacts'], 'calibration:report-authority-options-invalid');
+    if (typeof options.verifyStageReportArtifacts !== 'function' || rawReportOptions === undefined) {
+      throw new CalibrationFatalError('calibration:report-authority-options-invalid');
+    }
+    verifyArtifacts = options.verifyStageReportArtifacts as CalibrationAuthoritativeReportOptions['verifyStageReportArtifacts'];
+  }
   if (isStrict && typeof strictKeyResolver !== 'function') {
     throw new CalibrationFatalError('calibration:resolver-failed');
   }
-  const reportOptions = isStrict && rawReportOptions !== undefined
-    ? captureStrictReportOptions(rawReportOptions)
-    : undefined;
+  let reportOptions: CalibrationProtocolReportOptions | undefined;
+  try {
+    reportOptions = isStrict && rawReportOptions !== undefined ? captureStrictReportOptions(rawReportOptions) : undefined;
+  } catch {
+    throw new CalibrationFatalError(verifyArtifacts === undefined
+      ? 'calibration:report-options-invalid' : 'calibration:report-authority-options-invalid');
+  }
   const identity = isStrict ? cloneStrictIdentity(identityInput) : identityInput;
   if (isStrict) {
     assertExactStrictIdentity(identity);
@@ -1656,6 +1689,13 @@ function createLedgerCore(
   let selectedProfile: CalibrationProfile | undefined;
   let selectedReason: CalibrationProfileSelectionReason | undefined;
   let completedStages: StageName[] = [];
+  const receipts = new Map<string, Readonly<CalibrationPublishedReportReceipt>>();
+  const measuredReports = new Map<string, Readonly<CalibrationReportMeasurements>>();
+  const sealedPairs = new Set<string>();
+  const journalOccurrences = new Map<string, Map<string, number>>();
+  let verifyingArtifacts = false;
+  let authorityReady = false;
+  let authoritativeReplay = false;
 
   function throwPoisoned(): never {
     throw new CalibrationFatalError('calibration:ledger-poisoned');
@@ -1672,7 +1712,252 @@ function createLedgerCore(
     }
   }
 
+  function pairId(stage: StageName, profile: CalibrationProfile): string {
+    return `${stage}|${profile}`;
+  }
+
+  function captureReceipt(value: unknown, message: string): Readonly<CalibrationPublishedReportReceipt> {
+    const record = captureStrictReportRecord(value,
+      ['stage', 'profile', 'runId', 'jsonSha256', 'markdownSha256'], message);
+    const { stage, profile, runId, jsonSha256, markdownSha256 } = record;
+    if ((stage !== 'preflight' && stage !== 'development' && stage !== 'validation' && stage !== 'benchmark')
+      || (profile !== 'LOW' && profile !== 'MEDIUM') || typeof runId !== 'string'
+      || typeof jsonSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(jsonSha256)
+      || typeof markdownSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(markdownSha256)) {
+      throw new CalibrationFatalError(message);
+    }
+    const prefix = `calibration-${stage}-${profile.toLowerCase()}-${identity.implementationCommit.slice(0, 12)}-`;
+    if (!runId.startsWith(prefix) || !/^\d{8}T\d{9}Z$/.test(runId.slice(prefix.length))) {
+      throw new CalibrationFatalError(message);
+    }
+    return Object.freeze({ stage, profile, runId, jsonSha256, markdownSha256 });
+  }
+
+  function recordJournalOccurrence(entry: JournalEntry, hash: string): void {
+    if (verifyArtifacts === undefined) return;
+    const key = canonicalReservationKey(entry.key);
+    let occurrences = journalOccurrences.get(key);
+    if (occurrences === undefined) {
+      occurrences = new Map<string, number>();
+      journalOccurrences.set(key, occurrences);
+    }
+    occurrences.set(hash, (occurrences.get(hash) ?? 0) + 1);
+  }
+
+  function reconcileReceiptJournals(stage: StageName, profile: CalibrationProfile, message: string): void {
+    for (const [key, occurrences] of journalOccurrences) {
+      if (!key.startsWith(`${pairId(stage, profile)}|`)) continue;
+      if ([...occurrences.values()].some((count) => count > 1)) {
+        throw new CalibrationFatalError(message);
+      }
+    }
+  }
+
+  function receiptSnapshot(stage: StageName, profile: CalibrationProfile): CalibrationStageReportSnapshot {
+    const snapshot = strictGetStageReportSnapshot(stage, profile);
+    const expected = stage === 'preflight' ? 1 : stage === 'development' ? 24 : stage === 'validation' ? 48 : 60;
+    const plan = selectedProfile === undefined ? cachedInitialPlan : cachedExpandedPlan;
+    const rows = (plan ?? []).filter((row) => row.key.stage === stage && row.key.profile === profile);
+    const outcomes = [...snapshot.images, ...snapshot.nonReservations];
+    const keys = new Set(outcomes.map((row) => canonicalReservationKey(row.key)));
+    if (rows.length !== expected || outcomes.length !== expected || keys.size !== expected
+      || rows.some((row) => !keys.has(canonicalReservationKey(row.key)))
+      || snapshot.counts.imageCallsPending !== 0 || snapshot.startedAt === undefined
+      || ((stage === 'validation' || stage === 'benchmark') && selectedProfile !== profile)) {
+      throw new CalibrationFatalError('calibration:artifact-verification-failed');
+    }
+    return snapshot;
+  }
+
+  function expectedReportId(snapshot: CalibrationStageReportSnapshot): string {
+    return `calibration-${snapshot.stage}-${snapshot.profile.toLowerCase()}-${identity.implementationCommit.slice(0, 12)}-${snapshot.startedAt!.replace(/[^0-9TZ]/g, '')}`;
+  }
+
+  function assertMeasuredBinding(
+    measurements: Readonly<CalibrationReportMeasurements>,
+    receipt: Readonly<CalibrationPublishedReportReceipt>,
+    snapshot: CalibrationStageReportSnapshot,
+  ): void {
+    const report = measurements.report;
+    const meta = report.calibration;
+    const expectedOutcomes = snapshot.images.length + snapshot.nonReservations.length;
+    const uniqueCases = new Set([...snapshot.images, ...snapshot.nonReservations].map((row) => row.key.caseId)).size;
+    const planned = new Set([...snapshot.images, ...snapshot.nonReservations].map((row) => `${row.key.caseId}|${row.key.sampleIndex}`));
+    if (meta === undefined || meta.protocolVersion !== CALIBRATION_PROTOCOL_VERSION
+      || meta.project !== 'calorix-xurschnell' || meta.location !== 'us'
+      || meta.model !== identity.model || report.adapterModelId !== identity.model
+      || report.codeSha !== identity.implementationCommit || report.promptHash !== identity.promptHash
+      || meta.schemaHash !== identity.responseSchemaHash || meta.stage !== snapshot.stage
+      || meta.thinkingLevel !== snapshot.profile || receipt.stage !== snapshot.stage || receipt.profile !== snapshot.profile
+      || report.runId !== expectedReportId(snapshot) || receipt.runId !== report.runId
+      || report.timestamp !== snapshot.startedAt || report.privateCases !== 0 || report.publicCases !== uniqueCases
+      || report.samples !== (snapshot.stage === 'preflight' || snapshot.stage === 'development' ? 1 : 3)
+      || measurements.stage.totalOutcomes !== expectedOutcomes || report.baselineOnly !== false
+      || report.cases.some((row) => !planned.has(`${row.caseId}|${row.prediction.sampleIndex}`))
+      || meta.imageCallsReserved !== snapshot.counts.imageCallsReserved
+      || meta.imageCallsCompleted !== snapshot.counts.imageCallsCompleted
+      || meta.imageCallsFailed !== snapshot.counts.imageCallsFailed) {
+      throw new CalibrationFatalError('calibration:artifact-verification-failed');
+    }
+  }
+
+  function sameReceipt(a: Readonly<CalibrationPublishedReportReceipt>, b: Readonly<CalibrationPublishedReportReceipt>): boolean {
+    return a.stage === b.stage && a.profile === b.profile && a.runId === b.runId
+      && a.jsonSha256 === b.jsonSha256 && a.markdownSha256 === b.markdownSha256;
+  }
+
+  function verifyReceipt(stage: StageName, profile: CalibrationProfile): {
+    receipt: Readonly<CalibrationPublishedReportReceipt>;
+    measurements: Readonly<CalibrationReportMeasurements>;
+  } {
+    try {
+      reconcileReceiptJournals(stage, profile, 'calibration:artifact-verification-failed');
+      const snapshot = receiptSnapshot(stage, profile);
+      verifyingArtifacts = true;
+      const result = verifyArtifacts!(Object.freeze({ stage, profile, snapshot }));
+      const envelope = captureStrictReportRecord(result, ['report', 'receipt'], 'calibration:artifact-verification-failed');
+      const measurements = measureCalibrationStageReport(envelope.report);
+      const receipt = captureReceipt(envelope.receipt, 'calibration:artifact-verification-failed');
+      assertMeasuredBinding(measurements, receipt, snapshot);
+      if (poisoned) throw new CalibrationFatalError('calibration:artifact-verification-failed');
+      return { receipt, measurements };
+    } catch {
+      poisoned = true;
+      throw new CalibrationFatalError('calibration:artifact-verification-failed');
+    } finally {
+      verifyingArtifacts = false;
+    }
+  }
+
+  function admitStageReportReceipt(stage: StageName, profile: CalibrationProfile): Readonly<CalibrationPublishedReportReceipt> {
+    checkPoison();
+    if (verifyArtifacts === undefined) throw new CalibrationFatalError('calibration:report-authority-mode-required');
+    requireLock();
+    if (!STAGE_ORDER.includes(stage) || (profile !== 'LOW' && profile !== 'MEDIUM')) {
+      throw new CalibrationFatalError('calibration:artifact-verification-failed');
+    }
+    const verified = verifyReceipt(stage, profile);
+    const key = pairId(stage, profile);
+    const previous = receipts.get(key);
+    if (previous !== undefined && !sameReceipt(previous, verified.receipt)) {
+      poisoned = true;
+      throw new CalibrationFatalError('calibration:artifact-receipt-conflict');
+    }
+    if (previous === undefined) {
+      persistLedgerEvent({ type: 'artifact_receipt_admitted', receipt: verified.receipt, at: strictNowIso() });
+      receipts.set(key, verified.receipt);
+      sealedPairs.add(key);
+    }
+    measuredReports.set(key, verified.measurements);
+    return Object.freeze({ ...verified.receipt });
+  }
+
+  function assertPairUnsealed(key: ReservationKey, replayType?: string): void {
+    if (verifyArtifacts !== undefined && sealedPairs.has(pairId(key.stage, key.profile))) {
+      throw new CalibrationFatalError(replayType === undefined
+        ? 'calibration:stage-profile-sealed' : `calibration:ledger-event-out-of-order:${replayType}`);
+    }
+  }
+
+  function replayReceipt(event: unknown): void {
+    const malformed = 'calibration:ledger-event-malformed:artifact_receipt_admitted';
+    const order = 'calibration:ledger-event-out-of-order:artifact_receipt_admitted';
+    if (verifyArtifacts === undefined) throw new CalibrationFatalError(malformed);
+    const envelope = captureStrictReportRecord(event, ['type', 'receipt', 'at'], malformed);
+    if (envelope.type !== 'artifact_receipt_admitted') throw new CalibrationFatalError(malformed);
+    assertCanonicalStrictTimestamp(envelope.at, 'artifact_receipt_admitted');
+    const receipt = captureReceipt(envelope.receipt, malformed);
+    const key = pairId(receipt.stage, receipt.profile);
+    if (receipts.has(key)) throw new CalibrationFatalError(malformed);
+    reconcileReceiptJournals(receipt.stage, receipt.profile, malformed);
+    let snapshot: CalibrationStageReportSnapshot;
+    try {
+      snapshot = receiptSnapshot(receipt.stage, receipt.profile);
+    } catch {
+      throw new CalibrationFatalError(order);
+    }
+    if (receipt.runId !== expectedReportId(snapshot)) throw new CalibrationFatalError(malformed);
+    if (authoritativeReplay) {
+      const verified = verifyReceipt(receipt.stage, receipt.profile);
+      if (!sameReceipt(receipt, verified.receipt)) {
+        poisoned = true;
+        throw new CalibrationFatalError('calibration:artifact-receipt-conflict');
+      }
+      measuredReports.set(key, verified.measurements);
+    }
+    receipts.set(key, receipt);
+    sealedPairs.add(key);
+  }
+
+  function requireReports(stage: StageName, profiles: readonly CalibrationProfile[], replayType?: string): void {
+    for (const profile of profiles) {
+      if (!receipts.has(pairId(stage, profile))) {
+        throw new CalibrationFatalError(replayType === undefined
+          ? 'calibration:artifact-receipt-required' : `calibration:ledger-event-out-of-order:${replayType}`);
+      }
+    }
+    // Constructor receipts are provisional. Only current-owner replay or a
+    // live locked transition may consume artifact measurements as authority.
+    if (replayType !== undefined && !authoritativeReplay) return;
+    for (const profile of profiles) admitStageReportReceipt(stage, profile);
+  }
+
+  function measuredDecision(profile: CalibrationProfile, reason: CalibrationProfileSelectionReason, replayType?: string): void {
+    if (verifyArtifacts === undefined) return;
+    requireReports('development', ['LOW', 'MEDIUM'], replayType);
+    if (replayType !== undefined && !authoritativeReplay) return;
+    const low = measuredReports.get(pairId('development', 'LOW'))!;
+    const medium = measuredReports.get(pairId('development', 'MEDIUM'))!;
+    const decision = selectProfileDecision(low.profile, medium.profile);
+    if (decision.profile !== profile || decision.reason !== reason) {
+      throw new CalibrationFatalError('calibration:artifact-selection-mismatch');
+    }
+    const winner = decision.profile === 'LOW' ? low : medium;
+    if (!evaluateCalibrationStageGate('development', winner.stage).passed) {
+      throw new CalibrationFatalError('calibration:artifact-gate-failed');
+    }
+  }
+
+  function measuredStageGate(stage: StageName, replayType?: string): void {
+    if (verifyArtifacts === undefined) return;
+    if (stage === 'benchmark') throw new CalibrationFatalError('calibration:benchmark-runtime-evidence-required');
+    const profiles: readonly CalibrationProfile[] = stage === 'validation'
+      ? (selectedProfile === undefined ? [] : [selectedProfile]) : ['LOW', 'MEDIUM'];
+    if (profiles.length === 0) {
+      throw new CalibrationFatalError(replayType === undefined
+        ? 'calibration:artifact-receipt-required' : `calibration:ledger-event-out-of-order:${replayType}`);
+    }
+    requireReports(stage, profiles, replayType);
+    if (replayType !== undefined && !authoritativeReplay) return;
+    if (stage === 'preflight') {
+      for (const profile of profiles) {
+        const measured = measuredReports.get(pairId(stage, profile))!;
+        if (measured.stage.totalOutcomes !== 1 || measured.stage.parseCases !== 1
+          || measured.stage.failureCount !== 0 || measured.stage.unsafeCompletionCount !== 0) {
+          throw new CalibrationFatalError('calibration:artifact-gate-failed');
+        }
+      }
+      return;
+    }
+    if (stage === 'development') {
+      if (selectedProfile === undefined || selectedReason === undefined) {
+        throw new CalibrationFatalError('calibration:stage-not-ready');
+      }
+      measuredDecision(selectedProfile, selectedReason, replayType);
+    }
+    const measurements = measuredReports.get(pairId(stage, selectedProfile!))!;
+    if (!evaluateCalibrationStageGate(stage, measurements.stage).passed) {
+      throw new CalibrationFatalError('calibration:artifact-gate-failed');
+    }
+  }
+
   function clearReplayState(): void {
+    receipts.clear();
+    measuredReports.clear();
+    sealedPairs.clear();
+    journalOccurrences.clear();
+    authorityReady = false;
+    if (verifyArtifacts !== undefined) cachedExpandedPlan = undefined;
     reservations.clear();
     reservationOrder.length = 0;
     journalHashesByKey.clear();
@@ -1964,15 +2249,19 @@ function createLedgerCore(
   // instance with a fresh static causeless fatal; the held lock is retained.
   function refreshUnderLock(): void {
     try {
+      authoritativeReplay = verifyArtifacts !== undefined;
       const counts = resetAndReplay();
       if (isStrict && counts.eventCount === 0 && counts.journalCount === 0) {
         // Durably initialize the header exactly once; in-memory state is
         // already empty and consistent, so no second reread follows.
         persistLedgerEvent(strictProtocolIdentityEvent());
       }
+      authorityReady = verifyArtifacts !== undefined;
     } catch {
       poisoned = true;
       throw new CalibrationFatalError('calibration:ledger-poisoned');
+    } finally {
+      authoritativeReplay = false;
     }
   }
 
@@ -2493,7 +2782,9 @@ function createLedgerCore(
     for (const field of IDENTITY_FIELDS) {
       snapshot[field] = (identity as unknown as Record<string, unknown>)[field];
     }
-    return { type: 'protocol_identity', identity: snapshot, at: strictNowIso() };
+    const event: Record<string, unknown> = { type: 'protocol_identity', identity: snapshot, at: strictNowIso() };
+    if (verifyArtifacts !== undefined) event.reportAuthority = 'verified_artifacts_v1';
+    return event;
   }
 
   function strictAssertIdentity(candidate: unknown): void {
@@ -2536,6 +2827,7 @@ function createLedgerCore(
   function strictIndexReplayJournal(entry: unknown): void {
     const snapshot = snapshotStrictJournalEntry(entry);
     const hash = computeJournalHash(snapshot);
+    recordJournalOccurrence(snapshot, hash);
     indexJournalHash(canonicalReservationKey(snapshot.key), hash);
     journalByHash.set(hash, snapshot);
   }
@@ -2553,7 +2845,34 @@ function createLedgerCore(
   }
 
   function strictValidateHeaderEvent(event: unknown): void {
-    const record = assertStrictEnvelope(event, STRICT_HEADER_KEYS, 'protocol_identity');
+    let record: Record<string, unknown>;
+    if (verifyArtifacts !== undefined) {
+      const malformed = 'calibration:ledger-event-malformed:protocol_identity';
+      let marked = false;
+      try {
+        marked = typeof event === 'object' && event !== null
+          && Object.getOwnPropertyDescriptor(event, 'reportAuthority') !== undefined;
+        record = captureStrictReportRecord(event,
+          marked ? [...STRICT_HEADER_KEYS, 'reportAuthority'] : STRICT_HEADER_KEYS, malformed);
+        if (record.type !== 'protocol_identity' || (marked && record.reportAuthority !== 'verified_artifacts_v1')) {
+          throw new CalibrationFatalError(malformed);
+        }
+        record.identity = captureStrictReportRecord(record.identity, IDENTITY_FIELDS, malformed);
+      } catch {
+        throw new CalibrationFatalError(malformed);
+      }
+      if (!marked) throw new CalibrationFatalError('calibration:report-authority-mode-mismatch');
+    } else {
+      try {
+        if (typeof event === 'object' && event !== null
+          && Object.getOwnPropertyDescriptor(event, 'reportAuthority') !== undefined) {
+          throw new CalibrationFatalError('calibration:report-authority-mode-mismatch');
+        }
+      } catch {
+        throw new CalibrationFatalError('calibration:report-authority-mode-mismatch');
+      }
+      record = assertStrictEnvelope(event, STRICT_HEADER_KEYS, 'protocol_identity');
+    }
     const rawType = readStrictField(record, 'type', 'protocol_identity');
     if (rawType !== 'protocol_identity') {
       throw new CalibrationFatalError('calibration:ledger-event-malformed:protocol_identity');
@@ -2662,6 +2981,13 @@ function createLedgerCore(
     const toIndex = STAGE_ORDER.indexOf(observedTo as StageName);
     if (fromIndex === -1 || toIndex === -1 || toIndex !== fromIndex + 1) {
       throw new CalibrationFatalError('calibration:stage-transition-invalid');
+    }
+    if (verifyArtifacts !== undefined) {
+      const completedFrom = observedFrom as StageName;
+      if (!completedStages.includes(completedFrom)) {
+        throw new CalibrationFatalError('calibration:stage-not-completed');
+      }
+      measuredStageGate(completedFrom);
     }
   }
 
@@ -2785,6 +3111,7 @@ function createLedgerCore(
     );
     const at = readStrictField(envelope, 'at', 'reserved');
     assertCanonicalStrictTimestamp(at, 'reserved');
+    assertPairUnsealed(key, 'reserved');
     const id = canonicalReservationKey(key);
     if (!allowedKeySet.has(id)) {
       throw new CalibrationFatalError('calibration:ledger-event-unplanned:reserved');
@@ -2816,6 +3143,7 @@ function createLedgerCore(
       throw new CalibrationFatalError('calibration:ledger-event-malformed:completed');
     }
     assertCanonicalStrictTimestamp(readStrictField(envelope, 'at', 'completed'), 'completed');
+    assertPairUnsealed(key, 'completed');
     const id = canonicalReservationKey(key);
     if (!allowedKeySet.has(id)) {
       throw new CalibrationFatalError('calibration:ledger-event-unplanned:completed');
@@ -2857,6 +3185,7 @@ function createLedgerCore(
       readStrictField(envelope, 'key', 'failed'),
       'failed',
     );
+    assertPairUnsealed(key, 'failed');
     const rawHash = readStrictField(envelope, 'journalHash', 'failed');
     if (typeof rawHash !== 'string' || rawHash.length === 0) {
       throw new CalibrationFatalError('calibration:ledger-event-malformed:failed');
@@ -3021,6 +3350,7 @@ function createLedgerCore(
     );
     const nextProfile = rawProfile as CalibrationProfile;
     const nextReason = rawReason as CalibrationProfileSelectionReason;
+    measuredDecision(nextProfile, nextReason, 'profile_selected');
     if (selectedProfile !== undefined) {
       if (selectedProfile === nextProfile && selectedReason === nextReason) {
         return;
@@ -3070,6 +3400,7 @@ function createLedgerCore(
       'stage_completed',
     );
     const nextStage = rawStage as StageName;
+    measuredStageGate(nextStage, 'stage_completed');
     if (completedStages.includes(nextStage)) {
       return;
     }
@@ -3090,11 +3421,15 @@ function createLedgerCore(
         throw new CalibrationFatalError('calibration:ledger-event-malformed');
       }
       record = event as Record<string, unknown>;
-      type = record.type;
+      type = verifyArtifacts === undefined ? record.type
+        : Object.getOwnPropertyDescriptor(record, 'type')?.value;
     } catch {
       throw new CalibrationFatalError('calibration:ledger-event-malformed');
     }
     switch (type) {
+      case 'artifact_receipt_admitted':
+        replayReceipt(event);
+        break;
       case 'reserved':
         strictReplayReserved(record);
         break;
@@ -3145,6 +3480,7 @@ function createLedgerCore(
 
   function strictReserve(key: ReservationKey): void {
     const snapshot = snapshotStrictReservationKey(key, 'reserved');
+    assertPairUnsealed(snapshot);
     const id = canonicalReservationKey(snapshot);
     if (completedStages.includes(snapshot.stage)) {
       throw new CalibrationFatalError('calibration:reservation-sealed');
@@ -3227,6 +3563,7 @@ function createLedgerCore(
 
   function strictAppendResultJournal(entry: JournalEntry): string {
     const snapshot = snapshotStrictJournalEntry(entry);
+    assertPairUnsealed(snapshot.key);
     const id = canonicalReservationKey(snapshot.key);
     const record = reservations.get(id);
     if (record === undefined || record.status !== 'reserved') {
@@ -3247,6 +3584,7 @@ function createLedgerCore(
     }
     const hash = computeJournalHash(snapshot);
     strictPersistJournal(snapshot);
+    recordJournalOccurrence(snapshot, hash);
     pendingJournalHashes.set(id, hash);
     indexJournalHash(id, hash);
     journalByHash.set(hash, snapshot);
@@ -3255,6 +3593,7 @@ function createLedgerCore(
 
   function strictComplete(key: ReservationKey, journalHash: string): void {
     const snapshot = snapshotStrictReservationKey(key, 'completed');
+    assertPairUnsealed(snapshot);
     let observedHash: unknown;
     try {
       observedHash = journalHash;
@@ -3317,6 +3656,7 @@ function createLedgerCore(
       };
       const journalHash = computeJournalHash(failureEntry);
       strictPersistJournal(failureEntry);
+      recordJournalOccurrence(failureEntry, journalHash);
       indexJournalHash(id, journalHash);
       journalByHash.set(journalHash, failureEntry);
       persistLedgerEvent({ type: 'failed', key: keySnapshot, journalHash, at: strictNowIso() });
@@ -3402,6 +3742,7 @@ function createLedgerCore(
     );
     const nextProfile = observedProfile as CalibrationProfile;
     const nextReason = observedReason as CalibrationProfileSelectionReason;
+    measuredDecision(nextProfile, nextReason);
     if (selectedProfile !== undefined) {
       if (selectedProfile === nextProfile && selectedReason === nextReason) {
         return;
@@ -3472,6 +3813,7 @@ function createLedgerCore(
       EXPECTED_STAGE_PREDECESSORS[nextStage],
       'stage_completed',
     );
+    measuredStageGate(nextStage);
     if (completedStages.includes(nextStage)) {
       return;
     }
@@ -3554,6 +3896,7 @@ function createLedgerCore(
       throw new CalibrationFatalError('calibration:non-reservation-plan-required');
     }
     const captured = captureCalibrationNonReservationEntry(entry);
+    assertPairUnsealed(captured.key);
     const id = canonicalReservationKey(captured.key as unknown as ReservationKey);
     if (reservations.has(id)) {
       throw new CalibrationFatalError('calibration:non-reservation-already-reserved');
@@ -3608,6 +3951,7 @@ function createLedgerCore(
       throw new CalibrationFatalError('calibration:non-reservation-plan-required');
     }
     const validated = captureCalibrationNonReservationEvent(record);
+    assertPairUnsealed(validated.key, 'non_reservation_result');
     const id = canonicalReservationKey(validated.key as unknown as ReservationKey);
     if (reservations.has(id) || nonReservationsByKey.has(id)) {
       throw new CalibrationFatalError('calibration:non-reservation-duplicate');
@@ -3782,6 +4126,7 @@ function createLedgerCore(
   }
   const protocolLedger: CalibrationProtocolLedger = {
     ...baseLedger,
+    admitStageReportReceipt,
     pinModelVersion: strictPinModelVersion,
     getPinnedModelVersion: strictGetPinnedModelVersion,
     recordProfileSelection: strictRecordProfileSelection,
@@ -3792,7 +4137,20 @@ function createLedgerCore(
     recordNonReservationResult: strictRecordNonReservationResult,
     getStageReportSnapshot: strictGetStageReportSnapshot,
   };
-  return protocolLedger;
+  if (verifyArtifacts === undefined) return protocolLedger;
+  const authorityMethods = new Set(['getSelectedProfile', 'getCompletedStages',
+    'getCompletedReportPredictions', 'getStageReportSnapshot', 'rebuildReport', 'assertStageTransition']);
+  return Object.fromEntries(Object.entries(protocolLedger).map(([name, method]) => [name, (...args: unknown[]) => {
+    if (verifyingArtifacts) {
+      poisoned = true;
+      throw new CalibrationFatalError('calibration:reentrant-call');
+    }
+    checkPoison();
+    if (authorityMethods.has(name) && (!authorityReady || heldOwner === undefined)) {
+      throw new CalibrationFatalError('calibration:artifact-authority-lock-required');
+    }
+    return Reflect.apply(method, undefined, args);
+  }])) as unknown as CalibrationProtocolLedger;
 }
 
 // ── Pure profile selection ───────────────────────────────────────────────────
@@ -3822,10 +4180,10 @@ function assertValidOptionalMetric(value: number | undefined, label: string): vo
   }
 }
 
-export function selectCalibrationProfile(
+function selectProfileDecision(
   low: CalibrationProfileMetrics,
   medium: CalibrationProfileMetrics,
-): CalibrationProfile {
+): { profile: CalibrationProfile; reason: CalibrationProfileSelectionReason } {
   assertValidRequiredCount(low.unsafeCount, 'low.unsafeCount');
   assertValidRequiredCount(medium.unsafeCount, 'medium.unsafeCount');
   assertValidRequiredCount(low.parseCount, 'low.parseCount');
@@ -3839,13 +4197,13 @@ export function selectCalibrationProfile(
   assertValidOptionalMetric(low.p90AnalysisLatencyMs, 'low.p90AnalysisLatencyMs');
   assertValidOptionalMetric(medium.p90AnalysisLatencyMs, 'medium.p90AnalysisLatencyMs');
   if (low.unsafeCount !== medium.unsafeCount) {
-    return low.unsafeCount < medium.unsafeCount ? 'LOW' : 'MEDIUM';
+    return { profile: low.unsafeCount < medium.unsafeCount ? 'LOW' : 'MEDIUM', reason: 'fewer_unsafe' };
   }
   if (low.parseCount !== medium.parseCount) {
-    return low.parseCount > medium.parseCount ? 'LOW' : 'MEDIUM';
+    return { profile: low.parseCount > medium.parseCount ? 'LOW' : 'MEDIUM', reason: 'higher_parse' };
   }
   if (low.catastrophicCount !== medium.catastrophicCount) {
-    return low.catastrophicCount < medium.catastrophicCount ? 'LOW' : 'MEDIUM';
+    return { profile: low.catastrophicCount < medium.catastrophicCount ? 'LOW' : 'MEDIUM', reason: 'fewer_catastrophic' };
   }
   const lowMacro = effectiveDownstreamMetric(low.meanZeroSafeMacroError, low.parseCount);
   const mediumMacro = effectiveDownstreamMetric(
@@ -3853,12 +4211,12 @@ export function selectCalibrationProfile(
     medium.parseCount,
   );
   if (lowMacro !== mediumMacro) {
-    return lowMacro < mediumMacro ? 'LOW' : 'MEDIUM';
+    return { profile: lowMacro < mediumMacro ? 'LOW' : 'MEDIUM', reason: 'lower_macro_error' };
   }
   const lowKcal = effectiveDownstreamMetric(low.medianKcalError, low.parseCount);
   const mediumKcal = effectiveDownstreamMetric(medium.medianKcalError, medium.parseCount);
   if (lowKcal !== mediumKcal) {
-    return lowKcal < mediumKcal ? 'LOW' : 'MEDIUM';
+    return { profile: lowKcal < mediumKcal ? 'LOW' : 'MEDIUM', reason: 'lower_kcal_error' };
   }
   const lowLatency = effectiveDownstreamMetric(
     low.p90AnalysisLatencyMs,
@@ -3869,9 +4227,13 @@ export function selectCalibrationProfile(
     medium.parseCount,
   );
   if (lowLatency !== mediumLatency) {
-    return lowLatency < mediumLatency ? 'LOW' : 'MEDIUM';
+    return { profile: lowLatency < mediumLatency ? 'LOW' : 'MEDIUM', reason: 'lower_latency' };
   }
-  return 'MEDIUM';
+  return { profile: 'MEDIUM', reason: 'default_medium_tie_breaker' };
+}
+
+export function selectCalibrationProfile(low: CalibrationProfileMetrics, medium: CalibrationProfileMetrics): CalibrationProfile {
+  return selectProfileDecision(low, medium).profile;
 }
 
 // ── Pure stage gates ─────────────────────────────────────────────────────────

@@ -657,15 +657,12 @@ describe('preflight native authority (both receipts, measured success)', () => {
     expect(fixture.receiptEvents()).toHaveLength(1);
   });
 });
-describe('development measured winner and reason (seven genuine rows)', () => {
+// The locked development population is meal-only. Its protected journal codec
+// requires needs_review, so native unsafeCount cannot differ. The fewer_unsafe
+// policy is covered by pure selector metrics and the fail-closed witness below,
+// not by fabricating an inadmissible native meal report.
+describe('development measured winner and reason (six genuine rows)', () => {
   const rows = [
-    {
-      name: 'unsafe lower wins',
-      low: 'exact' as const,
-      medium: { unsafeIndices: [0] } as const,
-      winner: 'LOW' as const,
-      reason: 'fewer_unsafe' as const,
-    },
     {
       name: 'parse higher wins',
       low: 'exact' as const,
@@ -730,10 +727,7 @@ describe('development measured winner and reason (seven genuine rows)', () => {
       const medNative = measureCalibrationStageReport(
         JSON.parse(readFileSync(fixture.artifactPath('development', 'MEDIUM', 'json'), 'utf8')),
       );
-      if (row.name === 'unsafe lower wins') {
-        expect(lowNative.profile.unsafeCount).toBe(0);
-        expect(medNative.profile.unsafeCount).toBe(1);
-      } else if (row.name === 'parse higher wins') {
+      if (row.name === 'parse higher wins') {
         expect(lowNative.profile.parseCount).toBe(24);
         expect(medNative.profile.parseCount).toBe(23);
       } else if (row.name === 'catastrophic fewer wins') {
@@ -764,6 +758,41 @@ describe('development measured winner and reason (seven genuine rows)', () => {
       expect(networkGuard.attemptCalls).toBe(0);
     });
   }
+  it('native unsafe meal fixture is rejected before journal append or verification', async () => {
+    const fixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(93), { authoritative: false });
+    tracked.push(fixture);
+    await fixture.finishPreflight();
+    await completeOptOutPreflight(fixture);
+    const before = { ...fixture.effects };
+    const reserved = fixture.ledger.getCounts().imageReserved;
+    await expect(fixture.finishDevelopment('MEDIUM', { unsafeIndices: [0] })).rejects.toThrow(
+      'calibration:report-journal-invalid',
+    );
+    // A genuine reservation precedes capture; do not pretend this is rollback.
+    expect(fixture.ledger.getCounts().imageReserved).toBe(reserved + 1);
+    expect(fixture.effects.journalAppends).toBe(before.journalAppends);
+    expect(fixture.effects.verifierCalls).toBe(before.verifierCalls);
+    expect(fixture.effects.nativeVerifierCalls).toBe(before.nativeVerifierCalls);
+    expect(fixture.receiptEvents()).toEqual([]);
+    expect(fixture.ledger.getSelectedProfile()).toBeUndefined();
+  });
+  it.each([
+    { lowUnsafe: 0, mediumUnsafe: 1, expected: 'LOW' },
+    { lowUnsafe: 1, mediumUnsafe: 0, expected: 'MEDIUM' },
+    { lowUnsafe: 0, mediumUnsafe: 0, expected: 'MEDIUM' },
+  ] as const)('pure unsafe priority $lowUnsafe/$mediumUnsafe selects $expected', (row) => {
+    const metrics = {
+      parseCount: 24,
+      catastrophicCount: 0,
+      meanZeroSafeMacroError: 0,
+      medianKcalError: 0,
+      p90AnalysisLatencyMs: 1500,
+    };
+    expect(selectCalibrationProfile(
+      { ...metrics, unsafeCount: row.lowUnsafe },
+      { ...metrics, unsafeCount: row.mediumUnsafe },
+    )).toBe(row.expected);
+  });
   it('rejects wrong profile and wrong reason before effects then accepts exact decision', async () => {
     const fixture = await openFixture();
     await fixture.finishPreflight();
@@ -788,6 +817,8 @@ describe('development measured winner and reason (seven genuine rows)', () => {
     expect(medMeasured.stage.p90AnalysisLatencyMs).toBe(2000);
     expect(lowMeasured.profile.parseCount).toBe(24);
     expect(medMeasured.profile.parseCount).toBe(24);
+    expect(lowMeasured.profile.unsafeCount).toBe(0);
+    expect(medMeasured.profile.unsafeCount).toBe(0);
     let first: unknown;
     const appends = fixture.effects.ledgerAppends;
     const clocks = fixture.effects.clockReads;
@@ -819,6 +850,10 @@ describe('development measured winner and reason (seven genuine rows)', () => {
     }
     expect(second).toBeInstanceOf(CalibrationFatalError);
     expect((second as Error).message).toBe('calibration:artifact-selection-mismatch');
+    expect(asRecord(second).cause).toBeUndefined();
+    expect(fixture.effects.ledgerAppends).toBe(appends);
+    expect(fixture.effects.clockReads).toBe(clocks);
+    expect(fixture.effects.fsyncs).toBe(syncs);
     expect(fixture.ledger.getSelectedProfile()).toBeUndefined();
     fixture.ledger.recordProfileSelection('LOW', 'lower_latency', {
       stage: 'development',
@@ -5280,5 +5315,113 @@ describe('raw journal reconciliation native controls and receipt integrity', () 
     expectStaticFatal(() => fixture.ledger.releaseLock({ ...fixture.owner }), 'calibration:ledger-poisoned');
     expect(fourEffects(fixture)).toEqual(poisonedEffects);
     expect(JSON.parse(readFileSync(fixture.lockPath(), 'utf8'))).toEqual(fixture.owner);
+  });
+});
+
+describe('authoritative transition assertion regression', () => {
+  async function admitPreflight(fixture: AuthoritativeFixture): Promise<void> {
+    await fixture.finishPreflight();
+    await fixture.publish('preflight', 'LOW');
+    await fixture.publish('preflight', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('preflight', 'LOW');
+    fixture.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+  }
+  const preflightClaim = {
+    stage: 'preflight' as const, passed: true, completedStages: ['preflight' as const],
+  };
+  function completePreflight(fixture: AuthoritativeFixture): void {
+    fixture.ledger.completeStage('preflight', {
+      stage: 'preflight', passed: true, completedStages: [],
+    });
+  }
+  it('empty acquired ledger rejects caller-forged completion before effects', async () => {
+    const fixture = await openFixture();
+    const before = fourEffects(fixture);
+    expectStaticFatal(() => fixture.ledger.assertStageTransition('preflight', 'development', preflightClaim),
+      'calibration:stage-not-completed');
+    expect(fourEffects(fixture)).toEqual(before);
+    expect(fixture.effects.nativeVerifierCalls).toBe(0);
+    expect(fixture.ledger.getCompletedStages()).toEqual([]);
+  });
+  it('admitted reports without durable completion reject caller-forged completion', async () => {
+    const fixture = await openFixture();
+    await admitPreflight(fixture);
+    const before = fourEffects(fixture);
+    const nativeBefore = fixture.effects.nativeVerifierCalls;
+    expectStaticFatal(() => fixture.ledger.assertStageTransition('preflight', 'development', preflightClaim),
+      'calibration:stage-not-completed');
+    expect(fourEffects(fixture)).toEqual(before);
+    expect(fixture.effects.nativeVerifierCalls).toBe(nativeBefore);
+    expect(fixture.ledger.getCompletedStages()).toEqual([]);
+  });
+  it('genuine completed preflight repeats actual rereads without persistence effects', async () => {
+    const fixture = await openFixture();
+    await admitPreflight(fixture);
+    completePreflight(fixture);
+    for (let repetition = 0; repetition < 2; repetition += 1) {
+      const before = fourEffects(fixture);
+      const traceBefore = fixture.nativeTrace().length;
+      fixture.ledger.assertStageTransition('preflight', 'development', preflightClaim);
+      const rereads = fixture.nativeTrace().slice(traceBefore);
+      expect(rereads.some((entry) => entry.stage === 'preflight' && entry.profile === 'LOW')).toBe(true);
+      expect(rereads.some((entry) => entry.stage === 'preflight' && entry.profile === 'MEDIUM')).toBe(true);
+      expect(fourEffects(fixture)).toEqual(before);
+    }
+  });
+  for (const extension of ['json', 'md'] as const) {
+    it(`${extension} drift after completion poisons transition assertion and retains lock`, async () => {
+      const fixture = await openFixture();
+      await admitPreflight(fixture);
+      completePreflight(fixture);
+      const artifact = fixture.artifactPath('preflight', 'LOW', extension);
+      writeFileSync(artifact, readFileSync(artifact, 'utf8') + '\n');
+      const before = fourEffects(fixture);
+      const nativeBefore = fixture.effects.nativeVerifierCalls;
+      const error = expectStaticFatal(
+        () => fixture.ledger.assertStageTransition('preflight', 'development', preflightClaim),
+        'calibration:artifact-verification-failed',
+      );
+      expect(fixture.effects.nativeVerifierCalls).toBeGreaterThan(nativeBefore);
+      expect(fourEffects(fixture)).toEqual(before);
+      expectPoisonedWithoutEffects(fixture, fixture.ledger, error);
+      expect(JSON.parse(readFileSync(fixture.lockPath(), 'utf8'))).toEqual(fixture.owner);
+    });
+  }
+  it('completed development and validation transitions reverify genuine reports', async () => {
+    const fixture = await openFixture();
+    await finishAuthoritativeDevelopment(fixture);
+    const developmentBefore = fourEffects(fixture);
+    const developmentTrace = fixture.nativeTrace().length;
+    fixture.ledger.assertStageTransition('development', 'validation', {
+      stage: 'development', passed: true, completedStages: ['preflight', 'development'],
+    });
+    const developmentReads = fixture.nativeTrace().slice(developmentTrace);
+    expect(developmentReads.some((entry) => entry.stage === 'development' && entry.profile === 'LOW')).toBe(true);
+    expect(developmentReads.some((entry) => entry.stage === 'development' && entry.profile === 'MEDIUM')).toBe(true);
+    expect(fourEffects(fixture)).toEqual(developmentBefore);
+    await fixture.finishValidation('MEDIUM', 'exact');
+    await fixture.publish('validation', 'MEDIUM');
+    fixture.ledger.admitStageReportReceipt('validation', 'MEDIUM');
+    fixture.ledger.completeStage('validation', {
+      stage: 'validation', passed: true, completedStages: ['preflight', 'development'],
+    });
+    const validationBefore = fourEffects(fixture);
+    const validationTrace = fixture.nativeTrace().length;
+    fixture.ledger.assertStageTransition('validation', 'benchmark', {
+      stage: 'validation', passed: true, completedStages: ['preflight', 'development', 'validation'],
+    });
+    expect(fixture.nativeTrace().slice(validationTrace).some(
+      (entry) => entry.stage === 'validation' && entry.profile === 'MEDIUM',
+    )).toBe(true);
+    expect(fourEffects(fixture)).toEqual(validationBefore);
+  });
+  it('legacy opt-out retains its completion-inclusive caller-summary semantics', async () => {
+    const fixture = await makeAuthoritativeFixture(makeAuthoritativeOwner(94), { authoritative: false });
+    tracked.push(fixture);
+    const before = fourEffects(fixture);
+    fixture.ledger.assertStageTransition('preflight', 'development', preflightClaim);
+    expect(fourEffects(fixture)).toEqual(before);
+    expect(fixture.effects.nativeVerifierCalls).toBe(0);
+    expect(fixture.ledger.getCompletedStages()).toEqual([]);
   });
 });
