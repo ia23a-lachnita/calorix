@@ -29,6 +29,8 @@
 
 ### Resolved protocol decisions
 
+- Controller continuation draft (2026-10-12): `docs/superpowers/specs/2026-10-12-calibration-controller-runtime-design.md` records the proposed unused mediated capability stage, followed by separately specified durable evidence, historical/benchmark authority and default CLI/full146 hermetic integration. Pending written-design review and a detailed first-stage implementation plan; Task7 Steps4–7 remain open. Existing locks, crash resume, frozen gates, old APIs and benchmark block are unchanged; normal worker editing policy resumes after the completed prerequisite.
+
 - Media labeling: calibration sends the manifest's actual `mediaType`; only the legacy no-options production path retains `image/jpeg`.
 - Benchmark macro gate population: protein/carbohydrate/fat medians are computed over the `36` meal outcomes only, matching the meal-only validation modality. Label and exact barcode rows remain in overall/legacy benchmark metrics but cannot pad this gate.
 - Ceiling headroom: protocol v1 is strictly one keyed pass with at most `146` image calls, including crash recovery of only never-reserved keys. The unused room below `300` is not available for an ambiguous-call retry or a second run.
