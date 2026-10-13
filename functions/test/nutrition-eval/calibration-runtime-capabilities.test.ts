@@ -3177,3 +3177,309 @@ describe('source review regressions', () => {
     expect(observations.filter((r) => r.operation === 'reservation' && r.status === 'failed')).toHaveLength(1);
   });
 });
+
+describe('source lifecycle regressions', () => {
+  it('observes no detached unhandled rejection when a retained hook runs after lease end', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    let savedOptions:
+      | { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void }
+      | undefined;
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void },
+    ) => {
+      savedOptions = options;
+      await options?.beforeRequest?.();
+      options?.onResponseMetadata?.({ modelVersion: 'fixture-model-v1' });
+      return '{"fixture":true}';
+    }) as typeof h.deps.generateVision;
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const firstKey = findKey(h, (r) => r.scanMode !== 'barcode');
+    const firstText = await runtime.runOutcome(firstKey, async (caps) => caps.generateVision(VISION_REQUEST));
+    const portsAfterFirst = h.calls.length;
+    const sdkAfterFirst = h.witness.sdk;
+    let hookPromise: Promise<void> | undefined;
+    let unhandledHookCount = 0;
+    const onUnhandled = (_reason: unknown, promise: Promise<unknown>): void => {
+      if (promise === (hookPromise as unknown as Promise<unknown>)) {
+        unhandledHookCount += 1;
+      }
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      const maybe = savedOptions?.beforeRequest?.();
+      if (maybe === undefined) {
+        throw new Error('test setup: missing retained hook');
+      }
+      hookPromise = maybe;
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(unhandledHookCount).toBe(0);
+      expect(h.calls.length).toBe(portsAfterFirst);
+      expect(h.witness.sdk).toBe(sdkAfterFirst);
+      await expect(hookPromise).rejects.toBeInstanceOf(CalibrationFatalError);
+      const hookError = await hookPromise.then(
+        () => {
+          throw new Error('test setup: expected hook rejection');
+        },
+        (error: unknown) => error,
+      );
+      expect((hookError as Error).message).toBe('calibration:runtime-lease-expired');
+      expect((hookError as { cause?: unknown }).cause).toBeUndefined();
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+      if (hookPromise !== undefined) {
+        await hookPromise.catch(() => undefined);
+      }
+    }
+    expect(firstText).toBe('{"fixture":true}');
+    expect(savedOptions?.beforeRequest).toBeDefined();
+  });
+
+  it('observes no detached unhandled rejection when a pending hook settles after outcome failure', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const gate = deferredVoid();
+    h.deps.reserveImage = () => gate.promise;
+    let capturedHook: Promise<void> | undefined;
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void> },
+    ) => {
+      const pending = options?.beforeRequest?.();
+      if (pending !== undefined) {
+        capturedHook = pending;
+      }
+      return '{"fixture":true}';
+    }) as typeof h.deps.generateVision;
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const key = findKey(h, (r) => r.scanMode !== 'barcode');
+    const outer = runtime.runOutcome(key, async (caps) => caps.generateVision(VISION_REQUEST));
+    const outerError = await outer.then(
+      () => {
+        throw new Error('test setup: expected outer rejection');
+      },
+      (error: unknown) => error,
+    );
+    expect(outerError).toBeInstanceOf(CalibrationFatalError);
+    expect((outerError as Error).message).toBe('calibration:runtime-dispatch-contract-invalid');
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    if (capturedHook === undefined) {
+      throw new Error('test setup: missing captured hook promise');
+    }
+    const hook: Promise<void> = capturedHook;
+    let unhandledHookCount = 0;
+    const onUnhandled = (_reason: unknown, promise: Promise<unknown>): void => {
+      if (promise === (hook as unknown as Promise<unknown>)) {
+        unhandledHookCount += 1;
+      }
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      gate.resolve();
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(unhandledHookCount).toBe(0);
+      expect(h.witness.sdk).toBe(0);
+      const observations = runtime.getObservations();
+      expect(observations.filter((r) => r.operation === 'reservation' && r.status === 'completed')).toHaveLength(0);
+      await expect(hook).rejects.toBeInstanceOf(CalibrationFatalError);
+    } finally {
+      gate.resolve();
+      await hook.catch(() => undefined);
+      process.off('unhandledRejection', onUnhandled);
+    }
+  });
+
+  it.each(['image', 'vision'] as const)(
+    'maps a body-thrown provider with pending %s to a fresh callback fatal',
+    async (port) => {
+      const h = await buildRuntimeHarness('LOW');
+      const gate = deferredVoid();
+      let armed = false;
+      const baseLoad = h.deps.loadImage;
+      const baseReserve = h.deps.reserveImage;
+      if (port === 'image') {
+        h.deps.loadImage = async (key: Readonly<ReservationKey>) => {
+          if (armed) {
+            armed = false;
+            await gate.promise;
+          }
+          return baseLoad(key);
+        };
+      } else {
+        h.deps.reserveImage = async (key: Readonly<ReservationKey>) => {
+          if (armed) {
+            armed = false;
+            await gate.promise;
+          }
+          return baseReserve(key);
+        };
+      }
+      let firstSdk = true;
+      h.client.models.generateContent = async () => {
+        h.witness.sdk += 1;
+        h.calls.push('sdk');
+        if (firstSdk) {
+          firstSdk = false;
+          throw new Error('ORDINARY-SDK-BOOM');
+        }
+        return { text: '{"fixture":true}', modelVersion: 'fixture-model-v1' };
+      };
+      const { factory, ProviderError } = await loadRuntimeModule();
+      const runtime = factory(h.deps);
+      const seedKey = findKey(h, (r) => r.scanMode !== 'barcode');
+      const seedOutcome = runtime.runOutcome(seedKey, async (caps) => caps.generateVision(VISION_REQUEST));
+      const seeded = await seedOutcome.then(
+        () => {
+          throw new Error('test setup: expected seed rejection');
+        },
+        (error: unknown) => error,
+      );
+      expect(seeded).toBeInstanceOf(ProviderError);
+      const sdkAfterSeed = h.witness.sdk;
+      armed = true;
+      const triggerKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== seedKey);
+      let pendingPromise: Promise<unknown> | undefined;
+      const triggerOutcome = runtime.runOutcome(triggerKey, async (caps) => {
+        if (port === 'image') {
+          pendingPromise = caps.loadImage();
+        } else {
+          pendingPromise = caps.generateVision(VISION_REQUEST);
+        }
+        throw seeded;
+      });
+      const triggerError = await triggerOutcome.then(
+        () => {
+          throw new Error('test setup: expected trigger rejection');
+        },
+        (error: unknown) => error,
+      );
+      try {
+        expect(triggerError).toBeInstanceOf(CalibrationFatalError);
+        expect(triggerError).not.toBeInstanceOf(ProviderError);
+        expect((triggerError as Error).message).toBe('calibration:runtime-callback-failed');
+        expect((triggerError as { cause?: unknown }).cause).toBeUndefined();
+        expect(Object.is(triggerError, seeded)).toBe(false);
+        const poisonKey = findKey(
+          h,
+          (r) => r.scanMode !== 'barcode' && r.key !== seedKey && r.key !== triggerKey,
+        );
+        const portsBeforePoison = h.calls.length;
+        const sdkBeforePoison = h.witness.sdk;
+        const poisonOutcome = runtime.runOutcome(poisonKey, async (caps) => caps.generateVision(VISION_REQUEST));
+        const poisonError = await poisonOutcome.then(
+          () => {
+            throw new Error('test setup: expected poison rejection');
+          },
+          (error: unknown) => error,
+        );
+        expect(poisonError).toBeInstanceOf(CalibrationFatalError);
+        expect((poisonError as Error).message).toBe('calibration:runtime-poisoned');
+        expect(h.calls.length).toBe(portsBeforePoison);
+        expect(h.witness.sdk).toBe(sdkBeforePoison);
+        expect(sdkBeforePoison).toBe(sdkAfterSeed);
+      } finally {
+        gate.resolve();
+        if (pendingPromise !== undefined) {
+          await pendingPromise.catch(() => undefined);
+        }
+      }
+    },
+  );
+
+  it('records terminal metadata failure diagnostics without completing vision', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    h.deps.onModelVersion = () => {
+      h.calls.push('metadata');
+      throw new Error('PRIVATE-SENTINEL-version');
+    };
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const key = findKey(h, (r) => r.scanMode !== 'barcode');
+    const outer = runtime.runOutcome(key, async (caps) => caps.generateVision(VISION_REQUEST));
+    const outerError = await outer.then(
+      () => {
+        throw new Error('test setup: expected outer rejection');
+      },
+      (error: unknown) => error,
+    );
+    expect(outerError).toBeInstanceOf(CalibrationFatalError);
+    expect((outerError as Error).message).toBe('calibration:runtime-callback-failed');
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    const observations = runtime.getObservations();
+    expect(observations.filter((r) => r.operation === 'metadata' && r.status === 'attempted')).toHaveLength(1);
+    expect(observations.filter((r) => r.operation === 'metadata' && r.status === 'failed')).toHaveLength(1);
+    expect(observations.filter((r) => r.operation === 'metadata' && r.status === 'completed')).toHaveLength(0);
+    expect(observations.filter((r) => r.operation === 'vision' && r.status === 'failed')).toHaveLength(1);
+    expect(observations.filter((r) => r.operation === 'vision' && r.status === 'completed')).toHaveLength(0);
+    expect(observations.filter((r) => r.operation === 'outcome' && r.status === 'failed')).toHaveLength(1);
+    expect(h.witness.sdk).toBe(1);
+    const nextKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== key);
+    const portsBefore = h.calls.length;
+    const sdkBefore = h.witness.sdk;
+    const nextOutcome = runtime.runOutcome(nextKey, async (caps) => caps.generateVision(VISION_REQUEST));
+    const nextError = await nextOutcome.then(
+      () => {
+        throw new Error('test setup: expected poison rejection');
+      },
+      (error: unknown) => error,
+    );
+    expect(nextError).toBeInstanceOf(CalibrationFatalError);
+    expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+    expect(h.calls.length).toBe(portsBefore);
+    expect(h.witness.sdk).toBe(sdkBefore);
+  });
+
+  it('preserves poison code when a guarded operation runs after a swallowed read fatal', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const key = findKey(h, (r) => r.scanMode !== 'barcode');
+    let readError: unknown;
+    let guardError: unknown;
+    const outer = runtime.runOutcome(key, async (caps) => {
+      try {
+        runtime.getObservations();
+      } catch (error) {
+        readError = error;
+      }
+      try {
+        await caps.loadImage();
+      } catch (error) {
+        guardError = error;
+      }
+      return 'opaque-fixture-text';
+    });
+    const outerError = await outer.then(
+      () => {
+        throw new Error('test setup: expected outer rejection');
+      },
+      (error: unknown) => error,
+    );
+    expect(readError).toBeInstanceOf(CalibrationFatalError);
+    expect((readError as Error).message).toBe('calibration:runtime-reentrant-operation');
+    expect((readError as { cause?: unknown }).cause).toBeUndefined();
+    expect(guardError).toBeInstanceOf(CalibrationFatalError);
+    expect((guardError as Error).message).toBe('calibration:runtime-poisoned');
+    expect((guardError as { cause?: unknown }).cause).toBeUndefined();
+    expect(outerError).toBeInstanceOf(CalibrationFatalError);
+    expect((outerError as Error).message).toBe('calibration:runtime-poisoned');
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    expect(h.calls).toEqual([]);
+    expect(h.witness.sdk).toBe(0);
+    const nextKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== key);
+    const portsBefore = h.calls.length;
+    await expect(
+      runtime.runOutcome(nextKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+    ).rejects.toThrow('calibration:runtime-poisoned');
+    expect(h.calls.length).toBe(portsBefore);
+  });
+});
