@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-12
 
-**Status:** Draft for user review. This document clarifies the next architectural boundary; it does not authorize implementation or live execution.
+**Status:** Written design approved by the user on 2026-10-13 ("yes go on"). Implementation-plan review remains required; no live execution is authorized.
 
 **Parent spec:** `docs/superpowers/specs/2026-09-23-gemini-38-nutrition-calibration-design.md`
 
@@ -34,7 +34,7 @@ The previous source checkpoint has recorded full pre/postcommit tests. They are 
 2. Prefer a controller-owned mediated capability graph with keyed observations, followed by durable evidence bound to existing journals and verified report receipts. This extends the existing cooperative orchestration model.
 3. OS network isolation would address a different, stronger threat model. Do not introduce namespaces, subprocess sandboxes or host dependencies in this workstream without a separate scope decision.
 
-The preference is conditional on review of this written design. Injected ports remain trusted dependencies; an arbitrary injected function cannot authenticate its own honesty.
+The user approved this written direction on 2026-10-13. Injected ports remain trusted dependencies; an arbitrary injected function cannot authenticate its own honesty.
 
 ## First bounded implementation stage
 
@@ -100,4 +100,4 @@ After approval of this written refinement, use writing-plans to produce the firs
 
 Antigravity MCP `gemini-3.8-flash`, conversation `calorix-controller-runtime-design-20261012`, first response supported mediation but introduced conflicting lock, resume, metrics and admission suggestions; recorded as response noise and rejected. Corrected response explicitly retracted those inventions and returned `AGREEMENT_STATUS: agree` / `MUST_FIX: none` / `SHOULD_FIX: none` / `QUESTIONS: none` for the direction only. It still suggested a first-stage fsync writer despite the requested non-durable primitive; this draft explicitly excludes that suggestion.
 
-The third consultation reviewed the exact supplied written draft, including the explicit non-durable first-stage boundary, and returned `AGREEMENT_STATUS: agree` / `MUST_FIX: none` / `SHOULD_FIX: none` / `QUESTIONS: none`. This is the written-design green, not implementation approval. Its summary's phrase about twelve barcode keys "across LOW/MEDIUM" is not adopted: the written requirement is twelve benchmark barcode keys at the ledger-selected profile. No fallback or tool timeout occurred in these three consultations. No independent tests, repository inspection, runtime/accuracy/security/production approval were supplied. User review of this written refinement and a reviewed detailed implementation plan remain required.
+The third consultation reviewed the exact supplied written draft, including the explicit non-durable first-stage boundary, and returned `AGREEMENT_STATUS: agree` / `MUST_FIX: none` / `SHOULD_FIX: none` / `QUESTIONS: none`. This is the written-design green, not implementation approval. Its summary's phrase about twelve barcode keys "across LOW/MEDIUM" is not adopted: the written requirement is twelve benchmark barcode keys at the ledger-selected profile. No fallback or tool timeout occurred in these three consultations. No independent tests, repository inspection, runtime/accuracy/security/production approval were supplied. The user's 2026-10-13 approval completes written-design review; review of the detailed implementation plan remains required.

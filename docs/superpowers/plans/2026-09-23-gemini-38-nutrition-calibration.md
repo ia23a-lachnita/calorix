@@ -29,7 +29,7 @@
 
 ### Resolved protocol decisions
 
-- Controller continuation draft (2026-10-12): `docs/superpowers/specs/2026-10-12-calibration-controller-runtime-design.md` records the proposed unused mediated capability stage, followed by separately specified durable evidence, historical/benchmark authority and default CLI/full146 hermetic integration. Pending written-design review and a detailed first-stage implementation plan; Task7 Steps4–7 remain open. Existing locks, crash resume, frozen gates, old APIs and benchmark block are unchanged; normal worker editing policy resumes after the completed prerequisite.
+- Controller continuation written design approved by the user (2026-10-13): `docs/superpowers/specs/2026-10-12-calibration-controller-runtime-design.md` records the unused mediated capability stage, followed by separately specified durable evidence, historical/benchmark authority and default CLI/full146 hermetic integration. The exact first-stage plan is `docs/superpowers/plans/2026-10-13-calibration-runtime-capabilities.md`, pending user plan review before implementation; Task7 Steps4–7 remain open. Existing locks, crash resume, frozen gates, old APIs and benchmark block are unchanged; normal worker editing policy resumes after the completed prerequisite.
 
 - Controller design checkpoint `7ab95b50bcae6fd5d2598fee40c4d3e095ba1239` normal commit/push/live-origin exact: primary3.8 Antigravity exact written-design agree/MUST_FIX none, direction-only; initial conflicting suggestions rejected. Docs whitespace/source-test invariance/config SHA checks passed, no code/tests/live calls or full verifier rerun. User written-design review precedes the first-stage implementation plan; benchmark completion remains blocked.
 
