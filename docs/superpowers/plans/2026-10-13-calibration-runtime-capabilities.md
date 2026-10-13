@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-12-calibration-controller-runtime-design.md` (user approved 2026-10-13), with fixed protocol constraints from `docs/superpowers/specs/2026-09-23-gemini-38-nutrition-calibration-design.md` and its parent plan.
 
-**Status:** Self-reviewed and Antigravity plan-review green; pending user plan review. No application/test edits authorized yet. Preserve inline host orchestration with required editing workers and one final native read-only whole-plan review; no permanent direct-code-edit exception.
+**Status:** Self-reviewed, Antigravity plan-review green, and user approved on 2026-10-13 ("looks good continue"). Task1 Step1 starting through the required editing route. Preserve inline host orchestration with required editing workers and one final native read-only whole-plan review; no permanent direct-code-edit exception.
 
 ## Global Constraints
 
@@ -359,4 +359,4 @@ This plan has one application deliverable. No shared interfaces between independ
 - Antigravity MCP `gemini-3.8-flash`, conversation `calorix-runtime-capabilities-plan-20261013`: initial plan agrees/MUST_FIX none with three bounded suggestions; nonbarcode sample predicate and missing-product failure clarified, spy ordering already covered. Final supplied exact functional plan plus five executable focus examples received `AGREEMENT_STATUS: agree` / `MUST_FIX: none` / `SHOULD_FIX: none` / `QUESTIONS: none`. Two plan consultations, no failed routes/fallbacks or independent tests/repository inspection. This is plan-only agreement, not implementation/runtime/security/accuracy/production approval.
 - User approved the written design on 2026-10-13. This self-reviewed/external-green plan still needs user review; no editing-worker/provider quota assumed available and no app edits made.
 - Planning checkpoint `d85b0f7de1ce1531bef2399738eedc5a33c01b05` (`Plan mediated runtime capabilities`) normal four-doc commit/push/live-origin exact. Staged whitespace0, scoped credential-pattern scan no matches, application/test diff against88f0, protected config9c unchanged/onlydirty/unstaged. Final tracking receipt is documentation only; no extra source verifier or code authorization.
-- Current Task: await user review of this implementation plan under writing-plans. Task1 has not started; execution BASE and intended commands will be recorded by task-start after plan approval.
+- Current Task: user approved this plan ("looks good continue"); Task1 Step1 RED-only worker authoring next. Execution BASE `3ce8099417a6e30b6519ad074e011efb872e71b3`, branch `fix/scan-photo-flow-viewer`; intended verification is independent fixture control, then missing-feature RED, frozen hashes, source-only GREEN and all Step4–6 gates. All six steps remain open until their evidence is collected.
