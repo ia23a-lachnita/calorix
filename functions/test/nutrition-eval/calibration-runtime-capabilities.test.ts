@@ -485,7 +485,7 @@ describe('dependency record validation', () => {
     const { factory } = await loadRuntimeModule();
     const corrupted: Record<string, unknown> = {
       ...h.deps,
-      files: { ...h.deps.files, prompt: 'this is not the pinned prompt bytes' },
+      files: { ...h.deps.files, 'calibration-manifest': 'this is not the pinned manifest bytes' },
     };
     expect(() => factory(corrupted)).toThrow(CalibrationFatalError);
     expect(h.calls).toEqual([]);
@@ -1449,7 +1449,7 @@ describe('provider failure, continuation, and contract-fatal blank text', () => 
     // The escaped error is a locally constructed static error, never the
     // foreign hostile proxy itself (never inspected via instanceof/prototype
     // against the foreign value).
-    expect(caught).not.toBe(witness.error);
+    expect(Object.is(caught, witness.error)).toBe(false);
     expect((caught as { code?: unknown }).code).toBe('provider_request_failed');
     expect((caught as Error).name).toBe('CalibrationRuntimeProviderError');
     expect((caught as Error).message).toBe('calibration:runtime-provider-failed');
@@ -1626,7 +1626,7 @@ describe('opaque and unknown failure handling', () => {
       (error: unknown) => error,
     );
     expect(innerSeen).toBeDefined();
-    expect(outerError).not.toBe(innerSeen);
+    expect(Object.is(outerError, innerSeen)).toBe(false);
     expect(outerError).toBeInstanceOf(ProviderError);
     expect((outerError as Error).name).toBe('CalibrationRuntimeProviderError');
     expect((outerError as Error).message).toBe('calibration:runtime-provider-failed');
@@ -2423,7 +2423,7 @@ describe('fresh errors, frozen callback keys, and omitted cases', () => {
       (error: unknown) => error,
     );
     expect(innerSeen).toBeDefined();
-    expect(outerError).not.toBe(innerSeen);
+    expect(Object.is(outerError, innerSeen)).toBe(false);
     expect(outerError).toBeInstanceOf(CalibrationFatalError);
     expect((outerError as Error).message).toBe('calibration:runtime-duplicate-operation');
     expect((outerError as { cause?: unknown }).cause).toBeUndefined();
@@ -2443,7 +2443,7 @@ describe('fresh errors, frozen callback keys, and omitted cases', () => {
     await expect(rejection).rejects.toThrow('calibration:runtime-callback-failed');
     await expect(rejection).rejects.not.toThrow('PRIVATE-SENTINEL-FOREIGN-SNAPSHOT');
     const caught = await rejection.catch((error: unknown) => error);
-    expect(caught).not.toBe(witness.error);
+    expect(Object.is(caught, witness.error)).toBe(false);
     expect((caught as { cause?: unknown }).cause).toBeUndefined();
     expect(witness.getProbes()).toBe(0);
     // No live fallback ran and the next key is poisoned with no more ports.
@@ -2531,5 +2531,649 @@ describe('fresh errors, frozen callback keys, and omitted cases', () => {
     const key2 = findKey(h, (r) => r.scanMode !== 'barcode' && r.key.caseId !== key.caseId);
     const returned = await runtime2.runOutcome(key2, async () => opaque);
     expect(returned).toBe(opaque);
+  });
+});
+// ── Source review regressions (concrete MUST7 defects, RED on unchanged source) ──
+
+describe('source review regressions', () => {
+  it.each(['deps', 'files'] as const)(
+    'rejects revoked %s root as fresh causeless input-invalid with zero ports',
+    async (target) => {
+      const h = await buildRuntimeHarness('LOW');
+      const { factory } = await loadRuntimeModule();
+      let caught: unknown;
+      if (target === 'deps') {
+        const revoked = Proxy.revocable({}, {});
+        revoked.revoke();
+        try {
+          factory(revoked.proxy);
+        } catch (error) {
+          caught = error;
+        }
+      } else {
+        const revokedFiles = Proxy.revocable({ ...h.deps.files }, {});
+        revokedFiles.revoke();
+        const withRevokedFiles: Record<string, unknown> = { ...h.deps, files: revokedFiles.proxy };
+        try {
+          factory(withRevokedFiles);
+        } catch (error) {
+          caught = error;
+        }
+      }
+      expect(caught).toBeInstanceOf(CalibrationFatalError);
+      expect((caught as Error).message).toBe('calibration:runtime-input-invalid');
+      expect((caught as { cause?: unknown }).cause).toBeUndefined();
+      expect(h.calls).toEqual([]);
+      expect(h.witness.sdk).toBe(0);
+    },
+  );
+
+  it.each(['retained-load', 'retained-vision', 'retained-snapshot', 'late-hook', 'late-metadata'] as const)(
+    'rejects stale %s with poisoned future keys',
+    async (target) => {
+      if (target === 'retained-load') {
+        const h = await buildRuntimeHarness('LOW');
+        const { factory } = await loadRuntimeModule();
+        const runtime = factory(h.deps);
+        const key = findKey(h, (r) => r.scanMode !== 'barcode');
+        let retainedLoad: (() => Promise<Uint8Array>) | undefined;
+        await runtime.runOutcome(key, async (caps) => {
+          retainedLoad = caps.loadImage;
+          await caps.loadImage();
+          return caps.generateVision(VISION_REQUEST);
+        });
+        expect(retainedLoad).toBeDefined();
+        h.calls.length = 0;
+        const portsBefore = h.calls.length;
+        const sdkBefore = h.witness.sdk;
+        let loadPromise!: Promise<Uint8Array>;
+        let loadSyncThrew = false;
+        try {
+          loadPromise = retainedLoad!();
+        } catch (error) {
+          loadSyncThrew = true;
+          loadPromise = Promise.reject(error);
+          loadPromise.catch(() => undefined);
+        }
+        await expect(loadPromise).rejects.toBeInstanceOf(CalibrationFatalError);
+        const nextKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== key);
+        await expect(
+          runtime.runOutcome(nextKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+        ).rejects.toThrow('calibration:runtime-poisoned');
+        expect(h.calls.length).toBe(portsBefore);
+        expect(h.witness.sdk).toBe(sdkBefore);
+        expect(loadSyncThrew).toBe(false);
+        return;
+      }
+      if (target === 'retained-vision') {
+        const h = await buildRuntimeHarness('LOW');
+        const { factory } = await loadRuntimeModule();
+        const runtime = factory(h.deps);
+        const key = findKey(h, (r) => r.scanMode !== 'barcode');
+        let retainedVision: ((request: { prompt: string; imageBase64: string }) => Promise<string>) | undefined;
+        await runtime.runOutcome(key, async (caps) => {
+          retainedVision = caps.generateVision;
+          await caps.loadImage();
+          return caps.generateVision(VISION_REQUEST);
+        });
+        expect(retainedVision).toBeDefined();
+        h.calls.length = 0;
+        const portsBefore = h.calls.length;
+        const sdkBefore = h.witness.sdk;
+        let visionPromise!: Promise<string>;
+        let visionSyncThrew = false;
+        try {
+          visionPromise = retainedVision!(VISION_REQUEST);
+        } catch (error) {
+          visionSyncThrew = true;
+          visionPromise = Promise.reject(error);
+          visionPromise.catch(() => undefined);
+        }
+        await expect(visionPromise).rejects.toBeInstanceOf(CalibrationFatalError);
+        const nextKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== key);
+        await expect(
+          runtime.runOutcome(nextKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+        ).rejects.toThrow('calibration:runtime-poisoned');
+        expect(h.calls.length).toBe(portsBefore);
+        expect(h.witness.sdk).toBe(sdkBefore);
+        expect(visionSyncThrew).toBe(false);
+        return;
+      }
+      if (target === 'retained-snapshot') {
+        const h = await buildRuntimeHarness('LOW');
+        const { factory } = await loadRuntimeModule();
+        const runtime = factory(h.deps);
+        const firstRow = h.plan.find((r) => r.scanMode === 'barcode');
+        if (firstRow === undefined) throw new Error('test setup: no barcode key');
+        let retainedSnapshot: (() => unknown) | undefined;
+        const product = await runtime.runOutcome(firstRow.key, async (caps) => {
+          retainedSnapshot = caps.lookupSnapshot;
+          return caps.lookupSnapshot();
+        });
+        expect(product).toBeDefined();
+        expect(retainedSnapshot).toBeDefined();
+        h.calls.length = 0;
+        const portsBefore = h.calls.length;
+        const sdkBefore = h.witness.sdk;
+        let caught: unknown;
+        try {
+          retainedSnapshot!();
+        } catch (error) {
+          caught = error;
+        }
+        expect(caught).toBeInstanceOf(CalibrationFatalError);
+        const nextRow = h.plan.find((r) => r.scanMode === 'barcode' && r.key !== firstRow.key);
+        if (nextRow === undefined) throw new Error('test setup: no second barcode key');
+        await expect(
+          runtime.runOutcome(nextRow.key, async (caps) => caps.lookupSnapshot()),
+        ).rejects.toThrow('calibration:runtime-poisoned');
+        expect(h.calls.length).toBe(portsBefore);
+        expect(h.witness.sdk).toBe(sdkBefore);
+        return;
+      }
+      if (target === 'late-hook') {
+        const h = await buildRuntimeHarness('LOW');
+        let saved:
+          | { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void }
+          | undefined;
+        h.deps.generateVision = (async (
+          _model: string,
+          _prompt: string,
+          _imageBase64: string,
+          _source?: unknown,
+          options?: { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void },
+        ) => {
+          saved = options;
+          await options?.beforeRequest?.();
+          options?.onResponseMetadata?.({ modelVersion: 'fixture-model-v1' });
+          return 'late-hook-fixture';
+        }) as typeof h.deps.generateVision;
+        const { factory } = await loadRuntimeModule();
+        const runtime = factory(h.deps);
+        const firstKey = findKey(h, (r) => r.scanMode !== 'barcode');
+        await runtime.runOutcome(firstKey, async (caps) => caps.generateVision(VISION_REQUEST));
+        expect(saved).toBeDefined();
+        h.calls.length = 0;
+        const portsBefore = h.calls.length;
+        const sdkBefore = h.witness.sdk;
+        let hookPromise!: Promise<void>;
+        let hookSyncThrew = false;
+        try {
+          hookPromise = saved!.beforeRequest!();
+        } catch (error) {
+          hookSyncThrew = true;
+          hookPromise = Promise.reject(error);
+          hookPromise.catch(() => undefined);
+        }
+        await expect(hookPromise).rejects.toBeInstanceOf(CalibrationFatalError);
+        const nextKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== firstKey);
+        await expect(
+          runtime.runOutcome(nextKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+        ).rejects.toThrow('calibration:runtime-poisoned');
+        expect(h.calls.length).toBe(portsBefore);
+        expect(h.witness.sdk).toBe(sdkBefore);
+        expect(hookSyncThrew).toBe(false);
+        return;
+      }
+      const h = await buildRuntimeHarness('LOW');
+      let savedMeta:
+        | { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void }
+        | undefined;
+      h.deps.generateVision = (async (
+        _model: string,
+        _prompt: string,
+        _imageBase64: string,
+        _source?: unknown,
+        options?: { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void },
+      ) => {
+        savedMeta = options;
+        await options?.beforeRequest?.();
+        options?.onResponseMetadata?.({ modelVersion: 'fixture-model-v1' });
+        return 'late-meta-fixture';
+      }) as typeof h.deps.generateVision;
+      const { factory } = await loadRuntimeModule();
+      const runtime = factory(h.deps);
+      const firstKey = findKey(h, (r) => r.scanMode !== 'barcode');
+      await runtime.runOutcome(firstKey, async (caps) => caps.generateVision(VISION_REQUEST));
+      expect(savedMeta).toBeDefined();
+      h.calls.length = 0;
+      const portsBefore = h.calls.length;
+      const sdkBefore = h.witness.sdk;
+      let metaCaught: unknown;
+      try {
+        savedMeta!.onResponseMetadata!({ modelVersion: 'late-version' });
+      } catch (error) {
+        metaCaught = error;
+      }
+      expect(metaCaught).toBeInstanceOf(CalibrationFatalError);
+      const nextKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== firstKey);
+      await expect(
+        runtime.runOutcome(nextKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+      ).rejects.toThrow('calibration:runtime-poisoned');
+      expect(h.calls.length).toBe(portsBefore);
+      expect(h.witness.sdk).toBe(sdkBefore);
+    },
+  );
+
+  it.each(['loadImage', 'reserveImage', 'onModelVersion', 'lookupSnapshot'] as const)(
+    'maps a seeded provider error through %s to a fresh static with poisoned future keys',
+    async (port) => {
+      if (port === 'loadImage') {
+        const h = await buildRuntimeHarness('LOW');
+        let seeded: Error | undefined = undefined;
+        let enabled = false;
+        h.deps.loadImage = async () => {
+          if (enabled && seeded !== undefined) throw seeded;
+          return new Uint8Array([1, 2, 3]);
+        };
+        let firstSdk = true;
+        h.client.models.generateContent = async () => {
+          h.witness.sdk++;
+          h.calls.push('sdk');
+          if (firstSdk) {
+            firstSdk = false;
+            throw new Error('ORDINARY-SDK-BOOM');
+          }
+          return { text: 'seeded-fixture', modelVersion: 'fixture-model-v1' };
+        };
+        const { factory, ProviderError } = await loadRuntimeModule();
+        const runtime = factory(h.deps);
+        const seedKey = findKey(h, (r) => r.scanMode !== 'barcode');
+        const seedOutcome = runtime.runOutcome(seedKey, async (caps) => caps.generateVision(VISION_REQUEST));
+        await expect(seedOutcome).rejects.toBeInstanceOf(ProviderError);
+        seeded = (await seedOutcome.then(
+          () => {
+            throw new Error('test setup: expected rejection');
+          },
+          (error: unknown) => error,
+        )) as Error;
+        expect(seeded).toBeInstanceOf(ProviderError);
+        enabled = true;
+        const sdkAfterSeed = h.witness.sdk;
+        const triggerKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== seedKey);
+        const triggerOutcome = runtime.runOutcome(triggerKey, async (caps) => caps.loadImage());
+        await expect(triggerOutcome).rejects.toBeInstanceOf(CalibrationFatalError);
+        await expect(triggerOutcome).rejects.toThrow('calibration:runtime-callback-failed');
+        const triggerError = await triggerOutcome.then(
+          () => {
+            throw new Error('test setup: expected rejection');
+          },
+          (error: unknown) => error,
+        );
+        expect((triggerError as { cause?: unknown }).cause).toBeUndefined();
+        expect(Object.is(triggerError, seeded)).toBe(false);
+        expect(h.witness.sdk).toBe(sdkAfterSeed);
+        const thirdKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== seedKey && r.key !== triggerKey);
+        const portsBefore = h.calls.length;
+        await expect(
+          runtime.runOutcome(thirdKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+        ).rejects.toThrow('calibration:runtime-poisoned');
+        expect(h.calls.length).toBe(portsBefore);
+        expect(h.witness.sdk).toBe(sdkAfterSeed);
+        return;
+      }
+      if (port === 'reserveImage') {
+        const h = await buildRuntimeHarness('LOW');
+        let seeded: Error | undefined = undefined;
+        let enabled = false;
+        h.deps.reserveImage = async () => {
+          h.calls.push('reserve');
+          if (enabled && seeded !== undefined) throw seeded;
+        };
+        let firstSdk = true;
+        h.client.models.generateContent = async () => {
+          h.witness.sdk++;
+          h.calls.push('sdk');
+          if (firstSdk) {
+            firstSdk = false;
+            throw new Error('ORDINARY-SDK-BOOM');
+          }
+          return { text: 'seeded-fixture', modelVersion: 'fixture-model-v1' };
+        };
+        const { factory, ProviderError } = await loadRuntimeModule();
+        const runtime = factory(h.deps);
+        const seedKey = findKey(h, (r) => r.scanMode !== 'barcode');
+        const seedOutcome = runtime.runOutcome(seedKey, async (caps) => caps.generateVision(VISION_REQUEST));
+        await expect(seedOutcome).rejects.toBeInstanceOf(ProviderError);
+        seeded = (await seedOutcome.then(
+          () => {
+            throw new Error('test setup: expected rejection');
+          },
+          (error: unknown) => error,
+        )) as Error;
+        expect(seeded).toBeInstanceOf(ProviderError);
+        enabled = true;
+        const sdkAfterSeed = h.witness.sdk;
+        const triggerKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== seedKey);
+        const triggerOutcome = runtime.runOutcome(triggerKey, async (caps) => caps.generateVision(VISION_REQUEST));
+        await expect(triggerOutcome).rejects.toBeInstanceOf(CalibrationFatalError);
+        await expect(triggerOutcome).rejects.toThrow('calibration:runtime-reservation-failed');
+        const triggerError = await triggerOutcome.then(
+          () => {
+            throw new Error('test setup: expected rejection');
+          },
+          (error: unknown) => error,
+        );
+        expect((triggerError as { cause?: unknown }).cause).toBeUndefined();
+        expect(Object.is(triggerError, seeded)).toBe(false);
+        expect(h.witness.sdk).toBe(sdkAfterSeed);
+        const poisonKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== seedKey && r.key !== triggerKey);
+        const portsBefore = h.calls.length;
+        await expect(
+          runtime.runOutcome(poisonKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+        ).rejects.toThrow('calibration:runtime-poisoned');
+        expect(h.calls.length).toBe(portsBefore);
+        expect(h.witness.sdk).toBe(sdkAfterSeed);
+        return;
+      }
+      if (port === 'onModelVersion') {
+        const h = await buildRuntimeHarness('LOW');
+        let seeded: Error | undefined = undefined;
+        let enabled = false;
+        h.deps.onModelVersion = () => {
+          h.calls.push('metadata');
+          if (enabled && seeded !== undefined) throw seeded;
+        };
+        let firstSdk = true;
+        h.client.models.generateContent = async () => {
+          h.witness.sdk++;
+          h.calls.push('sdk');
+          if (firstSdk) {
+            firstSdk = false;
+            throw new Error('ORDINARY-SDK-BOOM');
+          }
+          return { text: 'seeded-fixture', modelVersion: 'fixture-model-v1' };
+        };
+        const { factory, ProviderError } = await loadRuntimeModule();
+        const runtime = factory(h.deps);
+        const seedKey = findKey(h, (r) => r.scanMode !== 'barcode');
+        const seedOutcome = runtime.runOutcome(seedKey, async (caps) => caps.generateVision(VISION_REQUEST));
+        await expect(seedOutcome).rejects.toBeInstanceOf(ProviderError);
+        seeded = (await seedOutcome.then(
+          () => {
+            throw new Error('test setup: expected rejection');
+          },
+          (error: unknown) => error,
+        )) as Error;
+        expect(seeded).toBeInstanceOf(ProviderError);
+        enabled = true;
+        const sdkAfterSeed = h.witness.sdk;
+        const triggerKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== seedKey);
+        const triggerOutcome = runtime.runOutcome(triggerKey, async (caps) => caps.generateVision(VISION_REQUEST));
+        await expect(triggerOutcome).rejects.toBeInstanceOf(CalibrationFatalError);
+        await expect(triggerOutcome).rejects.toThrow('calibration:runtime-callback-failed');
+        const triggerError = await triggerOutcome.then(
+          () => {
+            throw new Error('test setup: expected rejection');
+          },
+          (error: unknown) => error,
+        );
+        expect((triggerError as { cause?: unknown }).cause).toBeUndefined();
+        expect(Object.is(triggerError, seeded)).toBe(false);
+        expect(h.witness.sdk).toBe(sdkAfterSeed + 1);
+        const poisonKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== seedKey && r.key !== triggerKey);
+        const portsBefore = h.calls.length;
+        const sdkAfterTrigger = h.witness.sdk;
+        await expect(
+          runtime.runOutcome(poisonKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+        ).rejects.toThrow('calibration:runtime-poisoned');
+        expect(h.calls.length).toBe(portsBefore);
+        expect(h.witness.sdk).toBe(sdkAfterTrigger);
+        return;
+      }
+      const h = await buildRuntimeHarness('LOW');
+      let seeded: Error | undefined = undefined;
+      let enabled = false;
+      h.deps.lookupSnapshot = (barcode: string) => {
+        h.calls.push('snapshot');
+        if (enabled && seeded !== undefined) throw seeded;
+        return h.store.get(barcode);
+      };
+      let firstSdk = true;
+      h.client.models.generateContent = async () => {
+        h.witness.sdk++;
+        h.calls.push('sdk');
+        if (firstSdk) {
+          firstSdk = false;
+          throw new Error('ORDINARY-SDK-BOOM');
+        }
+        return { text: 'seeded-fixture', modelVersion: 'fixture-model-v1' };
+      };
+      const { factory, ProviderError } = await loadRuntimeModule();
+      const runtime = factory(h.deps);
+      const seedKey = findKey(h, (r) => r.scanMode !== 'barcode');
+      const seedOutcome = runtime.runOutcome(seedKey, async (caps) => caps.generateVision(VISION_REQUEST));
+      await expect(seedOutcome).rejects.toBeInstanceOf(ProviderError);
+      seeded = (await seedOutcome.then(
+        () => {
+          throw new Error('test setup: expected rejection');
+        },
+        (error: unknown) => error,
+      )) as Error;
+      expect(seeded).toBeInstanceOf(ProviderError);
+      enabled = true;
+      const sdkAfterSeed = h.witness.sdk;
+      const triggerRow = h.plan.find((r) => r.scanMode === 'barcode');
+      if (triggerRow === undefined) throw new Error('test setup: no barcode key');
+      const triggerOutcome = runtime.runOutcome(triggerRow.key, async (caps) => caps.lookupSnapshot());
+      await expect(triggerOutcome).rejects.toBeInstanceOf(CalibrationFatalError);
+      await expect(triggerOutcome).rejects.toThrow('calibration:runtime-callback-failed');
+      const triggerError = await triggerOutcome.then(
+        () => {
+          throw new Error('test setup: expected rejection');
+        },
+        (error: unknown) => error,
+      );
+      expect((triggerError as { cause?: unknown }).cause).toBeUndefined();
+      expect(Object.is(triggerError, seeded)).toBe(false);
+      expect(h.witness.sdk).toBe(sdkAfterSeed);
+      const poisonRow = h.plan.find((r) => r.scanMode === 'barcode' && r.key !== triggerRow.key);
+      if (poisonRow === undefined) throw new Error('test setup: no second barcode key');
+      const portsBefore = h.calls.length;
+      await expect(
+        runtime.runOutcome(poisonRow.key, async (caps) => caps.lookupSnapshot()),
+      ).rejects.toThrow('calibration:runtime-poisoned');
+      expect(h.calls.length).toBe(portsBefore);
+      expect(h.witness.sdk).toBe(sdkAfterSeed);
+    },
+  );
+
+  it('prefers private poison when a body swallows a read fatal and rethrows its received provider error', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    h.client.models.generateContent = async () => {
+      h.witness.sdk++;
+      h.calls.push('sdk');
+      throw new Error('ORDINARY-SDK-BOOM');
+    };
+    const { factory, ProviderError } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const key = findKey(h, (r) => r.scanMode !== 'barcode');
+    const sdkBefore = h.witness.sdk;
+    let received: unknown;
+    const outer = runtime.runOutcome(key, async (caps) => {
+      try {
+        await caps.generateVision(VISION_REQUEST);
+      } catch (error) {
+        received = error;
+      }
+      try {
+        runtime.getObservations();
+      } catch {
+        // Swallowed read fatal still poisons the lease.
+      }
+      throw received;
+    });
+    await expect(outer).rejects.toBeInstanceOf(CalibrationFatalError);
+    expect(received).toBeInstanceOf(ProviderError);
+    const outerError = await outer.then(
+      () => {
+        throw new Error('test setup: expected rejection');
+      },
+      (error: unknown) => error,
+    );
+    expect(outerError).not.toBeInstanceOf(ProviderError);
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    const nextKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== key);
+    const portsBefore = h.calls.length;
+    await expect(
+      runtime.runOutcome(nextKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+    ).rejects.toThrow('calibration:runtime-poisoned');
+    expect(h.calls.length).toBe(portsBefore);
+    expect(h.witness.sdk).toBe(sdkBefore + 1);
+  });
+
+  it('survives a foreign translation of a reservation failure with the original static poison code', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const witness = hostileForeignError('PRIVATE-SENTINEL-transformed');
+    h.deps.reserveImage = async () => {
+      throw new Error('RESERVE-BOOM');
+    };
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void> },
+    ) => {
+      try {
+        await options?.beforeRequest?.();
+      } catch {
+        throw witness.error;
+      }
+      return 'unreached-transformed';
+    }) as typeof h.deps.generateVision;
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const key = findKey(h, (r) => r.scanMode !== 'barcode');
+    const outer = runtime.runOutcome(key, async (caps) => caps.generateVision(VISION_REQUEST));
+    await expect(outer).rejects.toBeInstanceOf(CalibrationFatalError);
+    await expect(outer).rejects.toThrow('calibration:runtime-reservation-failed');
+    await expect(outer).rejects.not.toThrow('PRIVATE-SENTINEL-transformed');
+    const caught = await outer.catch((error: unknown) => error);
+    expect((caught as { cause?: unknown }).cause).toBeUndefined();
+    expect(witness.getProbes()).toBe(0);
+    expect(h.witness.sdk).toBe(0);
+    const nextKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== key);
+    const portsBefore = h.calls.length;
+    await expect(
+      runtime.runOutcome(nextKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+    ).rejects.toThrow('calibration:runtime-poisoned');
+    expect(h.calls.length).toBe(portsBefore);
+  });
+
+  it('survives a foreign translation of a version failure with the original static poison code', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const witness = hostileForeignError('PRIVATE-SENTINEL-version-transformed');
+    h.deps.reserveImage = async () => {
+      h.calls.push('reserve');
+    };
+    h.deps.onModelVersion = () => {
+      h.calls.push('metadata');
+      throw new Error('VERSION-BOOM');
+    };
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void },
+    ) => {
+      try {
+        await options?.beforeRequest?.();
+        options?.onResponseMetadata?.({ modelVersion: 'fixture-model-v1' });
+      } catch {
+        throw witness.error;
+      }
+      return 'unreached-version-transformed';
+    }) as typeof h.deps.generateVision;
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const key = findKey(h, (r) => r.scanMode !== 'barcode');
+    const outer = runtime.runOutcome(key, async (caps) => caps.generateVision(VISION_REQUEST));
+    await expect(outer).rejects.toBeInstanceOf(CalibrationFatalError);
+    await expect(outer).rejects.toThrow('calibration:runtime-callback-failed');
+    await expect(outer).rejects.not.toThrow('PRIVATE-SENTINEL-version-transformed');
+    const caught = await outer.catch((error: unknown) => error);
+    expect((caught as { cause?: unknown }).cause).toBeUndefined();
+    expect(witness.getProbes()).toBe(0);
+    expect(h.witness.sdk).toBe(0);
+    const nextKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== key);
+    const portsBefore = h.calls.length;
+    await expect(
+      runtime.runOutcome(nextKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+    ).rejects.toThrow('calibration:runtime-poisoned');
+    expect(h.calls.length).toBe(portsBefore);
+  });
+
+  it.each(
+    [
+      { name: 'missing-hook', code: 'calibration:runtime-dispatch-contract-invalid', kind: 'missing-hook' as const },
+      { name: 'missing-metadata', code: 'calibration:runtime-metadata-invalid', kind: 'missing-metadata' as const },
+      { name: 'blank-text', code: 'calibration:runtime-dispatch-contract-invalid', kind: 'blank-text' as const },
+    ] as const,
+  )('records exactly one vision failure for contract breach $name', async ({ code, kind }) => {
+    const h = await buildRuntimeHarness('LOW');
+    if (kind === 'missing-hook') {
+      h.deps.generateVision = (async () => 'fixture-without-hook') as typeof h.deps.generateVision;
+    } else if (kind === 'missing-metadata') {
+      h.deps.generateVision = (async (
+        _model: string,
+        _prompt: string,
+        _imageBase64: string,
+        _source?: unknown,
+        options?: { beforeRequest?: () => Promise<void> },
+      ) => {
+        await options?.beforeRequest?.();
+        return 'fixture-without-metadata';
+      }) as typeof h.deps.generateVision;
+    } else {
+      h.deps.generateVision = (async (
+        _model: string,
+        _prompt: string,
+        _imageBase64: string,
+        _source?: unknown,
+        options?: { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void },
+      ) => {
+        await options?.beforeRequest?.();
+        options?.onResponseMetadata?.({ modelVersion: 'fixture-model-v1' });
+        return '';
+      }) as typeof h.deps.generateVision;
+    }
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const key = findKey(h, (r) => r.scanMode !== 'barcode');
+    await expect(
+      runtime.runOutcome(key, async (caps) => caps.generateVision(VISION_REQUEST)),
+    ).rejects.toThrow(code);
+    const observations = runtime.getObservations();
+    expect(observations.filter((r) => r.operation === 'vision' && r.status === 'failed')).toHaveLength(1);
+    expect(observations.filter((r) => r.operation === 'vision' && r.status === 'completed')).toHaveLength(0);
+    expect(observations.filter((r) => r.operation === 'outcome' && r.status === 'failed')).toHaveLength(1);
+    const nextKey = findKey(h, (r) => r.scanMode !== 'barcode' && r.key !== key);
+    await expect(
+      runtime.runOutcome(nextKey, async (caps) => caps.generateVision(VISION_REQUEST)),
+    ).rejects.toThrow('calibration:runtime-poisoned');
+  });
+
+  it('leaves a failed reservation observation when the body returns before a pending reservation settles', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const waiting = deferredVoid();
+    h.deps.reserveImage = () => waiting.promise;
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    let operation!: Promise<string>;
+    await expect(
+      runtime.runOutcome(h.plan[0]!.key, async (caps) => {
+        operation = caps.generateVision(VISION_REQUEST);
+        return 'premature';
+      }),
+    ).rejects.toThrow('calibration:runtime-callback-failed');
+    waiting.resolve();
+    await expect(operation).rejects.toBeInstanceOf(CalibrationFatalError);
+    expect(h.witness.sdk).toBe(0);
+    const observations = runtime.getObservations();
+    expect(observations.filter((r) => r.operation === 'reservation' && r.status === 'attempted')).toHaveLength(1);
+    expect(observations.filter((r) => r.operation === 'reservation' && r.status === 'completed')).toHaveLength(0);
+    expect(observations.filter((r) => r.operation === 'reservation' && r.status === 'failed')).toHaveLength(1);
   });
 });
