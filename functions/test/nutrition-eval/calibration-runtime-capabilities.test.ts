@@ -3483,3 +3483,1212 @@ describe('source lifecycle regressions', () => {
     expect(h.calls.length).toBe(portsBefore);
   });
 });
+
+describe('final review capture and generation lifetime regressions', () => {
+  it('key capture getPrototypeOf reentry starts nested loader before admission', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const gate = deferredVoid();
+    h.deps.loadImage = async () => {
+      h.calls.push('image');
+      await gate.promise;
+      return new Uint8Array([1, 2, 3]);
+    };
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const outerKey = visionRows[0]!.key;
+    const nestedKey = visionRows[1]!.key;
+    const futureKey = visionRows[2]!.key;
+    const outerTarget = { ...outerKey };
+    let nestedOuter: Promise<unknown> | undefined;
+    let nestedImage: Promise<Uint8Array> | undefined;
+    let attacked = false;
+    const outerProxy = new Proxy(outerTarget, {
+      getPrototypeOf(t) {
+        if (!attacked) {
+          attacked = true;
+          try {
+            const started = runtime.runOutcome(nestedKey, async (caps) => {
+              const pending = caps.loadImage();
+              nestedImage = pending;
+              void pending.catch(() => undefined);
+              await pending;
+              return 'nested-unreached';
+            });
+            nestedOuter = started;
+            void started.catch(() => undefined);
+          } catch {
+            // swallow synchronous admission denial without assertions
+          }
+        }
+        return Reflect.getPrototypeOf(t);
+      },
+      ownKeys(t) {
+        return Reflect.ownKeys(t);
+      },
+      getOwnPropertyDescriptor(t, p) {
+        return Reflect.getOwnPropertyDescriptor(t, p);
+      },
+    });
+    const outer = runtime.runOutcome(outerProxy, async () => 'outer-unreached');
+    void outer.catch(() => undefined);
+    let outerError: unknown;
+    let outerThrew = false;
+    try {
+      await outer;
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const portsBeforeNext = h.calls.length;
+    try {
+      expect(outerThrew).toBe(true);
+      expect(outerError).toBeInstanceOf(CalibrationFatalError);
+      expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+      expect(h.calls).toEqual([]);
+      expect(h.witness.sdk).toBe(0);
+      expect(nextThrew).toBe(true);
+      expect(nextError).toBeInstanceOf(CalibrationFatalError);
+      expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+      expect(h.calls.length).toBe(portsBeforeNext);
+      expect(nestedOuter).toBeDefined();
+      expect(nestedImage).toBeUndefined();
+    } finally {
+      gate.resolve();
+      if (nestedImage !== undefined) {
+        await nestedImage.catch(() => undefined);
+      }
+      if (nestedOuter !== undefined) {
+        await nestedOuter.catch(() => undefined);
+      }
+    }
+  });
+
+  it('key capture ownKeys reentry starts nested loader before admission', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const gate = deferredVoid();
+    h.deps.loadImage = async () => {
+      h.calls.push('image');
+      await gate.promise;
+      return new Uint8Array([1, 2, 3]);
+    };
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const outerKey = visionRows[3]!.key;
+    const nestedKey = visionRows[4]!.key;
+    const futureKey = visionRows[5]!.key;
+    const outerTarget = { ...outerKey };
+    let nestedOuter: Promise<unknown> | undefined;
+    let nestedImage: Promise<Uint8Array> | undefined;
+    let attacked = false;
+    const outerProxy = new Proxy(outerTarget, {
+      getPrototypeOf(t) {
+        return Reflect.getPrototypeOf(t);
+      },
+      ownKeys(t) {
+        if (!attacked) {
+          attacked = true;
+          try {
+            const started = runtime.runOutcome(nestedKey, async (caps) => {
+              const pending = caps.loadImage();
+              nestedImage = pending;
+              void pending.catch(() => undefined);
+              await pending;
+              return 'nested-unreached';
+            });
+            nestedOuter = started;
+            void started.catch(() => undefined);
+          } catch {
+            // swallow without assertions
+          }
+        }
+        return Reflect.ownKeys(t);
+      },
+      getOwnPropertyDescriptor(t, p) {
+        return Reflect.getOwnPropertyDescriptor(t, p);
+      },
+    });
+    const outer = runtime.runOutcome(outerProxy, async () => 'outer-unreached');
+    void outer.catch(() => undefined);
+    let outerError: unknown;
+    let outerThrew = false;
+    try {
+      await outer;
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const portsBeforeNext = h.calls.length;
+    try {
+      expect(outerThrew).toBe(true);
+      expect(outerError).toBeInstanceOf(CalibrationFatalError);
+      expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+      expect(h.calls).toEqual([]);
+      expect(h.witness.sdk).toBe(0);
+      expect(nextThrew).toBe(true);
+      expect(nextError).toBeInstanceOf(CalibrationFatalError);
+      expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+      expect(h.calls.length).toBe(portsBeforeNext);
+      expect(nestedOuter).toBeDefined();
+      expect(nestedImage).toBeUndefined();
+    } finally {
+      gate.resolve();
+      if (nestedImage !== undefined) {
+        await nestedImage.catch(() => undefined);
+      }
+      if (nestedOuter !== undefined) {
+        await nestedOuter.catch(() => undefined);
+      }
+    }
+  });
+
+  it('key capture getOwnPropertyDescriptor reentry starts nested loader before admission', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const gate = deferredVoid();
+    h.deps.loadImage = async () => {
+      h.calls.push('image');
+      await gate.promise;
+      return new Uint8Array([1, 2, 3]);
+    };
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const outerKey = visionRows[6]!.key;
+    const nestedKey = visionRows[7]!.key;
+    const futureKey = visionRows[8]!.key;
+    const outerTarget = { ...outerKey };
+    let nestedOuter: Promise<unknown> | undefined;
+    let nestedImage: Promise<Uint8Array> | undefined;
+    let attacked = false;
+    const outerProxy = new Proxy(outerTarget, {
+      getPrototypeOf(t) {
+        return Reflect.getPrototypeOf(t);
+      },
+      ownKeys(t) {
+        return Reflect.ownKeys(t);
+      },
+      getOwnPropertyDescriptor(t, p) {
+        if (!attacked) {
+          attacked = true;
+          try {
+            const started = runtime.runOutcome(nestedKey, async (caps) => {
+              const pending = caps.loadImage();
+              nestedImage = pending;
+              void pending.catch(() => undefined);
+              await pending;
+              return 'nested-unreached';
+            });
+            nestedOuter = started;
+            void started.catch(() => undefined);
+          } catch {
+            // swallow without assertions
+          }
+        }
+        return Reflect.getOwnPropertyDescriptor(t, p);
+      },
+    });
+    const outer = runtime.runOutcome(outerProxy, async () => 'outer-unreached');
+    void outer.catch(() => undefined);
+    let outerError: unknown;
+    let outerThrew = false;
+    try {
+      await outer;
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const portsBeforeNext = h.calls.length;
+    try {
+      expect(outerThrew).toBe(true);
+      expect(outerError).toBeInstanceOf(CalibrationFatalError);
+      expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+      expect(h.calls).toEqual([]);
+      expect(h.witness.sdk).toBe(0);
+      expect(nextThrew).toBe(true);
+      expect(nextError).toBeInstanceOf(CalibrationFatalError);
+      expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+      expect(h.calls.length).toBe(portsBeforeNext);
+      expect(nestedOuter).toBeDefined();
+      expect(nestedImage).toBeUndefined();
+    } finally {
+      gate.resolve();
+      if (nestedImage !== undefined) {
+        await nestedImage.catch(() => undefined);
+      }
+      if (nestedOuter !== undefined) {
+        await nestedOuter.catch(() => undefined);
+      }
+    }
+  });
+
+  it('key capture getPrototypeOf permits read of planned outcomes during capture', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const outerKey = visionRows[9]!.key;
+    const futureKey = visionRows[10]!.key;
+    const outerTarget = { ...outerKey };
+    let readError: unknown;
+    let readThrew = false;
+    let attacked = false;
+    const outerProxy = new Proxy(outerTarget, {
+      getPrototypeOf(t) {
+        if (!attacked) {
+          attacked = true;
+          try {
+            runtime.getPlannedOutcomes();
+          } catch (error) {
+            readThrew = true;
+            readError = error;
+          }
+        }
+        return Reflect.getPrototypeOf(t);
+      },
+      ownKeys(t) {
+        return Reflect.ownKeys(t);
+      },
+      getOwnPropertyDescriptor(t, p) {
+        return Reflect.getOwnPropertyDescriptor(t, p);
+      },
+    });
+    const outer = runtime.runOutcome(outerProxy, async () => 'outer-unreached');
+    void outer.catch(() => undefined);
+    let outerValue: unknown;
+    let outerThrew = false;
+    let outerError: unknown;
+    try {
+      outerValue = await outer;
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    expect(readThrew).toBe(true);
+    expect(readError).toBeInstanceOf(CalibrationFatalError);
+    expect((readError as { cause?: unknown }).cause).toBeUndefined();
+    expect(outerThrew).toBe(true);
+    expect(outerError).toBeInstanceOf(CalibrationFatalError);
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    expect(h.calls).toEqual([]);
+    expect(h.witness.sdk).toBe(0);
+    expect(nextThrew).toBe(true);
+    expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+    void outerValue;
+  });
+
+  it('key capture getPrototypeOf permits read of observations during capture', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const outerKey = visionRows[11]!.key;
+    const futureKey = visionRows[12]!.key;
+    const outerTarget = { ...outerKey };
+    let readError: unknown;
+    let readThrew = false;
+    let attacked = false;
+    const outerProxy = new Proxy(outerTarget, {
+      getPrototypeOf(t) {
+        if (!attacked) {
+          attacked = true;
+          try {
+            runtime.getObservations();
+          } catch (error) {
+            readThrew = true;
+            readError = error;
+          }
+        }
+        return Reflect.getPrototypeOf(t);
+      },
+      ownKeys(t) {
+        return Reflect.ownKeys(t);
+      },
+      getOwnPropertyDescriptor(t, p) {
+        return Reflect.getOwnPropertyDescriptor(t, p);
+      },
+    });
+    const outer = runtime.runOutcome(outerProxy, async () => 'outer-unreached');
+    void outer.catch(() => undefined);
+    let outerValue: unknown;
+    let outerThrew = false;
+    let outerError: unknown;
+    try {
+      outerValue = await outer;
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    expect(readThrew).toBe(true);
+    expect(readError).toBeInstanceOf(CalibrationFatalError);
+    expect((readError as { cause?: unknown }).cause).toBeUndefined();
+    expect(outerThrew).toBe(true);
+    expect(outerError).toBeInstanceOf(CalibrationFatalError);
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    expect(h.calls).toEqual([]);
+    expect(h.witness.sdk).toBe(0);
+    expect(nextThrew).toBe(true);
+    expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+    void outerValue;
+  });
+
+  it('request capture getPrototypeOf starts pending loader before poison', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const gate = deferredVoid();
+    h.deps.loadImage = async () => {
+      h.calls.push('image');
+      await gate.promise;
+      return new Uint8Array([1, 2, 3]);
+    };
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const key = visionRows[13]!.key;
+    const futureKey = visionRows[14]!.key;
+    let pendingImage: Promise<Uint8Array> | undefined;
+    let visionSettled = false;
+    let visionError: unknown;
+    const outer = runtime.runOutcome(key, async (caps) => {
+      let attacked = false;
+      const target = { prompt: 'fixture prompt', imageBase64: 'AQID' };
+      const proxy = new Proxy(target, {
+        getPrototypeOf(t) {
+          if (!attacked) {
+            attacked = true;
+            const started = caps.loadImage();
+            pendingImage = started;
+            void started.catch(() => undefined);
+          }
+          return Reflect.getPrototypeOf(t);
+        },
+        ownKeys(t) {
+          return Reflect.ownKeys(t);
+        },
+        getOwnPropertyDescriptor(t, p) {
+          return Reflect.getOwnPropertyDescriptor(t, p);
+        },
+      });
+      const vision = caps.generateVision(proxy);
+      void vision.catch(() => undefined);
+      try {
+        await vision;
+      } catch (error) {
+        visionError = error;
+      }
+      visionSettled = true;
+      return 'opaque-body-return';
+    });
+    void outer.catch(() => undefined);
+    let outerError: unknown;
+    let outerThrew = false;
+    try {
+      await outer;
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const portsBeforeNext = h.calls.length;
+    try {
+      expect(outerThrew).toBe(true);
+      expect(outerError).toBeInstanceOf(CalibrationFatalError);
+      expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+      expect(h.calls).toEqual([]);
+      expect(h.witness.sdk).toBe(0);
+      expect(nextThrew).toBe(true);
+      expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+      expect(h.calls.length).toBe(portsBeforeNext);
+      expect(pendingImage).toBeDefined();
+      expect(visionSettled).toBe(true);
+      expect(visionError).toBeInstanceOf(CalibrationFatalError);
+      expect((visionError as { cause?: unknown }).cause).toBeUndefined();
+    } finally {
+      gate.resolve();
+      if (pendingImage !== undefined) {
+        await pendingImage.catch(() => undefined);
+      }
+    }
+  });
+
+  it('request capture ownKeys starts pending loader before poison', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const gate = deferredVoid();
+    h.deps.loadImage = async () => {
+      h.calls.push('image');
+      await gate.promise;
+      return new Uint8Array([1, 2, 3]);
+    };
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const key = visionRows[15]!.key;
+    const futureKey = visionRows[16]!.key;
+    let pendingImage: Promise<Uint8Array> | undefined;
+    let visionSettled = false;
+    let visionError: unknown;
+    const outer = runtime.runOutcome(key, async (caps) => {
+      let attacked = false;
+      const target = { prompt: 'fixture prompt', imageBase64: 'AQID' };
+      const proxy = new Proxy(target, {
+        getPrototypeOf(t) {
+          return Reflect.getPrototypeOf(t);
+        },
+        ownKeys(t) {
+          if (!attacked) {
+            attacked = true;
+            const started = caps.loadImage();
+            pendingImage = started;
+            void started.catch(() => undefined);
+          }
+          return Reflect.ownKeys(t);
+        },
+        getOwnPropertyDescriptor(t, p) {
+          return Reflect.getOwnPropertyDescriptor(t, p);
+        },
+      });
+      const vision = caps.generateVision(proxy);
+      void vision.catch(() => undefined);
+      try {
+        await vision;
+      } catch (error) {
+        visionError = error;
+      }
+      visionSettled = true;
+      return 'opaque-body-return';
+    });
+    void outer.catch(() => undefined);
+    let outerError: unknown;
+    let outerThrew = false;
+    try {
+      await outer;
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const portsBeforeNext = h.calls.length;
+    try {
+      expect(outerThrew).toBe(true);
+      expect(outerError).toBeInstanceOf(CalibrationFatalError);
+      expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+      expect(h.calls).toEqual([]);
+      expect(h.witness.sdk).toBe(0);
+      expect(nextThrew).toBe(true);
+      expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+      expect(h.calls.length).toBe(portsBeforeNext);
+      expect(pendingImage).toBeDefined();
+      expect(visionSettled).toBe(true);
+      expect(visionError).toBeInstanceOf(CalibrationFatalError);
+      expect((visionError as { cause?: unknown }).cause).toBeUndefined();
+    } finally {
+      gate.resolve();
+      if (pendingImage !== undefined) {
+        await pendingImage.catch(() => undefined);
+      }
+    }
+  });
+
+  it('request capture getOwnPropertyDescriptor starts pending loader before poison', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const gate = deferredVoid();
+    h.deps.loadImage = async () => {
+      h.calls.push('image');
+      await gate.promise;
+      return new Uint8Array([1, 2, 3]);
+    };
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const key = visionRows[17]!.key;
+    const futureKey = visionRows[18]!.key;
+    let pendingImage: Promise<Uint8Array> | undefined;
+    let visionSettled = false;
+    let visionError: unknown;
+    const outer = runtime.runOutcome(key, async (caps) => {
+      let attacked = false;
+      const target = { prompt: 'fixture prompt', imageBase64: 'AQID' };
+      const proxy = new Proxy(target, {
+        getPrototypeOf(t) {
+          return Reflect.getPrototypeOf(t);
+        },
+        ownKeys(t) {
+          return Reflect.ownKeys(t);
+        },
+        getOwnPropertyDescriptor(t, p) {
+          if (!attacked) {
+            attacked = true;
+            const started = caps.loadImage();
+            pendingImage = started;
+            void started.catch(() => undefined);
+          }
+          return Reflect.getOwnPropertyDescriptor(t, p);
+        },
+      });
+      const vision = caps.generateVision(proxy);
+      void vision.catch(() => undefined);
+      try {
+        await vision;
+      } catch (error) {
+        visionError = error;
+      }
+      visionSettled = true;
+      return 'opaque-body-return';
+    });
+    void outer.catch(() => undefined);
+    let outerError: unknown;
+    let outerThrew = false;
+    try {
+      await outer;
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const portsBeforeNext = h.calls.length;
+    try {
+      expect(outerThrew).toBe(true);
+      expect(outerError).toBeInstanceOf(CalibrationFatalError);
+      expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+      expect(h.calls).toEqual([]);
+      expect(h.witness.sdk).toBe(0);
+      expect(nextThrew).toBe(true);
+      expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+      expect(h.calls.length).toBe(portsBeforeNext);
+      expect(pendingImage).toBeDefined();
+      expect(visionSettled).toBe(true);
+      expect(visionError).toBeInstanceOf(CalibrationFatalError);
+      expect((visionError as { cause?: unknown }).cause).toBeUndefined();
+    } finally {
+      gate.resolve();
+      if (pendingImage !== undefined) {
+        await pendingImage.catch(() => undefined);
+      }
+    }
+  });
+
+  it('metadata capture getPrototypeOf reaches version port twice', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    let reserveCalls = 0;
+    let versionCalls = 0;
+    h.deps.reserveImage = async () => {
+      reserveCalls += 1;
+      h.calls.push('reserve');
+    };
+    h.deps.onModelVersion = () => {
+      versionCalls += 1;
+      h.calls.push('metadata');
+    };
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void },
+    ) => {
+      await options?.beforeRequest?.();
+      const owned = options?.onResponseMetadata;
+      if (owned === undefined) {
+        throw new Error('test setup: missing metadata callback');
+      }
+      let attacked = false;
+      const target = { modelVersion: 'fixture-model-v1' };
+      const proxy = new Proxy(target, {
+        getPrototypeOf(t) {
+          if (!attacked) {
+            attacked = true;
+            try {
+              owned({ modelVersion: 'fixture-model-v1' });
+            } catch {
+              // swallow nested denial without assertions
+            }
+          }
+          return Reflect.getPrototypeOf(t);
+        },
+        ownKeys(t) {
+          return Reflect.ownKeys(t);
+        },
+        getOwnPropertyDescriptor(t, p) {
+          return Reflect.getOwnPropertyDescriptor(t, p);
+        },
+      });
+      owned(proxy);
+      return '{"fixture":true}';
+    }) as typeof h.deps.generateVision;
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const key = visionRows[19]!.key;
+    const futureKey = visionRows[20]!.key;
+    let outerValue: unknown;
+    let outerThrew = false;
+    let outerError: unknown;
+    try {
+      outerValue = await runtime.runOutcome(key, async (caps) => caps.generateVision(VISION_REQUEST));
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const observations = runtime.getObservations();
+    expect(outerThrew).toBe(true);
+    expect(outerError).toBeInstanceOf(CalibrationFatalError);
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    expect(reserveCalls).toBe(1);
+    expect(versionCalls).toBe(0);
+    expect(observations.filter((r) => r.operation === 'metadata' && r.status === 'completed')).toHaveLength(0);
+    expect(nextThrew).toBe(true);
+    expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+    void outerValue;
+  });
+
+  it('metadata capture ownKeys reaches version port twice', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    let reserveCalls = 0;
+    let versionCalls = 0;
+    h.deps.reserveImage = async () => {
+      reserveCalls += 1;
+      h.calls.push('reserve');
+    };
+    h.deps.onModelVersion = () => {
+      versionCalls += 1;
+      h.calls.push('metadata');
+    };
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void },
+    ) => {
+      await options?.beforeRequest?.();
+      const owned = options?.onResponseMetadata;
+      if (owned === undefined) {
+        throw new Error('test setup: missing metadata callback');
+      }
+      let attacked = false;
+      const target = { modelVersion: 'fixture-model-v1' };
+      const proxy = new Proxy(target, {
+        getPrototypeOf(t) {
+          return Reflect.getPrototypeOf(t);
+        },
+        ownKeys(t) {
+          if (!attacked) {
+            attacked = true;
+            try {
+              owned({ modelVersion: 'fixture-model-v1' });
+            } catch {
+              // swallow without assertions
+            }
+          }
+          return Reflect.ownKeys(t);
+        },
+        getOwnPropertyDescriptor(t, p) {
+          return Reflect.getOwnPropertyDescriptor(t, p);
+        },
+      });
+      owned(proxy);
+      return '{"fixture":true}';
+    }) as typeof h.deps.generateVision;
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const key = visionRows[21]!.key;
+    const futureKey = visionRows[22]!.key;
+    let outerValue: unknown;
+    let outerThrew = false;
+    let outerError: unknown;
+    try {
+      outerValue = await runtime.runOutcome(key, async (caps) => caps.generateVision(VISION_REQUEST));
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const observations = runtime.getObservations();
+    expect(outerThrew).toBe(true);
+    expect(outerError).toBeInstanceOf(CalibrationFatalError);
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    expect(reserveCalls).toBe(1);
+    expect(versionCalls).toBe(0);
+    expect(observations.filter((r) => r.operation === 'metadata' && r.status === 'completed')).toHaveLength(0);
+    expect(nextThrew).toBe(true);
+    expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+    void outerValue;
+  });
+
+  it('metadata capture getOwnPropertyDescriptor reaches version port twice', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    let reserveCalls = 0;
+    let versionCalls = 0;
+    h.deps.reserveImage = async () => {
+      reserveCalls += 1;
+      h.calls.push('reserve');
+    };
+    h.deps.onModelVersion = () => {
+      versionCalls += 1;
+      h.calls.push('metadata');
+    };
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void },
+    ) => {
+      await options?.beforeRequest?.();
+      const owned = options?.onResponseMetadata;
+      if (owned === undefined) {
+        throw new Error('test setup: missing metadata callback');
+      }
+      let attacked = false;
+      const target = { modelVersion: 'fixture-model-v1' };
+      const proxy = new Proxy(target, {
+        getPrototypeOf(t) {
+          return Reflect.getPrototypeOf(t);
+        },
+        ownKeys(t) {
+          return Reflect.ownKeys(t);
+        },
+        getOwnPropertyDescriptor(t, p) {
+          if (!attacked) {
+            attacked = true;
+            try {
+              owned({ modelVersion: 'fixture-model-v1' });
+            } catch {
+              // swallow without assertions
+            }
+          }
+          return Reflect.getOwnPropertyDescriptor(t, p);
+        },
+      });
+      owned(proxy);
+      return '{"fixture":true}';
+    }) as typeof h.deps.generateVision;
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const key = visionRows[23]!.key;
+    const futureKey = visionRows[24]!.key;
+    let outerValue: unknown;
+    let outerThrew = false;
+    let outerError: unknown;
+    try {
+      outerValue = await runtime.runOutcome(key, async (caps) => caps.generateVision(VISION_REQUEST));
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const observations = runtime.getObservations();
+    expect(outerThrew).toBe(true);
+    expect(outerError).toBeInstanceOf(CalibrationFatalError);
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    expect(reserveCalls).toBe(1);
+    expect(versionCalls).toBe(0);
+    expect(observations.filter((r) => r.operation === 'metadata' && r.status === 'completed')).toHaveLength(0);
+    expect(nextThrew).toBe(true);
+    expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+    void outerValue;
+  });
+
+  it('late beforeRequest after generation failure is accepted', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    let savedOptions: { beforeRequest?: () => Promise<void> } | undefined;
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void> },
+    ) => {
+      savedOptions = options;
+      throw new Error('ORDINARY-FOREIGN-BOOM');
+    }) as typeof h.deps.generateVision;
+    const { factory, ProviderError } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const key = visionRows[25]!.key;
+    const futureKey = visionRows[26]!.key;
+    let genError: unknown;
+    let hookError: unknown;
+    let hookThrew = false;
+    let hookReturned = false;
+    let outerValue: unknown;
+    let outerThrew = false;
+    let outerError: unknown;
+    try {
+      outerValue = await runtime.runOutcome(key, async (caps) => {
+        try {
+          await caps.generateVision(VISION_REQUEST);
+        } catch (error) {
+          genError = error;
+        }
+        try {
+          const pending = savedOptions?.beforeRequest?.();
+          if (pending !== undefined) {
+            await pending;
+            hookReturned = true;
+          }
+        } catch (error) {
+          hookThrew = true;
+          hookError = error;
+        }
+        return 'opaque-late-hook-probe';
+      });
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    expect(genError).toBeInstanceOf(ProviderError);
+    expect(hookThrew).toBe(true);
+    expect(hookError).toBeInstanceOf(CalibrationFatalError);
+    expect((hookError as { cause?: unknown }).cause).toBeUndefined();
+    expect(hookReturned).toBe(false);
+    expect(outerThrew).toBe(true);
+    expect(outerError).toBeInstanceOf(CalibrationFatalError);
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    expect(h.calls.filter((c) => c === 'reserve')).toHaveLength(0);
+    expect(h.calls.filter((c) => c === 'metadata')).toHaveLength(0);
+    expect(nextThrew).toBe(true);
+    expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+    void outerValue;
+  });
+
+  it('late onResponseMetadata after generation failure is accepted', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    let savedOptions:
+      | { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void }
+      | undefined;
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void>; onResponseMetadata?: (m: { modelVersion?: string }) => void },
+    ) => {
+      await options?.beforeRequest?.();
+      savedOptions = options;
+      throw new Error('ORDINARY-FOREIGN-BOOM');
+    }) as typeof h.deps.generateVision;
+    const { factory, ProviderError } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const key = visionRows[27]!.key;
+    const futureKey = visionRows[28]!.key;
+    let genError: unknown;
+    let metaError: unknown;
+    let metaThrew = false;
+    let metaReturned = false;
+    let outerValue: unknown;
+    let outerThrew = false;
+    let outerError: unknown;
+    try {
+      outerValue = await runtime.runOutcome(key, async (caps) => {
+        try {
+          await caps.generateVision(VISION_REQUEST);
+        } catch (error) {
+          genError = error;
+        }
+        try {
+          savedOptions?.onResponseMetadata?.({ modelVersion: 'fixture-model-v1' });
+          metaReturned = true;
+        } catch (error) {
+          metaThrew = true;
+          metaError = error;
+        }
+        return 'opaque-late-metadata-probe';
+      });
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const observations = runtime.getObservations();
+    expect(genError).toBeInstanceOf(ProviderError);
+    expect(metaThrew).toBe(true);
+    expect(metaError).toBeInstanceOf(CalibrationFatalError);
+    expect((metaError as { cause?: unknown }).cause).toBeUndefined();
+    expect(metaReturned).toBe(false);
+    expect(outerThrew).toBe(true);
+    expect(outerError).toBeInstanceOf(CalibrationFatalError);
+    expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+    expect(observations.filter((r) => r.operation === 'reservation' && r.status === 'completed')).toHaveLength(1);
+    expect(h.calls.filter((c) => c === 'metadata')).toHaveLength(0);
+    expect(nextThrew).toBe(true);
+    expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+    void outerValue;
+  });
+
+  it('abandoned pending reservation with immediate body return succeeds', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const gate = deferredVoid();
+    h.deps.reserveImage = async () => {
+      h.calls.push('reserve');
+      await gate.promise;
+    };
+    let savedHook: Promise<void> | undefined;
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void> },
+    ) => {
+      const pending = options?.beforeRequest?.();
+      if (pending !== undefined) {
+        savedHook = pending;
+        void pending.catch(() => undefined);
+      }
+      throw new Error('ORDINARY-FOREIGN-BOOM');
+    }) as typeof h.deps.generateVision;
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const key = visionRows[29]!.key;
+    const futureKey = visionRows[30]!.key;
+    let genError: unknown;
+    let outerValue: unknown;
+    let outerThrew = false;
+    let outerError: unknown;
+    try {
+      outerValue = await runtime.runOutcome(key, async (caps) => {
+        try {
+          await caps.generateVision(VISION_REQUEST);
+        } catch (error) {
+          genError = error;
+        }
+        return 'opaque-early-return';
+      });
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    const nextPortsBeforeResolve = h.calls.length;
+    try {
+      expect(outerThrew).toBe(true);
+      expect(outerError).toBeInstanceOf(CalibrationFatalError);
+      expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+      expect(nextThrew).toBe(true);
+      expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+      expect(h.calls.length).toBe(nextPortsBeforeResolve);
+      expect(genError).toBeInstanceOf(CalibrationFatalError);
+      expect((genError as { cause?: unknown }).cause).toBeUndefined();
+      expect(savedHook).toBeDefined();
+      expect(h.calls.filter((c) => c === 'reserve')).toHaveLength(1);
+      void outerValue;
+    } finally {
+      gate.resolve();
+      if (savedHook !== undefined) {
+        await savedHook.catch(() => undefined);
+      }
+    }
+    const observations = runtime.getObservations();
+    expect(observations.filter((r) => r.operation === 'reservation' && r.status === 'completed')).toHaveLength(0);
+    expect(h.witness.sdk).toBe(0);
+    expect(h.calls.filter((c) => c === 'metadata')).toHaveLength(0);
+  });
+
+  it('abandoned pending reservation resolved while body stays active succeeds', async () => {
+    const h = await buildRuntimeHarness('LOW');
+    const reserveGate = deferredVoid();
+    const bodyGate = deferredVoid();
+    const genSignaled = deferredVoid();
+    h.deps.reserveImage = async () => {
+      h.calls.push('reserve');
+      await reserveGate.promise;
+    };
+    let savedHook: Promise<void> | undefined;
+    h.deps.generateVision = (async (
+      _model: string,
+      _prompt: string,
+      _imageBase64: string,
+      _source?: unknown,
+      options?: { beforeRequest?: () => Promise<void> },
+    ) => {
+      const pending = options?.beforeRequest?.();
+      if (pending !== undefined) {
+        savedHook = pending;
+        void pending.catch(() => undefined);
+      }
+      throw new Error('ORDINARY-FOREIGN-BOOM');
+    }) as typeof h.deps.generateVision;
+    const { factory } = await loadRuntimeModule();
+    const runtime = factory(h.deps);
+    const visionRows = h.plan.filter((r) => r.scanMode !== 'barcode');
+    const key = visionRows[31]!.key;
+    const futureKey = visionRows[32]!.key;
+    let genError: unknown;
+    const outer = runtime.runOutcome(key, async (caps) => {
+      try {
+        await caps.generateVision(VISION_REQUEST);
+      } catch (error) {
+        genError = error;
+      }
+      genSignaled.resolve();
+      await bodyGate.promise;
+      return 'opaque-stayed-active';
+    });
+    void outer.catch(() => undefined);
+    await genSignaled.promise;
+    reserveGate.resolve();
+    let hookError: unknown;
+    let hookThrew = false;
+    if (savedHook !== undefined) {
+      try {
+        await savedHook;
+      } catch (error) {
+        hookThrew = true;
+        hookError = error;
+      }
+    }
+    bodyGate.resolve();
+    let outerThrew = false;
+    let outerError: unknown;
+    let outerValue: unknown;
+    try {
+      outerValue = await outer;
+    } catch (error) {
+      outerThrew = true;
+      outerError = error;
+    }
+    let nextError: unknown;
+    let nextThrew = false;
+    try {
+      await runtime.runOutcome(futureKey, async () => 'probe');
+    } catch (error) {
+      nextThrew = true;
+      nextError = error;
+    }
+    try {
+      expect(hookThrew).toBe(true);
+      expect(hookError).toBeInstanceOf(CalibrationFatalError);
+      expect((hookError as { cause?: unknown }).cause).toBeUndefined();
+      expect(outerThrew).toBe(true);
+      expect(outerError).toBeInstanceOf(CalibrationFatalError);
+      expect((outerError as { cause?: unknown }).cause).toBeUndefined();
+      expect(nextThrew).toBe(true);
+      expect((nextError as Error).message).toBe('calibration:runtime-poisoned');
+      expect(genError).toBeInstanceOf(CalibrationFatalError);
+      expect((genError as { cause?: unknown }).cause).toBeUndefined();
+      expect(savedHook).toBeDefined();
+      expect(h.calls.filter((c) => c === 'reserve')).toHaveLength(1);
+      expect(h.calls.filter((c) => c === 'metadata')).toHaveLength(0);
+      void outerValue;
+    } finally {
+      reserveGate.resolve();
+      bodyGate.resolve();
+      if (savedHook !== undefined) {
+        await savedHook.catch(() => undefined);
+      }
+      await outer.catch(() => undefined);
+    }
+    const observations = runtime.getObservations();
+    expect(observations.filter((r) => r.operation === 'reservation' && r.status === 'completed')).toHaveLength(0);
+    expect(h.witness.sdk).toBe(0);
+  });
+});
