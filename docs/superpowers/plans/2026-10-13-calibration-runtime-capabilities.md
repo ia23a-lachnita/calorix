@@ -352,6 +352,35 @@ At execution, verify/choose the existing approved feature checkout with using-gi
 
 This plan has one application deliverable. No shared interfaces between independent tasks; all four new files share the exact contract above. Protected old files are the existing tracked `functions/src`, `functions/test` and committed eval assets at task BASE; stage only the explicit allowlist, not `git add -A`.
 
+## Execution rulings and deferred notes
+
+These decisions preserve the unused cooperative boundary; none grants production or calibration-run authority. Chronological rulings, including the final review's exclusions:
+
+1. Preserve the user-approved existing feature checkout/dependencies rather than create another worktree — explicit four-file allowlist/110 protected hashes/config fingerprint provide isolation checks. Cost if wrong: less filesystem isolation.
+2. Run four fresh existing seam suites as baseline rather than another long full baseline — old bytes are unchanged and full implementation/postcommit gates remain. Cost: unrelated baseline failures may be discovered later; historical receipts are not relabeled fresh.
+3. Keep overlapping victim's generic runtime-poisoned diagnostic and direct caller's reentrant diagnostic — bounded interpretation externally confirmed. Cost: inconsistent victim diagnostic, not extra effects.
+4. Retry primary3.8 with bounded input after canonical review fallbacks fail — initial failure is argv transport, not model quality. Cost: another failed consultation, never a green gate.
+5. Open a bounded final RED-snapshot conversation when the old thread exceeds wrapper budget — preserve old history and transfer all actual code/finding context. Cost: less automatic historical replay, no review bypass.
+6. Correct five witnessed frozen-test defects (four negative identity assertions triggering framework probes; one corrupted unpinned prompt target) — retain boolean identity/privacy checks and corrupt pinned-manifest rejection. Cost: initial missing-module RED did not expose late assertion defects; no extra prompt/hash authority.
+7. Inspect 4096 trace cap statically rather than manufacture an unreachable overflow with a private backdoor — finite158-key/at-most-once API bounds normal observations. Cost: no dynamic overflow-edge proof.
+8. Keep canonical plan[0] in deferred-reservation fixture — pinned protocol fixes the first preflight vision key. Cost: a separately approved order change will require fixture maintenance.
+9. Use a fresh bounded actual-source/result conversation after prior full snapshots approach argv budget — preserve/transfer seven findings, test-quality rulings and RED/GREEN context. Cost: less automatic historical replay, not source approval by omission.
+10. Repeat only nutrition to regain its lost terminal exit, then mandatory postcommit full run — saved JSON proves counts, not a missing process exit. Cost: one extra serial nutrition run, no duplicate active verifier.
+11. Exclude OS/process/network isolation and arbitrary trusted-port honesty — this is cooperative mediation. Cost: malicious trusted code can bypass it; no sandbox claim.
+12. Exclude prevention of opaque SDK retries — independent transport witness detects mismatch only. Cost: hidden retries can exceed reservations; no completed-run authority.
+13. Exclude proving an already-settled promise was explicitly awaited — JavaScript cannot establish that property. Cost: omission of await on settled operations may be undetected.
+14. Exclude image checksums, prompt authority and full-file identity — unchanged planner/captured strings are not authoritative orchestration. Cost: primitive alone cannot authenticate those inputs.
+15. Exclude selected-profile authorization/model-version pin comparison — ledger/controller owns them. Cost: later authoritative rejection remains necessary.
+16. Defer durable evidence/crash recovery/report authority/benchmark admission/default full execution — preserve existing benchmark block. Cost: no real completed calibration run substantiated here.
+17. Exclude cancellation and arbitrary-generator timeout enforcement — native fixed timeout is supplied, already-dispatched effects are not canceled. Cost: work can continue after fatal settlement.
+18. Trust typed loader bytes/prepared snapshot products rather than deep-copy/validate them — caller control records/diagnostics are separately owned. Cost: dishonest typed ports can return invalid/mutable payloads.
+19. Reaffirm static-only trace-overflow inspection in final review — no intrinsic sabotage/private backdoor. Cost: same unexercised overflow edge as ruling7.
+20. Exclude unrelated historical branch changes/protected config — explicit taskBASE/four-file boundary, config unread/undiffed/unstaged. Cost: unrelated defects remain outside review.
+21. Exclude live accuracy/production/deploy/Firebase/device/UI/visual parity — unused slice executes none. Cost: broader readiness requires separate real gates.
+22. Accept review as static inspection, not fresh execution of host receipts — host actual postcommit full exit remains mandatory. Cost: reviewer cannot independently vouch for command execution; host evidence must stand separately.
+
+Deferred minor: three new test-file headers should describe missing-source statements as historical RED-stage provenance (behavior:6, helper:26, controls:6). Do not fold cosmetic changes into the Important fix pass. The earlier stylistic .catch suggestion was explicitly withdrawn; no fix is owed for it.
+
 ## Planning receipts and current task
 
 - Authoritative current task (2026-10-14T10:46Z): accepted153behavior RED = original138pass15newfail, host89633 actualexit1/JSONaudit0/types0/lint0/controls6pass0. Original3485prefixef8 unchanged; corrected4694line behavior35bc830fd7f7c43091cf7822d93fe9b273bba05dcc8a79ce741e98f797534972 refrozen with original helpers/control. FULL1196append and exact13-line quality correction reviewed by host; sameMCP actualtestquality primary3.8 agree/MUSTnone/SOURCE_STATUSdisagree. Three impossible nestedImage assertions corrected before freezing; pending GEN classification assertions strengthened, no old138 changes. Source5af9 still unchanged/untracked. Next SOURCE-only final Important repair, expectedfocused392 then actual source-result review/fullverification/source checkpoint/postcommit; ONE native review alreadyused, no second review. Both Important/native exclusions/deferred Minor remain as below until independently proven fixed.
