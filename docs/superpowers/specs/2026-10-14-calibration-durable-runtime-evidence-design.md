@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-14
 
-**Status:** In-chat architecture approved by the user on 2026-10-14. Written specification externally reviewed; awaiting user written-spec approval. No implementation authorized by this document's existence.
+**Status:** In-chat architecture and this written specification approved by the user on 2026-10-14. Detailed implementation-plan review remains required; no application implementation or live execution authorized yet.
 
 **Parent:** `docs/superpowers/specs/2026-10-12-calibration-controller-runtime-design.md`, governed by `docs/superpowers/specs/2026-09-23-gemini-38-nutrition-calibration-design.md`.
 
@@ -214,3 +214,5 @@ Use the existing branch/checkout and preserve user `.mcp.json` unread, undiffed 
 Architecture consultation: Antigravity MCP, `gemini-3.8-flash`, persistent conversation `calorix-durable-runtime-evidence-contract-20261014`, two calls before the user's approval. First response agreed but incorrectly called reservations journal entries and overextended permanent key consumption to any operation intent. Those errors were rejected, not adopted. The second response explicitly retracted both and returned `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none` for the corrected single-ledger direction only. No provider fallback or tool failure occurred. No code, exact written spec, runtime, security, accuracy or production approval was supplied by that consultation.
 
 Written-spec review: third call in the same MCP conversation, primary `gemini-3.8-flash`, reviewed the complete 214-line, 28,546-byte draft (SHA-256 `e5c1f8a6ccdd20e2db6be210cca92c08dbc0ff5ad92e56e023a48276efdaa45e`) supplied as text after host self-review. It explicitly confirmed `WRITTEN_SPEC_ONLY`, `AGREEMENT_STATUS: agree`, `MUST_FIX: none`, `SHOULD_FIX: none`, `QUESTIONS: none`. No tool failure, fallback or repository mutation was observed. Its general praise is not independent source inspection, syscall verification or proof of bounded whole-store memory use; the stated event limits do not bound the unchanged store's entire legacy JSON read. Only review-status/provenance text changed after that snapshot, not the reviewed normative contract. No application tests or live/visual runs were performed for this documentation stage. User written-spec review remains the next gate.
+
+User written-spec approval: received on 2026-10-14 after the committed/pushed contract was linked at `8ec53d378ee93e4ed290c8eef3f7f3780a148cff`. This closes the written-spec gate described in the preceding historical receipt and authorizes writing the implementation plan, not executing an unwritten/unreviewed plan. The normative contract is unchanged.
