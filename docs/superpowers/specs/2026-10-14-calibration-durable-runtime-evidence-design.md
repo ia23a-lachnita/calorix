@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-14
 
-**Status:** In-chat architecture and this written specification approved by the user on 2026-10-14. Detailed implementation-plan review remains required; no application implementation or live execution authorized yet.
+**Status:** Architecture/spec approved on 2026-10-14; detailed implementation plan approved on 2026-10-15. Scoped unused implementation is authorized through the existing editing-worker workflow; live execution, producer/default activation and benchmark authorization remain excluded.
 
 **Parent:** `docs/superpowers/specs/2026-10-12-calibration-controller-runtime-design.md`, governed by `docs/superpowers/specs/2026-09-23-gemini-38-nutrition-calibration-design.md`.
 
