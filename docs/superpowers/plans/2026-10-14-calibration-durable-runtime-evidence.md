@@ -239,7 +239,7 @@ return createHash('sha256').update(encoded, 'utf8').digest('hex');
 
 **Files:** Create state source/state tests; extend only new fixtures. **Consumes:** Task 1 codec/types and owned canonical plans. **Produces:** Task 2 state/frame/snapshot interfaces; no persistence or execution authority.
 
-- [ ] **Step 1: Worker writes actual RED transition tests.** Build frames from real pinned keys and existing validated journal/non-reservation codecs. Define the local test helper `runtimeFrame(eventIndex, event)` to return `{kind:'runtime', eventIndex, event}`. Then test immutable preview directly:
+- [x] **Step 1: Worker writes actual RED transition tests.** Build frames from real pinned keys and existing validated journal/non-reservation codecs. Define the local test helper `runtimeFrame(eventIndex, event)` to return `{kind:'runtime', eventIndex, event}`. Then test immutable preview directly:
 
 ```ts
 it('previews without mutating the last durable state', async () => {
@@ -265,7 +265,7 @@ Add concrete table-driven frames for image-return/vision/reservation/authorizati
 
 For prefix binding, finish both preflight profiles, admit LOW receipt, append its binding, then complete/bind MEDIUM and add legal later-pair frames. Re-request LOW `pairInput` at LOW's stored prefix: byte-equivalent input and hash, no new event. Before admission, `pairInput` may supply completeness data; it must not itself require a receipt/binding and create a circular seal.
 
-- [ ] **Step 2: Host runs RED, freezes state tests/helper.** Run `npx vitest run test/nutrition-eval/calibration-runtime-evidence-state.test.ts --maxWorkers=1 --minWorkers=1`; expected exit1 for missing state implementation. Rerun Task 1 tests unchanged. Record exact exits and fingerprints.
+- [x] **Step 2: Host runs RED, freezes state tests/helper.** Run `npx vitest run test/nutrition-eval/calibration-runtime-evidence-state.test.ts --maxWorkers=1 --minWorkers=1`; expected exit1 for missing state implementation. Rerun Task 1 tests unchanged. Record exact exits and fingerprints.
 
 - [ ] **Step 3: Worker implements source only.** Capture header/plans once; privately retain immutable maps/arrays and clone only owned mutable state for each preview. Advance full-ledger index for every validated frame and runtime sequence only for runtime events. Derive operation/ref/owner/seal state, recompute existing journal/non-reservation digests, build sorted pair terminal rows and reject incomplete or mismatched evidence. Facts do not replace the original ledger's token/stage/selection/nutrient checks. No `node:fs`, network, bootstrap or runtime import of `calibration.ts`; type-only imports and `node:crypto`/pure codecs are allowed. Snapshot/pair output copies cannot alter retained state.
 
