@@ -2302,3 +2302,856 @@ describe('pairInput and prefix binding', () => {
     expect(isFreshTransitionFatal(postAdmission, lowKey)).toBe(true);
   });
 });
+
+describe('regression recovery dispositions', () => {
+  function regressionOrdinaryFailedPrefix(
+    key: CalibrationReportOutcomeKey,
+    owner: CalibrationOwner,
+    prediction: Record<string, unknown>,
+    journalError: string,
+    latency: number,
+  ): { frames: unknown[]; hash: string; captured: unknown } {
+    const captured = capturedJournal(clone(failureJournal(key, journalError, prediction, latency)));
+    const hash = journalHash(captured);
+    return {
+      frames: [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+        runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+        runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+        { kind: 'reserved', eventIndex: 6, key: { ...key } },
+        runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+        { kind: 'model_version_pinned', eventIndex: 8, responseModelVersion: PINNED_MODEL },
+        runtimeFrame(9, runtimeOpSettled(key, 1, 'vision', 'failed', 6, owner, isoAt(6))),
+      ],
+      hash,
+      captured,
+    };
+  }
+
+  it.each([
+    ['ordinary provider failure', 'provider'],
+    ['ordinary completed success', 'completed'],
+  ])('regression refuses reserved abandon with %s instead of the canonical interruption', async (_label, kind) => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 40);
+    let terminalHash: string;
+    let terminalCaptured: unknown;
+    if (kind === 'provider') {
+      const built = regressionOrdinaryFailedPrefix(key, owner, providerFailurePrediction(key.sampleIndex, 9), 'unknown', 9);
+      terminalHash = built.hash;
+      terminalCaptured = built.captured;
+      const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+      let error: unknown;
+      try {
+        previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+          ...built.frames,
+          { kind: 'image_terminal', eventIndex: 10, key: { ...key }, terminalType: 'failed', journalHash: terminalHash, journal: { ...(terminalCaptured as Record<string, unknown>) } },
+          { kind: 'lock_recovery', eventIndex: 11, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+          runtimeFrame(12, runtimeAbandoned(key, 1, { kind: 'reserved_interruption', terminal: { kind: 'image', eventIndex: 10, journalHash: terminalHash } }, 7, recovered, isoAt(7))),
+        ]);
+      } catch (cause) {
+        error = cause;
+      }
+      expect(isFreshTransitionFatal(error, key)).toBe(true);
+    } else {
+      const prediction = mealSuccessPrediction(key.sampleIndex, 17);
+      terminalCaptured = capturedJournal(clone(successJournal(key, PINNED_MODEL, 17, prediction, { kcal: 120, proteinG: 10, carbsG: 0, fatG: 8 }, true)));
+      terminalHash = journalHash(terminalCaptured);
+      const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+      let error: unknown;
+      try {
+        previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+          runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+          runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+          runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+          runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+          { kind: 'reserved', eventIndex: 6, key: { ...key } },
+          runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+          { kind: 'model_version_pinned', eventIndex: 8, responseModelVersion: PINNED_MODEL },
+          runtimeFrame(9, runtimeOpSettled(key, 1, 'vision', 'returned', 6, owner, isoAt(6))),
+          { kind: 'image_terminal', eventIndex: 10, key: { ...key }, terminalType: 'completed', journalHash: terminalHash, journal: { ...(terminalCaptured as Record<string, unknown>) } },
+          { kind: 'lock_recovery', eventIndex: 11, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+          runtimeFrame(12, runtimeAbandoned(key, 1, { kind: 'reserved_interruption', terminal: { kind: 'image', eventIndex: 10, journalHash: terminalHash } }, 7, recovered, isoAt(7))),
+        ]);
+      } catch (cause) {
+        error = cause;
+      }
+      expect(isFreshTransitionFatal(error, key)).toBe(true);
+    }
+  });
+
+  it('regression refuses incomplete abandonment without a recovery epoch', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const prediction = mealSuccessPrediction(key.sampleIndex, 17);
+    const captured = capturedJournal(clone(successJournal(key, PINNED_MODEL, 17, prediction, { kcal: 120, proteinG: 10, carbsG: 0, fatG: 8 }, true)));
+    const hash = journalHash(captured);
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    let error: unknown;
+    try {
+      previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+        runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+        runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+        { kind: 'reserved', eventIndex: 6, key: { ...key } },
+        { kind: 'image_terminal', eventIndex: 7, key: { ...key }, terminalType: 'completed', journalHash: hash, journal: { ...(captured as unknown as Record<string, unknown>) } },
+        runtimeFrame(8, runtimeAbandoned(key, 1, { kind: 'terminal_evidence_incomplete', terminal: { kind: 'image', eventIndex: 7, journalHash: hash } }, 5, owner, isoAt(5))),
+      ]);
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, key)).toBe(true);
+  });
+
+  it('regression refuses same-owner abandonment of a pending image', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    let error: unknown;
+    try {
+      previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+        runtimeFrame(4, runtimeAbandoned(key, 1, { kind: 'unreserved_interruption' }, 3, owner, isoAt(3))),
+      ]);
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, key)).toBe(true);
+  });
+
+  it.each([
+    ['failed image then recovery', 'image'],
+    ['failed barcode snapshot then recovery', 'barcode'],
+  ])('regression refuses manufactured retry after ordinary %s', async (_label, kind) => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 41);
+    if (kind === 'image') {
+      const key = clone(f.key);
+      const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+      const recoveredState = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+        runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'failed', 3, owner, isoAt(3))),
+        { kind: 'lock_recovery', eventIndex: 5, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+      ]);
+      let error: unknown;
+      try {
+        (recoveredState as { preview: (frame: unknown) => unknown }).preview(
+          runtimeFrame(6, runtimeAbandoned(key, 1, { kind: 'unreserved_interruption' }, 4, recovered, isoAt(4))),
+        );
+      } catch (cause) {
+        error = cause;
+      }
+      expect(isFreshTransitionFatal(error, key)).toBe(true);
+    } else {
+      const barcodeRows = f.plans.LOW.filter((r) => r.scanMode === 'barcode');
+      expect(barcodeRows).toHaveLength(12);
+      const row = barcodeRows[0];
+      expect(row).toBeDefined();
+      if (row === undefined) throw new Error('test baseline missing barcode row');
+      const barcodeKey = clone(row.key);
+      const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+      const recoveredState = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+        { kind: 'profile_selected', eventIndex: 2, profile: 'LOW' },
+        runtimeFrame(3, runtimeStart(barcodeKey, 1, 1, owner, isoAt(1))),
+        runtimeFrame(4, runtimeOpStarted(barcodeKey, 1, 'snapshot', 2, owner, isoAt(2))),
+        runtimeFrame(5, runtimeOpSettled(barcodeKey, 1, 'snapshot', 'failed', 3, owner, isoAt(3))),
+        { kind: 'lock_recovery', eventIndex: 6, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+      ]);
+      let error: unknown;
+      try {
+        (recoveredState as { preview: (frame: unknown) => unknown }).preview(
+          runtimeFrame(7, runtimeAbandoned(barcodeKey, 1, { kind: 'unreserved_interruption' }, 4, recovered, isoAt(4))),
+        );
+      } catch (cause) {
+        error = cause;
+      }
+    expect(isFreshTransitionFatal(error, barcodeKey)).toBe(true);
+    }
+  });
+});
+
+describe('regression historical prefix', () => {
+  it.each([
+    ['through before finish', 1],
+    ['through before terminal close', 6],
+  ])('regression refuses pairInput %s leaking future terminals', async (_label, through) => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const prediction = mealSuccessPrediction(key.sampleIndex, 17);
+    const captured = capturedJournal(clone(successJournal(key, PINNED_MODEL, 17, prediction, { kcal: 120, proteinG: 10, carbsG: 0, fatG: 8 }, true)));
+    const hash = journalHash(captured);
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) }) as unknown as {
+      preview: (frame: unknown) => unknown;
+      pairInput: (stage: unknown, profile: unknown, through: unknown) => unknown;
+    };
+    const done = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+      runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+      runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+      runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+      runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+      { kind: 'reserved', eventIndex: 6, key: { ...key } },
+      runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+      { kind: 'model_version_pinned', eventIndex: 8, responseModelVersion: PINNED_MODEL },
+      runtimeFrame(9, runtimeOpSettled(key, 1, 'vision', 'returned', 6, owner, isoAt(6))),
+      { kind: 'image_terminal', eventIndex: 10, key: { ...key }, terminalType: 'completed', journalHash: hash, journal: { ...(captured as unknown as Record<string, unknown>) } },
+      runtimeFrame(11, runtimeFinished(key, 1, { kind: 'image', eventIndex: 10, journalHash: hash }, 7, owner, isoAt(7))),
+    ]);
+    expect(snapshotOf(done)['sequence']).toBe(7);
+    let error: unknown;
+    try {
+      (done as typeof state).pairInput('preflight', 'LOW', through);
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, key)).toBe(true);
+  });
+});
+
+describe('regression canonical key order', () => {
+  it('regression orders multi-key terminals by code-unit sort under reversed collation', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const devRows = f.plans.initial.filter((r) => r.key.stage === 'development' && r.key.profile === 'LOW');
+    expect(devRows).toHaveLength(24);
+    const owner = clone(f.context.owner);
+    const frames: unknown[] = [];
+    let eventIndex = 1;
+    let sequence = 0;
+    const atBase = 3000;
+    for (const [position, row] of devRows.entries()) {
+      const key = clone(row.key);
+      const latency = 11 + (position % 5);
+      const prediction = datasetFailurePrediction(key.sampleIndex, latency);
+      const event = makeNonResEvent(key, 'dataset', prediction, isoAt(atBase + position));
+      eventIndex += 1;
+      sequence += 1;
+      frames.push(runtimeFrame(eventIndex, runtimeStart(key, 1, sequence, owner, isoAt(atBase + position))));
+      eventIndex += 1;
+      sequence += 1;
+      frames.push(runtimeFrame(eventIndex, runtimeOpStarted(key, 1, 'image', sequence, owner, isoAt(atBase + position))));
+      eventIndex += 1;
+      sequence += 1;
+      frames.push(runtimeFrame(eventIndex, runtimeOpSettled(key, 1, 'image', 'failed', sequence, owner, isoAt(atBase + position))));
+      eventIndex += 1;
+      frames.push({ kind: 'non_reservation_result', eventIndex, event: { ...event } });
+      eventIndex += 1;
+      sequence += 1;
+      frames.push(
+        runtimeFrame(eventIndex, runtimeFinished(key, 1, { kind: 'non_reservation', eventIndex: eventIndex - 1, contentDigest: event.contentDigest }, sequence, owner, isoAt(atBase + position))),
+      );
+    }
+    const through = sequence;
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) }) as unknown as {
+      preview: (frame: unknown) => unknown;
+      pairInput: (stage: unknown, profile: unknown, through: unknown) => unknown;
+    };
+    const done = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, frames);
+    expect(snapshotOf(done)['sequence']).toBe(through);
+    const expectedIds = devRows.map((r) => canonicalId(r.key)).sort();
+    const originalCompare = String.prototype.localeCompare;
+    const mocked = vi.spyOn(String.prototype, 'localeCompare').mockImplementation(function (
+      this: string,
+      that: string,
+    ): number {
+      return originalCompare.call(that, this as unknown as string);
+    });
+    let input: unknown;
+    try {
+      input = (done as typeof state).pairInput('development', 'LOW', through);
+    } finally {
+      mocked.mockRestore();
+    }
+    const returnedIds = ((input as Record<string, unknown>)['terminals'] as Array<{ key: CalibrationReportOutcomeKey }>).map((row) =>
+      canonicalId(row.key),
+    );
+    expect(returnedIds).toEqual(expectedIds);
+  });
+});
+
+describe('regression plan array capture', () => {
+  function regressionPlanProxy(
+    rows: unknown[],
+    counters: { getCalls: number; descCalls: number; lengthDescReads: number; maxIndexRead: number },
+    lengthBehavior: { first: number; rest: number },
+    forbidLengthRead = true,
+  ): unknown[] {
+    let lengthReads = 0;
+    const target = rows;
+    const countIndexRead = (prop: PropertyKey) => {
+      if (typeof prop === 'string' && /^\d+$/.test(prop)) {
+        const index = Number(prop);
+        if (index > counters.maxIndexRead) {
+          counters.maxIndexRead = index;
+        }
+      }
+    };
+    return new Proxy(target, {
+      get(t, prop, receiver) {
+        counters.getCalls += 1;
+        if (prop === 'length' && forbidLengthRead) {
+          throw new Error('regression-plan-proxy: raw length read forbidden');
+        }
+        countIndexRead(prop);
+        return Reflect.get(t, prop, receiver);
+      },
+      getOwnPropertyDescriptor(t, prop) {
+        counters.descCalls += 1;
+        countIndexRead(prop);
+        if (prop === 'length') {
+          lengthReads += 1;
+          counters.lengthDescReads += 1;
+          const length = lengthReads === 1 ? lengthBehavior.first : lengthBehavior.rest;
+          const real = Reflect.getOwnPropertyDescriptor(t, prop);
+          return { ...real, value: length };
+        }
+        return Reflect.getOwnPropertyDescriptor(t, prop);
+      },
+      ownKeys(t) {
+        return Reflect.ownKeys(t);
+      },
+    }) as unknown as unknown[];
+  }
+
+  it('regression rejects array own extra non-enumerable and symbol entries', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    for (const profile of ['initial', 'LOW'] as const) {
+      for (const extraKind of ['hidden', 'symbol'] as const) {
+        const rows = [...(clone(f.plans[profile]) as unknown[])];
+        if (extraKind === 'hidden') {
+          Object.defineProperty(rows, 'hidden', { value: 1, enumerable: false, configurable: true, writable: true });
+        } else {
+          (rows as unknown as Record<symbol, unknown>)[Symbol.for('regression-plan-extra')] = 1;
+        }
+        const plans = clone(f.plans) as unknown as Record<string, unknown>;
+        plans[profile] = rows;
+        let error: unknown;
+        try {
+          prepare({ header: clone(f.header), plans });
+        } catch (cause) {
+          error = cause;
+        }
+        expect(isFreshFatalAny(error, plans)).toBe(true);
+      }
+    }
+  });
+
+  it('regression rejects array index accessors without running the getter', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const rows = [...(clone(f.plans.initial) as unknown[])];
+    let getterCalls = 0;
+    const first = rows[0];
+    Object.defineProperty(rows, '0', {
+      get() {
+        getterCalls += 1;
+        return first;
+      },
+      enumerable: true,
+      configurable: true,
+    });
+    const plans = clone(f.plans) as unknown as Record<string, unknown>;
+    plans['initial'] = rows;
+    let error: unknown;
+    try {
+      prepare({ header: clone(f.header), plans });
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshFatalAny(error, plans)).toBe(true);
+    expect(getterCalls).toBe(0);
+  });
+
+  it('regression captures valid plan arrays through descriptors with zero raw gets', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const counters = { getCalls: 0, descCalls: 0, lengthDescReads: 0, maxIndexRead: -1 };
+    const rows = regressionPlanProxy([...(clone(f.plans.initial) as unknown[])], counters, { first: 50, rest: 50 });
+    const plans = clone(f.plans) as unknown as Record<string, unknown>;
+    plans['initial'] = rows;
+    const state = prepare({ header: clone(f.header), plans });
+    expect(snapshotOf(state)['sequence']).toBe(0);
+    expect(counters.getCalls).toBe(0);
+  });
+
+  it('regression rejects 159 rows before reading elements', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const counters = { getCalls: 0, descCalls: 0, lengthDescReads: 0, maxIndexRead: -1 };
+    const base = [...(clone(f.plans.LOW) as unknown[]), clone((clone(f.plans.LOW) as unknown[])[0])];
+    expect(base).toHaveLength(159);
+    const rows = regressionPlanProxy(base, counters, { first: 159, rest: 159 }, false);
+    const plans = clone(f.plans) as unknown as Record<string, unknown>;
+    plans['LOW'] = rows;
+    let error: unknown;
+    try {
+      prepare({ header: clone(f.header), plans });
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshFatalAny(error, plans)).toBe(true);
+    expect(counters.maxIndexRead).toBe(-1);
+  });
+
+  it('regression reads array length once and never out of range', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const counters = { getCalls: 0, descCalls: 0, lengthDescReads: 0, maxIndexRead: -1 };
+    const rows = regressionPlanProxy([...(clone(f.plans.LOW) as unknown[])], counters, { first: 158, rest: 159 });
+    const plans = clone(f.plans) as unknown as Record<string, unknown>;
+    plans['LOW'] = rows;
+    const state = prepare({ header: clone(f.header), plans });
+    expect(snapshotOf(state)['sequence']).toBe(0);
+    expect(counters.lengthDescReads).toBe(1);
+    expect(counters.maxIndexRead).toBeLessThan(158);
+  });
+});
+
+describe('regression structural plans', () => {
+  it('regression rejects a prefix scanMode change with identical key ids', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const low = [...(clone(f.plans.LOW) as unknown[])] as Array<Record<string, unknown>>;
+    low[0] = { ...(low[0] as Record<string, unknown>), scanMode: 'label' };
+    const plans = clone(f.plans) as unknown as Record<string, unknown>;
+    plans['LOW'] = low;
+    let error: unknown;
+    try {
+      prepare({ header: clone(f.header), plans });
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshFatalAny(error, plans)).toBe(true);
+  });
+
+  it('regression rejects moving a development row into preflight with mirrored prefixes', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const preflightLowCase = (f.plans.initial.find((r) => r.key.stage === 'preflight' && r.key.profile === 'LOW') as { key: CalibrationReportOutcomeKey }).key.caseId;
+    const devRow = f.plans.initial.find(
+      (r) => r.key.stage === 'development' && r.key.profile === 'LOW' && r.key.caseId !== preflightLowCase,
+    );
+    expect(devRow).toBeDefined();
+    if (devRow === undefined) throw new Error('test baseline missing development row');
+    const moved = { key: { ...clone(devRow.key), stage: 'preflight' as const }, scanMode: devRow.scanMode };
+    const plans = clone(f.plans) as unknown as Record<string, unknown>;
+    for (const profile of ['initial', 'LOW', 'MEDIUM'] as const) {
+      const rows = [...(plans[profile] as unknown[])] as Array<Record<string, unknown>>;
+      const index = rows.findIndex((row) => {
+        const key = (row as { key: CalibrationReportOutcomeKey }).key;
+        return key.stage === 'development' && key.profile === 'LOW' && key.caseId === moved.key.caseId;
+      });
+      expect(index).toBeGreaterThan(-1);
+      rows[index] = clone(moved);
+      plans[profile] = rows;
+    }
+    const lowRows = plans['LOW'] as unknown[];
+    expect(lowRows).toHaveLength(158);
+    expect(new Set(lowRows.map((r) => canonicalId((r as { key: CalibrationReportOutcomeKey }).key))).size).toBe(158);
+    expect(lowRows.filter((r) => (r as { key: CalibrationReportOutcomeKey }).key.stage === 'preflight' && (r as { key: CalibrationReportOutcomeKey }).key.profile === 'LOW').length).toBe(2);
+    let error: unknown;
+    try {
+      prepare({ header: clone(f.header), plans });
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshFatalAny(error, plans)).toBe(true);
+  });
+
+  it('regression rejects a LOW tail validation row reprofiled to MEDIUM', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const lowRows = [...(clone(f.plans.LOW) as unknown[])] as Array<Record<string, unknown>>;
+    const index = lowRows.findIndex((row) => (row as { key: CalibrationReportOutcomeKey }).key.stage === 'validation');
+    expect(index).toBeGreaterThanOrEqual(50);
+    const row = lowRows[index] as { key: CalibrationReportOutcomeKey };
+    lowRows[index] = { key: { ...clone(row.key), profile: 'MEDIUM' as const }, scanMode: (row as unknown as { scanMode: string }).scanMode };
+    const plans = clone(f.plans) as unknown as Record<string, unknown>;
+    plans['LOW'] = lowRows;
+    expect(new Set(lowRows.map((r) => canonicalId((r as { key: CalibrationReportOutcomeKey }).key))).size).toBe(158);
+    let error: unknown;
+    try {
+      prepare({ header: clone(f.header), plans });
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshFatalAny(error, plans)).toBe(true);
+  });
+});
+
+describe('regression interrupted journal capture', () => {
+  function regressionReservedPrefix(
+    key: CalibrationReportOutcomeKey,
+    owner: CalibrationOwner,
+  ): unknown[] {
+    return [
+      runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+      runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+      runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+      runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+      { kind: 'reserved', eventIndex: 6, key: { ...key } },
+    ];
+  }
+
+  function regressionOwnedInterrupted(key: CalibrationReportOutcomeKey): Record<string, unknown> {
+    return {
+      key: { stage: key.stage, profile: key.profile, caseId: key.caseId, sampleIndex: key.sampleIndex },
+      predictionHash: 'interrupted_reservation',
+      normalizedPrediction: null,
+      analysisLatencyMs: 0,
+      errorCategory: 'interrupted_reservation',
+      responseModelVersion: 'n/a',
+    };
+  }
+
+  it('regression rejects accessor getters without running them', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 20);
+    const owned = regressionOwnedInterrupted(key);
+    const hash = sha256Hex(JSON.stringify(owned));
+    let getterCalls = 0;
+    const hostile: Record<string, unknown> = {
+      key: { ...key },
+      normalizedPrediction: null,
+      analysisLatencyMs: 0,
+      errorCategory: 'interrupted_reservation',
+      responseModelVersion: 'n/a',
+    };
+    Object.defineProperty(hostile, 'predictionHash', {
+      get() {
+        getterCalls += 1;
+        return 'interrupted_reservation';
+      },
+      enumerable: true,
+      configurable: true,
+    });
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const prefix = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+      ...regressionReservedPrefix(key, owner),
+      { kind: 'lock_recovery', eventIndex: 7, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+    ]);
+    let error: unknown;
+    try {
+      (prefix as { preview: (frame: unknown) => unknown }).preview({
+        kind: 'image_terminal',
+        eventIndex: 8,
+        key: { ...key },
+        terminalType: 'failed',
+        journalHash: hash,
+        journal: hostile,
+      });
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, hostile)).toBe(true);
+    expect(getterCalls).toBe(0);
+  });
+
+  it('regression rejects inherited toJSON without calling it', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 21);
+    const owned = regressionOwnedInterrupted(key);
+    const hash = sha256Hex(JSON.stringify(owned));
+    let toJsonCalls = 0;
+    const hostile = Object.assign(Object.create({ toJSON() { toJsonCalls += 1; return {}; } }), {
+      key: { ...key },
+      predictionHash: 'interrupted_reservation',
+      normalizedPrediction: null,
+      analysisLatencyMs: 0,
+      errorCategory: 'interrupted_reservation',
+      responseModelVersion: 'n/a',
+    });
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const prefix = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+      ...regressionReservedPrefix(key, owner),
+      { kind: 'lock_recovery', eventIndex: 7, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+    ]);
+    let error: unknown;
+    try {
+      (prefix as { preview: (frame: unknown) => unknown }).preview({
+        kind: 'image_terminal',
+        eventIndex: 8,
+        key: { ...key },
+        terminalType: 'failed',
+        journalHash: hash,
+        journal: hostile,
+      });
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, hostile)).toBe(true);
+    expect(toJsonCalls).toBe(0);
+  });
+
+  it('regression rejects symbol extras on interrupted journals', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 22);
+    const owned = regressionOwnedInterrupted(key);
+    const hash = sha256Hex(JSON.stringify(owned));
+    const hostile = {
+      key: { ...key },
+      predictionHash: 'interrupted_reservation',
+      normalizedPrediction: null,
+      analysisLatencyMs: 0,
+      errorCategory: 'interrupted_reservation',
+      responseModelVersion: 'n/a',
+    } as unknown as Record<symbol, unknown>;
+    hostile[Symbol.for('regression-interrupted-extra')] = 1;
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const prefix = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+      ...regressionReservedPrefix(key, owner),
+      { kind: 'lock_recovery', eventIndex: 7, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+    ]);
+    let error: unknown;
+    try {
+      (prefix as { preview: (frame: unknown) => unknown }).preview({
+        kind: 'image_terminal',
+        eventIndex: 8,
+        key: { ...key },
+        terminalType: 'failed',
+        journalHash: hash,
+        journal: hostile,
+      });
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, hostile)).toBe(true);
+  });
+
+  it('regression accepts reordered plain six-field journals under new-owner reserved interruption', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 23);
+    const owned = regressionOwnedInterrupted(key);
+    const hash = sha256Hex(JSON.stringify(owned));
+    const reordered: Record<string, unknown> = {};
+    for (const name of Object.keys(owned).reverse()) {
+      reordered[name] = (owned as Record<string, unknown>)[name];
+    }
+    expect(Object.keys(reordered)).not.toEqual(Object.keys(owned));
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const done = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+      ...regressionReservedPrefix(key, owner),
+      { kind: 'lock_recovery', eventIndex: 7, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+      {
+        kind: 'image_terminal',
+        eventIndex: 8,
+        key: { ...key },
+        terminalType: 'failed',
+        journalHash: hash,
+        journal: reordered,
+      },
+      runtimeFrame(9, runtimeAbandoned(key, 1, { kind: 'reserved_interruption', terminal: { kind: 'image', eventIndex: 8, journalHash: hash } }, 5, recovered, isoAt(5))),
+    ]);
+    expect(snapshotOf(done)['sequence']).toBe(5);
+    expect(snapshotOf(done)['activeAttempt']).toBeNull();
+  });
+});
+
+describe('regression operation results', () => {
+  it('regression refuses a successful journal after failed vision', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const prediction = mealSuccessPrediction(key.sampleIndex, 17);
+    const captured = capturedJournal(clone(successJournal(key, PINNED_MODEL, 17, prediction, { kcal: 120, proteinG: 10, carbsG: 0, fatG: 8 }, true)));
+    const hash = journalHash(captured);
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    let error: unknown;
+    try {
+      previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+        runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+        runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+        { kind: 'reserved', eventIndex: 6, key: { ...key } },
+        runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+        { kind: 'model_version_pinned', eventIndex: 8, responseModelVersion: PINNED_MODEL },
+        runtimeFrame(9, runtimeOpSettled(key, 1, 'vision', 'failed', 6, owner, isoAt(6))),
+        { kind: 'image_terminal', eventIndex: 10, key: { ...key }, terminalType: 'completed', journalHash: hash, journal: { ...captured } },
+        runtimeFrame(11, runtimeFinished(key, 1, { kind: 'image', eventIndex: 10, journalHash: hash }, 7, owner, isoAt(7))),
+      ]);
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, key)).toBe(true);
+  });
+
+  it('regression refuses a dataset finish with only an attempt start', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const prediction = datasetFailurePrediction(key.sampleIndex, 11);
+    const event = makeNonResEvent(key, 'dataset', prediction, isoAt(20));
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    let error: unknown;
+    try {
+      previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        { kind: 'non_reservation_result', eventIndex: 3, event: { ...event } },
+        runtimeFrame(4, runtimeFinished(key, 1, { kind: 'non_reservation', eventIndex: 3, contentDigest: event.contentDigest }, 2, owner, isoAt(2))),
+      ]);
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, key)).toBe(true);
+  });
+});
+
+describe('regression provider rejection without metadata', () => {
+  it('regression finishes a failed vision provider rejection with no model pin', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const prediction = providerFailurePrediction(key.sampleIndex, 9);
+    const captured = capturedJournal(clone(failureJournal(key, 'unknown', prediction, 9)));
+    expect(captured.responseModelVersion).toBe('n/a');
+    const hash = journalHash(captured);
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const done = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+      runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+      runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+      runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+      runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+      { kind: 'reserved', eventIndex: 6, key: { ...key } },
+      runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+      runtimeFrame(8, runtimeOpSettled(key, 1, 'vision', 'failed', 6, owner, isoAt(6))),
+      { kind: 'image_terminal', eventIndex: 9, key: { ...key }, terminalType: 'failed', journalHash: hash, journal: { ...captured } },
+      runtimeFrame(10, runtimeFinished(key, 1, { kind: 'image', eventIndex: 9, journalHash: hash }, 7, owner, isoAt(7))),
+    ]);
+    expect(snapshotOf(done)['sequence']).toBe(7);
+    expect(snapshotOf(done)['activeAttempt']).toBeNull();
+  });
+});
+
+describe('regression owner epoch isolation', () => {
+  it.each([
+    ['new-owner image settle', 'image-settle'],
+    ['new-owner vision start', 'vision-start'],
+    ['new-owner reservation', 'reserve'],
+    ['new-owner authorization', 'authorize'],
+    ['new-owner vision settle', 'vision-settle'],
+  ])('regression forbids ordinary continuation %s of an old attempt', async (_label, kind) => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 30);
+    let prefix: unknown[];
+    let bad: unknown;
+    if (kind === 'image-settle') {
+      prefix = [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+        { kind: 'lock_recovery', eventIndex: 4, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+      ];
+      bad = runtimeFrame(5, runtimeOpSettled(key, 1, 'image', 'returned', 3, recovered, isoAt(3)));
+    } else if (kind === 'vision-start') {
+      prefix = [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+        runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+        { kind: 'lock_recovery', eventIndex: 5, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+      ];
+      bad = runtimeFrame(6, runtimeOpStarted(key, 1, 'vision', 4, recovered, isoAt(4)));
+    } else if (kind === 'reserve') {
+      prefix = [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+        runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+        runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+        { kind: 'lock_recovery', eventIndex: 6, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+      ];
+      bad = { kind: 'reserved', eventIndex: 7, key: { ...key } };
+    } else if (kind === 'authorize') {
+      prefix = [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+        runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+        runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+        { kind: 'reserved', eventIndex: 6, key: { ...key } },
+        { kind: 'lock_recovery', eventIndex: 7, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+      ];
+      bad = runtimeFrame(8, runtimeAuthorized(key, 1, 6, 5, recovered, isoAt(5)));
+    } else {
+      prefix = [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+        runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+        runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+        { kind: 'reserved', eventIndex: 6, key: { ...key } },
+        runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+        { kind: 'model_version_pinned', eventIndex: 8, responseModelVersion: PINNED_MODEL },
+        { kind: 'lock_recovery', eventIndex: 9, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+      ];
+      bad = runtimeFrame(10, runtimeOpSettled(key, 1, 'vision', 'returned', 6, recovered, isoAt(6)));
+    }
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const recoveredState = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, prefix);
+    let error: unknown;
+    try {
+      (recoveredState as { preview: (frame: unknown) => unknown }).preview(bad);
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, key)).toBe(true);
+  });
+
+  it('regression forbids a new-owner snapshot settle on an old barcode attempt', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const barcodeRows = f.plans.LOW.filter((r) => r.scanMode === 'barcode');
+    expect(barcodeRows).toHaveLength(12);
+    const row = barcodeRows[0];
+    expect(row).toBeDefined();
+    if (row === undefined) throw new Error('test baseline missing barcode row');
+    const barcodeKey = clone(row.key);
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 31);
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const recoveredState = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+      { kind: 'profile_selected', eventIndex: 2, profile: 'LOW' },
+      runtimeFrame(3, runtimeStart(barcodeKey, 1, 1, owner, isoAt(1))),
+      runtimeFrame(4, runtimeOpStarted(barcodeKey, 1, 'snapshot', 2, owner, isoAt(2))),
+      { kind: 'lock_recovery', eventIndex: 5, staleOwner: { ...owner }, recoveringOwner: { ...recovered } },
+    ]);
+    let error: unknown;
+    try {
+      (recoveredState as { preview: (frame: unknown) => unknown }).preview(
+        runtimeFrame(6, runtimeOpSettled(barcodeKey, 1, 'snapshot', 'returned', 3, recovered, isoAt(3))),
+      );
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, barcodeKey)).toBe(true);
+  });
+});
