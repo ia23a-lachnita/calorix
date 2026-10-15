@@ -26,6 +26,18 @@
 - Keep `/tmp` minimal. New logs/caches/fixtures use this plan's verified disk-backed directory; no completed workspace recreation or shared cleanup. Preserve user `.mcp.json` unread/undiffed/unstaged.
 - Host edits planning/tracking docs, interprets requirements, verifies, commits and pushes. Application/tests use AGENTS.md strongest-first workers, never worker commits. Preserve approved inline execution; one fresh native whole-plan reviewer after all tasks, not a native reviewer per task. Antigravity pre-plan and actual code/result gates remain mandatory.
 
+## Current execution handoff — 2026-10-15
+
+Task 1 is complete at `9c5a23273c940e6f0b3401816ddb2a084f369821`; do not redo it. Task 2 retains that exact BASE. Its Steps 1/2 are complete; Steps 3/4 and Tasks 3/4 remain incomplete. Historical planning/earlier execution receipts below are not the current handoff; `docs/implementation-status.md` remains authoritative.
+
+The independently validated 30 added state regressions were committed/pushed at `618e242c5b29a42e18ca00d11ca8db36d4caf6ff`: frozen state-test149770B/SHA`d0c757835aea2258f19383f6314400e15bc1b18c29344d16aaf5641455aec7ac`, preserving original108930B/`6b1749ac` prefix. Original accepted RED was220total190pass30intendedfail/strict0/lint0. No original assertion/helper/Task1 change was allowed.
+
+Unfinished source is checkpointed/pushed at `e27969c446913a32b4e2d8e8794f3d566a5a279a`, exact remote equality confirmed. This is **not a completed or approved implementation**. Source1903lines/SHA`afdf07edf721c8142c097f5e4e0541a054fa29b4611ce7be1534e94ca9a38955`. HOST `task-2-host-partial-a`: three focused files220total214pass6fail0skip, strict exit2 (four TS2532 indexed-row errors at575 plus duplicate `snapshotStarted` TS1117 at1423), source-eslint0. Full completion gates and actual code/result review have not passed. Preserve recorded worker patch-method violations; a WIP commit is not acceptance or clean-compliance provenance.
+
+Native actual-source diagnostics found three further cases: failedvision before finalhook/nores/noauth rejected; canonical interruptedterminal ordinaryfinish accepted; canonical interruptedterminal evidence-incomplete abandonment accepted. SDK/fetch attempts were0. Antigravity primary `gemini-3.8-flash`, `calorix-durable-runtime-state-20261015`, agreed the bounded3-case append-only repair plan, MUST_FIXnone/QUESTIONSnone, **ADDITIONAL_REGRESSION_PLAN_ONLY**, not code/production approval. Preserve both frozen prefixes under Ruling9. Next: mechanical typing-only cleanup; append exactly3 tests (also deny retry after recording failedvision); personally witness223total214pass9fail/strict0; freeze; source-only repair; all223GREEN, full Functions gates, mandatory actual-code/result review, normal commit/push and postcommit task-done before Task2 completion. Existing benchmark block/default/producer/live exclusions remain unchanged.
+
+Editing is blocked: approved routes are unavailable/quota-limited or failed editing instructions; exact categories/messages/timestamps are in status. Paid session usage check reported100% until19:00Europe/Zurich and weekly31%, not whole-subscription exhaustion; extra-usagecap unknown, no billing/account changes. No owned worker remains running. Resume only with an available approved worker or an explicit user one-time exception for host Task2 source/test repair. Main host has not edited application/tests. No live, visual, food-accuracy, security or production validation is claimed.
+
 ## Review Focus
 
 1. A crash during initialization must never leave an ordinary header mistaken for opted-in evidence — atomic extended-header and old-mode rejection tests in Tasks 1/3/4.
