@@ -572,7 +572,13 @@ function capturePlans(value: unknown): ValidatedPlans {
     if (lowIds[index] !== initialIds[index] || mediumIds[index] !== initialIds[index]) {
       return invalid();
     }
-    if (low[index].scanMode !== initial[index].scanMode || medium[index].scanMode !== initial[index].scanMode) {
+    const initialRow = initial[index];
+    const lowRow = low[index];
+    const mediumRow = medium[index];
+    if (initialRow === undefined || lowRow === undefined || mediumRow === undefined) {
+      return invalid();
+    }
+    if (lowRow.scanMode !== initialRow.scanMode || mediumRow.scanMode !== initialRow.scanMode) {
       return invalid();
     }
   }
@@ -1226,6 +1232,11 @@ function applyProtocolFact(
     if (mutable.ctx.reservedIndex === null) {
       return invalid();
     }
+    // A new owner may record only the canonical reserved interruption, not
+    // manufacture an ordinary result for the dead owner's attempt.
+    if (mutable.ctx.recovered !== (frame.interrupted !== null)) {
+      return invalid();
+    }
     if (mutable.ctx.terminalRecorded) {
       return invalid();
     }
@@ -1256,6 +1267,9 @@ function applyProtocolFact(
     const digest = (frame.event as unknown as { contentDigest: string }).contentDigest;
     const prediction = (frame.event as unknown as { prediction: { parseStatus: string } }).prediction;
     if (mutable.active === null || mutable.ctx === null || !sameKey(mutable.active.key, eventKey)) {
+      return invalid();
+    }
+    if (mutable.ctx.recovered) {
       return invalid();
     }
     if (mutable.ctx.terminalRecorded) {
@@ -1322,6 +1336,9 @@ function finishableWith(
   if (recorded === undefined || !sameKey(recorded.key, ctx.key)) {
     return invalid();
   }
+  if (ctx.pending !== null || recorded.interrupted) {
+    return invalid();
+  }
   if (terminal.kind === 'image') {
     if (recorded.kind !== 'image' || recorded.hash !== terminal.journalHash) {
       return invalid();
@@ -1341,9 +1358,8 @@ function finishableWith(
     if (ctx.snapshotStarted) {
       return invalid();
     }
-    if (mutable.pinned !== null && recorded.success === true) {
-      const pin = mutable.pinned;
-      void pin;
+    if (recorded.success && (ctx.visionResult !== 'returned' || mutable.pinned === null)) {
+      return invalid();
     }
     return { kind: 'image', hash: recorded.hash };
   }
@@ -1364,7 +1380,7 @@ function finishableWith(
     if (recorded.reason !== 'dataset') {
       return invalid();
     }
-    if (ctx.snapshotStarted) {
+    if (ctx.snapshotStarted || !ctx.imageStarted || !ctx.imageSettled || ctx.visionResult === 'returned') {
       return invalid();
     }
   }
@@ -1419,7 +1435,6 @@ function applyRuntimeEvent(
       visionStarted: false,
       visionSettled: false,
       visionResult: null,
-      snapshotStarted: false,
       snapshotStarted: false,
       snapshotSettled: false,
       snapshotResult: null,
@@ -1488,15 +1503,18 @@ function applyRuntimeEvent(
     if (ctx.pending !== ref.operation) {
       return invalid();
     }
-    if (ref.operation === 'vision' && (!ctx.authorized || mutable.pinned === null)) {
+    if (ref.operation === 'vision' && ref.result === 'returned' && (!ctx.authorized || mutable.pinned === null)) {
       return invalid();
     }
     ctx.pending = null;
-    if (ref.operation === 'image' && ref.result === 'returned') {
-      ctx.imageReturned = true;
+    if (ref.operation === 'image') {
+      ctx.imageSettled = true;
+      ctx.imageResult = ref.result;
+      ctx.imageReturned = ref.result === 'returned';
     }
     if (ref.operation === 'vision') {
       ctx.visionSettled = true;
+      ctx.visionResult = ref.result;
     }
     if (ref.operation === 'snapshot') {
       ctx.snapshotSettled = true;
@@ -1583,7 +1601,8 @@ function applyRuntimeEvent(
     const id = canonicalKeyId(ref.key);
     const record = keyRecordFor(mutable, id);
     if (ref.disposition.kind === 'unreserved_interruption') {
-      if (ctx.reservedIndex !== null || ctx.terminalRecorded) {
+      if (!ctx.recovered || ctx.reservedIndex !== null || ctx.terminalRecorded ||
+          ctx.imageResult === 'failed' || ctx.visionResult === 'failed' || ctx.snapshotResult === 'failed') {
         return invalid();
       }
       record.lastAbandon = { disposition: 'unreserved', recovered: ctx.recovered };
@@ -1595,7 +1614,7 @@ function applyRuntimeEvent(
       return;
     }
     if (ref.disposition.kind === 'reserved_interruption') {
-      if (ctx.reservedIndex === null) {
+      if (!ctx.recovered || ctx.reservedIndex === null) {
         return invalid();
       }
       const terminal = ref.disposition.terminal;
@@ -1617,7 +1636,7 @@ function applyRuntimeEvent(
     }
     const terminal = ref.disposition.terminal;
     const recorded = mutable.terminals.get(terminal.eventIndex);
-    if (recorded === undefined || !sameKey(recorded.key, ref.key)) {
+    if (recorded === undefined || !sameKey(recorded.key, ref.key) || recorded.interrupted) {
       return invalid();
     }
     if (terminal.kind === 'image') {

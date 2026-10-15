@@ -3155,3 +3155,174 @@ describe('regression owner epoch isolation', () => {
     expect(isFreshTransitionFatal(error, barcodeKey)).toBe(true);
   });
 });
+
+describe('regression failed pre-hook vision and canonical recovery closure', () => {
+  // Break caught: treating final-hook authorization as a prerequisite for an
+  // observed rejection, or forgetting that rejection and granting a retry.
+  it('records failed vision before reservation without granting recovery retry', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 40);
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const failed = previewChain(state, [
+      runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+      runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+      runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+      runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+      runtimeFrame(6, runtimeOpSettled(key, 1, 'vision', 'failed', 5, owner, isoAt(5))),
+    ]);
+    expect(snapshotOf(failed)['sequence']).toBe(5);
+    expect(snapshotOf(failed)['activeAttempt']).toEqual({ key, attempt: 1 });
+    const recoveredState = (failed as { preview: (frame: unknown) => unknown }).preview(
+      lockRecoveryFact(7, owner, recovered),
+    ) as { preview: (frame: unknown) => unknown };
+    expect(() => recoveredState.preview(runtimeFrame(8,
+      runtimeAbandoned(key, 1, { kind: 'unreserved_interruption' }, 6, recovered, isoAt(6)),
+    ))).toThrow(CalibrationFatalError);
+    expect(() => recoveredState.preview(runtimeFrame(8,
+      runtimeStart(key, 2, 6, recovered, isoAt(6)),
+    ))).toThrow(CalibrationFatalError);
+  });
+
+  // Break caught: accepting synthetic interruption as complete evidence after
+  // an otherwise settled vision operation. This is the legacy six-field hash,
+  // not a report journal or a digest computed by the reducer under test.
+  it('refuses ordinary finish of a canonical interrupted reservation', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 41);
+    const journal = {
+      key: { ...key },
+      predictionHash: 'interrupted_reservation',
+      normalizedPrediction: null,
+      analysisLatencyMs: 0,
+      errorCategory: 'interrupted_reservation',
+      responseModelVersion: 'n/a',
+    };
+    const hash = sha256Hex(JSON.stringify(journal));
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const terminalState = previewChain(state, [
+      runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+      runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+      runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+      runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+      reservedFact(6, key),
+      runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+      modelPinnedFact(8, PINNED_MODEL),
+      runtimeFrame(9, runtimeOpSettled(key, 1, 'vision', 'returned', 6, owner, isoAt(6))),
+      lockRecoveryFact(10, owner, recovered),
+      imageTerminalFact(11, key, 'failed', hash, journal),
+    ]) as { preview: (frame: unknown) => unknown };
+    expect(snapshotOf(terminalState)['sequence']).toBe(6);
+    expect(() => terminalState.preview(runtimeFrame(12,
+      runtimeFinished(key, 1, { kind: 'image', eventIndex: 11, journalHash: hash }, 7, recovered, isoAt(7)),
+    ))).toThrow(CalibrationFatalError);
+  });
+
+  // Break caught: laundering a canonical interruption into the disposition
+  // reserved for a real pre-existing ordinary terminal with missing evidence.
+  it('requires reserved rather than evidence-incomplete abandonment for canonical interruption', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const recovered = testOwner(owner, 42);
+    const journal = {
+      key: { ...key },
+      predictionHash: 'interrupted_reservation',
+      normalizedPrediction: null,
+      analysisLatencyMs: 0,
+      errorCategory: 'interrupted_reservation',
+      responseModelVersion: 'n/a',
+    };
+    const hash = sha256Hex(JSON.stringify(journal));
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const terminalState = previewChain(state, [
+      runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+      runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+      runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+      runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+      reservedFact(6, key),
+      runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+      modelPinnedFact(8, PINNED_MODEL),
+      lockRecoveryFact(9, owner, recovered),
+      imageTerminalFact(10, key, 'failed', hash, journal),
+    ]) as { preview: (frame: unknown) => unknown };
+    const terminal = { kind: 'image', eventIndex: 10, journalHash: hash };
+    const abandoned = terminalState.preview(runtimeFrame(11,
+      runtimeAbandoned(key, 1, { kind: 'reserved_interruption', terminal }, 6, recovered, isoAt(6)),
+    ));
+    expect(snapshotOf(abandoned)['sequence']).toBe(6);
+    expect(snapshotOf(abandoned)['activeAttempt']).toBeNull();
+    expect(() => terminalState.preview(runtimeFrame(11,
+      runtimeAbandoned(key, 1, { kind: 'terminal_evidence_incomplete', terminal }, 6, recovered, isoAt(6)),
+    ))).toThrow(CalibrationFatalError);
+  });
+});
+
+describe('regression terminal facts respect attempt ownership epochs', () => {
+  // Each row catches a different missing terminal/epoch association guard.
+  // The terminal itself is valid before changing only its recovery position.
+  it.each(['ordinary image after recovery', 'dataset after recovery', 'interrupted before recovery'] as const)(
+    'rejects %s',
+    async (scenario) => {
+      const f = await makeRuntimeEvidenceData();
+      const prepare = await loadStatePrepare();
+      const key = clone(f.key);
+      const owner = clone(f.context.owner);
+      const recovered = testOwner(owner, 43);
+      const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+      const frames: unknown[] = [
+        runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+        runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+      ];
+      let bad: unknown;
+      if (scenario === 'dataset after recovery') {
+        frames.push(runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'failed', 3, owner, isoAt(3))));
+        const event = makeNonResEvent(key, 'dataset', datasetFailurePrediction(key.sampleIndex, 11), isoAt(20));
+        const beforeRecovery = previewChain(state, frames) as { preview: (frame: unknown) => unknown };
+        expect(snapshotOf(beforeRecovery.preview(nonResFact(5, event)))['sequence']).toBe(3);
+        frames.push(lockRecoveryFact(5, owner, recovered));
+        bad = nonResFact(6, event);
+      } else {
+        frames.push(
+          runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+          runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+          reservedFact(6, key),
+          runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+          modelPinnedFact(8, PINNED_MODEL),
+        );
+        if (scenario === 'ordinary image after recovery') {
+          frames.push(runtimeFrame(9, runtimeOpSettled(key, 1, 'vision', 'returned', 6, owner, isoAt(6))));
+          const journal = capturedJournal(successJournal(key, PINNED_MODEL, 17,
+            mealSuccessPrediction(key.sampleIndex, 17), { kcal: 120, proteinG: 10, carbsG: 0, fatG: 8 }, true));
+          const hash = journalHash(journal);
+          const beforeRecovery = previewChain(state, frames) as { preview: (frame: unknown) => unknown };
+          expect(snapshotOf(beforeRecovery.preview(imageTerminalFact(10, key, 'completed', hash, journal)))['sequence']).toBe(6);
+          frames.push(lockRecoveryFact(10, owner, recovered));
+          bad = imageTerminalFact(11, key, 'completed', hash, journal);
+        } else {
+          const journal = {
+            key: { ...key },
+            predictionHash: 'interrupted_reservation',
+            normalizedPrediction: null,
+            analysisLatencyMs: 0,
+            errorCategory: 'interrupted_reservation',
+            responseModelVersion: 'n/a',
+          };
+          const hash = sha256Hex(JSON.stringify(journal));
+          const beforeRecovery = previewChain(state, frames) as { preview: (frame: unknown) => unknown };
+          const afterRecovery = beforeRecovery.preview(lockRecoveryFact(9, owner, recovered)) as { preview: (frame: unknown) => unknown };
+          expect(snapshotOf(afterRecovery.preview(imageTerminalFact(10, key, 'failed', hash, journal)))['sequence']).toBe(5);
+          bad = imageTerminalFact(9, key, 'failed', hash, journal);
+        }
+      }
+      const prefix = previewChain(state, frames) as { preview: (frame: unknown) => unknown };
+      expect(() => prefix.preview(bad)).toThrow(CalibrationFatalError);
+    },
+  );
+});
