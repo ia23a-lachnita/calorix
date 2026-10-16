@@ -138,3 +138,506 @@ export async function makeRuntimeEvidenceData(): Promise<RuntimeEvidenceFixtureD
 }
 
 export type RuntimeEvidenceFixtureDataPromise = Promise<RuntimeEvidenceFixtureData>;
+
+// ── Task 3 Step 1: shared-core evidence-mode RED fixture (additive only) ────
+//
+// Everything below is appended after the frozen Task 1 prefix above; no
+// existing byte/import/function above this point is modified. The new
+// low-level factory `createRuntimeEvidenceCalibrationLedger` does not exist
+// yet (Task 3 Step 3 is unimplemented); it is looked up dynamically so a
+// missing-feature failure is attributable to that absence, not to this
+// fixture or to Task 1/2 behavior. `CalibrationRuntimeEvidenceLedger` and its
+// companion types are local structural test interfaces describing the
+// approved plan contract; they never weaken real-source typing and are never
+// exported as production `.d.ts`.
+
+import { createHash } from 'node:crypto';
+import { StrictCalibrationManifestSchema } from '../../src/nutrition-eval/schema';
+import type { NutritionEvalCase, NutritionPrediction } from '../../src/nutrition-eval/schema';
+import { renderNutritionEvalJson, renderNutritionEvalMarkdown } from '../../src/nutrition-eval/report';
+import { prepareCalibrationStageReportReconstructor } from '../../src/nutrition-eval/calibration-report-assembly';
+import type {
+  CalibrationAuthoritativeReportOptions,
+  CalibrationKeyResolver,
+  CalibrationLedgerDeps,
+  CalibrationLiveness,
+  CalibrationProfile,
+  CalibrationProtocolLedger,
+  JournalEntry,
+  ReservationKey,
+  StageName,
+  TokenCountReservationKey,
+} from '../../src/nutrition-eval/calibration';
+import { CALIBRATION_ROOT } from '../../src/nutrition-eval/calibration';
+import type {
+  CalibrationProtocolReportOptions,
+  CalibrationStageReportSnapshot,
+} from '../../src/nutrition-eval/calibration-report-state';
+import type {
+  CalibrationPublishedReportReceipt,
+  CalibrationReportPublicationResult,
+} from '../../src/nutrition-eval/calibration-report-publication';
+
+// ── Local structural future-API types (plan Shared Interfaces, Task 3) ──────
+
+export type RuntimeAttemptRef = Readonly<{
+  key: CalibrationReportOutcomeKey;
+  attempt: number;
+}>;
+
+export interface RuntimeEvidenceSnapshot {
+  readonly sequence: number;
+  readonly lastEventIndex: number;
+  readonly owner: CalibrationOwner;
+  readonly activeAttempt: RuntimeAttemptRef | null;
+  readonly events: readonly unknown[];
+}
+
+export interface CalibrationRuntimeEvidenceLedger extends CalibrationProtocolLedger {
+  startRuntimeAttempt(key: unknown): Readonly<RuntimeAttemptRef>;
+  startRuntimeOperation(ref: unknown, operation: unknown): void;
+  settleRuntimeOperation(ref: unknown, operation: unknown, result: unknown): void;
+  authorizeRuntimeRequest(ref: unknown): void;
+  finishRuntimeAttempt(ref: unknown): void;
+  bindRuntimeStageReport(
+    stage: StageName,
+    profile: CalibrationProfile,
+  ): Readonly<Record<string, unknown> & { type: 'runtime_report_bound' }>;
+  getRuntimeEvidenceSnapshot(): Readonly<RuntimeEvidenceSnapshot>;
+}
+
+export type RuntimeCanonicalPlans = RuntimeEvidenceFixtureData['plans'];
+
+export type CreateRuntimeEvidenceCalibrationLedger = (
+  deps: CalibrationLedgerDeps,
+  identity: CalibrationIdentity,
+  keyResolver: CalibrationKeyResolver,
+  reportOptions: CalibrationProtocolReportOptions,
+  authoritativeOptions: CalibrationAuthoritativeReportOptions,
+  runtimeOptions: Readonly<{
+    initialOwner: CalibrationOwner;
+    plans: RuntimeCanonicalPlans;
+    readCurrentGitState: () => Readonly<{
+      headCommit: string;
+      functionsTreeId: string;
+      dirtyPaths: readonly string[];
+    }>;
+  }>,
+) => CalibrationRuntimeEvidenceLedger;
+
+/**
+ * Dynamic future-factory lookup. `calibration.ts` already exists (Task 1/2
+ * are complete), so a static named import of a still-missing export would
+ * crash this whole module at load time and take unrelated old-mode controls
+ * down with it. Looking the export up at runtime keeps the failure scoped to
+ * exactly the tests that call it.
+ */
+export async function loadRuntimeEvidenceCalibrationLedgerFactory(): Promise<CreateRuntimeEvidenceCalibrationLedger> {
+  const mod: unknown = await import('../../src/nutrition-eval/calibration');
+  const candidate = (mod as Record<string, unknown>)['createRuntimeEvidenceCalibrationLedger'];
+  if (typeof candidate !== 'function') {
+    throw new CalibrationFatalError('calibration:runtime-evidence-core-missing');
+  }
+  return candidate as unknown as CreateRuntimeEvidenceCalibrationLedger;
+}
+
+// ── Owned in-memory ledger deps with independent fault/trace controls ───────
+
+export interface RuntimeEvidenceCoreFaults {
+  failNextAppend: boolean;
+  failNextFile: boolean;
+  failNextDir: boolean;
+  dirtyGitState: boolean;
+}
+
+export interface RuntimeEvidenceCoreBacking {
+  lock: CalibrationOwner | undefined;
+  liveness: CalibrationLiveness;
+  readonly events: unknown[];
+  readonly journals: JournalEntry[];
+  readonly trace: string[];
+  clock: number;
+  gitReads: number;
+  readonly faults: RuntimeEvidenceCoreFaults;
+  readonly deps: CalibrationLedgerDeps;
+}
+
+const CORE_FIXTURE_FOREIGN_MARKER = 'FOREIGN-core-fixture-private-bytes';
+
+export function makeRuntimeEvidenceCoreBacking(): RuntimeEvidenceCoreBacking {
+  const events: unknown[] = [];
+  const journals: JournalEntry[] = [];
+  const trace: string[] = [];
+  const faults: RuntimeEvidenceCoreFaults = {
+    failNextAppend: false,
+    failNextFile: false,
+    failNextDir: false,
+    dirtyGitState: false,
+  };
+  const backing: RuntimeEvidenceCoreBacking = {
+    lock: undefined,
+    liveness: 'live',
+    events,
+    journals,
+    trace,
+    clock: 0,
+    gitReads: 0,
+    faults,
+    deps: undefined as unknown as CalibrationLedgerDeps,
+  };
+  const deps: CalibrationLedgerDeps = {
+    getRoot: () => CALIBRATION_ROOT,
+    readLock: () => backing.lock,
+    writeLockExclusive: (owner: CalibrationOwner) => {
+      trace.push('writeLockExclusive');
+      if (backing.lock !== undefined) {
+        throw new CalibrationFatalError('calibration:fixture-lock-already-held');
+      }
+      backing.lock = owner;
+    },
+    archiveLock: (_owner: CalibrationOwner) => {
+      trace.push('archiveLock');
+      backing.lock = undefined;
+    },
+    removeLock: (_owner: CalibrationOwner) => {
+      trace.push('removeLock');
+      backing.lock = undefined;
+    },
+    appendLedgerEvent: (event: unknown) => {
+      trace.push('appendLedgerEvent');
+      if (faults.failNextAppend) {
+        faults.failNextAppend = false;
+        throw Object.assign(new Error(`EIO ${CORE_FIXTURE_FOREIGN_MARKER}`), {
+          privateBytes: CORE_FIXTURE_FOREIGN_MARKER,
+        });
+      }
+      events.push(event);
+    },
+    fsyncLedgerFile: () => {
+      trace.push('fsyncLedgerFile');
+      if (faults.failNextFile) {
+        faults.failNextFile = false;
+        throw Object.assign(new Error(`EIO ${CORE_FIXTURE_FOREIGN_MARKER}`), {
+          privateBytes: CORE_FIXTURE_FOREIGN_MARKER,
+        });
+      }
+    },
+    fsyncLedgerDir: () => {
+      trace.push('fsyncLedgerDir');
+      if (faults.failNextDir) {
+        faults.failNextDir = false;
+        throw Object.assign(new Error(`EIO ${CORE_FIXTURE_FOREIGN_MARKER}`), {
+          privateBytes: CORE_FIXTURE_FOREIGN_MARKER,
+        });
+      }
+    },
+    appendJournal: (entry: JournalEntry) => {
+      trace.push('appendJournal');
+      journals.push(entry);
+    },
+    fsyncJournalFile: () => trace.push('fsyncJournalFile'),
+    fsyncJournalDir: () => trace.push('fsyncJournalDir'),
+    probeOwnerLiveness: (_owner: CalibrationOwner) => {
+      trace.push('probeOwnerLiveness');
+      return backing.liveness;
+    },
+    nowIso: () => {
+      backing.clock += 1;
+      const minutes = String(Math.floor(backing.clock / 60) % 60).padStart(2, '0');
+      const seconds = String(backing.clock % 60).padStart(2, '0');
+      return `2026-10-15T00:${minutes}:${seconds}.000Z`;
+    },
+    readLedgerEvents: () => {
+      trace.push('readLedgerEvents');
+      return [...events];
+    },
+    readJournalEntries: () => {
+      trace.push('readJournalEntries');
+      return [...journals];
+    },
+  };
+  (backing as { deps: CalibrationLedgerDeps }).deps = deps;
+  return backing;
+}
+
+// ── Real (non-native) prediction/journal builders for stage completion ──────
+//
+// Mirrors the proven exact-prediction/success-journal shape used by the
+// existing authoritative report fixtures. These are genuinely schema-valid
+// records scored by the real scorer/report assembler through
+// `prepareCalibrationStageReportReconstructor`; nothing here is a mock of
+// production validation.
+
+export const CORE_PINNED_VERSION = 'gemini-3.8-core-fixture-pin';
+
+export function createCoreExactPrediction(
+  evalCase: NutritionEvalCase,
+  sampleIndex: number,
+): NutritionPrediction {
+  const truth = evalCase.truth;
+  const prediction: Record<string, unknown> = {
+    parseStatus: 'success',
+    source: evalCase.scanMode,
+    kcal: truth.kcal,
+    proteinG: truth.proteinG,
+    carbsG: truth.carbsG,
+    fatG: truth.fatG,
+    confidence: 0.85,
+    basis: truth.basis,
+    amount: truth.amount,
+    unit: truth.unit,
+    decision: 'needs_review',
+    reviewReasons: [],
+    latencyMs: 1500,
+    sampleIndex,
+    cached: false,
+  };
+  if (evalCase.expectedBarcode !== undefined) {
+    prediction.barcode = evalCase.expectedBarcode;
+  }
+  if (evalCase.scanMode === 'meal' && truth.referenceMassG !== undefined) {
+    prediction.diagnostics = {
+      rawNutrients: { kcal: truth.kcal, proteinG: truth.proteinG, carbsG: truth.carbsG, fatG: truth.fatG },
+      detectedItemCount: 1,
+      estimatedTotalMassG: truth.referenceMassG,
+      declaredBasis: truth.basis,
+      declaredAmount: truth.amount,
+      declaredUnit: truth.unit,
+    };
+  }
+  return prediction as unknown as NutritionPrediction;
+}
+
+export function buildCoreSuccessJournal(
+  key: ReservationKey,
+  prediction: NutritionPrediction,
+): JournalEntry {
+  const four = {
+    kcal: prediction.kcal as number,
+    proteinG: prediction.proteinG as number,
+    carbsG: prediction.carbsG as number,
+    fatG: prediction.fatG as number,
+  };
+  const mass = prediction.diagnostics?.estimatedTotalMassG;
+  return {
+    key: { ...key },
+    predictionHash: createHash('sha256').update(JSON.stringify(four)).digest('hex'),
+    normalizedPrediction: mass === undefined ? { ...four } : { ...four, estimatedTotalMassG: mass },
+    analysisLatencyMs: (prediction.latencyMs as number) ?? 1500,
+    errorCategory: 'none',
+    responseModelVersion: CORE_PINNED_VERSION,
+    reportPrediction: prediction,
+  };
+}
+
+// ── Full core fixture: owned deps + real stage-completion helpers ───────────
+
+export interface RuntimeEvidenceCoreFixture {
+  readonly ledger: CalibrationRuntimeEvidenceLedger;
+  readonly owner: Readonly<CalibrationOwner>;
+  readonly identity: Readonly<CalibrationIdentity>;
+  readonly key: CalibrationReportOutcomeKey;
+  readonly evalCase: NutritionEvalCase;
+  readonly plans: RuntimeCanonicalPlans;
+  readonly events: readonly unknown[];
+  readonly journals: readonly JournalEntry[];
+  readonly trace: readonly string[];
+  readonly faults: RuntimeEvidenceCoreFaults;
+  getCase(caseId: string): NutritionEvalCase;
+  createUnacquiredLedger(): CalibrationRuntimeEvidenceLedger;
+  restart(nextOwner: CalibrationOwner): CalibrationRuntimeEvidenceLedger;
+  setLiveness(liveness: CalibrationLiveness): void;
+  pinOnce(): void;
+  completeImageKey(key: CalibrationReportOutcomeKey): void;
+  finishPreflight(): void;
+  finishDevelopment(): void;
+  finishValidation(): void;
+  cleanup(): void;
+}
+
+export async function makeRuntimeEvidenceCoreFixture(): Promise<RuntimeEvidenceCoreFixture> {
+  const data = await makeRuntimeEvidenceData();
+  const factory = await loadRuntimeEvidenceCalibrationLedgerFactory();
+  const backing = makeRuntimeEvidenceCoreBacking();
+  const owner: CalibrationOwner = { ...data.header.owner };
+  const identity: CalibrationIdentity = { ...data.header.identity };
+
+  const keyResolver: CalibrationKeyResolver = ((selectedProfile?: CalibrationProfile) => {
+    const rows = selectedProfile === undefined
+      ? data.plans.initial
+      : selectedProfile === 'LOW' ? data.plans.LOW : data.plans.MEDIUM;
+    return Object.freeze(rows.map((row) => ({ ...row.key })));
+  }) as CalibrationKeyResolver;
+
+  const reportOptions: CalibrationProtocolReportOptions = {
+    getReportOutcomePlan: (selectedProfile) =>
+      selectedProfile === undefined
+        ? data.plans.initial
+        : selectedProfile === 'LOW' ? data.plans.LOW : data.plans.MEDIUM,
+  };
+
+  const reconstructor = await prepareCalibrationStageReportReconstructor(data.context);
+
+  const verifyStageReportArtifacts = (
+    params: Readonly<{ stage: StageName; profile: CalibrationProfile; snapshot: CalibrationStageReportSnapshot }>,
+  ): Readonly<CalibrationReportPublicationResult> => {
+    const report = reconstructor.reconstruct(params);
+    const json = renderNutritionEvalJson(report);
+    const markdown = renderNutritionEvalMarkdown(report);
+    const receipt: CalibrationPublishedReportReceipt = {
+      stage: params.stage,
+      profile: params.profile,
+      runId: report.runId,
+      jsonSha256: createHash('sha256').update(json, 'utf8').digest('hex'),
+      markdownSha256: createHash('sha256').update(markdown, 'utf8').digest('hex'),
+    };
+    return Object.freeze({ report, receipt: Object.freeze({ ...receipt }) });
+  };
+  const authoritativeOptions: CalibrationAuthoritativeReportOptions = { verifyStageReportArtifacts };
+
+  const readCurrentGitState = () => {
+    backing.gitReads += 1;
+    return {
+      headCommit: 'a'.repeat(40),
+      functionsTreeId: identity.functionsTreeId,
+      dirtyPaths: backing.faults.dirtyGitState ? ['functions/core-fixture-dirty.ts'] : [],
+    };
+  };
+
+  function build(initialOwner: CalibrationOwner): CalibrationRuntimeEvidenceLedger {
+    return factory(backing.deps, identity, keyResolver, reportOptions, authoritativeOptions, {
+      initialOwner,
+      plans: data.plans,
+      readCurrentGitState,
+    });
+  }
+
+  const ledger = build(owner);
+  ledger.acquireLock(owner);
+
+  const manifest = StrictCalibrationManifestSchema.parse(
+    JSON.parse(data.context.files['calibration-manifest']),
+  );
+  const casesById = new Map<string, NutritionEvalCase>(
+    manifest.cases.map((evalCase) => [evalCase.id, evalCase]),
+  );
+  function getCase(caseId: string): NutritionEvalCase {
+    const found = casesById.get(caseId);
+    if (found === undefined) {
+      throw new CalibrationFatalError('calibration:fixture-unknown-case');
+    }
+    return found;
+  }
+
+  let pinned = false;
+  function pinOnce(): void {
+    if (!pinned) {
+      ledger.pinModelVersion(CORE_PINNED_VERSION);
+      pinned = true;
+    }
+  }
+
+  function completeImageKey(key: CalibrationReportOutcomeKey): void {
+    const evalCase = getCase(key.caseId);
+    const prediction = createCoreExactPrediction(evalCase, key.sampleIndex);
+    const reservationKey: ReservationKey = { ...key };
+    const ref = ledger.startRuntimeAttempt(reservationKey);
+    ledger.startRuntimeOperation(ref, 'image');
+    ledger.settleRuntimeOperation(ref, 'image', 'returned');
+    ledger.startRuntimeOperation(ref, 'vision');
+    ledger.reserve(reservationKey);
+    ledger.authorizeRuntimeRequest(ref);
+    pinOnce();
+    ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+    const journal = buildCoreSuccessJournal(reservationKey, prediction);
+    const hash = ledger.appendResultJournal(journal);
+    ledger.complete(reservationKey, hash);
+    ledger.finishRuntimeAttempt(ref);
+  }
+
+  function finishPreflight(): void {
+    const low = data.plans.initial.find(
+      (row) => row.key.stage === 'preflight' && row.key.profile === 'LOW',
+    )!.key;
+    const medium = data.plans.initial.find(
+      (row) => row.key.stage === 'preflight' && row.key.profile === 'MEDIUM',
+    )!.key;
+    const tokenKey: TokenCountReservationKey = {
+      kind: 'token_count',
+      stage: 'preflight',
+      caseId: low.caseId,
+      model: identity.model,
+    };
+    ledger.reserveTokenCount(tokenKey);
+    ledger.completeTokenCount(tokenKey, 1200);
+    completeImageKey(low);
+    completeImageKey(medium);
+    ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+  }
+
+  function finishDevelopment(): void {
+    const rows = data.plans.initial.filter((row) => row.key.stage === 'development');
+    for (const row of rows) completeImageKey(row.key);
+    ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+    ledger.completeStage('development', {
+      stage: 'development',
+      passed: true,
+      completedStages: ['preflight'],
+    });
+  }
+
+  function finishValidation(): void {
+    const rows = data.plans.MEDIUM.filter((row) => row.key.stage === 'validation');
+    for (const row of rows) completeImageKey(row.key);
+    ledger.completeStage('validation', {
+      stage: 'validation',
+      passed: true,
+      completedStages: ['preflight', 'development'],
+    });
+  }
+
+  function createUnacquiredLedger(): CalibrationRuntimeEvidenceLedger {
+    return build(owner);
+  }
+
+  function restart(nextOwner: CalibrationOwner): CalibrationRuntimeEvidenceLedger {
+    return build(nextOwner);
+  }
+
+  function setLiveness(liveness: CalibrationLiveness): void {
+    backing.liveness = liveness;
+  }
+
+  function cleanup(): void {
+    backing.events.length = 0;
+    backing.journals.length = 0;
+    backing.trace.length = 0;
+  }
+
+  return {
+    ledger,
+    owner: Object.freeze({ ...owner }),
+    identity: Object.freeze({ ...identity }),
+    key: { ...data.key },
+    evalCase: getCase(data.key.caseId),
+    plans: data.plans,
+    events: backing.events,
+    journals: backing.journals,
+    trace: backing.trace,
+    faults: backing.faults,
+    getCase,
+    createUnacquiredLedger,
+    restart,
+    setLiveness,
+    pinOnce,
+    completeImageKey,
+    finishPreflight,
+    finishDevelopment,
+    finishValidation,
+    cleanup,
+  };
+}
