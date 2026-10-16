@@ -1651,3 +1651,118 @@ describe('remaining recovery cuts never manufacture a repeated image call', () =
     expect(f.backing.lock).toEqual(f.owner);
   });
 });
+
+// Ruling18 append-only regressions. All original83899 bytes above remain
+// frozen; the trusted unit backing is not native inode/path authority.
+describe('current backing owner, not stale process memory, controls ordinary entries', () => {
+  it.each(['counts', 'snapshot', 'start', 'release'] as const)('%s cannot use the old instance after a proven-dead takeover', async (kind) => {
+    const f = await openCoreFixture();
+    f.completeImageKey(f.key);
+    f.setLiveness('dead');
+    const owner = laterOwner(f.owner, 1);
+    const current = f.restart(owner);
+    current.acquireLock(owner);
+    const medium = f.plans.initial.find((row) => row.key.stage === 'preflight' && row.key.profile === 'MEDIUM')!.key;
+    const before = f.events.length;
+    expect(() => {
+      if (kind === 'counts') f.ledger.getCounts();
+      else if (kind === 'snapshot') f.ledger.getRuntimeEvidenceSnapshot();
+      else if (kind === 'start') f.ledger.startRuntimeAttempt(medium);
+      else f.ledger.releaseLock(f.owner);
+    }).toThrow(CalibrationFatalError);
+    expect(f.events).toHaveLength(before);
+    expect(f.backing.lock).toEqual(owner);
+    expect(() => f.ledger.getPinnedModelVersion()).toThrow(CalibrationFatalError);
+    expect(current.getCounts().imageReserved).toBe(1);
+  });
+
+  it.each(['missing', 'foreign'] as const)('%s backing lock is not usable or removable by an otherwise held instance', async (kind) => {
+    const f = await openCoreFixture();
+    const lock = kind === 'missing' ? undefined : laterOwner(f.owner, 1);
+    f.backing.lock = lock;
+    const before = f.trace.length;
+    expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+    expect(f.trace.slice(before)).not.toContain('removeLock');
+    expect(f.backing.lock).toEqual(lock);
+    expect(() => f.ledger.getCounts()).toThrow(CalibrationFatalError);
+  });
+});
+
+describe('successful ownership and replay callbacks must stop immediately after nested poison', () => {
+  it.each(['getRoot', 'readLock', 'writeLockExclusive', 'readJournalEntries', 'readLedgerEvents'] as const)(
+    '%s never permits a later callback or result reflection after known poison', async (kind) => {
+      const f = await makeRuntimeEvidenceCoreFixture({ acquire: false });
+      openFixtures.push(f);
+      const deps = f.backing.deps;
+      const root = deps.getRoot();
+      const originalWrite = deps.writeLockExclusive;
+      const originalReadLedger = deps.readLedgerEvents;
+      const originalReadJournal = deps.readJournalEntries;
+      let calls = 0;
+      let reflections = 0;
+      let laterReads = 0;
+      let nestedError: unknown;
+      const enter = () => {
+        calls += 1;
+        try { f.ledger.acquireLock(f.owner); } catch (error) { nestedError = error; }
+      };
+      const reflect = <T extends object>(value: T): T => new Proxy(value, {
+        get(target, key, receiver) { reflections += 1; return Reflect.get(target, key, receiver); },
+        getPrototypeOf(target) { reflections += 1; return Reflect.getPrototypeOf(target); },
+        ownKeys(target) { reflections += 1; return Reflect.ownKeys(target); },
+        getOwnPropertyDescriptor(target, key) { reflections += 1; return Reflect.getOwnPropertyDescriptor(target, key); },
+      });
+      if (kind === 'getRoot') deps.getRoot = () => { enter(); return root; };
+      if (kind === 'readLock') deps.readLock = () => { enter(); return reflect({ ...f.owner }); };
+      if (kind === 'writeLockExclusive') {
+        deps.writeLockExclusive = (owner) => { originalWrite(owner); enter(); };
+        deps.readJournalEntries = () => { laterReads += 1; return originalReadJournal(); };
+      }
+      if (kind === 'readJournalEntries') {
+        deps.readJournalEntries = () => { enter(); return reflect([]); };
+        deps.readLedgerEvents = () => { laterReads += 1; return originalReadLedger(); };
+      }
+      if (kind === 'readLedgerEvents') deps.readLedgerEvents = () => { enter(); return reflect([]); };
+      let caught: unknown;
+      try { f.ledger.acquireLock(f.owner); } catch (error) { caught = error; }
+      expect(calls).toBe(1);
+      expect(reflections).toBe(0);
+      expect(laterReads).toBe(0);
+      expectStaticCauseless(nestedError, 'private');
+      expectStaticCauseless(caught, 'private');
+      expect(f.events).toHaveLength(0);
+      const wroteLock = kind === 'writeLockExclusive' || kind === 'readJournalEntries' || kind === 'readLedgerEvents';
+      expect(f.backing.lock).toEqual(wroteLock ? f.owner : undefined);
+      expect(f.trace.filter((name) => name === 'writeLockExclusive')).toHaveLength(wroteLock ? 1 : 0);
+    },
+  );
+
+  it.each(['probe', 'archive'] as const)('%s callback stops takeover before any later lock write', async (kind) => {
+    const f = await openCoreFixture();
+    f.setLiveness('dead');
+    const owner = laterOwner(f.owner, 1);
+    const current = f.restart(owner);
+    const archive = f.backing.deps.archiveLock;
+    let calls = 0;
+    let nestedError: unknown;
+    const enter = () => {
+      calls += 1;
+      try { current.acquireLock(owner); } catch (error) { nestedError = error; }
+    };
+    if (kind === 'probe') f.backing.deps.probeOwnerLiveness = () => { enter(); return 'dead'; };
+    else f.backing.deps.archiveLock = (old) => { archive(old); enter(); };
+    const trace = f.trace.length;
+    const before = f.events.length;
+    let caught: unknown;
+    try { current.acquireLock(owner); } catch (error) { caught = error; }
+    expect(calls).toBe(1);
+    expectStaticCauseless(nestedError, 'private');
+    expectStaticCauseless(caught, 'private');
+    expect(f.trace.slice(trace)).not.toContain('writeLockExclusive');
+    expect(f.events).toHaveLength(before);
+    // An archive already physically happened in that callback. Never restore
+    // it or claim the removed lock remains; only the probe cut keeps it.
+    expect(f.backing.lock).toEqual(kind === 'probe' ? f.owner : undefined);
+    expect(() => current.getCounts()).toThrow(CalibrationFatalError);
+  });
+});
