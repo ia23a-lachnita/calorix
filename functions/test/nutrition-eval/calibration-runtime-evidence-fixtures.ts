@@ -1005,21 +1005,61 @@ export async function runSharedFoundationPreflight(
   ledger: CalibrationRuntimeEvidenceLedger,
   context: CalibrationPreparedContext,
 ): Promise<void> {
-  void publishCalibrationStageReportTask4;
   const firstDev = context.firstDevelopmentCaseId;
   const tokenKey = { kind: 'token_count' as const, stage: 'preflight' as const, caseId: firstDev, model: context.identity.model };
   ledger.reserveTokenCount(tokenKey);
   ledger.completeTokenCount(tokenKey, 1200);
+  const full = StrictCalibrationManifestSchema.parse(JSON.parse(context.files['calibration-manifest'] as string)) as unknown as {
+    cases: Array<{ id: string } & Record<string, unknown>>;
+  };
+  const found = full.cases.find((c) => c.id === firstDev);
+  if (found === undefined) {
+    throw new CalibrationFatalError('calibration:fixture-unknown-case');
+  }
+  const evalCase = found as unknown as Parameters<typeof createCoreExactPrediction>[0];
   const lowKey = { stage: 'preflight' as const, profile: 'LOW' as const, caseId: firstDev, sampleIndex: 1 };
+  const mediumKey = { stage: 'preflight' as const, profile: 'MEDIUM' as const, caseId: firstDev, sampleIndex: 1 };
   const lowRef = ledger.startRuntimeAttempt({ ...lowKey });
   ledger.startRuntimeOperation(lowRef, 'image');
   ledger.settleRuntimeOperation(lowRef, 'image', 'returned');
   ledger.startRuntimeOperation(lowRef, 'vision');
   ledger.reserve({ ...lowKey });
-  ledger.pinModelVersion(CORE_PINNED_VERSION);
   ledger.authorizeRuntimeRequest(lowRef);
+  ledger.pinModelVersion(CORE_PINNED_VERSION);
   ledger.settleRuntimeOperation(lowRef, 'vision', 'returned');
+  const lowPrediction = createCoreExactPrediction(evalCase, 1);
+  const lowJournal = buildCoreSuccessJournal({ ...lowKey }, lowPrediction);
+  const lowHash = ledger.appendResultJournal(lowJournal);
+  ledger.complete({ ...lowKey }, lowHash);
   ledger.finishRuntimeAttempt(lowRef);
+  const mediumRef = ledger.startRuntimeAttempt({ ...mediumKey });
+  ledger.startRuntimeOperation(mediumRef, 'image');
+  ledger.settleRuntimeOperation(mediumRef, 'image', 'returned');
+  ledger.startRuntimeOperation(mediumRef, 'vision');
+  ledger.reserve({ ...mediumKey });
+  ledger.authorizeRuntimeRequest(mediumRef);
+  ledger.settleRuntimeOperation(mediumRef, 'vision', 'returned');
+  const mediumPrediction = createCoreExactPrediction(evalCase, 1);
+  const mediumJournal = buildCoreSuccessJournal({ ...mediumKey }, mediumPrediction);
+  const mediumHash = ledger.appendResultJournal(mediumJournal);
+  ledger.complete({ ...mediumKey }, mediumHash);
+  ledger.finishRuntimeAttempt(mediumRef);
+  for (const profile of ['LOW', 'MEDIUM'] as const) {
+    await publishCalibrationStageReportTask4({
+      stage: 'preflight',
+      profile,
+      context: {
+        baseDir: context.baseDir,
+        identity: { ...context.identity },
+        owner: { ...context.owner },
+        firstDevelopmentCaseId: context.firstDevelopmentCaseId,
+        report: context.report,
+        files: { ...context.files },
+      },
+      readSnapshot: () => ledger.getStageReportSnapshot('preflight', profile),
+    });
+    ledger.admitStageReportReceipt('preflight', profile);
+  }
 }
 
 export async function makeRuntimeEvidenceNativeFixture(
