@@ -769,3 +769,316 @@ async function makeCoreFixture(mode: 'runtime' | 'existing', options: Readonly<{
     cleanup,
   };
 }
+
+// ── Task 4 Step 1: native disk fixture (additive only) ───────────────────────
+//
+// Everything below is appended after the frozen 29360-byte prefix above; no
+// existing byte/import/function above this point is modified. The guarded
+// store factory `createRuntimeEvidenceFileCalibrationLedgerDeps` does not exist
+// in `calibration-file-store.ts` yet and the native assembly module
+// `calibration-runtime-evidence-ledger.ts` does not exist yet (Task 4 Step 3
+// unimplemented). Both are looked up dynamically so a missing-feature failure
+// is attributable to that absence, not to this fixture or to Tasks 1–3.
+// `RuntimeEvidenceFileStoreOverrides` is the exact plan Pick of eight
+// low-level seams; no high-level writeExclusiveSync/fsyncFileSync, injected
+// plans/verifier/Git-reader/provider/alternate root is admitted.
+
+import { execFileSync as execFileSyncNativeTask4 } from 'node:child_process';
+import {
+  mkdirSync as mkdirSyncNativeTask4,
+  mkdtempSync as mkdtempSyncNativeTask4,
+  rmSync as rmSyncNativeTask4,
+  writeFileSync as writeFileSyncNativeTask4,
+} from 'node:fs';
+import { tmpdir as tmpdirNativeTask4 } from 'node:os';
+import { join as joinNativeTask4 } from 'node:path';
+import type { CalibrationFileStoreOverrides as CalibrationFileStoreOverridesTask4Base } from '../../src/nutrition-eval/calibration-file-store';
+import { createFileCalibrationLedgerDeps as createFileCalibrationLedgerDepsTask4Base } from '../../src/nutrition-eval/calibration-file-store';
+import { createCalibrationBootstrapReadDeps as createCalibrationBootstrapReadDepsTask4Base } from '../../src/nutrition-eval/calibration-bootstrap';
+import { prepareCalibrationStageReportArtifactVerifier as prepareVerifierTask4Base } from '../../src/nutrition-eval/calibration-report-artifact-verification';
+
+export type RuntimeEvidenceFileStoreOverrides = Pick<
+  CalibrationFileStoreOverridesTask4Base,
+  | 'procStatReader'
+  | 'nowIso'
+  | 'renameSync'
+  | 'fsyncDirSync'
+  | 'fdWriteSync'
+  | 'fdFsyncSync'
+  | 'fdCloseSync'
+  | 'linkSync'
+  | 'unlinkSync'
+>;
+
+export type CreateRuntimeEvidenceFileLedgerDepsTask4 = (
+  baseDir: string,
+  owner: CalibrationOwner,
+  overrides?: RuntimeEvidenceFileStoreOverrides,
+) => CalibrationLedgerDeps;
+
+export async function loadRuntimeEvidenceFileLedgerDepsFactoryTask4(): Promise<CreateRuntimeEvidenceFileLedgerDepsTask4> {
+  const mod: unknown = await import('../../src/nutrition-eval/calibration-file-store');
+  const candidate = (mod as Record<string, unknown>)['createRuntimeEvidenceFileCalibrationLedgerDeps'];
+  if (typeof candidate !== 'function') {
+    throw new CalibrationFatalError('calibration:runtime-evidence-native-missing');
+  }
+  return candidate as unknown as CreateRuntimeEvidenceFileLedgerDepsTask4;
+}
+
+export type PrepareNativeLedgerTask4 = (
+  params: unknown,
+  overrides?: RuntimeEvidenceFileStoreOverrides,
+) => Promise<CalibrationRuntimeEvidenceLedger>;
+
+export async function loadPrepareNativeLedgerFactoryTask4(): Promise<PrepareNativeLedgerTask4> {
+  const mod: unknown = await import('../../src/nutrition-eval/calibration-runtime-evidence-ledger');
+  const candidate = (mod as Record<string, unknown>)['prepareNativeCalibrationRuntimeEvidenceLedger'];
+  if (typeof candidate !== 'function') {
+    throw new CalibrationFatalError('calibration:runtime-evidence-native-missing');
+  }
+  return candidate as unknown as PrepareNativeLedgerTask4;
+}
+
+function nativeTmpBaseTask4(): string {
+  const env: unknown = process.env.TMPDIR;
+  if (typeof env === 'string' && env.length > 0) {
+    return env;
+  }
+  return tmpdirNativeTask4();
+}
+
+function gitTask4(repoDir: string, argv: readonly string[]): string {
+  const args: string[] = [...argv];
+  const out: unknown = execFileSyncNativeTask4('git', args, { cwd: repoDir, encoding: 'utf8' });
+  if (typeof out !== 'string') {
+    throw new CalibrationFatalError('calibration:fixture-git-failed');
+  }
+  return out;
+}
+
+export interface MiniGitRepoTask4 {
+  readonly root: string;
+  readonly headCommit: string;
+}
+
+export function makeMiniGitRepoTask4(ownedRoots: string[]): MiniGitRepoTask4 {
+  const base = nativeTmpBaseTask4();
+  const root = mkdtempSyncNativeTask4(joinNativeTask4(base, 'calorix-mini-git-'));
+  ownedRoots.push(root);
+  gitTask4(root, ['init']);
+  gitTask4(root, ['config', 'user.name', 'calorix-fixture']);
+  gitTask4(root, ['config', 'user.email', 'fixture@calorix.test']);
+  gitTask4(root, ['config', 'commit.gpgsign', 'false']);
+  const functionsDir = joinNativeTask4(root, 'functions');
+  mkdirSyncNativeTask4(functionsDir, { recursive: true });
+  writeFileSyncNativeTask4(joinNativeTask4(functionsDir, 'marker.txt'), 'functions-marker\n');
+  writeFileSyncNativeTask4(joinNativeTask4(root, 'README.md'), '# fixture\n');
+  gitTask4(root, ['add', 'functions/marker.txt', 'README.md']);
+  gitTask4(root, ['commit', '-m', 'fixture init']);
+  const head = gitTask4(root, ['rev-parse', 'HEAD']).trim();
+  const readDeps = createCalibrationBootstrapReadDepsTask4Base(root);
+  const state = readDeps.readGitState();
+  if (typeof state.headCommit !== 'string' || state.headCommit.length !== 40) {
+    throw new CalibrationFatalError('calibration:fixture-git-state-invalid');
+  }
+  void state.functionsTreeId;
+  return { root, headCommit: head };
+}
+
+export interface ExistingNativeBootFixtureTask4 {
+  readonly context: CalibrationPreparedContext;
+  readonly plans: RuntimeCanonicalPlans;
+  readonly key: CalibrationReportOutcomeKey;
+  readonly ledgerRoot: string;
+  readonly deps: CalibrationLedgerDeps;
+}
+
+export async function makeExistingNativeBootFixtureTask4(ownedRoots: string[]): Promise<ExistingNativeBootFixtureTask4> {
+  const data = await makeRuntimeEvidenceData();
+  const base = nativeTmpBaseTask4();
+  const ledgerRoot = mkdtempSyncNativeTask4(joinNativeTask4(base, 'calorix-native-boot-'));
+  ownedRoots.push(ledgerRoot);
+  const deps = createFileCalibrationLedgerDepsTask4Base(ledgerRoot);
+  const verifier = await prepareVerifierTask4Base(data.context);
+  void verifier;
+  return { context: data.context, plans: data.plans, key: data.key, ledgerRoot, deps };
+}
+
+export interface RuntimeEvidenceNativeFaultsTask4 {
+  failNextLedgerDirFsync: boolean;
+  failNextLedgerFileFsync: boolean;
+  failNextLedgerClose: boolean;
+  failNextLedgerRename: boolean;
+  failNextLedgerWrite: boolean;
+}
+
+export interface RuntimeEvidenceNativeFixtureTask4 {
+  readonly ledger: CalibrationRuntimeEvidenceLedger;
+  readonly owner: Readonly<CalibrationOwner>;
+  readonly key: CalibrationReportOutcomeKey;
+  readonly context: CalibrationPreparedContext;
+  readonly root: string;
+  readonly gitRoot: string;
+  readonly trace: readonly string[];
+  readonly faults: RuntimeEvidenceNativeFaultsTask4;
+  completeTokenPrerequisites(): void;
+  finishPreflight(): Promise<void>;
+  restart(nextOwner: CalibrationOwner): Promise<CalibrationRuntimeEvidenceLedger>;
+  createUnacquiredLedger(): Promise<CalibrationRuntimeEvidenceLedger>;
+  cleanup(): void;
+}
+
+export async function makeRuntimeEvidenceNativeFixture(
+  ownedRoots: string[] = [],
+): Promise<RuntimeEvidenceNativeFixtureTask4> {
+  const base = nativeTmpBaseTask4();
+  const ledgerRoot = mkdtempSyncNativeTask4(joinNativeTask4(base, 'calorix-native-ledger-'));
+  ownedRoots.push(ledgerRoot);
+  const git = makeMiniGitRepoTask4(ownedRoots);
+  const data = await makeRuntimeEvidenceData();
+  const createGuardedDeps = await loadRuntimeEvidenceFileLedgerDepsFactoryTask4();
+  void createGuardedDeps;
+  const prepareNative = await loadPrepareNativeLedgerFactoryTask4();
+  const trace: string[] = [];
+  const faults: RuntimeEvidenceNativeFaultsTask4 = {
+    failNextLedgerDirFsync: false,
+    failNextLedgerFileFsync: false,
+    failNextLedgerClose: false,
+    failNextLedgerRename: false,
+    failNextLedgerWrite: false,
+  };
+  const overrides: RuntimeEvidenceFileStoreOverrides = {
+    procStatReader: (_pid: number): string => {
+      trace.push('ledger:proc-stat:read');
+      throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+    },
+    nowIso: (): string => {
+      trace.push('ledger:now');
+      return '2026-10-14T00:00:00.000Z';
+    },
+    renameSync: (_from: string, _to: string): void => {
+      trace.push('ledger:rename');
+      if (faults.failNextLedgerRename) {
+        faults.failNextLedgerRename = false;
+        trace.push('ledger:rename:fault');
+        throw new CalibrationFatalError('calibration:ledger-persist-failed');
+      }
+    },
+    fsyncDirSync: (_dir: string): void => {
+      trace.push('ledger:dir-fsync');
+      if (faults.failNextLedgerDirFsync) {
+        faults.failNextLedgerDirFsync = false;
+        trace.push('ledger:dir-fsync:fault');
+        throw new CalibrationFatalError('calibration:ledger-persist-failed');
+      }
+    },
+    fdWriteSync: (_fd: number, _buffer: Buffer, _offset: number, _length: number): number => {
+      trace.push('ledger:fd-write');
+      if (faults.failNextLedgerWrite) {
+        faults.failNextLedgerWrite = false;
+        trace.push('ledger:fd-write:fault');
+        throw new CalibrationFatalError('calibration:ledger-persist-failed');
+      }
+      return _length;
+    },
+    fdFsyncSync: (_fd: number): void => {
+      trace.push('ledger:fd-fsync');
+      if (faults.failNextLedgerFileFsync) {
+        faults.failNextLedgerFileFsync = false;
+        trace.push('ledger:fd-fsync:fault');
+        throw new CalibrationFatalError('calibration:ledger-persist-failed');
+      }
+    },
+    fdCloseSync: (_fd: number): void => {
+      trace.push('ledger:fd-close');
+      if (faults.failNextLedgerClose) {
+        faults.failNextLedgerClose = false;
+        trace.push('ledger:fd-close:fault');
+        throw new CalibrationFatalError('calibration:ledger-persist-failed');
+      }
+    },
+    linkSync: (_from: string, _to: string): void => {
+      trace.push('ledger:link');
+    },
+    unlinkSync: (_path: string): void => {
+      trace.push('ledger:unlink');
+    },
+  };
+  const owner: CalibrationOwner = { ...data.header.owner };
+  const params: unknown = { context: data.context };
+  const ledger = await prepareNative(params, overrides);
+  ledger.acquireLock(owner);
+  const tokenKey = {
+    kind: 'token_count' as const,
+    stage: 'preflight' as const,
+    caseId: data.key.caseId,
+    model: data.context.identity.model,
+  };
+  let tokensDone = false;
+  function completeTokenPrerequisites(): void {
+    if (tokensDone) {
+      return;
+    }
+    ledger.reserveTokenCount(tokenKey);
+    ledger.completeTokenCount(tokenKey, 1200);
+    tokensDone = true;
+  }
+  async function finishPreflight(): Promise<void> {
+    completeTokenPrerequisites();
+    const lowKey = { ...data.key };
+    const mediumKey = { ...data.key, profile: 'MEDIUM' as const };
+    const lowRef = ledger.startRuntimeAttempt(lowKey);
+    ledger.startRuntimeOperation(lowRef, 'image');
+    ledger.settleRuntimeOperation(lowRef, 'image', 'returned');
+    ledger.startRuntimeOperation(lowRef, 'vision');
+    ledger.reserve(lowKey);
+    ledger.authorizeRuntimeRequest(lowRef);
+    ledger.settleRuntimeOperation(lowRef, 'vision', 'returned');
+    ledger.finishRuntimeAttempt(lowRef);
+    const mediumRef = ledger.startRuntimeAttempt(mediumKey);
+    ledger.startRuntimeOperation(mediumRef, 'image');
+    ledger.settleRuntimeOperation(mediumRef, 'image', 'returned');
+    ledger.startRuntimeOperation(mediumRef, 'vision');
+    ledger.reserve(mediumKey);
+    ledger.authorizeRuntimeRequest(mediumRef);
+    ledger.settleRuntimeOperation(mediumRef, 'vision', 'returned');
+    ledger.finishRuntimeAttempt(mediumRef);
+    ledger.admitStageReportReceipt('preflight', 'LOW');
+    ledger.admitStageReportReceipt('preflight', 'MEDIUM');
+  }
+  async function restart(nextOwner: CalibrationOwner): Promise<CalibrationRuntimeEvidenceLedger> {
+    const fresh = await prepareNative(params, overrides);
+    fresh.acquireLock(nextOwner);
+    return fresh;
+  }
+  async function createUnacquiredLedger(): Promise<CalibrationRuntimeEvidenceLedger> {
+    return prepareNative(params, overrides);
+  }
+  function cleanup(): void {
+    try {
+      rmSyncNativeTask4(ledgerRoot, { recursive: true, force: true });
+    } catch {
+      // best-effort owned cleanup only
+    }
+    try {
+      rmSyncNativeTask4(git.root, { recursive: true, force: true });
+    } catch {
+      // best-effort owned cleanup only
+    }
+  }
+  return {
+    ledger,
+    owner: Object.freeze({ ...owner }),
+    key: { ...data.key },
+    context: data.context,
+    root: ledgerRoot,
+    gitRoot: git.root,
+    trace,
+    faults,
+    completeTokenPrerequisites,
+    finishPreflight,
+    restart,
+    createUnacquiredLedger,
+    cleanup,
+  };
+}
