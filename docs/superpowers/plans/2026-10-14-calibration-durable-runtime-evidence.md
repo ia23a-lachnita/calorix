@@ -26,7 +26,9 @@
 - Keep `/tmp` minimal. New logs/caches/fixtures use this plan's verified disk-backed directory; no completed workspace recreation or shared cleanup. Preserve user `.mcp.json` unread/undiffed/unstaged.
 - Host edits planning/tracking docs, interprets requirements, verifies, commits and pushes. Application/tests use AGENTS.md strongest-first workers, never worker commits. Preserve approved inline execution; one fresh native whole-plan reviewer after all tasks, not a native reviewer per task. Antigravity pre-plan and actual code/result gates remain mandatory.
 
-## Current execution handoff — 2026-10-15
+## Current execution handoff — 2026-10-16
+
+**Current:** Tasks1/2 complete and frozen. User explicitly approved native host editing for Task3 ONLY (Ruling14); Task4 remains worker-only. Task3BASE is43d02d766a5855191b7cd3cc2dbf191a0cb01f24 across tracking/WIP commits. Shared stage builders now have actual existing-authoritative positive controls through validation plus twelve barcode/twelve label benchmark outcomes; the application source is still untouched. Latest serial task-3-host-red-b: old270GREEN, existing226GREEN, core45=6realoldcontrols pass/39missingfactory fails, strict0/lint0/protected0. These are intended RED results, not Task3 completion. Remaining whole fault/reentry/recovery/source/getter-isolation matrix and oracle corrections must be completed and independently witnessed/frozen before any calibration.ts implementation. No live/default/producer/benchmark/production authorization. Earlier worker-only/active-worker paragraphs below are historical and superseded by this handoff plus the fresh status entry.
 
 **Ruling10 — user-approved exception:** the user explicitly approved native host source/test repair for unfinished Task2 only after all editing routes were unavailable or failed editing instructions. Cost: loss of worker/host separation for this bounded repair, not reduced verification. Existing frozen prefixes, TDD, full gates, actual Antigravity review, commits/pushes and postcommit task-done remain mandatory. Restore worker-only editing for Tasks3/4. The historical editing blocker below is superseded by this authorization, not by a claimed quota reset.
 
@@ -59,6 +61,8 @@ Fresh paid REDworker88544/PID1936849 is now ACTIVE afterreset with actual modelr
 **Ruling14 — user-approved Task3 native-edit exception:** on2026-10-16 the user explicitly answered “Allow native edits for Task 3” after repeated worker patch-method violations. Host may repair Task3 tests/helper and implement only its allowed calibration.ts mode after personally witnessing complete genuine RED/freeze. TDD, protected files/Task1/Task2/helperprefix, full gates, Antigravity code/result review, normal commits/pushes and postcommit task-done remain mandatory. Task4 reverts to worker-only editing, not a global policy change. Cost if wrong: loss of worker/host separation for Task3, not reduced verification. Compliant Muse micro worker1544 was stopped at the authorized handoff, not rejected; its two valid type patches are retained for inspection.
 
 Latest Task3 checkpoint (2026-10-16): previous paid REDworker finished actual1/sessionlimit at2026-10-15T17:34:33.748Z; actual method violation scratchpatch/tmp then selfremoval recorded in status, not accepted provenance. Unaccepted coretest48f67511/helperb60a40a5 draft preserved, all old115/Task1/Task2/originalhelper4792B/config unchanged. Host task-3-host-red-a completed: controls270GREEN/existing226GREEN, newcore40=5pass35missingfactoryfail, strict2 ONLY TS2352 testbindingtype, lint0/protected0. Do not freeze/implementsource yet: entiredraft inspected and requires fixture/oracle/coverage correction. Fresh literal usage actual0 session11%/weekly36%, no wholeaccount exhaustion/billing change. Bounded worker-only fixture repair next after corrected sameconversation3.8 planreview; cleanrelease epoch rule tentative pending clarification. No host Task3 app/test edits, no task completion. Task3BASE43d02d7 survives this tracking/WIP checkpoint.
+
+**Ruling15 — illustrative reservation prerequisites:** correct the Task3 example to explicitly complete the existing token prerequisite before the first LOW reservation; the bare fixture still initializes only one header. The test convenience wrapper performs that explicit readiness call, while initialization/mode tests use the bare fixture or backing. Reason: actual strict source rejects LOW reservations before token completion; neither illustrative code nor future mode may relax that existing gate. This is covered by the corrected primary3.8 fixture-plan clarification. Cost if wrong: additional explicit fixture setup, not a changed reservation policy or production API.
 
 1. A crash during initialization must never leave an ordinary header mistaken for opted-in evidence — atomic extended-header and old-mode rejection tests in Tasks 1/3/4.
 2. A binding retried after unrelated later-stage events must retain its original `throughSequence` and digest — pure prefix/rebinding tests in Task 2 and native idempotence in Task 4.
@@ -324,6 +328,7 @@ if (frame.kind === 'runtime' && sequence >= 4096) {
 ```ts
 it('has one atomic mode header and one reservation authority', async () => {
   const f = await makeRuntimeEvidenceCoreFixture();
+  f.completeTokenPrerequisites();
   const ref = f.ledger.startRuntimeAttempt(f.key);
   f.ledger.startRuntimeOperation(ref, 'image');
   f.ledger.settleRuntimeOperation(ref, 'image', 'returned');

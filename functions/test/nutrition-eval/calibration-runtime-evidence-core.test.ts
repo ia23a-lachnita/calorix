@@ -15,7 +15,7 @@
  * goes through the real scorer/report-assembler via
  * `prepareCalibrationStageReportReconstructor`, not a fabricated report.
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createCalibrationLedger,
   createProtocolCalibrationLedger,
@@ -34,8 +34,32 @@ import {
   loadRuntimeEvidenceCalibrationLedgerFactory,
   makeRuntimeEvidenceCoreBacking,
   makeRuntimeEvidenceCoreFixture,
+  makeExistingAuthoritativeCoreFixture,
   makeRuntimeEvidenceData,
 } from './calibration-runtime-evidence-fixtures';
+
+const sdkGuard = vi.hoisted(() => ({ calls: 0 }));
+vi.mock('@google/genai', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@google/genai')>();
+  return { ...actual, GoogleGenAI: class {
+    constructor() {
+      sdkGuard.calls += 1;
+      throw new Error('core-test: SDK construction forbidden');
+    }
+  } };
+});
+let fetchCalls = 0;
+beforeAll(() => {
+  vi.stubGlobal('fetch', () => {
+    fetchCalls += 1;
+    throw new Error('core-test: fetch forbidden');
+  });
+});
+beforeEach(() => {
+  expect(sdkGuard.calls).toBe(0);
+  expect(fetchCalls).toBe(0);
+});
+afterAll(() => vi.unstubAllGlobals());
 import type {
   CalibrationRuntimeEvidenceLedger,
   RuntimeEvidenceCoreBacking,
@@ -63,10 +87,18 @@ const openFixtures: RuntimeEvidenceCoreFixture[] = [];
 async function openCoreFixture(): Promise<RuntimeEvidenceCoreFixture> {
   const fixture = await makeRuntimeEvidenceCoreFixture();
   openFixtures.push(fixture);
+  // Readiness belongs to this test convenience wrapper, NOT initialization:
+  // the public fixture itself still creates exactly the extended header.
+  fixture.completeTokenPrerequisites();
   return fixture;
 }
 afterEach(() => {
-  for (const fixture of openFixtures.splice(0)) fixture.cleanup();
+  try {
+    expect(sdkGuard.calls).toBe(0);
+    expect(fetchCalls).toBe(0);
+  } finally {
+    for (const fixture of openFixtures.splice(0)) fixture.cleanup();
+  }
 });
 
 // ── 0. Existing-source fixture controls (old mode, no new factory call) ────
@@ -76,6 +108,48 @@ afterEach(() => {
 // touches the still-missing new factory.
 
 describe('existing-source fixture controls (old mode)', () => {
+  it('completes the shared synthetic stage builders through validation using the existing authoritative factory', async () => {
+    const f = await makeExistingAuthoritativeCoreFixture();
+    try {
+      expect(f.events[0]).toMatchObject({ type: 'protocol_identity', reportAuthority: 'verified_artifacts_v1' });
+      expect((f.events[0] as { runtimeEvidenceVersion?: unknown }).runtimeEvidenceVersion).toBeUndefined();
+      f.finishPreflight();
+      f.finishDevelopment();
+      f.finishValidation();
+      expect(f.ledger.getCompletedStages()).toEqual(['preflight', 'development', 'validation']);
+      expect(f.ledger.getSelectedProfile()).toBe('MEDIUM');
+      expect(f.ledger.getCounts().imageReserved).toBe(98);
+      expect(f.ledger.getStageReportSnapshot('validation', 'MEDIUM').images).toHaveLength(48);
+      expect(f.ledger.getStageReportSnapshot('validation', 'MEDIUM').nonReservations).toHaveLength(0);
+    } finally {
+      f.cleanup();
+    }
+  });
+
+  it('uses real benchmark label and twelve barcode outcomes without giving barcodes image reservations', async () => {
+    const f = await makeExistingAuthoritativeCoreFixture();
+    try {
+      f.finishPreflight();
+      f.finishDevelopment();
+      f.finishValidation();
+      const barcodeRows = f.plans.MEDIUM.filter((row) => row.key.stage === 'benchmark' && row.scanMode === 'barcode');
+      const labelRows = f.plans.MEDIUM.filter((row) => row.key.stage === 'benchmark' && row.scanMode === 'label');
+      expect(barcodeRows).toHaveLength(12);
+      expect(labelRows).toHaveLength(12);
+      for (const row of barcodeRows) f.completeOutcomeKey(row.key);
+      expect(f.ledger.getCounts().imageReserved).toBe(98);
+      expect(f.ledger.getStageReportSnapshot('benchmark', 'MEDIUM').nonReservations).toHaveLength(12);
+      for (const row of labelRows) f.completeOutcomeKey(row.key);
+      expect(f.ledger.getCounts().imageReserved).toBe(110);
+      expect(f.ledger.getStageReportSnapshot('benchmark', 'MEDIUM').images).toHaveLength(12);
+      expect(() => f.ledger.completeStage('benchmark', {
+        stage: 'benchmark', passed: true, completedStages: ['preflight', 'development', 'validation'],
+      })).toThrow('calibration:benchmark-runtime-evidence-required');
+    } finally {
+      f.cleanup();
+    }
+  });
+
   it('replays the original persisted identity after a caller mutates a store read snapshot', async () => {
     const data = await makeRuntimeEvidenceData();
     const backing = makeRuntimeEvidenceCoreBacking();
@@ -159,13 +233,16 @@ describe('existing-source fixture controls (old mode)', () => {
 
 // ── 1. Missing-factory attribution ──────────────────────────────────────────
 
-describe('new factory is attributably missing (Task 3 Step 3 not yet implemented)', () => {
-  it('loadRuntimeEvidenceCalibrationLedgerFactory throws a scoped fatal, not an import crash', async () => {
-    await expect(loadRuntimeEvidenceCalibrationLedgerFactory()).rejects.toThrow(CalibrationFatalError);
+describe('explicit factory initialization stays unused and provisional', () => {
+  it('loads the explicit evidence factory without constructing a provider', async () => {
+    expect(typeof await loadRuntimeEvidenceCalibrationLedgerFactory()).toBe('function');
   });
 
-  it('makeRuntimeEvidenceCoreFixture surfaces the same missing-factory fatal', async () => {
-    await expect(makeRuntimeEvidenceCoreFixture()).rejects.toThrow(CalibrationFatalError);
+  it('the bare fixture publishes exactly one extended header before any token/runtime work', async () => {
+    const f = await makeRuntimeEvidenceCoreFixture();
+    openFixtures.push(f);
+    expect(f.events).toHaveLength(1);
+    expect(f.events[0]).toMatchObject({ type: 'protocol_identity', runtimeEvidenceVersion: 1, owner: f.owner });
   });
 });
 
@@ -224,7 +301,8 @@ describe('new-mode strict header combinations', () => {
     const backing = makeRuntimeEvidenceCoreBacking();
     mutate(backing);
     const owner: CalibrationOwner = { ...data.header.owner };
-    const ledger: CalibrationRuntimeEvidenceLedger = factory(
+    expect(() => {
+      const ledger: CalibrationRuntimeEvidenceLedger = factory(
       backing.deps,
       data.header.identity,
       ((selectedProfile?: 'LOW' | 'MEDIUM') =>
@@ -245,7 +323,8 @@ describe('new-mode strict header combinations', () => {
         readCurrentGitState: () => ({ headCommit: 'a'.repeat(40), functionsTreeId: data.header.identity.functionsTreeId, dirtyPaths: [] }),
       },
     );
-    expect(() => ledger.acquireLock(owner)).toThrow(CalibrationFatalError);
+      ledger.acquireLock(owner);
+    }).toThrow(CalibrationFatalError);
   }
 
   it('rejects an ordinary legacy header (no reportAuthority marker)', async () => {
@@ -296,12 +375,11 @@ describe('new-mode strict header combinations', () => {
   });
 
   it('rejects a nonempty journal with no ledger header', async () => {
+    const data = await makeRuntimeEvidenceData();
+    const manifest = StrictCalibrationManifestSchema.parse(JSON.parse(data.context.files['calibration-manifest']));
+    const evalCase = manifest.cases.find((row) => row.id === data.key.caseId)!;
     await rejectedHeaderCase((backing) => {
-      backing.journals.push({
-        key: { stage: 'preflight', profile: 'LOW', caseId: 'x', sampleIndex: 1 },
-        predictionHash: 'a'.repeat(64), normalizedPrediction: null,
-        analysisLatencyMs: 0, errorCategory: 'timeout', responseModelVersion: 'n/a',
-      });
+      backing.journals.push(buildCoreSuccessJournal(data.key, createCoreExactPrediction(evalCase, 1)));
     });
   });
 
@@ -430,7 +508,7 @@ describe('durable failure at each persistence boundary poisons the instance with
 
   it('fails receipt admission append and leaves the pair unsealed', async () => {
     const f = await openCoreFixture();
-    f.finishPreflight();
+    f.finishPreflightOutcomes();
     f.faults.failNextAppend = true;
     let caught: unknown;
     try { f.ledger.admitStageReportReceipt('preflight', 'LOW'); } catch (error) { caught = error; }
@@ -440,7 +518,7 @@ describe('durable failure at each persistence boundary poisons the instance with
 
   it('fails binding append after a real admitted receipt and does not commit a binding', async () => {
     const f = await openCoreFixture();
-    f.finishPreflight();
+    f.finishPreflightOutcomes();
     f.ledger.admitStageReportReceipt('preflight', 'LOW');
     f.faults.failNextAppend = true;
     let caught: unknown;
@@ -453,7 +531,7 @@ describe('durable failure at each persistence boundary poisons the instance with
 // ── 6. Reflection / reentry traps ────────────────────────────────────────────
 
 describe('hostile reflection reentry is poisoned, not silently tolerated', () => {
-  it('a getter that reenters the ledger during capture-stage reflection poisons the instance with zero writes', async () => {
+  it('rejects an accessor without executing its getter and preserves zero capture-stage writes', async () => {
     const f = await openCoreFixture();
     const before = f.events.length;
     let reentered = false;
@@ -471,11 +549,9 @@ describe('hostile reflection reentry is poisoned, not silently tolerated', () =>
     };
     let caught: unknown;
     try { f.ledger.startRuntimeAttempt(hostileKey); } catch (error) { caught = error; }
-    expect(reentered).toBe(true);
+    expect(reentered).toBe(false);
     expect(f.events.length).toBe(before);
-    if (caught !== undefined) {
-      expect(caught).toBeInstanceOf(CalibrationFatalError);
-    }
+    expect(caught).toBeInstanceOf(CalibrationFatalError);
     expect(() => f.ledger.getRuntimeEvidenceSnapshot()).toThrow(CalibrationFatalError);
   });
 });
@@ -559,14 +635,20 @@ describe('bare reserve/terminal without an attempt is rejected only in the new m
 // ── 9. Barcode keys reject image/vision/reservation operations ─────────────
 
 describe('a barcode key rejects image/vision/reservation operations', () => {
-  it('startRuntimeOperation(image) and reserve both fail for a barcode-scanMode key', async () => {
+  it.each(['image', 'vision', 'reserve'] as const)('%s fails for a valid-stage barcode key before any extra writes', async (kind) => {
     const f = await openCoreFixture();
-    const barcodeRow = f.plans.LOW.find((row) => row.scanMode === 'barcode');
+    f.finishPreflight();
+    f.finishDevelopment();
+    f.finishValidation();
+    const barcodeRow = f.plans.MEDIUM.find((row) => row.scanMode === 'barcode');
     expect(barcodeRow).toBeDefined();
     const barcodeKey = barcodeRow!.key;
     const ref = f.ledger.startRuntimeAttempt(barcodeKey);
-    expect(() => f.ledger.startRuntimeOperation(ref, 'image')).toThrow(CalibrationFatalError);
-    expect(() => f.ledger.reserve(barcodeKey)).toThrow(CalibrationFatalError);
+    const before = f.events.length;
+    expect(() => kind === 'reserve'
+      ? f.ledger.reserve(barcodeKey)
+      : f.ledger.startRuntimeOperation(ref, kind)).toThrow(CalibrationFatalError);
+    expect(f.events).toHaveLength(before);
   });
 });
 
@@ -587,6 +669,7 @@ describe('recovery matrix rows under a proven dead owner', () => {
     const next = laterOwner(f.owner, 1);
     const other = f.restart(next);
     other.acquireLock(next);
+    other.recoverAfterCrash();
     const abandoned = eventsOfType(f.events, 'runtime_attempt_abandoned');
     expect(abandoned).toHaveLength(1);
     expect(abandoned[0]).toMatchObject({ disposition: { kind: 'unreserved_interruption' } });
@@ -605,6 +688,7 @@ describe('recovery matrix rows under a proven dead owner', () => {
     const next = laterOwner(f.owner, 2);
     const other = f.restart(next);
     other.acquireLock(next);
+    other.recoverAfterCrash();
     const abandoned = eventsOfType(f.events, 'runtime_attempt_abandoned');
     expect(abandoned).toHaveLength(1);
     expect(abandoned[0]).toMatchObject({ disposition: { kind: 'reserved_interruption' } });
@@ -629,18 +713,20 @@ describe('recovery matrix rows under a proven dead owner', () => {
     const next = laterOwner(f.owner, 3);
     const other = f.restart(next);
     other.acquireLock(next);
+    other.recoverAfterCrash();
     expect(eventsOfType(f.events, 'runtime_attempt_abandoned')).toHaveLength(0);
     expect(eventsOfType(f.events, 'runtime_attempt_finished')).toHaveLength(1);
   });
 
   it('real terminal with missing runtime settlement/authorization: recovery marks evidence incomplete, never redispatches', async () => {
     const f = await openCoreFixture();
-    const tokenKey = { kind: 'token_count' as const, stage: 'preflight' as const, caseId: f.key.caseId, model: f.identity.model };
-    f.ledger.reserveTokenCount(tokenKey);
-    f.ledger.completeTokenCount(tokenKey, 1200);
     const ref = f.ledger.startRuntimeAttempt(f.key);
     f.ledger.startRuntimeOperation(ref, 'image');
     f.ledger.settleRuntimeOperation(ref, 'image', 'returned');
+    f.ledger.startRuntimeOperation(ref, 'vision');
+    f.ledger.reserve(f.key);
+    f.ledger.authorizeRuntimeRequest(ref);
+    f.pinOnce();
     const prediction = createCoreExactPrediction(f.evalCase, f.key.sampleIndex);
     const journal = buildCoreSuccessJournal(f.key, prediction);
     const hash = f.ledger.appendResultJournal(journal);
@@ -649,6 +735,7 @@ describe('recovery matrix rows under a proven dead owner', () => {
     const next = laterOwner(f.owner, 4);
     const other = f.restart(next);
     other.acquireLock(next);
+    other.recoverAfterCrash();
     const abandoned = eventsOfType(f.events, 'runtime_attempt_abandoned');
     expect(abandoned).toHaveLength(1);
     expect(abandoned[0]).toMatchObject({ disposition: { kind: 'terminal_evidence_incomplete' } });
@@ -671,18 +758,22 @@ describe('recovery matrix rows under a proven dead owner', () => {
     f.ledger.appendResultJournal(journal);
     f.setLiveness('dead');
     const next = laterOwner(f.owner, 5);
-    const other = f.restart(next);
-    expect(() => other.acquireLock(next)).toThrow(CalibrationFatalError);
+    expect(() => {
+      const other = f.restart(next);
+      other.acquireLock(next);
+      other.recoverAfterCrash();
+    }).toThrow(CalibrationFatalError);
   });
 
   it('an admitted receipt without a binding survives recovery and can still be bound fresh afterward', async () => {
     const f = await openCoreFixture();
-    f.finishPreflight();
+    f.finishPreflightOutcomes();
     const receipt = f.ledger.admitStageReportReceipt('preflight', 'LOW');
     f.setLiveness('dead');
     const next = laterOwner(f.owner, 6);
     const other = f.restart(next);
     expect(() => other.acquireLock(next)).not.toThrow();
+    other.recoverAfterCrash();
     const bound = other.bindRuntimeStageReport('preflight', 'LOW');
     expect(bound).toMatchObject({ type: 'runtime_report_bound', stage: 'preflight', profile: 'LOW' });
     expect((bound as { receipt: unknown }).receipt).toEqual(receipt);
@@ -694,7 +785,7 @@ describe('recovery matrix rows under a proven dead owner', () => {
 describe('report admission is noncircular and binding is idempotent across other pair events', () => {
   it('admits a receipt without requiring a prior binding, then binds it', async () => {
     const f = await openCoreFixture();
-    f.finishPreflight();
+    f.finishPreflightOutcomes();
     const receipt = f.ledger.admitStageReportReceipt('preflight', 'LOW');
     expect(receipt).toMatchObject({ stage: 'preflight', profile: 'LOW' });
     const bound = f.ledger.bindRuntimeStageReport('preflight', 'LOW');
@@ -703,7 +794,7 @@ describe('report admission is noncircular and binding is idempotent across other
 
   it('retains the original throughSequence/digest on retry after other pair events', async () => {
     const f = await openCoreFixture();
-    f.finishPreflight();
+    f.finishPreflightOutcomes();
     f.ledger.admitStageReportReceipt('preflight', 'LOW');
     const first = f.ledger.bindRuntimeStageReport('preflight', 'LOW');
     f.ledger.admitStageReportReceipt('preflight', 'MEDIUM');

@@ -152,7 +152,9 @@ export type RuntimeEvidenceFixtureDataPromise = Promise<RuntimeEvidenceFixtureDa
 // exported as production `.d.ts`.
 
 import { createHash } from 'node:crypto';
-import { StrictCalibrationManifestSchema } from '../../src/nutrition-eval/schema';
+import { StrictCalibrationManifestSchema, parseNutritionEvalManifest } from '../../src/nutrition-eval/schema';
+import { deriveCanonicalAllowedKeys } from '../../src/nutrition-eval/calibration-bootstrap';
+import { measureCalibrationStageReport } from '../../src/nutrition-eval/calibration-report-measurements';
 import type { NutritionEvalCase, NutritionPrediction } from '../../src/nutrition-eval/schema';
 import { renderNutritionEvalJson, renderNutritionEvalMarkdown } from '../../src/nutrition-eval/report';
 import { prepareCalibrationStageReportReconstructor } from '../../src/nutrition-eval/calibration-report-assembly';
@@ -168,7 +170,12 @@ import type {
   StageName,
   TokenCountReservationKey,
 } from '../../src/nutrition-eval/calibration';
-import { CALIBRATION_ROOT } from '../../src/nutrition-eval/calibration';
+import {
+  CALIBRATION_ROOT,
+  createProtocolCalibrationLedger,
+  evaluateCalibrationStageGate,
+  selectCalibrationProfile,
+} from '../../src/nutrition-eval/calibration';
 import type {
   CalibrationProtocolReportOptions,
   CalibrationStageReportSnapshot,
@@ -428,8 +435,8 @@ export function buildCoreSuccessJournal(
 
 // ── Full core fixture: owned deps + real stage-completion helpers ───────────
 
-export interface RuntimeEvidenceCoreFixture {
-  readonly ledger: CalibrationRuntimeEvidenceLedger;
+export interface RuntimeEvidenceCoreFixture<L extends CalibrationProtocolLedger = CalibrationRuntimeEvidenceLedger> {
+  readonly ledger: L;
   readonly owner: Readonly<CalibrationOwner>;
   readonly identity: Readonly<CalibrationIdentity>;
   readonly key: CalibrationReportOutcomeKey;
@@ -439,12 +446,16 @@ export interface RuntimeEvidenceCoreFixture {
   readonly journals: readonly JournalEntry[];
   readonly trace: readonly string[];
   readonly faults: RuntimeEvidenceCoreFaults;
+  readonly backing: RuntimeEvidenceCoreBacking;
   getCase(caseId: string): NutritionEvalCase;
-  createUnacquiredLedger(): CalibrationRuntimeEvidenceLedger;
-  restart(nextOwner: CalibrationOwner): CalibrationRuntimeEvidenceLedger;
+  createUnacquiredLedger(): L;
+  restart(nextOwner: CalibrationOwner): L;
   setLiveness(liveness: CalibrationLiveness): void;
+  completeTokenPrerequisites(): void;
   pinOnce(): void;
   completeImageKey(key: CalibrationReportOutcomeKey): void;
+  completeOutcomeKey(key: CalibrationReportOutcomeKey): void;
+  finishPreflightOutcomes(): void;
   finishPreflight(): void;
   finishDevelopment(): void;
   finishValidation(): void;
@@ -452,18 +463,27 @@ export interface RuntimeEvidenceCoreFixture {
 }
 
 export async function makeRuntimeEvidenceCoreFixture(): Promise<RuntimeEvidenceCoreFixture> {
+  return makeCoreFixture('runtime');
+}
+
+/** Same data/stage builders, actual existing five-argument authoritative factory. */
+export async function makeExistingAuthoritativeCoreFixture(): Promise<RuntimeEvidenceCoreFixture<CalibrationProtocolLedger>> {
+  return makeCoreFixture('existing');
+}
+
+function makeCoreFixture(mode: 'runtime'): Promise<RuntimeEvidenceCoreFixture>;
+function makeCoreFixture(mode: 'existing'): Promise<RuntimeEvidenceCoreFixture<CalibrationProtocolLedger>>;
+async function makeCoreFixture(mode: 'runtime' | 'existing'): Promise<RuntimeEvidenceCoreFixture<CalibrationProtocolLedger>> {
   const data = await makeRuntimeEvidenceData();
-  const factory = await loadRuntimeEvidenceCalibrationLedgerFactory();
+  const factory = mode === 'runtime' ? await loadRuntimeEvidenceCalibrationLedgerFactory() : undefined;
   const backing = makeRuntimeEvidenceCoreBacking();
   const owner: CalibrationOwner = { ...data.header.owner };
   const identity: CalibrationIdentity = { ...data.header.identity };
 
-  const keyResolver: CalibrationKeyResolver = ((selectedProfile?: CalibrationProfile) => {
-    const rows = selectedProfile === undefined
-      ? data.plans.initial
-      : selectedProfile === 'LOW' ? data.plans.LOW : data.plans.MEDIUM;
-    return Object.freeze(rows.map((row) => ({ ...row.key })));
-  }) as CalibrationKeyResolver;
+  // Reservation plans have 146 image keys; report plans have 158 outcomes.
+  // In particular the twelve public barcode outcomes are NOT reservations.
+  const keyResolver: CalibrationKeyResolver = (selectedProfile) =>
+    deriveCanonicalAllowedKeys({ ...data.context.files }, selectedProfile);
 
   const reportOptions: CalibrationProtocolReportOptions = {
     getReportOutcomePlan: (selectedProfile) =>
@@ -474,6 +494,8 @@ export async function makeRuntimeEvidenceCoreFixture(): Promise<RuntimeEvidenceC
 
   const reconstructor = await prepareCalibrationStageReportReconstructor(data.context);
 
+  // Trusted UNIT seam: reconstructs/scorers real synthetic journals, never
+  // claims on-disk publication or native artifact verification.
   const verifyStageReportArtifacts = (
     params: Readonly<{ stage: StageName; profile: CalibrationProfile; snapshot: CalibrationStageReportSnapshot }>,
   ): Readonly<CalibrationReportPublicationResult> => {
@@ -500,7 +522,10 @@ export async function makeRuntimeEvidenceCoreFixture(): Promise<RuntimeEvidenceC
     };
   };
 
-  function build(initialOwner: CalibrationOwner): CalibrationRuntimeEvidenceLedger {
+  function build(initialOwner: CalibrationOwner): CalibrationProtocolLedger {
+    if (factory === undefined) {
+      return createProtocolCalibrationLedger(backing.deps, identity, keyResolver, reportOptions, authoritativeOptions);
+    }
     return factory(backing.deps, identity, keyResolver, reportOptions, authoritativeOptions, {
       initialOwner,
       plans: data.plans,
@@ -510,12 +535,16 @@ export async function makeRuntimeEvidenceCoreFixture(): Promise<RuntimeEvidenceC
 
   const ledger = build(owner);
   ledger.acquireLock(owner);
+  // This is a real future ledger only in runtime mode, never a mock adapter
+  // pretending the old factory implements runtime APIs.
+  const runtime = mode === 'runtime' ? ledger as CalibrationRuntimeEvidenceLedger : undefined;
 
   const manifest = StrictCalibrationManifestSchema.parse(
     JSON.parse(data.context.files['calibration-manifest']),
   );
   const casesById = new Map<string, NutritionEvalCase>(
-    manifest.cases.map((evalCase) => [evalCase.id, evalCase]),
+    [...manifest.cases, ...parseNutritionEvalManifest(JSON.parse(data.context.files['public-manifest'])).cases]
+      .map((evalCase) => [evalCase.id, evalCase]),
   );
   function getCase(caseId: string): NutritionEvalCase {
     const found = casesById.get(caseId);
@@ -533,74 +562,132 @@ export async function makeRuntimeEvidenceCoreFixture(): Promise<RuntimeEvidenceC
     }
   }
 
-  function completeImageKey(key: CalibrationReportOutcomeKey): void {
+  let tokensCompleted = false;
+  function completeTokenPrerequisites(): void {
+    if (tokensCompleted) return;
+    const tokenKey: TokenCountReservationKey = {
+      kind: 'token_count', stage: 'preflight', caseId: data.key.caseId, model: identity.model,
+    };
+    ledger.reserveTokenCount(tokenKey);
+    ledger.completeTokenCount(tokenKey, 1200);
+    tokensCompleted = true;
+  }
+
+  function completeOutcomeKey(key: CalibrationReportOutcomeKey): void {
     const evalCase = getCase(key.caseId);
     const prediction = createCoreExactPrediction(evalCase, key.sampleIndex);
     const reservationKey: ReservationKey = { ...key };
-    const ref = ledger.startRuntimeAttempt(reservationKey);
-    ledger.startRuntimeOperation(ref, 'image');
-    ledger.settleRuntimeOperation(ref, 'image', 'returned');
-    ledger.startRuntimeOperation(ref, 'vision');
+    const ref = runtime?.startRuntimeAttempt(reservationKey);
+    if (evalCase.scanMode === 'barcode') {
+      if (runtime !== undefined && ref !== undefined) {
+        runtime.startRuntimeOperation(ref, 'snapshot');
+        runtime.settleRuntimeOperation(ref, 'snapshot', 'returned');
+      }
+      ledger.recordNonReservationResult({ key: reservationKey, reason: 'barcode', prediction });
+      if (runtime !== undefined && ref !== undefined) runtime.finishRuntimeAttempt(ref);
+      return;
+    }
+    if (runtime !== undefined && ref !== undefined) {
+      runtime.startRuntimeOperation(ref, 'image');
+      runtime.settleRuntimeOperation(ref, 'image', 'returned');
+      runtime.startRuntimeOperation(ref, 'vision');
+    }
     ledger.reserve(reservationKey);
-    ledger.authorizeRuntimeRequest(ref);
+    if (runtime !== undefined && ref !== undefined) runtime.authorizeRuntimeRequest(ref);
     pinOnce();
-    ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+    if (runtime !== undefined && ref !== undefined) runtime.settleRuntimeOperation(ref, 'vision', 'returned');
     const journal = buildCoreSuccessJournal(reservationKey, prediction);
     const hash = ledger.appendResultJournal(journal);
     ledger.complete(reservationKey, hash);
-    ledger.finishRuntimeAttempt(ref);
+    if (runtime !== undefined && ref !== undefined) runtime.finishRuntimeAttempt(ref);
   }
 
-  function finishPreflight(): void {
+  function completeImageKey(key: CalibrationReportOutcomeKey): void {
+    if (getCase(key.caseId).scanMode === 'barcode') {
+      throw new CalibrationFatalError('calibration:fixture-barcode-not-image');
+    }
+    completeOutcomeKey(key);
+  }
+
+  function finishPreflightOutcomes(): void {
     const low = data.plans.initial.find(
       (row) => row.key.stage === 'preflight' && row.key.profile === 'LOW',
     )!.key;
     const medium = data.plans.initial.find(
       (row) => row.key.stage === 'preflight' && row.key.profile === 'MEDIUM',
     )!.key;
-    const tokenKey: TokenCountReservationKey = {
-      kind: 'token_count',
-      stage: 'preflight',
-      caseId: low.caseId,
-      model: identity.model,
-    };
-    ledger.reserveTokenCount(tokenKey);
-    ledger.completeTokenCount(tokenKey, 1200);
+    completeTokenPrerequisites();
     completeImageKey(low);
     completeImageKey(medium);
+  }
+
+  function measuredPair(stage: StageName, profile: CalibrationProfile) {
+    return measureCalibrationStageReport(reconstructor.reconstruct({
+      stage, profile, snapshot: ledger.getStageReportSnapshot(stage, profile),
+    }));
+  }
+
+  function admitAndBind(stage: StageName, profile: CalibrationProfile): void {
+    ledger.admitStageReportReceipt(stage, profile);
+    runtime?.bindRuntimeStageReport(stage, profile);
+  }
+
+  function finishPreflight(): void {
+    finishPreflightOutcomes();
+    for (const profile of ['LOW', 'MEDIUM'] as const) {
+      const measured = measuredPair('preflight', profile);
+      if (measured.stage.totalOutcomes !== 1 || measured.stage.parseCases !== 1
+          || measured.stage.failureCount !== 0 || measured.stage.unsafeCompletionCount !== 0) {
+        throw new CalibrationFatalError('calibration:fixture-preflight-failed');
+      }
+      admitAndBind('preflight', profile);
+    }
     ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
   }
 
   function finishDevelopment(): void {
     const rows = data.plans.initial.filter((row) => row.key.stage === 'development');
     for (const row of rows) completeImageKey(row.key);
-    ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', {
+    const low = measuredPair('development', 'LOW');
+    const medium = measuredPair('development', 'MEDIUM');
+    const selected = selectCalibrationProfile(low.profile, medium.profile);
+    // Synthetic exact outcomes have identical metrics/latency for both
+    // profiles. The existing core independently verifies this decision.
+    if (selected !== 'MEDIUM') throw new CalibrationFatalError('calibration:fixture-expected-profile-tie');
+    const passed = evaluateCalibrationStageGate('development', medium.stage).passed;
+    admitAndBind('development', 'LOW');
+    admitAndBind('development', 'MEDIUM');
+    ledger.recordProfileSelection(selected, 'default_medium_tie_breaker', {
       stage: 'development',
-      passed: true,
+      passed,
       completedStages: ['preflight'],
     });
     ledger.completeStage('development', {
       stage: 'development',
-      passed: true,
+      passed,
       completedStages: ['preflight'],
     });
   }
 
   function finishValidation(): void {
-    const rows = data.plans.MEDIUM.filter((row) => row.key.stage === 'validation');
+    const selected = ledger.getSelectedProfile();
+    if (selected === undefined) throw new CalibrationFatalError('calibration:fixture-profile-required');
+    const rows = data.plans[selected].filter((row) => row.key.stage === 'validation');
     for (const row of rows) completeImageKey(row.key);
+    const passed = evaluateCalibrationStageGate('validation', measuredPair('validation', selected).stage).passed;
+    admitAndBind('validation', selected);
     ledger.completeStage('validation', {
       stage: 'validation',
-      passed: true,
+      passed,
       completedStages: ['preflight', 'development'],
     });
   }
 
-  function createUnacquiredLedger(): CalibrationRuntimeEvidenceLedger {
+  function createUnacquiredLedger(): CalibrationProtocolLedger {
     return build(owner);
   }
 
-  function restart(nextOwner: CalibrationOwner): CalibrationRuntimeEvidenceLedger {
+  function restart(nextOwner: CalibrationOwner): CalibrationProtocolLedger {
     return build(nextOwner);
   }
 
@@ -625,12 +712,16 @@ export async function makeRuntimeEvidenceCoreFixture(): Promise<RuntimeEvidenceC
     journals: backing.journals,
     trace: backing.trace,
     faults: backing.faults,
+    backing,
     getCase,
     createUnacquiredLedger,
     restart,
     setLiveness,
+    completeTokenPrerequisites,
     pinOnce,
     completeImageKey,
+    completeOutcomeKey,
+    finishPreflightOutcomes,
     finishPreflight,
     finishDevelopment,
     finishValidation,
