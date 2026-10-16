@@ -1434,3 +1434,264 @@ it('existing native report files without receipt can be verified and bound under
   () => exerciseNativeReportWithoutReceipt('existing-core'));
 it('guarded native report files without receipt can be verified and bound under a fresh owner without new outcomes',
   () => exerciseNativeReportWithoutReceipt('future'));
+
+import { chmodSync as chmodOwnedPath, linkSync as hardLinkOwnedPath } from 'node:fs';
+import { runCalibrationCli as runUnactivatedCalibrationCli } from '../../src/nutrition-eval/calibration-cli';
+
+async function exerciseNativePendingAdmission(mode: 'existing-core' | 'future', pending: boolean): Promise<void> {
+  const hooks = makePersistenceHooks();
+  const { boot, ledger } = await openPersistenceLedger(mode, hooks);
+  const key = boot.key;
+  const ref = ledger.startRuntimeAttempt(key);
+  ledger.startRuntimeOperation(ref, 'image');
+  ledger.settleRuntimeOperation(ref, 'image', 'returned');
+  ledger.startRuntimeOperation(ref, 'vision');
+  ledger.reserve(key);
+  ledger.authorizeRuntimeRequest(ref);
+  ledger.pinModelVersion(CORE_PINNED_VERSION);
+  if (!pending) ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+  const prediction = createCoreExactPrediction(realFirstDevCase(boot.context.files, key.caseId), 1);
+  ledger.complete(key, ledger.appendResultJournal(buildCoreSuccessJournal(key, prediction)));
+  if (!pending) ledger.finishRuntimeAttempt(ref);
+  // Publication can render a valid terminal report; only core admission may
+  // grant runtime reconciliation authority over that physical document.
+  await publishCalibrationStageReport({ stage: 'preflight', profile: 'LOW', context: boot.context,
+    readSnapshot: () => ledger.getStageReportSnapshot('preflight', 'LOW') });
+  const path = resolve(boot.ledgerRoot, 'ledger.json');
+  const before = readFileSync(path, 'utf8');
+  if (pending) {
+    expect(() => ledger.admitStageReportReceipt('preflight', 'LOW')).toThrow(CalibrationFatalError);
+    expect(readFileSync(path, 'utf8')).toBe(before);
+    expect(nativeRows(boot.ledgerRoot).filter((row) => row.type === 'artifact_receipt_admitted'
+      || row.type === 'runtime_report_bound')).toHaveLength(0);
+    expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+    expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(true);
+  } else {
+    ledger.admitStageReportReceipt('preflight', 'LOW');
+    expect(ledger.bindRuntimeStageReport('preflight', 'LOW').owner).toEqual(boot.context.owner);
+    expect(ledger.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 1 });
+  }
+}
+for (const pending of [false, true]) {
+  it(`existing native report admission distinguishes pending runtime operation=${pending}`,
+    () => exerciseNativePendingAdmission('existing-core', pending));
+  it(`guarded native report admission distinguishes pending runtime operation=${pending}`,
+    () => exerciseNativePendingAdmission('future', pending));
+}
+
+describe('native closed capture before any effect', () => {
+  it.each(['undefined', 'nonfunction', 'accessor', 'symbol', 'hidden', 'inherited', 'array', 'null', 'throwing-proxy'] as const)(
+    'both native APIs reject %s low-level overrides without inspecting foreign errors', async (kind) => {
+      const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+      const prepare = await loadPrepareNativeLedgerFactoryTask4();
+      const store = await loadRuntimeEvidenceFileLedgerDepsFactoryTask4();
+      let getters = 0;
+      const record: Record<PropertyKey, unknown> = {};
+      let raw: unknown = record;
+      if (kind === 'undefined') record.fdWriteSync = undefined;
+      if (kind === 'nonfunction') record.fdWriteSync = 3;
+      if (kind === 'accessor') Object.defineProperty(record, 'fdWriteSync', { enumerable: true, get() { getters += 1; return writeSyncTest; } });
+      if (kind === 'symbol') record[Symbol('unknown')] = writeSyncTest;
+      if (kind === 'hidden') Object.defineProperty(record, 'fdWriteSync', { enumerable: false, value: writeSyncTest });
+      if (kind === 'inherited') raw = Object.create({ fdWriteSync: writeSyncTest }) as unknown;
+      if (kind === 'array') raw = [];
+      if (kind === 'null') raw = null;
+      if (kind === 'throwing-proxy') raw = new Proxy({}, { ownKeys() {
+        throw Object.defineProperty({}, 'message', { get() { getters += 1; return 'private-native-hook-error'; } });
+      } });
+      const overrides = raw as RuntimeEvidenceFileStoreOverrides;
+      let storeError: unknown;
+      let prepareError: unknown;
+      try { store(boot.context.baseDir, { ...boot.context.owner }, overrides); } catch (error) { storeError = error; }
+      try { await prepare({ context: boot.context }, overrides); } catch (error) { prepareError = error; }
+      expectStaticPersistenceFatal(storeError);
+      expectStaticPersistenceFatal(prepareError);
+      expect(storeError).not.toBe(prepareError);
+      expect(getters).toBe(0);
+      expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(false);
+      expect(existsSync(resolve(boot.ledgerRoot, 'ledger.json'))).toBe(false);
+    },
+  );
+
+  it.each(['params-accessor', 'params-symbol', 'context-inherited', 'identity-accessor', 'files-accessor', 'report-accessor'] as const)(
+    'rejects %s context capture without invoking getters or acquiring', async (kind) => {
+      const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+      const prepare = await loadPrepareNativeLedgerFactoryTask4();
+      const hooks = makePersistenceHooks();
+      let getters = 0;
+      const context = structuredClone(boot.context) as unknown as Record<string, unknown>;
+      const params: Record<PropertyKey, unknown> = { context };
+      const getter = () => { getters += 1; return 'private-native-hook-error'; };
+      if (kind === 'params-accessor') Object.defineProperty(params, 'context', { enumerable: true, get: getter });
+      if (kind === 'params-symbol') params[Symbol('context')] = context;
+      if (kind === 'context-inherited') params.context = Object.assign(Object.create({ extra: true }) as object, context);
+      if (kind === 'identity-accessor') Object.defineProperty(context.identity as object, 'model', { enumerable: true, get: getter });
+      if (kind === 'files-accessor') Object.defineProperty(context.files as object, 'calibration-manifest', { enumerable: true, get: getter });
+      if (kind === 'report-accessor') Object.defineProperty(context.report as object, 'compatibilityNotes', { enumerable: true, get: getter });
+      let error: unknown;
+      try { await prepare(params, hooks.overrides); } catch (caught) { error = caught; }
+      expectStaticPersistenceFatal(error);
+      expect(getters).toBe(0);
+      expect(hooks.trace).toEqual([]);
+      expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(false);
+      expect(existsSync(resolve(boot.ledgerRoot, 'ledger.json'))).toBe(false);
+    },
+  );
+});
+
+describe('guarded native private paths and observed ancestors', () => {
+  for (const leaf of ['ledger.json', 'journal.json', 'lock.json'] as const) {
+    it.each(['mode', 'hardlink'] as const)(`rejects ${leaf} %s drift before writable effects without repairing it`, async (kind) => {
+      const hooks = makePersistenceHooks();
+      const { boot, ledger } = await openPersistenceLedger('future', hooks);
+      const path = resolve(boot.ledgerRoot, leaf);
+      if (!existsSync(path)) writeOwnedFile(path, '[]', { flag: 'wx', mode: 0o600 });
+      const bytes = readFileSync(path, 'utf8');
+      const ino = lstatSync(path).ino;
+      const alias = path + '.test-hardlink';
+      if (kind === 'mode') chmodOwnedPath(path, 0o644);
+      else hardLinkOwnedPath(path, alias);
+      const traceLength = hooks.trace.length;
+      expect(() => ledger.startRuntimeAttempt({ ...boot.key })).toThrow(CalibrationFatalError);
+      expect(hooks.trace).toHaveLength(traceLength);
+      expect(readFileSync(path, 'utf8')).toBe(bytes);
+      expect(lstatSync(path).ino).toBe(ino);
+      if (kind === 'mode') expect(lstatSync(path).mode & 0o777).toBe(0o644);
+      else {
+        expect(lstatSync(path).nlink).toBe(2);
+        expect(lstatSync(alias).ino).toBe(ino);
+        expect(readFileSync(alias, 'utf8')).toBe(bytes);
+      }
+      expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+      expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(true);
+    });
+  }
+  it('does not silently chmod an insecure replaced canonical-root mode back into authority', async () => {
+    const hooks = makePersistenceHooks();
+    const { boot, ledger } = await openPersistenceLedger('future', hooks);
+    const before = readFileSync(resolve(boot.ledgerRoot, 'ledger.json'), 'utf8');
+    chmodOwnedPath(boot.ledgerRoot, 0o755);
+    const traceLength = hooks.trace.length;
+    expect(() => ledger.startRuntimeAttempt({ ...boot.key })).toThrow(CalibrationFatalError);
+    expect(hooks.trace).toHaveLength(traceLength);
+    expect(lstatSync(boot.ledgerRoot).mode & 0o777).toBe(0o755);
+    expect(readFileSync(resolve(boot.ledgerRoot, 'ledger.json'), 'utf8')).toBe(before);
+    expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+    expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(true);
+  });
+  it.each(['after-close', 'after-dir-sync'] as const)(
+    'detects an ancestor inode replacement %s even when root and lock inodes are preserved', async (phase) => {
+      const hooks = makePersistenceHooks();
+      const close = hooks.overrides.fdCloseSync!;
+      const sync = hooks.overrides.fsyncDirSync!;
+      let armed = false;
+      let changed = false;
+      let oldAncestorIno = 0;
+      const replaceAncestor = () => {
+        if (!armed) return;
+        armed = false;
+        const ancestor = resolve(boot.context.baseDir, '.nutrition-eval');
+        const saved = ancestor + '.test-preserved';
+        oldAncestorIno = lstatSync(ancestor).ino;
+        renameSyncTest(ancestor, saved);
+        makeOwnedDirectory(ancestor, { mode: 0o700 });
+        makeOwnedDirectory(resolve(ancestor, 'calibration'), { mode: 0o700 });
+        // Move the same child root back: checking only root/lock identity
+        // misses this change to an observed ancestor.
+        renameSyncTest(resolve(saved, 'calibration', basename(boot.ledgerRoot)), boot.ledgerRoot);
+        writeOwnedFile(resolve(saved, 'preserved.txt'), 'owned saved ancestor', { flag: 'wx', mode: 0o600 });
+        changed = true;
+      };
+      hooks.overrides.fdCloseSync = (fd) => { close(fd); if (phase === 'after-close') replaceAncestor(); };
+      hooks.overrides.fsyncDirSync = (dir) => { sync(dir); if (phase === 'after-dir-sync') replaceAncestor(); };
+      const opened = await openPersistenceLedger('future', hooks);
+      const boot = opened.boot;
+      const ledger = opened.ledger;
+      const ledgerPath = resolve(boot.ledgerRoot, 'ledger.json');
+      const lockPath = resolve(boot.ledgerRoot, 'lock.json');
+      const before = readFileSync(ledgerPath, 'utf8');
+      const lockBytes = readFileSync(lockPath, 'utf8');
+      const rootIno = lstatSync(boot.ledgerRoot).ino;
+      const lockIno = lstatSync(lockPath).ino;
+      armed = true;
+      let error: unknown;
+      let effects = 0;
+      try { ledger.startRuntimeAttempt({ ...boot.key }); effects += 1; } catch (caught) { error = caught; }
+      expectStaticPersistenceFatal(error);
+      expect(effects).toBe(0);
+      expect(changed).toBe(true);
+      expect(lstatSync(resolve(boot.context.baseDir, '.nutrition-eval')).ino).not.toBe(oldAncestorIno);
+      expect(lstatSync(boot.ledgerRoot).ino).toBe(rootIno);
+      expect(lstatSync(lockPath).ino).toBe(lockIno);
+      expect(readFileSync(lockPath, 'utf8')).toBe(lockBytes);
+      expect(readFileSync(resolve(boot.context.baseDir, '.nutrition-eval.test-preserved/preserved.txt'), 'utf8')).toBe('owned saved ancestor');
+      const after = readFileSync(ledgerPath, 'utf8');
+      if (phase === 'after-close') expect(after).toBe(before);
+      else expect(JSON.parse(after)).toEqual([...JSON.parse(before) as unknown[],
+        expect.objectContaining({ type: 'runtime_attempt_started', key: boot.key, sequence: 1 })]);
+      expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+      expect(readFileSync(lockPath, 'utf8')).toBe(lockBytes);
+    },
+  );
+});
+
+it.each([
+  { argv: ['preflight'], env: {}, failureCode: 'opt_in_missing' },
+  { argv: ['preflight', '--unknown', '1'], env: { RUN_NUTRITION_CALIBRATION_LIVE: '1' }, failureCode: 'invalid_command' },
+  { argv: ['preflight'], env: { RUN_NUTRITION_CALIBRATION_LIVE: '1' }, failureCode: 'dependency_missing' },
+])('default calibration CLI remains unactivated: $failureCode', async ({ argv, env, failureCode }) => {
+  expect(await runUnactivatedCalibrationCli(argv, env)).toEqual({ exitCode: 1, failureCode });
+  expect(sdkGuard.calls).toBe(0);
+  expect(fetchCalls).toBe(0);
+});
+
+it('native preparation accepts owned null-prototype records without freezing caller inputs', async () => {
+  const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+  const prepare = await loadPrepareNativeLedgerFactoryTask4();
+  const context = structuredClone(boot.context);
+  const nullRecords = (value: unknown): void => {
+    // Only this test's finite newly cloned fixture, never foreign input.
+    if (typeof value !== 'object' || value === null) return;
+    if (Array.isArray(value)) {
+      for (const item of value) nullRecords(item);
+      return;
+    }
+    for (const item of Object.values(value)) nullRecords(item);
+    Object.setPrototypeOf(value, null);
+  };
+  nullRecords(context);
+  const params = Object.assign(Object.create(null) as Record<string, unknown>, { context });
+  const overrides = Object.assign(Object.create(null) as Record<string, unknown>, {
+    nowIso: () => '2026-10-16T00:00:00.000Z',
+  }) as RuntimeEvidenceFileStoreOverrides;
+  const ledger = await prepare(params, overrides);
+  expect(Object.isFrozen(params)).toBe(false);
+  expect(Object.isFrozen(context)).toBe(false);
+  expect(Object.isFrozen(context.owner)).toBe(false);
+  ledger.acquireLock({ ...boot.context.owner });
+  ledger.reserveTokenCount({ kind: 'token_count', stage: 'preflight', caseId: boot.key.caseId, model: boot.context.identity.model });
+  ledger.completeTokenCount({ kind: 'token_count', stage: 'preflight', caseId: boot.key.caseId, model: boot.context.identity.model }, 1200);
+  expect(ledger.startRuntimeAttempt(boot.key)).toEqual({ key: boot.key, attempt: 1 });
+  expect(nativeRows(boot.ledgerRoot).at(-1)).toMatchObject({ type: 'runtime_attempt_started', sequence: 1, owner: boot.context.owner });
+});
+
+it('native preparation captures low-level hooks before its first suspension', async () => {
+  const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+  const prepare = await loadPrepareNativeLedgerFactoryTask4();
+  let originalWrites = 0;
+  let replacementWrites = 0;
+  const overrides: RuntimeEvidenceFileStoreOverrides = {
+    fdWriteSync(fd, buffer, offset, length) {
+      originalWrites += 1;
+      return writeSyncTest(fd, buffer, offset, length);
+    },
+  };
+  const pending = prepare({ context: boot.context }, overrides);
+  overrides.fdWriteSync = () => { replacementWrites += 1; throw new Error('private-native-hook-error'); };
+  const ledger = await pending;
+  ledger.acquireLock({ ...boot.context.owner });
+  expect(originalWrites).toBeGreaterThan(0);
+  expect(replacementWrites).toBe(0);
+  expect(nativeRows(boot.ledgerRoot)).toEqual([expect.objectContaining({ type: 'protocol_identity',
+    runtimeEvidenceVersion: 1, owner: boot.context.owner })]);
+});
