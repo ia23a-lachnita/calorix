@@ -18,6 +18,7 @@ import {
   lstatSync,
   openSync as openSyncTest,
   readFileSync,
+  renameSync as renameSyncTest,
   rmSync,
   statSync,
   writeSync as writeSyncTest,
@@ -131,9 +132,12 @@ describe('foundation existing-source controls', () => {
     const miniRoot = boot.context.baseDir;
     assertInsideOwned(miniRoot, boot.ledgerRoot);
     const order: string[] = [];
+    const fdWrites: Array<{ fd: number; dev: number; ino: number }> = [];
+    const renames: Array<{ from: string; to: string; dev: number; ino: number }> = [];
     const deps = createFileCalibrationLedgerDeps(miniRoot, {
       fdWriteSync: (fd: number, buf: Buffer, off: number, len: number): number => {
         const st = fstatSyncTest(fd);
+        fdWrites.push({ fd, dev: st.dev, ino: st.ino });
         order.push(`write:fd=${fd}:ino=${st.ino}:len=${len}`);
         const n = writeSyncTest(fd, buf, off, len);
         order.push(`wrote:${n}`);
@@ -148,6 +152,13 @@ describe('foundation existing-source controls', () => {
         order.push(`close:${fd}`);
         closeSyncTest(fd);
         order.push(`closed:${fd}`);
+      },
+      renameSync: (from: string, to: string): void => {
+        order.push(`rename:${basename(from)}->${basename(to)}`);
+        renameSyncTest(from, to);
+        const st = lstatSync(to);
+        renames.push({ from: basename(from), to: basename(to), dev: st.dev, ino: st.ino });
+        order.push(`renamed:${basename(to)}:ino=${st.ino}`);
       },
       fsyncDirSync: (dir: string): void => {
         order.push(`dir:${basename(dir)}`);
@@ -189,10 +200,67 @@ describe('foundation existing-source controls', () => {
     expect(existsSync(lockPath)).toBe(true);
     expect((lstatSync(lockPath).mode & 0o7777)).toBe(0o600);
     expect((statSync(boot.ledgerRoot).mode & 0o7777)).toBe(0o700);
-    expect(order.join('|')).toContain('write:fd=');
-    expect(order.join('|')).toContain('fsync:');
-    expect(order.join('|')).toContain('close:');
-    expect(order.join('|')).toContain('dir:');
+    const ledgerPath = resolve(boot.ledgerRoot, 'ledger.json');
+    const journalPath = resolve(boot.ledgerRoot, 'journal.json');
+    expect(existsSync(ledgerPath)).toBe(true);
+    expect(existsSync(journalPath)).toBe(true);
+    expect((lstatSync(ledgerPath).mode & 0o7777)).toBe(0o600);
+    expect((lstatSync(journalPath).mode & 0o7777)).toBe(0o600);
+    const ledgerEvents = JSON.parse(readFileSync(ledgerPath, 'utf8')) as Array<{ type: string; key?: ReservationKey; journalHash?: string }>;
+    const completed = ledgerEvents.filter((e) => e.type === 'completed');
+    expect(completed).toHaveLength(2);
+    const journals = JSON.parse(readFileSync(journalPath, 'utf8')) as Array<{ key: ReservationKey }>;
+    expect(journals).toHaveLength(2);
+    expect(journals.map((j) => `${j.key.stage}|${j.key.profile}|${j.key.caseId}`)).toEqual([
+      `preflight|LOW|${firstDev}`,
+      `preflight|MEDIUM|${firstDev}`,
+    ]);
+    for (const c of completed) {
+      const match = journals.find((j) => j.key.stage === c.key?.stage && j.key.profile === c.key?.profile && j.key.caseId === c.key?.caseId);
+      expect(match).toBeDefined();
+    }
+    const indexAfter = (sub: string, from: number): number => {
+      for (let i = from; i < order.length; i += 1) {
+        if ((order[i] as string).includes(sub)) {
+          return i;
+        }
+      }
+      return -1;
+    };
+    let sameTransaction = false;
+    for (const { fd } of fdWrites) {
+      const writeIdx = indexAfter(`write:fd=${fd}:`, 0);
+      if (writeIdx < 0) {
+        continue;
+      }
+      const fsyncIdx = indexAfter(`fsync:${fd}`, writeIdx + 1);
+      if (fsyncIdx < 0) {
+        continue;
+      }
+      const closeIdx = indexAfter(`close:${fd}`, fsyncIdx + 1);
+      if (closeIdx < 0) {
+        continue;
+      }
+      const renameIdx = indexAfter('rename:', closeIdx + 1);
+      if (renameIdx < 0) {
+        continue;
+      }
+      const dirIdx = indexAfter('dir:', renameIdx + 1);
+      if (dirIdx < 0) {
+        continue;
+      }
+      sameTransaction = true;
+      break;
+    }
+    expect(sameTransaction).toBe(true);
+    expect(renames.length).toBeGreaterThan(0);
+    const finalLedgerStat = lstatSync(ledgerPath);
+    expect(renames.some((r) => r.dev === finalLedgerStat.dev && r.ino === finalLedgerStat.ino)).toBe(true);
+    expect(fdWrites.length).toBeGreaterThan(0);
+    expect(fdWrites.some((w) => w.dev === finalLedgerStat.dev && w.ino === finalLedgerStat.ino)).toBe(true);
+    const ledgerRenames = renames.filter((r) => r.to === 'ledger.json');
+    expect(ledgerRenames.length).toBeGreaterThan(0);
+    expect(ledgerRenames.some((r) => r.dev === finalLedgerStat.dev && r.ino === finalLedgerStat.ino)).toBe(true);
   });
 
   it('publishes preflight via existing publisher and admits native receipt', async () => {
@@ -265,9 +333,22 @@ describe('foundation existing-source controls', () => {
 });
 
 describe('illustrative future cases', () => {
+  it('existing-core regression shared preflight runtime terminals publish admit GREEN', async () => {
+    const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode: 'existing-core' });
+    await f.finishPreflight();
+    const lowSnapshot = f.ledger.getStageReportSnapshot('preflight', 'LOW');
+    const mediumSnapshot = f.ledger.getStageReportSnapshot('preflight', 'MEDIUM');
+    expect(lowSnapshot.images).toHaveLength(1);
+    expect(mediumSnapshot.images).toHaveLength(1);
+    const first = f.ledger.bindRuntimeStageReport('preflight', 'LOW');
+    f.ledger.bindRuntimeStageReport('preflight', 'MEDIUM');
+    const before = readFileSync(resolve(f.root, 'ledger.json'), 'utf8');
+    const again = f.ledger.bindRuntimeStageReport('preflight', 'LOW');
+    expect(again).toEqual(first);
+    expect(readFileSync(resolve(f.root, 'ledger.json'), 'utf8')).toBe(before);
+  });
   it('blocks after failed dir-fsync retaining lock with dedicated witness', async () => {
     const f = await makeRuntimeEvidenceNativeFixture(ownedRoots);
-    f.ledger.acquireLock({ ...f.owner });
     f.completeTokenPrerequisites();
     f.faults.failNextLedgerDirFsync = true;
     expect(() => f.ledger.startRuntimeAttempt({ ...f.key })).toThrow(CalibrationFatalError);
@@ -278,7 +359,6 @@ describe('illustrative future cases', () => {
 
   it('revalidates bound LOW receipt after MEDIUM without rewriting bytes', async () => {
     const f = await makeRuntimeEvidenceNativeFixture(ownedRoots);
-    f.ledger.acquireLock({ ...f.owner });
     await f.finishPreflight();
     const first = f.ledger.bindRuntimeStageReport('preflight', 'LOW');
     f.ledger.bindRuntimeStageReport('preflight', 'MEDIUM');

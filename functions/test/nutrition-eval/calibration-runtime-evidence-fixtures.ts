@@ -779,7 +779,7 @@ async function makeCoreFixture(mode: 'runtime' | 'existing', options: Readonly<{
 // `calibration-runtime-evidence-ledger.ts` does not exist yet (Task 4 Step 3
 // unimplemented). Both are looked up dynamically so a missing-feature failure
 // is attributable to that absence, not to this fixture or to Tasks 1–3.
-// `RuntimeEvidenceFileStoreOverrides` is the exact plan Pick of eight
+// `RuntimeEvidenceFileStoreOverrides` is the exact plan Pick of nine
 // low-level seams; no high-level writeExclusiveSync/fsyncFileSync, injected
 // plans/verifier/Git-reader/provider/alternate root is admitted.
 
@@ -787,6 +787,7 @@ import { execFileSync as execFileSyncNativeTask4 } from 'node:child_process';
 import {
   closeSync as closeSyncNativeTask4,
   constants as constantsNativeTask4,
+  existsSync as existsSyncNativeTask4,
   fstatSync as fstatSyncNativeTask4,
   fsyncSync as fsyncSyncNativeTask4,
   lstatSync as lstatSyncNativeTask4,
@@ -816,6 +817,9 @@ import {
   deriveCanonicalReportOutcomePlan as deriveCanonicalReportOutcomePlanTask4,
   prepareCalibrationBootstrapContext as prepareCalibrationBootstrapContextTask4,
 } from '../../src/nutrition-eval/calibration-bootstrap';
+import { prepareCalibrationStageReportArtifactVerifier as prepareVerifierTask4Base } from '../../src/nutrition-eval/calibration-report-artifact-verification';
+import { publishCalibrationStageReport as publishCalibrationStageReportTask4 } from '../../src/nutrition-eval/calibration-report-publication';
+import { createRuntimeEvidenceCalibrationLedger as createRuntimeEvidenceCalibrationLedgerTask4 } from '../../src/nutrition-eval/calibration';
 
 export type RuntimeEvidenceFileStoreOverrides = Pick<
   CalibrationFileStoreOverridesTask4Base,
@@ -851,15 +855,14 @@ export type PrepareNativeLedgerTask4 = (
 ) => Promise<CalibrationRuntimeEvidenceLedger>;
 
 export async function loadPrepareNativeLedgerFactoryTask4(): Promise<PrepareNativeLedgerTask4> {
+  const sourcePath = resolveNativeTask4(repoRoot, 'functions', 'src', 'nutrition-eval', 'calibration-runtime-evidence-ledger.ts');
+  if (!existsSyncNativeTask4(sourcePath)) {
+    throw new CalibrationFatalError('calibration:runtime-evidence-native-missing');
+  }
   const base = '../../src/nutrition-eval/';
   const name = 'calibration-runtime-evidence-ledger';
   const specifier = `${base}${name}`;
-  let mod: unknown;
-  try {
-    mod = await import(specifier);
-  } catch {
-    throw new CalibrationFatalError('calibration:runtime-evidence-native-missing');
-  }
+  const mod: unknown = await import(specifier);
   const candidate = (mod as Record<string, unknown>)['prepareNativeCalibrationRuntimeEvidenceLedger'];
   if (typeof candidate !== 'function') {
     throw new CalibrationFatalError('calibration:runtime-evidence-native-missing');
@@ -994,8 +997,75 @@ export interface RuntimeEvidenceNativeFixtureTask4 {
   cleanup(): void;
 }
 
+export function buildSharedFoundationPreflightKey(context: CalibrationPreparedContext): CalibrationReportOutcomeKey {
+  return { stage: 'preflight', profile: 'LOW', caseId: context.firstDevelopmentCaseId, sampleIndex: 1 };
+}
+
+export async function runSharedFoundationPreflight(
+  ledger: CalibrationRuntimeEvidenceLedger,
+  context: CalibrationPreparedContext,
+): Promise<void> {
+  const firstDev = context.firstDevelopmentCaseId;
+  const tokenKey = { kind: 'token_count' as const, stage: 'preflight' as const, caseId: firstDev, model: context.identity.model };
+  ledger.reserveTokenCount(tokenKey);
+  ledger.completeTokenCount(tokenKey, 1200);
+  const full = StrictCalibrationManifestSchema.parse(JSON.parse(context.files['calibration-manifest'] as string)) as unknown as {
+    cases: Array<{ id: string; group: string } & Record<string, unknown>>;
+  };
+  const found = full.cases.find((c) => c.id === firstDev);
+  if (found === undefined) {
+    throw new CalibrationFatalError('calibration:fixture-unknown-case');
+  }
+  const evalCase = found as unknown as Parameters<typeof createCoreExactPrediction>[0];
+  const lowKey = { stage: 'preflight' as const, profile: 'LOW' as const, caseId: firstDev, sampleIndex: 1 };
+  const mediumKey = { stage: 'preflight' as const, profile: 'MEDIUM' as const, caseId: firstDev, sampleIndex: 1 };
+  const lowRef = ledger.startRuntimeAttempt({ ...lowKey });
+  ledger.startRuntimeOperation(lowRef, 'image');
+  ledger.settleRuntimeOperation(lowRef, 'image', 'returned');
+  ledger.startRuntimeOperation(lowRef, 'vision');
+  ledger.reserve({ ...lowKey });
+  ledger.pinModelVersion(CORE_PINNED_VERSION);
+  ledger.authorizeRuntimeRequest(lowRef);
+  ledger.settleRuntimeOperation(lowRef, 'vision', 'returned');
+  const lowPrediction = createCoreExactPrediction(evalCase, 1);
+  const lowJournal = buildCoreSuccessJournal({ ...lowKey }, lowPrediction);
+  const lowHash = ledger.appendResultJournal(lowJournal);
+  ledger.complete({ ...lowKey }, lowHash);
+  ledger.finishRuntimeAttempt(lowRef);
+  const mediumRef = ledger.startRuntimeAttempt({ ...mediumKey });
+  ledger.startRuntimeOperation(mediumRef, 'image');
+  ledger.settleRuntimeOperation(mediumRef, 'image', 'returned');
+  ledger.startRuntimeOperation(mediumRef, 'vision');
+  ledger.reserve({ ...mediumKey });
+  ledger.authorizeRuntimeRequest(mediumRef);
+  ledger.settleRuntimeOperation(mediumRef, 'vision', 'returned');
+  const mediumPrediction = createCoreExactPrediction(evalCase, 1);
+  const mediumJournal = buildCoreSuccessJournal({ ...mediumKey }, mediumPrediction);
+  const mediumHash = ledger.appendResultJournal(mediumJournal);
+  ledger.complete({ ...mediumKey }, mediumHash);
+  ledger.finishRuntimeAttempt(mediumRef);
+  for (const profile of ['LOW', 'MEDIUM'] as const) {
+    const published = await publishCalibrationStageReportTask4({
+      stage: 'preflight',
+      profile,
+      context: {
+        baseDir: context.baseDir,
+        identity: { ...context.identity },
+        owner: { ...context.owner },
+        firstDevelopmentCaseId: context.firstDevelopmentCaseId,
+        report: context.report,
+        files: { ...context.files },
+      },
+      readSnapshot: () => ledger.getStageReportSnapshot('preflight', profile),
+    });
+    void published;
+    ledger.admitStageReportReceipt('preflight', profile);
+  }
+}
+
 export async function makeRuntimeEvidenceNativeFixture(
   ownedRoots: string[] = [],
+  opts: Readonly<{ mode?: 'future' | 'existing-core' }> = {},
 ): Promise<RuntimeEvidenceNativeFixtureTask4> {
   const git = makeMiniGitRepoTask4(ownedRoots);
   const miniRoot = git.root;
@@ -1015,7 +1085,7 @@ export async function makeRuntimeEvidenceNativeFixture(
   const ledgerRoot = resolveNativeTask4(miniRoot, CALIBRATION_ROOT);
   const firstDev = context.firstDevelopmentCaseId;
   const dataKey = { stage: 'preflight' as const, profile: 'LOW' as const, caseId: firstDev, sampleIndex: 1 };
-  const prepareNative = await loadPrepareNativeLedgerFactoryTask4();
+  const mode = opts.mode ?? 'future';
   const trace: string[] = [];
   const faults: RuntimeEvidenceNativeFaultsTask4 = {
     failNextLedgerDirFsync: false,
@@ -1113,8 +1183,58 @@ export async function makeRuntimeEvidenceNativeFixture(
   if (!resolvedLedgerRoot.startsWith(resolvedMini + sepNativeTask4)) {
     throw new CalibrationFatalError('calibration:fixture-root-escape');
   }
-  const params: unknown = { context };
-  const ledger = await prepareNative(params, overrides);
+  const ownerForBuild: CalibrationOwner = { ...owner };
+  const initialPlan = deriveCanonicalReportOutcomePlanTask4({ ...context.files });
+  const lowPlan = deriveCanonicalReportOutcomePlanTask4({ ...context.files }, 'LOW');
+  const mediumPlan = deriveCanonicalReportOutcomePlanTask4({ ...context.files }, 'MEDIUM');
+  const keyResolver = (selectedProfile?: 'LOW' | 'MEDIUM') =>
+    deriveCanonicalAllowedKeysTask4({ ...context.files }, selectedProfile);
+  const reportOptions = {
+    getReportOutcomePlan: (selectedProfile?: 'LOW' | 'MEDIUM') =>
+      selectedProfile === undefined ? initialPlan : selectedProfile === 'LOW' ? lowPlan : mediumPlan,
+  };
+  let ledger: CalibrationRuntimeEvidenceLedger;
+  let params: unknown;
+  if (mode === 'existing-core') {
+    const deps = createFileCalibrationLedgerDepsTask4Base(miniRoot, overrides);
+    const verifier = await prepareVerifierTask4Base({
+      baseDir: context.baseDir,
+      identity: { ...context.identity },
+      owner: { ...ownerForBuild },
+      firstDevelopmentCaseId: context.firstDevelopmentCaseId,
+      report: context.report,
+      files: { ...context.files },
+    });
+    const authoritativeOptions = {
+      verifyStageReportArtifacts: (p: { stage: 'preflight' | 'development' | 'validation' | 'benchmark'; profile: 'LOW' | 'MEDIUM'; snapshot: unknown }) =>
+        verifier.verify(p as unknown as Parameters<typeof verifier.verify>[0]),
+    };
+    const runtimeOptions = {
+      initialOwner: { ...ownerForBuild },
+      plans: { initial: initialPlan, LOW: lowPlan, MEDIUM: mediumPlan },
+      readCurrentGitState: () => {
+        const s = readDeps.readGitState();
+        return { headCommit: s.headCommit, functionsTreeId: s.functionsTreeId, dirtyPaths: [...s.dirtyPaths] };
+      },
+    };
+    const core = createRuntimeEvidenceCalibrationLedgerTask4(
+      deps,
+      { ...context.identity },
+      keyResolver,
+      reportOptions,
+      authoritativeOptions,
+      runtimeOptions,
+    );
+    params = { context };
+    ledger = core;
+    ledger.acquireLock({ ...ownerForBuild });
+  } else {
+    const prepareNative = await loadPrepareNativeLedgerFactoryTask4();
+    params = { context };
+    const native = await prepareNative(params, overrides);
+    native.acquireLock({ ...ownerForBuild });
+    ledger = native;
+  }
   const tokenKey = {
     kind: 'token_count' as const,
     stage: 'preflight' as const,
@@ -1131,33 +1251,70 @@ export async function makeRuntimeEvidenceNativeFixture(
     tokensDone = true;
   }
   async function finishPreflight(): Promise<void> {
-    completeTokenPrerequisites();
-    const lowKey = { ...dataKey };
-    const mediumKey = { ...dataKey, profile: 'MEDIUM' as const };
-    const lowRef = ledger.startRuntimeAttempt({ ...lowKey });
-    ledger.startRuntimeOperation(lowRef, 'image');
-    ledger.settleRuntimeOperation(lowRef, 'image', 'returned');
-    ledger.startRuntimeOperation(lowRef, 'vision');
-    ledger.reserve({ ...lowKey });
-    ledger.pinModelVersion(CORE_PINNED_VERSION);
-    ledger.authorizeRuntimeRequest(lowRef);
-    ledger.settleRuntimeOperation(lowRef, 'vision', 'returned');
-    ledger.finishRuntimeAttempt(lowRef);
-    const mediumRef = ledger.startRuntimeAttempt({ ...mediumKey });
-    ledger.startRuntimeOperation(mediumRef, 'image');
-    ledger.settleRuntimeOperation(mediumRef, 'image', 'returned');
-    ledger.startRuntimeOperation(mediumRef, 'vision');
-    ledger.reserve({ ...mediumKey });
-    ledger.authorizeRuntimeRequest(mediumRef);
-    ledger.settleRuntimeOperation(mediumRef, 'vision', 'returned');
-    ledger.finishRuntimeAttempt(mediumRef);
+    await runSharedFoundationPreflight(ledger, context);
   }
   async function restart(nextOwner: CalibrationOwner): Promise<CalibrationRuntimeEvidenceLedger> {
+    if (mode === 'existing-core') {
+      const deps = createFileCalibrationLedgerDepsTask4Base(miniRoot, overrides);
+      const verifier = await prepareVerifierTask4Base({
+        baseDir: context.baseDir,
+        identity: { ...context.identity },
+        owner: { ...ownerForBuild },
+        firstDevelopmentCaseId: context.firstDevelopmentCaseId,
+        report: context.report,
+        files: { ...context.files },
+      });
+      const core = createRuntimeEvidenceCalibrationLedgerTask4(
+        deps,
+        { ...context.identity },
+        keyResolver,
+        reportOptions,
+        { verifyStageReportArtifacts: (p) => verifier.verify(p as never) as never },
+        {
+          initialOwner: { ...nextOwner },
+          plans: { initial: initialPlan, LOW: lowPlan, MEDIUM: mediumPlan },
+          readCurrentGitState: () => {
+            const s = readDeps.readGitState();
+            return { headCommit: s.headCommit, functionsTreeId: s.functionsTreeId, dirtyPaths: [...s.dirtyPaths] };
+          },
+        },
+      );
+      core.acquireLock({ ...nextOwner });
+      return core;
+    }
+    const prepareNative = await loadPrepareNativeLedgerFactoryTask4();
     const fresh = await prepareNative(params, overrides);
-    fresh.acquireLock(nextOwner);
+    fresh.acquireLock({ ...nextOwner });
     return fresh;
   }
   async function createUnacquiredLedger(): Promise<CalibrationRuntimeEvidenceLedger> {
+    if (mode === 'existing-core') {
+      const deps = createFileCalibrationLedgerDepsTask4Base(miniRoot, overrides);
+      const verifier = await prepareVerifierTask4Base({
+        baseDir: context.baseDir,
+        identity: { ...context.identity },
+        owner: { ...ownerForBuild },
+        firstDevelopmentCaseId: context.firstDevelopmentCaseId,
+        report: context.report,
+        files: { ...context.files },
+      });
+      return createRuntimeEvidenceCalibrationLedgerTask4(
+        deps,
+        { ...context.identity },
+        keyResolver,
+        reportOptions,
+        { verifyStageReportArtifacts: (p) => verifier.verify(p as never) as never },
+        {
+          initialOwner: { ...ownerForBuild },
+          plans: { initial: initialPlan, LOW: lowPlan, MEDIUM: mediumPlan },
+          readCurrentGitState: () => {
+            const s = readDeps.readGitState();
+            return { headCommit: s.headCommit, functionsTreeId: s.functionsTreeId, dirtyPaths: [...s.dirtyPaths] };
+          },
+        },
+      );
+    }
+    const prepareNative = await loadPrepareNativeLedgerFactoryTask4();
     return prepareNative(params, overrides);
   }
   function cleanup(): void {
