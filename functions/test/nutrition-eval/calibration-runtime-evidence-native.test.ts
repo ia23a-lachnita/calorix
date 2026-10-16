@@ -132,33 +132,43 @@ describe('foundation existing-source controls', () => {
     const miniRoot = boot.context.baseDir;
     assertInsideOwned(miniRoot, boot.ledgerRoot);
     const order: string[] = [];
-    const fdWrites: Array<{ fd: number; dev: number; ino: number; idx: number }> = [];
-    const fdFsyncs: Array<{ fd: number; dev: number; ino: number; idx: number }> = [];
-    const fdCloses: Array<{ fd: number; dev: number; ino: number; idx: number }> = [];
+    interface SyscallRecord {
+      fd: number;
+      dev: number;
+      ino: number;
+      startIdx: number;
+      completeIdx: number;
+    }
+    const fdWrites: SyscallRecord[] = [];
+    const fdFsyncs: SyscallRecord[] = [];
+    const fdCloses: SyscallRecord[] = [];
     const renames: Array<{ from: string; fromDev: number; fromIno: number; to: string; toDev: number; toIno: number; startIdx: number; completeIdx: number }> = [];
-    const dirSyncs: Array<{ dir: string; startIdx: number; completeIdx: number }> = [];
+    const dirSyncs: Array<{ dir: string; full: string; startIdx: number; completeIdx: number }> = [];
     const deps = createFileCalibrationLedgerDeps(miniRoot, {
       fdWriteSync: (fd: number, buf: Buffer, off: number, len: number): number => {
         const st = fstatSyncTest(fd);
         order.push(`write:fd=${fd}:dev=${st.dev}:ino=${st.ino}:len=${len}`);
-        fdWrites.push({ fd, dev: st.dev, ino: st.ino, idx: order.length - 1 });
+        const startIdx = order.length - 1;
         const n = writeSyncTest(fd, buf, off, len);
         order.push(`wrote:fd=${fd}:count=${n}`);
+        fdWrites.push({ fd, dev: st.dev, ino: st.ino, startIdx, completeIdx: order.length - 1 });
         return n;
       },
       fdFsyncSync: (fd: number): void => {
         const st = fstatSyncTest(fd);
         order.push(`fsync:fd=${fd}:dev=${st.dev}:ino=${st.ino}`);
-        fdFsyncs.push({ fd, dev: st.dev, ino: st.ino, idx: order.length - 1 });
+        const startIdx = order.length - 1;
         fsyncSyncTest(fd);
         order.push(`fsynced:fd=${fd}`);
+        fdFsyncs.push({ fd, dev: st.dev, ino: st.ino, startIdx, completeIdx: order.length - 1 });
       },
       fdCloseSync: (fd: number): void => {
         const st = fstatSyncTest(fd);
         order.push(`close:fd=${fd}:dev=${st.dev}:ino=${st.ino}`);
-        fdCloses.push({ fd, dev: st.dev, ino: st.ino, idx: order.length - 1 });
+        const startIdx = order.length - 1;
         closeSyncTest(fd);
         order.push(`closed:fd=${fd}`);
+        fdCloses.push({ fd, dev: st.dev, ino: st.ino, startIdx, completeIdx: order.length - 1 });
       },
       renameSync: (from: string, to: string): void => {
         order.push(`rename:${basename(from)}->${basename(to)}`);
@@ -179,7 +189,7 @@ describe('foundation existing-source controls', () => {
           closeSyncTest(fd);
         }
         order.push(`dir-synced:${basename(dir)}`);
-        dirSyncs.push({ dir: basename(dir), startIdx, completeIdx: order.length - 1 });
+        dirSyncs.push({ dir: basename(dir), full: resolve(dir), startIdx, completeIdx: order.length - 1 });
       },
     });
     const keyResolver = (selectedProfile?: 'LOW' | 'MEDIUM') =>
@@ -255,33 +265,51 @@ describe('foundation existing-source controls', () => {
     const allRenames = [...ledgerRenames, ...journalRenames].sort((a, b) => a.startIdx - b.startIdx);
     expect(allRenames).toHaveLength(renames.length);
     for (let ri = 0; ri < allRenames.length; ri += 1) {
-      const r = allRenames[ri] as { fromDev: number; fromIno: number; toDev: number; toIno: number; startIdx: number; completeIdx: number; to: string };
+      const r = allRenames[ri] as { from: string; fromDev: number; fromIno: number; to: string; toDev: number; toIno: number; startIdx: number; completeIdx: number };
       expect(r.fromDev).toBe(r.toDev);
       expect(r.fromIno).toBe(r.toIno);
-      const writes = fdWrites.filter((w) => w.dev === r.fromDev && w.ino === r.fromIno && w.idx < r.startIdx);
+      const prevDirs = dirSyncs.filter((d) => d.completeIdx < r.startIdx);
+      expect(prevDirs.length).toBeGreaterThan(0);
+      const prevDirSync = prevDirs[prevDirs.length - 1] as { completeIdx: number };
+      const windowStart = prevDirSync.completeIdx;
+      const writes = fdWrites.filter(
+        (w) => w.dev === r.fromDev && w.ino === r.fromIno && w.startIdx > windowStart && w.completeIdx < r.startIdx,
+      );
       expect(writes.length).toBeGreaterThan(0);
-      const lastWriteIdx = Math.max(...writes.map((w) => w.idx));
-      const fsyncs = fdFsyncs.filter((f) => f.dev === r.fromDev && f.ino === r.fromIno && f.idx > lastWriteIdx && f.idx < r.startIdx);
-      expect(fsyncs.length).toBeGreaterThan(0);
-      const lastFsyncIdx = Math.max(...fsyncs.map((f) => f.idx));
-      const closes = fdCloses.filter((c) => c.dev === r.fromDev && c.ino === r.fromIno && c.idx > lastFsyncIdx && c.idx < r.startIdx);
-      expect(closes.length).toBeGreaterThan(0);
-      const lastCloseIdx = Math.max(...closes.map((c) => c.idx));
-      expect(lastWriteIdx).toBeLessThan(lastFsyncIdx);
-      expect(lastFsyncIdx).toBeLessThan(lastCloseIdx);
-      expect(lastCloseIdx).toBeLessThan(r.startIdx);
-      expect(r.startIdx).toBeLessThan(r.completeIdx);
-      const dirs = dirSyncs.filter((d) => d.startIdx > r.completeIdx);
-      expect(dirs.length).toBeGreaterThan(0);
-      const dirIdx = Math.min(...dirs.map((d) => d.startIdx));
-      expect(r.completeIdx).toBeLessThan(dirIdx);
-      const nextWrites = fdWrites.filter((w) => w.idx > dirIdx);
-      if (ri < allRenames.length - 1) {
-        expect(nextWrites.length).toBeGreaterThan(0);
-        const nextWriteIdx = Math.min(...nextWrites.map((w) => w.idx));
-        expect(dirIdx).toBeLessThan(nextWriteIdx);
+      const tempFd = writes[0]?.fd;
+      expect(typeof tempFd).toBe('number');
+      for (const w of writes) {
+        expect(w.fd).toBe(tempFd);
       }
-      void lastWriteIdx;
+      const lastWriteCompleteIdx = Math.max(...writes.map((w) => w.completeIdx));
+      const fsyncs = fdFsyncs.filter(
+        (f) => f.dev === r.fromDev && f.ino === r.fromIno && f.startIdx > windowStart && f.completeIdx < r.startIdx,
+      );
+      expect(fsyncs).toHaveLength(1);
+      expect(fsyncs[0]?.fd).toBe(tempFd);
+      const firstFsync = fsyncs[0] as { startIdx: number; completeIdx: number };
+      const closes = fdCloses.filter(
+        (c) => c.dev === r.fromDev && c.ino === r.fromIno && c.startIdx > windowStart && c.completeIdx < r.startIdx,
+      );
+      expect(closes).toHaveLength(1);
+      expect(closes[0]?.fd).toBe(tempFd);
+      const firstClose = closes[0] as { startIdx: number; completeIdx: number };
+      expect(lastWriteCompleteIdx).toBeLessThan(firstFsync.startIdx);
+      expect(firstFsync.completeIdx).toBeLessThan(firstClose.startIdx);
+      expect(firstClose.completeIdx).toBeLessThan(r.startIdx);
+      expect(r.startIdx).toBeLessThan(r.completeIdx);
+      const matchingDirs = dirSyncs.filter((d) => d.startIdx > r.completeIdx);
+      expect(matchingDirs.length).toBeGreaterThan(0);
+      const currentDirSync = matchingDirs[0] as { full: string; startIdx: number; completeIdx: number };
+      expect(resolve(currentDirSync.full)).toBe(resolve(boot.ledgerRoot));
+      expect(r.completeIdx).toBeLessThan(currentDirSync.startIdx);
+      expect(currentDirSync.startIdx).toBeLessThan(currentDirSync.completeIdx);
+      if (ri < allRenames.length - 1) {
+        const subsequentWrites = fdWrites.filter((w) => w.startIdx > r.completeIdx);
+        expect(subsequentWrites.length).toBeGreaterThan(0);
+        const earliestNextWriteStartIdx = Math.min(...subsequentWrites.map((w) => w.startIdx));
+        expect(currentDirSync.completeIdx).toBeLessThan(earliestNextWriteStartIdx);
+      }
     }
   });
 

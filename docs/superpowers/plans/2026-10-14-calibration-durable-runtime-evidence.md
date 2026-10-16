@@ -493,6 +493,8 @@ No Firebase/emulator `test:verify`, Flutter/APK/device/UI, provider/live gate or
 
 ## Spec coverage / self-review
 
+Task4 foundation checkpoint 2026-10-16T16:55Z: native test21475B/SHA16fab5a19c1f09b40c074d30c016f8da6e945c1ad9e3b815dfd7acd5c4169455; full helper0948265b and all oldsource/prefix/config unchanged. Final FD-only worker69488 rawpatched then stalled without verification; exact owned process locally terminated, actual143, not provider/quota failure or success. Host39311/task-4-foundation-host-e independently native1/onefile6=4existingcontrolsGREEN2missingfactoryfail0skip, strict/lint/protection0. Actual primary3.8High user-approved temporary headlessCLI review63730/sameaf9e1a2d `TASK4_FD_COMPLETION_ACTUAL_REVIEW` explicitagree/MUSTnone; only bounded existing-source per-publication FD/completion/dir-barrier oracle accepted, not hardware/all-races/security/native composition. Full native RED matrix remains required: append-only persistence faults next, then owner/recovery/artifact/stages/source/closedparams, host fullRED+oldcontrols/prior708/strict/lint before SOURCE. Task4 BASE77b6057 and all4unchecked boxes unchanged; no Task4 native-host exception inferred from continue. Tasks1–3 not reopened, no live/default/producer/benchmark authority.
+
 - Codec/mode/privacy/bounds/digests: Task 1; actual atomic header/old-mode refusal also Tasks 3/4.
 - Keyed operations, plan/profile/modality, terminal references, immutable prefix binding: Task 2, enforced in live mutation/replay by Task 3.
 - Existing reservation/stage/model/report authority, poison, recovery/seals and benchmark block: Task 3; native verifier/source/owner behavior Task 4.
