@@ -1083,3 +1083,49 @@ it('existing-core token helper never completes an interrupted pending token rese
   expect(rows.filter((row) => row.type === 'token_count_completed')).toHaveLength(0);
   expect(existsSync(resolve(f.root, 'lock.json'))).toBe(true);
 });
+
+// Break caught: treating unknown/live ownership as death, or using a PID
+// without its start ticks, must never authorize takeover of this real lock.
+type NativeOwnerProbe = 'live' | 'unknown' | 'malformed' | 'dead' | 'pid-reused';
+async function exerciseNativeOwnerProbe(mode: 'existing-core' | 'future', probe: NativeOwnerProbe): Promise<void> {
+  const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode });
+  f.completeTokenPrerequisites();
+  f.ledger.startRuntimeAttempt(f.key);
+  const lockPath = resolve(f.root, 'lock.json');
+  const ledgerPath = resolve(f.root, 'ledger.json');
+  const lockBytes = readFileSync(lockPath, 'utf8');
+  const lockStat = lstatSync(lockPath);
+  const before = JSON.parse(readFileSync(ledgerPath, 'utf8')) as Array<Record<string, unknown>>;
+  const next: CalibrationOwner = {
+    ...f.owner,
+    pid: f.owner.pid + 91000,
+    startTicks: f.owner.startTicks + 30,
+    acquiredAt: new Date(Date.parse(f.owner.acquiredAt) + 2000).toISOString(),
+  };
+  // Only the declared procStatReader seam is simulated; no process is killed.
+  (f.faults as typeof f.faults & { ownerProbe: NativeOwnerProbe }).ownerProbe = probe;
+  if (probe === 'live' || probe === 'unknown' || probe === 'malformed') {
+    await expect(f.restart(next)).rejects.toBeInstanceOf(CalibrationFatalError);
+    expect(readFileSync(lockPath, 'utf8')).toBe(lockBytes);
+    expect(lstatSync(lockPath).ino).toBe(lockStat.ino);
+    expect(JSON.parse(readFileSync(ledgerPath, 'utf8'))).toEqual(before);
+  } else {
+    const fresh = await f.restart(next);
+    fresh.recoverAfterCrash();
+    const rows = JSON.parse(readFileSync(ledgerPath, 'utf8')) as Array<Record<string, unknown>>;
+    expect(rows.slice(0, before.length)).toEqual(before);
+    expect(rows.filter((row) => row.type === 'lock_recovery')).toEqual([
+      expect.objectContaining({ staleOwner: f.owner, recoveringOwner: next }),
+    ]);
+    expect(rows.filter((row) => row.type === 'runtime_attempt_abandoned')).toEqual([
+      expect.objectContaining({ owner: next, key: f.key, attempt: 1, disposition: { kind: 'unreserved_interruption' } }),
+    ]);
+    expect(fresh.startRuntimeAttempt(f.key).attempt).toBe(2);
+    expect(fresh.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 0 });
+  }
+  expect(f.trace).toContain(`ledger:proc-stat:${probe}:pid=${f.owner.pid}`);
+}
+for (const probe of ['live', 'unknown', 'malformed', 'dead', 'pid-reused'] as const) {
+  it(`existing native owner probe distinguishes ${probe} without process control`, () => exerciseNativeOwnerProbe('existing-core', probe));
+  it(`guarded native owner probe distinguishes ${probe} without process control`, () => exerciseNativeOwnerProbe('future', probe));
+}

@@ -974,6 +974,7 @@ export async function makeExistingNativeBootFixtureTask4(ownedRoots: string[]): 
 }
 
 export interface RuntimeEvidenceNativeFaultsTask4 {
+  ownerProbe: 'live' | 'unknown' | 'malformed' | 'dead' | 'pid-reused';
   failNextLedgerDirFsync: boolean;
   failNextLedgerFileFsync: boolean;
   failNextLedgerClose: boolean;
@@ -1086,6 +1087,7 @@ export async function makeRuntimeEvidenceNativeFixture(
   const mode = opts.mode ?? 'future';
   const trace: string[] = [];
   const faults: RuntimeEvidenceNativeFaultsTask4 = {
+    ownerProbe: 'dead',
     failNextLedgerDirFsync: false,
     failNextLedgerFileFsync: false,
     failNextLedgerClose: false,
@@ -1093,9 +1095,18 @@ export async function makeRuntimeEvidenceNativeFixture(
     failNextLedgerWrite: false,
   };
   const overrides: RuntimeEvidenceFileStoreOverrides = {
-    procStatReader: (_pid: number): string => {
-      trace.push('ledger:proc-stat:read');
-      throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+    procStatReader: (pid: number): string => {
+      const probe = faults.ownerProbe;
+      trace.push(`ledger:proc-stat:${probe}:pid=${pid}`);
+      if (probe === 'dead' || probe === 'unknown') {
+        const code = probe === 'dead' ? 'ENOENT' : 'EACCES';
+        throw Object.assign(new Error(code), { code });
+      }
+      if (probe === 'malformed') return `${pid} (fixture proc) invalid`;
+      const ticks = probe === 'live' ? owner.startTicks : owner.startTicks + 1;
+      // /proc/stat field22: state (field3), eighteen intervening fields,
+      // then process start ticks. The native store parses this real format.
+      return `${pid} (fixture proc) S ${Array<string>(18).fill('0').join(' ')} ${ticks}`;
     },
     nowIso: (): string => {
       trace.push('ledger:now');
