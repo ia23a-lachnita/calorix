@@ -250,7 +250,17 @@ export interface RuntimeEvidenceCoreFaults {
   failNextAppend: boolean;
   failNextFile: boolean;
   failNextDir: boolean;
+  failNextJournalAppend: boolean;
+  failNextJournalFile: boolean;
+  failNextJournalDir: boolean;
   dirtyGitState: boolean;
+  afterAppend?: (event: unknown) => void;
+  afterFile?: () => void;
+  afterDir?: () => void;
+  afterJournalAppend?: () => void;
+  afterJournalFile?: () => void;
+  afterJournalDir?: () => void;
+  onReadGitState?: () => Parameters<CalibrationProtocolLedger['assertGitState']>[0];
 }
 
 export interface RuntimeEvidenceCoreBacking {
@@ -275,6 +285,9 @@ export function makeRuntimeEvidenceCoreBacking(): RuntimeEvidenceCoreBacking {
     failNextAppend: false,
     failNextFile: false,
     failNextDir: false,
+    failNextJournalAppend: false,
+    failNextJournalFile: false,
+    failNextJournalDir: false,
     dirtyGitState: false,
   };
   const backing: RuntimeEvidenceCoreBacking = {
@@ -315,6 +328,7 @@ export function makeRuntimeEvidenceCoreBacking(): RuntimeEvidenceCoreBacking {
         });
       }
       events.push(structuredClone(event));
+      faults.afterAppend?.(structuredClone(event));
     },
     fsyncLedgerFile: () => {
       trace.push('fsyncLedgerFile');
@@ -324,6 +338,7 @@ export function makeRuntimeEvidenceCoreBacking(): RuntimeEvidenceCoreBacking {
           privateBytes: CORE_FIXTURE_FOREIGN_MARKER,
         });
       }
+      faults.afterFile?.();
     },
     fsyncLedgerDir: () => {
       trace.push('fsyncLedgerDir');
@@ -333,13 +348,33 @@ export function makeRuntimeEvidenceCoreBacking(): RuntimeEvidenceCoreBacking {
           privateBytes: CORE_FIXTURE_FOREIGN_MARKER,
         });
       }
+      faults.afterDir?.();
     },
     appendJournal: (entry: JournalEntry) => {
       trace.push('appendJournal');
+      if (faults.failNextJournalAppend) {
+        faults.failNextJournalAppend = false;
+        throw new Error(`EIO ${CORE_FIXTURE_FOREIGN_MARKER}`);
+      }
       journals.push(structuredClone(entry));
+      faults.afterJournalAppend?.();
     },
-    fsyncJournalFile: () => trace.push('fsyncJournalFile'),
-    fsyncJournalDir: () => trace.push('fsyncJournalDir'),
+    fsyncJournalFile: () => {
+      trace.push('fsyncJournalFile');
+      if (faults.failNextJournalFile) {
+        faults.failNextJournalFile = false;
+        throw new Error(`EIO ${CORE_FIXTURE_FOREIGN_MARKER}`);
+      }
+      faults.afterJournalFile?.();
+    },
+    fsyncJournalDir: () => {
+      trace.push('fsyncJournalDir');
+      if (faults.failNextJournalDir) {
+        faults.failNextJournalDir = false;
+        throw new Error(`EIO ${CORE_FIXTURE_FOREIGN_MARKER}`);
+      }
+      faults.afterJournalDir?.();
+    },
     probeOwnerLiveness: (_owner: CalibrationOwner) => {
       trace.push('probeOwnerLiveness');
       return backing.liveness;
@@ -462,18 +497,18 @@ export interface RuntimeEvidenceCoreFixture<L extends CalibrationProtocolLedger 
   cleanup(): void;
 }
 
-export async function makeRuntimeEvidenceCoreFixture(): Promise<RuntimeEvidenceCoreFixture> {
-  return makeCoreFixture('runtime');
+export async function makeRuntimeEvidenceCoreFixture(options: Readonly<{ acquire?: boolean }> = {}): Promise<RuntimeEvidenceCoreFixture> {
+  return makeCoreFixture('runtime', options);
 }
 
 /** Same data/stage builders, actual existing five-argument authoritative factory. */
-export async function makeExistingAuthoritativeCoreFixture(): Promise<RuntimeEvidenceCoreFixture<CalibrationProtocolLedger>> {
-  return makeCoreFixture('existing');
+export async function makeExistingAuthoritativeCoreFixture(options: Readonly<{ acquire?: boolean }> = {}): Promise<RuntimeEvidenceCoreFixture<CalibrationProtocolLedger>> {
+  return makeCoreFixture('existing', options);
 }
 
-function makeCoreFixture(mode: 'runtime'): Promise<RuntimeEvidenceCoreFixture>;
-function makeCoreFixture(mode: 'existing'): Promise<RuntimeEvidenceCoreFixture<CalibrationProtocolLedger>>;
-async function makeCoreFixture(mode: 'runtime' | 'existing'): Promise<RuntimeEvidenceCoreFixture<CalibrationProtocolLedger>> {
+function makeCoreFixture(mode: 'runtime', options?: Readonly<{ acquire?: boolean }>): Promise<RuntimeEvidenceCoreFixture>;
+function makeCoreFixture(mode: 'existing', options?: Readonly<{ acquire?: boolean }>): Promise<RuntimeEvidenceCoreFixture<CalibrationProtocolLedger>>;
+async function makeCoreFixture(mode: 'runtime' | 'existing', options: Readonly<{ acquire?: boolean }> = {}): Promise<RuntimeEvidenceCoreFixture<CalibrationProtocolLedger>> {
   const data = await makeRuntimeEvidenceData();
   const factory = mode === 'runtime' ? await loadRuntimeEvidenceCalibrationLedgerFactory() : undefined;
   const backing = makeRuntimeEvidenceCoreBacking();
@@ -515,6 +550,8 @@ async function makeCoreFixture(mode: 'runtime' | 'existing'): Promise<RuntimeEvi
 
   const readCurrentGitState = () => {
     backing.gitReads += 1;
+    backing.trace.push('readCurrentGitState');
+    if (backing.faults.onReadGitState !== undefined) return backing.faults.onReadGitState();
     return {
       headCommit: 'a'.repeat(40),
       functionsTreeId: identity.functionsTreeId,
@@ -534,7 +571,7 @@ async function makeCoreFixture(mode: 'runtime' | 'existing'): Promise<RuntimeEvi
   }
 
   const ledger = build(owner);
-  ledger.acquireLock(owner);
+  if (options.acquire !== false) ledger.acquireLock(owner);
   // This is a real future ledger only in runtime mode, never a mock adapter
   // pretending the old factory implements runtime APIs.
   const runtime = mode === 'runtime' ? ledger as CalibrationRuntimeEvidenceLedger : undefined;

@@ -62,16 +62,19 @@ beforeEach(() => {
 afterAll(() => vi.unstubAllGlobals());
 import type {
   CalibrationRuntimeEvidenceLedger,
+  RuntimeAttemptRef,
   RuntimeEvidenceCoreBacking,
   RuntimeEvidenceCoreFixture,
 } from './calibration-runtime-evidence-fixtures';
 
 function expectStaticCauseless(error: unknown, marker: string): void {
-  expect(error).toBeInstanceOf(CalibrationFatalError);
+  // A leaked non-fatal is reported only as a boolean, never formatted as a
+  // foreign exception. Adversarial identity checks happen before this helper.
+  expect(error instanceof CalibrationFatalError).toBe(true);
   const message = (error as CalibrationFatalError).message;
   expect(message.startsWith('calibration:')).toBe(true);
   expect(message).not.toContain(marker);
-  expect((error as CalibrationFatalError).cause).toBeUndefined();
+  expect((error as CalibrationFatalError).cause === undefined).toBe(true);
 }
 
 function laterOwner(owner: CalibrationOwner, suffix: number): CalibrationOwner {
@@ -108,6 +111,48 @@ afterEach(() => {
 // touches the still-missing new factory.
 
 describe('existing-source fixture controls (old mode)', () => {
+  it.each(['failNextAppend', 'failNextFile', 'failNextDir'] as const)(
+    'existing authoritative header fixture independently exposes %s', async (fault) => {
+      const f = await makeExistingAuthoritativeCoreFixture({ acquire: false });
+      try {
+        expect(f.events).toHaveLength(0);
+        f.faults[fault] = true;
+        let caught: unknown;
+        try { f.ledger.acquireLock(f.owner); } catch (error) { caught = error; }
+        expectStaticCauseless(caught, 'FOREIGN-core-fixture-private-bytes');
+        expect(f.events).toHaveLength(fault === 'failNextAppend' ? 0 : 1);
+        expect(f.backing.lock).toEqual(f.owner);
+        expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+      } finally {
+        f.cleanup();
+      }
+    },
+  );
+
+  it.each(['failNextJournalAppend', 'failNextJournalFile', 'failNextJournalDir'] as const)(
+    'existing authoritative journal fixture independently exposes %s', async (fault) => {
+      const f = await makeExistingAuthoritativeCoreFixture();
+      try {
+        f.completeTokenPrerequisites();
+        f.ledger.reserve(f.key);
+        f.pinOnce();
+        const before = f.events.length;
+        f.faults[fault] = true;
+        let caught: unknown;
+        try {
+          f.ledger.appendResultJournal(buildCoreSuccessJournal(f.key, createCoreExactPrediction(f.evalCase, 1)));
+        } catch (error) { caught = error; }
+        expectStaticCauseless(caught, 'FOREIGN-core-fixture-private-bytes');
+        expect(f.journals).toHaveLength(fault === 'failNextJournalAppend' ? 0 : 1);
+        expect(f.events).toHaveLength(before);
+        expect(f.backing.lock).toEqual(f.owner);
+        expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+      } finally {
+        f.cleanup();
+      }
+    },
+  );
+
   it('completes the shared synthetic stage builders through validation using the existing authoritative factory', async () => {
     const f = await makeExistingAuthoritativeCoreFixture();
     try {
@@ -280,15 +325,16 @@ describe('atomic evidence-mode header and reservation authority', () => {
 // ── 3. Ruling12: every new-mode stored-state getter requires authority ─────
 
 describe('Ruling12: unacquired constructor replay grants no stored-state getter authority', () => {
-  it('getCounts/getPinnedModelVersion/getSelectedProfile/getCompletedStages/getStageReportSnapshot all require acquired authority', async () => {
+  it.each([
+    'getCounts', 'getPinnedModelVersion', 'getSelectedProfile', 'getCompletedStages',
+    'getStageReportSnapshot', 'getRuntimeEvidenceSnapshot', 'getCompletedReportPredictions', 'rebuildReport',
+  ] as const)('%s independently requires acquired authority on a fresh provisional instance', async (method) => {
     const f = await openCoreFixture();
     const other = f.createUnacquiredLedger();
-    expect(() => other.getCounts()).toThrow(CalibrationFatalError);
-    expect(() => other.getPinnedModelVersion()).toThrow(CalibrationFatalError);
-    expect(() => other.getSelectedProfile()).toThrow(CalibrationFatalError);
-    expect(() => other.getCompletedStages()).toThrow(CalibrationFatalError);
-    expect(() => other.getStageReportSnapshot('preflight', 'LOW')).toThrow(CalibrationFatalError);
-    expect(() => other.getRuntimeEvidenceSnapshot()).toThrow(CalibrationFatalError);
+    const before = f.events.length;
+    expect(() => method === 'getStageReportSnapshot'
+      ? other.getStageReportSnapshot('preflight', 'LOW') : other[method]()).toThrow(CalibrationFatalError);
+    expect(f.events).toHaveLength(before);
   });
 });
 
@@ -339,7 +385,7 @@ describe('new-mode strict header combinations', () => {
     await rejectedHeaderCase((backing) => {
       backing.events.push({
         type: 'protocol_identity', identity: data.header.identity, at: data.header.at,
-        reportAuthority: 'verified_artifacts_v1', owner: data.header.owner,
+        reportAuthority: 'verified_artifacts_v1',
       });
     });
   });
@@ -581,7 +627,8 @@ describe('protocol_noop maps only the five already-validated kinds', () => {
       { type: 'runtime_evidence_synthetic_unknown', at: data.header.at },
     );
     const owner: CalibrationOwner = { ...data.header.owner };
-    const ledger = factory(
+    expect(() => {
+      const ledger = factory(
       backing.deps, data.header.identity,
       ((selectedProfile?: 'LOW' | 'MEDIUM') =>
         Object.freeze((selectedProfile === undefined ? data.plans.initial
@@ -593,7 +640,8 @@ describe('protocol_noop maps only the five already-validated kinds', () => {
       { initialOwner: owner, plans: data.plans,
         readCurrentGitState: () => ({ headCommit: 'a'.repeat(40), functionsTreeId: data.header.identity.functionsTreeId, dirtyPaths: [] }) },
     );
-    expect(() => ledger.acquireLock(owner)).toThrow(CalibrationFatalError);
+      ledger.acquireLock(owner);
+    }).toThrow(CalibrationFatalError);
   });
 });
 
@@ -797,8 +845,10 @@ describe('report admission is noncircular and binding is idempotent across other
     f.finishPreflightOutcomes();
     f.ledger.admitStageReportReceipt('preflight', 'LOW');
     const first = f.ledger.bindRuntimeStageReport('preflight', 'LOW');
+    expect(first.sequence).toBe(15);
+    expect(first.throughSequence).toBe(14);
     f.ledger.admitStageReportReceipt('preflight', 'MEDIUM');
-    f.ledger.bindRuntimeStageReport('preflight', 'MEDIUM');
+    expect(f.ledger.bindRuntimeStageReport('preflight', 'MEDIUM').sequence).toBe(16);
     const beforeCount = f.events.length;
     const again = f.ledger.bindRuntimeStageReport('preflight', 'LOW');
     expect(again).toEqual(first);
@@ -857,5 +907,290 @@ describe('the new surface exposes no raw-event append or inference/counter-autho
     expect(surface['appendRawEvent']).toBeUndefined();
     expect(surface['inferTerminal']).toBeUndefined();
     expect(surface['setRuntimeEvidenceSnapshot']).toBeUndefined();
+    expect(Object.isFrozen(f.ledger)).toBe(true);
+  });
+});
+
+// Full-ledger and journal boundaries are independent. These are trusted
+// in-memory store fault seams, NOT claims about kernel fsync or SDK dispatch.
+const ledgerFaults = ['failNextAppend', 'failNextFile', 'failNextDir'] as const;
+
+function beginImageThroughVision(f: RuntimeEvidenceCoreFixture): RuntimeAttemptRef {
+  const ref = f.ledger.startRuntimeAttempt(f.key);
+  f.ledger.startRuntimeOperation(ref, 'image');
+  f.ledger.settleRuntimeOperation(ref, 'image', 'returned');
+  f.ledger.startRuntimeOperation(ref, 'vision');
+  return ref;
+}
+
+function imageJournal(f: RuntimeEvidenceCoreFixture) {
+  return buildCoreSuccessJournal(f.key, createCoreExactPrediction(f.evalCase, f.key.sampleIndex));
+}
+
+function completeRuntimeImageTerminal(f: RuntimeEvidenceCoreFixture): RuntimeAttemptRef {
+  const ref = beginImageThroughVision(f);
+  f.ledger.reserve(f.key);
+  f.ledger.authorizeRuntimeRequest(ref);
+  f.pinOnce();
+  f.ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+  f.ledger.complete(f.key, f.ledger.appendResultJournal(imageJournal(f)));
+  return ref;
+}
+
+type FaultMutation = 'attempt' | 'image_start' | 'image_settle' | 'vision_start'
+  | 'reservation' | 'authorization' | 'pin' | 'vision_settle' | 'terminal'
+  | 'finish' | 'receipt' | 'binding' | 'abandon';
+
+function prepareFaultMutation(f: RuntimeEvidenceCoreFixture, kind: FaultMutation): {
+  ledger: CalibrationRuntimeEvidenceLedger;
+  owner: CalibrationOwner;
+  eventType: string;
+  invoke: () => void;
+} {
+  const base = { ledger: f.ledger, owner: f.owner };
+  if (kind === 'receipt' || kind === 'binding') {
+    f.finishPreflightOutcomes();
+    if (kind === 'binding') f.ledger.admitStageReportReceipt('preflight', 'LOW');
+    return { ...base,
+      eventType: kind === 'receipt' ? 'artifact_receipt_admitted' : 'runtime_report_bound',
+      invoke: () => { if (kind === 'receipt') f.ledger.admitStageReportReceipt('preflight', 'LOW');
+        else f.ledger.bindRuntimeStageReport('preflight', 'LOW'); },
+    };
+  }
+  if (kind === 'attempt') return { ...base, eventType: 'runtime_attempt_started', invoke: () => { f.ledger.startRuntimeAttempt(f.key); } };
+  const ref = f.ledger.startRuntimeAttempt(f.key);
+  if (kind === 'abandon') {
+    f.ledger.startRuntimeOperation(ref, 'image');
+    f.setLiveness('dead');
+    const owner = laterOwner(f.owner, 1);
+    const ledger = f.restart(owner);
+    ledger.acquireLock(owner);
+    return { ledger, owner, eventType: 'runtime_attempt_abandoned', invoke: () => { ledger.recoverAfterCrash(); } };
+  }
+  if (kind === 'image_start') return { ...base, eventType: 'runtime_operation_started', invoke: () => f.ledger.startRuntimeOperation(ref, 'image') };
+  f.ledger.startRuntimeOperation(ref, 'image');
+  if (kind === 'image_settle') return { ...base, eventType: 'runtime_operation_settled', invoke: () => f.ledger.settleRuntimeOperation(ref, 'image', 'returned') };
+  f.ledger.settleRuntimeOperation(ref, 'image', 'returned');
+  if (kind === 'vision_start') return { ...base, eventType: 'runtime_operation_started', invoke: () => f.ledger.startRuntimeOperation(ref, 'vision') };
+  f.ledger.startRuntimeOperation(ref, 'vision');
+  if (kind === 'reservation') return { ...base, eventType: 'reserved', invoke: () => f.ledger.reserve(f.key) };
+  f.ledger.reserve(f.key);
+  if (kind === 'authorization') return { ...base, eventType: 'runtime_request_authorized', invoke: () => f.ledger.authorizeRuntimeRequest(ref) };
+  f.ledger.authorizeRuntimeRequest(ref);
+  if (kind === 'pin') return { ...base, eventType: 'model_version_pinned', invoke: () => f.pinOnce() };
+  f.pinOnce();
+  if (kind === 'vision_settle') return { ...base, eventType: 'runtime_operation_settled', invoke: () => f.ledger.settleRuntimeOperation(ref, 'vision', 'returned') };
+  f.ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+  const hash = f.ledger.appendResultJournal(imageJournal(f));
+  if (kind === 'terminal') return { ...base, eventType: 'completed', invoke: () => f.ledger.complete(f.key, hash) };
+  f.ledger.complete(f.key, hash);
+  return { ...base, eventType: 'runtime_attempt_finished', invoke: () => f.ledger.finishRuntimeAttempt(ref) };
+}
+
+describe('complete core publication boundary matrix', () => {
+  it.each(ledgerFaults)('atomic header failure at %s never grants authority or releases ownership', async (fault) => {
+    const f = await makeRuntimeEvidenceCoreFixture({ acquire: false });
+    openFixtures.push(f);
+    expect(f.events).toHaveLength(0);
+    f.faults[fault] = true;
+    let caught: unknown;
+    try { f.ledger.acquireLock(f.owner); } catch (error) { caught = error; }
+    expectStaticCauseless(caught, 'FOREIGN-core-fixture-private-bytes');
+    expect(f.events).toHaveLength(fault === 'failNextAppend' ? 0 : 1);
+    expect(f.backing.lock).toEqual(f.owner);
+    expect(() => f.ledger.getCounts()).toThrow(CalibrationFatalError);
+    expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+    expect(f.backing.lock).toEqual(f.owner);
+  });
+
+  const mutations: readonly FaultMutation[] = [
+    'attempt', 'image_start', 'image_settle', 'vision_start', 'reservation', 'authorization', 'pin',
+    'vision_settle', 'terminal', 'finish', 'receipt', 'binding', 'abandon',
+  ];
+  for (const kind of mutations) {
+    it.each(ledgerFaults)(`${kind} fails closed at %s without committing a successful return`, async (fault) => {
+      const f = await openCoreFixture();
+      const prepared = prepareFaultMutation(f, kind);
+      const before = f.events.length;
+      const traceStart = f.trace.length;
+      const beforeSnapshot = prepared.ledger.getRuntimeEvidenceSnapshot();
+      f.faults[fault] = true;
+      let caught: unknown;
+      let returned = false;
+      try { prepared.invoke(); returned = true; } catch (error) { caught = error; }
+      expect(returned).toBe(false);
+      expectStaticCauseless(caught, 'FOREIGN-core-fixture-private-bytes');
+      // A failed hook can follow a physical append. No fictional rollback.
+      expect(f.events).toHaveLength(before + (fault === 'failNextAppend' ? 0 : 1));
+      if (fault !== 'failNextAppend') expect(f.events[f.events.length - 1]).toMatchObject({ type: prepared.eventType });
+      const durability = f.trace.slice(traceStart).filter((item) => [
+        'appendLedgerEvent', 'fsyncLedgerFile', 'fsyncLedgerDir',
+      ].includes(item));
+      expect(durability).toEqual(fault === 'failNextAppend' ? ['appendLedgerEvent']
+        : fault === 'failNextFile' ? ['appendLedgerEvent', 'fsyncLedgerFile']
+          : ['appendLedgerEvent', 'fsyncLedgerFile', 'fsyncLedgerDir']);
+      expect(Object.isFrozen(beforeSnapshot)).toBe(true);
+      expect(() => prepared.ledger.getRuntimeEvidenceSnapshot()).toThrow(CalibrationFatalError);
+      expect(() => prepared.ledger.getCounts()).toThrow(CalibrationFatalError);
+      expect(() => prepared.ledger.releaseLock(prepared.owner)).toThrow(CalibrationFatalError);
+      expect(f.backing.lock).toEqual(prepared.owner);
+      expect(f.events).toHaveLength(before + (fault === 'failNextAppend' ? 0 : 1));
+    });
+  }
+
+  it.each(['failNextJournalAppend', 'failNextJournalFile', 'failNextJournalDir'] as const)(
+    'result journal failure at %s grants no terminal or runtime finish', async (fault) => {
+      const f = await openCoreFixture();
+      const ref = beginImageThroughVision(f);
+      f.ledger.reserve(f.key);
+      f.ledger.authorizeRuntimeRequest(ref);
+      f.pinOnce();
+      f.ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+      const before = f.events.length;
+      f.faults[fault] = true;
+      let caught: unknown;
+      try { f.ledger.appendResultJournal(imageJournal(f)); } catch (error) { caught = error; }
+      expectStaticCauseless(caught, 'FOREIGN-core-fixture-private-bytes');
+      expect(f.journals).toHaveLength(fault === 'failNextJournalAppend' ? 0 : 1);
+      expect(f.events).toHaveLength(before);
+      expect(eventsOfType(f.events, 'completed')).toHaveLength(0);
+      expect(eventsOfType(f.events, 'runtime_attempt_finished')).toHaveLength(0);
+      expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+      expect(f.backing.lock).toEqual(f.owner);
+    },
+  );
+});
+
+describe('clean no-lock handoff is an epoch transition, never crash entitlement', () => {
+  it('finishes LOW, cleanly transfers owner without relabelling the header, then runs MEDIUM', async () => {
+    const f = await openCoreFixture();
+    f.completeImageKey(f.key);
+    const header = structuredClone(f.events[0]);
+    f.ledger.releaseLock(f.owner);
+    const next = laterOwner(f.owner, 1);
+    const other = f.restart(next);
+    other.acquireLock(next);
+    expect(eventsOfType(f.events, 'lock_recovery')).toHaveLength(1);
+    expect(eventsOfType(f.events, 'lock_recovery')[0]).toMatchObject({ staleOwner: f.owner, recoveringOwner: next });
+    expect(f.events[0]).toEqual(header);
+    const medium = f.plans.initial.find((row) => row.key.stage === 'preflight' && row.key.profile === 'MEDIUM')!.key;
+    const ref = other.startRuntimeAttempt(medium);
+    other.startRuntimeOperation(ref, 'image');
+    other.settleRuntimeOperation(ref, 'image', 'returned');
+    other.startRuntimeOperation(ref, 'vision');
+    other.reserve(medium);
+    other.authorizeRuntimeRequest(ref);
+    other.settleRuntimeOperation(ref, 'vision', 'returned');
+    const prediction = createCoreExactPrediction(f.getCase(medium.caseId), 1);
+    other.complete(medium, other.appendResultJournal(buildCoreSuccessJournal(medium, prediction)));
+    other.finishRuntimeAttempt(ref);
+    expect(other.getCounts().imageReserved).toBe(2);
+    expect(eventsOfType(f.events, 'runtime_attempt_abandoned')).toHaveLength(0);
+    expect(f.trace.filter((row) => row === 'probeOwnerLiveness')).toHaveLength(0);
+  });
+
+  it('clean same-owner reacquisition adds no epoch marker', async () => {
+    const f = await openCoreFixture();
+    f.ledger.releaseLock(f.owner);
+    const before = f.events.length;
+    const other = f.restart(f.owner);
+    other.acquireLock(f.owner);
+    expect(f.events).toHaveLength(before);
+    expect(eventsOfType(f.events, 'lock_recovery')).toHaveLength(0);
+    expect(other.getCounts().imageReserved).toBe(0);
+  });
+
+  it('cannot cleanly release an active attempt or hide it by reusing the poisoned instance', async () => {
+    const f = await openCoreFixture();
+    f.ledger.startRuntimeAttempt(f.key);
+    expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+    expect(f.backing.lock).toEqual(f.owner);
+    expect(() => f.ledger.getRuntimeEvidenceSnapshot()).toThrow(CalibrationFatalError);
+    expect(eventsOfType(f.events, 'runtime_attempt_abandoned')).toHaveLength(0);
+  });
+
+  it.each(['same', 'different'] as const)('absent lock with an unfinished %s owner attempt fails without manufacturing closure', async (which) => {
+    const f = await openCoreFixture();
+    f.ledger.startRuntimeAttempt(f.key);
+    f.backing.lock = undefined; // Controlled test seam: unexplained missing lock.
+    const owner = which === 'same' ? f.owner : laterOwner(f.owner, 1);
+    const other = f.restart(owner);
+    expect(() => other.acquireLock(owner)).toThrow(CalibrationFatalError);
+    expect(f.backing.lock).toEqual(owner);
+    expect(eventsOfType(f.events, 'lock_recovery')).toHaveLength(0);
+    expect(eventsOfType(f.events, 'runtime_attempt_abandoned')).toHaveLength(0);
+  });
+
+  it.each(ledgerFaults)('clean epoch publication fails closed at %s', async (fault) => {
+    const f = await openCoreFixture();
+    f.ledger.releaseLock(f.owner);
+    const next = laterOwner(f.owner, 1);
+    const other = f.restart(next);
+    const before = f.events.length;
+    f.faults[fault] = true;
+    expect(() => other.acquireLock(next)).toThrow(CalibrationFatalError);
+    expect(f.events).toHaveLength(before + (fault === 'failNextAppend' ? 0 : 1));
+    expect(() => other.startRuntimeAttempt(f.key)).toThrow(CalibrationFatalError);
+    expect(() => other.releaseLock(next)).toThrow(CalibrationFatalError);
+    expect(f.backing.lock).toEqual(next);
+  });
+});
+
+describe('remaining recovery cuts never manufacture a repeated image call', () => {
+  it('reserved but not authorized is interrupted once and never returned as resumable', async () => {
+    const f = await openCoreFixture();
+    beginImageThroughVision(f);
+    f.ledger.reserve(f.key);
+    f.setLiveness('dead');
+    const next = laterOwner(f.owner, 1);
+    const other = f.restart(next);
+    other.acquireLock(next);
+    const result = other.recoverAfterCrash();
+    expect(result.resumable.some((key) => key.stage === f.key.stage && key.profile === f.key.profile
+      && key.caseId === f.key.caseId && key.sampleIndex === f.key.sampleIndex)).toBe(false);
+    expect(eventsOfType(f.events, 'runtime_request_authorized')).toHaveLength(0);
+    expect(eventsOfType(f.events, 'runtime_attempt_abandoned')).toHaveLength(1);
+    expect(eventsOfType(f.events, 'runtime_attempt_abandoned')[0]).toMatchObject({ disposition: { kind: 'reserved_interruption' } });
+    expect(other.getCounts().imageReserved).toBe(1);
+  });
+
+  it('a never-started planned LOW key remains schedulable after real dead-owner acquisition', async () => {
+    const f = await openCoreFixture();
+    f.setLiveness('dead');
+    const next = laterOwner(f.owner, 1);
+    const other = f.restart(next);
+    other.acquireLock(next);
+    other.recoverAfterCrash();
+    expect(eventsOfType(f.events, 'runtime_attempt_abandoned')).toHaveLength(0);
+    expect(other.startRuntimeAttempt(f.key).attempt).toBe(1);
+  });
+
+  it('calling recovery on a live same-owner unreserved attempt grants no retry', async () => {
+    const f = await openCoreFixture();
+    f.ledger.startRuntimeAttempt(f.key);
+    expect(() => f.ledger.recoverAfterCrash()).toThrow(CalibrationFatalError);
+    expect(eventsOfType(f.events, 'runtime_attempt_abandoned')).toHaveLength(0);
+    expect(eventsOfType(f.events, 'lock_recovery')).toHaveLength(0);
+    expect(f.backing.lock).toEqual(f.owner);
+  });
+
+  it('calling recovery on a live same-owner real terminal cannot substitute for explicit finish', async () => {
+    const f = await openCoreFixture();
+    completeRuntimeImageTerminal(f);
+    expect(() => f.ledger.recoverAfterCrash()).toThrow(CalibrationFatalError);
+    expect(eventsOfType(f.events, 'runtime_attempt_finished')).toHaveLength(0);
+    expect(f.backing.lock).toEqual(f.owner);
+  });
+
+  it.each(['live', 'unknown'] as const)('%s owner liveness is not dead and never writes a recovery marker', async (liveness) => {
+    const f = await openCoreFixture();
+    f.ledger.startRuntimeAttempt(f.key);
+    f.setLiveness(liveness);
+    const next = laterOwner(f.owner, 1);
+    const other = f.restart(next);
+    const before = f.events.length;
+    expect(() => other.acquireLock(next)).toThrow(CalibrationFatalError);
+    expect(f.events).toHaveLength(before);
+    expect(f.backing.lock).toEqual(f.owner);
   });
 });
