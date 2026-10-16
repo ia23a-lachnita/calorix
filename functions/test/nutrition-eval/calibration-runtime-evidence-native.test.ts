@@ -1129,3 +1129,58 @@ for (const probe of ['live', 'unknown', 'malformed', 'dead', 'pid-reused'] as co
   it(`existing native owner probe distinguishes ${probe} without process control`, () => exerciseNativeOwnerProbe('existing-core', probe));
   it(`guarded native owner probe distinguishes ${probe} without process control`, () => exerciseNativeOwnerProbe('future', probe));
 }
+
+// Break caught: deriving reservations from report outcomes would turn twelve
+// barcode reads into image calls, or would allow synthetic data to authorize
+// benchmark completion. These are real files with synthetic predictions.
+async function exerciseNativeStagePopulation(mode: 'existing-core' | 'future'): Promise<void> {
+  const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode });
+  const staged = f as typeof f & {
+    finishDevelopment(): Promise<void>;
+    finishValidation(): Promise<void>;
+    finishBenchmarkOutcomes(): Promise<void>;
+  };
+  await f.finishPreflight();
+  expect(f.ledger.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 2 });
+  await staged.finishDevelopment();
+  expect(f.ledger.getSelectedProfile()).toBe('MEDIUM');
+  expect(f.ledger.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 50 });
+  await staged.finishValidation();
+  expect(f.ledger.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 98 });
+  await staged.finishBenchmarkOutcomes();
+  expect(f.ledger.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 146 });
+  const rows = JSON.parse(readFileSync(resolve(f.root, 'ledger.json'), 'utf8')) as Array<{
+    type: string;
+    key?: { stage: string; profile: string; caseId: string; sampleIndex: number };
+    stage?: string;
+    operation?: string;
+  }>;
+  const benchmarkTerminals = rows.filter((row) => row.key?.stage === 'benchmark'
+    && (row.type === 'completed' || row.type === 'non_reservation_result'));
+  expect(benchmarkTerminals).toHaveLength(60);
+  const barcodes = benchmarkTerminals.filter((row) => row.type === 'non_reservation_result');
+  expect(barcodes).toHaveLength(12);
+  expect(new Set(barcodes.map((row) => row.key?.caseId)).size).toBe(4);
+  const barcodeKeys = new Set(barcodes.map((row) => JSON.stringify(row.key)));
+  expect(rows.filter((row) => row.type === 'reserved')).toHaveLength(146);
+  expect(rows.filter((row) => row.type === 'completed')).toHaveLength(146);
+  expect(rows.filter((row) => row.type === 'runtime_attempt_finished')).toHaveLength(158);
+  expect(rows.filter((row) => row.type === 'runtime_operation_started' && row.operation === 'snapshot')).toHaveLength(12);
+  expect(rows.filter((row) => row.type === 'reserved' && barcodeKeys.has(JSON.stringify(row.key)))).toHaveLength(0);
+  expect(rows.filter((row) => row.type === 'stage_completed').map((row) => row.stage)).toEqual(['preflight', 'development', 'validation']);
+  expect(f.ledger.getRuntimeEvidenceSnapshot().activeAttempt).toBeNull();
+  const snapshot = f.ledger.getStageReportSnapshot('benchmark', 'MEDIUM');
+  expect(snapshot.images).toHaveLength(48);
+  expect(snapshot.nonReservations).toHaveLength(12);
+  expect(snapshot.counts).toEqual({ imageCallsReserved: 48, imageCallsCompleted: 48, imageCallsFailed: 0, imageCallsPending: 0 });
+  const before = readFileSync(resolve(f.root, 'ledger.json'), 'utf8');
+  expect(() => f.ledger.completeStage('benchmark', {
+    stage: 'benchmark', passed: true, completedStages: ['preflight', 'development', 'validation'],
+  })).toThrow('calibration:benchmark-runtime-evidence-required');
+  expect(readFileSync(resolve(f.root, 'ledger.json'), 'utf8')).toBe(before);
+  expect(existsSync(resolve(f.root, 'lock.json'))).toBe(true);
+}
+it('existing native stage driver preserves 158 outcomes, 146 images and twelve barcodes without benchmark authority',
+  () => exerciseNativeStagePopulation('existing-core'), 600000);
+it('guarded native stage driver preserves 158 outcomes, 146 images and twelve barcodes without benchmark authority',
+  () => exerciseNativeStagePopulation('future'), 600000);

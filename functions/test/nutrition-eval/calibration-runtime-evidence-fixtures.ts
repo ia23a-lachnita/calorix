@@ -993,6 +993,11 @@ export interface RuntimeEvidenceNativeFixtureTask4 {
   readonly faults: RuntimeEvidenceNativeFaultsTask4;
   completeTokenPrerequisites(): void;
   finishPreflight(): Promise<void>;
+  // Task4 native stage interface start
+  finishDevelopment(): Promise<void>;
+  finishValidation(): Promise<void>;
+  finishBenchmarkOutcomes(): Promise<void>;
+  // Task4 native stage interface end
   restart(nextOwner: CalibrationOwner): Promise<CalibrationRuntimeEvidenceLedger>;
   createUnacquiredLedger(): Promise<CalibrationRuntimeEvidenceLedger>;
   cleanup(): void;
@@ -1261,6 +1266,77 @@ export async function makeRuntimeEvidenceNativeFixture(
   async function finishPreflight(): Promise<void> {
     await runSharedFoundationPreflight(ledger, context);
   }
+  // Task4 native stage helpers start
+  function completeNativeOutcome(key: CalibrationReportOutcomeKey): void {
+    const calibration = StrictCalibrationManifestSchema.parse(JSON.parse(context.files['calibration-manifest']));
+    const benchmark = parseNutritionEvalManifest(JSON.parse(context.files['public-manifest']));
+    const evalCase = [...calibration.cases, ...benchmark.cases].find((row) => row.id === key.caseId);
+    if (evalCase === undefined) throw new CalibrationFatalError('calibration:fixture-unknown-case');
+    const prediction = createCoreExactPrediction(evalCase, key.sampleIndex);
+    const ref = ledger.startRuntimeAttempt({ ...key });
+    if (evalCase.scanMode === 'barcode') {
+      ledger.startRuntimeOperation(ref, 'snapshot');
+      ledger.settleRuntimeOperation(ref, 'snapshot', 'returned');
+      ledger.recordNonReservationResult({ key: { ...key }, reason: 'barcode', prediction });
+      ledger.finishRuntimeAttempt(ref);
+      return;
+    }
+    ledger.startRuntimeOperation(ref, 'image');
+    ledger.settleRuntimeOperation(ref, 'image', 'returned');
+    ledger.startRuntimeOperation(ref, 'vision');
+    ledger.reserve({ ...key });
+    ledger.authorizeRuntimeRequest(ref);
+    ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+    const hash = ledger.appendResultJournal(buildCoreSuccessJournal({ ...key }, prediction));
+    ledger.complete({ ...key }, hash);
+    ledger.finishRuntimeAttempt(ref);
+  }
+  async function publishAndBindNativePair(stage: StageName, profile: CalibrationProfile) {
+    const published = await publishCalibrationStageReportTask4({
+      stage,
+      profile,
+      context: { ...context, identity: { ...context.identity }, owner: { ...owner }, files: { ...context.files } },
+      readSnapshot: () => ledger.getStageReportSnapshot(stage, profile),
+    });
+    ledger.admitStageReportReceipt(stage, profile);
+    ledger.bindRuntimeStageReport(stage, profile);
+    return measureCalibrationStageReport(published.report);
+  }
+  async function finishDevelopment(): Promise<void> {
+    // finishPreflight deliberately leaves first binding to its caller. The
+    // stage driver consumes its actual admitted reports before development.
+    ledger.bindRuntimeStageReport('preflight', 'LOW');
+    ledger.bindRuntimeStageReport('preflight', 'MEDIUM');
+    ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
+    for (const row of initialPlan.filter((row) => row.key.stage === 'development')) completeNativeOutcome(row.key);
+    const low = await publishAndBindNativePair('development', 'LOW');
+    const medium = await publishAndBindNativePair('development', 'MEDIUM');
+    const selected = selectCalibrationProfile(low.profile, medium.profile);
+    if (selected !== 'MEDIUM') throw new CalibrationFatalError('calibration:fixture-expected-profile-tie');
+    const passed = evaluateCalibrationStageGate('development', medium.stage).passed;
+    ledger.recordProfileSelection(selected, 'default_medium_tie_breaker', {
+      stage: 'development', passed, completedStages: ['preflight'],
+    });
+    ledger.completeStage('development', { stage: 'development', passed, completedStages: ['preflight'] });
+  }
+  async function finishValidation(): Promise<void> {
+    const selected = ledger.getSelectedProfile();
+    if (selected === undefined) throw new CalibrationFatalError('calibration:fixture-profile-required');
+    const plan = selected === 'LOW' ? lowPlan : mediumPlan;
+    for (const row of plan.filter((row) => row.key.stage === 'validation')) completeNativeOutcome(row.key);
+    const measured = await publishAndBindNativePair('validation', selected);
+    const passed = evaluateCalibrationStageGate('validation', measured.stage).passed;
+    ledger.completeStage('validation', {
+      stage: 'validation', passed, completedStages: ['preflight', 'development'],
+    });
+  }
+  async function finishBenchmarkOutcomes(): Promise<void> {
+    const selected = ledger.getSelectedProfile();
+    if (selected === undefined) throw new CalibrationFatalError('calibration:fixture-profile-required');
+    const plan = selected === 'LOW' ? lowPlan : mediumPlan;
+    for (const row of plan.filter((row) => row.key.stage === 'benchmark')) completeNativeOutcome(row.key);
+  }
+  // Task4 native stage helpers end
   async function restart(nextOwner: CalibrationOwner): Promise<CalibrationRuntimeEvidenceLedger> {
     if (mode === 'existing-core') {
       const deps = createFileCalibrationLedgerDepsTask4Base(miniRoot, overrides);
@@ -1343,6 +1419,11 @@ export async function makeRuntimeEvidenceNativeFixture(
     faults,
     completeTokenPrerequisites,
     finishPreflight,
+    // Task4 native stage return start
+    finishDevelopment,
+    finishValidation,
+    finishBenchmarkOutcomes,
+    // Task4 native stage return end
     restart,
     createUnacquiredLedger,
     cleanup,
