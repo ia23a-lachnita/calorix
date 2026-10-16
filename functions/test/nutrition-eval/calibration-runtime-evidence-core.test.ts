@@ -27,6 +27,7 @@ import type {
 } from '../../src/nutrition-eval/calibration';
 import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
 import { StrictCalibrationManifestSchema } from '../../src/nutrition-eval/schema';
+import type { NutritionPrediction } from '../../src/nutrition-eval/schema';
 import {
   buildCoreSuccessJournal,
   CORE_PINNED_VERSION,
@@ -927,6 +928,18 @@ function imageJournal(f: RuntimeEvidenceCoreFixture) {
   return buildCoreSuccessJournal(f.key, createCoreExactPrediction(f.evalCase, f.key.sampleIndex));
 }
 
+function coreDatasetFailure(sampleIndex: number): NutritionPrediction {
+  return { parseStatus: 'failure', source: 'meal', decision: 'error',
+    failureCategory: 'dataset', failureCode: 'dataset_load_failed',
+    latencyMs: 0, sampleIndex, cached: false };
+}
+
+function coreProductFailure(sampleIndex: number): NutritionPrediction {
+  return { parseStatus: 'failure', source: 'barcode', decision: 'error',
+    failureCategory: 'product', failureCode: 'off_product_not_found',
+    latencyMs: 0, sampleIndex, cached: false };
+}
+
 function completeRuntimeImageTerminal(f: RuntimeEvidenceCoreFixture): RuntimeAttemptRef {
   const ref = beginImageThroughVision(f);
   f.ledger.reserve(f.key);
@@ -1133,6 +1146,450 @@ describe('clean no-lock handoff is an epoch transition, never crash entitlement'
     expect(() => other.startRuntimeAttempt(f.key)).toThrow(CalibrationFatalError);
     expect(() => other.releaseLock(next)).toThrow(CalibrationFatalError);
     expect(f.backing.lock).toEqual(next);
+  });
+});
+
+describe('successful reflection cannot conceal nested public calls', () => {
+  it.each(['start', 'get', 'settle', 'reserve', 'release', 'safe_error', 'terminal', 'journal'] as const)(
+    '%s reentry is independently valid before the outer capture, then poisons both calls', async (kind) => {
+      const f = await openCoreFixture();
+      let target: object = { ...f.key };
+      let nested: () => unknown = () => f.ledger.startRuntimeAttempt(f.key);
+      let outer: (proxy: object) => unknown = (proxy) => f.ledger.startRuntimeAttempt(proxy);
+      if (kind === 'get') nested = () => f.ledger.getCounts();
+      if (kind === 'release') {
+        target = { ...f.owner };
+        nested = () => f.ledger.releaseLock(f.owner);
+        outer = (proxy) => f.ledger.releaseLock(proxy as CalibrationOwner);
+      }
+      if (kind === 'settle') {
+        const ref = f.ledger.startRuntimeAttempt(f.key);
+        f.ledger.startRuntimeOperation(ref, 'image');
+        target = { key: { ...ref.key }, attempt: ref.attempt };
+        nested = () => f.ledger.settleRuntimeOperation(ref, 'image', 'returned');
+        outer = (proxy) => f.ledger.settleRuntimeOperation(proxy, 'image', 'returned');
+      }
+      if (kind === 'reserve') {
+        beginImageThroughVision(f);
+        nested = () => f.ledger.reserve(f.key);
+        outer = (proxy) => f.ledger.reserve(proxy as ReservationKey);
+      }
+      if (kind === 'safe_error') {
+        target = { stage: 'preflight', kind: 'token_count', caseId: f.key.caseId, errorCategory: 'timeout' };
+        nested = () => f.ledger.getPinnedModelVersion();
+        outer = (proxy) => f.ledger.recordSafeError(proxy as Parameters<CalibrationProtocolLedger['recordSafeError']>[0]);
+      }
+      if (kind === 'journal' || kind === 'terminal') {
+        const ref = beginImageThroughVision(f);
+        f.ledger.reserve(f.key);
+        f.ledger.authorizeRuntimeRequest(ref);
+        f.pinOnce();
+        f.ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+        if (kind === 'journal') {
+          target = imageJournal(f);
+          nested = () => f.ledger.getRuntimeEvidenceSnapshot();
+          outer = (proxy) => f.ledger.appendResultJournal(proxy as ReturnType<typeof imageJournal>);
+        } else {
+          const hash = f.ledger.appendResultJournal(imageJournal(f));
+          nested = () => f.ledger.complete(f.key, hash);
+          outer = (proxy) => f.ledger.complete(proxy as ReservationKey, hash);
+        }
+      }
+      const before = f.events.length;
+      const beforeJournals = f.journals.length;
+      let captures = 0;
+      let gets = 0;
+      let nestedError: unknown;
+      const enter = () => {
+        if (captures++ === 0) {
+          try { nested(); } catch (error) { nestedError = error; }
+        }
+      };
+      const proxy = new Proxy(target, {
+        getPrototypeOf(value) { enter(); return Reflect.getPrototypeOf(value); },
+        ownKeys(value) { enter(); return Reflect.ownKeys(value); },
+        getOwnPropertyDescriptor(value, key) { enter(); return Reflect.getOwnPropertyDescriptor(value, key); },
+        get(value, key, receiver) { gets += 1; enter(); return Reflect.get(value, key, receiver); },
+      });
+      let caught: unknown;
+      try { outer(proxy); } catch (error) { caught = error; }
+      expect(captures > 0).toBe(true);
+      expect(gets).toBe(0);
+      expectStaticCauseless(nestedError, 'private');
+      expectStaticCauseless(caught, 'private');
+      expect(caught === nestedError).toBe(false);
+      expect(f.events).toHaveLength(before);
+      expect(f.journals).toHaveLength(beforeJournals);
+      expect(f.backing.lock).toEqual(f.owner);
+      expect(Object.isFrozen(target)).toBe(false);
+      expect(() => f.ledger.getCounts()).toThrow(CalibrationFatalError);
+      expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+    },
+  );
+});
+
+describe('trusted callbacks may return normally after reentry but may not publish success', () => {
+  it.each(['afterAppend', 'afterFile', 'afterDir', 'afterJournalAppend', 'afterJournalFile', 'afterJournalDir'] as const)(
+    '%s retains reached bytes, poisons the core, and stops later durability steps', async (hook) => {
+      const f = await openCoreFixture();
+      const journal = hook.startsWith('afterJournal');
+      if (journal) {
+        const ref = beginImageThroughVision(f);
+        f.ledger.reserve(f.key);
+        f.ledger.authorizeRuntimeRequest(ref);
+        f.pinOnce();
+        f.ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+      }
+      const beforeEvents = f.events.length;
+      const beforeJournals = f.journals.length;
+      const traceStart = f.trace.length;
+      let calls = 0;
+      let innerError: unknown;
+      f.faults[hook] = () => {
+        calls += 1;
+        try { f.ledger.getCounts(); } catch (error) { innerError = error; }
+      };
+      let caught: unknown;
+      try {
+        if (journal) f.ledger.appendResultJournal(imageJournal(f));
+        else f.ledger.startRuntimeAttempt(f.key);
+      } catch (error) { caught = error; }
+      delete f.faults[hook];
+      expect(calls).toBe(1);
+      expectStaticCauseless(innerError, 'private');
+      expectStaticCauseless(caught, 'private');
+      expect(f.events).toHaveLength(beforeEvents + (journal ? 0 : 1));
+      expect(f.journals).toHaveLength(beforeJournals + (journal ? 1 : 0));
+      const actual = f.trace.slice(traceStart).filter((name) => /^(append|fsync)/.test(name));
+      const expected = journal ? ['appendJournal', 'fsyncJournalFile', 'fsyncJournalDir']
+        : ['appendLedgerEvent', 'fsyncLedgerFile', 'fsyncLedgerDir'];
+      const reached = hook.endsWith('Append') ? 1 : hook.endsWith('File') ? 2 : 3;
+      expect(actual).toEqual(expected.slice(0, reached));
+      expect(() => f.ledger.getRuntimeEvidenceSnapshot()).toThrow(CalibrationFatalError);
+      expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+      expect(f.backing.lock).toEqual(f.owner);
+    },
+  );
+
+  it.each(['admission', 'binding'] as const)('%s checks poison after the verifier before inspecting its returned value', async (kind) => {
+    const f = await openCoreFixture();
+    f.finishPreflightOutcomes();
+    if (kind === 'binding') f.ledger.admitStageReportReceipt('preflight', 'LOW');
+    const before = f.events.length;
+    let nestedError: unknown;
+    let calls = 0;
+    let traps = 0;
+    f.faults.onVerify = () => {
+      calls += 1;
+      try { f.ledger.getCounts(); } catch (error) { nestedError = error; }
+    };
+    f.faults.onVerified = (result) => new Proxy(result, {
+      get(target, key, receiver) { traps += 1; return Reflect.get(target, key, receiver); },
+      ownKeys(target) { traps += 1; return Reflect.ownKeys(target); },
+      getPrototypeOf(target) { traps += 1; return Reflect.getPrototypeOf(target); },
+      getOwnPropertyDescriptor(target, key) { traps += 1; return Reflect.getOwnPropertyDescriptor(target, key); },
+    });
+    let caught: unknown;
+    try {
+      if (kind === 'admission') f.ledger.admitStageReportReceipt('preflight', 'LOW');
+      else f.ledger.bindRuntimeStageReport('preflight', 'LOW');
+    } catch (error) { caught = error; }
+    delete f.faults.onVerify;
+    delete f.faults.onVerified;
+    expect(calls).toBe(1);
+    expect(traps).toBe(0);
+    expectStaticCauseless(nestedError, 'private');
+    expectStaticCauseless(caught, 'private');
+    expect(f.events).toHaveLength(before);
+    expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+    expect(f.backing.lock).toEqual(f.owner);
+  });
+});
+
+describe('source freshness and callback return capture share the same poison boundary', () => {
+  it.each(['throw', 'reenter-before-return', 'successful-reflection', 'accessor', 'array-accessor', 'extra-field'] as const)(
+    'source reader %s cannot expose foreign values or publish an attempt', async (kind) => {
+      const f = await openCoreFixture();
+      const before = f.events.length;
+      let touches = 0;
+      let innerError: unknown;
+      const raw = new Proxy({}, {
+        get() { touches += 1; throw new Error('FOREIGN-private-source'); },
+        getPrototypeOf() { touches += 1; throw new Error('FOREIGN-private-source'); },
+        ownKeys() { touches += 1; throw new Error('FOREIGN-private-source'); },
+      });
+      const valid = { headCommit: 'a'.repeat(40), functionsTreeId: f.identity.functionsTreeId, dirtyPaths: [] as string[] };
+      const enter = () => { try { f.ledger.getCounts(); } catch (error) { innerError = error; } };
+      f.faults.onReadGitState = () => {
+        if (kind === 'throw') throw raw;
+        if (kind === 'reenter-before-return') { enter(); return raw as typeof valid; }
+        if (kind === 'successful-reflection') return new Proxy(valid, {
+          ownKeys(target) { enter(); return Reflect.ownKeys(target); },
+        });
+        if (kind === 'accessor') return {
+          headCommit: valid.headCommit, functionsTreeId: valid.functionsTreeId,
+          get dirtyPaths() { touches += 1; return []; },
+        };
+        if (kind === 'array-accessor') {
+          const paths: string[] = [];
+          Object.defineProperty(paths, '0', { enumerable: true, get() { touches += 1; return 'functions/secret.ts'; } });
+          return { ...valid, dirtyPaths: paths };
+        }
+        return { ...valid, arbitrary: 'FOREIGN-private-source' };
+      };
+      let caught: unknown;
+      try { f.ledger.startRuntimeAttempt(f.key); } catch (error) { caught = error; }
+      delete f.faults.onReadGitState;
+      // Identity/trap checks MUST precede any assertion that inspects error.
+      expect(caught === raw).toBe(false);
+      expect(touches).toBe(0);
+      expectStaticCauseless(caught, 'FOREIGN-private-source');
+      if (kind === 'reenter-before-return' || kind === 'successful-reflection') expectStaticCauseless(innerError, 'private');
+      expect(f.events).toHaveLength(before);
+      expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+      expect(f.backing.lock).toEqual(f.owner);
+    },
+  );
+
+  it('accepts docs-only HEAD movement with the real bootstrap reader four-field shape without relabelling identity', async () => {
+    const f = await openCoreFixture();
+    f.faults.onReadGitState = () => ({
+      headCommit: 'b'.repeat(40), implementationCommit: 'c'.repeat(40),
+      functionsTreeId: f.identity.functionsTreeId, dirtyPaths: [],
+    });
+    const ref = f.ledger.startRuntimeAttempt(f.key);
+    expect(ref.attempt).toBe(1);
+    expect(f.events[0]).toMatchObject({ identity: { implementationCommit: f.identity.implementationCommit } });
+    expect(f.events.filter((event) => (event as { type: string }).type === 'protocol_identity')).toHaveLength(1);
+  });
+
+  it.each(['tree', 'dirty', 'bad-head', 'bad-implementation'] as const)('rejects %s source evidence without reflecting the caller argument', async (kind) => {
+    const f = await openCoreFixture();
+    f.faults.onReadGitState = () => ({
+      headCommit: kind === 'bad-head' ? 'not-a-sha' : 'b'.repeat(40),
+      implementationCommit: kind === 'bad-implementation' ? 'not-a-sha' : f.identity.implementationCommit,
+      functionsTreeId: kind === 'tree' ? '0'.repeat(40) : f.identity.functionsTreeId,
+      dirtyPaths: kind === 'dirty' ? ['functions/changed.ts'] : [],
+    });
+    let reflections = 0;
+    const argument = new Proxy({ ...f.key }, {
+      getPrototypeOf(target) { reflections += 1; return Reflect.getPrototypeOf(target); },
+      ownKeys(target) { reflections += 1; return Reflect.ownKeys(target); },
+      getOwnPropertyDescriptor(target, key) { reflections += 1; return Reflect.getOwnPropertyDescriptor(target, key); },
+      get(target, key, receiver) { reflections += 1; return Reflect.get(target, key, receiver); },
+    });
+    const before = f.events.length;
+    expect(() => f.ledger.startRuntimeAttempt(argument)).toThrow(CalibrationFatalError);
+    expect(reflections).toBe(0);
+    expect(f.events).toHaveLength(before);
+    expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+    expect(f.backing.lock).toEqual(f.owner);
+  });
+});
+
+// Every public entry must consult the captured source reader. Distinct fresh
+// instances prevent a preceding poisoned method from masking a missing guard.
+const sourceEntryCalls: ReadonlyArray<readonly [string, (f: RuntimeEvidenceCoreFixture) => unknown]> = [
+  ['acquireLock', (f) => f.ledger.acquireLock(f.owner)],
+  ['releaseLock', (f) => f.ledger.releaseLock(f.owner)],
+  ['assertIdentity', (f) => f.ledger.assertIdentity(f.identity)],
+  ['assertGitState', (f) => f.ledger.assertGitState({ headCommit: 'a'.repeat(40), functionsTreeId: f.identity.functionsTreeId, dirtyPaths: [] })],
+  ['assertStageTransition', (f) => f.ledger.assertStageTransition('preflight', 'development', { stage: 'preflight', passed: true, completedStages: ['preflight'] })],
+  ['reserve', (f) => f.ledger.reserve(f.key)],
+  ['reserveSynthetic', (f) => f.ledger.reserveSynthetic({ reason: 'never', index: 1 }, () => undefined)],
+  ['reserveTokenCount', (f) => f.ledger.reserveTokenCount({ kind: 'token_count', stage: 'preflight', caseId: f.key.caseId, model: f.identity.model })],
+  ['completeTokenCount', (f) => f.ledger.completeTokenCount({ kind: 'token_count', stage: 'preflight', caseId: f.key.caseId, model: f.identity.model }, 1200)],
+  ['failTokenCount', (f) => f.ledger.failTokenCount({ kind: 'token_count', stage: 'preflight', caseId: f.key.caseId, model: f.identity.model }, 'timeout')],
+  ['getCounts', (f) => f.ledger.getCounts()],
+  ['appendResultJournal', (f) => f.ledger.appendResultJournal(imageJournal(f))],
+  ['complete', (f) => f.ledger.complete(f.key, 'a'.repeat(64))],
+  ['rebuildReport', (f) => f.ledger.rebuildReport()],
+  ['recoverAfterCrash', (f) => f.ledger.recoverAfterCrash()],
+  ['recordSafeError', (f) => f.ledger.recordSafeError({ stage: 'preflight', kind: 'token_count', caseId: f.key.caseId, errorCategory: 'timeout' })],
+  ['admitStageReportReceipt', (f) => f.ledger.admitStageReportReceipt('preflight', 'LOW')],
+  ['pinModelVersion', (f) => f.pinOnce()],
+  ['getPinnedModelVersion', (f) => f.ledger.getPinnedModelVersion()],
+  ['recordProfileSelection', (f) => f.ledger.recordProfileSelection('MEDIUM', 'default_medium_tie_breaker', { stage: 'development', passed: true, completedStages: ['preflight'] })],
+  ['getSelectedProfile', (f) => f.ledger.getSelectedProfile()],
+  ['completeStage', (f) => f.ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] })],
+  ['getCompletedStages', (f) => f.ledger.getCompletedStages()],
+  ['getCompletedReportPredictions', (f) => f.ledger.getCompletedReportPredictions()],
+  ['recordNonReservationResult', (f) => f.ledger.recordNonReservationResult({ key: f.key, reason: 'dataset', prediction: coreDatasetFailure(f.key.sampleIndex) })],
+  ['getStageReportSnapshot', (f) => f.ledger.getStageReportSnapshot('preflight', 'LOW')],
+  ['startRuntimeAttempt', (f) => f.ledger.startRuntimeAttempt(f.key)],
+  ['startRuntimeOperation', (f) => f.ledger.startRuntimeOperation({ key: f.key, attempt: 1 }, 'image')],
+  ['settleRuntimeOperation', (f) => f.ledger.settleRuntimeOperation({ key: f.key, attempt: 1 }, 'image', 'returned')],
+  ['authorizeRuntimeRequest', (f) => f.ledger.authorizeRuntimeRequest({ key: f.key, attempt: 1 })],
+  ['finishRuntimeAttempt', (f) => f.ledger.finishRuntimeAttempt({ key: f.key, attempt: 1 })],
+  ['bindRuntimeStageReport', (f) => f.ledger.bindRuntimeStageReport('preflight', 'LOW')],
+  ['getRuntimeEvidenceSnapshot', (f) => f.ledger.getRuntimeEvidenceSnapshot()],
+];
+describe('all public entries reject fresh source drift on their own instance', () => {
+  it.each(sourceEntryCalls)('%s reads source before arguments, effects or returning authority', async (_name, invoke) => {
+    const f = await openCoreFixture();
+    const reads = f.backing.gitReads;
+    const events = f.events.length;
+    const journals = f.journals.length;
+    f.faults.dirtyGitState = true;
+    expect(() => invoke(f)).toThrow(CalibrationFatalError);
+    expect(f.backing.gitReads).toBe(reads + 1);
+    expect(f.events).toHaveLength(events);
+    expect(f.journals).toHaveLength(journals);
+    f.faults.dirtyGitState = false;
+    expect(() => f.ledger.getCounts()).toThrow(CalibrationFatalError);
+    expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+    expect(f.backing.lock).toEqual(f.owner);
+  });
+});
+
+describe('existing stage scheduling prerequisites also guard attempt starts', () => {
+  it.each(['preflight-low-token', 'preflight-medium-low', 'development-preflight', 'validation-development', 'benchmark-validation'] as const)(
+    '%s cannot create speculative runtime history', async (kind) => {
+      const f = await makeRuntimeEvidenceCoreFixture();
+      openFixtures.push(f);
+      let key: ReservationKey = { ...f.key };
+      if (kind !== 'preflight-low-token') f.completeTokenPrerequisites();
+      if (kind === 'preflight-medium-low') key = { ...key, profile: 'MEDIUM' };
+      if (kind === 'development-preflight') key = { stage: 'development', profile: 'LOW', caseId: f.plans.initial.find((entry) => entry.key.stage === 'development')!.key.caseId, sampleIndex: 1 };
+      if (kind === 'validation-development') key = { ...f.plans.MEDIUM.find((entry) => entry.key.stage === 'validation')!.key };
+      if (kind === 'benchmark-validation') key = { ...f.plans.MEDIUM.find((entry) => entry.key.stage === 'benchmark')!.key };
+      const before = f.events.length;
+      expect(() => f.ledger.startRuntimeAttempt(key)).toThrow(CalibrationFatalError);
+      expect(f.events).toHaveLength(before);
+      expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+      expect(f.backing.lock).toEqual(f.owner);
+    },
+  );
+});
+
+describe('existing codecs independently accept the failure fixtures used by new-mode tests', () => {
+  it('the real authoritative ledger records a dataset failure without an image reservation', async () => {
+    const f = await makeExistingAuthoritativeCoreFixture();
+    try {
+      f.completeTokenPrerequisites();
+      const digest = f.ledger.recordNonReservationResult({ key: f.key, reason: 'dataset', prediction: coreDatasetFailure(1) });
+      expect(digest).toMatch(/^[0-9a-f]{64}$/);
+      expect(f.ledger.getCounts().imageReserved).toBe(0);
+      expect(eventsOfType(f.events, 'non_reservation_result')).toHaveLength(1);
+    } finally { f.cleanup(); }
+  });
+
+  it('the real authoritative ledger records the barcode product-failure terminal without an image reservation', async () => {
+    const f = await makeExistingAuthoritativeCoreFixture();
+    try {
+      f.finishPreflight(); f.finishDevelopment(); f.finishValidation();
+      const key = f.plans.MEDIUM.find((row) => row.scanMode === 'barcode')!.key;
+      const digest = f.ledger.recordNonReservationResult({ key, reason: 'barcode', prediction: coreProductFailure(key.sampleIndex) });
+      expect(digest).toMatch(/^[0-9a-f]{64}$/);
+      expect(f.ledger.getCounts().imageReserved).toBe(98);
+      expect(eventsOfType(f.events, 'non_reservation_result')).toHaveLength(1);
+    } finally { f.cleanup(); }
+  });
+
+  it('both old strict and authoritative factories reject the new header without modifying it', async () => {
+    const data = await makeRuntimeEvidenceData();
+    const strictBacking = makeRuntimeEvidenceCoreBacking();
+    strictBacking.events.push(structuredClone(data.header));
+    const original = structuredClone(strictBacking.events);
+    expect(() => createProtocolCalibrationLedger(strictBacking.deps, data.header.identity,
+      () => data.plans.initial.filter((row) => row.scanMode !== 'barcode').map((row) => row.key))).toThrow(CalibrationFatalError);
+    expect(strictBacking.events).toEqual(original);
+    const f = await makeExistingAuthoritativeCoreFixture({ acquire: false });
+    try {
+      f.backing.events.push(structuredClone(data.header));
+      expect(() => f.restart(f.owner)).toThrow(CalibrationFatalError);
+      expect(f.events).toEqual(original);
+      expect(f.backing.lock).toBeUndefined();
+    } finally { f.cleanup(); }
+  });
+});
+
+describe('the five validated protocol noop mappings preserve full-ledger positions without inventing runtime events', () => {
+  it('token reservation, completion and safe error advance only full-ledger indexes', async () => {
+    const f = await makeRuntimeEvidenceCoreFixture();
+    openFixtures.push(f);
+    expect(f.ledger.getRuntimeEvidenceSnapshot()).toMatchObject({ sequence: 0, lastEventIndex: 1 });
+    const key = { kind: 'token_count' as const, stage: 'preflight' as const, caseId: f.key.caseId, model: f.identity.model };
+    f.ledger.reserveTokenCount(key);
+    expect(f.ledger.getRuntimeEvidenceSnapshot()).toMatchObject({ sequence: 0, lastEventIndex: 2 });
+    f.ledger.completeTokenCount(key, 1200);
+    expect(f.ledger.getRuntimeEvidenceSnapshot()).toMatchObject({ sequence: 0, lastEventIndex: 3 });
+    f.ledger.recordSafeError({ stage: 'preflight', kind: 'token_count', caseId: f.key.caseId, errorCategory: 'timeout' });
+    expect(f.ledger.getRuntimeEvidenceSnapshot()).toMatchObject({ sequence: 0, lastEventIndex: 4, events: [] });
+  });
+
+  it('token failure is accepted as a validated noop, not an image attempt or retry grant', async () => {
+    const f = await makeRuntimeEvidenceCoreFixture();
+    openFixtures.push(f);
+    const key = { kind: 'token_count' as const, stage: 'preflight' as const, caseId: f.key.caseId, model: f.identity.model };
+    f.ledger.reserveTokenCount(key);
+    f.ledger.failTokenCount(key, 'timeout');
+    expect(f.ledger.getRuntimeEvidenceSnapshot()).toMatchObject({ sequence: 0, lastEventIndex: 3, activeAttempt: null, events: [] });
+    expect(f.ledger.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 0 });
+    expect(() => f.ledger.startRuntimeAttempt(f.key)).toThrow(CalibrationFatalError);
+  });
+
+  it('stage completion follows both admitted/bound preflight pairs without incrementing runtime sequence', async () => {
+    const f = await openCoreFixture();
+    f.finishPreflight();
+    expect(f.events.at(-1)).toMatchObject({ type: 'stage_completed', stage: 'preflight' });
+    expect(f.ledger.getRuntimeEvidenceSnapshot()).toMatchObject({ sequence: 16, lastEventIndex: 27, activeAttempt: null });
+    expect(f.ledger.getCompletedStages()).toEqual(['preflight']);
+  });
+});
+
+describe('ordinary failed ports do not create crash-retry entitlement', () => {
+  it.each(['image', 'vision'] as const)('%s failure can finish its real dataset terminal but can never be restarted', async (operation) => {
+    const f = await openCoreFixture();
+    const ref = f.ledger.startRuntimeAttempt(f.key);
+    f.ledger.startRuntimeOperation(ref, 'image');
+    f.ledger.settleRuntimeOperation(ref, 'image', operation === 'image' ? 'failed' : 'returned');
+    if (operation === 'vision') {
+      f.ledger.startRuntimeOperation(ref, 'vision');
+      f.ledger.settleRuntimeOperation(ref, 'vision', 'failed');
+    }
+    f.ledger.recordNonReservationResult({ key: f.key, reason: 'dataset', prediction: coreDatasetFailure(f.key.sampleIndex) });
+    f.ledger.finishRuntimeAttempt(ref);
+    expect(f.ledger.getCounts().imageReserved).toBe(0);
+    expect(f.ledger.getRuntimeEvidenceSnapshot().activeAttempt).toBeNull();
+    const before = f.events.length;
+    expect(() => f.ledger.startRuntimeAttempt(f.key)).toThrow(CalibrationFatalError);
+    expect(f.events).toHaveLength(before);
+    expect(eventsOfType(f.events, 'runtime_attempt_abandoned')).toHaveLength(0);
+  });
+
+  it.each(['returned-product', 'failed-product'] as const)('%s barcode snapshot is reconciled with the real product terminal, never reserved or retried', async (outcome) => {
+    const f = await openCoreFixture();
+    f.finishPreflight(); f.finishDevelopment(); f.finishValidation();
+    const key = f.plans.MEDIUM.find((row) => row.scanMode === 'barcode')!.key;
+    const ref = f.ledger.startRuntimeAttempt(key);
+    f.ledger.startRuntimeOperation(ref, 'snapshot');
+    f.ledger.settleRuntimeOperation(ref, 'snapshot', outcome === 'returned-product' ? 'returned' : 'failed');
+    const prediction = outcome === 'returned-product'
+      ? createCoreExactPrediction(f.getCase(key.caseId), key.sampleIndex) : coreProductFailure(key.sampleIndex);
+    f.ledger.recordNonReservationResult({ key, reason: 'barcode', prediction });
+    f.ledger.finishRuntimeAttempt(ref);
+    expect(f.ledger.getCounts().imageReserved).toBe(98);
+    expect(f.ledger.getRuntimeEvidenceSnapshot().activeAttempt).toBeNull();
+    expect(() => f.ledger.startRuntimeAttempt(key)).toThrow(CalibrationFatalError);
+  });
+
+  it('a dead-owner unreserved barcode read resumes only after explicit abandonment under a new epoch', async () => {
+    const f = await openCoreFixture();
+    f.finishPreflight(); f.finishDevelopment(); f.finishValidation();
+    const key = f.plans.MEDIUM.find((row) => row.scanMode === 'barcode')!.key;
+    const ref = f.ledger.startRuntimeAttempt(key);
+    f.ledger.startRuntimeOperation(ref, 'snapshot');
+    f.setLiveness('dead');
+    const owner = laterOwner(f.owner, 1);
+    const other = f.restart(owner);
+    other.acquireLock(owner);
+    expect(eventsOfType(f.events, 'runtime_attempt_abandoned')).toHaveLength(0);
+    other.recoverAfterCrash();
+    expect(eventsOfType(f.events, 'runtime_attempt_abandoned')).toHaveLength(1);
+    expect(other.startRuntimeAttempt(key)).toMatchObject({ key, attempt: 2 });
+    expect(other.getCounts().imageReserved).toBe(98);
+    expect(eventsOfType(f.events, 'failed')).toHaveLength(0);
   });
 });
 

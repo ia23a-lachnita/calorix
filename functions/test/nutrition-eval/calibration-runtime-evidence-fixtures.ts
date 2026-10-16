@@ -261,6 +261,8 @@ export interface RuntimeEvidenceCoreFaults {
   afterJournalFile?: () => void;
   afterJournalDir?: () => void;
   onReadGitState?: () => Parameters<CalibrationProtocolLedger['assertGitState']>[0];
+  onVerify?: () => void;
+  onVerified?: (result: Readonly<CalibrationReportPublicationResult>) => Readonly<CalibrationReportPublicationResult>;
 }
 
 export interface RuntimeEvidenceCoreBacking {
@@ -534,6 +536,7 @@ async function makeCoreFixture(mode: 'runtime' | 'existing', options: Readonly<{
   const verifyStageReportArtifacts = (
     params: Readonly<{ stage: StageName; profile: CalibrationProfile; snapshot: CalibrationStageReportSnapshot }>,
   ): Readonly<CalibrationReportPublicationResult> => {
+    backing.faults.onVerify?.();
     const report = reconstructor.reconstruct(params);
     const json = renderNutritionEvalJson(report);
     const markdown = renderNutritionEvalMarkdown(report);
@@ -544,7 +547,8 @@ async function makeCoreFixture(mode: 'runtime' | 'existing', options: Readonly<{
       jsonSha256: createHash('sha256').update(json, 'utf8').digest('hex'),
       markdownSha256: createHash('sha256').update(markdown, 'utf8').digest('hex'),
     };
-    return Object.freeze({ report, receipt: Object.freeze({ ...receipt }) });
+    const result = Object.freeze({ report, receipt: Object.freeze({ ...receipt }) });
+    return backing.faults.onVerified?.(result) ?? result;
   };
   const authoritativeOptions: CalibrationAuthoritativeReportOptions = { verifyStageReportArtifacts };
 
