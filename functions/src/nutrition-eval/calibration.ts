@@ -39,6 +39,24 @@ import type {
   CalibrationProtocolReportOptions,
   CalibrationStageReportSnapshot,
 } from './calibration-report-state';
+import {
+  captureCalibrationRuntimeEvidenceEvent,
+  captureCalibrationRuntimeEvidenceHeader,
+  hashCalibrationRuntimeEvidenceBinding,
+} from './calibration-runtime-evidence-codec';
+import type {
+  RuntimeAttemptRef,
+  RuntimeEvidenceEvent,
+  RuntimePayload,
+  RuntimeTerminal,
+} from './calibration-runtime-evidence-codec';
+import { prepareCalibrationRuntimeEvidenceState } from './calibration-runtime-evidence-state';
+import type {
+  CalibrationRuntimeEvidenceState,
+  RuntimeCanonicalPlans,
+  RuntimeEvidenceSnapshot,
+  RuntimeFrame,
+} from './calibration-runtime-evidence-state';
 
 // ── Identity / root constants ───────────────────────────────────────────────
 
@@ -574,6 +592,23 @@ export interface CalibrationProtocolLedger extends CalibrationLedger {
     stage: StageName,
     profile: CalibrationProfile,
   ) => CalibrationStageReportSnapshot;
+}
+
+/** Opt-in, trusted-dependency core; not a native execution/admission token. */
+export interface CalibrationRuntimeEvidenceLedger extends CalibrationProtocolLedger {
+  startRuntimeAttempt(key: unknown): Readonly<RuntimeAttemptRef>;
+  startRuntimeOperation(ref: unknown, operation: unknown): void;
+  settleRuntimeOperation(ref: unknown, operation: unknown, result: unknown): void;
+  authorizeRuntimeRequest(ref: unknown): void;
+  finishRuntimeAttempt(ref: unknown): void;
+  bindRuntimeStageReport(stage: StageName, profile: CalibrationProfile): Readonly<RuntimeEvidenceEvent & { type: 'runtime_report_bound' }>;
+  getRuntimeEvidenceSnapshot(): Readonly<RuntimeEvidenceSnapshot>;
+}
+
+export interface CalibrationRuntimeEvidenceOptions {
+  readonly initialOwner: CalibrationOwner;
+  readonly plans: RuntimeCanonicalPlans;
+  readonly readCurrentGitState: () => Parameters<CalibrationLedger['assertGitState']>[0];
 }
 
 /** Trusted synchronous seam; normal callers prepare the native reader outside this core. */
@@ -1570,14 +1605,100 @@ export function createProtocolCalibrationLedger(
   return createLedgerCore(deps, identity, { keyResolver, reportOptions, authoritativeOptions }) as CalibrationProtocolLedger;
 }
 
+export function createRuntimeEvidenceCalibrationLedger(
+  deps: CalibrationLedgerDeps,
+  identity: CalibrationIdentity,
+  keyResolver: CalibrationKeyResolver,
+  reportOptions: CalibrationProtocolReportOptions,
+  authoritativeOptions: CalibrationAuthoritativeReportOptions,
+  runtimeOptions: CalibrationRuntimeEvidenceOptions,
+): CalibrationRuntimeEvidenceLedger {
+  return createLedgerCore(deps, identity, { keyResolver, reportOptions, authoritativeOptions, runtimeOptions }) as CalibrationRuntimeEvidenceLedger;
+}
+
 function createLedgerCore(
   deps: CalibrationLedgerDeps,
   identityInput: CalibrationIdentity,
   init:
     | { allowedKeys: readonly ReservationKey[] }
     | { keyResolver: CalibrationKeyResolver; reportOptions?: CalibrationProtocolReportOptions | undefined;
-      authoritativeOptions?: CalibrationAuthoritativeReportOptions | undefined },
+      authoritativeOptions?: CalibrationAuthoritativeReportOptions | undefined;
+      runtimeOptions?: CalibrationRuntimeEvidenceOptions },
 ): CalibrationLedger {
+  const evidenceMode = 'runtimeOptions' in init;
+  let evidenceBusy = true;
+  let poisoned = false;
+  let evidenceState: Readonly<CalibrationRuntimeEvidenceState> | undefined;
+  let evidenceHistory: Readonly<Record<string, unknown>>[] = [];
+  let evidenceRecoveryAllowed = false;
+  let evidenceInitialOwner: CalibrationOwner | undefined;
+  let evidencePlans: RuntimeCanonicalPlans | undefined;
+  let evidenceGitReader: CalibrationRuntimeEvidenceOptions['readCurrentGitState'] | undefined;
+
+  function evidenceCheck(): void {
+    if (poisoned) throw new CalibrationFatalError('calibration:ledger-poisoned');
+  }
+
+  // All reflection happens under the same public phase guard. Check poison
+  // immediately after EACH successful foreign reflection, before inspecting
+  // its result or proceeding to another trap. Never inspect foreign errors.
+  function evidenceReflect<T>(read: () => T): T {
+    const result = read();
+    evidenceCheck();
+    return result;
+  }
+
+  function evidenceCapture(value: unknown, depth = 0, budget = { left: 16384 }): unknown {
+    if (--budget.left < 0 || depth > 16) throw new CalibrationFatalError('calibration:runtime-input-invalid');
+    if (value === null || typeof value === 'string' || typeof value === 'boolean' || typeof value === 'number' || value === undefined) return value;
+    if (typeof value !== 'object') throw new CalibrationFatalError('calibration:runtime-input-invalid');
+    const array = evidenceReflect(() => Array.isArray(value));
+    const prototype = evidenceReflect(() => Object.getPrototypeOf(value));
+    if (prototype !== (array ? Array.prototype : Object.prototype) && !(prototype === null && !array)) {
+      throw new CalibrationFatalError('calibration:runtime-input-invalid');
+    }
+    const keys = evidenceReflect(() => Reflect.ownKeys(value));
+    if (keys.length > 4097 || keys.some((key) => typeof key !== 'string')) throw new CalibrationFatalError('calibration:runtime-input-invalid');
+    if (array) {
+      const descriptor = evidenceReflect(() => Object.getOwnPropertyDescriptor(value, 'length'));
+      const length: unknown = descriptor?.value;
+      if (descriptor === undefined || descriptor.enumerable !== false || typeof length !== 'number' || !Number.isSafeInteger(length) || length < 0 || length > 4096 || keys.length !== length + 1) {
+        throw new CalibrationFatalError('calibration:runtime-input-invalid');
+      }
+      const owned: unknown[] = [];
+      for (let index = 0; index < length; index += 1) {
+        const field = evidenceReflect(() => Object.getOwnPropertyDescriptor(value, String(index)));
+        if (field?.enumerable !== true || !('value' in field)) throw new CalibrationFatalError('calibration:runtime-input-invalid');
+        owned.push(evidenceCapture(field.value, depth + 1, budget));
+      }
+      return Object.freeze(owned);
+    }
+    const owned: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
+    for (const key of keys as string[]) {
+      const field = evidenceReflect(() => Object.getOwnPropertyDescriptor(value, key));
+      if (field?.enumerable !== true || !('value' in field)) throw new CalibrationFatalError('calibration:runtime-input-invalid');
+      Object.defineProperty(owned, key, { value: evidenceCapture(field.value, depth + 1, budget), enumerable: true, writable: true, configurable: true });
+    }
+    return Object.freeze(owned);
+  }
+
+  if (evidenceMode) {
+    try {
+      const options = captureStrictReportRecord(init.runtimeOptions,
+        ['initialOwner', 'plans', 'readCurrentGitState'], 'calibration:runtime-options-invalid');
+      const owner = captureStrictReportRecord(evidenceCapture(options.initialOwner),
+        ['hostname', 'bootId', 'pid', 'startTicks', 'acquiredAt'], 'calibration:runtime-options-invalid');
+      evidenceInitialOwner = snapshotStrictOwner(owner);
+      evidencePlans = evidenceCapture(options.plans) as RuntimeCanonicalPlans;
+      if (typeof options.readCurrentGitState !== 'function') throw new CalibrationFatalError('calibration:runtime-options-invalid');
+      evidenceGitReader = options.readCurrentGitState as CalibrationRuntimeEvidenceOptions['readCurrentGitState'];
+      // Constructor inputs are captured before resolver/verifier callbacks.
+      identityInput = captureStrictReportRecord(evidenceCapture(identityInput), IDENTITY_FIELDS,
+        'calibration:runtime-options-invalid') as unknown as CalibrationIdentity;
+    } catch {
+      throw new CalibrationFatalError('calibration:runtime-options-invalid');
+    }
+  }
   const isStrict = !('allowedKeys' in init);
   const strictKeyResolver = isStrict
     ? (init as { keyResolver: CalibrationKeyResolver }).keyResolver
@@ -1684,7 +1805,6 @@ function createLedgerCore(
   let imageReserved = 0;
   let tokenReservation: TokenReservationState | undefined;
   let heldOwner: CalibrationOwner | undefined;
-  let poisoned = false;
   let pinnedModelVersion: string | undefined;
   let selectedProfile: CalibrationProfile | undefined;
   let selectedReason: CalibrationProfileSelectionReason | undefined;
@@ -1714,6 +1834,173 @@ function createLedgerCore(
 
   function pairId(stage: StageName, profile: CalibrationProfile): string {
     return `${stage}|${profile}`;
+  }
+
+  function evidenceSnapshot(): Readonly<RuntimeEvidenceSnapshot> {
+    if (evidenceState === undefined) throw new CalibrationFatalError('calibration:runtime-header-required');
+    return evidenceState.snapshot();
+  }
+
+  function evidenceFrame(event: Readonly<Record<string, unknown>>): RuntimeFrame {
+    const eventIndex = evidenceSnapshot().lastEventIndex + 1;
+    const type = event.type;
+    if (typeof type === 'string' && type.startsWith('runtime_')) {
+      return { kind: 'runtime', eventIndex, event: captureCalibrationRuntimeEvidenceEvent(event) };
+    }
+    if (type === 'reserved') return { kind: 'reserved', eventIndex, key: event.key as ReservationKey };
+    if (type === 'completed' || type === 'failed') {
+      const journal = journalByHash.get(event.journalHash as string);
+      if (journal === undefined) throw new CalibrationFatalError('calibration:runtime-journal-required');
+      return { kind: 'image_terminal', eventIndex, key: event.key as ReservationKey,
+        terminalType: type, journalHash: event.journalHash as string, journal };
+    }
+    if (type === 'non_reservation_result') return { kind: 'non_reservation_result', eventIndex,
+      event: captureCalibrationNonReservationEvent(event) };
+    if (type === 'model_version_pinned') return { kind: 'model_version_pinned', eventIndex, responseModelVersion: event.responseModelVersion as string };
+    if (type === 'profile_selected') return { kind: 'profile_selected', eventIndex, profile: event.profile as CalibrationProfile };
+    if (type === 'artifact_receipt_admitted') return { kind: 'artifact_receipt_admitted', eventIndex,
+      receipt: captureReceipt(event.receipt, 'calibration:runtime-receipt-invalid') };
+    if (type === 'lock_recovery') return { kind: 'lock_recovery', eventIndex,
+      staleOwner: event.staleOwner as CalibrationOwner, recoveringOwner: event.recoveringOwner as CalibrationOwner };
+    if (type === 'token_count_reserved' || type === 'token_count_completed' || type === 'token_count_failed' || type === 'safe_error' || type === 'stage_completed') {
+      return { kind: 'protocol_noop', eventIndex, eventType: type };
+    }
+    throw new CalibrationFatalError('calibration:runtime-protocol-event-invalid');
+  }
+
+  function evidenceSource(): void {
+    const raw = evidenceGitReader!();
+    evidenceCheck(); // No reflection on a callback result after reentry.
+    const captured = evidenceCapture(raw);
+    evidenceCheck();
+    const record = captured as Record<string, unknown>;
+    const fields = ['headCommit', 'functionsTreeId', 'dirtyPaths'];
+    if (typeof record === 'object' && record !== null && Object.hasOwn(record, 'implementationCommit')) fields.push('implementationCommit');
+    const owned = captureStrictReportRecord(captured, fields, 'calibration:git-invalid');
+    if (typeof owned.headCommit !== 'string' || !HEX40_PATTERN.test(owned.headCommit)
+      || (fields.length === 4 && (typeof owned.implementationCommit !== 'string' || !HEX40_PATTERN.test(owned.implementationCommit)))
+      || !Array.isArray(owned.dirtyPaths) || owned.dirtyPaths.some((path: unknown) => typeof path !== 'string')) {
+      throw new CalibrationFatalError('calibration:git-invalid');
+    }
+    strictAssertGitState(owned);
+  }
+
+  function evidenceCurrentRef(raw: unknown): Readonly<RuntimeAttemptRef> {
+    const record = captureStrictReportRecord(raw, ['key', 'attempt'], 'calibration:runtime-ref-invalid');
+    // The codec owns key/attempt validation. This owned synthetic event is
+    // validation data only and is never persisted or counted as execution.
+    const event = captureCalibrationRuntimeEvidenceEvent({ type: 'runtime_attempt_started', version: 1,
+      owner: evidenceSnapshot().owner, at: evidenceSnapshot().owner.acquiredAt,
+      sequence: 1, key: record.key, attempt: record.attempt });
+    if (event.type !== 'runtime_attempt_started') throw new CalibrationFatalError('calibration:runtime-ref-invalid');
+    return Object.freeze({ key: event.key, attempt: event.attempt });
+  }
+
+  function evidenceEvent(payload: RuntimePayload): Readonly<RuntimeEvidenceEvent> {
+    requireLock();
+    const snapshot = evidenceSnapshot();
+    const at = strictNowIso();
+    evidenceCheck();
+    return captureCalibrationRuntimeEvidenceEvent({ ...payload, version: 1,
+      sequence: snapshot.sequence + 1, owner: heldOwner, at });
+  }
+
+  function evidencePublish(payload: RuntimePayload): Readonly<RuntimeEvidenceEvent> {
+    const event = evidenceEvent(payload);
+    persistLedgerEvent(event);
+    return event;
+  }
+
+  function evidenceTerminal(key: ReservationKey): RuntimeTerminal | undefined {
+    const id = canonicalReservationKey(key);
+    for (let index = evidenceHistory.length - 1; index >= 0; index -= 1) {
+      const event = evidenceHistory[index]!;
+      if (event.key === undefined || canonicalReservationKey(event.key as ReservationKey) !== id) continue;
+      if (event.type === 'completed' || event.type === 'failed') return { kind: 'image', eventIndex: index + 1, journalHash: event.journalHash as string };
+      if (event.type === 'non_reservation_result') return { kind: 'non_reservation', eventIndex: index + 1, contentDigest: event.contentDigest as string };
+    }
+    return undefined;
+  }
+
+  function evidenceStart(key: unknown): Readonly<RuntimeAttemptRef> {
+    const captured = snapshotStrictReservationKey(key, 'runtime_attempt_started');
+    strictAssertReserveAllowed(captured);
+    assertPairUnsealed(captured);
+    const prior = evidenceSnapshot().events.filter((event) => event.type === 'runtime_attempt_started'
+      && canonicalReservationKey(event.key) === canonicalReservationKey(captured));
+    const event = evidencePublish({ type: 'runtime_attempt_started', key: captured, attempt: prior.length + 1 });
+    if (event.type !== 'runtime_attempt_started') throw new CalibrationFatalError('calibration:runtime-ref-invalid');
+    return Object.freeze({ key: event.key, attempt: event.attempt });
+  }
+
+  function evidenceFinish(refValue: unknown): void {
+    const ref = evidenceCurrentRef(refValue);
+    const terminal = evidenceTerminal(ref.key);
+    if (terminal === undefined) throw new CalibrationFatalError('calibration:runtime-terminal-required');
+    evidencePublish({ type: 'runtime_attempt_finished', ...ref, terminal });
+  }
+
+  function evidenceBind(stage: StageName, profile: CalibrationProfile): Readonly<RuntimeEvidenceEvent & { type: 'runtime_report_bound' }> {
+    // Always reverify, including idempotent retries. The receipt itself is
+    // admitted first; no circular requirement for a pre-existing binding.
+    const receipt = admitStageReportReceipt(stage, profile);
+    const previous = evidenceSnapshot().events.find((event) => event.type === 'runtime_report_bound' && event.stage === stage && event.profile === profile);
+    if (previous?.type === 'runtime_report_bound') {
+      const input = evidenceState!.pairInput(stage, profile, previous.throughSequence);
+      const digest = hashCalibrationRuntimeEvidenceBinding({ ...input, receipt });
+      if (digest !== previous.bindingSha256 || !sameReceipt(receipt, previous.receipt)) throw new CalibrationFatalError('calibration:runtime-binding-conflict');
+      return previous;
+    }
+    const throughSequence = evidenceSnapshot().sequence;
+    const input = evidenceState!.pairInput(stage, profile, throughSequence);
+    const bindingSha256 = hashCalibrationRuntimeEvidenceBinding({ ...input, receipt });
+    const event = evidencePublish({ type: 'runtime_report_bound', stage, profile, receipt, throughSequence, bindingSha256 });
+    if (event.type !== 'runtime_report_bound') throw new CalibrationFatalError('calibration:runtime-binding-invalid');
+    return event;
+  }
+
+  function evidenceRecover(): CalibrationRecoveryReport {
+    const active = evidenceSnapshot().activeAttempt;
+    if (active !== null && !evidenceRecoveryAllowed) throw new CalibrationFatalError('calibration:runtime-recovery-epoch-required');
+    // A journal-to-terminal cut is an unresolved conflict, not permission to
+    // append a second result and manufacture either success or a retry.
+    for (const [id, record] of reservations) {
+      if (record.status === 'reserved' && (journalHashesByKey.get(id)?.size ?? 0) !== 0) {
+        throw new CalibrationFatalError('calibration:runtime-orphan-journal');
+      }
+    }
+    const report = strictRecoverAfterCrash();
+    if (active !== null) {
+      const terminal = evidenceTerminal(active.key);
+      if (terminal === undefined) {
+        evidencePublish({ type: 'runtime_attempt_abandoned', ...active,
+          disposition: { kind: 'unreserved_interruption' } });
+      } else {
+        const record = reservations.get(canonicalReservationKey(active.key));
+        if (record?.status === 'interrupted_reservation' && terminal.kind === 'image') {
+          evidencePublish({ type: 'runtime_attempt_abandoned', ...active,
+            disposition: { kind: 'reserved_interruption', terminal } });
+        } else {
+          const finish = evidenceEvent({ type: 'runtime_attempt_finished', ...active, terminal });
+          let complete = false;
+          try {
+            evidenceState!.preview(evidenceFrame(finish as unknown as Readonly<Record<string, unknown>>));
+            complete = true;
+          } catch {
+            // This preview contains exclusively owned facts. Failure means
+            // incomplete runtime evidence, not an excuse to repeat a call.
+          }
+          if (complete) persistLedgerEvent(finish);
+          else evidencePublish({ type: 'runtime_attempt_abandoned', ...active,
+            disposition: { kind: 'terminal_evidence_incomplete', terminal } });
+        }
+      }
+    }
+    evidenceRecoveryAllowed = false;
+    const plan = selectedProfile === undefined ? evidencePlans!.initial : evidencePlans![selectedProfile];
+    const resumable = plan.filter(({ key }) => !reservations.has(canonicalReservationKey(key))
+      && !nonReservationsByKey.has(canonicalReservationKey(key))).map(({ key }) => ({ ...key }));
+    return { ...report, resumable };
   }
 
   function captureReceipt(value: unknown, message: string): Readonly<CalibrationPublishedReportReceipt> {
@@ -1815,6 +2102,7 @@ function createLedgerCore(
       const snapshot = receiptSnapshot(stage, profile);
       verifyingArtifacts = true;
       const result = verifyArtifacts!(Object.freeze({ stage, profile, snapshot }));
+      if (evidenceMode) evidenceCheck();
       const envelope = captureStrictReportRecord(result, ['report', 'receipt'], 'calibration:artifact-verification-failed');
       const measurements = measureCalibrationStageReport(envelope.report);
       const receipt = captureReceipt(envelope.receipt, 'calibration:artifact-verification-failed');
@@ -1836,6 +2124,7 @@ function createLedgerCore(
     if (!STAGE_ORDER.includes(stage) || (profile !== 'LOW' && profile !== 'MEDIUM')) {
       throw new CalibrationFatalError('calibration:artifact-verification-failed');
     }
+    if (evidenceMode) evidenceState!.pairInput(stage, profile, evidenceSnapshot().sequence);
     const verified = verifyReceipt(stage, profile);
     const key = pairId(stage, profile);
     const previous = receipts.get(key);
@@ -1952,6 +2241,10 @@ function createLedgerCore(
   }
 
   function clearReplayState(): void {
+    if (evidenceMode) {
+      evidenceState = undefined;
+      evidenceHistory = [];
+    }
     receipts.clear();
     measuredReports.clear();
     sealedPairs.clear();
@@ -2231,7 +2524,15 @@ function createLedgerCore(
       } else {
         strictValidateHeaderEvent(eventItems[0]);
         for (let index = 1; index < eventItems.length; index += 1) {
-          strictReplayLedgerEvent(eventItems[index]);
+          if (!evidenceMode) {
+            strictReplayLedgerEvent(eventItems[index]);
+          } else {
+            const owned = evidenceCapture(eventItems[index]) as Record<string, unknown>;
+            if (typeof owned.type !== 'string' || !owned.type.startsWith('runtime_')) strictReplayLedgerEvent(owned);
+            evidenceCheck();
+            evidenceState = evidenceState!.preview(evidenceFrame(owned));
+            evidenceHistory.push(owned);
+          }
         }
       }
       strictValidateJournalVersions();
@@ -2337,10 +2638,26 @@ function createLedgerCore(
   }
 
   function strictPersistLedgerEvent(event: unknown): void {
+    let candidate: Readonly<CalibrationRuntimeEvidenceState> | undefined;
+    let owned: Readonly<Record<string, unknown>> | undefined;
     try {
-      deps.appendLedgerEvent(event);
+      if (evidenceMode) {
+        owned = evidenceCapture(event) as Readonly<Record<string, unknown>>;
+        candidate = owned.type === 'protocol_identity'
+          ? prepareCalibrationRuntimeEvidenceState({ header: captureCalibrationRuntimeEvidenceHeader(owned), plans: evidencePlans })
+          : evidenceState!.preview(evidenceFrame(owned));
+        evidenceCheck();
+      }
+      deps.appendLedgerEvent(evidenceMode ? owned! : event);
+      if (evidenceMode) evidenceCheck();
       deps.fsyncLedgerFile();
+      if (evidenceMode) evidenceCheck();
       deps.fsyncLedgerDir();
+      if (evidenceMode) {
+        evidenceCheck();
+        evidenceState = candidate!;
+        evidenceHistory.push(owned!);
+      }
     } catch {
       poisoned = true;
       throw new CalibrationFatalError('calibration:ledger-persist-failed');
@@ -2350,8 +2667,11 @@ function createLedgerCore(
   function strictPersistJournal(entry: JournalEntry): void {
     try {
       deps.appendJournal(entry);
+      if (evidenceMode) evidenceCheck();
       deps.fsyncJournalFile();
+      if (evidenceMode) evidenceCheck();
       deps.fsyncJournalDir();
+      if (evidenceMode) evidenceCheck();
     } catch {
       poisoned = true;
       throw new CalibrationFatalError('calibration:journal-persist-failed');
@@ -2362,6 +2682,7 @@ function createLedgerCore(
     let at: unknown;
     try {
       at = deps.nowIso();
+      if (evidenceMode) evidenceCheck();
     } catch {
       throw new CalibrationFatalError('calibration:clock-failed');
     }
@@ -2415,6 +2736,13 @@ function createLedgerCore(
       safeWriteLockExclusive(owner);
       heldOwner = owner;
       refreshUnderLock();
+      if (evidenceMode) {
+        const previous = evidenceSnapshot();
+        if (previous.activeAttempt !== null) throw new CalibrationFatalError('calibration:runtime-active-attempt-without-lock');
+        if (!sameOwner(previous.owner, owner)) {
+          persistLedgerEvent({ type: 'lock_recovery', staleOwner: previous.owner, recoveringOwner: owner, at: strictNowIso() });
+        }
+      }
       return;
     }
     // Strict: snapshot the stale owner into fresh closed five-field data
@@ -2443,6 +2771,7 @@ function createLedgerCore(
         recoveringOwner: owner,
         at: strictNowIso(),
       });
+      if (evidenceMode) evidenceRecoveryAllowed = true;
       return;
     }
     persistLedgerEvent({
@@ -2605,6 +2934,10 @@ function createLedgerCore(
 
   function persistTokenTerminalEvent(event: unknown, key: TokenCountReservationKey): void {
     try {
+      if (evidenceMode) {
+        strictPersistLedgerEvent(event);
+        return;
+      }
       deps.appendLedgerEvent(event);
       deps.fsyncLedgerFile();
       deps.fsyncLedgerDir();
@@ -2784,6 +3117,10 @@ function createLedgerCore(
     }
     const event: Record<string, unknown> = { type: 'protocol_identity', identity: snapshot, at: strictNowIso() };
     if (verifyArtifacts !== undefined) event.reportAuthority = 'verified_artifacts_v1';
+    if (evidenceMode) {
+      event.runtimeEvidenceVersion = 1;
+      event.owner = { ...evidenceInitialOwner! };
+    }
     return event;
   }
 
@@ -2845,6 +3182,13 @@ function createLedgerCore(
   }
 
   function strictValidateHeaderEvent(event: unknown): void {
+    if (evidenceMode) {
+      const header = captureCalibrationRuntimeEvidenceHeader(event);
+      strictAssertIdentity(header.identity);
+      evidenceState = prepareCalibrationRuntimeEvidenceState({ header, plans: evidencePlans });
+      evidenceHistory = [header as unknown as Readonly<Record<string, unknown>>];
+      return;
+    }
     let record: Record<string, unknown>;
     if (verifyArtifacts !== undefined) {
       const malformed = 'calibration:ledger-event-malformed:protocol_identity';
@@ -4137,6 +4481,72 @@ function createLedgerCore(
     recordNonReservationResult: strictRecordNonReservationResult,
     getStageReportSnapshot: strictGetStageReportSnapshot,
   };
+  if (evidenceMode) {
+    if (verifyArtifacts === undefined || reportOptions === undefined) throw new CalibrationFatalError('calibration:runtime-authority-required');
+    const methods: CalibrationRuntimeEvidenceLedger = {
+      ...protocolLedger,
+      recoverAfterCrash: evidenceRecover,
+      startRuntimeAttempt: evidenceStart,
+      startRuntimeOperation: (value, operation) => {
+        const ref = evidenceCurrentRef(value);
+        evidencePublish({ type: 'runtime_operation_started', ...ref, operation: operation as 'image' | 'vision' | 'snapshot' });
+      },
+      settleRuntimeOperation: (value, operation, result) => {
+        const ref = evidenceCurrentRef(value);
+        evidencePublish({ type: 'runtime_operation_settled', ...ref,
+          operation: operation as 'image' | 'vision' | 'snapshot', result: result as 'returned' | 'failed' });
+      },
+      authorizeRuntimeRequest: (value) => {
+        const ref = evidenceCurrentRef(value);
+        const index = evidenceHistory.findIndex((event) => event.type === 'reserved'
+          && canonicalReservationKey(event.key as ReservationKey) === canonicalReservationKey(ref.key));
+        if (index < 0) throw new CalibrationFatalError('calibration:runtime-reservation-required');
+        evidencePublish({ type: 'runtime_request_authorized', ...ref, reservationEventIndex: index + 1 });
+      },
+      finishRuntimeAttempt: evidenceFinish,
+      bindRuntimeStageReport: evidenceBind,
+      getRuntimeEvidenceSnapshot: evidenceSnapshot,
+    };
+    const guarded = Object.fromEntries(Object.entries(methods).map(([name, method]) => [name, (...args: unknown[]) => {
+      if (evidenceBusy) {
+        poisoned = true;
+        throw new CalibrationFatalError('calibration:reentrant-call');
+      }
+      evidenceBusy = true;
+      // Benchmark completion remains unconditionally denied, including a
+      // repeated call after poison. Strict comparison does not reflect args.
+      const message = name === 'completeStage' && args[0] === 'benchmark'
+        ? 'calibration:benchmark-runtime-evidence-required' : 'calibration:runtime-operation-failed';
+      try {
+        evidenceCheck();
+        evidenceSource();
+        if (name !== 'acquireLock') {
+          requireLock();
+          if (!authorityReady) throw new CalibrationFatalError('calibration:artifact-authority-lock-required');
+        }
+        if (name === 'reserveSynthetic') throw new CalibrationFatalError('calibration:runtime-synthetic-forbidden');
+        const owned = args.map((value) => evidenceCapture(value));
+        evidenceCheck();
+        if (name === 'acquireLock' || name === 'releaseLock') {
+          const owner = captureStrictReportRecord(owned[0], ['hostname', 'bootId', 'pid', 'startTicks', 'acquiredAt'], 'calibration:runtime-owner-invalid');
+          if (name === 'acquireLock' && !sameOwner(snapshotStrictOwner(owner), evidenceInitialOwner!)) {
+            throw new CalibrationFatalError('calibration:runtime-owner-invalid');
+          }
+          if (name === 'releaseLock' && evidenceSnapshot().activeAttempt !== null) throw new CalibrationFatalError('calibration:runtime-active-release');
+        }
+        const result: unknown = Reflect.apply(method, undefined, owned);
+        evidenceCheck();
+        return result;
+      } catch {
+        poisoned = true;
+        throw new CalibrationFatalError(message);
+      } finally {
+        evidenceBusy = false;
+      }
+    }]));
+    evidenceBusy = false;
+    return Object.freeze(guarded) as unknown as CalibrationRuntimeEvidenceLedger;
+  }
   if (verifyArtifacts === undefined) return protocolLedger;
   const authorityMethods = new Set(['getSelectedProfile', 'getCompletedStages',
     'getCompletedReportPredictions', 'getStageReportSnapshot', 'rebuildReport', 'assertStageTransition']);
