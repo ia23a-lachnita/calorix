@@ -418,3 +418,259 @@ describe('illustrative future cases', () => {
     expect(readFileSync(resolve(f.root, 'ledger.json'), 'utf8')).toBe(before);
   });
 });
+
+// Persistence tier: deliberate faults are DISARMED throughout acquisition and
+// token prerequisites. Only the next runtime publication may trip a fault.
+import {
+  loadPrepareNativeLedgerFactoryTask4,
+} from './calibration-runtime-evidence-fixtures';
+import type { RuntimeEvidenceFileStoreOverrides } from './calibration-runtime-evidence-fixtures';
+import { createRuntimeEvidenceCalibrationLedger } from '../../src/nutrition-eval/calibration';
+import { createCalibrationBootstrapReadDeps } from '../../src/nutrition-eval/calibration-bootstrap';
+
+type PersistenceBoot = Awaited<ReturnType<typeof makeExistingNativeBootFixtureTask4>>;
+type PersistenceFault = 'short' | 'zero' | 'negative' | 'overlarge' | 'fractional' | 'nan' | 'infinity'
+  | 'write-throw' | 'fsync' | 'close-before' | 'close-after' | 'rename-before' | 'rename-after'
+  | 'dir-before' | 'dir-after';
+type FdWitness = { fd: number; dev: number; ino: number; start: number; end: number };
+
+function makePersistenceHooks() {
+  const trace: string[] = [];
+  const writes: Array<FdWitness & { count: number }> = [];
+  const syncs: FdWitness[] = [];
+  const closes: FdWitness[] = [];
+  const renames: Array<{ to: string; start: number; end: number }> = [];
+  const dirs: Array<{ path: string; start: number; end: number }> = [];
+  let fault: PersistenceFault | undefined;
+  let fired = 0;
+  let original: { fd: number; dev: number; ino: number } | undefined;
+  const hit = (kind: PersistenceFault): boolean => {
+    if (fault !== kind) return false;
+    fault = undefined;
+    fired += 1;
+    trace.push(`FAULT:${kind}`);
+    return true;
+  };
+  const injected = () => new Error('private-native-hook-error-must-not-escape');
+  const capture = (fd: number) => {
+    const st = fstatSyncTest(fd);
+    if (fault !== undefined && original === undefined) original = { fd, dev: st.dev, ino: st.ino };
+    return { fd, dev: st.dev, ino: st.ino };
+  };
+  const overrides: RuntimeEvidenceFileStoreOverrides = {
+    fdWriteSync(fd, buffer, offset, remaining) {
+      const identity = capture(fd);
+      trace.push('write:start');
+      const start = trace.length - 1;
+      if (hit('write-throw')) throw injected();
+      for (const [kind, count] of [
+        ['zero', 0], ['negative', -1], ['overlarge', remaining + 1],
+        ['fractional', 0.5], ['nan', Number.NaN], ['infinity', Number.POSITIVE_INFINITY],
+      ] as const) {
+        if (hit(kind)) return count;
+      }
+      const count = writeSyncTest(fd, buffer, offset, fault === 'short' ? Math.min(7, remaining) : remaining);
+      trace.push('write:complete');
+      writes.push({ ...identity, start, end: trace.length - 1, count });
+      return count;
+    },
+    fdFsyncSync(fd) {
+      const identity = capture(fd);
+      trace.push('fsync:start');
+      const start = trace.length - 1;
+      if (hit('fsync')) throw injected();
+      fsyncSyncTest(fd);
+      trace.push('fsync:complete');
+      syncs.push({ ...identity, start, end: trace.length - 1 });
+    },
+    fdCloseSync(fd) {
+      const identity = capture(fd);
+      trace.push('close:start');
+      const start = trace.length - 1;
+      if (hit('close-before')) throw injected();
+      closeSyncTest(fd);
+      trace.push('close:complete');
+      closes.push({ ...identity, start, end: trace.length - 1 });
+      if (hit('close-after')) throw injected();
+    },
+    renameSync(from, to) {
+      trace.push('rename:start');
+      const start = trace.length - 1;
+      if (basename(to) === 'ledger.json' && hit('rename-before')) throw injected();
+      renameSyncTest(from, to);
+      trace.push('rename:complete');
+      renames.push({ to, start, end: trace.length - 1 });
+      if (basename(to) === 'ledger.json' && hit('rename-after')) throw injected();
+    },
+    fsyncDirSync(path) {
+      trace.push('dir:start');
+      const start = trace.length - 1;
+      if (hit('dir-before')) throw injected();
+      const fd = openSyncTest(path, constantsTest.O_RDONLY | constantsTest.O_DIRECTORY | constantsTest.O_NOFOLLOW);
+      try { fsyncSyncTest(fd); } finally { closeSyncTest(fd); }
+      trace.push('dir:complete');
+      dirs.push({ path, start, end: trace.length - 1 });
+      if (hit('dir-after')) throw injected();
+    },
+  };
+  return {
+    overrides, trace, writes, syncs, closes, renames, dirs,
+    get fired() { return fired; },
+    get original() { return original; },
+    arm(kind: PersistenceFault) {
+      fault = kind;
+      fired = 0;
+      original = undefined;
+      trace.length = writes.length = syncs.length = closes.length = renames.length = dirs.length = 0;
+    },
+    cleanupLeakedDescriptor() {
+      // Only after assertions, and only this operation's still-identical fd.
+      if (original === undefined) return;
+      try {
+        const st = fstatSyncTest(original.fd);
+        if (st.dev === original.dev && st.ino === original.ino) closeSyncTest(original.fd);
+      } catch { /* already closed; never close an unrelated reused descriptor */ }
+    },
+  };
+}
+
+async function openPersistenceLedger(mode: 'future' | 'existing-core', hooks: ReturnType<typeof makePersistenceHooks>) {
+  const boot: PersistenceBoot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+  const context = boot.context;
+  let ledger;
+  if (mode === 'future') {
+    const prepare = await loadPrepareNativeLedgerFactoryTask4();
+    ledger = await prepare({ context }, hooks.overrides);
+  } else {
+    const readDeps = createCalibrationBootstrapReadDeps(context.baseDir);
+    const verifier = await prepareCalibrationStageReportArtifactVerifier(context);
+    ledger = createRuntimeEvidenceCalibrationLedger(
+      createFileCalibrationLedgerDeps(context.baseDir, hooks.overrides), context.identity,
+      (profile) => deriveCanonicalAllowedKeys({ ...context.files }, profile),
+      { getReportOutcomePlan: (profile) => deriveCanonicalReportOutcomePlan({ ...context.files }, profile) },
+      { verifyStageReportArtifacts: (params) => verifier.verify(params) },
+      { initialOwner: context.owner, plans: boot.plans, readCurrentGitState: () => readDeps.readGitState() },
+    );
+  }
+  ledger.acquireLock({ ...context.owner });
+  const token = { kind: 'token_count' as const, stage: 'preflight' as const, caseId: boot.key.caseId, model: context.identity.model };
+  ledger.reserveTokenCount(token);
+  ledger.completeTokenCount(token, 1200);
+  expect(hooks.fired).toBe(0);
+  return { boot, ledger };
+}
+
+function expectStaticPersistenceFatal(error: unknown): void {
+  expect(error).toBeInstanceOf(CalibrationFatalError);
+  expect(Object.hasOwn(error as object, 'cause')).toBe(false);
+  expect((error as Error).message).not.toContain('private-native-hook-error');
+}
+
+function expectOriginalFdClosed(hooks: ReturnType<typeof makePersistenceHooks>): void {
+  expect(hooks.original).toBeDefined();
+  let code: unknown;
+  try { fstatSyncTest(hooks.original!.fd); } catch (error) { code = (error as NodeJS.ErrnoException).code; }
+  expect(code).toBe('EBADF');
+}
+
+async function exerciseShortWrites(mode: 'future' | 'existing-core'): Promise<void> {
+  const hooks = makePersistenceHooks();
+  try {
+    const { boot, ledger } = await openPersistenceLedger(mode, hooks);
+    const path = resolve(boot.ledgerRoot, 'ledger.json');
+    const before = JSON.parse(readFileSync(path, 'utf8')) as unknown[];
+    hooks.arm('short');
+    expect(ledger.startRuntimeAttempt({ ...boot.key })).toEqual({ key: { ...boot.key }, attempt: 1 });
+    const bytes = readFileSync(path, 'utf8');
+    const after = JSON.parse(bytes) as Array<Record<string, unknown>>;
+    expect(after.slice(0, -1)).toEqual(before);
+    expect(after).toHaveLength(before.length + 1);
+    expect(after.at(-1)).toMatchObject({ type: 'runtime_attempt_started', version: 1, sequence: 1, key: boot.key, attempt: 1, owner: boot.context.owner });
+    expect(hooks.writes.length).toBeGreaterThan(1);
+    expect(hooks.writes.every((w) => w.count > 0 && w.count <= 7)).toBe(true);
+    expect(hooks.writes.reduce((sum, w) => sum + w.count, 0)).toBe(Buffer.byteLength(bytes));
+    expect(hooks.syncs).toHaveLength(1);
+    expect(hooks.closes).toHaveLength(1);
+    expect(hooks.renames).toHaveLength(1);
+    expect(hooks.dirs).toHaveLength(1);
+    const first = hooks.writes[0]!;
+    for (const record of [...hooks.writes, ...hooks.syncs, ...hooks.closes]) {
+      expect([record.fd, record.dev, record.ino]).toEqual([first.fd, first.dev, first.ino]);
+      expect(record.start).toBeLessThan(record.end);
+    }
+    expect(hooks.writes.at(-1)!.end).toBeLessThan(hooks.syncs[0]!.start);
+    expect(hooks.syncs[0]!.end).toBeLessThan(hooks.closes[0]!.start);
+    expect(hooks.closes[0]!.end).toBeLessThan(hooks.renames[0]!.start);
+    expect(hooks.renames[0]!.to).toBe(path);
+    expect(hooks.renames[0]!.end).toBeLessThan(hooks.dirs[0]!.start);
+    expect(resolve(hooks.dirs[0]!.path)).toBe(boot.ledgerRoot);
+    expectOriginalFdClosed(hooks);
+  } finally { hooks.cleanupLeakedDescriptor(); }
+}
+
+async function exercisePersistenceFault(mode: 'future' | 'existing-core', kind: Exclude<PersistenceFault, 'short'>): Promise<void> {
+  const hooks = makePersistenceHooks();
+  try {
+    const { boot, ledger } = await openPersistenceLedger(mode, hooks);
+    const path = resolve(boot.ledgerRoot, 'ledger.json');
+    const lockPath = resolve(boot.ledgerRoot, 'lock.json');
+    const before = readFileSync(path, 'utf8');
+    const lockBytes = readFileSync(lockPath, 'utf8');
+    const lockStat = lstatSync(lockPath);
+    hooks.arm(kind);
+    let returned: unknown;
+    let error: unknown;
+    let guardedEffects = 0;
+    try { returned = ledger.startRuntimeAttempt({ ...boot.key }); guardedEffects += 1; } catch (caught) { error = caught; }
+    expectStaticPersistenceFatal(error);
+    expect(returned).toBeUndefined();
+    expect(guardedEffects).toBe(0);
+    expect(hooks.fired).toBe(1);
+    expect(hooks.trace.filter((entry) => entry === `FAULT:${kind}`)).toHaveLength(1);
+    expectOriginalFdClosed(hooks);
+    const published = kind === 'rename-after' || kind === 'dir-before' || kind === 'dir-after';
+    const after = readFileSync(path, 'utf8');
+    if (published) {
+      const rows = JSON.parse(after) as Array<Record<string, unknown>>;
+      expect(rows.slice(0, -1)).toEqual(JSON.parse(before));
+      expect(rows.at(-1)).toMatchObject({ type: 'runtime_attempt_started', key: boot.key, attempt: 1, sequence: 1 });
+      expect(hooks.renames).toHaveLength(1);
+      expect(hooks.renames[0]!.to).toBe(path);
+      if (kind.startsWith('dir-')) {
+        expect(hooks.trace.indexOf('rename:complete')).toBeLessThan(hooks.trace.indexOf(`FAULT:${kind}`));
+      }
+    } else {
+      expect(after).toBe(before);
+      expect(hooks.renames).toHaveLength(0);
+    }
+    const traceSize = hooks.trace.length;
+    expect(() => ledger.startRuntimeAttempt({ ...boot.key })).toThrow(CalibrationFatalError);
+    expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+    expect(hooks.trace).toHaveLength(traceSize);
+    expect(readFileSync(path, 'utf8')).toBe(after);
+    expect(readFileSync(lockPath, 'utf8')).toBe(lockBytes);
+    const retained = lstatSync(lockPath);
+    expect([retained.dev, retained.ino]).toEqual([lockStat.dev, lockStat.ino]);
+  } finally { hooks.cleanupLeakedDescriptor(); }
+}
+
+describe('persistence tier existing-source oracle controls', () => {
+  // A truncated short-write loop or close-before-fsync must fail this SAME driver.
+  it('physically loops short writes before fsync/close/rename/parent sync', () => exerciseShortWrites('existing-core'));
+  // These fault semantics already hold in old native storage + the real Task3
+  // core. They validate readiness, one-shot targeting, disk bytes and poison;
+  // they do NOT establish the absent guarded factory's authority.
+  it.each(['zero', 'write-throw', 'fsync', 'close-after', 'rename-before', 'rename-after', 'dir-before', 'dir-after'] as const)(
+    'reaches %s only after readiness and rejects permission', (kind) => exercisePersistenceFault('existing-core', kind),
+  );
+});
+
+describe('guarded native persistence requirements', () => {
+  it('publishes complete short-write bytes in strict descriptor order', () => exerciseShortWrites('future'));
+  // A permissive clamp, leaked descriptor, premature success or rollback of a
+  // published uncertain event must fail the corresponding case below.
+  it.each(['zero', 'negative', 'overlarge', 'fractional', 'nan', 'infinity', 'write-throw', 'fsync',
+    'close-before', 'close-after', 'rename-before', 'rename-after', 'dir-before', 'dir-after'] as const)(
+    'fails closed on %s without granting permission or losing the lock', (kind) => exercisePersistenceFault('future', kind),
+  );
+});
