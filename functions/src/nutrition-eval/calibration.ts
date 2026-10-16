@@ -2471,6 +2471,7 @@ function createLedgerCore(
     let replayJournalEntries: readonly unknown[];
     try {
       const result = deps.readJournalEntries();
+      if (evidenceMode) evidenceCheck();
       if (!Array.isArray(result)) {
         throw new CalibrationFatalError('calibration:journal-replay-not-array');
       }
@@ -2502,6 +2503,7 @@ function createLedgerCore(
     let replayLedgerEvents: readonly unknown[];
     try {
       const result = deps.readLedgerEvents();
+      if (evidenceMode) evidenceCheck();
       if (!Array.isArray(result)) {
         throw new CalibrationFatalError('calibration:ledger-replay-not-array');
       }
@@ -2570,7 +2572,13 @@ function createLedgerCore(
 
   function safeReadLock(): CalibrationOwner | undefined {
     try {
-      return deps.readLock();
+      const result = deps.readLock();
+      if (!evidenceMode) return result;
+      evidenceCheck();
+      if (result === undefined) return undefined;
+      const owned = captureStrictReportRecord(evidenceCapture(result),
+        ['hostname', 'bootId', 'pid', 'startTicks', 'acquiredAt'], 'calibration:lock-owner-invalid');
+      return snapshotStrictOwner(owned);
     } catch (error) {
       if (isStrict) {
         throw new CalibrationFatalError('calibration:lock-read-failed');
@@ -2582,6 +2590,7 @@ function createLedgerCore(
   function safeWriteLockExclusive(owner: CalibrationOwner): void {
     try {
       deps.writeLockExclusive(owner);
+      if (evidenceMode) evidenceCheck();
     } catch (error) {
       if (isStrict) {
         throw new CalibrationFatalError('calibration:lock-write-failed');
@@ -2593,6 +2602,7 @@ function createLedgerCore(
   function safeArchiveLock(owner: CalibrationOwner): void {
     try {
       deps.archiveLock(owner);
+      if (evidenceMode) evidenceCheck();
     } catch (error) {
       if (isStrict) {
         throw new CalibrationFatalError('calibration:lock-archive-failed');
@@ -2604,6 +2614,7 @@ function createLedgerCore(
   function safeRemoveLock(owner: CalibrationOwner): void {
     try {
       deps.removeLock(owner);
+      if (evidenceMode) evidenceCheck();
     } catch (error) {
       if (isStrict) {
         throw new CalibrationFatalError('calibration:lock-remove-failed');
@@ -2614,7 +2625,9 @@ function createLedgerCore(
 
   function safeProbeOwnerLiveness(owner: CalibrationOwner): CalibrationLiveness {
     try {
-      return deps.probeOwnerLiveness(owner);
+      const result = deps.probeOwnerLiveness(owner);
+      if (evidenceMode) evidenceCheck();
+      return result;
     } catch (error) {
       if (isStrict) {
         throw new CalibrationFatalError('calibration:lock-probe-failed');
@@ -2728,6 +2741,7 @@ function createLedgerCore(
     } else {
       effectiveRoot = opts?.runDir ?? deps.getRoot();
     }
+    if (evidenceMode) evidenceCheck();
     if (effectiveRoot !== CALIBRATION_ROOT) {
       throw new CalibrationFatalError('calibration:root-redirected');
     }
@@ -4522,6 +4536,10 @@ function createLedgerCore(
         evidenceSource();
         if (name !== 'acquireLock') {
           requireLock();
+          const currentOwner = safeReadLock();
+          if (currentOwner === undefined || !sameOwner(currentOwner, heldOwner!)) {
+            throw new CalibrationFatalError('calibration:runtime-current-owner-required');
+          }
           if (!authorityReady) throw new CalibrationFatalError('calibration:artifact-authority-lock-required');
         }
         if (name === 'reserveSynthetic') throw new CalibrationFatalError('calibration:runtime-synthetic-forbidden');

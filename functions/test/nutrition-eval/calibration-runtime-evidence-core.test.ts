@@ -1766,3 +1766,131 @@ describe('successful ownership and replay callbacks must stop immediately after 
     expect(() => current.getCounts()).toThrow(CalibrationFatalError);
   });
 });
+
+describe('post-construction plan callback results use the guarded capture boundary', () => {
+  it.each(['callback', 'reflection'] as const)('%s reentry stops before any subsequent foreign result inspection', async (mode) => {
+    const f = await openCoreFixture();
+    f.finishPreflight();
+    const original = f.plans.MEDIUM;
+    let callbacks = 0;
+    let traps = 0;
+    let eventsAtPoison = -1;
+    let nestedError: unknown;
+    const enter = () => {
+      eventsAtPoison = f.events.length;
+      try { f.ledger.getCounts(); } catch (error) { nestedError = error; }
+    };
+    const touch = () => {
+      traps += 1;
+      if (mode === 'reflection' && traps === 1) enter();
+    };
+    // The fixture's captured report-plan callback reads this shared owned
+    // field on profile selection. Return the REAL expanded plan, not an
+    // invented admission/report/ledger replacement.
+    Object.defineProperty(f.plans, 'MEDIUM', {
+      enumerable: true, configurable: true,
+      get() {
+        callbacks += 1;
+        if (mode === 'callback') enter();
+        return new Proxy(original, {
+          get(target, key, receiver) { touch(); return Reflect.get(target, key, receiver); },
+          getPrototypeOf(target) { touch(); return Reflect.getPrototypeOf(target); },
+          ownKeys(target) { touch(); return Reflect.ownKeys(target); },
+          getOwnPropertyDescriptor(target, key) { touch(); return Reflect.getOwnPropertyDescriptor(target, key); },
+        });
+      },
+    });
+    let caught: unknown;
+    try { f.finishDevelopment(); } catch (error) { caught = error; }
+    expect(callbacks).toBe(1);
+    expect(eventsAtPoison > 0).toBe(true);
+    expectStaticCauseless(nestedError, 'private');
+    expectStaticCauseless(caught, 'private');
+    expect(traps).toBe(mode === 'callback' ? 0 : 1);
+    expect(f.events).toHaveLength(eventsAtPoison);
+    expect(eventsOfType(f.events, 'profile_selected')).toHaveLength(0);
+    expect(f.backing.lock).toEqual(f.owner);
+    expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+  });
+});
+
+function coreReenteringResult<T extends object>(value: T, invoke: () => unknown) {
+  const witness = { traps: 0, nestedError: undefined as unknown };
+  const touch = () => {
+    witness.traps += 1;
+    if (witness.traps === 1) {
+      try { invoke(); } catch (error) { witness.nestedError = error; }
+    }
+  };
+  const proxy = new Proxy(value, {
+    get(target, key, receiver) { touch(); return Reflect.get(target, key, receiver); },
+    getPrototypeOf(target) { touch(); return Reflect.getPrototypeOf(target); },
+    ownKeys(target) { touch(); return Reflect.ownKeys(target); },
+    getOwnPropertyDescriptor(target, key) { touch(); return Reflect.getOwnPropertyDescriptor(target, key); },
+  });
+  return { proxy, witness };
+}
+
+describe('successful result reflection must stop on poison in verifier and replay captures too', () => {
+  it.each(['admission', 'binding'] as const)('%s inspects at most the first reentering verifier-result trap', async (kind) => {
+    const f = await openCoreFixture();
+    f.finishPreflightOutcomes();
+    if (kind === 'binding') f.ledger.admitStageReportReceipt('preflight', 'LOW');
+    const before = f.events.length;
+    let witness: { traps: number; nestedError: unknown } | undefined;
+    f.faults.onVerified = (result) => {
+      const wrapped = coreReenteringResult(result, () => f.ledger.getCounts());
+      witness = wrapped.witness;
+      return wrapped.proxy;
+    };
+    let caught: unknown;
+    try {
+      if (kind === 'admission') f.ledger.admitStageReportReceipt('preflight', 'LOW');
+      else f.ledger.bindRuntimeStageReport('preflight', 'LOW');
+    } catch (error) { caught = error; }
+    delete f.faults.onVerified;
+    expect(witness !== undefined).toBe(true);
+    expectStaticCauseless(witness!.nestedError, 'private');
+    expectStaticCauseless(caught, 'private');
+    expect(witness!.traps).toBe(1);
+    expect(f.events).toHaveLength(before);
+    expect(f.backing.lock).toEqual(f.owner);
+    expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+  });
+
+  it.each(['journal', 'ledger'] as const)('%s replay array stops at its first successful reentering trap', async (kind) => {
+    const f = await openCoreFixture();
+    f.completeImageKey(f.key);
+    f.setLiveness('dead');
+    const owner = laterOwner(f.owner, 1);
+    // Install only AFTER provisional constructor replay, so this test
+    // exercises a real public acquisition under the current core's guard.
+    const current = f.restart(owner);
+    let witness: { traps: number; nestedError: unknown } | undefined;
+    if (kind === 'journal') {
+      const read = f.backing.deps.readJournalEntries;
+      f.backing.deps.readJournalEntries = () => {
+        const wrapped = coreReenteringResult(read(), () => current.getCounts());
+        witness = wrapped.witness;
+        return wrapped.proxy;
+      };
+    } else {
+      const read = f.backing.deps.readLedgerEvents;
+      f.backing.deps.readLedgerEvents = () => {
+        const wrapped = coreReenteringResult(read(), () => current.getCounts());
+        witness = wrapped.witness;
+        return wrapped.proxy;
+      };
+    }
+    const before = f.events.length;
+    let caught: unknown;
+    try { current.acquireLock(owner); } catch (error) { caught = error; }
+    expect(witness !== undefined).toBe(true);
+    expectStaticCauseless(witness!.nestedError, 'private');
+    expectStaticCauseless(caught, 'private');
+    expect(witness!.traps).toBe(1);
+    expect(f.events).toHaveLength(before);
+    expect(f.backing.lock).toEqual(owner);
+    expect(() => current.getCounts()).toThrow(CalibrationFatalError);
+  });
+});
