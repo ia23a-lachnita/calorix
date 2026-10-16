@@ -18,8 +18,10 @@
  * No provider, Firebase, network, or device access occurs here.
  */
 import {
+  constants as nodeConstants,
   closeSync as nodeCloseSync,
   chmodSync,
+  fstatSync as nodeFstatSync,
   fsyncSync as nodeFsyncSync,
   linkSync as nodeLinkSync,
   lstatSync,
@@ -30,7 +32,8 @@ import {
   unlinkSync as nodeUnlinkSync,
   writeSync as nodeWriteSync,
 } from 'node:fs';
-import { join, relative, resolve, sep } from 'node:path';
+import type { Stats } from 'node:fs';
+import { isAbsolute, join, parse, relative, resolve, sep } from 'node:path';
 import { CALIBRATION_ROOT } from './calibration';
 import type {
   CalibrationLedgerDeps,
@@ -81,6 +84,62 @@ export interface CalibrationFileStoreOverrides {
   fdFsyncSync?: (fd: number) => void;
   /** Low-level fd close seam. */
   fdCloseSync?: (fd: number) => void;
+}
+
+export type RuntimeEvidenceFileStoreOverrides = Pick<CalibrationFileStoreOverrides,
+  'procStatReader' | 'nowIso' | 'renameSync' | 'fsyncDirSync' | 'fdWriteSync' |
+  'fdFsyncSync' | 'fdCloseSync' | 'linkSync' | 'unlinkSync'>;
+
+const NATIVE_HOOKS = ['procStatReader', 'nowIso', 'renameSync', 'fsyncDirSync',
+  'fdWriteSync', 'fdFsyncSync', 'fdCloseSync', 'linkSync', 'unlinkSync'] as const;
+const NATIVE_OWNER_FIELDS = ['hostname', 'bootId', 'pid', 'startTicks', 'acquiredAt'] as const;
+function nativeInputFailure(): never {
+  throw new CalibrationFatalError('calibration:runtime-evidence-storage-input-invalid');
+}
+function captureNativeRecord(value: unknown, fields: readonly string[], optional = false): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return nativeInputFailure();
+  const proto: unknown = Object.getPrototypeOf(value);
+  if (proto !== null && proto !== Object.prototype) return nativeInputFailure();
+  const keys = Reflect.ownKeys(value);
+  if ((!optional && keys.length !== fields.length) || keys.some((k) => typeof k !== 'string' || !fields.includes(k))) return nativeInputFailure();
+  const result: Record<string, unknown> = {};
+  for (const key of keys) {
+    const d = Object.getOwnPropertyDescriptor(value, key);
+    if (typeof key !== 'string' || d === undefined || d.enumerable !== true || !Object.hasOwn(d, 'value') || d.value === undefined) return nativeInputFailure();
+    result[key] = d.value;
+  }
+  return result;
+}
+function captureNativeOwner(value: unknown): Readonly<CalibrationOwner> {
+  const owner = captureNativeRecord(value, NATIVE_OWNER_FIELDS);
+  for (const field of ['hostname', 'bootId'] as const) {
+    const text = owner[field];
+    if (typeof text !== 'string' || text.trim().length === 0 || /[\uD800-\uDFFF]/u.test(text)) return nativeInputFailure();
+  }
+  for (const field of ['pid', 'startTicks'] as const) {
+    const n = owner[field];
+    if (typeof n !== 'number' || !Number.isSafeInteger(n) || n <= 0 || Object.is(n, -0)) return nativeInputFailure();
+  }
+  const at = owner.acquiredAt;
+  if (typeof at !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(at)
+    || !Number.isFinite(Date.parse(at)) || new Date(at).toISOString() !== at
+    || Buffer.byteLength(JSON.stringify(owner), 'utf8') > 4096) return nativeInputFailure();
+  return Object.freeze(owner) as unknown as Readonly<CalibrationOwner>;
+}
+
+/** Explicit native opt-in; legacy overrides and defaults remain separate. */
+export function createRuntimeEvidenceFileCalibrationLedgerDeps(
+  baseDir: string,
+  owner: CalibrationOwner,
+  overrides?: RuntimeEvidenceFileStoreOverrides,
+): CalibrationLedgerDeps {
+  try {
+    if (typeof baseDir !== 'string' || baseDir.includes('\0') || !isAbsolute(baseDir) || resolve(baseDir) !== baseDir) return nativeInputFailure();
+    const ownedOwner = captureNativeOwner(owner);
+    const hooks = captureNativeRecord(overrides === undefined ? {} : overrides, NATIVE_HOOKS, true);
+    for (const key of Object.keys(hooks)) if (typeof hooks[key] !== 'function') return nativeInputFailure();
+    return createFileCalibrationLedgerDepsImpl(baseDir, Object.freeze(hooks) as RuntimeEvidenceFileStoreOverrides, ownedOwner);
+  } catch { return nativeInputFailure(); }
 }
 
 let tempCounter = 0;
@@ -284,8 +343,174 @@ export function createFileCalibrationLedgerDeps(
   baseDir?: string,
   overrides: CalibrationFileStoreOverrides = {},
 ): CalibrationLedgerDeps {
+  return createFileCalibrationLedgerDepsImpl(baseDir, overrides);
+}
+
+function createFileCalibrationLedgerDepsImpl(
+  baseDir: string | undefined,
+  overrides: CalibrationFileStoreOverrides,
+  nativeOwner?: Readonly<CalibrationOwner>,
+): CalibrationLedgerDeps {
   const callerBase = resolve(baseDir ?? process.cwd());
   const canonicalDir = resolve(callerBase, CALIBRATION_ROOT);
+  type DirectoryIdentity = { path: string; dev: number; ino: number };
+  let directories: readonly DirectoryIdentity[] | undefined;
+  let lockIdentity: Stats | undefined;
+  let pendingPublication: { path: string; stat: Stats } | undefined;
+  let nativePoisoned = false;
+  let nativeBusy = false;
+  let archiveLinkActive = false;
+
+  function nativeFail(): never {
+    nativePoisoned = true;
+    throw new CalibrationFatalError('calibration:runtime-evidence-storage-failed');
+  }
+  function nativeReady(): void { if (nativePoisoned) nativeFail(); }
+  function sameInode(a: { dev: number; ino: number }, b: { dev: number; ino: number }): boolean {
+    return a.dev === b.dev && a.ino === b.ino;
+  }
+  function sameMetadata(a: Stats, b: Stats): boolean {
+    return sameInode(a, b) && a.size === b.size && a.mtimeMs === b.mtimeMs && a.ctimeMs === b.ctimeMs;
+  }
+  function privateFile(stat: Stats, links = 1): boolean {
+    return stat.isFile() && !stat.isSymbolicLink() && stat.nlink === links && (stat.mode & 0o7777) === FILE_MODE
+      && Number.isSafeInteger(stat.size) && stat.size >= 0;
+  }
+  function checkDirectories(): void {
+    nativeReady();
+    for (const expected of directories ?? []) {
+      const current = lstatSync(expected.path);
+      if (!current.isDirectory() || current.isSymbolicLink() || !sameInode(current, expected)
+        || (expected.path === canonicalDir && (current.mode & 0o7777) !== DIR_MODE)) nativeFail();
+    }
+  }
+  function observeDirectories(): void {
+    if (directories !== undefined) { checkDirectories(); return; }
+    const captured: DirectoryIdentity[] = [];
+    let current = parse(canonicalDir).root;
+    const capture = () => {
+      const stat = lstatSync(current);
+      if (!stat.isDirectory() || stat.isSymbolicLink()
+        || (current === canonicalDir && (stat.mode & 0o7777) !== DIR_MODE)) nativeFail();
+      captured.push({ path: current, dev: stat.dev, ino: stat.ino });
+    };
+    capture();
+    for (const component of canonicalDir.slice(current.length).split(sep).filter(Boolean)) {
+      current = join(current, component);
+      capture();
+    }
+    directories = captured;
+  }
+  function nativeLeaves(): void {
+    checkDirectories();
+    for (const name of [LEDGER_FILE, JOURNAL_FILE, LOCK_FILE]) {
+      const path = resolve(canonicalDir, name);
+      let stat: Stats;
+      try { stat = lstatSync(path); }
+      catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue; throw error; }
+      if (!privateFile(stat, name === LOCK_FILE && archiveLinkActive ? 2 : 1)) nativeFail();
+    }
+  }
+  /** Leaf nofollow, descriptor/path identity and metadata recheck, not an atomic dir-fd walk. */
+  function nativeRead(path: string, maxBytes?: number): string | undefined {
+    nativeLeaves();
+    let before: Stats;
+    try { before = lstatSync(path); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined; throw error; }
+    const links = path === resolve(canonicalDir, LOCK_FILE) && archiveLinkActive ? 2 : 1;
+    if (!privateFile(before, links) || (maxBytes !== undefined && before.size > maxBytes)) nativeFail();
+    const fd = nodeOpenSync(path, nodeConstants.O_RDONLY | nodeConstants.O_NOFOLLOW | nodeConstants.O_NONBLOCK);
+    try {
+      const opened = nodeFstatSync(fd);
+      if (!privateFile(opened, links) || !sameMetadata(opened, before)) nativeFail();
+      const bytes = nodeReadFileSync(fd);
+      const after = nodeFstatSync(fd);
+      if (bytes.length !== opened.size || !privateFile(after, links) || !sameMetadata(after, opened)
+        || !sameMetadata(lstatSync(path), opened)) nativeFail();
+      checkDirectories();
+      return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } finally { nodeCloseSync(fd); }
+  }
+  function nativeReadLock(): CalibrationOwner | undefined {
+    const text = nativeRead(resolve(canonicalDir, LOCK_FILE), 4096);
+    if (text === undefined) return undefined;
+    const owner = captureNativeOwner(JSON.parse(text));
+    const stat = lstatSync(resolve(canonicalDir, LOCK_FILE));
+    if (lockIdentity !== undefined && !sameMetadata(lockIdentity, stat)) nativeFail();
+    if (sameOwner(owner, nativeOwner!) && lockIdentity === undefined) lockIdentity = stat;
+    return owner;
+  }
+  function requireNativeOwner(): void {
+    nativeReady();
+    const current = nativeReadLock();
+    if (current === undefined || !sameOwner(current, nativeOwner!)) nativeFail();
+  }
+  function nativeFinal(): void {
+    requireNativeOwner();
+    if (pendingPublication !== undefined) {
+      const stat = lstatSync(pendingPublication.path);
+      if (!privateFile(stat) || !sameMetadata(stat, pendingPublication.stat)) nativeFail();
+    }
+  }
+  function cleanupNativeTemp(path: string, expected: Stats): void {
+    // No callbacks or poison reset during cleanup; uncertain/foreign paths are
+    // left in place. A final ledger, journal or lock is never a cleanup target.
+    if (!path.startsWith(canonicalDir + sep) || !path.includes('.tmp.')) return;
+    try {
+      for (const directory of directories ?? []) {
+        const stat = lstatSync(directory.path);
+        if (!stat.isDirectory() || stat.isSymbolicLink() || !sameInode(stat, directory)) return;
+      }
+      const stat = lstatSync(path);
+      if (privateFile(stat) && sameInode(stat, expected)) nodeUnlinkSync(path);
+    } catch { /* preserve uncertain owned artifacts, never sweep */ }
+  }
+  function closeNativeWritable(fd: number, expected: Stats): void {
+    let failed = false;
+    try { fdCloseSync(fd); } catch { failed = true; }
+    let remaining: Stats | undefined;
+    try { remaining = nodeFstatSync(fd); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code !== 'EBADF') failed = true; }
+    if (remaining !== undefined) {
+      // The hook may have closed fd and reused its number for a foreign inode.
+      // Never blindly retry close on that descriptor number.
+      if (sameInode(remaining, expected)) nodeCloseSync(fd);
+      failed = true;
+    }
+    if (failed) nativeFail();
+  }
+  function nativeWriteExclusive(path: string, data: string): void {
+    nativeLeaves();
+    const bytes = Buffer.from(data, 'utf8');
+    const fd = nodeOpenSync(path, nodeConstants.O_WRONLY | nodeConstants.O_CREAT | nodeConstants.O_EXCL | nodeConstants.O_NOFOLLOW, FILE_MODE);
+    let identity: Stats;
+    try { identity = nodeFstatSync(fd); }
+    catch {
+      // No foreign callback has run since exclusive open: this descriptor is
+      // still ours, even when its first metadata read fails.
+      try { nodeCloseSync(fd); } catch { /* uncertain native close; no retry */ }
+      nativeFail();
+    }
+    let failed = !privateFile(identity);
+    try {
+      if (failed) nativeFail();
+      let offset = 0;
+      while (offset < bytes.length) {
+        const remaining = bytes.length - offset;
+        const count = fdWriteSync(fd, bytes, offset, remaining);
+        nativeReady();
+        if (!Number.isSafeInteger(count) || count <= 0 || count > remaining) nativeFail();
+        offset += count;
+      }
+      fdFsyncSync(fd);
+      nativeReady();
+    } catch { failed = true; }
+    try { closeNativeWritable(fd, identity); } catch { failed = true; }
+    if (failed) { cleanupNativeTemp(path, identity); nativeFail(); }
+    checkDirectories();
+    const finalStat = lstatSync(path);
+    if (!privateFile(finalStat) || !sameInode(finalStat, identity)) nativeFail();
+  }
 
   const procStatReader =
     overrides.procStatReader ??
@@ -302,6 +527,20 @@ export function createFileCalibrationLedgerDeps(
    * The caller-owned baseDir is never chmodded, even when it carries 0755.
    */
   function ensureCallerBase(): void {
+    if (nativeOwner !== undefined) {
+      nativeReady();
+      let current = parse(callerBase).root;
+      const check = () => {
+        const stat = lstatSync(current);
+        if (!stat.isDirectory() || stat.isSymbolicLink()) nativeFail();
+      };
+      check();
+      for (const component of callerBase.slice(current.length).split(sep).filter(Boolean)) {
+        current = join(current, component);
+        check();
+      }
+      return;
+    }
     let stat;
     try {
       stat = lstatSync(callerBase);
@@ -335,6 +574,7 @@ export function createFileCalibrationLedgerDeps(
    * private, and enforce 0700 on the canonical root only.
    */
   function ensureCanonicalChain(): void {
+    if (nativeOwner !== undefined) checkDirectories();
     ensureCallerBase();
     const rel = relative(callerBase, canonicalDir);
     if (rel === '') {
@@ -368,6 +608,11 @@ export function createFileCalibrationLedgerDeps(
       if (!stat.isDirectory()) {
         throw new CalibrationFatalError('calibration:canonical-dir-not-directory');
       }
+    }
+    if (nativeOwner !== undefined) {
+      observeDirectories();
+      nativeLeaves();
+      return;
     }
     try {
       chmodSync(canonicalDir, DIR_MODE);
@@ -436,6 +681,7 @@ export function createFileCalibrationLedgerDeps(
    * outputs are unlinked; only fully written and fsynced files remain.
    */
   const defaultWriteExclusiveSync = (path: string, data: string): void => {
+    if (nativeOwner !== undefined) { nativeWriteExclusive(path, data); return; }
     const buffer = Buffer.from(data, 'utf8');
     const fd = nodeOpenSync(path, 'wx', FILE_MODE);
     try {
@@ -492,7 +738,8 @@ export function createFileCalibrationLedgerDeps(
   };
 
   const defaultFsyncDirSync = (dir: string): void => {
-    const fd = nodeOpenSync(dir, 'r');
+    const fd = nativeOwner === undefined ? nodeOpenSync(dir, 'r')
+      : nodeOpenSync(dir, nodeConstants.O_RDONLY | nodeConstants.O_DIRECTORY | nodeConstants.O_NOFOLLOW);
     try {
       nodeFsyncSync(fd);
     } finally {
@@ -516,6 +763,13 @@ export function createFileCalibrationLedgerDeps(
 
   function readJsonArray(path: string, label: string): unknown[] {
     ensureCanonicalChain();
+    if (nativeOwner !== undefined) {
+      const raw = nativeRead(path);
+      if (raw === undefined) return [];
+      const parsed: unknown = JSON.parse(raw);
+      if (!Array.isArray(parsed)) nativeFail();
+      return parsed;
+    }
     const stat = lstatTarget(path, `${label}-symlink`);
     if (stat === undefined) return [];
     if (!stat.isFile()) {
@@ -543,6 +797,28 @@ export function createFileCalibrationLedgerDeps(
 
   function writeJsonArrayAtomic(finalPath: string, values: readonly unknown[], label: string): void {
     ensureCanonicalChain();
+    if (nativeOwner !== undefined) {
+      requireNativeOwner();
+      if (pendingPublication !== undefined) nativeFail();
+      const data = JSON.stringify(values);
+      tempCounter += 1;
+      const tempPath = `${finalPath}.tmp.${process.pid}.${tempCounter}.json`;
+      let ownedTemp: Stats | undefined;
+      try {
+        defaultWriteExclusiveSync(tempPath, data);
+        ownedTemp = lstatSync(tempPath);
+        requireNativeOwner();
+        renameSync(tempPath, finalPath);
+        nativeReady();
+        requireNativeOwner();
+        const stat = lstatSync(finalPath);
+        if (!privateFile(stat) || !sameInode(stat, ownedTemp)) nativeFail();
+        pendingPublication = { path: finalPath, stat };
+      } finally {
+        if (ownedTemp !== undefined) cleanupNativeTemp(tempPath, ownedTemp);
+      }
+      return;
+    }
     const existing = lstatTarget(finalPath, `${label}-symlink`);
     if (existing !== undefined && !existing.isFile()) {
       throw new CalibrationFatalError(`calibration:${label}-not-regular-file`);
@@ -579,11 +855,26 @@ export function createFileCalibrationLedgerDeps(
    */
   function validateFinalFile(finalPath: string, label: string): void {
     ensureCanonicalChain();
+    if (nativeOwner !== undefined) {
+      if (pendingPublication === undefined || pendingPublication.path !== finalPath) nativeFail();
+      nativeFinal();
+      return;
+    }
     assertRegularFile(finalPath, `${label}-symlink`);
   }
 
   function fsyncParentDir(label: string): void {
     ensureCanonicalChain();
+    if (nativeOwner !== undefined) {
+      const publication = pendingPublication;
+      if (publication === undefined || publication.path !== resolve(canonicalDir, label === 'ledger' ? LEDGER_FILE : JOURNAL_FILE)) nativeFail();
+      nativeFinal();
+      fsyncDirSync(canonicalDir);
+      nativeReady();
+      nativeFinal();
+      pendingPublication = undefined;
+      return;
+    }
     try {
       fsyncDirSync(canonicalDir);
     } catch (error) {
@@ -609,6 +900,7 @@ export function createFileCalibrationLedgerDeps(
 
   function readLock(): CalibrationOwner | undefined {
     ensureCanonicalChain();
+    if (nativeOwner !== undefined) return nativeReadLock();
     const path = lockPath();
     const stat = lstatTarget(path, 'lock');
     if (stat === undefined) return undefined;
@@ -637,6 +929,17 @@ export function createFileCalibrationLedgerDeps(
 
   function writeLockExclusive(owner: CalibrationOwner): void {
     ensureCanonicalChain();
+    if (nativeOwner !== undefined) {
+      const captured = captureNativeOwner(owner);
+      if (!sameOwner(captured, nativeOwner)) nativeFail();
+      const path = resolve(canonicalDir, LOCK_FILE);
+      defaultWriteExclusiveSync(path, JSON.stringify(captured));
+      requireNativeOwner();
+      fsyncDirSync(canonicalDir);
+      nativeReady();
+      requireNativeOwner();
+      return;
+    }
     if (!isValidOwnerShape(owner)) {
       throw new CalibrationFatalError('calibration:lock-owner-invalid');
     }
@@ -676,6 +979,7 @@ export function createFileCalibrationLedgerDeps(
     // fall back to overwrite/rename; crash leftovers require operator action.
     try {
       archiveLinkSync(path, archivePath);
+      if (nativeOwner !== undefined) { nativeReady(); archiveLinkActive = true; }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
         throw new CalibrationFatalError('calibration:lock-archive-destination-exists');
@@ -685,6 +989,7 @@ export function createFileCalibrationLedgerDeps(
     // Persist the new sibling name before removing the old lock name.
     try {
       fsyncDirSync(canonicalDir);
+      if (nativeOwner !== undefined) { nativeReady(); nativeLeaves(); }
     } catch (error) {
       throw fatal('calibration:lock-archive-dir-fsync-failed', error);
     }
@@ -713,11 +1018,13 @@ export function createFileCalibrationLedgerDeps(
     // Archive-only unlink seam: removeLock/temp paths keep native unlink.
     try {
       archiveUnlinkSync(path);
+      if (nativeOwner !== undefined) { nativeReady(); archiveLinkActive = false; }
     } catch (error) {
       throw fatal('calibration:lock-archive-unlink-failed', error);
     }
     try {
       fsyncDirSync(canonicalDir);
+      if (nativeOwner !== undefined) { nativeReady(); nativeLeaves(); }
     } catch (error) {
       throw fatal('calibration:lock-archive-dir-fsync-failed', error);
     }
@@ -725,6 +1032,18 @@ export function createFileCalibrationLedgerDeps(
 
   function removeLock(owner: CalibrationOwner): void {
     ensureCanonicalChain();
+    if (nativeOwner !== undefined) {
+      const captured = captureNativeOwner(owner);
+      if (!sameOwner(captured, nativeOwner)) nativeFail();
+      requireNativeOwner();
+      nodeUnlinkSync(resolve(canonicalDir, LOCK_FILE));
+      fsyncDirSync(canonicalDir);
+      nativeReady();
+      checkDirectories();
+      if (lstatTarget(resolve(canonicalDir, LOCK_FILE), 'lock') !== undefined) nativeFail();
+      lockIdentity = undefined;
+      return;
+    }
     const path = lockPath();
     assertNotSymlink(path, 'lock');
     const current = readLock();
@@ -797,7 +1116,7 @@ export function createFileCalibrationLedgerDeps(
     return values as JournalEntry[];
   }
 
-  return {
+  const deps: CalibrationLedgerDeps = {
     getRoot,
     readLock,
     writeLockExclusive,
@@ -814,4 +1133,17 @@ export function createFileCalibrationLedgerDeps(
     readLedgerEvents,
     readJournalEntries,
   };
+  if (nativeOwner === undefined) return deps;
+  // One store implementation, opt-in guard only. The legacy returned object,
+  // overrides and error behavior are left untouched.
+  return Object.freeze(Object.fromEntries(Object.entries(deps).map(([name, method]) => [name, (...args: unknown[]) => {
+    if (nativePoisoned || nativeBusy) nativeFail();
+    nativeBusy = true;
+    try {
+      const result: unknown = Reflect.apply(method, undefined, args);
+      nativeReady();
+      return result;
+    } catch { return nativeFail(); }
+    finally { nativeBusy = false; }
+  }]))) as unknown as CalibrationLedgerDeps;
 }
