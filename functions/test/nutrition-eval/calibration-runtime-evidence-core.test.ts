@@ -76,6 +76,22 @@ afterEach(() => {
 // touches the still-missing new factory.
 
 describe('existing-source fixture controls (old mode)', () => {
+  it('replays the original persisted identity after a caller mutates a store read snapshot', async () => {
+    const data = await makeRuntimeEvidenceData();
+    const backing = makeRuntimeEvidenceCoreBacking();
+    const resolver = () => data.plans.initial.map((row) => ({ ...row.key }));
+    const first = createProtocolCalibrationLedger(backing.deps, data.header.identity, resolver);
+    first.acquireLock(data.header.owner);
+    first.releaseLock(data.header.owner);
+    const readSnapshot = backing.deps.readLedgerEvents();
+    const header = readSnapshot[0] as { identity: { functionsTreeId: string } };
+    header.identity.functionsTreeId = 'f'.repeat(40);
+    expect(() => {
+      const restarted = createProtocolCalibrationLedger(backing.deps, data.header.identity, resolver);
+      restarted.acquireLock(data.header.owner);
+    }).not.toThrow();
+  });
+
   it('builds a real old-mode protocol ledger from the shared fixture data and completes a reservation', async () => {
     const data = await makeRuntimeEvidenceData();
     const backing = makeRuntimeEvidenceCoreBacking();

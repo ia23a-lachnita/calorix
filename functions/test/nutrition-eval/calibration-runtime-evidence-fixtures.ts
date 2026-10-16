@@ -180,18 +180,14 @@ import type {
 
 // ── Local structural future-API types (plan Shared Interfaces, Task 3) ──────
 
-export type RuntimeAttemptRef = Readonly<{
-  key: CalibrationReportOutcomeKey;
-  attempt: number;
-}>;
+import type {
+  RuntimeAttemptRef,
+  RuntimeEvidenceEvent,
+} from '../../src/nutrition-eval/calibration-runtime-evidence-codec';
+import type { RuntimeEvidenceSnapshot } from '../../src/nutrition-eval/calibration-runtime-evidence-state';
 
-export interface RuntimeEvidenceSnapshot {
-  readonly sequence: number;
-  readonly lastEventIndex: number;
-  readonly owner: CalibrationOwner;
-  readonly activeAttempt: RuntimeAttemptRef | null;
-  readonly events: readonly unknown[];
-}
+export type { RuntimeAttemptRef };
+export type { RuntimeEvidenceSnapshot };
 
 export interface CalibrationRuntimeEvidenceLedger extends CalibrationProtocolLedger {
   startRuntimeAttempt(key: unknown): Readonly<RuntimeAttemptRef>;
@@ -202,7 +198,7 @@ export interface CalibrationRuntimeEvidenceLedger extends CalibrationProtocolLed
   bindRuntimeStageReport(
     stage: StageName,
     profile: CalibrationProfile,
-  ): Readonly<Record<string, unknown> & { type: 'runtime_report_bound' }>;
+  ): Readonly<RuntimeEvidenceEvent & { type: 'runtime_report_bound' }>;
   getRuntimeEvidenceSnapshot(): Readonly<RuntimeEvidenceSnapshot>;
 }
 
@@ -287,13 +283,13 @@ export function makeRuntimeEvidenceCoreBacking(): RuntimeEvidenceCoreBacking {
   };
   const deps: CalibrationLedgerDeps = {
     getRoot: () => CALIBRATION_ROOT,
-    readLock: () => backing.lock,
+    readLock: () => backing.lock === undefined ? undefined : structuredClone(backing.lock),
     writeLockExclusive: (owner: CalibrationOwner) => {
       trace.push('writeLockExclusive');
       if (backing.lock !== undefined) {
         throw new CalibrationFatalError('calibration:fixture-lock-already-held');
       }
-      backing.lock = owner;
+      backing.lock = structuredClone(owner);
     },
     archiveLock: (_owner: CalibrationOwner) => {
       trace.push('archiveLock');
@@ -311,7 +307,7 @@ export function makeRuntimeEvidenceCoreBacking(): RuntimeEvidenceCoreBacking {
           privateBytes: CORE_FIXTURE_FOREIGN_MARKER,
         });
       }
-      events.push(event);
+      events.push(structuredClone(event));
     },
     fsyncLedgerFile: () => {
       trace.push('fsyncLedgerFile');
@@ -333,7 +329,7 @@ export function makeRuntimeEvidenceCoreBacking(): RuntimeEvidenceCoreBacking {
     },
     appendJournal: (entry: JournalEntry) => {
       trace.push('appendJournal');
-      journals.push(entry);
+      journals.push(structuredClone(entry));
     },
     fsyncJournalFile: () => trace.push('fsyncJournalFile'),
     fsyncJournalDir: () => trace.push('fsyncJournalDir'),
@@ -349,11 +345,11 @@ export function makeRuntimeEvidenceCoreBacking(): RuntimeEvidenceCoreBacking {
     },
     readLedgerEvents: () => {
       trace.push('readLedgerEvents');
-      return [...events];
+      return structuredClone(events);
     },
     readJournalEntries: () => {
       trace.push('readJournalEntries');
-      return [...journals];
+      return structuredClone(journals);
     },
   };
   (backing as { deps: CalibrationLedgerDeps }).deps = deps;
