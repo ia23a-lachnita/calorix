@@ -785,17 +785,37 @@ async function makeCoreFixture(mode: 'runtime' | 'existing', options: Readonly<{
 
 import { execFileSync as execFileSyncNativeTask4 } from 'node:child_process';
 import {
+  closeSync as closeSyncNativeTask4,
+  constants as constantsNativeTask4,
+  fstatSync as fstatSyncNativeTask4,
+  fsyncSync as fsyncSyncNativeTask4,
+  lstatSync as lstatSyncNativeTask4,
   mkdirSync as mkdirSyncNativeTask4,
   mkdtempSync as mkdtempSyncNativeTask4,
+  openSync as openSyncNativeTask4,
+  renameSync as renameSyncNativeTask4,
+  linkSync as linkSyncNativeTask4,
+  unlinkSync as unlinkSyncNativeTask4,
   rmSync as rmSyncNativeTask4,
   writeFileSync as writeFileSyncNativeTask4,
+  writeSync as writeSyncNativeTask4,
 } from 'node:fs';
-import { tmpdir as tmpdirNativeTask4 } from 'node:os';
-import { join as joinNativeTask4 } from 'node:path';
+import {
+  basename as basenameNativeTask4,
+  dirname as dirnameNativeTask4,
+  join as joinNativeTask4,
+  resolve as resolveNativeTask4,
+  sep as sepNativeTask4,
+} from 'node:path';
 import type { CalibrationFileStoreOverrides as CalibrationFileStoreOverridesTask4Base } from '../../src/nutrition-eval/calibration-file-store';
 import { createFileCalibrationLedgerDeps as createFileCalibrationLedgerDepsTask4Base } from '../../src/nutrition-eval/calibration-file-store';
-import { createCalibrationBootstrapReadDeps as createCalibrationBootstrapReadDepsTask4Base } from '../../src/nutrition-eval/calibration-bootstrap';
-import { prepareCalibrationStageReportArtifactVerifier as prepareVerifierTask4Base } from '../../src/nutrition-eval/calibration-report-artifact-verification';
+import {
+  CALIBRATION_BOOTSTRAP_ASSET_PATHS as CALIBRATION_BOOTSTRAP_ASSET_PATHS_Task4,
+  createCalibrationBootstrapReadDeps as createCalibrationBootstrapReadDepsTask4Base,
+  deriveCanonicalAllowedKeys as deriveCanonicalAllowedKeysTask4,
+  deriveCanonicalReportOutcomePlan as deriveCanonicalReportOutcomePlanTask4,
+  prepareCalibrationBootstrapContext as prepareCalibrationBootstrapContextTask4,
+} from '../../src/nutrition-eval/calibration-bootstrap';
 
 export type RuntimeEvidenceFileStoreOverrides = Pick<
   CalibrationFileStoreOverridesTask4Base,
@@ -831,7 +851,15 @@ export type PrepareNativeLedgerTask4 = (
 ) => Promise<CalibrationRuntimeEvidenceLedger>;
 
 export async function loadPrepareNativeLedgerFactoryTask4(): Promise<PrepareNativeLedgerTask4> {
-  const mod: unknown = await import('../../src/nutrition-eval/calibration-runtime-evidence-ledger');
+  const base = '../../src/nutrition-eval/';
+  const name = 'calibration-runtime-evidence-ledger';
+  const specifier = `${base}${name}`;
+  let mod: unknown;
+  try {
+    mod = await import(specifier);
+  } catch {
+    throw new CalibrationFatalError('calibration:runtime-evidence-native-missing');
+  }
   const candidate = (mod as Record<string, unknown>)['prepareNativeCalibrationRuntimeEvidenceLedger'];
   if (typeof candidate !== 'function') {
     throw new CalibrationFatalError('calibration:runtime-evidence-native-missing');
@@ -844,7 +872,9 @@ function nativeTmpBaseTask4(): string {
   if (typeof env === 'string' && env.length > 0) {
     return env;
   }
-  return tmpdirNativeTask4();
+  const fallback = resolveNativeTask4(repoRoot, 'functions', 'lib', 'runtime-evidence-test-tmp');
+  mkdirSyncNativeTask4(fallback, { recursive: true });
+  return fallback;
 }
 
 function gitTask4(repoDir: string, argv: readonly string[]): string {
@@ -869,19 +899,20 @@ export function makeMiniGitRepoTask4(ownedRoots: string[]): MiniGitRepoTask4 {
   gitTask4(root, ['config', 'user.name', 'calorix-fixture']);
   gitTask4(root, ['config', 'user.email', 'fixture@calorix.test']);
   gitTask4(root, ['config', 'commit.gpgsign', 'false']);
-  const functionsDir = joinNativeTask4(root, 'functions');
-  mkdirSyncNativeTask4(functionsDir, { recursive: true });
-  writeFileSyncNativeTask4(joinNativeTask4(functionsDir, 'marker.txt'), 'functions-marker\n');
-  writeFileSyncNativeTask4(joinNativeTask4(root, 'README.md'), '# fixture\n');
-  gitTask4(root, ['add', 'functions/marker.txt', 'README.md']);
-  gitTask4(root, ['commit', '-m', 'fixture init']);
+  const assetPaths = Object.values(CALIBRATION_BOOTSTRAP_ASSET_PATHS_Task4) as readonly string[];
+  for (const rel of assetPaths) {
+    const src = resolveNativeTask4(repoRoot, rel);
+    const dest = resolveNativeTask4(root, rel);
+    mkdirSyncNativeTask4(dirnameNativeTask4(dest), { recursive: true });
+    writeFileSyncNativeTask4(dest, readFileSync(src, 'utf8'));
+  }
+  const addPaths = [...assetPaths];
+  gitTask4(root, ['add', ...addPaths]);
+  gitTask4(root, ['commit', '-m', 'fixture pinned assets']);
   const head = gitTask4(root, ['rev-parse', 'HEAD']).trim();
-  const readDeps = createCalibrationBootstrapReadDepsTask4Base(root);
-  const state = readDeps.readGitState();
-  if (typeof state.headCommit !== 'string' || state.headCommit.length !== 40) {
+  if (!/^[0-9a-f]{40}$/.test(head)) {
     throw new CalibrationFatalError('calibration:fixture-git-state-invalid');
   }
-  void state.functionsTreeId;
   return { root, headCommit: head };
 }
 
@@ -894,14 +925,49 @@ export interface ExistingNativeBootFixtureTask4 {
 }
 
 export async function makeExistingNativeBootFixtureTask4(ownedRoots: string[]): Promise<ExistingNativeBootFixtureTask4> {
-  const data = await makeRuntimeEvidenceData();
-  const base = nativeTmpBaseTask4();
-  const ledgerRoot = mkdtempSyncNativeTask4(joinNativeTask4(base, 'calorix-native-boot-'));
-  ownedRoots.push(ledgerRoot);
-  const deps = createFileCalibrationLedgerDepsTask4Base(ledgerRoot);
-  const verifier = await prepareVerifierTask4Base(data.context);
-  void verifier;
-  return { context: data.context, plans: data.plans, key: data.key, ledgerRoot, deps };
+  const mini = makeMiniGitRepoTask4(ownedRoots);
+  const miniRoot = mini.root;
+  const readDeps = createCalibrationBootstrapReadDepsTask4Base(miniRoot);
+  const context = await prepareCalibrationBootstrapContextTask4(readDeps);
+  if (context.baseDir !== miniRoot) {
+    throw new CalibrationFatalError('calibration:fixture-base-mismatch');
+  }
+  const resolvedBase = resolveNativeTask4(context.baseDir);
+  const resolvedMini = resolveNativeTask4(miniRoot);
+  const resolvedRepo = resolveNativeTask4(repoRoot);
+  if (resolvedBase !== resolvedMini || resolvedBase === resolvedRepo) {
+    throw new CalibrationFatalError('calibration:fixture-base-mismatch');
+  }
+  if (!resolvedBase.startsWith(resolvedMini + sepNativeTask4) && resolvedBase !== resolvedMini) {
+    throw new CalibrationFatalError('calibration:fixture-base-mismatch');
+  }
+  const nativeState = readDeps.readGitState();
+  if (nativeState.implementationCommit !== context.identity.implementationCommit) {
+    throw new CalibrationFatalError('calibration:fixture-identity-drift');
+  }
+  if (nativeState.functionsTreeId !== context.identity.functionsTreeId) {
+    throw new CalibrationFatalError('calibration:fixture-identity-drift');
+  }
+  if (nativeState.dirtyPaths.length !== 0) {
+    throw new CalibrationFatalError('calibration:fixture-git-dirty');
+  }
+  const initialPlan = deriveCanonicalReportOutcomePlanTask4({ ...context.files });
+  const lowPlan = deriveCanonicalReportOutcomePlanTask4({ ...context.files }, 'LOW');
+  const mediumPlan = deriveCanonicalReportOutcomePlanTask4({ ...context.files }, 'MEDIUM');
+  if (initialPlan.length !== 50 || lowPlan.length !== 158 || mediumPlan.length !== 158) {
+    throw new CalibrationFatalError('calibration:fixture-plan-length-invalid');
+  }
+  const allowedLow = deriveCanonicalAllowedKeysTask4({ ...context.files }, 'LOW');
+  const allowedMedium = deriveCanonicalAllowedKeysTask4({ ...context.files }, 'MEDIUM');
+  if (allowedLow.length !== 146 || allowedMedium.length !== 146) {
+    throw new CalibrationFatalError('calibration:fixture-allowed-length-invalid');
+  }
+  const ledgerRoot = resolveNativeTask4(miniRoot, CALIBRATION_ROOT);
+  const deps = createFileCalibrationLedgerDepsTask4Base(miniRoot);
+  const firstDev = context.firstDevelopmentCaseId;
+  const key = { stage: 'preflight' as const, profile: 'LOW' as const, caseId: firstDev, sampleIndex: 1 };
+  const plans = { initial: initialPlan, LOW: lowPlan, MEDIUM: mediumPlan };
+  return { context, plans, key, ledgerRoot, deps };
 }
 
 export interface RuntimeEvidenceNativeFaultsTask4 {
@@ -931,13 +997,24 @@ export interface RuntimeEvidenceNativeFixtureTask4 {
 export async function makeRuntimeEvidenceNativeFixture(
   ownedRoots: string[] = [],
 ): Promise<RuntimeEvidenceNativeFixtureTask4> {
-  const base = nativeTmpBaseTask4();
-  const ledgerRoot = mkdtempSyncNativeTask4(joinNativeTask4(base, 'calorix-native-ledger-'));
-  ownedRoots.push(ledgerRoot);
   const git = makeMiniGitRepoTask4(ownedRoots);
-  const data = await makeRuntimeEvidenceData();
-  const createGuardedDeps = await loadRuntimeEvidenceFileLedgerDepsFactoryTask4();
-  void createGuardedDeps;
+  const miniRoot = git.root;
+  const readDeps = createCalibrationBootstrapReadDepsTask4Base(miniRoot);
+  const context = await prepareCalibrationBootstrapContextTask4(readDeps);
+  if (context.baseDir !== miniRoot) {
+    throw new CalibrationFatalError('calibration:fixture-base-mismatch');
+  }
+  const resolvedMini = resolveNativeTask4(miniRoot);
+  const resolvedRepo = resolveNativeTask4(repoRoot);
+  if (resolvedMini === resolvedRepo) {
+    throw new CalibrationFatalError('calibration:fixture-base-mismatch');
+  }
+  if (resolveNativeTask4(context.baseDir) !== resolvedMini) {
+    throw new CalibrationFatalError('calibration:fixture-base-mismatch');
+  }
+  const ledgerRoot = resolveNativeTask4(miniRoot, CALIBRATION_ROOT);
+  const firstDev = context.firstDevelopmentCaseId;
+  const dataKey = { stage: 'preflight' as const, profile: 'LOW' as const, caseId: firstDev, sampleIndex: 1 };
   const prepareNative = await loadPrepareNativeLedgerFactoryTask4();
   const trace: string[] = [];
   const faults: RuntimeEvidenceNativeFaultsTask4 = {
@@ -956,63 +1033,93 @@ export async function makeRuntimeEvidenceNativeFixture(
       trace.push('ledger:now');
       return '2026-10-14T00:00:00.000Z';
     },
-    renameSync: (_from: string, _to: string): void => {
-      trace.push('ledger:rename');
+    renameSync: (from: string, to: string): void => {
+      trace.push(`ledger:rename:${basenameNativeTask4(from)}->${basenameNativeTask4(to)}`);
       if (faults.failNextLedgerRename) {
         faults.failNextLedgerRename = false;
         trace.push('ledger:rename:fault');
         throw new CalibrationFatalError('calibration:ledger-persist-failed');
       }
+      renameSyncNativeTask4(from, to);
+      trace.push(`ledger:renamed:${basenameNativeTask4(to)}`);
     },
-    fsyncDirSync: (_dir: string): void => {
-      trace.push('ledger:dir-fsync');
+    fsyncDirSync: (dir: string): void => {
+      trace.push(`ledger:dir-fsync:${basenameNativeTask4(dir)}`);
       if (faults.failNextLedgerDirFsync) {
         faults.failNextLedgerDirFsync = false;
         trace.push('ledger:dir-fsync:fault');
         throw new CalibrationFatalError('calibration:ledger-persist-failed');
       }
+      const fd = openSyncNativeTask4(dir, constantsNativeTask4.O_RDONLY | constantsNativeTask4.O_DIRECTORY | constantsNativeTask4.O_NOFOLLOW);
+      try {
+        fsyncSyncNativeTask4(fd);
+      } finally {
+        closeSyncNativeTask4(fd);
+      }
+      trace.push(`ledger:dir-fsynced:${basenameNativeTask4(dir)}`);
     },
-    fdWriteSync: (_fd: number, _buffer: Buffer, _offset: number, _length: number): number => {
-      trace.push('ledger:fd-write');
+    fdWriteSync: (fd: number, buffer: Buffer, offset: number, length: number): number => {
+      const stat = fstatSyncNativeTask4(fd);
+      trace.push(`ledger:fd-write:fd=${fd}:dev=${stat.dev}:ino=${stat.ino}:len=${length}`);
       if (faults.failNextLedgerWrite) {
         faults.failNextLedgerWrite = false;
         trace.push('ledger:fd-write:fault');
         throw new CalibrationFatalError('calibration:ledger-persist-failed');
       }
-      return _length;
+      const count = writeSyncNativeTask4(fd, buffer, offset, length);
+      trace.push(`ledger:fd-wrote:fd=${fd}:count=${count}`);
+      return count;
     },
-    fdFsyncSync: (_fd: number): void => {
-      trace.push('ledger:fd-fsync');
+    fdFsyncSync: (fd: number): void => {
+      const stat = fstatSyncNativeTask4(fd);
+      trace.push(`ledger:fd-fsync:fd=${fd}:dev=${stat.dev}:ino=${stat.ino}`);
       if (faults.failNextLedgerFileFsync) {
         faults.failNextLedgerFileFsync = false;
         trace.push('ledger:fd-fsync:fault');
         throw new CalibrationFatalError('calibration:ledger-persist-failed');
       }
+      fsyncSyncNativeTask4(fd);
+      trace.push(`ledger:fd-fsynced:fd=${fd}`);
     },
-    fdCloseSync: (_fd: number): void => {
-      trace.push('ledger:fd-close');
+    fdCloseSync: (fd: number): void => {
+      const stat = fstatSyncNativeTask4(fd);
+      trace.push(`ledger:fd-close:fd=${fd}:dev=${stat.dev}:ino=${stat.ino}`);
       if (faults.failNextLedgerClose) {
         faults.failNextLedgerClose = false;
         trace.push('ledger:fd-close:fault');
         throw new CalibrationFatalError('calibration:ledger-persist-failed');
       }
+      closeSyncNativeTask4(fd);
+      trace.push(`ledger:fd-closed:fd=${fd}`);
     },
-    linkSync: (_from: string, _to: string): void => {
-      trace.push('ledger:link');
+    linkSync: (from: string, to: string): void => {
+      trace.push(`ledger:link:${basenameNativeTask4(from)}->${basenameNativeTask4(to)}`);
+      linkSyncNativeTask4(from, to);
+      const stat = lstatSyncNativeTask4(to);
+      trace.push(`ledger:linked:${basenameNativeTask4(to)}:ino=${stat.ino}`);
     },
-    unlinkSync: (_path: string): void => {
-      trace.push('ledger:unlink');
+    unlinkSync: (path: string): void => {
+      trace.push(`ledger:unlink:${basenameNativeTask4(path)}`);
+      unlinkSyncNativeTask4(path);
+      trace.push(`ledger:unlinked:${basenameNativeTask4(path)}`);
     },
   };
-  const owner: CalibrationOwner = { ...data.header.owner };
-  const params: unknown = { context: data.context };
+  const owner: CalibrationOwner = { ...context.owner };
+  const resolvedContextBase = resolveNativeTask4(context.baseDir);
+  if (resolvedContextBase !== resolvedMini || resolvedContextBase === resolvedRepo) {
+    throw new CalibrationFatalError('calibration:fixture-base-mismatch');
+  }
+  const resolvedLedgerRoot = resolveNativeTask4(ledgerRoot);
+  if (!resolvedLedgerRoot.startsWith(resolvedMini + sepNativeTask4)) {
+    throw new CalibrationFatalError('calibration:fixture-root-escape');
+  }
+  const params: unknown = { context };
   const ledger = await prepareNative(params, overrides);
-  ledger.acquireLock(owner);
   const tokenKey = {
     kind: 'token_count' as const,
     stage: 'preflight' as const,
-    caseId: data.key.caseId,
-    model: data.context.identity.model,
+    caseId: dataKey.caseId,
+    model: context.identity.model,
   };
   let tokensDone = false;
   function completeTokenPrerequisites(): void {
@@ -1025,26 +1132,25 @@ export async function makeRuntimeEvidenceNativeFixture(
   }
   async function finishPreflight(): Promise<void> {
     completeTokenPrerequisites();
-    const lowKey = { ...data.key };
-    const mediumKey = { ...data.key, profile: 'MEDIUM' as const };
-    const lowRef = ledger.startRuntimeAttempt(lowKey);
+    const lowKey = { ...dataKey };
+    const mediumKey = { ...dataKey, profile: 'MEDIUM' as const };
+    const lowRef = ledger.startRuntimeAttempt({ ...lowKey });
     ledger.startRuntimeOperation(lowRef, 'image');
     ledger.settleRuntimeOperation(lowRef, 'image', 'returned');
     ledger.startRuntimeOperation(lowRef, 'vision');
-    ledger.reserve(lowKey);
+    ledger.reserve({ ...lowKey });
+    ledger.pinModelVersion(CORE_PINNED_VERSION);
     ledger.authorizeRuntimeRequest(lowRef);
     ledger.settleRuntimeOperation(lowRef, 'vision', 'returned');
     ledger.finishRuntimeAttempt(lowRef);
-    const mediumRef = ledger.startRuntimeAttempt(mediumKey);
+    const mediumRef = ledger.startRuntimeAttempt({ ...mediumKey });
     ledger.startRuntimeOperation(mediumRef, 'image');
     ledger.settleRuntimeOperation(mediumRef, 'image', 'returned');
     ledger.startRuntimeOperation(mediumRef, 'vision');
-    ledger.reserve(mediumKey);
+    ledger.reserve({ ...mediumKey });
     ledger.authorizeRuntimeRequest(mediumRef);
     ledger.settleRuntimeOperation(mediumRef, 'vision', 'returned');
     ledger.finishRuntimeAttempt(mediumRef);
-    ledger.admitStageReportReceipt('preflight', 'LOW');
-    ledger.admitStageReportReceipt('preflight', 'MEDIUM');
   }
   async function restart(nextOwner: CalibrationOwner): Promise<CalibrationRuntimeEvidenceLedger> {
     const fresh = await prepareNative(params, overrides);
@@ -1056,12 +1162,7 @@ export async function makeRuntimeEvidenceNativeFixture(
   }
   function cleanup(): void {
     try {
-      rmSyncNativeTask4(ledgerRoot, { recursive: true, force: true });
-    } catch {
-      // best-effort owned cleanup only
-    }
-    try {
-      rmSyncNativeTask4(git.root, { recursive: true, force: true });
+      rmSyncNativeTask4(miniRoot, { recursive: true, force: true });
     } catch {
       // best-effort owned cleanup only
     }
@@ -1069,10 +1170,10 @@ export async function makeRuntimeEvidenceNativeFixture(
   return {
     ledger,
     owner: Object.freeze({ ...owner }),
-    key: { ...data.key },
-    context: data.context,
+    key: { ...dataKey },
+    context,
     root: ledgerRoot,
-    gitRoot: git.root,
+    gitRoot: miniRoot,
     trace,
     faults,
     completeTokenPrerequisites,
