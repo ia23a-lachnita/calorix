@@ -1325,3 +1325,112 @@ it('existing real disk barcode crash cut remains read-only and may resume under 
   () => exerciseNativeBarcodeCrash('existing-core'), 600000);
 it('guarded real disk barcode crash cut remains read-only and may resume under new ownership',
   () => exerciseNativeBarcodeCrash('future'), 600000);
+
+const nativeArtifactMutations = [
+  'json-bytes', 'markdown-bytes', 'duplicate-journal', 'orphan-journal', 'journal-hash',
+  'journal-key', 'receipt-hash', 'binding-digest', 'binding-profile', 'binding-owner', 'source-header',
+] as const;
+type NativeArtifactMutation = typeof nativeArtifactMutations[number];
+
+// Break caught: an admitted receipt or old binding must never cache authority
+// over changed physical report/journal bytes or inconsistent replay records.
+async function exerciseNativeArtifactMutation(mode: 'existing-core' | 'future', kind: NativeArtifactMutation): Promise<void> {
+  const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode });
+  await f.finishPreflight();
+  f.ledger.bindRuntimeStageReport('preflight', 'LOW');
+  const ledgerPath = resolve(f.root, 'ledger.json');
+  const journalPath = resolve(f.root, 'journal.json');
+  const jsonPath = resolve(f.root, 'reports/preflight-low.json');
+  const markdownPath = resolve(f.root, 'reports/preflight-low.md');
+  const rows = nativeRows(f.root);
+  const journals = JSON.parse(readFileSync(journalPath, 'utf8')) as Array<Record<string, unknown>>;
+  const binding = rows.find((row) => row.type === 'runtime_report_bound');
+  const receipt = rows.find((row) => row.type === 'artifact_receipt_admitted');
+  expect(binding).toBeDefined();
+  expect(receipt).toBeDefined();
+  if (kind === 'json-bytes' || kind === 'markdown-bytes') {
+    const target = kind === 'json-bytes' ? jsonPath : markdownPath;
+    const tampered = readFileSync(target, 'utf8') + '\n';
+    writeOwnedFile(target, tampered);
+    const before = readFileSync(ledgerPath, 'utf8');
+    let error: unknown;
+    try { f.ledger.bindRuntimeStageReport('preflight', 'LOW'); } catch (caught) { error = caught; }
+    expectStaticPersistenceFatal(error);
+    expect(readFileSync(ledgerPath, 'utf8')).toBe(before);
+    expect(readFileSync(target, 'utf8')).toBe(tampered);
+    expect(() => f.ledger.getCounts()).toThrow(CalibrationFatalError);
+  } else if (kind === 'duplicate-journal') {
+    journals.push(structuredClone(journals[0]!));
+    writeOwnedFile(journalPath, JSON.stringify(journals));
+  } else if (kind === 'orphan-journal' || kind === 'journal-key') {
+    const moved = structuredClone(journals[0]!);
+    moved.key = { ...(moved.key as ReservationKey), stage: 'development' };
+    if (kind === 'orphan-journal') journals.push(moved);
+    else journals[0] = moved;
+    writeOwnedFile(journalPath, JSON.stringify(journals));
+  } else if (kind === 'journal-hash') {
+    journals[0]!.predictionHash = 'private-native-hook-error';
+    writeOwnedFile(journalPath, JSON.stringify(journals));
+  } else {
+    if (kind === 'receipt-hash') (receipt!.receipt as Record<string, unknown>).jsonSha256 = '0'.repeat(64);
+    if (kind === 'binding-digest') binding!.bindingSha256 = '0'.repeat(64);
+    if (kind === 'binding-profile') binding!.profile = 'MEDIUM';
+    if (kind === 'binding-owner') binding!.owner = nextNativeOwner({ ...f.owner });
+    if (kind === 'source-header') (rows[0]!.identity as Record<string, unknown>).functionsTreeId = 'f'.repeat(40);
+    writeOwnedFile(ledgerPath, JSON.stringify(rows));
+  }
+  const changedLedger = readFileSync(ledgerPath, 'utf8');
+  const changedJournal = readFileSync(journalPath, 'utf8');
+  const changedJson = readFileSync(jsonPath, 'utf8');
+  const changedMarkdown = readFileSync(markdownPath, 'utf8');
+  let error: unknown;
+  try { await f.restart(nextNativeOwner({ ...f.owner })); } catch (caught) { error = caught; }
+  expectStaticPersistenceFatal(error);
+  // Fail/report, never truncate, repair artifacts, release, or hide conflict.
+  expect(readFileSync(ledgerPath, 'utf8')).toBe(changedLedger);
+  expect(readFileSync(journalPath, 'utf8')).toBe(changedJournal);
+  expect(readFileSync(jsonPath, 'utf8')).toBe(changedJson);
+  expect(readFileSync(markdownPath, 'utf8')).toBe(changedMarkdown);
+  expect(existsSync(resolve(f.root, 'lock.json'))).toBe(true);
+}
+for (const kind of nativeArtifactMutations) {
+  it(`existing native artifact reconciliation rejects ${kind} without repairing history`, () => exerciseNativeArtifactMutation('existing-core', kind));
+  it(`guarded native artifact reconciliation rejects ${kind} without repairing history`, () => exerciseNativeArtifactMutation('future', kind));
+}
+
+async function exerciseNativeReportWithoutReceipt(mode: 'existing-core' | 'future'): Promise<void> {
+  const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode });
+  await f.finishPreflight();
+  const all = nativeRows(f.root);
+  const firstReceipt = all.findIndex((row) => row.type === 'artifact_receipt_admitted');
+  expect(firstReceipt).toBeGreaterThan(0);
+  // Restore an exact observed ledger prefix containing both finished
+  // outcomes; retain the actually published files, not rendered substitutes.
+  const prefix = all.slice(0, firstReceipt);
+  writeOwnedFile(resolve(f.root, 'ledger.json'), JSON.stringify(prefix));
+  const jsonPath = resolve(f.root, 'reports/preflight-low.json');
+  const markdownPath = resolve(f.root, 'reports/preflight-low.md');
+  const jsonBefore = readFileSync(jsonPath, 'utf8');
+  const markdownBefore = readFileSync(markdownPath, 'utf8');
+  const next = nextNativeOwner({ ...f.owner });
+  const fresh = await f.restart(next);
+  fresh.recoverAfterCrash();
+  fresh.admitStageReportReceipt('preflight', 'LOW');
+  const first = fresh.bindRuntimeStageReport('preflight', 'LOW');
+  const beforeRetry = readFileSync(resolve(f.root, 'ledger.json'), 'utf8');
+  expect(fresh.bindRuntimeStageReport('preflight', 'LOW')).toEqual(first);
+  expect(readFileSync(resolve(f.root, 'ledger.json'), 'utf8')).toBe(beforeRetry);
+  const after = nativeRows(f.root);
+  expect(after.slice(0, prefix.length)).toEqual(prefix);
+  expect(after.slice(prefix.length).map((row) => row.type)).toEqual([
+    'lock_recovery', 'artifact_receipt_admitted', 'runtime_report_bound',
+  ]);
+  expect(first.owner).toEqual(next);
+  expect(fresh.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 2 });
+  expect(readFileSync(jsonPath, 'utf8')).toBe(jsonBefore);
+  expect(readFileSync(markdownPath, 'utf8')).toBe(markdownBefore);
+}
+it('existing native report files without receipt can be verified and bound under a fresh owner without new outcomes',
+  () => exerciseNativeReportWithoutReceipt('existing-core'));
+it('guarded native report files without receipt can be verified and bound under a fresh owner without new outcomes',
+  () => exerciseNativeReportWithoutReceipt('future'));
