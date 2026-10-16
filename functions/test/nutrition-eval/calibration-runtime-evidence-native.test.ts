@@ -1049,3 +1049,37 @@ it('existing-core restart verifies historical receipts under the new native owne
   expect(after.slice(0, before.length)).toEqual(before);
   expect(after[0]?.owner).toEqual(f.owner);
 });
+
+it('existing-core explicit token readiness is idempotent around the same shared preflight driver', async () => {
+  const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode: 'existing-core' });
+  f.completeTokenPrerequisites();
+  expect(f.ledger.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 0 });
+  await f.finishPreflight();
+  f.completeTokenPrerequisites();
+  expect(f.ledger.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 2 });
+  expect(f.ledger.getRuntimeEvidenceSnapshot().events.filter((e) => e.type === 'runtime_report_bound')).toHaveLength(0);
+  expect(f.ledger.bindRuntimeStageReport('preflight', 'LOW').type).toBe('runtime_report_bound');
+  expect(f.ledger.bindRuntimeStageReport('preflight', 'MEDIUM').type).toBe('runtime_report_bound');
+});
+
+it('existing-core token helper observes completion by preflight before its local cache was set', async () => {
+  const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode: 'existing-core' });
+  await f.finishPreflight();
+  const before = readFileSync(resolve(f.root, 'ledger.json'), 'utf8');
+  f.completeTokenPrerequisites();
+  expect(f.ledger.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 2 });
+  expect(readFileSync(resolve(f.root, 'ledger.json'), 'utf8')).toBe(before);
+});
+
+it('existing-core token helper never completes an interrupted pending token reservation', async () => {
+  const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode: 'existing-core' });
+  const key = { kind: 'token_count' as const, stage: 'preflight' as const, caseId: f.key.caseId, model: f.context.identity.model };
+  f.ledger.reserveTokenCount(key);
+  const path = resolve(f.root, 'ledger.json');
+  const before = readFileSync(path, 'utf8');
+  expect(() => f.completeTokenPrerequisites()).toThrow(CalibrationFatalError);
+  expect(readFileSync(path, 'utf8')).toBe(before);
+  const rows = JSON.parse(before) as Array<{ type: string }>;
+  expect(rows.filter((row) => row.type === 'token_count_completed')).toHaveLength(0);
+  expect(existsSync(resolve(f.root, 'lock.json'))).toBe(true);
+});

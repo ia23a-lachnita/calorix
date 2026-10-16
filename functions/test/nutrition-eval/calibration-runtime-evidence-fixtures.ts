@@ -1007,8 +1007,7 @@ export async function runSharedFoundationPreflight(
 ): Promise<void> {
   const firstDev = context.firstDevelopmentCaseId;
   const tokenKey = { kind: 'token_count' as const, stage: 'preflight' as const, caseId: firstDev, model: context.identity.model };
-  ledger.reserveTokenCount(tokenKey);
-  ledger.completeTokenCount(tokenKey, 1200);
+  ensureNativeTokenReadiness(ledger, context, tokenKey);
   const full = StrictCalibrationManifestSchema.parse(JSON.parse(context.files['calibration-manifest'] as string)) as unknown as {
     cases: Array<{ id: string } & Record<string, unknown>>;
   };
@@ -1245,8 +1244,7 @@ export async function makeRuntimeEvidenceNativeFixture(
     if (tokensDone) {
       return;
     }
-    ledger.reserveTokenCount(tokenKey);
-    ledger.completeTokenCount(tokenKey, 1200);
+    ensureNativeTokenReadiness(ledger, context, tokenKey);
     tokensDone = true;
   }
   async function finishPreflight(): Promise<void> {
@@ -1338,4 +1336,28 @@ export async function makeRuntimeEvidenceNativeFixture(
     createUnacquiredLedger,
     cleanup,
   };
+}
+
+// Task4 shared token-readiness helper: reuse an actual completed prerequisite,
+// never turn a merely reserved/interrupted count into fabricated readiness.
+function ensureNativeTokenReadiness(
+  ledger: CalibrationRuntimeEvidenceLedger,
+  context: CalibrationPreparedContext,
+  key: Parameters<CalibrationRuntimeEvidenceLedger['reserveTokenCount']>[0],
+): void {
+  const counts = ledger.getCounts();
+  if (counts.tokenCountReserved === 0) {
+    ledger.reserveTokenCount(key);
+    ledger.completeTokenCount(key, 1200);
+    return;
+  }
+  const events: unknown = JSON.parse(readFileSync(resolveNativeTask4(context.baseDir, CALIBRATION_ROOT, 'ledger.json'), 'utf8'));
+  if (counts.tokenCountReserved !== 1 || !Array.isArray(events) || !events.some((raw: unknown) => {
+    const row = raw as { type?: string; key?: Partial<typeof key>; count?: number };
+    return row !== null && typeof row === 'object' && row.type === 'token_count_completed'
+      && row.key?.kind === key.kind && row.key.stage === key.stage && row.key.caseId === key.caseId && row.key.model === key.model
+      && typeof row.count === 'number' && Number.isSafeInteger(row.count) && row.count > 0;
+  })) {
+    throw new CalibrationFatalError('calibration:fixture-token-readiness-incomplete');
+  }
 }
