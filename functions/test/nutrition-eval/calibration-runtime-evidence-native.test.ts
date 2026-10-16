@@ -1695,3 +1695,148 @@ it('native preparation captures low-level hooks before its first suspension', as
   expect(nativeRows(boot.ledgerRoot)).toEqual([expect.objectContaining({ type: 'protocol_identity',
     runtimeEvidenceVersion: 1, owner: boot.context.owner })]);
 });
+
+// Break caught: inherited legacy error inspection must not invoke exception
+// getters/prototype traps or convert unknown liveness into native authority.
+describe('guarded native foreign exception boundaries', () => {
+  it.each(['link-before', 'link-after', 'dir-before', 'unlink-before'] as const)(
+    'retains reached physical archive effects without inspecting %s exceptions', async (phase) => {
+      const hooks = makePersistenceHooks();
+      hooks.overrides.procStatReader = () => { throw Object.assign(new Error('missing'), { code: 'ENOENT' }); };
+      const counts = { getter: 0, prototype: 0, fault: 0 };
+      const foreign = new Proxy(Object.defineProperty({}, 'code', {
+        get() { counts.getter += 1; return undefined; },
+      }), { getPrototypeOf() { counts.prototype += 1; return Object.prototype; } });
+      let armed = false;
+      const syncDir = hooks.overrides.fsyncDirSync!;
+      hooks.overrides.linkSync = (from, to) => {
+        if (armed && phase === 'link-before') { counts.fault += 1; throw foreign; }
+        hardLinkOwnedPath(from, to);
+        if (armed && phase === 'link-after') { counts.fault += 1; throw foreign; }
+      };
+      hooks.overrides.unlinkSync = (path) => {
+        if (armed && phase === 'unlink-before') { counts.fault += 1; throw foreign; }
+        unlinkOwnedFile(path);
+      };
+      hooks.overrides.fsyncDirSync = (dir) => {
+        if (armed && phase === 'dir-before') { counts.fault += 1; throw foreign; }
+        syncDir(dir);
+      };
+      const { boot } = await openPersistenceLedger('future', hooks);
+      const lock = resolve(boot.ledgerRoot, 'lock.json');
+      const journal = resolve(boot.ledgerRoot, 'ledger.json');
+      const lockBytes = readFileSync(lock, 'utf8');
+      const lockInode = lstatSync(lock).ino;
+      const history = readFileSync(journal, 'utf8');
+      const archive = resolve(boot.ledgerRoot, `lock.archive.${boot.context.owner.pid}.${boot.context.owner.startTicks}.json`);
+      const prepare = await loadPrepareNativeLedgerFactoryTask4();
+      const next = nextNativeOwner(boot.context.owner);
+      const fresh = await prepare({ context: { ...boot.context, owner: next } }, hooks.overrides);
+      armed = true;
+      let error: unknown;
+      let permissions = 0;
+      try { fresh.acquireLock(next); permissions += 1; } catch (caught) { error = caught; }
+      expectStaticPersistenceFatal(error);
+      expect(permissions).toBe(0);
+      expect(counts.fault).toBe(1);
+      expect(readFileSync(lock, 'utf8')).toBe(lockBytes);
+      expect(lstatSync(lock).ino).toBe(lockInode);
+      expect(readFileSync(journal, 'utf8')).toBe(history);
+      expect(existsSync(archive)).toBe(phase !== 'link-before');
+      expect(lstatSync(lock).nlink).toBe(phase === 'link-before' ? 1 : 2);
+      if (phase !== 'link-before') {
+        expect(lstatSync(archive).ino).toBe(lockInode);
+        expect(readFileSync(archive, 'utf8')).toBe(lockBytes);
+      }
+      expect(() => fresh.getCounts()).toThrow(CalibrationFatalError);
+      expect(() => fresh.releaseLock(next)).toThrow(CalibrationFatalError);
+      expect(readFileSync(lock, 'utf8')).toBe(lockBytes);
+      expect(counts).toEqual({ getter: 0, prototype: 0, fault: 1 });
+    },
+  );
+
+  it('preserves an existing archive destination and original lock on real EEXIST', async () => {
+    const hooks = makePersistenceHooks();
+    hooks.overrides.procStatReader = () => { throw Object.assign(new Error('missing'), { code: 'ENOENT' }); };
+    const { boot } = await openPersistenceLedger('future', hooks);
+    const lock = resolve(boot.ledgerRoot, 'lock.json');
+    const archive = resolve(boot.ledgerRoot, `lock.archive.${boot.context.owner.pid}.${boot.context.owner.startTicks}.json`);
+    const historyPath = resolve(boot.ledgerRoot, 'ledger.json');
+    const history = readFileSync(historyPath, 'utf8');
+    const bytes = readFileSync(lock, 'utf8');
+    const inode = lstatSync(lock).ino;
+    writeOwnedFile(archive, 'preserved archive destination', { flag: 'wx', mode: 0o600 });
+    const archiveInode = lstatSync(archive).ino;
+    const prepare = await loadPrepareNativeLedgerFactoryTask4();
+    const next = nextNativeOwner(boot.context.owner);
+    const fresh = await prepare({ context: { ...boot.context, owner: next } }, hooks.overrides);
+    expect(() => fresh.acquireLock(next)).toThrow(CalibrationFatalError);
+    expect(readFileSync(lock, 'utf8')).toBe(bytes);
+    expect(lstatSync(lock).ino).toBe(inode);
+    expect(lstatSync(lock).nlink).toBe(1);
+    expect(readFileSync(archive, 'utf8')).toBe('preserved archive destination');
+    expect(lstatSync(archive).ino).toBe(archiveInode);
+    expect(readFileSync(historyPath, 'utf8')).toBe(history);
+    expect(() => fresh.releaseLock(next)).toThrow(CalibrationFatalError);
+  });
+
+  it.each(['accessor', 'inherited', 'proxy-get'] as const)(
+    'does not treat a %s ENOENT exception as own-data proof of owner death', async (kind) => {
+      const hooks = makePersistenceHooks();
+      let getters = 0;
+      const getter = () => { getters += 1; return 'ENOENT'; };
+      const foreign = kind === 'accessor' ? Object.defineProperty({}, 'code', { get: getter })
+        : kind === 'inherited' ? Object.create({ code: 'ENOENT' }) as unknown
+          : new Proxy({}, { get(_target, key) { return key === 'code' ? getter() : undefined; } });
+      hooks.overrides.procStatReader = () => { throw foreign; };
+      const { boot } = await openPersistenceLedger('future', hooks);
+      const lock = resolve(boot.ledgerRoot, 'lock.json');
+      const historyPath = resolve(boot.ledgerRoot, 'ledger.json');
+      const bytes = readFileSync(lock, 'utf8');
+      const inode = lstatSync(lock).ino;
+      const history = readFileSync(historyPath, 'utf8');
+      const prepare = await loadPrepareNativeLedgerFactoryTask4();
+      const next = nextNativeOwner(boot.context.owner);
+      const fresh = await prepare({ context: { ...boot.context, owner: next } }, hooks.overrides);
+      let error: unknown;
+      let permissions = 0;
+      try { fresh.acquireLock(next); permissions += 1; } catch (caught) { error = caught; }
+      expect(permissions).toBe(0);
+      expectStaticPersistenceFatal(error);
+      expect(getters).toBe(0);
+      expect(readFileSync(lock, 'utf8')).toBe(bytes);
+      expect(lstatSync(lock).ino).toBe(inode);
+      expect(readFileSync(historyPath, 'utf8')).toBe(history);
+      expect(existsSync(resolve(boot.ledgerRoot, `lock.archive.${boot.context.owner.pid}.${boot.context.owner.startTicks}.json`))).toBe(false);
+      expect(() => fresh.releaseLock(next)).toThrow(CalibrationFatalError);
+    },
+  );
+
+  it('rechecks poison after own-descriptor reflection swallows store reentry', async () => {
+    const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+    const create = await loadRuntimeEvidenceFileLedgerDepsFactoryTask4();
+    let nested: () => void = () => { throw new Error('not initialized'); };
+    let reflections = 0;
+    const target = { code: 'ENOENT' };
+    const foreign = new Proxy(target, { getOwnPropertyDescriptor(object, key) {
+      reflections += 1;
+      try { nested(); } catch { /* hostile callback deliberately swallows busy failure */ }
+      return Object.getOwnPropertyDescriptor(object, key);
+    } });
+    const deps = create(boot.context.baseDir, boot.context.owner, { procStatReader: () => { throw foreign; } });
+    deps.writeLockExclusive(boot.context.owner);
+    nested = () => { deps.getRoot(); };
+    const lock = resolve(boot.ledgerRoot, 'lock.json');
+    const bytes = readFileSync(lock, 'utf8');
+    const inode = lstatSync(lock).ino;
+    let error: unknown;
+    let disposition: unknown;
+    try { disposition = deps.probeOwnerLiveness(boot.context.owner); } catch (caught) { error = caught; }
+    expectStaticPersistenceFatal(error);
+    expect(disposition).toBeUndefined();
+    expect(reflections).toBe(1);
+    expect(() => deps.removeLock(boot.context.owner)).toThrow(CalibrationFatalError);
+    expect(readFileSync(lock, 'utf8')).toBe(bytes);
+    expect(lstatSync(lock).ino).toBe(inode);
+  });
+});
