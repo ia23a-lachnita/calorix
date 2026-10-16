@@ -1117,6 +1117,10 @@ function createFileCalibrationLedgerDepsImpl(
       if (code === 'ENOENT') return 'dead';
       return 'unknown';
     }
+    if (nativeOwner !== undefined) {
+      nativeReady();
+      if (typeof stat !== 'string') return 'unknown';
+    }
     const startTicks = parseProcStartTicks(stat);
     if (startTicks === undefined) return 'unknown';
     return startTicks === owner.startTicks ? 'live' : 'dead';
