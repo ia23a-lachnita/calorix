@@ -1308,7 +1308,10 @@ export async function makeRuntimeEvidenceNativeFixture(
     ledger.bindRuntimeStageReport('preflight', 'LOW');
     ledger.bindRuntimeStageReport('preflight', 'MEDIUM');
     ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
-    for (const row of initialPlan.filter((row) => row.key.stage === 'development')) completeNativeOutcome(row.key);
+    for (const row of initialPlan.filter((row) => row.key.stage === 'development')) {
+      completeNativeOutcome(row.key);
+      await new Promise<void>((done) => setImmediate(done));
+    }
     const low = await publishAndBindNativePair('development', 'LOW');
     const medium = await publishAndBindNativePair('development', 'MEDIUM');
     const selected = selectCalibrationProfile(low.profile, medium.profile);
@@ -1323,7 +1326,10 @@ export async function makeRuntimeEvidenceNativeFixture(
     const selected = ledger.getSelectedProfile();
     if (selected === undefined) throw new CalibrationFatalError('calibration:fixture-profile-required');
     const plan = selected === 'LOW' ? lowPlan : mediumPlan;
-    for (const row of plan.filter((row) => row.key.stage === 'validation')) completeNativeOutcome(row.key);
+    for (const row of plan.filter((row) => row.key.stage === 'validation')) {
+      completeNativeOutcome(row.key);
+      await new Promise<void>((done) => setImmediate(done));
+    }
     const measured = await publishAndBindNativePair('validation', selected);
     const passed = evaluateCalibrationStageGate('validation', measured.stage).passed;
     ledger.completeStage('validation', {
@@ -1334,7 +1340,10 @@ export async function makeRuntimeEvidenceNativeFixture(
     const selected = ledger.getSelectedProfile();
     if (selected === undefined) throw new CalibrationFatalError('calibration:fixture-profile-required');
     const plan = selected === 'LOW' ? lowPlan : mediumPlan;
-    for (const row of plan.filter((row) => row.key.stage === 'benchmark')) completeNativeOutcome(row.key);
+    for (const row of plan.filter((row) => row.key.stage === 'benchmark')) {
+      completeNativeOutcome(row.key);
+      await new Promise<void>((done) => setImmediate(done));
+    }
   }
   // Task4 native stage helpers end
   async function restart(nextOwner: CalibrationOwner): Promise<CalibrationRuntimeEvidenceLedger> {
