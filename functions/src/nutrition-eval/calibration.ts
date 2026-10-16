@@ -1682,6 +1682,32 @@ function createLedgerCore(
     return Object.freeze(owned);
   }
 
+  // The full physical ledger interleaves protocol facts with runtime events;
+  // neither the runtime4096-event cap nor a per-record traversal budget is a
+  // limit on this outer array. Capture records separately before parsing.
+  function evidenceReplayArray(value: unknown): readonly unknown[] {
+    if (!evidenceReflect(() => Array.isArray(value)) || evidenceReflect(() => Object.getPrototypeOf(value)) !== Array.prototype) {
+      throw new CalibrationFatalError('calibration:runtime-replay-invalid');
+    }
+    const descriptor = evidenceReflect(() => Object.getOwnPropertyDescriptor(value, 'length'));
+    const length: unknown = descriptor?.value;
+    if (descriptor === undefined || descriptor.enumerable !== false || typeof length !== 'number'
+      || !Number.isSafeInteger(length) || length < 0 || Object.is(length, -0)) {
+      throw new CalibrationFatalError('calibration:runtime-replay-invalid');
+    }
+    const keys = evidenceReflect(() => Reflect.ownKeys(value as object));
+    if (keys.length !== length + 1 || keys.some((key) => typeof key !== 'string')) {
+      throw new CalibrationFatalError('calibration:runtime-replay-invalid');
+    }
+    const owned: unknown[] = [];
+    for (let index = 0; index < length; index += 1) {
+      const field = evidenceReflect(() => Object.getOwnPropertyDescriptor(value, String(index)));
+      if (field?.enumerable !== true || !('value' in field)) throw new CalibrationFatalError('calibration:runtime-replay-invalid');
+      owned.push(field.value);
+    }
+    return Object.freeze(owned);
+  }
+
   if (evidenceMode) {
     try {
       const options = captureStrictReportRecord(init.runtimeOptions,
@@ -1700,9 +1726,15 @@ function createLedgerCore(
     }
   }
   const isStrict = !('allowedKeys' in init);
-  const strictKeyResolver = isStrict
+  const suppliedKeyResolver = isStrict
     ? (init as { keyResolver: CalibrationKeyResolver }).keyResolver
     : undefined;
+  const strictKeyResolver: CalibrationKeyResolver | undefined = evidenceMode && typeof suppliedKeyResolver === 'function'
+    ? (profile) => {
+      const result = suppliedKeyResolver(profile);
+      evidenceCheck();
+      return evidenceCapture(result) as readonly ReservationKey[];
+    } : suppliedKeyResolver;
   const rawReportOptions = isStrict
     ? (init as { reportOptions?: CalibrationProtocolReportOptions }).reportOptions
     : undefined;
@@ -1723,6 +1755,14 @@ function createLedgerCore(
   let reportOptions: CalibrationProtocolReportOptions | undefined;
   try {
     reportOptions = isStrict && rawReportOptions !== undefined ? captureStrictReportOptions(rawReportOptions) : undefined;
+    if (evidenceMode && reportOptions !== undefined) {
+      const readPlan = reportOptions.getReportOutcomePlan;
+      reportOptions = { getReportOutcomePlan: (profile) => {
+        const result = readPlan(profile);
+        evidenceCheck();
+        return evidenceCapture(result) as readonly CalibrationPlannedReportOutcome[];
+      } };
+    }
   } catch {
     throw new CalibrationFatalError(verifyArtifacts === undefined
       ? 'calibration:report-options-invalid' : 'calibration:report-authority-options-invalid');
@@ -2103,7 +2143,8 @@ function createLedgerCore(
       verifyingArtifacts = true;
       const result = verifyArtifacts!(Object.freeze({ stage, profile, snapshot }));
       if (evidenceMode) evidenceCheck();
-      const envelope = captureStrictReportRecord(result, ['report', 'receipt'], 'calibration:artifact-verification-failed');
+      const ownedResult = evidenceMode ? evidenceCapture(result) : result;
+      const envelope = captureStrictReportRecord(ownedResult, ['report', 'receipt'], 'calibration:artifact-verification-failed');
       const measurements = measureCalibrationStageReport(envelope.report);
       const receipt = captureReceipt(envelope.receipt, 'calibration:artifact-verification-failed');
       assertMeasuredBinding(measurements, receipt, snapshot);
@@ -2484,12 +2525,10 @@ function createLedgerCore(
     }
     let journalItems: readonly unknown[] = replayJournalEntries;
     if (isStrict) {
-      journalItems = snapshotStrictReplayArray(
-        replayJournalEntries,
-        'calibration:journal-replay-read-failed',
-      );
+      journalItems = evidenceMode ? evidenceReplayArray(replayJournalEntries)
+        : snapshotStrictReplayArray(replayJournalEntries, 'calibration:journal-replay-read-failed');
       for (let index = 0; index < journalItems.length; index += 1) {
-        strictIndexReplayJournal(journalItems[index]);
+        strictIndexReplayJournal(evidenceMode ? evidenceCapture(journalItems[index]) : journalItems[index]);
       }
     } else {
       for (const entry of replayJournalEntries as readonly JournalEntry[]) {
@@ -2515,16 +2554,14 @@ function createLedgerCore(
       throw asFatal(error, 'calibration:ledger-replay-read-failed');
     }
     if (isStrict) {
-      const eventItems = snapshotStrictReplayArray(
-        replayLedgerEvents,
-        'calibration:ledger-replay-read-failed',
-      );
+      const eventItems = evidenceMode ? evidenceReplayArray(replayLedgerEvents)
+        : snapshotStrictReplayArray(replayLedgerEvents, 'calibration:ledger-replay-read-failed');
       if (eventItems.length === 0) {
         if (journalItems.length > 0) {
           throw new CalibrationFatalError('calibration:ledger-header-missing');
         }
       } else {
-        strictValidateHeaderEvent(eventItems[0]);
+        strictValidateHeaderEvent(evidenceMode ? evidenceCapture(eventItems[0]) : eventItems[0]);
         for (let index = 1; index < eventItems.length; index += 1) {
           if (!evidenceMode) {
             strictReplayLedgerEvent(eventItems[index]);
