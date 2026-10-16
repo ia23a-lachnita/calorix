@@ -1840,3 +1840,47 @@ describe('guarded native foreign exception boundaries', () => {
     expect(lstatSync(lock).ino).toBe(inode);
   });
 });
+
+// Break caught: the native reader must capture a primitive before a legacy
+// parser can dereference methods, and must notice swallowed callback poison.
+describe('guarded native proc return capture', () => {
+  it.each([false, true])('never invokes a malformed stat getter after swallowed reentry=%s', async (reentry) => {
+    const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+    const create = await loadRuntimeEvidenceFileLedgerDepsFactoryTask4();
+    let getters = 0;
+    let nestedFailures = 0;
+    let nested: () => void = () => { throw new Error('not initialized'); };
+    const foreign = Object.defineProperty({}, 'lastIndexOf', {
+      get() { getters += 1; return () => -1; },
+    });
+    const deps = create(boot.context.baseDir, boot.context.owner, {
+      procStatReader: () => {
+        if (reentry) {
+          try { nested(); } catch { nestedFailures += 1; }
+        }
+        return foreign as unknown as string;
+      },
+    });
+    deps.writeLockExclusive(boot.context.owner);
+    nested = () => { deps.readLock(); };
+    const lock = resolve(boot.ledgerRoot, 'lock.json');
+    const bytes = readFileSync(lock, 'utf8');
+    const inode = lstatSync(lock).ino;
+    let error: unknown;
+    let disposition: unknown;
+    try { disposition = deps.probeOwnerLiveness(boot.context.owner); } catch (caught) { error = caught; }
+    if (reentry) {
+      expectStaticPersistenceFatal(error);
+      expect(disposition).toBeUndefined();
+      expect(nestedFailures).toBe(1);
+      expect(() => deps.removeLock(boot.context.owner)).toThrow(CalibrationFatalError);
+    } else {
+      expect(error).toBeUndefined();
+      expect(disposition).toBe('unknown');
+      expect(nestedFailures).toBe(0);
+    }
+    expect(readFileSync(lock, 'utf8')).toBe(bytes);
+    expect(lstatSync(lock).ino).toBe(inode);
+    expect(getters).toBe(0);
+  });
+});
