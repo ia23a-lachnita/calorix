@@ -1184,3 +1184,144 @@ it('existing native stage driver preserves 158 outcomes, 146 images and twelve b
   () => exerciseNativeStagePopulation('existing-core'), 600000);
 it('guarded native stage driver preserves 158 outcomes, 146 images and twelve barcodes without benchmark authority',
   () => exerciseNativeStagePopulation('future'), 600000);
+
+const nativeCrashCuts = [
+  'untouched', 'attempt', 'image-intent', 'image-returned', 'vision-intent', 'reserved',
+  'authorized', 'vision-returned', 'terminal-complete', 'terminal-incomplete', 'orphan-journal', 'finished',
+] as const;
+type NativeCrashCut = typeof nativeCrashCuts[number];
+function nextNativeOwner(owner: CalibrationOwner): CalibrationOwner {
+  return {
+    ...owner, pid: owner.pid + 92000, startTicks: owner.startTicks + 40,
+    acquiredAt: new Date(Date.parse(owner.acquiredAt) + 3000).toISOString(),
+  };
+}
+function nativeRows(root: string): Array<Record<string, unknown>> {
+  return JSON.parse(readFileSync(resolve(root, 'ledger.json'), 'utf8')) as Array<Record<string, unknown>>;
+}
+function sameNativeOutcome(a: ReservationKey, b: ReservationKey): boolean {
+  return a.stage === b.stage && a.profile === b.profile && a.caseId === b.caseId && a.sampleIndex === b.sampleIndex;
+}
+
+// Break caught: a crash cut cannot reset sequence/history, invent a successful
+// result for an orphan journal, or redispatch a durably reserved sample.
+async function exerciseNativeCrashCut(mode: 'existing-core' | 'future', cut: NativeCrashCut): Promise<void> {
+  const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode });
+  f.completeTokenPrerequisites();
+  const rank = nativeCrashCuts.indexOf(cut);
+  if (rank >= 1) {
+    const ref = f.ledger.startRuntimeAttempt(f.key);
+    if (rank >= 2) f.ledger.startRuntimeOperation(ref, 'image');
+    if (rank >= 3) f.ledger.settleRuntimeOperation(ref, 'image', 'returned');
+    if (rank >= 4) f.ledger.startRuntimeOperation(ref, 'vision');
+    if (rank >= 5) f.ledger.reserve(f.key);
+    if (rank >= 6) {
+      f.ledger.authorizeRuntimeRequest(ref);
+      f.ledger.pinModelVersion(CORE_PINNED_VERSION);
+    }
+    if (rank >= 7 && cut !== 'terminal-incomplete') f.ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+    if (rank >= 8) {
+      const prediction = createCoreExactPrediction(realFirstDevCase(f.context.files, f.key.caseId), f.key.sampleIndex);
+      const hash = f.ledger.appendResultJournal(buildCoreSuccessJournal(f.key, prediction));
+      if (cut !== 'orphan-journal') f.ledger.complete(f.key, hash);
+      if (cut === 'finished') f.ledger.finishRuntimeAttempt(ref);
+    }
+  }
+  const before = nativeRows(f.root);
+  const journalPath = resolve(f.root, 'journal.json');
+  const journalBefore = existsSync(journalPath) ? readFileSync(journalPath, 'utf8') : undefined;
+  const next = nextNativeOwner({ ...f.owner });
+  f.faults.ownerProbe = 'dead';
+  if (cut === 'orphan-journal') {
+    await expect((async () => {
+      const fresh = await f.restart(next);
+      fresh.recoverAfterCrash();
+    })()).rejects.toBeInstanceOf(CalibrationFatalError);
+    const after = nativeRows(f.root);
+    expect(after.slice(0, before.length)).toEqual(before);
+    expect(after.filter((row) => row.type === 'completed' || row.type === 'failed'
+      || row.type === 'runtime_attempt_finished' || row.type === 'runtime_attempt_abandoned')).toHaveLength(0);
+    expect(readFileSync(journalPath, 'utf8')).toBe(journalBefore);
+    expect(existsSync(resolve(f.root, 'lock.json'))).toBe(true);
+    return;
+  }
+  const fresh = await f.restart(next);
+  const report = fresh.recoverAfterCrash();
+  const after = nativeRows(f.root);
+  expect(after.slice(0, before.length)).toEqual(before);
+  expect(after[0]?.owner).toEqual(f.owner);
+  expect(after.filter((row) => row.type === 'lock_recovery')).toEqual([
+    expect.objectContaining({ staleOwner: f.owner, recoveringOwner: next }),
+  ]);
+  expect(JSON.parse(readFileSync(resolve(f.root, 'lock.json'), 'utf8'))).toEqual(next);
+  expect(f.trace).toContain(`ledger:proc-stat:dead:pid=${f.owner.pid}`);
+  const reservedInterrupted = rank >= 5 && rank <= 7;
+  const unreserved = rank >= 1 && rank <= 4;
+  const incomplete = cut === 'terminal-incomplete';
+  const abandoned = after.filter((row) => row.type === 'runtime_attempt_abandoned');
+  expect(abandoned).toHaveLength(unreserved || reservedInterrupted || incomplete ? 1 : 0);
+  if (abandoned.length > 0) {
+    expect(abandoned[0]).toMatchObject({
+      owner: next, key: f.key, attempt: 1,
+      disposition: { kind: unreserved ? 'unreserved_interruption'
+        : reservedInterrupted ? 'reserved_interruption' : 'terminal_evidence_incomplete' },
+    });
+  }
+  const finishes = after.filter((row) => row.type === 'runtime_attempt_finished');
+  expect(finishes).toHaveLength(cut === 'terminal-complete' || cut === 'finished' ? 1 : 0);
+  if (cut === 'terminal-complete') {
+    const terminalIndex = before.findIndex((row) => row.type === 'completed');
+    expect(finishes[0]).toMatchObject({ owner: next, key: f.key,
+      terminal: { kind: 'image', eventIndex: terminalIndex + 1, journalHash: before[terminalIndex]?.journalHash } });
+    expect(after.slice(before.length).map((row) => row.type)).toEqual(['lock_recovery', 'runtime_attempt_finished']);
+  }
+  expect(fresh.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: rank >= 5 ? 1 : 0 });
+  expect(report.resumable.some((key) => sameNativeOutcome(key, f.key))).toBe(rank < 5);
+  if (reservedInterrupted) {
+    expect(after.filter((row) => row.type === 'failed')).toHaveLength(1);
+    const journal: unknown = JSON.parse(readFileSync(journalPath, 'utf8'));
+    expect(journal).toEqual([expect.objectContaining({ key: f.key, predictionHash: 'interrupted_reservation',
+      normalizedPrediction: null, errorCategory: 'interrupted_reservation' })]);
+  } else {
+    expect(existsSync(journalPath) ? readFileSync(journalPath, 'utf8') : undefined).toBe(journalBefore);
+  }
+  const recoveredBytes = readFileSync(resolve(f.root, 'ledger.json'), 'utf8');
+  fresh.recoverAfterCrash();
+  expect(readFileSync(resolve(f.root, 'ledger.json'), 'utf8')).toBe(recoveredBytes);
+  expect(() => f.ledger.getCounts()).toThrow(CalibrationFatalError);
+  if (rank < 5) expect(fresh.startRuntimeAttempt(f.key).attempt).toBe(rank === 0 ? 1 : 2);
+  else expect(() => fresh.startRuntimeAttempt(f.key)).toThrow(CalibrationFatalError);
+  expect(JSON.parse(readFileSync(resolve(f.root, 'lock.json'), 'utf8'))).toEqual(next);
+}
+for (const cut of nativeCrashCuts) {
+  it(`existing real disk crash cut ${cut} preserves history and request accounting`, () => exerciseNativeCrashCut('existing-core', cut));
+  it(`guarded real disk crash cut ${cut} preserves history and request accounting`, () => exerciseNativeCrashCut('future', cut));
+}
+
+async function exerciseNativeBarcodeCrash(mode: 'existing-core' | 'future'): Promise<void> {
+  const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode });
+  await f.finishPreflight();
+  await f.finishDevelopment();
+  await f.finishValidation();
+  const barcode = deriveCanonicalReportOutcomePlan(f.context.files, 'MEDIUM').find((row) => row.scanMode === 'barcode');
+  expect(barcode).toBeDefined();
+  const key = barcode!.key;
+  const ref = f.ledger.startRuntimeAttempt(key);
+  f.ledger.startRuntimeOperation(ref, 'snapshot');
+  const before = nativeRows(f.root);
+  const next = nextNativeOwner({ ...f.owner });
+  const fresh = await f.restart(next);
+  const report = fresh.recoverAfterCrash();
+  const after = nativeRows(f.root);
+  expect(after.slice(0, before.length)).toEqual(before);
+  expect(after.slice(before.length).map((row) => row.type)).toEqual(['lock_recovery', 'runtime_attempt_abandoned']);
+  expect(after.at(-1)).toMatchObject({ owner: next, key, attempt: 1, disposition: { kind: 'unreserved_interruption' } });
+  expect(report.resumable.some((candidate) => sameNativeOutcome(candidate, key))).toBe(true);
+  expect(fresh.getCounts()).toEqual({ tokenCountReserved: 1, imageReserved: 98 });
+  expect(fresh.startRuntimeAttempt(key).attempt).toBe(2);
+  expect(after.filter((row) => row.type === 'reserved' && sameNativeOutcome(row.key as ReservationKey, key))).toHaveLength(0);
+}
+it('existing real disk barcode crash cut remains read-only and may resume under new ownership',
+  () => exerciseNativeBarcodeCrash('existing-core'), 600000);
+it('guarded real disk barcode crash cut remains read-only and may resume under new ownership',
+  () => exerciseNativeBarcodeCrash('future'), 600000);
