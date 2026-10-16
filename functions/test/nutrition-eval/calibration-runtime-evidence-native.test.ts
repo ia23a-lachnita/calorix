@@ -1020,3 +1020,32 @@ async function exerciseCloseDescriptorReuse(mode: 'existing-core' | 'future') {
 
 it('existing native close-after-error control leaves a reused foreign descriptor open', () => exerciseCloseDescriptorReuse('existing-core'));
 it('guarded native close cleanup never closes a reused foreign descriptor', () => exerciseCloseDescriptorReuse('future'));
+
+it('existing-core restart verifies historical receipts under the new native owner without relabelling history', async () => {
+  const f = await makeRuntimeEvidenceNativeFixture(ownedRoots, { mode: 'existing-core' });
+  await f.finishPreflight();
+  const path = resolve(f.root, 'ledger.json');
+  const before = JSON.parse(readFileSync(path, 'utf8')) as Array<{
+    type: string;
+    receipt?: { stage: string; profile: string };
+  }>;
+  const receipt = before.find((row) => row.type === 'artifact_receipt_admitted'
+    && row.receipt?.stage === 'preflight' && row.receipt.profile === 'LOW')?.receipt;
+  expect(receipt).toBeDefined();
+  const next: CalibrationOwner = {
+    ...f.owner,
+    pid: f.owner.pid + 90000,
+    startTicks: f.owner.startTicks + 20,
+    acquiredAt: new Date(Date.parse(f.owner.acquiredAt) + 1000).toISOString(),
+  };
+  // Fixture's declared procStatReader simulates the old owner as dead; no
+  // actual process is stopped. restart constructs a fresh ledger instance.
+  const fresh = await f.restart(next);
+  fresh.recoverAfterCrash();
+  const bound = fresh.bindRuntimeStageReport('preflight', 'LOW');
+  expect(bound.receipt).toEqual(receipt);
+  expect(bound.owner).toEqual(next);
+  const after = JSON.parse(readFileSync(path, 'utf8')) as Array<Record<string, unknown>>;
+  expect(after.slice(0, before.length)).toEqual(before);
+  expect(after[0]?.owner).toEqual(f.owner);
+});

@@ -1258,7 +1258,7 @@ export async function makeRuntimeEvidenceNativeFixture(
       const verifier = await prepareVerifierTask4Base({
         baseDir: context.baseDir,
         identity: { ...context.identity },
-        owner: { ...ownerForBuild },
+        owner: { ...nextOwner },
         firstDevelopmentCaseId: context.firstDevelopmentCaseId,
         report: context.report,
         files: { ...context.files },
@@ -1282,7 +1282,7 @@ export async function makeRuntimeEvidenceNativeFixture(
       return core;
     }
     const prepareNative = await loadPrepareNativeLedgerFactoryTask4();
-    const fresh = await prepareNative(params, overrides);
+    const fresh = await prepareNative({ context: { ...context, owner: { ...nextOwner } } }, overrides);
     fresh.acquireLock({ ...nextOwner });
     return fresh;
   }
