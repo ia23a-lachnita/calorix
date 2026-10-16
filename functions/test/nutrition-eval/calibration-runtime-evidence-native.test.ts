@@ -132,36 +132,46 @@ describe('foundation existing-source controls', () => {
     const miniRoot = boot.context.baseDir;
     assertInsideOwned(miniRoot, boot.ledgerRoot);
     const order: string[] = [];
-    const fdWrites: Array<{ fd: number; dev: number; ino: number }> = [];
-    const renames: Array<{ from: string; to: string; dev: number; ino: number }> = [];
+    const fdWrites: Array<{ fd: number; dev: number; ino: number; idx: number }> = [];
+    const fdFsyncs: Array<{ fd: number; dev: number; ino: number; idx: number }> = [];
+    const fdCloses: Array<{ fd: number; dev: number; ino: number; idx: number }> = [];
+    const renames: Array<{ from: string; fromDev: number; fromIno: number; to: string; toDev: number; toIno: number; startIdx: number; completeIdx: number }> = [];
+    const dirSyncs: Array<{ dir: string; startIdx: number; completeIdx: number }> = [];
     const deps = createFileCalibrationLedgerDeps(miniRoot, {
       fdWriteSync: (fd: number, buf: Buffer, off: number, len: number): number => {
         const st = fstatSyncTest(fd);
-        fdWrites.push({ fd, dev: st.dev, ino: st.ino });
-        order.push(`write:fd=${fd}:ino=${st.ino}:len=${len}`);
+        order.push(`write:fd=${fd}:dev=${st.dev}:ino=${st.ino}:len=${len}`);
+        fdWrites.push({ fd, dev: st.dev, ino: st.ino, idx: order.length - 1 });
         const n = writeSyncTest(fd, buf, off, len);
-        order.push(`wrote:${n}`);
+        order.push(`wrote:fd=${fd}:count=${n}`);
         return n;
       },
       fdFsyncSync: (fd: number): void => {
-        order.push(`fsync:${fd}`);
+        const st = fstatSyncTest(fd);
+        order.push(`fsync:fd=${fd}:dev=${st.dev}:ino=${st.ino}`);
+        fdFsyncs.push({ fd, dev: st.dev, ino: st.ino, idx: order.length - 1 });
         fsyncSyncTest(fd);
-        order.push(`fsynced:${fd}`);
+        order.push(`fsynced:fd=${fd}`);
       },
       fdCloseSync: (fd: number): void => {
-        order.push(`close:${fd}`);
+        const st = fstatSyncTest(fd);
+        order.push(`close:fd=${fd}:dev=${st.dev}:ino=${st.ino}`);
+        fdCloses.push({ fd, dev: st.dev, ino: st.ino, idx: order.length - 1 });
         closeSyncTest(fd);
-        order.push(`closed:${fd}`);
+        order.push(`closed:fd=${fd}`);
       },
       renameSync: (from: string, to: string): void => {
         order.push(`rename:${basename(from)}->${basename(to)}`);
+        const startIdx = order.length - 1;
+        const fromStat = lstatSync(from);
         renameSyncTest(from, to);
         const st = lstatSync(to);
-        renames.push({ from: basename(from), to: basename(to), dev: st.dev, ino: st.ino });
-        order.push(`renamed:${basename(to)}:ino=${st.ino}`);
+        order.push(`renamed:${basename(to)}:dev=${st.dev}:ino=${st.ino}`);
+        renames.push({ from: basename(from), fromDev: fromStat.dev, fromIno: fromStat.ino, to: basename(to), toDev: st.dev, toIno: st.ino, startIdx, completeIdx: order.length - 1 });
       },
       fsyncDirSync: (dir: string): void => {
         order.push(`dir:${basename(dir)}`);
+        const startIdx = order.length - 1;
         const fd = openSyncTest(dir, constantsTest.O_RDONLY | constantsTest.O_DIRECTORY | constantsTest.O_NOFOLLOW);
         try {
           fsyncSyncTest(fd);
@@ -169,6 +179,7 @@ describe('foundation existing-source controls', () => {
           closeSyncTest(fd);
         }
         order.push(`dir-synced:${basename(dir)}`);
+        dirSyncs.push({ dir: basename(dir), startIdx, completeIdx: order.length - 1 });
       },
     });
     const keyResolver = (selectedProfile?: 'LOW' | 'MEDIUM') =>
@@ -190,12 +201,14 @@ describe('foundation existing-source controls', () => {
     const realCase = realFirstDevCase({ ...boot.context.files }, firstDev);
     const lowPrediction = createCoreExactPrediction(realCase, 1);
     const lowJournal = buildCoreSuccessJournal({ ...lowKey }, lowPrediction);
-    ledger.complete({ ...lowKey }, ledger.appendResultJournal(lowJournal));
+    const lowJournalHash = ledger.appendResultJournal(lowJournal);
+    ledger.complete({ ...lowKey }, lowJournalHash);
     const mediumKey: ReservationKey = { stage: 'preflight', profile: 'MEDIUM', caseId: firstDev, sampleIndex: 1 };
     ledger.reserve({ ...mediumKey });
     const mediumPrediction = createCoreExactPrediction(realCase, 1);
     const mediumJournal = buildCoreSuccessJournal({ ...mediumKey }, mediumPrediction);
-    ledger.complete({ ...mediumKey }, ledger.appendResultJournal(mediumJournal));
+    const mediumJournalHash = ledger.appendResultJournal(mediumJournal);
+    ledger.complete({ ...mediumKey }, mediumJournalHash);
     const lockPath = resolve(boot.ledgerRoot, 'lock.json');
     expect(existsSync(lockPath)).toBe(true);
     expect((lstatSync(lockPath).mode & 0o7777)).toBe(0o600);
@@ -206,61 +219,70 @@ describe('foundation existing-source controls', () => {
     expect(existsSync(journalPath)).toBe(true);
     expect((lstatSync(ledgerPath).mode & 0o7777)).toBe(0o600);
     expect((lstatSync(journalPath).mode & 0o7777)).toBe(0o600);
-    const ledgerEvents = JSON.parse(readFileSync(ledgerPath, 'utf8')) as Array<{ type: string; key?: ReservationKey; journalHash?: string }>;
-    const completed = ledgerEvents.filter((e) => e.type === 'completed');
-    expect(completed).toHaveLength(2);
-    const journals = JSON.parse(readFileSync(journalPath, 'utf8')) as Array<{ key: ReservationKey }>;
-    expect(journals).toHaveLength(2);
-    expect(journals.map((j) => `${j.key.stage}|${j.key.profile}|${j.key.caseId}`)).toEqual([
-      `preflight|LOW|${firstDev}`,
-      `preflight|MEDIUM|${firstDev}`,
+    const ledgerEvents = JSON.parse(readFileSync(ledgerPath, 'utf8')) as Array<{ type: string; key?: ReservationKey & { kind?: string; model?: string }; journalHash?: string; count?: number }>;
+    expect(ledgerEvents.map((e) => e.type)).toEqual([
+      'protocol_identity',
+      'token_count_reserved',
+      'token_count_completed',
+      'reserved',
+      'model_version_pinned',
+      'completed',
+      'reserved',
+      'completed',
     ]);
-    for (const c of completed) {
-      const match = journals.find((j) => j.key.stage === c.key?.stage && j.key.profile === c.key?.profile && j.key.caseId === c.key?.caseId);
-      expect(match).toBeDefined();
+    expect(ledgerEvents.filter((e) => e.type === 'reserved')).toHaveLength(2);
+    expect(ledgerEvents.filter((e) => e.type === 'completed')).toHaveLength(2);
+    expect(ledgerEvents[5]).toMatchObject({ type: 'completed', journalHash: lowJournalHash });
+    expect(ledgerEvents[7]).toMatchObject({ type: 'completed', journalHash: mediumJournalHash });
+    expect(ledgerEvents[5]?.key).toEqual({ ...lowKey });
+    expect(ledgerEvents[7]?.key).toEqual({ ...mediumKey });
+    const journals = JSON.parse(readFileSync(journalPath, 'utf8')) as Array<Record<string, unknown>>;
+    expect(journals).toHaveLength(2);
+    expect(journals[0]).toEqual(JSON.parse(JSON.stringify(lowJournal)) as unknown);
+    expect(journals[1]).toEqual(JSON.parse(JSON.stringify(mediumJournal)) as unknown);
+    for (const r of renames) {
+      expect(['ledger.json', 'journal.json']).toContain(r.to);
     }
-    const indexAfter = (sub: string, from: number): number => {
-      for (let i = from; i < order.length; i += 1) {
-        if ((order[i] as string).includes(sub)) {
-          return i;
-        }
-      }
-      return -1;
-    };
-    let sameTransaction = false;
-    for (const { fd } of fdWrites) {
-      const writeIdx = indexAfter(`write:fd=${fd}:`, 0);
-      if (writeIdx < 0) {
-        continue;
-      }
-      const fsyncIdx = indexAfter(`fsync:${fd}`, writeIdx + 1);
-      if (fsyncIdx < 0) {
-        continue;
-      }
-      const closeIdx = indexAfter(`close:${fd}`, fsyncIdx + 1);
-      if (closeIdx < 0) {
-        continue;
-      }
-      const renameIdx = indexAfter('rename:', closeIdx + 1);
-      if (renameIdx < 0) {
-        continue;
-      }
-      const dirIdx = indexAfter('dir:', renameIdx + 1);
-      if (dirIdx < 0) {
-        continue;
-      }
-      sameTransaction = true;
-      break;
-    }
-    expect(sameTransaction).toBe(true);
-    expect(renames.length).toBeGreaterThan(0);
-    const finalLedgerStat = lstatSync(ledgerPath);
-    expect(renames.some((r) => r.dev === finalLedgerStat.dev && r.ino === finalLedgerStat.ino)).toBe(true);
-    expect(fdWrites.length).toBeGreaterThan(0);
-    expect(fdWrites.some((w) => w.dev === finalLedgerStat.dev && w.ino === finalLedgerStat.ino)).toBe(true);
+    expect(renames.some((r) => r.to === 'lock.json')).toBe(false);
     const ledgerRenames = renames.filter((r) => r.to === 'ledger.json');
-    expect(ledgerRenames.length).toBeGreaterThan(0);
-    expect(ledgerRenames.some((r) => r.dev === finalLedgerStat.dev && r.ino === finalLedgerStat.ino)).toBe(true);
+    const journalRenames = renames.filter((r) => r.to === 'journal.json');
+    expect(ledgerRenames).toHaveLength(ledgerEvents.length);
+    expect(journalRenames).toHaveLength(journals.length);
+    const finalLedgerStat = lstatSync(ledgerPath);
+    const finalJournalStat = lstatSync(journalPath);
+    expect(ledgerRenames.some((r) => r.toDev === finalLedgerStat.dev && r.toIno === finalLedgerStat.ino)).toBe(true);
+    expect(journalRenames.some((r) => r.toDev === finalJournalStat.dev && r.toIno === finalJournalStat.ino)).toBe(true);
+    const allRenames = [...ledgerRenames, ...journalRenames].sort((a, b) => a.startIdx - b.startIdx);
+    expect(allRenames).toHaveLength(renames.length);
+    for (let ri = 0; ri < allRenames.length; ri += 1) {
+      const r = allRenames[ri] as { fromDev: number; fromIno: number; toDev: number; toIno: number; startIdx: number; completeIdx: number; to: string };
+      expect(r.fromDev).toBe(r.toDev);
+      expect(r.fromIno).toBe(r.toIno);
+      const writes = fdWrites.filter((w) => w.dev === r.fromDev && w.ino === r.fromIno && w.idx < r.startIdx);
+      expect(writes.length).toBeGreaterThan(0);
+      const lastWriteIdx = Math.max(...writes.map((w) => w.idx));
+      const fsyncs = fdFsyncs.filter((f) => f.dev === r.fromDev && f.ino === r.fromIno && f.idx > lastWriteIdx && f.idx < r.startIdx);
+      expect(fsyncs.length).toBeGreaterThan(0);
+      const lastFsyncIdx = Math.max(...fsyncs.map((f) => f.idx));
+      const closes = fdCloses.filter((c) => c.dev === r.fromDev && c.ino === r.fromIno && c.idx > lastFsyncIdx && c.idx < r.startIdx);
+      expect(closes.length).toBeGreaterThan(0);
+      const lastCloseIdx = Math.max(...closes.map((c) => c.idx));
+      expect(lastWriteIdx).toBeLessThan(lastFsyncIdx);
+      expect(lastFsyncIdx).toBeLessThan(lastCloseIdx);
+      expect(lastCloseIdx).toBeLessThan(r.startIdx);
+      expect(r.startIdx).toBeLessThan(r.completeIdx);
+      const dirs = dirSyncs.filter((d) => d.startIdx > r.completeIdx);
+      expect(dirs.length).toBeGreaterThan(0);
+      const dirIdx = Math.min(...dirs.map((d) => d.startIdx));
+      expect(r.completeIdx).toBeLessThan(dirIdx);
+      const nextWrites = fdWrites.filter((w) => w.idx > dirIdx);
+      if (ri < allRenames.length - 1) {
+        expect(nextWrites.length).toBeGreaterThan(0);
+        const nextWriteIdx = Math.min(...nextWrites.map((w) => w.idx));
+        expect(dirIdx).toBeLessThan(nextWriteIdx);
+      }
+      void lastWriteIdx;
+    }
   });
 
   it('publishes preflight via existing publisher and admits native receipt', async () => {
