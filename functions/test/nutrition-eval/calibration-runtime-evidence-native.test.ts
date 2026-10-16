@@ -842,3 +842,181 @@ describe('real miniature Git authority controls', () => {
     'native composition enforces %s source policy', (change) => exerciseNativeGitAuthority('future', change),
   );
 });
+
+import { symlinkSync as linkOwnedPath, mkdirSync as makeOwnedDirectory } from 'node:fs';
+
+describe('native lock identity and private path requirements', () => {
+  for (const phase of ['before-effect', 'after-close', 'after-dir-sync'] as const) {
+    it.each(['metadata', 'inode'] as const)('retains a replaced %s lock at ' + phase, async (replacement) => {
+      const hooks = makePersistenceHooks();
+      let armed = false;
+      let lockPath = '';
+      let changed = false;
+      let foreignBytes = '';
+      const mutate = () => {
+        if (!armed) return;
+        armed = false;
+        changed = true;
+        foreignBytes = JSON.stringify(replacement === 'metadata'
+          ? { ...expectedOwner, pid: expectedOwner!.pid + 1000 }
+          : expectedOwner);
+        if (replacement === 'inode') unlinkOwnedFile(lockPath);
+        writeOwnedFile(lockPath, foreignBytes, { flag: replacement === 'inode' ? 'wx' : 'w', mode: 0o600 });
+      };
+      const close = hooks.overrides.fdCloseSync!;
+      hooks.overrides.fdCloseSync = (fd) => { close(fd); if (phase === 'after-close') mutate(); };
+      const syncDir = hooks.overrides.fsyncDirSync!;
+      hooks.overrides.fsyncDirSync = (dir) => { syncDir(dir); if (phase === 'after-dir-sync') mutate(); };
+      const { boot, ledger } = await openPersistenceLedger('future', hooks);
+      lockPath = resolve(boot.ledgerRoot, 'lock.json');
+      const expectedOwner = { ...boot.context.owner };
+      const ledgerPath = resolve(boot.ledgerRoot, 'ledger.json');
+      const before = readFileSync(ledgerPath, 'utf8');
+      // Keep the old inode alive: same-owner replacement cannot be hidden by
+      // immediate inode reuse after unlink.
+      const held = openSyncTest(lockPath, constantsTest.O_RDONLY | constantsTest.O_NOFOLLOW);
+      const old = fstatSyncTest(held);
+      try {
+        armed = true;
+        if (phase === 'before-effect') mutate();
+        let error: unknown;
+        let effects = 0;
+        try { ledger.startRuntimeAttempt({ ...boot.key }); effects += 1; } catch (caught) { error = caught; }
+        expectStaticPersistenceFatal(error);
+        expect(effects).toBe(0);
+        expect(changed).toBe(true);
+        const foreign = lstatSync(lockPath);
+        if (replacement === 'inode') expect([foreign.dev, foreign.ino]).not.toEqual([old.dev, old.ino]);
+        else expect([foreign.dev, foreign.ino]).toEqual([old.dev, old.ino]);
+        expect(readFileSync(lockPath, 'utf8')).toBe(foreignBytes);
+        const after = readFileSync(ledgerPath, 'utf8');
+        if (phase !== 'after-dir-sync') expect(after).toBe(before);
+        else {
+          const rows = JSON.parse(after) as Array<Record<string, unknown>>;
+          expect(rows.slice(0, -1)).toEqual(JSON.parse(before));
+          expect(rows.at(-1)).toMatchObject({ type: 'runtime_attempt_started', sequence: 1, key: boot.key });
+        }
+        expect(() => ledger.startRuntimeAttempt({ ...boot.key })).toThrow(CalibrationFatalError);
+        expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+        expect(readFileSync(lockPath, 'utf8')).toBe(foreignBytes);
+        expect(lstatSync(lockPath).ino).toBe(foreign.ino);
+      } finally { closeSyncTest(held); }
+    });
+  }
+
+  for (const leaf of ['ledger.json', 'journal.json', 'lock.json'] as const) {
+    it.each(['symlink', 'directory'] as const)('rejects a ' + leaf + ' %s without following or deleting its target', async (kind) => {
+      const hooks = makePersistenceHooks();
+      const { boot, ledger } = await openPersistenceLedger('future', hooks);
+      const path = resolve(boot.ledgerRoot, leaf);
+      const saved = resolve(boot.ledgerRoot, leaf + '.test-preserved');
+      const bytes = existsSync(path) ? readFileSync(path, 'utf8') : '[]';
+      if (existsSync(path)) renameSyncTest(path, saved);
+      else writeOwnedFile(saved, bytes, { flag: 'wx', mode: 0o600 });
+      if (kind === 'symlink') linkOwnedPath(saved, path);
+      else makeOwnedDirectory(path);
+      const beforeTrace = hooks.trace.length;
+      expect(() => ledger.startRuntimeAttempt({ ...boot.key })).toThrow(CalibrationFatalError);
+      expect(hooks.trace).toHaveLength(beforeTrace);
+      expect(readFileSync(saved, 'utf8')).toBe(bytes);
+      expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+      expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(true);
+      expect(kind === 'symlink' ? lstatSync(path).isSymbolicLink() : lstatSync(path).isDirectory()).toBe(true);
+    });
+  }
+
+  it('rejects a canonical-directory symlink without modifying the preserved real directory', async () => {
+    const hooks = makePersistenceHooks();
+    const { boot, ledger } = await openPersistenceLedger('future', hooks);
+    const saved = boot.ledgerRoot + '.test-preserved';
+    const before = readFileSync(resolve(boot.ledgerRoot, 'ledger.json'), 'utf8');
+    renameSyncTest(boot.ledgerRoot, saved);
+    linkOwnedPath(saved, boot.ledgerRoot, 'dir');
+    const traceLength = hooks.trace.length;
+    expect(() => ledger.startRuntimeAttempt({ ...boot.key })).toThrow(CalibrationFatalError);
+    expect(hooks.trace).toHaveLength(traceLength);
+    expect(readFileSync(resolve(saved, 'ledger.json'), 'utf8')).toBe(before);
+    expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+    expect(existsSync(resolve(saved, 'lock.json'))).toBe(true);
+    expect(lstatSync(boot.ledgerRoot).isSymbolicLink()).toBe(true);
+  });
+
+  it('rejects same-byte final-ledger inode substitution after physical directory fsync', async () => {
+    const hooks = makePersistenceHooks();
+    const syncDir = hooks.overrides.fsyncDirSync!;
+    let armed = false;
+    let path = '';
+    let held: number | undefined;
+    let oldIno: number | undefined;
+    hooks.overrides.fsyncDirSync = (dir) => {
+      syncDir(dir);
+      if (!armed) return;
+      armed = false;
+      held = openSyncTest(path, constantsTest.O_RDONLY | constantsTest.O_NOFOLLOW);
+      oldIno = fstatSyncTest(held).ino;
+      const temp = path + '.test-replacement';
+      writeOwnedFile(temp, readFileSync(path), { flag: 'wx', mode: 0o600 });
+      renameSyncTest(temp, path);
+    };
+    const { boot, ledger } = await openPersistenceLedger('future', hooks);
+    path = resolve(boot.ledgerRoot, 'ledger.json');
+    try {
+      armed = true;
+      expect(() => ledger.startRuntimeAttempt({ ...boot.key })).toThrow(CalibrationFatalError);
+      expect(oldIno).toBeDefined();
+      expect(lstatSync(path).ino).not.toBe(oldIno);
+      const rows = JSON.parse(readFileSync(path, 'utf8')) as Array<Record<string, unknown>>;
+      expect(rows.at(-1)).toMatchObject({ type: 'runtime_attempt_started', sequence: 1, key: boot.key });
+      expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+      expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(true);
+    } finally { if (held !== undefined) closeSyncTest(held); }
+  });
+});
+
+async function exerciseCloseDescriptorReuse(mode: 'existing-core' | 'future') {
+  const hooks = makePersistenceHooks();
+  const normalClose = hooks.overrides.fdCloseSync!;
+  let armed = false;
+  let sentinelPath = '';
+  let sentinel: { fd: number; dev: number; ino: number } | undefined;
+  let reached = false;
+  hooks.overrides.fdCloseSync = (fd) => {
+    if (!armed) { normalClose(fd); return; }
+    armed = false;
+    closeSyncTest(fd);
+    const next = openSyncTest(sentinelPath, 'wx', 0o600);
+    const st = fstatSyncTest(next);
+    sentinel = { fd: next, dev: st.dev, ino: st.ino };
+    // POSIX open returns the lowest available descriptor. This synchronous
+    // close/open pair deliberately occupies the original number.
+    expect(next).toBe(fd);
+    reached = true;
+    throw new Error('private-native-hook-error-close-after-reuse');
+  };
+  const { boot, ledger } = await openPersistenceLedger(mode, hooks);
+  sentinelPath = resolve(boot.context.baseDir, 'owned-fd-sentinel');
+  const before = readFileSync(resolve(boot.ledgerRoot, 'ledger.json'), 'utf8');
+  try {
+    armed = true;
+    let error: unknown;
+    try { ledger.startRuntimeAttempt({ ...boot.key }); } catch (caught) { error = caught; }
+    expectStaticPersistenceFatal(error);
+    expect(reached).toBe(true);
+    expect(sentinel).toBeDefined();
+    const st = fstatSyncTest(sentinel!.fd);
+    expect([st.dev, st.ino]).toEqual([sentinel!.dev, sentinel!.ino]);
+    expect(readFileSync(resolve(boot.ledgerRoot, 'ledger.json'), 'utf8')).toBe(before);
+    expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+    expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(true);
+  } finally {
+    if (sentinel !== undefined) {
+      try {
+        const st = fstatSyncTest(sentinel.fd);
+        if (st.dev === sentinel.dev && st.ino === sentinel.ino) closeSyncTest(sentinel.fd);
+      } catch { /* failed assertion may reveal an already-closed sentinel */ }
+    }
+  }
+}
+
+it('existing native close-after-error control leaves a reused foreign descriptor open', () => exerciseCloseDescriptorReuse('existing-core'));
+it('guarded native close cleanup never closes a reused foreign descriptor', () => exerciseCloseDescriptorReuse('future'));
