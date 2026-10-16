@@ -28,6 +28,10 @@
 
 ## Current execution handoff — 2026-10-16
 
+**Current Task4 — BASE77b6057884d03dc17ad3a54d3821df8ab62aa64a:** task-start/full brief read after Task3 completion tracking push/liveexact. Primary3.8High headless pre-implementation review98838 actual0, scoped conversationaf9e1a2d-c42e-417d-a90e-03ad809c665b, TASK4_PLAN_ONLY agree/MUST_FIX none/QUESTIONSnone. No native source/tests exist yet; source/production/native-durability approval not implied. Worker-only RED next, preserving Tasks1–3 and29360B helper prefix. Existing full3440pass1optin skip remains baseline, not Task4 evidence.
+
+**Ruling20 — native fsync-fault oracle readiness:** explicitly complete token prerequisites in the first native fault example after header initialization and before arming the one-shot ledger-directory-fsync fault, and assert a dedicated fault witness, not only a generic fatal/lock retention. Actual Task3 Ruling17 denies LOW attempt before token readiness, which otherwise would make the example pass without reaching fsync. Bare native fixture still initializes/acquires only; production native preparation never acquires/reserves/runs stages. Cost extra explicit fixture setup and trace assertion, not relaxed stage gates or producer wiring. Primary Task4 PLAN_ONLY review agrees; its nonblocking reminders are handled by faults defaulting disarmed through readiness, a fault-specific witness rather than total initialization counts, and exact-owned cleanup registration even on setup failure.
+
 **Task3 COMPLETE:** sourcecheckpointf5961732c9266721ddb6d6d43bde993a57a77cf7 normal commit/push0/liveexact. Postcommit task-done50400 actual0, sixfiles708pass0fail0skip, real ledger completion43d02d7..f596173. Final source35265/protected121/bothprefix/helper/config unchanged; full gates and corrected scoped primary3.8High CLI review green as recorded below. All Task3 steps complete; native-edit exception ends at Task3. Next tracking push/liveexact then Task4task-start/worker-only RED native tests; no repeated completed tasks, no source/default/producer/live/production authorization beyond this unused slice. Earlier active-job entries below are historical only.
 
 **Task3 final external result agreement collected:** primary3.8High headless CLI34889 plus narration-correction21103 actual0 in same4bee2dbf-b742-4a35-be4f-a5c2e687d836 conversation, explicit final agree/MUST_FIX none/SHOULDnone/QUESTIONSnone for current source35265 and actual completed full gates. Corrected file counts1/40/53, exact skip setting RUN_NUTRITION_EVAL_FETCH, historical host-a process exit143/fullnotrun and bounded compatibility claims. Current source/protected121/bothprefix/helper/config unchanged post-review; no reviewer mutation observed. Source/tracking normal commit/push/live equality and postcommit six-suite task-done remain the next gates; no Task3 completion yet, Task4 worker-only and notstarted. This supersedes the active-review wording below.
@@ -416,8 +420,10 @@ Header initialization is its own captured initial-state path, not a fabricated r
 ```ts
 it('blocks after a failed directory fsync and retains the lock', async () => {
   const f = await makeRuntimeEvidenceNativeFixture();
+  f.completeTokenPrerequisites();
   f.faults.failNextLedgerDirFsync = true;
   expect(() => f.ledger.startRuntimeAttempt(f.key)).toThrow(CalibrationFatalError);
+  expect(f.trace).toContain('ledger:dir-fsync:fault');
   expect(existsSync(resolve(f.root, 'lock.json'))).toBe(true);
   expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
   expect(() => f.ledger.startRuntimeAttempt(f.key)).toThrow(CalibrationFatalError);
@@ -434,7 +440,7 @@ it('revalidates a bound receipt after other pairs without appending', async () =
 });
 ```
 
-Define `faults.failNextLedgerDirFsync` as a task-owned one-shot hook control armed **after** successful initialization. `finishPreflight()` publishes/adopts receipts after both profile outcomes but does not bind them, so the second test exercises the real first bind. Full fixture cleanup uses `afterEach`; the snippet's unresolved interrupted evidence is intentionally never reported as passed calibration.
+Define `faults.failNextLedgerDirFsync` as a task-owned one-shot hook control armed **after** successful initialization and explicit token prerequisites. It emits the dedicated `ledger:dir-fsync:fault` trace only when the armed failure is reached; initialization/readiness fsync calls cannot satisfy that witness. `finishPreflight()` publishes/adopts receipts after both profile outcomes but does not bind them, so the second test exercises the real first bind. Full fixture cleanup uses `afterEach` with exact-owned roots registered before a failing setup can leak them; the snippet's unresolved interrupted evidence is intentionally never reported as passed calibration.
 
 Test real writable-fd byte loop (short/zero/negative/overlarge/throw), fsync-before-close, failing close after native close and before it, rename before/after publication, parent fsync, post-fsync owner/path/inode replacement, symlinks/nonregular files/private modes and foreign lock metadata. Close faults cannot leak owned descriptors; check both hook witness and native descriptor status, without sweeping `/proc` or shared temps. Assert zero returns that grant permission after ambiguous persistence and permanent poison/retained final lock where possible; if ownership was replaced, do not remove the foreign lock.
 
