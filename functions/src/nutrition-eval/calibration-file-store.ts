@@ -518,6 +518,8 @@ function createFileCalibrationLedgerDepsImpl(
   const nowIso = overrides.nowIso ?? ((): string => new Date().toISOString());
 
   function fatal(message: string, cause: unknown): CalibrationFatalError {
+    // Never traverse or retain a foreign exception in the guarded route.
+    if (nativeOwner !== undefined) nativeFail();
     if (cause instanceof CalibrationFatalError) return cause;
     return new CalibrationFatalError(message, { cause });
   }
@@ -981,6 +983,9 @@ function createFileCalibrationLedgerDepsImpl(
       archiveLinkSync(path, archivePath);
       if (nativeOwner !== undefined) { nativeReady(); archiveLinkActive = true; }
     } catch (error) {
+      // The hook may already have linked the names. Preserve reached effects
+      // and poison without invoking a foreign code getter or prototype trap.
+      if (nativeOwner !== undefined) nativeFail();
       if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
         throw new CalibrationFatalError('calibration:lock-archive-destination-exists');
       }
@@ -1098,6 +1103,16 @@ function createFileCalibrationLedgerDepsImpl(
     try {
       stat = procStatReader(owner.pid);
     } catch (error) {
+      if (nativeOwner !== undefined) {
+        nativeReady();
+        if ((typeof error !== 'object' || error === null) && typeof error !== 'function') return 'unknown';
+        // Descriptor reflection can run a Proxy trap. Ports stay trusted;
+        // no foreign property getter or prototype traversal is needed here.
+        const descriptor = Object.getOwnPropertyDescriptor(error, 'code');
+        nativeReady();
+        return descriptor !== undefined && Object.hasOwn(descriptor, 'value') && descriptor.value === 'ENOENT'
+          ? 'dead' : 'unknown';
+      }
       const code = (error as NodeJS.ErrnoException).code;
       if (code === 'ENOENT') return 'dead';
       return 'unknown';
