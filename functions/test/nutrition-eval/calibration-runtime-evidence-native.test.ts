@@ -674,3 +674,171 @@ describe('guarded native persistence requirements', () => {
     'fails closed on %s without granting permission or losing the lock', (kind) => exercisePersistenceFault('future', kind),
   );
 });
+
+// Closed native preparation and real-source authority. Each loader is OUTSIDE
+// rejection assertions: absent source cannot masquerade as correct rejection.
+import { execFileSync as miniGitExec } from 'node:child_process';
+import { writeFileSync as writeOwnedFile, unlinkSync as unlinkOwnedFile } from 'node:fs';
+import { loadRuntimeEvidenceFileLedgerDepsFactoryTask4 } from './calibration-runtime-evidence-fixtures';
+
+function miniGitCommand(boot: PersistenceBoot, args: string[]): string {
+  return miniGitExec('git', args, { cwd: boot.context.baseDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+}
+
+describe('closed native preparation authority', () => {
+  // Any eager acquisition, reservation, or client call makes this fail.
+  it('prepares without lock or ledger publication until explicit acquire', async () => {
+    const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+    const prepare = await loadPrepareNativeLedgerFactoryTask4();
+    const hooks = makePersistenceHooks();
+    const ledger = await prepare({ context: boot.context }, hooks.overrides);
+    expect(hooks.trace).toEqual([]);
+    expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(false);
+    expect(existsSync(resolve(boot.ledgerRoot, 'ledger.json'))).toBe(false);
+    ledger.acquireLock({ ...boot.context.owner });
+    expect(JSON.parse(readFileSync(resolve(boot.ledgerRoot, 'ledger.json'), 'utf8'))).toMatchObject([
+      { type: 'protocol_identity', runtimeEvidenceVersion: 1, owner: boot.context.owner },
+    ]);
+  });
+
+  it.each(['verifyStageReportArtifacts', 'readCurrentGitState', 'plans', 'root', 'receipt', 'callback'])(
+    'rejects caller-supplied %s before any publication', async (name) => {
+      const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+      const prepare = await loadPrepareNativeLedgerFactoryTask4();
+      const hooks = makePersistenceHooks();
+      let effects = 0;
+      await expect(prepare({ context: boot.context, [name]: () => { effects += 1; } }, hooks.overrides))
+        .rejects.toBeInstanceOf(CalibrationFatalError);
+      expect(effects).toBe(0);
+      expect(hooks.trace).toEqual([]);
+      expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(false);
+      expect(existsSync(resolve(boot.ledgerRoot, 'ledger.json'))).toBe(false);
+    },
+  );
+
+  it.each(['writeExclusiveSync', 'fsyncFileSync', 'unknownHook'])(
+    'rejects high-level or unknown override %s in BOTH native APIs', async (name) => {
+      const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+      const prepare = await loadPrepareNativeLedgerFactoryTask4();
+      const store = await loadRuntimeEvidenceFileLedgerDepsFactoryTask4();
+      let effects = 0;
+      const overrides = { [name]: () => { effects += 1; } } as unknown as RuntimeEvidenceFileStoreOverrides;
+      expect(() => store(boot.context.baseDir, { ...boot.context.owner }, overrides)).toThrow(CalibrationFatalError);
+      await expect(prepare({ context: boot.context }, overrides)).rejects.toBeInstanceOf(CalibrationFatalError);
+      expect(effects).toBe(0);
+      expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(false);
+      expect(existsSync(resolve(boot.ledgerRoot, 'ledger.json'))).toBe(false);
+    },
+  );
+
+  it.each(['extra', 'invalid-pid', 'accessor'])('guarded store rejects %s owner without invoking getters', async (kind) => {
+    const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+    const store = await loadRuntimeEvidenceFileLedgerDepsFactoryTask4();
+    let getterCalls = 0;
+    const owner: Record<string, unknown> = { ...boot.context.owner };
+    if (kind === 'extra') owner.unexpected = 1;
+    if (kind === 'invalid-pid') owner.pid = 0;
+    if (kind === 'accessor') Object.defineProperty(owner, 'pid', { enumerable: true, get() { getterCalls += 1; return boot.context.owner.pid; } });
+    expect(() => store(boot.context.baseDir, owner as unknown as CalibrationOwner)).toThrow(CalibrationFatalError);
+    expect(getterCalls).toBe(0);
+    expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(false);
+    expect(existsSync(resolve(boot.ledgerRoot, 'ledger.json'))).toBe(false);
+  });
+
+  it('captures context before suspension rather than reading caller aliases later', async () => {
+    const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+    const prepare = await loadPrepareNativeLedgerFactoryTask4();
+    const context = structuredClone(boot.context);
+    const params: { context: unknown } = { context };
+    const pending = prepare(params);
+    // These are newly owned MUTABLE input copies, never production outputs.
+    (context.identity as { model: string }).model = 'caller-mutated-model';
+    (context.owner as { pid: number }).pid = 0;
+    (context.files as Record<string, string>)['calibration-manifest'] = '{}';
+    params.context = null;
+    const ledger = await pending;
+    ledger.acquireLock({ ...boot.context.owner });
+    ledger.assertIdentity({ ...boot.context.identity });
+    const key = { kind: 'token_count' as const, stage: 'preflight' as const, caseId: boot.key.caseId, model: boot.context.identity.model };
+    ledger.reserveTokenCount(key);
+    ledger.completeTokenCount(key, 1200);
+    expect(ledger.startRuntimeAttempt({ ...boot.key })).toEqual({ key: boot.key, attempt: 1 });
+    expect(JSON.parse(readFileSync(resolve(boot.ledgerRoot, 'lock.json'), 'utf8'))).toEqual(boot.context.owner);
+  });
+
+  it.each(['counts', 'runtime-snapshot', 'report-snapshot'])('constructor replay grants no %s authority before acquisition', async (read) => {
+    const hooks = makePersistenceHooks();
+    const { boot } = await openPersistenceLedger('future', hooks);
+    const prepare = await loadPrepareNativeLedgerFactoryTask4();
+    const before = readFileSync(resolve(boot.ledgerRoot, 'ledger.json'), 'utf8');
+    const fresh = await prepare({ context: boot.context });
+    const getter = () => {
+      if (read === 'counts') return fresh.getCounts();
+      if (read === 'runtime-snapshot') return fresh.getRuntimeEvidenceSnapshot();
+      return fresh.getStageReportSnapshot('preflight', 'LOW');
+    };
+    expect(getter).toThrow(CalibrationFatalError);
+    expect(readFileSync(resolve(boot.ledgerRoot, 'ledger.json'), 'utf8')).toBe(before);
+    expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(true);
+  });
+});
+
+async function exerciseNativeGitAuthority(mode: 'existing-core' | 'future', change: 'docs' | 'dirty-functions' | 'committed-functions' | 'pinned-asset') {
+  const hooks = makePersistenceHooks();
+  const { boot, ledger } = await openPersistenceLedger(mode, hooks);
+  const root = boot.context.baseDir;
+  const path = resolve(boot.ledgerRoot, 'ledger.json');
+  const lock = resolve(boot.ledgerRoot, 'lock.json');
+  const before = readFileSync(path, 'utf8');
+  const lockBytes = readFileSync(lock, 'utf8');
+  const traceLength = hooks.trace.length;
+  if (change === 'docs') {
+    writeOwnedFile(resolve(root, 'fixture-notes.md'), 'docs-only movement\n');
+    miniGitCommand(boot, ['add', 'fixture-notes.md']);
+    miniGitCommand(boot, ['commit', '-m', 'Update fixture notes']);
+    expect(miniGitCommand(boot, ['rev-parse', 'HEAD'])).not.toBe(boot.context.identity.implementationCommit);
+    expect(miniGitCommand(boot, ['log', '-1', '--format=%H', 'HEAD', '--', 'functions'])).toBe(boot.context.identity.implementationCommit);
+    ledger.startRuntimeAttempt({ ...boot.key });
+    const rows = JSON.parse(readFileSync(path, 'utf8')) as Array<Record<string, unknown>>;
+    expect(rows.slice(0, -1)).toEqual(JSON.parse(before));
+    expect(rows.at(-1)).toMatchObject({ type: 'runtime_attempt_started', sequence: 1, key: boot.key });
+    expect((rows[0] as { identity: unknown }).identity).toEqual(boot.context.identity);
+    return;
+  }
+  const drift = resolve(root, 'functions', 'fixture-drift.ts');
+  if (change === 'pinned-asset') {
+    const asset = resolve(root, 'functions/eval/nutrition/calibration-manifest.json');
+    writeOwnedFile(asset, readFileSync(asset, 'utf8') + '\n');
+  } else {
+    writeOwnedFile(drift, 'export const fixtureDrift = true;\n');
+    if (change === 'committed-functions') {
+      miniGitCommand(boot, ['add', 'functions/fixture-drift.ts']);
+      miniGitCommand(boot, ['commit', '-m', 'Change fixture source']);
+    }
+  }
+  let returned: unknown;
+  let error: unknown;
+  try { returned = ledger.startRuntimeAttempt({ ...boot.key }); } catch (caught) { error = caught; }
+  expectStaticPersistenceFatal(error);
+  expect(returned).toBeUndefined();
+  expect(hooks.trace).toHaveLength(traceLength);
+  expect(readFileSync(path, 'utf8')).toBe(before);
+  expect(readFileSync(lock, 'utf8')).toBe(lockBytes);
+  if (change === 'dirty-functions') {
+    unlinkOwnedFile(drift);
+    expect(createCalibrationBootstrapReadDeps(root).readGitState().dirtyPaths).toEqual([]);
+  }
+  expect(() => ledger.getCounts()).toThrow(CalibrationFatalError);
+  expect(() => ledger.releaseLock({ ...boot.context.owner })).toThrow(CalibrationFatalError);
+  expect(readFileSync(lock, 'utf8')).toBe(lockBytes);
+}
+
+describe('real miniature Git authority controls', () => {
+  // Snapshot-only or HEAD-equality checks must fail these SAME real Git cases.
+  it.each(['docs', 'dirty-functions', 'committed-functions', 'pinned-asset'] as const)(
+    'existing core enforces %s source policy', (change) => exerciseNativeGitAuthority('existing-core', change),
+  );
+  it.each(['docs', 'dirty-functions', 'committed-functions', 'pinned-asset'] as const)(
+    'native composition enforces %s source policy', (change) => exerciseNativeGitAuthority('future', change),
+  );
+});
