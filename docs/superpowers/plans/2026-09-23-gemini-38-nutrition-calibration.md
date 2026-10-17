@@ -241,6 +241,14 @@ Every reservation key is exactly `(stage, profile, caseId, sampleIndex)`, except
 
 ## Task 7: Add the dedicated calibration CLI and preflight boundary
 
+### Next design handoff — 2026-10-18
+
+The unused capabilities and durable-evidence prerequisite plans are complete; Task7 Steps4–7 below remain open. Verified integration base is `main`: at inspected HEADca5e2e6, GitHub default/originHEAD, creation reflog, merge-base and liveorigin/main agree on928f9a911d3b937095064fb7ebb009beef5fb6eb (zero behind/373 ahead). No PR/merge/deploy was performed or inferred from continuation.
+
+The proposed next architectural slice is an **unused opt-in producer/composition bridge**, not immediate default-controller/live activation. A unified outcome method privately owns the attempt and wraps actual trusted image/vision/snapshot operations with durable evidence. The final SDK hook performs exactly one existing reservation then authorization; finishing requires an existing durable result terminal. Its detailed contract must address private first-fatal state across async/reentrant/late/swallowed-error paths and exact terminal ownership before/after reservation. Barcode snapshots remain allowed; barcode image/vision and non-barcode snapshots remain forbidden. Recording a safe_error is not a terminal; private error branding cannot be assumed to cross module boundaries. Preserve existing public APIs/observation semantics unless a separately reviewed amendment is necessary. Tests will be hermetic with fake SDK ports and real native storage; no benchmark unblock, provider call, deployment or production model change is included.
+
+Actual primary3.8High Antigravity MCP conversation `calorix-runtime-evidence-producer-direction-20261017`: first direction reply1119 contained incorrect barcode/terminal/poisoning/feasibility claims; host verified source and rejected them. Correction1123 explicitly retracts those claims and returns agree/MUST_FIX none/QUESTIONS none for NEXT_STAGE_DIRECTION_CORRECTION_ONLY, NOT_IMPLEMENTATION_APPROVAL. The chat direction has been presented for user approval; written producer spec and implementation plan do not yet exist. No new execution workspace or application edits are authorized by this tracking entry; completed workspace stays closed. After direction approval, write/review the spec, then obtain written-spec and implementation-plan approvals before worker-only implementation. This proposed stage does not complete any unchecked step below or grant live/account/production/accuracy qualification.
+
 **Files:**
 - Create: `functions/src/nutrition-eval/calibration-cli.ts`
 - Create: `functions/test/nutrition-eval/calibration-cli.test.ts`
