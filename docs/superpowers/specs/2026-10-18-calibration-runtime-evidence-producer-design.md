@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-18
 
-**Status:** Draft for written-spec user review. The user approved the bridge-only direction with “sure” after the scope proposal at `a4af7ce`; that approves writing this document, not implementation or a plan that does not yet exist. External review provenance is tracked below.
+**Status:** Written spec approved by the user's “sounds good continue” after publication at `bba2ea94f2ea323a386f8c26e6469309e408cb89` (2026-10-18). This authorizes writing the separate implementation plan, not application implementation. External review provenance is tracked below; normative requirements are unchanged by this approval metadata.
 
 **Parents:** `2026-10-12-calibration-controller-runtime-design.md` and `2026-10-14-calibration-durable-runtime-evidence-design.md` in this directory. Parent tracker: `../plans/2026-09-23-gemini-38-nutrition-calibration.md`, Task7 Steps4–7.
 
@@ -158,4 +158,4 @@ Written-spec review used actual Antigravity MCP, primary `gemini-3.8-flash`/High
 
 Call1144 reports complete inspection of the amended155-line/26722-byte snapshot, host SHA256 `dd22378f4ff9b535515a2cea4a644589037957f24754d292f505ec99f9b86e29`, and explicitly retracts those overbroad statements. Actual nonempty isError:false response: FINAL_WRITTEN_PRODUCER_SPEC_ONLY / AGREEMENT_STATUS agree / MUST_FIX none / SHOULD_FIX none / QUESTIONS none / NOT_IMPLEMENTATION_APPROVAL. No model fallback, tool failure or reviewer mutation was observed. The reviewer launched no tests/workers or calibration inference; source/tests and user configuration stayed unchanged. Its absolute phrasing about eliminating double reservation is treated as a statement of intended design, not verified implementation or a universal guarantee. These receipt paragraphs are appended after the exact reviewed snapshot; no normative requirement is changed by them.
 
-Host self-review checked actual interface/terminal/error constraints, consistency, scope, ambiguity, references, fences, placeholders, snapshot hashes, source/test/package preservation and user-config fingerprint. This is documentation verification only. User approval of this written spec remains pending; no implementation plan, execution workspace or producer code has been created.
+Host self-review checked actual interface/terminal/error constraints, consistency, scope, ambiguity, references, fences, placeholders, snapshot hashes, source/test/package preservation and user-config fingerprint. This is documentation verification only. At the original spec checkpoint, user review was pending and no implementation plan, execution workspace or producer code existed. Subsequent written-spec approval permits the separately reviewed plan at `../plans/2026-10-18-calibration-runtime-evidence-producer.md`; implementation still requires written-plan review.
