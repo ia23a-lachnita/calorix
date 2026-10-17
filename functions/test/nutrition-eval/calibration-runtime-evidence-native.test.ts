@@ -1884,3 +1884,243 @@ describe('guarded native proc return capture', () => {
     expect(getters).toBe(0);
   });
 });
+
+// Final review break: a reused descriptor number must not become authority
+// for a later native write, fsync or cleanup close on a different inode.
+describe('final native descriptor ownership', () => {
+  it.each(['write-return', 'write-throw', 'fsync-return', 'fsync-throw'] as const)(
+    'preserves a foreign descriptor replaced at %s', async (phase) => {
+      const hooks = makePersistenceHooks();
+      let armed = false;
+      let fired = 0;
+      let sentinel = '';
+      let replacement: { fd: number; dev: number; ino: number } | undefined;
+      const foreignEffects = { writes: 0, syncs: 0, closes: 0 };
+      const isForeign = (fd: number): boolean => {
+        if (replacement === undefined || fd !== replacement.fd) return false;
+        const stat = fstatSyncTest(fd);
+        return stat.dev === replacement.dev && stat.ino === replacement.ino;
+      };
+      const swap = (fd: number): void => {
+        armed = false;
+        fired += 1;
+        closeSyncTest(fd);
+        const other = openSyncTest(sentinel, constantsTest.O_RDWR | constantsTest.O_NOFOLLOW);
+        const stat = fstatSyncTest(other);
+        replacement = { fd: other, dev: stat.dev, ino: stat.ino };
+        expect(other).toBe(fd); // Exact syscall cut, not an unrelated open fd.
+      };
+      hooks.overrides.fdWriteSync = (fd, bytes, offset, length) => {
+        if (isForeign(fd)) foreignEffects.writes += 1;
+        const hit = armed && phase.startsWith('write');
+        const count = writeSyncTest(fd, bytes, offset, hit ? 1 : length);
+        if (hit) {
+          swap(fd);
+          if (phase.endsWith('throw')) throw new Error('private-native-hook-error');
+        }
+        return count;
+      };
+      hooks.overrides.fdFsyncSync = (fd) => {
+        if (isForeign(fd)) foreignEffects.syncs += 1;
+        fsyncSyncTest(fd);
+        if (armed && phase.startsWith('fsync')) {
+          swap(fd);
+          if (phase.endsWith('throw')) throw new Error('private-native-hook-error');
+        }
+      };
+      hooks.overrides.fdCloseSync = (fd) => {
+        if (isForeign(fd)) foreignEffects.closes += 1;
+        closeSyncTest(fd);
+      };
+      const { boot, ledger } = await openPersistenceLedger('future', hooks);
+      sentinel = resolve(boot.context.baseDir, 'owned-foreign-fd-sentinel');
+      const marker = 'foreign descriptor must stay open and unchanged';
+      writeOwnedFile(sentinel, marker, { flag: 'wx', mode: 0o600 });
+      const path = resolve(boot.ledgerRoot, 'ledger.json');
+      const lock = resolve(boot.ledgerRoot, 'lock.json');
+      const before = readFileSync(path, 'utf8');
+      const lockBytes = readFileSync(lock, 'utf8');
+      const lockInode = lstatSync(lock).ino;
+      armed = true;
+      let error: unknown;
+      let permissions = 0;
+      try {
+        try { ledger.startRuntimeAttempt(boot.key); permissions += 1; } catch (caught) { error = caught; }
+        let remainsOpen = false;
+        if (replacement !== undefined) {
+          try { remainsOpen = isForeign(replacement.fd); } catch { /* closed by faulty cleanup */ }
+        }
+        expect({ permissions, fired, remainsOpen, ...foreignEffects }).toEqual({
+          permissions: 0, fired: 1, remainsOpen: true, writes: 0, syncs: 0, closes: 0,
+        });
+        expectStaticPersistenceFatal(error);
+        expect(readFileSync(sentinel, 'utf8')).toBe(marker);
+        expect(readFileSync(path, 'utf8')).toBe(before);
+        expect(readFileSync(lock, 'utf8')).toBe(lockBytes);
+        expect(lstatSync(lock).ino).toBe(lockInode);
+        expect(() => ledger.releaseLock(boot.context.owner)).toThrow(CalibrationFatalError);
+        expect(() => ledger.startRuntimeAttempt(boot.key)).toThrow(CalibrationFatalError);
+      } finally {
+        // Only the exact task-owned sentinel, never a reused foreign fd.
+        if (replacement !== undefined) {
+          try { if (isForeign(replacement.fd)) closeSyncTest(replacement.fd); } catch { /* already closed */ }
+        }
+      }
+    },
+  );
+});
+
+// Final review break: finite Number() coercion is not process death evidence.
+describe('final native process evidence', () => {
+  it.each(['-1', '0', '1.5', '0x10', '1e3', '+1', '01', '9007199254740992'])(
+    'treats noncanonical start ticks %s as unknown and refuses takeover', async (raw) => {
+      const hooks = makePersistenceHooks();
+      hooks.overrides.procStatReader = (pid) => `${pid} (fixture proc) S ${Array<string>(18).fill('0').join(' ')} ${raw}`;
+      const { boot } = await openPersistenceLedger('future', hooks);
+      const create = await loadRuntimeEvidenceFileLedgerDepsFactoryTask4();
+      const probe = create(boot.context.baseDir, boot.context.owner, hooks.overrides);
+      const disposition = probe.probeOwnerLiveness(boot.context.owner);
+      const path = resolve(boot.ledgerRoot, 'ledger.json');
+      const lock = resolve(boot.ledgerRoot, 'lock.json');
+      const bytes = readFileSync(lock, 'utf8');
+      const inode = lstatSync(lock).ino;
+      const before = readFileSync(path, 'utf8');
+      const next = nextNativeOwner(boot.context.owner);
+      const prepare = await loadPrepareNativeLedgerFactoryTask4();
+      const fresh = await prepare({ context: { ...boot.context, owner: next } }, hooks.overrides);
+      let error: unknown;
+      let permissions = 0;
+      try { fresh.acquireLock(next); permissions += 1; } catch (caught) { error = caught; }
+      expect({ disposition, permissions,
+        archived: existsSync(resolve(boot.ledgerRoot, `lock.archive.${boot.context.owner.pid}.${boot.context.owner.startTicks}.json`)),
+        sameLock: readFileSync(lock, 'utf8') === bytes && lstatSync(lock).ino === inode,
+        sameHistory: readFileSync(path, 'utf8') === before,
+      }).toEqual({ disposition: 'unknown', permissions: 0, archived: false, sameLock: true, sameHistory: true });
+      expectStaticPersistenceFatal(error);
+      expect(nativeRows(boot.ledgerRoot).filter((row) => row.type === 'lock_recovery')).toEqual([]);
+      expect(() => fresh.releaseLock(next)).toThrow(CalibrationFatalError);
+    },
+  );
+});
+
+function finalNativeParents(base: string): string[] {
+  return [base, resolve(base, '.nutrition-eval'), resolve(base, '.nutrition-eval/calibration')];
+}
+
+// Final review break: syncing v1 alone never publishes its ancestor names.
+describe('final native namespace durability', () => {
+  it('syncs all three containing directories before the first lock write', async () => {
+    const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+    const parents = finalNativeParents(boot.context.baseDir);
+    const children = [parents[1]!, parents[2]!, boot.ledgerRoot];
+    const trace: string[] = [];
+    const hooks = makePersistenceHooks();
+    const syncDir = hooks.overrides.fsyncDirSync!;
+    hooks.overrides.fsyncDirSync = (dir) => {
+      syncDir(dir);
+      const i = parents.indexOf(dir);
+      if (i !== -1) {
+        const child = lstatSync(children[i]!);
+        expect(child.isDirectory() && !child.isSymbolicLink()).toBe(true);
+        expect(child.mode & 0o7777).toBe(0o700);
+        trace.push(`parent:${i}`);
+      }
+    };
+    hooks.overrides.fdWriteSync = (fd, bytes, offset, length) => {
+      trace.push('write');
+      return writeSyncTest(fd, bytes, offset, length);
+    };
+    const prepare = await loadPrepareNativeLedgerFactoryTask4();
+    const ledger = await prepare({ context: boot.context }, hooks.overrides);
+    expect(trace).toEqual([]);
+    expect(existsSync(resolve(boot.ledgerRoot, 'lock.json'))).toBe(false);
+    ledger.acquireLock(boot.context.owner);
+    expect(trace.slice(0, 4)).toEqual(['parent:0', 'parent:1', 'parent:2', 'write']);
+    expect(trace.filter((row) => row.startsWith('parent:'))).toEqual(['parent:0', 'parent:1', 'parent:2']);
+    expect(nativeRows(boot.ledgerRoot)).toHaveLength(1);
+  });
+
+  it.each([0, 1, 2])('rejects acquisition after containing-directory barrier %i fails', async (cut) => {
+    const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+    const parents = finalNativeParents(boot.context.baseDir);
+    const hooks = makePersistenceHooks();
+    const syncDir = hooks.overrides.fsyncDirSync!;
+    let fired = 0;
+    let writes = 0;
+    hooks.overrides.fsyncDirSync = (dir) => {
+      syncDir(dir);
+      if (dir === parents[cut]) { fired += 1; throw new Error('private-native-hook-error'); }
+    };
+    hooks.overrides.fdWriteSync = (fd, bytes, offset, length) => {
+      writes += 1;
+      return writeSyncTest(fd, bytes, offset, length);
+    };
+    const prepare = await loadPrepareNativeLedgerFactoryTask4();
+    const ledger = await prepare({ context: boot.context }, hooks.overrides);
+    let error: unknown;
+    let permissions = 0;
+    try { ledger.acquireLock(boot.context.owner); permissions += 1; } catch (caught) { error = caught; }
+    expect({ fired, writes, permissions }).toEqual({ fired: 1, writes: 0, permissions: 0 });
+    expectStaticPersistenceFatal(error);
+    for (const name of ['lock.json', 'ledger.json', 'journal.json']) {
+      expect(existsSync(resolve(boot.ledgerRoot, name))).toBe(false);
+    }
+    expect(() => ledger.acquireLock(boot.context.owner)).toThrow(CalibrationFatalError);
+    expect(() => ledger.releaseLock(boot.context.owner)).toThrow(CalibrationFatalError);
+    expect(fired).toBe(1);
+  });
+
+  it('rechecks an ancestor inode replaced by the initialization fsync callback', async () => {
+    const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+    const first = resolve(boot.context.baseDir, '.nutrition-eval');
+    const saved = resolve(boot.context.baseDir, 'owned-displaced-calibration-parent');
+    const hooks = makePersistenceHooks();
+    const syncDir = hooks.overrides.fsyncDirSync!;
+    let replaced = 0;
+    let foreignInode = 0;
+    hooks.overrides.fsyncDirSync = (dir) => {
+      syncDir(dir);
+      if (dir === boot.context.baseDir && replaced === 0) {
+        renameSyncTest(first, saved);
+        makeOwnedDirectory(first, { mode: 0o700 });
+        foreignInode = lstatSync(first).ino;
+        replaced += 1;
+      }
+    };
+    const prepare = await loadPrepareNativeLedgerFactoryTask4();
+    const ledger = await prepare({ context: boot.context }, hooks.overrides);
+    let error: unknown;
+    try { ledger.acquireLock(boot.context.owner); } catch (caught) { error = caught; }
+    expectStaticPersistenceFatal(error);
+    expect(replaced).toBe(1);
+    expect(lstatSync(first).ino).toBe(foreignInode);
+    expect(existsSync(resolve(first, 'calibration'))).toBe(false);
+    expect(existsSync(saved)).toBe(true);
+    expect(() => ledger.releaseLock(boot.context.owner)).toThrow(CalibrationFatalError);
+  });
+
+  it('syncs an existing partial chain left by a failed earlier initialization', async () => {
+    const boot = await makeExistingNativeBootFixtureTask4(ownedRoots);
+    const parents = finalNativeParents(boot.context.baseDir);
+    const hooks = makePersistenceHooks();
+    const syncDir = hooks.overrides.fsyncDirSync!;
+    hooks.overrides.fsyncDirSync = (dir) => {
+      syncDir(dir);
+      if (dir === parents[0]) throw new Error('private-native-hook-error');
+    };
+    const prepare = await loadPrepareNativeLedgerFactoryTask4();
+    const first = await prepare({ context: boot.context }, hooks.overrides);
+    expect(() => first.acquireLock(boot.context.owner)).toThrow(CalibrationFatalError);
+    const inode = lstatSync(parents[1]!).ino;
+    expect(existsSync(resolve(boot.ledgerRoot, 'ledger.json'))).toBe(false);
+    const synced: string[] = [];
+    const freshHooks = makePersistenceHooks();
+    const realSync = freshHooks.overrides.fsyncDirSync!;
+    freshHooks.overrides.fsyncDirSync = (dir) => { realSync(dir); synced.push(dir); };
+    const fresh = await prepare({ context: boot.context }, freshHooks.overrides);
+    fresh.acquireLock(boot.context.owner);
+    expect(lstatSync(parents[1]!).ino).toBe(inode);
+    expect(synced.slice(0, 3)).toEqual(parents);
+    expect(nativeRows(boot.ledgerRoot)).toHaveLength(1);
+  });
+});
