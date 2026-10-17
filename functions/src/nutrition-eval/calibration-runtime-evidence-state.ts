@@ -1461,6 +1461,9 @@ function applyRuntimeEvent(
     if (mutable.ctx !== null && mutable.ctx.recovered) {
       return invalid();
     }
+    if (ctx.terminalRecorded) {
+      return invalid();
+    }
     if (ctx.pending !== null) {
       return invalid();
     }
@@ -1538,6 +1541,9 @@ function applyRuntimeEvent(
     }
     requireUnsealed(mutable, ref.key, invalid);
     if (mutable.ctx !== null && mutable.ctx.recovered) {
+      return invalid();
+    }
+    if (ctx.terminalRecorded) {
       return invalid();
     }
     if (!ctx.visionStarted || ctx.visionSettled) {
