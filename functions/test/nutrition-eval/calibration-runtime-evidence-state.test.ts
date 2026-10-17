@@ -3326,3 +3326,97 @@ describe('regression terminal facts respect attempt ownership epochs', () => {
     },
   );
 });
+
+describe('final causal evidence: no new operation starts after a recorded terminal', () => {
+  it('rejects a barcode snapshot start after a non-reservation terminal recorded with no snapshot', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const barcodeRow = f.plans.LOW.find((r) => r.key.stage === 'benchmark' && r.scanMode === 'barcode');
+    expect(barcodeRow).toBeDefined();
+    const barcodeKey = clone((barcodeRow as { key: CalibrationReportOutcomeKey }).key);
+    const owner = clone(f.context.owner);
+    const prediction = barcodeSuccessPrediction(barcodeKey.sampleIndex, 21);
+    const event = makeNonResEvent(barcodeKey, 'barcode', prediction, isoAt(30));
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const prefix = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+      clone(profileSelectedFact(2, 'LOW')),
+      runtimeFrame(3, runtimeStart(barcodeKey, 1, 1, owner, isoAt(1))),
+      clone(nonResFact(4, event)),
+    ]);
+    expect(snapshotOf(prefix)['activeAttempt']).toEqual({ key: barcodeKey, attempt: 1 });
+    expect(snapshotOf(prefix)['sequence']).toBe(1);
+    let error: unknown;
+    try {
+      (prefix as { preview: (frame: unknown) => unknown }).preview(
+        runtimeFrame(5, runtimeOpStarted(barcodeKey, 1, 'snapshot', 2, owner, isoAt(2))),
+      );
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, barcodeKey)).toBe(true);
+  });
+});
+
+describe('final causal evidence: no request authorization after a recorded terminal', () => {
+  it('rejects runtime_request_authorized after an image terminal recorded before any authorization', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const prediction = mealSuccessPrediction(key.sampleIndex, 17);
+    const captured = capturedJournal(
+      clone(successJournal(key, PINNED_MODEL, 17, prediction, { kcal: 120, proteinG: 10, carbsG: 0, fatG: 8 }, true)),
+    );
+    const hash = journalHash(captured);
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const prefix = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+      runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+      runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+      runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+      runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+      clone(reservedFact(6, key)),
+      clone(modelPinnedFact(7, PINNED_MODEL)),
+      clone(imageTerminalFact(8, key, 'completed', hash, captured)),
+    ]);
+    expect(snapshotOf(prefix)['activeAttempt']).toEqual({ key, attempt: 1 });
+    let error: unknown;
+    try {
+      (prefix as { preview: (frame: unknown) => unknown }).preview(
+        runtimeFrame(9, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(6))),
+      );
+    } catch (cause) {
+      error = cause;
+    }
+    expect(isFreshTransitionFatal(error, key)).toBe(true);
+  });
+});
+
+describe('final causal evidence: completion bookkeeping after a pending-vision terminal', () => {
+  it('settles an already-authorized vision after its terminal and finishes to that exact terminal', async () => {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const prediction = mealSuccessPrediction(key.sampleIndex, 17);
+    const captured = capturedJournal(
+      clone(successJournal(key, PINNED_MODEL, 17, prediction, { kcal: 120, proteinG: 10, carbsG: 0, fatG: 8 }, true)),
+    );
+    const hash = journalHash(captured);
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const done = previewChain(state as unknown as { preview: (frame: unknown) => unknown }, [
+      runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+      runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+      runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+      runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+      clone(reservedFact(6, key)),
+      runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+      clone(modelPinnedFact(8, PINNED_MODEL)),
+      clone(imageTerminalFact(9, key, 'completed', hash, captured)),
+      runtimeFrame(10, runtimeOpSettled(key, 1, 'vision', 'returned', 6, owner, isoAt(6))),
+      runtimeFrame(11, runtimeFinished(key, 1, { kind: 'image', eventIndex: 9, journalHash: hash }, 7, owner, isoAt(7))),
+    ]);
+    expect(snapshotOf(done)['activeAttempt']).toBeNull();
+    expect(snapshotOf(done)['sequence']).toBe(7);
+    expect(snapshotOf(done)['lastEventIndex']).toBe(11);
+  });
+});

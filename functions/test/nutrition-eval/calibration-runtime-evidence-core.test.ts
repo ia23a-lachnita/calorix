@@ -1894,3 +1894,96 @@ describe('successful result reflection must stop on poison in verifier and repla
     expect(() => current.getCounts()).toThrow(CalibrationFatalError);
   });
 });
+
+describe('final causal evidence: a recorded barcode terminal blocks a new snapshot start', () => {
+  it('rejects a snapshot start after a barcode non-reservation terminal with no snapshot and poisons the core', async () => {
+    const f = await openCoreFixture();
+    f.finishPreflight();
+    f.finishDevelopment();
+    f.finishValidation();
+    const barcodeRow = f.plans.MEDIUM.find((row) => row.scanMode === 'barcode');
+    expect(barcodeRow).toBeDefined();
+    const barcodeKey = barcodeRow!.key;
+    const ref = f.ledger.startRuntimeAttempt(barcodeKey);
+    const prediction = createCoreExactPrediction(f.getCase(barcodeKey.caseId), barcodeKey.sampleIndex);
+    f.ledger.recordNonReservationResult({ key: barcodeKey, reason: 'barcode', prediction });
+    expect(eventsOfType(f.events, 'non_reservation_result')).toHaveLength(1);
+    expect(f.ledger.getCounts().imageReserved).toBe(98);
+    const beforeEvents = f.events.length;
+    const beforeJournals = f.journals.length;
+    const beforeOperations = eventsOfType(f.events, 'runtime_operation_started').length;
+    let caught: unknown;
+    try {
+      f.ledger.startRuntimeOperation(ref, 'snapshot');
+    } catch (error) {
+      caught = error;
+    }
+    expectStaticCauseless(caught, 'core-fixture-private-bytes');
+    expect(eventsOfType(f.events, 'runtime_operation_started')).toHaveLength(beforeOperations);
+    expect(
+      eventsOfType(f.events, 'runtime_operation_started').filter(
+        (event) => (event as { operation?: unknown }).operation === 'snapshot',
+      ),
+    ).toHaveLength(0);
+    expect(f.events).toHaveLength(beforeEvents);
+    expect(f.journals).toHaveLength(beforeJournals);
+    expect(eventsOfType(f.events, 'non_reservation_result')).toHaveLength(1);
+    expect(() => f.ledger.getCounts()).toThrow(CalibrationFatalError);
+    expect(() => f.ledger.getRuntimeEvidenceSnapshot()).toThrow(CalibrationFatalError);
+    expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+    expect(f.backing.lock).toEqual(f.owner);
+  });
+});
+
+describe('final causal evidence: a persisted terminal blocks a late authorization', () => {
+  it('rejects authorizeRuntimeRequest after a completed journal and terminal recorded before any authorization', async () => {
+    const f = await openCoreFixture();
+    const ref = beginImageThroughVision(f);
+    f.ledger.reserve(f.key);
+    f.pinOnce();
+    const hash = f.ledger.appendResultJournal(imageJournal(f));
+    f.ledger.complete(f.key, hash);
+    expect(eventsOfType(f.events, 'completed')).toHaveLength(1);
+    expect(f.journals).toHaveLength(1);
+    expect(f.ledger.getRuntimeEvidenceSnapshot().activeAttempt).toEqual({ key: f.key, attempt: 1 });
+    const beforeEvents = f.events.length;
+    const beforeJournals = f.journals.length;
+    let caught: unknown;
+    try {
+      f.ledger.authorizeRuntimeRequest(ref);
+    } catch (error) {
+      caught = error;
+    }
+    expectStaticCauseless(caught, 'core-fixture-private-bytes');
+    expect(eventsOfType(f.events, 'runtime_request_authorized')).toHaveLength(0);
+    expect(f.events).toHaveLength(beforeEvents);
+    expect(f.journals).toHaveLength(beforeJournals);
+    expect(eventsOfType(f.events, 'completed')).toHaveLength(1);
+    expect(() => f.ledger.getCounts()).toThrow(CalibrationFatalError);
+    expect(() => f.ledger.getRuntimeEvidenceSnapshot()).toThrow(CalibrationFatalError);
+    expect(() => f.ledger.releaseLock(f.owner)).toThrow(CalibrationFatalError);
+    expect(f.backing.lock).toEqual(f.owner);
+  });
+});
+
+describe('final causal evidence: core completion bookkeeping after a pending-vision terminal', () => {
+  it('settles an already-authorized vision after its terminal and finishes with one image reservation and no duplicate records', async () => {
+    const f = await openCoreFixture();
+    const ref = beginImageThroughVision(f);
+    f.ledger.reserve(f.key);
+    f.ledger.authorizeRuntimeRequest(ref);
+    f.pinOnce();
+    const hash = f.ledger.appendResultJournal(imageJournal(f));
+    f.ledger.complete(f.key, hash);
+    expect(eventsOfType(f.events, 'runtime_attempt_finished')).toHaveLength(0);
+    f.ledger.settleRuntimeOperation(ref, 'vision', 'returned');
+    f.ledger.finishRuntimeAttempt(ref);
+    expect(f.ledger.getRuntimeEvidenceSnapshot().activeAttempt).toBeNull();
+    expect(f.ledger.getCounts().imageReserved).toBe(1);
+    expect(eventsOfType(f.events, 'completed')).toHaveLength(1);
+    expect(eventsOfType(f.events, 'runtime_attempt_finished')).toHaveLength(1);
+    expect(eventsOfType(f.events, 'runtime_request_authorized')).toHaveLength(1);
+    expect(eventsOfType(f.events, 'runtime_operation_settled')).toHaveLength(2);
+    expect(f.journals).toHaveLength(1);
+  });
+});
