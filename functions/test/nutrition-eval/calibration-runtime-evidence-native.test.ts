@@ -1719,7 +1719,7 @@ describe('guarded native foreign exception boundaries', () => {
         unlinkOwnedFile(path);
       };
       hooks.overrides.fsyncDirSync = (dir) => {
-        if (armed && phase === 'dir-before') { counts.fault += 1; throw foreign; }
+        if (armed && phase === 'dir-before' && dir === boot.ledgerRoot) { counts.fault += 1; throw foreign; }
         syncDir(dir);
       };
       const { boot } = await openPersistenceLedger('future', hooks);

@@ -360,6 +360,7 @@ function createFileCalibrationLedgerDepsImpl(
   let nativePoisoned = false;
   let nativeBusy = false;
   let archiveLinkActive = false;
+  let namespaceReady = false;
 
   function nativeFail(): never {
     nativePoisoned = true;
@@ -384,7 +385,7 @@ function createFileCalibrationLedgerDepsImpl(
         || (expected.path === canonicalDir && (current.mode & 0o7777) !== DIR_MODE)) nativeFail();
     }
   }
-  function observeDirectories(): void {
+  function observeDirectories(target = canonicalDir): void {
     if (directories !== undefined) { checkDirectories(); return; }
     const captured: DirectoryIdentity[] = [];
     let current = parse(canonicalDir).root;
@@ -395,7 +396,7 @@ function createFileCalibrationLedgerDepsImpl(
       captured.push({ path: current, dev: stat.dev, ino: stat.ino });
     };
     capture();
-    for (const component of canonicalDir.slice(current.length).split(sep).filter(Boolean)) {
+    for (const component of target.slice(current.length).split(sep).filter(Boolean)) {
       current = join(current, component);
       capture();
     }
@@ -465,7 +466,35 @@ function createFileCalibrationLedgerDepsImpl(
       if (privateFile(stat) && sameInode(stat, expected)) nodeUnlinkSync(path);
     } catch { /* preserve uncertain owned artifacts, never sweep */ }
   }
+  function nativeWritableIdentity(fd: number, expected: Stats): Stats {
+    let current: Stats;
+    try { current = nodeFstatSync(fd); } catch { return nativeFail(); }
+    if (!sameInode(current, expected)) return nativeFail();
+    return current;
+  }
+  function requireNativeWritable(fd: number, expected: Stats): void {
+    if (!privateFile(nativeWritableIdentity(fd, expected))) nativeFail();
+  }
+  function establishNativeNamespace(): void {
+    if (directories === undefined) ensureCanonicalChain();
+    checkDirectories();
+    if (namespaceReady) return;
+    const observed = directories;
+    if (observed === undefined) return nativeFail();
+    const first = observed.findIndex((entry) => entry.path === callerBase);
+    const last = observed.findIndex((entry) => entry.path === canonicalDir);
+    if (first < 0 || last <= first || last !== observed.length - 1) nativeFail();
+    for (const parent of observed.slice(first, last)) {
+      try { fsyncDirSync(parent.path); } catch { nativeFail(); }
+      nativeReady();
+      checkDirectories();
+    }
+    namespaceReady = true;
+  }
   function closeNativeWritable(fd: number, expected: Stats): void {
+    // Cleanup still closes our descriptor after poison, but never a foreign
+    // inode installed by a write/fsync hook before this close boundary.
+    nativeWritableIdentity(fd, expected);
     let failed = false;
     try { fdCloseSync(fd); } catch { failed = true; }
     let remaining: Stats | undefined;
@@ -480,6 +509,8 @@ function createFileCalibrationLedgerDepsImpl(
     if (failed) nativeFail();
   }
   function nativeWriteExclusive(path: string, data: string): void {
+    establishNativeNamespace();
+    if (path !== resolve(canonicalDir, LOCK_FILE)) requireNativeOwner();
     nativeLeaves();
     const bytes = Buffer.from(data, 'utf8');
     const fd = nodeOpenSync(path, nodeConstants.O_WRONLY | nodeConstants.O_CREAT | nodeConstants.O_EXCL | nodeConstants.O_NOFOLLOW, FILE_MODE);
@@ -497,13 +528,17 @@ function createFileCalibrationLedgerDepsImpl(
       let offset = 0;
       while (offset < bytes.length) {
         const remaining = bytes.length - offset;
+        requireNativeWritable(fd, identity);
         const count = fdWriteSync(fd, bytes, offset, remaining);
         nativeReady();
+        requireNativeWritable(fd, identity);
         if (!Number.isSafeInteger(count) || count <= 0 || count > remaining) nativeFail();
         offset += count;
       }
+      requireNativeWritable(fd, identity);
       fdFsyncSync(fd);
       nativeReady();
+      requireNativeWritable(fd, identity);
     } catch { failed = true; }
     try { closeNativeWritable(fd, identity); } catch { failed = true; }
     if (failed) { cleanupNativeTemp(path, identity); nativeFail(); }
@@ -586,6 +621,31 @@ function createFileCalibrationLedgerDepsImpl(
       throw new CalibrationFatalError('calibration:canonical-root-escape');
     }
     const parts = rel.split(sep).filter((part) => part.length > 0);
+    if (nativeOwner !== undefined) {
+      if (directories === undefined) {
+        // Preparation reads capture/create the chain without invoking hooks.
+        // Native mutation establishes its namespace barriers separately.
+        observeDirectories(callerBase);
+        let current = callerBase;
+        for (const part of parts) {
+          checkDirectories();
+          current = join(current, part);
+          let stat: Stats;
+          try { stat = lstatSync(current); }
+          catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') nativeFail();
+            mkdirSync(current, { mode: DIR_MODE });
+            stat = lstatSync(current);
+          }
+          if (!stat.isDirectory() || stat.isSymbolicLink()
+            || (current === canonicalDir && (stat.mode & 0o7777) !== DIR_MODE)) nativeFail();
+          directories = [...directories!, { path: current, dev: stat.dev, ino: stat.ino }];
+          checkDirectories();
+        }
+      }
+      nativeLeaves();
+      return;
+    }
     let current = callerBase;
     for (const part of parts) {
       current = join(current, part);
@@ -610,11 +670,6 @@ function createFileCalibrationLedgerDepsImpl(
       if (!stat.isDirectory()) {
         throw new CalibrationFatalError('calibration:canonical-dir-not-directory');
       }
-    }
-    if (nativeOwner !== undefined) {
-      observeDirectories();
-      nativeLeaves();
-      return;
     }
     try {
       chmodSync(canonicalDir, DIR_MODE);
@@ -961,6 +1016,7 @@ function createFileCalibrationLedgerDepsImpl(
 
   function archiveLock(owner: CalibrationOwner): void {
     ensureCanonicalChain();
+    if (nativeOwner !== undefined) establishNativeNamespace();
     const path = lockPath();
     // Validate the live lock is a regular non-symlink file owned by the
     // stale claimant, then capture its expected device/inode identity.
@@ -1038,6 +1094,7 @@ function createFileCalibrationLedgerDepsImpl(
   function removeLock(owner: CalibrationOwner): void {
     ensureCanonicalChain();
     if (nativeOwner !== undefined) {
+      establishNativeNamespace();
       const captured = captureNativeOwner(owner);
       if (!sameOwner(captured, nativeOwner)) nativeFail();
       requireNativeOwner();
@@ -1120,6 +1177,13 @@ function createFileCalibrationLedgerDepsImpl(
     if (nativeOwner !== undefined) {
       nativeReady();
       if (typeof stat !== 'string') return 'unknown';
+      const close = stat.lastIndexOf(')');
+      if (close === -1) return 'unknown';
+      const raw = stat.slice(close + 1).trim().split(/\s+/)[19];
+      if (raw === undefined || !/^[1-9]\d*$/.test(raw)) return 'unknown';
+      const ticks = Number(raw);
+      if (!Number.isSafeInteger(ticks)) return 'unknown';
+      return ticks === owner.startTicks ? 'live' : 'dead';
     }
     const startTicks = parseProcStartTicks(stat);
     if (startTicks === undefined) return 'unknown';
