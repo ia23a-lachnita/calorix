@@ -754,12 +754,12 @@ function captureImageTerminalJournal(
   if (recomputed !== journalHash) {
     return invalid();
   }
+  // Ordinary completion finalizes success or failure; journal content decides
+  // success. Canonical interruption journals above still require `failed`.
   if (captured.errorCategory === 'none') {
     if (terminalType !== 'completed') {
       return invalid();
     }
-  } else if (terminalType !== 'failed') {
-    return invalid();
   }
   return { captured, interrupted: null, hash: journalHash as string };
 }

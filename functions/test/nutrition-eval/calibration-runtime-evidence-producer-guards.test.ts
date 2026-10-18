@@ -123,6 +123,32 @@ for (const kind of ['provider', 'schema'] as const) {
     expect(f.native.ledger.getRuntimeEvidenceSnapshot().activeAttempt).toBeNull();
     // Manual native failure setup, not an SDK-dispatch claim.
     expect(f.raw.witness).toEqual({ sdk: 0, transport: 0 });
+    const snapshot = f.native.ledger.getStageReportSnapshot(key.stage, key.profile);
+    expect(snapshot.counts).toEqual({ imageCallsReserved: 1, imageCallsCompleted: 0,
+      imageCallsFailed: 1, imageCallsPending: 0 });
+    expect(snapshot.images).toEqual([{ status: 'completed', key, journalHash: hash, journal }]);
+    expect(snapshot.nonReservations).toEqual([]);
+    const runtimeBeforeRestart = f.native.ledger.getRuntimeEvidenceSnapshot();
+    const nextOwner = { ...f.native.owner, pid: f.native.owner.pid + 90000,
+      startTicks: f.native.owner.startTicks + 20,
+      acquiredAt: new Date(Date.parse(f.native.owner.acquiredAt) + 1000).toISOString() };
+    // The old fixture's proc reader simulates a dead owner; no real process
+    // or device is touched. Fresh construction replays actual disk records.
+    const fresh = await f.native.restart(nextOwner);
+    expect(fresh.recoverAfterCrash().interrupted).toEqual([]);
+    expect(fresh.getStageReportSnapshot(key.stage, key.profile)).toEqual(snapshot);
+    expect(fresh.getRuntimeEvidenceSnapshot()).toMatchObject({
+      owner: nextOwner, activeAttempt: null, sequence: runtimeBeforeRestart.sequence,
+      events: runtimeBeforeRestart.events,
+    });
+    expect(fresh.rebuildReport()).toEqual({ completed: [key] });
+    const replayed = f.disk();
+    expect(replayed.journal).toEqual(after.journal);
+    expect(replayed.ledger.slice(0, after.ledger.length)).toEqual(after.ledger);
+    expect(replayed.ledger.slice(after.ledger.length)).toEqual([
+      expect.objectContaining({ type: 'lock_recovery', staleOwner: f.native.owner, recoveringOwner: nextOwner }),
+    ]);
+    expect(JSON.parse(replayed.lock)).toEqual(nextOwner);
   });
 }
 

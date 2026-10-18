@@ -3420,3 +3420,86 @@ describe('final causal evidence: completion bookkeeping after a pending-vision t
     expect(snapshotOf(done)['lastEventIndex']).toBe(11);
   });
 });
+
+describe('ordinary completed failure journal compatibility', () => {
+  // A completed protocol event finalizes a prediction; journal content, not
+  // the event name, determines whether that prediction succeeded.
+  async function completedFailureControl(kind: 'provider' | 'schema') {
+    const f = await makeRuntimeEvidenceData();
+    const prepare = await loadStatePrepare();
+    const key = clone(f.key);
+    const owner = clone(f.context.owner);
+    const prediction = kind === 'provider'
+      ? providerFailurePrediction(key.sampleIndex, 9)
+      : schemaFailurePrediction(key.sampleIndex, 9);
+    const captured = capturedJournal(failureJournal(key, 'unknown', prediction, 9));
+    const state = prepare({ header: clone(f.header), plans: clone(f.plans) });
+    const prefix = [
+      runtimeFrame(2, runtimeStart(key, 1, 1, owner, isoAt(1))),
+      runtimeFrame(3, runtimeOpStarted(key, 1, 'image', 2, owner, isoAt(2))),
+      runtimeFrame(4, runtimeOpSettled(key, 1, 'image', 'returned', 3, owner, isoAt(3))),
+      runtimeFrame(5, runtimeOpStarted(key, 1, 'vision', 4, owner, isoAt(4))),
+      reservedFact(6, key),
+      runtimeFrame(7, runtimeAuthorized(key, 1, 6, 5, owner, isoAt(5))),
+      ...(kind === 'schema' ? [modelPinnedFact(8, PINNED_MODEL)] : []),
+      runtimeFrame(kind === 'provider' ? 8 : 9,
+        runtimeOpSettled(key, 1, 'vision', kind === 'provider' ? 'failed' : 'returned', 6, owner, isoAt(6))),
+    ];
+    return { state, key, owner, captured, prefix, terminalIndex: kind === 'provider' ? 9 : 10 };
+  }
+
+  it.each(['provider', 'schema'] as const)('finishes a completed %s failure without classifying it as success', async (kind) => {
+    const c = await completedFailureControl(kind);
+    expect(c.captured).toMatchObject({
+      errorCategory: 'unknown', predictionHash: 'unknown', normalizedPrediction: null,
+      responseModelVersion: 'n/a', reportPrediction: { parseStatus: 'failure', failureCategory: kind },
+    });
+    const hash = journalHash(c.captured);
+    const initial = snapshotOf(c.state);
+    const done = previewChain(c.state, [
+      ...c.prefix,
+      imageTerminalFact(c.terminalIndex, c.key, 'completed', hash, c.captured),
+      runtimeFrame(c.terminalIndex + 1, runtimeFinished(c.key, 1,
+        { kind: 'image', eventIndex: c.terminalIndex, journalHash: hash }, 7, c.owner, isoAt(7))),
+    ]);
+    expect(snapshotOf(done)).toMatchObject({
+      sequence: 7, lastEventIndex: c.terminalIndex + 1, activeAttempt: null, owner: c.owner,
+    });
+    expect(snapshotOf(done)['events']).toEqual([
+      runtimeStart(c.key, 1, 1, c.owner, isoAt(1)),
+      runtimeOpStarted(c.key, 1, 'image', 2, c.owner, isoAt(2)),
+      runtimeOpSettled(c.key, 1, 'image', 'returned', 3, c.owner, isoAt(3)),
+      runtimeOpStarted(c.key, 1, 'vision', 4, c.owner, isoAt(4)),
+      runtimeAuthorized(c.key, 1, 6, 5, c.owner, isoAt(5)),
+      runtimeOpSettled(c.key, 1, 'vision', kind === 'provider' ? 'failed' : 'returned', 6, c.owner, isoAt(6)),
+      runtimeFinished(c.key, 1, { kind: 'image', eventIndex: c.terminalIndex, journalHash: hash },
+        7, c.owner, isoAt(7)),
+    ]);
+    expect(snapshotOf(c.state)).toEqual(initial);
+  });
+
+  it.each(['wrong hash', 'wrong key', 'malformed prediction', 'interruption completed', 'recovered ordinary failure'] as const)(
+    'still rejects %s when an ordinary completed failure is permitted', async (kind) => {
+      const c = await completedFailureControl('provider');
+      let terminal: unknown = imageTerminalFact(c.terminalIndex, c.key, 'completed', journalHash(c.captured), c.captured);
+      const prefix = [...c.prefix];
+      if (kind === 'wrong hash') {
+        terminal = imageTerminalFact(c.terminalIndex, c.key, 'completed', 'f'.repeat(64), c.captured);
+      } else if (kind === 'wrong key') {
+        terminal = imageTerminalFact(c.terminalIndex, { ...c.key, sampleIndex: 2 }, 'completed', journalHash(c.captured), c.captured);
+      } else if (kind === 'malformed prediction') {
+        terminal = imageTerminalFact(c.terminalIndex, c.key, 'completed', journalHash(c.captured),
+          { ...c.captured, analysisLatencyMs: 99 });
+      } else if (kind === 'interruption completed') {
+        const journal = { key: c.key, predictionHash: 'interrupted_reservation', normalizedPrediction: null,
+          analysisLatencyMs: 0, errorCategory: 'interrupted_reservation', responseModelVersion: 'n/a' };
+        terminal = imageTerminalFact(c.terminalIndex, c.key, 'completed', journalHash(journal), journal);
+      } else {
+        prefix.push({ kind: 'lock_recovery', eventIndex: c.terminalIndex, staleOwner: c.owner,
+          recoveringOwner: testOwner(c.owner, 90) });
+        terminal = imageTerminalFact(c.terminalIndex + 1, c.key, 'completed', journalHash(c.captured), c.captured);
+      }
+      expect(() => previewChain(c.state, [...prefix, terminal])).toThrow(EXPECTED_TRANSITION);
+    },
+  );
+});
