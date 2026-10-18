@@ -2,8 +2,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect } from 'vitest';
+import type { CalibrationSafeErrorCategory, JournalEntry } from '../../src/nutrition-eval/calibration';
 import { deriveCanonicalReportOutcomePlan } from '../../src/nutrition-eval/calibration-bootstrap';
-import { captureCalibrationReportJournalEntry } from '../../src/nutrition-eval/calibration-report-journal';
+import { captureCalibrationReportJournalEntry, captureCalibrationReportPrediction } from '../../src/nutrition-eval/calibration-report-journal';
 import type { CalibrationReportOutcomeKey } from '../../src/nutrition-eval/calibration-report-state';
 import { parseNutritionEvalManifest, StrictCalibrationManifestSchema } from '../../src/nutrition-eval/schema';
 import type { NutritionPrediction } from '../../src/nutrition-eval/schema';
@@ -14,6 +15,33 @@ import {
   createCoreExactPrediction,
   makeRuntimeEvidenceNativeFixture,
 } from './calibration-runtime-evidence-fixtures';
+
+export function failurePrediction(
+  key: CalibrationReportOutcomeKey, source: 'meal' | 'label' | 'barcode',
+  kind: 'provider' | 'schema' | 'product',
+): NutritionPrediction {
+  return captureCalibrationReportPrediction({
+    parseStatus: 'failure', source, decision: 'error', failureCategory: kind,
+    failureCode: kind === 'provider' ? 'provider_request_failed'
+      : kind === 'schema' ? 'model_response_invalid' : 'off_product_not_found',
+    ...(kind === 'schema' ? { failureDetail: 'invalid_json' } : {}),
+    latencyMs: 9, sampleIndex: key.sampleIndex, cached: false,
+  });
+}
+
+/** Pure image-journal construction; barcode uses the non-reservation codec. */
+export function buildProducerResultJournal(
+  key: CalibrationReportOutcomeKey, prediction: NutritionPrediction,
+  category: CalibrationSafeErrorCategory, responseModelVersion: string,
+): JournalEntry {
+  return prediction.parseStatus === 'failure'
+    ? captureCalibrationReportJournalEntry({
+      key, predictionHash: category, normalizedPrediction: null,
+      analysisLatencyMs: prediction.latencyMs, errorCategory: category,
+      responseModelVersion: 'n/a', reportPrediction: prediction,
+    })
+    : captureCalibrationReportJournalEntry({ ...buildCoreSuccessJournal(key, prediction), responseModelVersion });
+}
 
 export async function makeProducerFixture(
   ownedRoots: string[], stage: 'preflight' | 'benchmark' = 'preflight',
@@ -66,6 +94,18 @@ export async function makeProducerFixture(
     native.ledger.complete(key, hash);
   }
 
+  function publishPrediction(
+    key: CalibrationReportOutcomeKey, value: NutritionPrediction,
+    category: CalibrationSafeErrorCategory, responseModelVersion: string,
+  ): void {
+    if (value.source === 'barcode') {
+      native.ledger.recordNonReservationResult({ key, reason: 'barcode', prediction: value });
+      return;
+    }
+    const hash = native.ledger.appendResultJournal(buildProducerResultJournal(key, value, category, responseModelVersion));
+    native.ledger.complete(key, hash);
+  }
+
   function disk(): { ledger: unknown[]; journal: unknown[]; lock: string } {
     return {
       ledger: JSON.parse(readFileSync(join(native.root, 'ledger.json'), 'utf8')) as unknown[],
@@ -74,7 +114,7 @@ export async function makeProducerFixture(
       lock: readFileSync(join(native.root, 'lock.json'), 'utf8'),
     };
   }
-  return { native, raw, deps, plan, prediction, publish, disk };
+  return { native, raw, deps, plan, prediction, publish, publishPrediction, disk };
 }
 
 export type ProducerFixture = Awaited<ReturnType<typeof makeProducerFixture>>;
