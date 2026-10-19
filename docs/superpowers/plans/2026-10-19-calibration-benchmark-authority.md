@@ -12,6 +12,8 @@
 
 **Execution method:** Preserve the user's established inline orchestration with normal strongest-first editing workers. Main host owns this plan, tracking, verification judgment, review, commits and pushes, not application/test authorship. The producer-only native-edit exception is closed. Written-plan approval is required before executing any step below.
 
+**Execution approval / isolation override (2026-10-19):** User approved this published plan, then explicitly required clean Git workspaces and remote branch hygiene. Execute in a new clean Calorix worktree on `feat/calibration-benchmark-authority`; record its actual path and BASE in status/ledger. This supersedes ONLY old execution CWD and `push origin fix/scan-photo-flow-viewer` literals below: use the new worktree and `push origin feat/calibration-benchmark-authority` for implementation. Preserve the original checkout's user `.mcp.json` untouched/unread/content-undiffed; do not copy it. Fingerprint both the original user file and the clean worktree's committed config separately. Native managed creation failed to resolve this repository's revision, so use the skill's manual Git fallback. Remote audit found only main and the active parent feature (399 unmerged commits,0behind main,no open PRs), with no dead/stale branch to delete; do not discard parent work. Keep this clean-worktree/verified-remote-hygiene preference for subsequent work. No implementation gate or source scope is relaxed.
+
 ## Global Constraints
 
 - Repository `/home/agent-runner/projects/calorix`; branch `fix/scan-photo-flow-viewer`. Record execution BASE and current source hashes before Task1. Read `AGENTS.md`, fresh-session status, this plan, its spec and applicable requirements before work.
