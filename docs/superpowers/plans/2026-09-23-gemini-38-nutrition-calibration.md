@@ -241,6 +241,12 @@ Every reservation key is exactly `(stage, profile, caseId, sampleIndex)`, except
 
 ## Task 7: Add the dedicated calibration CLI and preflight boundary
 
+### Continuation checkpoint — 2026-10-19 (current)
+
+The producer prerequisite is now COMPLETE: [producer implementation plan](2026-10-18-calibration-runtime-evidence-producer.md), all19steps, source `8fe982f3766d178dbe2435e47d30944babc447e6`, closure `47056e42b6327b29bd36f82b51657628c5c47deb`, committed/pushed/exact origin. Its fresh postcommit default full35846 passed57files/4027tests/soleexistingopt-inimagefetchskip; exact population audits0, separate external primary3.8High/user-permittedCLI and one completed native whole-plan review clean. These are the producer's receipts, NOT new tests or authority for default activation, benchmark completion, live146-call qualification or nutritional accuracy. Producer-only native-edit exception is closed, completed scratch workspace stays closed/absent. All unchecked Steps4–7 below remain OPEN.
+
+On the user's next continuation, read-only inspection confirmed the approved controller design requires a separate historical-comparison/benchmark-authority contract before default CLI activation. Current native CLI supplies no deps; both native evidence guard and measuredStageGate still deny benchmark completion; runtime report bindings alone do not authorize it. Next-direction options were sent for consultation, not selected or approved. New Antigravity MCP conversation `calorix-benchmark-authority-direction-20261019`: primary3.8 failed300s tool timeout;3.7 and3.6 each rejected the wrapper's separately supplied High-effort flag. Exact dated errors are in implementation-status. NONE supplied assessment/agreement. No new direction/spec/implementation approval, CLI substitution, wrapper repair, application edit, tests/builds/live/cloud/device action or review-green/readiness claim. Before a consequential next recommendation, restore actual external review or obtain explicit extension of the headless review exception to this new workstream. The 2026-10-18 handoff below is historical and superseded by this checkpoint.
+
 ### Next design handoff — 2026-10-18
 
 The unused capabilities and durable-evidence prerequisite plans are complete; Task7 Steps4–7 below remain open. Verified integration base is `main`: at inspected HEADca5e2e6, GitHub default/originHEAD, creation reflog, merge-base and liveorigin/main agree on928f9a911d3b937095064fb7ebb009beef5fb6eb (zero behind/373 ahead). No PR/merge/deploy was performed or inferred from continuation.
