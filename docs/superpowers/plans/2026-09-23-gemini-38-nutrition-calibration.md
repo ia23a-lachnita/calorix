@@ -241,7 +241,13 @@ Every reservation key is exactly `(stage, profile, caseId, sampleIndex)`, except
 
 ## Task 7: Add the dedicated calibration CLI and preflight boundary
 
-### Written benchmark-authority spec — 2026-10-19 (current; user review next)
+### Detailed benchmark-authority plan — 2026-10-19 (current; drafting/review only)
+
+The user approved the published written spec at `3e83b1d775ec1ea4bda4d15795d60a46a5339858` with “approved”. That permits the separate [benchmark completion authority implementation plan](2026-10-19-calibration-benchmark-authority.md), not application edits. The detailed draft scopes three stages: compatible pure extraction/owned assessment; explicit shared-core/native completion integration with actual six-pair/158-outcome fixtures for both profiles; hostile/replay/syscall/fresh-recovery qualification and final verification. Established inline execution is preserved with normal strongest-first editing workers; prior producer-native-edit exception stays closed. Actual complete external plan review and subsequent user review of its published artifact remain required before implementation. All Task7 Steps4–7 remain OPEN; no default/controller/live/OFF/SDK dispatch/calibration/accuracy/production/security/UI approval.
+
+Actual plan review now green: user-permitted headless primary3.8/separateHigh/plan CLI81333 and preflight-clarification5389 each actual0/structuredSUCCESS, fresh scoped native conversation `7d715319-e8d4-4f77-9773-243954a1440f`. Complete current normative444newline56593B/SHA27edc6e786d31217fe836daabfb977f3f1531d703e23d80ac9f77a1111a0820b reviewed/retained, agree/MUST_FIX none/SHOULDnone/QUESTIONSnone/constructibility+budgets agree/WRITTEN_PLAN_ONLY/no implementation approval. Exact provenance and source-based corrections are in the plan/status. Next publish and request USER WRITTEN-PLAN REVIEW. No application test or implementation evidence is inferred; normal worker-only authorship remains required after that approval.
+
+### Written benchmark-authority spec — 2026-10-19 (approved; historical review receipt)
 
 The user approved writing the focused optionA spec with “yes”. Published artifact: [historical comparison and benchmark authority design](../specs/2026-10-19-calibration-benchmark-authority-design.md). It specifies one unused explicit opt-in core/native authority entrypoint, pure historical comparison, same root/lock/v1 events, actual six report/evidence bindings and158 finished outcomes/146 image keys/12 barcodes, all frozen nutrient gates/seven supported deltas, fresh current-owner verification before idempotence and conservative replay/effect-then-throw retention. Plain legacy trusted-caller completion already exists and is preserved without qualifying as new authority; existing authoritative-report/runtime-evidence benchmark denial remains. No default CLI/controller/live activation or producer API/ownership change is included.
 

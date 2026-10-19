@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-19
 
-**Status:** The user approved writing this focused spec with “yes”, after the corrected direction review and scope proposal. This is a written-spec draft for external and user review, not permission to implement, activate a controller, or run calibration. Approval of this written artifact is still required before writing its implementation plan.
+**Status:** The user approved the published written spec at commit `3e83b1d775ec1ea4bda4d15795d60a46a5339858` with “approved”. That approval permits writing and reviewing its implementation plan only, not implementation, controller activation or calibration. The established inline execution method is preserved, subject to normal editing-worker rules and separate written-plan approval.
 
 **Parents:** `2026-10-12-calibration-controller-runtime-design.md`, `2026-10-14-calibration-durable-runtime-evidence-design.md`, and `2026-10-18-calibration-runtime-evidence-producer-design.md`. Parent tracker: `../plans/2026-09-23-gemini-38-nutrition-calibration.md`, Task7 Steps4–7.
 
