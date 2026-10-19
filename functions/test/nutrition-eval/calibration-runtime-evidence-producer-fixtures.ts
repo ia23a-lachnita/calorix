@@ -1,9 +1,12 @@
 /** Owned native composition fixtures; no producer import or live client. */
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { closeSync, constants, existsSync, fstatSync, fsyncSync, openSync, readFileSync, readlinkSync, renameSync, writeSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { expect } from 'vitest';
+import { CALIBRATION_ROOT } from '../../src/nutrition-eval/calibration';
 import type { CalibrationSafeErrorCategory, JournalEntry } from '../../src/nutrition-eval/calibration';
-import { deriveCanonicalReportOutcomePlan } from '../../src/nutrition-eval/calibration-bootstrap';
+import { createCalibrationBootstrapReadDeps, deriveCanonicalReportOutcomePlan, prepareCalibrationBootstrapContext } from '../../src/nutrition-eval/calibration-bootstrap';
+import type { RuntimeEvidenceFileStoreOverrides } from '../../src/nutrition-eval/calibration-file-store';
+import { prepareNativeCalibrationRuntimeEvidenceLedger } from '../../src/nutrition-eval/calibration-runtime-evidence-ledger';
 import { captureCalibrationReportJournalEntry, captureCalibrationReportPrediction } from '../../src/nutrition-eval/calibration-report-journal';
 import type { CalibrationReportOutcomeKey } from '../../src/nutrition-eval/calibration-report-state';
 import { parseNutritionEvalManifest, StrictCalibrationManifestSchema } from '../../src/nutrition-eval/schema';
@@ -14,6 +17,7 @@ import {
   CORE_PINNED_VERSION,
   createCoreExactPrediction,
   makeRuntimeEvidenceNativeFixture,
+  makeMiniGitRepoTask4,
 } from './calibration-runtime-evidence-fixtures';
 
 export function failurePrediction(
@@ -124,4 +128,155 @@ export function deferred<T>() {
   let reject!: (reason?: unknown) => void;
   const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
   return { promise, resolve, reject };
+}
+
+export type ProducerFaultOp = 'write' | 'file-fsync' | 'close' | 'rename' | 'dir-fsync';
+export type ProducerFaultBoundary = 'attempt' | 'image-start' | 'image-settle' |
+  'vision-start' | 'reserve' | 'authorize' | 'pin' | 'vision-settle' |
+  'journal' | 'terminal' | 'finish';
+export interface ProducerFaultArm {
+  readonly boundary: ProducerFaultBoundary;
+  readonly operation: ProducerFaultOp;
+  readonly effect: 'before' | 'after';
+}
+export interface ProducerFaultWitness {
+  readonly trace: readonly string[];
+  readonly fired: () => boolean;
+  readonly arm: (fault: ProducerFaultArm) => void;
+  readonly overrides: RuntimeEvidenceFileStoreOverrides;
+}
+type FaultFile = {
+  readonly path: string;
+  readonly dev: number;
+  readonly ino: number;
+  readonly boundary: ProducerFaultBoundary | undefined;
+};
+
+/** Test-only delegates; authority stays with real native files and ledger. */
+export function makeProducerFaultWitness(root: string): ProducerFaultWitness {
+  const canonicalRoot = resolve(root);
+  const trace: string[] = [];
+  const descriptors = new Map<number, FaultFile>();
+  const temps = new Map<string, FaultFile>();
+  let pendingDirectory: FaultFile | undefined;
+  let armed: ProducerFaultArm | undefined;
+  let didFire = false;
+
+  function boundary(path: string, buffer: Buffer): ProducerFaultBoundary | undefined {
+    if (path.startsWith(join(canonicalRoot, 'journal.json.tmp.'))) return 'journal';
+    if (!path.startsWith(join(canonicalRoot, 'ledger.json.tmp.'))) return undefined;
+    const parsed: unknown = JSON.parse(buffer.toString('utf8'));
+    if (!Array.isArray(parsed)) throw new Error('producer-fault-fixture-array-required');
+    const last: unknown = parsed.at(-1);
+    if (typeof last !== 'object' || last === null) return undefined;
+    const row = last as Record<string, unknown>;
+    switch (row.type) {
+      case 'runtime_attempt_started': return 'attempt';
+      case 'runtime_operation_started':
+        return row.operation === 'image' ? 'image-start' : row.operation === 'vision' ? 'vision-start' : undefined;
+      case 'runtime_operation_settled':
+        return row.operation === 'image' ? 'image-settle' : row.operation === 'vision' ? 'vision-settle' : undefined;
+      case 'reserved': return 'reserve';
+      case 'runtime_request_authorized': return 'authorize';
+      case 'model_version_pinned': return 'pin';
+      case 'completed': return 'terminal';
+      case 'runtime_attempt_finished': return 'finish';
+      default: return undefined;
+    }
+  }
+  function descriptor(fd: number): FaultFile | undefined {
+    const file = descriptors.get(fd);
+    if (file === undefined) return undefined;
+    const stat = fstatSync(fd);
+    if (stat.dev !== file.dev || stat.ino !== file.ino) {
+      descriptors.delete(fd);
+      throw new Error('producer-fault-fixture-descriptor-reused');
+    }
+    return file;
+  }
+  function around<T>(file: FaultFile | undefined, operation: ProducerFaultOp, action: () => T): T {
+    const label = `${file?.boundary ?? 'setup'}/${operation}`;
+    trace.push(`${label}:entered`);
+    const matched = !didFire && armed !== undefined && file?.boundary === armed.boundary && operation === armed.operation;
+    if (matched && armed?.effect === 'before') {
+      didFire = true;
+      trace.push(`${label}:fault-before`);
+      throw new Error('producer-fixture-fault');
+    }
+    const result = action();
+    trace.push(`${label}:completed`);
+    if (matched && armed?.effect === 'after') {
+      didFire = true;
+      trace.push(`${label}:fault-after`);
+      throw new Error('producer-fixture-fault');
+    }
+    return result;
+  }
+  const overrides: RuntimeEvidenceFileStoreOverrides = {
+    fdWriteSync(fd, buffer, offset, length) {
+      if (offset === 0) {
+        const stat = fstatSync(fd);
+        const path = readlinkSync(`/proc/self/fd/${fd}`);
+        const file = { path, dev: stat.dev, ino: stat.ino, boundary: boundary(path, buffer) };
+        descriptors.set(fd, file);
+        temps.set(path, file);
+      }
+      return around(descriptor(fd), 'write', () => writeSync(fd, buffer, offset, length));
+    },
+    fdFsyncSync(fd) {
+      around(descriptor(fd), 'file-fsync', () => fsyncSync(fd));
+    },
+    fdCloseSync(fd) {
+      const file = descriptor(fd);
+      try { around(file, 'close', () => closeSync(fd)); }
+      finally { descriptors.delete(fd); }
+    },
+    renameSync(from, to) {
+      const file = temps.get(from);
+      if (file !== undefined && to !== join(canonicalRoot, file.boundary === 'journal' ? 'journal.json' : 'ledger.json')) {
+        throw new Error('producer-fault-fixture-destination-mismatch');
+      }
+      around(file, 'rename', () => {
+        renameSync(from, to);
+        pendingDirectory = file;
+      });
+    },
+    fsyncDirSync(dir) {
+      const file = resolve(dir) === canonicalRoot ? pendingDirectory : undefined;
+      try {
+        around(file, 'dir-fsync', () => {
+          const fd = openSync(dir, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
+          try { fsyncSync(fd); }
+          finally { closeSync(fd); }
+        });
+      } finally {
+        if (resolve(dir) === canonicalRoot) pendingDirectory = undefined;
+      }
+    },
+  };
+  return Object.freeze({
+    trace,
+    fired: () => didFire,
+    arm(fault: ProducerFaultArm) {
+      if (armed !== undefined) throw new Error('producer-fault-fixture-already-armed');
+      armed = Object.freeze({ ...fault });
+      didFire = false;
+      trace.length = 0;
+    },
+    overrides,
+  });
+}
+
+export async function makeProducerFaultFixture(ownedRoots: string[]) {
+  const mini = makeMiniGitRepoTask4(ownedRoots);
+  const context = await prepareCalibrationBootstrapContext(createCalibrationBootstrapReadDeps(mini.root));
+  const root = resolve(context.baseDir, CALIBRATION_ROOT);
+  const faults = makeProducerFaultWitness(root);
+  const ledger = await prepareNativeCalibrationRuntimeEvidenceLedger({ context }, faults.overrides);
+  ledger.acquireLock(context.owner);
+  const tokenKey = { kind: 'token_count' as const, stage: 'preflight' as const,
+    caseId: context.firstDevelopmentCaseId, model: context.identity.model };
+  ledger.reserveTokenCount(tokenKey);
+  ledger.completeTokenCount(tokenKey, 1200);
+  return Object.freeze({ context, ledger, root, faults });
 }
