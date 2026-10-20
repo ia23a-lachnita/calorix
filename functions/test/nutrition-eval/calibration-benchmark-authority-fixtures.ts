@@ -1,18 +1,24 @@
 /**
- * Calibration benchmark authority fixtures (Task 2 Step 1).
+ * Calibration benchmark authority fixtures (Task 2 Step 1 and Step 2).
  *
- * Old-capability foundation only. Builds a prior-failure LOW or MEDIUM
- * selected benchmark template using nothing but the existing native
- * runtime-evidence preparer, the shared preflight helper, the public
- * ledger/publication/measurement APIs, the existing artifact verifier, and
- * the existing exported runtime-evidence reducer. No new authority
- * factories exist yet: openBenchmarkBase, openBenchmarkTemplate,
- * copyBenchmarkTemplate and the BenchmarkNativeCase contract are Step 2
- * and later.
+ * buildBenchmarkTemplate (Step 1) is old-capability foundation only: a
+ * prior-failure LOW or MEDIUM selected benchmark template built using
+ * nothing but the existing native runtime-evidence preparer, the shared
+ * preflight helper, the public ledger/publication/measurement APIs, the
+ * existing artifact verifier, and the existing exported runtime-evidence
+ * reducer.
+ *
+ * BenchmarkNativeCase, copyBenchmarkTemplate, openBenchmarkBase and
+ * openBenchmarkTemplate (Step 2) are the planned opt-in native benchmark
+ * authority surface. openBenchmarkBase/openBenchmarkTemplate call
+ * prepareNativeCalibrationBenchmarkAuthorityLedger, which is imported below
+ * even though it does not exist in frozen source yet; this is an
+ * intentional feature RED, not a stub or implementation.
  */
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { cpSync, existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import {
   CALIBRATION_ROOT,
   evaluateCalibrationStageGate,
@@ -32,6 +38,11 @@ import {
 } from "../../src/nutrition-eval/calibration-bootstrap";
 import type { CalibrationPreparedContext } from "../../src/nutrition-eval/calibration-bootstrap";
 import { prepareNativeCalibrationRuntimeEvidenceLedger } from "../../src/nutrition-eval/calibration-runtime-evidence-ledger";
+// Task 2 Step 2 (feature RED): this export does not exist in the frozen
+// source yet. The import is intentionally left unresolved so the host
+// observes an honest absent-export or post-setup denial, not a stub.
+import { prepareNativeCalibrationBenchmarkAuthorityLedger } from "../../src/nutrition-eval/calibration-runtime-evidence-ledger";
+import type { RuntimeEvidenceFileStoreOverrides } from "../../src/nutrition-eval/calibration-file-store";
 import { publishCalibrationStageReport } from "../../src/nutrition-eval/calibration-report-publication";
 import type { CalibrationPublishedReportReceipt } from "../../src/nutrition-eval/calibration-report-publication";
 import { prepareCalibrationStageReportArtifactVerifier } from "../../src/nutrition-eval/calibration-report-artifact-verification";
@@ -494,4 +505,72 @@ export async function buildBenchmarkTemplate(
   const eventBytes = readFileSync(resolve(context.baseDir, CALIBRATION_ROOT, LEDGER_FILE_NAME));
   const journalBytes = readFileSync(resolve(context.baseDir, CALIBRATION_ROOT, JOURNAL_FILE_NAME));
   return Object.freeze({ baseDir: context.baseDir, profile, eventBytes, journalBytes });
+}
+
+// ── Task 2 Step 2: feature RED surface for opt-in native benchmark authority ──
+//
+// BenchmarkNativeCase/copyBenchmarkTemplate/openBenchmarkBase/openBenchmarkTemplate
+// are the planned Step 2 contract. openBenchmarkBase and openBenchmarkTemplate call
+// the not-yet-exported prepareNativeCalibrationBenchmarkAuthorityLedger above; no
+// production source is implemented or stubbed here.
+
+export interface BenchmarkNativeCase {
+  readonly context: CalibrationPreparedContext;
+  readonly ledger: Readonly<CalibrationRuntimeEvidenceLedger>;
+  readonly baseDir: string;
+  readEvents(): readonly Record<string, unknown>[];
+  readJournals(): readonly Record<string, unknown>[];
+  readLockBytes(): Buffer;
+}
+
+/** mkdtemp + cpSync a fresh registered base; templates are always lock-released. */
+export function copyBenchmarkTemplate(
+  roots: string[],
+  template: Readonly<BenchmarkTemplate>,
+): string {
+  const sourceLockPath = resolve(template.baseDir, CALIBRATION_ROOT, "lock.json");
+  if (existsSync(sourceLockPath)) {
+    throw new CalibrationFatalError("calibration:benchmark-authority-fixture-copy-active-lock");
+  }
+  const dest = mkdtempSync(join(tmpdir(), "calorix-benchmark-copy-"));
+  roots.push(dest);
+  cpSync(template.baseDir, dest, { recursive: true, preserveTimestamps: true, filter: () => true });
+  const destLockPath = resolve(dest, CALIBRATION_ROOT, "lock.json");
+  if (existsSync(destLockPath)) {
+    throw new CalibrationFatalError("calibration:benchmark-authority-fixture-copy-active-lock");
+  }
+  return dest;
+}
+
+function readRecordArray(path: string): readonly Record<string, unknown>[] {
+  return JSON.parse(readFileSync(path, "utf8")) as readonly Record<string, unknown>[];
+}
+
+/** Real bootstrap -> new native preparer -> acquireLock(context.owner); no caller-shaped ledger. */
+export async function openBenchmarkBase(
+  baseDir: string,
+  overrides?: RuntimeEvidenceFileStoreOverrides,
+): Promise<Readonly<BenchmarkNativeCase>> {
+  const readDeps = createCalibrationBootstrapReadDeps(baseDir);
+  const context = await prepareCalibrationBootstrapContext(readDeps);
+  const ledger = await prepareNativeCalibrationBenchmarkAuthorityLedger({ context }, overrides);
+  ledger.acquireLock({ ...context.owner });
+  return Object.freeze({
+    context,
+    ledger,
+    baseDir: context.baseDir,
+    readEvents: () => readRecordArray(resolve(context.baseDir, CALIBRATION_ROOT, LEDGER_FILE_NAME)),
+    readJournals: () => readRecordArray(resolve(context.baseDir, CALIBRATION_ROOT, JOURNAL_FILE_NAME)),
+    readLockBytes: () => readFileSync(resolve(context.baseDir, CALIBRATION_ROOT, "lock.json")),
+  });
+}
+
+/** Copies the released template into a new owned miniGit directory, then opens it natively. */
+export async function openBenchmarkTemplate(
+  roots: string[],
+  template: Readonly<BenchmarkTemplate>,
+  overrides?: RuntimeEvidenceFileStoreOverrides,
+): Promise<Readonly<BenchmarkNativeCase>> {
+  const baseDir = copyBenchmarkTemplate(roots, template);
+  return openBenchmarkBase(baseDir, overrides);
 }

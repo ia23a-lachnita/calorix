@@ -1,6 +1,7 @@
 /** Unused opt-in native composition. No client, stage, reservation or lock acquisition. */
 import { isAbsolute, resolve } from 'node:path';
-import { createRuntimeEvidenceCalibrationLedger } from './calibration';
+import { createBenchmarkAuthorityCalibrationLedger, createRuntimeEvidenceCalibrationLedger } from './calibration';
+import { prepareCalibrationBenchmarkHistory } from './calibration-benchmark-history';
 import type { CalibrationRuntimeEvidenceLedger } from './calibration';
 import {
   createCalibrationBootstrapReadDeps,
@@ -13,7 +14,7 @@ import {
   CALIBRATION_PREFLIGHT_DATASET_ID,
   CALIBRATION_PREFLIGHT_COMPATIBILITY_NOTES,
 } from './calibration-cli';
-import { createRuntimeEvidenceFileCalibrationLedgerDeps } from './calibration-file-store';
+import { createBenchmarkAuthorityFileCalibrationLedgerDeps, createRuntimeEvidenceFileCalibrationLedgerDeps } from './calibration-file-store';
 import type { RuntimeEvidenceFileStoreOverrides } from './calibration-file-store';
 import { prepareCalibrationStageReportArtifactVerifier } from './calibration-report-artifact-verification';
 import { captureCalibrationRuntimeEvidenceHeader } from './calibration-runtime-evidence-codec';
@@ -80,10 +81,32 @@ export async function prepareNativeCalibrationRuntimeEvidenceLedger(
   params: unknown,
   overrides?: RuntimeEvidenceFileStoreOverrides,
 ): Promise<Readonly<CalibrationRuntimeEvidenceLedger>> {
+  return prepareNativeLedger(params, overrides, false);
+}
+
+/** Unused explicit opt-in; no caller verifier, plans, reference path or flag. */
+export async function prepareNativeCalibrationBenchmarkAuthorityLedger(
+  params: unknown,
+  overrides?: RuntimeEvidenceFileStoreOverrides,
+): Promise<Readonly<CalibrationRuntimeEvidenceLedger>> {
+  return prepareNativeLedger(params, overrides, true);
+}
+
+async function prepareNativeLedger(
+  params: unknown,
+  overrides: RuntimeEvidenceFileStoreOverrides | undefined,
+  benchmarkAuthority: boolean,
+): Promise<Readonly<CalibrationRuntimeEvidenceLedger>> {
   try {
     // Capture context AND low-level hooks synchronously before any await.
     const context = captureContext(params);
-    const deps = createRuntimeEvidenceFileCalibrationLedgerDeps(context.baseDir, context.owner, overrides);
+    if (benchmarkAuthority) {
+      prepareCalibrationBenchmarkHistory({ historicalReferenceBytes: context.files['historical-reference'],
+        historicalReferenceHash: context.identity.historicalReferenceHash });
+    }
+    const deps = benchmarkAuthority
+      ? createBenchmarkAuthorityFileCalibrationLedgerDeps(context.baseDir, context.owner, overrides)
+      : createRuntimeEvidenceFileCalibrationLedgerDeps(context.baseDir, context.owner, overrides);
     const readCurrentGitState = createCalibrationBootstrapReadDeps(context.baseDir).readGitState;
     const plans = Object.freeze({
       initial: deriveCanonicalReportOutcomePlan(context.files),
@@ -91,13 +114,17 @@ export async function prepareNativeCalibrationRuntimeEvidenceLedger(
       MEDIUM: deriveCanonicalReportOutcomePlan(context.files, 'MEDIUM'),
     });
     const verifier = await prepareCalibrationStageReportArtifactVerifier(context);
-    return createRuntimeEvidenceCalibrationLedger(deps, context.identity,
+    const args: Parameters<typeof createRuntimeEvidenceCalibrationLedger> = [deps, context.identity,
       (profile) => deriveCanonicalAllowedKeys(context.files, profile),
       { getReportOutcomePlan: (profile) => profile === undefined ? plans.initial : plans[profile] },
       { verifyStageReportArtifacts: verifier.verify },
-      { initialOwner: context.owner, plans, readCurrentGitState });
+      { initialOwner: context.owner, plans, readCurrentGitState }];
+    return benchmarkAuthority
+      ? createBenchmarkAuthorityCalibrationLedger(...args, { historicalReferenceBytes: context.files['historical-reference'] })
+      : createRuntimeEvidenceCalibrationLedger(...args);
   } catch {
     // Foreign reflection, parser and filesystem exceptions are never exposed.
+    if (benchmarkAuthority) throw new CalibrationFatalError('calibration:benchmark-authority-native-input-invalid');
     return invalid();
   }
 }

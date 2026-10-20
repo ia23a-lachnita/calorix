@@ -133,12 +133,30 @@ export function createRuntimeEvidenceFileCalibrationLedgerDeps(
   owner: CalibrationOwner,
   overrides?: RuntimeEvidenceFileStoreOverrides,
 ): CalibrationLedgerDeps {
+  return createNativeFileCalibrationLedgerDeps(baseDir, owner, overrides, false);
+}
+
+/** Explicit benchmark construction; only preparation reads may observe absence without creating it. */
+export function createBenchmarkAuthorityFileCalibrationLedgerDeps(
+  baseDir: string,
+  owner: CalibrationOwner,
+  overrides?: RuntimeEvidenceFileStoreOverrides,
+): CalibrationLedgerDeps {
+  return createNativeFileCalibrationLedgerDeps(baseDir, owner, overrides, true);
+}
+
+function createNativeFileCalibrationLedgerDeps(
+  baseDir: string,
+  owner: CalibrationOwner,
+  overrides: RuntimeEvidenceFileStoreOverrides | undefined,
+  nonMutatingPreparationReads: boolean,
+): CalibrationLedgerDeps {
   try {
     if (typeof baseDir !== 'string' || baseDir.includes('\0') || !isAbsolute(baseDir) || resolve(baseDir) !== baseDir) return nativeInputFailure();
     const ownedOwner = captureNativeOwner(owner);
     const hooks = captureNativeRecord(overrides === undefined ? {} : overrides, NATIVE_HOOKS, true);
     for (const key of Object.keys(hooks)) if (typeof hooks[key] !== 'function') return nativeInputFailure();
-    return createFileCalibrationLedgerDepsImpl(baseDir, Object.freeze(hooks) as RuntimeEvidenceFileStoreOverrides, ownedOwner);
+    return createFileCalibrationLedgerDepsImpl(baseDir, Object.freeze(hooks) as RuntimeEvidenceFileStoreOverrides, ownedOwner, nonMutatingPreparationReads);
   } catch { return nativeInputFailure(); }
 }
 
@@ -350,6 +368,7 @@ function createFileCalibrationLedgerDepsImpl(
   baseDir: string | undefined,
   overrides: CalibrationFileStoreOverrides,
   nativeOwner?: Readonly<CalibrationOwner>,
+  nonMutatingPreparationReads = false,
 ): CalibrationLedgerDeps {
   const callerBase = resolve(baseDir ?? process.cwd());
   const canonicalDir = resolve(callerBase, CALIBRATION_ROOT);
@@ -359,6 +378,7 @@ function createFileCalibrationLedgerDepsImpl(
   let pendingPublication: { path: string; stat: Stats } | undefined;
   let nativePoisoned = false;
   let nativeBusy = false;
+  let nativeReadOnlyTraversal = false;
   let archiveLinkActive = false;
   let namespaceReady = false;
 
@@ -610,7 +630,7 @@ function createFileCalibrationLedgerDepsImpl(
    * directory: reject symlinks and non-directories, create missing segments
    * private, and enforce 0700 on the canonical root only.
    */
-  function ensureCanonicalChain(): void {
+  function ensureCanonicalChain(): boolean {
     if (nativeOwner !== undefined) checkDirectories();
     ensureCallerBase();
     const rel = relative(callerBase, canonicalDir);
@@ -622,18 +642,19 @@ function createFileCalibrationLedgerDepsImpl(
     }
     const parts = rel.split(sep).filter((part) => part.length > 0);
     if (nativeOwner !== undefined) {
-      if (directories === undefined) {
-        // Preparation reads capture/create the chain without invoking hooks.
-        // Native mutation establishes its namespace barriers separately.
-        observeDirectories(callerBase);
-        let current = callerBase;
-        for (const part of parts) {
+      if (directories?.[directories.length - 1]?.path !== canonicalDir) {
+        // Retain any previously observed prefix; never rebind its identities.
+        // Only the explicit benchmark reader may stop at native absence.
+        if (directories === undefined) observeDirectories(callerBase);
+        let current = directories![directories!.length - 1]!.path;
+        for (const part of relative(current, canonicalDir).split(sep).filter(Boolean)) {
           checkDirectories();
           current = join(current, part);
           let stat: Stats;
           try { stat = lstatSync(current); }
           catch (error) {
             if ((error as NodeJS.ErrnoException).code !== 'ENOENT') nativeFail();
+            if (nativeReadOnlyTraversal) { checkDirectories(); return false; }
             mkdirSync(current, { mode: DIR_MODE });
             stat = lstatSync(current);
           }
@@ -644,7 +665,7 @@ function createFileCalibrationLedgerDepsImpl(
         }
       }
       nativeLeaves();
-      return;
+      return true;
     }
     let current = callerBase;
     for (const part of parts) {
@@ -676,6 +697,7 @@ function createFileCalibrationLedgerDepsImpl(
     } catch (error) {
       throw fatal('calibration:canonical-dir-chmod-failed', error);
     }
+    return true;
   }
 
   function containedPath(filename: string): string {
@@ -819,8 +841,9 @@ function createFileCalibrationLedgerDepsImpl(
   const archiveUnlinkSync = overrides.unlinkSync ?? nodeUnlinkSync;
 
   function readJsonArray(path: string, label: string): unknown[] {
-    ensureCanonicalChain();
+    const present = ensureCanonicalChain();
     if (nativeOwner !== undefined) {
+      if (!present) return [];
       const raw = nativeRead(path);
       if (raw === undefined) return [];
       const parsed: unknown = JSON.parse(raw);
@@ -956,7 +979,8 @@ function createFileCalibrationLedgerDepsImpl(
   }
 
   function readLock(): CalibrationOwner | undefined {
-    ensureCanonicalChain();
+    const present = ensureCanonicalChain();
+    if (!present) return undefined;
     if (nativeOwner !== undefined) return nativeReadLock();
     const path = lockPath();
     const stat = lstatTarget(path, 'lock');
@@ -985,9 +1009,12 @@ function createFileCalibrationLedgerDepsImpl(
   }
 
   function writeLockExclusive(owner: CalibrationOwner): void {
+    const requestedOwner = nativeOwner !== undefined && nonMutatingPreparationReads
+      ? captureNativeOwner(owner) : undefined;
+    if (requestedOwner !== undefined && !sameOwner(requestedOwner, nativeOwner!)) nativeFail();
     ensureCanonicalChain();
     if (nativeOwner !== undefined) {
-      const captured = captureNativeOwner(owner);
+      const captured = requestedOwner ?? captureNativeOwner(owner);
       if (!sameOwner(captured, nativeOwner)) nativeFail();
       const path = resolve(canonicalDir, LOCK_FILE);
       defaultWriteExclusiveSync(path, JSON.stringify(captured));
@@ -1222,11 +1249,13 @@ function createFileCalibrationLedgerDepsImpl(
   return Object.freeze(Object.fromEntries(Object.entries(deps).map(([name, method]) => [name, (...args: unknown[]) => {
     if (nativePoisoned || nativeBusy) nativeFail();
     nativeBusy = true;
+    nativeReadOnlyTraversal = nonMutatingPreparationReads
+      && (name === 'readJournalEntries' || name === 'readLedgerEvents' || name === 'readLock');
     try {
       const result: unknown = Reflect.apply(method, undefined, args);
       nativeReady();
       return result;
     } catch { return nativeFail(); }
-    finally { nativeBusy = false; }
+    finally { nativeReadOnlyTraversal = false; nativeBusy = false; }
   }]))) as unknown as CalibrationLedgerDeps;
 }

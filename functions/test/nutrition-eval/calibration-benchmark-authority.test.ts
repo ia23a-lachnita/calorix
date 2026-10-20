@@ -1,22 +1,35 @@
 /**
- * Calibration benchmark authority native foundation (Task 2 Step 1).
+ * Calibration benchmark authority native foundation and feature RED
+ * (Task 2 Step 1 and Step 2).
  *
  * Qualifies buildBenchmarkTemplate against the existing native
- * preparer/preflight/publication/ledger APIs only. No new factory imports:
- * openBenchmarkBase, openBenchmarkTemplate and BenchmarkNativeCase are
- * Step 2 and later and are intentionally absent here.
+ * preparer/preflight/publication/ledger APIs only (Step 1). Step 2 opens
+ * the already-qualified LOW/MEDIUM templates through the planned
+ * copyBenchmarkTemplate/openBenchmarkTemplate/openBenchmarkBase surface and
+ * calls prepareNativeCalibrationBenchmarkAuthorityLedger, which does not
+ * exist in frozen source yet. That import and its call sites are an
+ * intentional feature RED; no production source is implemented or
+ * stubbed in this file.
  */
-import { existsSync, readFileSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { CALIBRATION_ROOT } from "../../src/nutrition-eval/calibration";
 import type { CalibrationProfile } from "../../src/nutrition-eval/calibration";
+import { createCalibrationBootstrapReadDeps, prepareCalibrationBootstrapContext } from "../../src/nutrition-eval/calibration-bootstrap";
+import {
+  prepareNativeCalibrationBenchmarkAuthorityLedger,
+  prepareNativeCalibrationRuntimeEvidenceLedger,
+} from "../../src/nutrition-eval/calibration-runtime-evidence-ledger";
 import { measureCalibrationStageReport } from "../../src/nutrition-eval/calibration-report-measurements";
 import type { CalibrationStageGateMetrics } from "../../src/nutrition-eval/calibration-report-measurements";
-import { buildBenchmarkTemplate } from "./calibration-benchmark-authority-fixtures";
+import { buildBenchmarkTemplate, copyBenchmarkTemplate, openBenchmarkTemplate } from "./calibration-benchmark-authority-fixtures";
 import type { BenchmarkTemplate } from "./calibration-benchmark-authority-fixtures";
+import { makeMiniGitRepoTask4 } from "./calibration-runtime-evidence-fixtures";
 
 const TEST_TIMEOUT = 600000;
+const SMALL_TEST_TIMEOUT = 5000;
 
 type RawRow = Record<string, unknown>;
 
@@ -122,30 +135,193 @@ function assertNativeFoundation(template: Readonly<BenchmarkTemplate>, losingPro
   }
 }
 
-describe.sequential("native foundation", () => {
-  const roots: string[] = [];
-  let lowTemplate: BenchmarkTemplate | undefined;
-  let mediumTemplate: BenchmarkTemplate | undefined;
+interface CalibrationRootEntrySnapshot {
+  readonly kind: "file" | "directory" | "symlink";
+  readonly mode: number;
+  readonly sha256?: string;
+}
 
-  afterAll(() => {
-    for (const root of roots) {
-      try {
-        rmSync(root, { recursive: true, force: true });
-      } catch {
-        // Best-effort owned cleanup only; registered roots are task-owned temp dirs.
+interface CalibrationRootSnapshot {
+  readonly rootExists: boolean;
+  readonly entries: Readonly<Record<string, CalibrationRootEntrySnapshot>>;
+}
+
+/**
+ * Actual recursive directory/file/symlink inventory under .calibration:
+ * root existence, every entry kind and mode bits, and sha256 of real file
+ * bytes for regular files. Never follows symlinks (lstat-based). Excludes
+ * atime/mtime/ctime/inode, which are not native-authority signal here.
+ */
+function snapshotCalibrationRoot(baseDir: string): CalibrationRootSnapshot {
+  const root = resolve(baseDir, CALIBRATION_ROOT);
+  const rootExists = existsSync(root);
+  const entries: Record<string, CalibrationRootEntrySnapshot> = {};
+  const walk = (dir: string, prefix: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const rel = prefix === "" ? entry.name : `${prefix}/${entry.name}`;
+      const full = resolve(dir, entry.name);
+      const stat = lstatSync(full);
+      if (entry.isSymbolicLink()) {
+        entries[rel] = { kind: "symlink", mode: stat.mode };
+      } else if (entry.isDirectory()) {
+        entries[rel] = { kind: "directory", mode: stat.mode };
+        walk(full, rel);
+      } else if (entry.isFile()) {
+        entries[rel] = {
+          kind: "file", mode: stat.mode,
+          sha256: createHash("sha256").update(readFileSync(full)).digest("hex"),
+        };
       }
     }
-  });
+  };
+  if (rootExists) {
+    walk(root, "");
+  }
+  return Object.freeze({ rootExists, entries: Object.freeze(entries) });
+}
 
+const sharedRoots: string[] = [];
+let lowTemplate: BenchmarkTemplate | undefined;
+let mediumTemplate: BenchmarkTemplate | undefined;
+
+afterAll(() => {
+  for (const root of sharedRoots) {
+    try {
+      rmSync(root, { recursive: true, force: true });
+    } catch {
+      // Best-effort owned cleanup only; registered roots are task-owned temp dirs.
+    }
+  }
+});
+
+describe.sequential("native foundation", () => {
   it("builds a prior-failure LOW-selected benchmark template", async () => {
-    lowTemplate = await buildBenchmarkTemplate(roots, "LOW");
+    lowTemplate = await buildBenchmarkTemplate(sharedRoots, "LOW");
     expect(lowTemplate).toBeDefined();
     assertNativeFoundation(lowTemplate, "MEDIUM");
   }, TEST_TIMEOUT);
 
   it("builds a prior-failure MEDIUM-selected benchmark template", async () => {
-    mediumTemplate = await buildBenchmarkTemplate(roots, "MEDIUM");
+    mediumTemplate = await buildBenchmarkTemplate(sharedRoots, "MEDIUM");
     expect(mediumTemplate).toBeDefined();
     assertNativeFoundation(mediumTemplate, "LOW");
   }, TEST_TIMEOUT);
+});
+
+function requireTemplate(profile: CalibrationProfile): Readonly<BenchmarkTemplate> {
+  const template = profile === "LOW" ? lowTemplate : mediumTemplate;
+  if (template === undefined) {
+    throw new Error(
+      `${profile} template was not assigned by the native foundation suite; it must run first and succeed.`,
+    );
+  }
+  return template;
+}
+
+describe.sequential("native benchmark authority (feature RED)", () => {
+  it("completes a verified LOW benchmark once through the new native factory", async () => {
+    const template = requireTemplate("LOW");
+    const f = await openBenchmarkTemplate(sharedRoots, template);
+    const before = f.readEvents();
+    f.ledger.completeStage("benchmark", {
+      stage: "benchmark", passed: true,
+      completedStages: ["preflight", "development", "validation"],
+    });
+    const after = f.readEvents();
+    expect(after.slice(0, before.length)).toEqual(before);
+    expect(after.slice(before.length)).toEqual([
+      expect.objectContaining({ type: "stage_completed", stage: "benchmark", passed: true }),
+    ]);
+    expect(f.ledger.getCompletedStages()).toEqual(["preflight", "development", "validation", "benchmark"]);
+    f.ledger.releaseLock({ ...f.context.owner });
+  }, TEST_TIMEOUT);
+
+  it("completes a verified MEDIUM benchmark once through the new native factory", async () => {
+    const template = requireTemplate("MEDIUM");
+    const f = await openBenchmarkTemplate(sharedRoots, template);
+    const before = f.readEvents();
+    f.ledger.completeStage("benchmark", {
+      stage: "benchmark", passed: true,
+      completedStages: ["preflight", "development", "validation"],
+    });
+    const after = f.readEvents();
+    expect(after.slice(0, before.length)).toEqual(before);
+    expect(after.slice(before.length)).toEqual([
+      expect.objectContaining({ type: "stage_completed", stage: "benchmark", passed: true }),
+    ]);
+    expect(f.ledger.getCompletedStages()).toEqual(["preflight", "development", "validation", "benchmark"]);
+    f.ledger.releaseLock({ ...f.context.owner });
+  }, TEST_TIMEOUT);
+
+  it("leaves a fresh bootstrap base untouched by read-only context preparation", async () => {
+    const mini = makeMiniGitRepoTask4(sharedRoots);
+    const before = snapshotCalibrationRoot(mini.root);
+    const readDeps = createCalibrationBootstrapReadDeps(mini.root);
+    await prepareCalibrationBootstrapContext(readDeps);
+    const after = snapshotCalibrationRoot(mini.root);
+    expect(after).toEqual(before);
+    expect(after.rootExists).toBe(false);
+  }, SMALL_TEST_TIMEOUT);
+
+  it("performs zero-effect new-preparer construction on a fresh root", async () => {
+    const mini = makeMiniGitRepoTask4(sharedRoots);
+    const readDeps = createCalibrationBootstrapReadDeps(mini.root);
+    const context = await prepareCalibrationBootstrapContext(readDeps);
+    const before = snapshotCalibrationRoot(mini.root);
+    await prepareNativeCalibrationBenchmarkAuthorityLedger({ context });
+    const after = snapshotCalibrationRoot(mini.root);
+    expect(after).toEqual(before);
+    expect(after.rootExists).toBe(false);
+  }, SMALL_TEST_TIMEOUT);
+
+  it("performs zero-effect new-preparer construction on a copied full released template", async () => {
+    const template = requireTemplate("LOW");
+    const baseDir = copyBenchmarkTemplate(sharedRoots, template);
+    const readDeps = createCalibrationBootstrapReadDeps(baseDir);
+    const context = await prepareCalibrationBootstrapContext(readDeps);
+    const before = snapshotCalibrationRoot(baseDir);
+    await prepareNativeCalibrationBenchmarkAuthorityLedger({ context });
+    const after = snapshotCalibrationRoot(baseDir);
+    expect(after).toEqual(before);
+  }, TEST_TIMEOUT);
+
+  it.each([
+    ["referencePath", { referencePath: "/tmp/calorix-benchmark-authority-reference" }],
+    ["verifier", { verifier: {} }],
+    ["plans", { plans: {} }],
+    ["permission", { permission: true }],
+  ])("rejects an existing-factory opt-in attempt via an extra %s field", async (_label, extra) => {
+    const mini = makeMiniGitRepoTask4(sharedRoots);
+    const readDeps = createCalibrationBootstrapReadDeps(mini.root);
+    const context = await prepareCalibrationBootstrapContext(readDeps);
+    const before = snapshotCalibrationRoot(mini.root);
+    await expect(
+      prepareNativeCalibrationRuntimeEvidenceLedger({ context, ...extra } as unknown),
+    ).rejects.toThrow();
+    const after = snapshotCalibrationRoot(mini.root);
+    expect(after).toEqual(before);
+    expect(after.rootExists).toBe(false);
+    const lockPath = resolve(mini.root, CALIBRATION_ROOT, "lock.json");
+    expect(existsSync(lockPath)).toBe(false);
+  }, SMALL_TEST_TIMEOUT);
+
+  it.each([
+    ["referencePath", { referencePath: "/tmp/calorix-benchmark-authority-reference" }],
+    ["verifier", { verifier: {} }],
+    ["plans", { plans: {} }],
+    ["permission", { permission: true }],
+  ])("rejects a new-preparer opt-in attempt via an extra %s field", async (_label, extra) => {
+    const mini = makeMiniGitRepoTask4(sharedRoots);
+    const readDeps = createCalibrationBootstrapReadDeps(mini.root);
+    const context = await prepareCalibrationBootstrapContext(readDeps);
+    const before = snapshotCalibrationRoot(mini.root);
+    await expect(
+      prepareNativeCalibrationBenchmarkAuthorityLedger({ context, ...extra } as unknown),
+    ).rejects.toThrow("calibration:benchmark-authority-native-input-invalid");
+    const after = snapshotCalibrationRoot(mini.root);
+    expect(after).toEqual(before);
+    expect(after.rootExists).toBe(false);
+    const lockPath = resolve(mini.root, CALIBRATION_ROOT, "lock.json");
+    expect(existsSync(lockPath)).toBe(false);
+  }, SMALL_TEST_TIMEOUT);
 });

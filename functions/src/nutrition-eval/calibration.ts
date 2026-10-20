@@ -22,6 +22,9 @@ import type {
   CalibrationStageGateMetrics,
 } from './calibration-report-measurements';
 import { measureCalibrationStageReport } from './calibration-report-measurements';
+import { prepareCalibrationBenchmarkHistory } from './calibration-benchmark-history';
+import type { CalibrationBenchmarkHistory } from './calibration-benchmark-history';
+import { SUPPORTED_HISTORICAL_DELTA_FIELDS } from './historical-reference-pure';
 import type {
   CalibrationPublishedReportReceipt,
   CalibrationReportPublicationResult,
@@ -46,6 +49,7 @@ import {
 } from './calibration-runtime-evidence-codec';
 import type {
   RuntimeAttemptRef,
+  RuntimeBindingInput,
   RuntimeEvidenceEvent,
   RuntimePayload,
   RuntimeTerminal,
@@ -1616,6 +1620,20 @@ export function createRuntimeEvidenceCalibrationLedger(
   return createLedgerCore(deps, identity, { keyResolver, reportOptions, authoritativeOptions, runtimeOptions }) as CalibrationRuntimeEvidenceLedger;
 }
 
+/** Explicit, process-local opt-in. Existing factories never select this mode. */
+export function createBenchmarkAuthorityCalibrationLedger(
+  deps: CalibrationLedgerDeps,
+  identity: CalibrationIdentity,
+  keyResolver: CalibrationKeyResolver,
+  reportOptions: CalibrationProtocolReportOptions,
+  authoritativeOptions: CalibrationAuthoritativeReportOptions,
+  runtimeOptions: CalibrationRuntimeEvidenceOptions,
+  config: unknown,
+): CalibrationRuntimeEvidenceLedger {
+  return createLedgerCore(deps, identity, { keyResolver, reportOptions, authoritativeOptions,
+    runtimeOptions, benchmarkConfig: config }) as CalibrationRuntimeEvidenceLedger;
+}
+
 function createLedgerCore(
   deps: CalibrationLedgerDeps,
   identityInput: CalibrationIdentity,
@@ -1623,9 +1641,11 @@ function createLedgerCore(
     | { allowedKeys: readonly ReservationKey[] }
     | { keyResolver: CalibrationKeyResolver; reportOptions?: CalibrationProtocolReportOptions | undefined;
       authoritativeOptions?: CalibrationAuthoritativeReportOptions | undefined;
-      runtimeOptions?: CalibrationRuntimeEvidenceOptions },
+      runtimeOptions?: CalibrationRuntimeEvidenceOptions; benchmarkConfig?: unknown },
 ): CalibrationLedger {
   const evidenceMode = 'runtimeOptions' in init;
+  const benchmarkMode = 'benchmarkConfig' in init;
+  let benchmarkHistory: Readonly<CalibrationBenchmarkHistory> | undefined;
   let evidenceBusy = true;
   let poisoned = false;
   let evidenceState: Readonly<CalibrationRuntimeEvidenceState> | undefined;
@@ -1646,6 +1666,34 @@ function createLedgerCore(
     const result = read();
     evidenceCheck();
     return result;
+  }
+
+  // Functions stay callable, but their enclosing configuration is owned.
+  // Every foreign trap is followed by a poison check before its result is used.
+  function benchmarkInputRecord(value: unknown, fields: readonly string[]): Record<string, unknown> {
+    const invalid = 'calibration:benchmark-authority-input-invalid';
+    try {
+      if (value === null || typeof value !== 'object' || evidenceReflect(() => Array.isArray(value))) {
+        throw new CalibrationFatalError(invalid);
+      }
+      const proto = evidenceReflect(() => Object.getPrototypeOf(value));
+      if (proto !== null && proto !== Object.prototype) throw new CalibrationFatalError(invalid);
+      const keys = evidenceReflect(() => Reflect.ownKeys(value));
+      if (keys.length !== fields.length || keys.some((key) => typeof key !== 'string' || !fields.includes(key))) {
+        throw new CalibrationFatalError(invalid);
+      }
+      const owned: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
+      for (const key of fields) {
+        const field = evidenceReflect(() => Object.getOwnPropertyDescriptor(value, key));
+        if (field?.enumerable !== true || !Object.hasOwn(field, 'value') || field.value === undefined) {
+          throw new CalibrationFatalError(invalid);
+        }
+        owned[key] = field.value;
+      }
+      return owned;
+    } catch {
+      throw new CalibrationFatalError(invalid);
+    }
   }
 
   function evidenceCapture(value: unknown, depth = 0, budget = { left: 16384 }): unknown {
@@ -1710,8 +1758,10 @@ function createLedgerCore(
 
   if (evidenceMode) {
     try {
-      const options = captureStrictReportRecord(init.runtimeOptions,
-        ['initialOwner', 'plans', 'readCurrentGitState'], 'calibration:runtime-options-invalid');
+      const options = benchmarkMode
+        ? benchmarkInputRecord(init.runtimeOptions, ['initialOwner', 'plans', 'readCurrentGitState'])
+        : captureStrictReportRecord(init.runtimeOptions,
+          ['initialOwner', 'plans', 'readCurrentGitState'], 'calibration:runtime-options-invalid');
       const owner = captureStrictReportRecord(evidenceCapture(options.initialOwner),
         ['hostname', 'bootId', 'pid', 'startTicks', 'acquiredAt'], 'calibration:runtime-options-invalid');
       evidenceInitialOwner = snapshotStrictOwner(owner);
@@ -1721,8 +1771,21 @@ function createLedgerCore(
       // Constructor inputs are captured before resolver/verifier callbacks.
       identityInput = captureStrictReportRecord(evidenceCapture(identityInput), IDENTITY_FIELDS,
         'calibration:runtime-options-invalid') as unknown as CalibrationIdentity;
+      if (benchmarkMode) {
+        const config = benchmarkInputRecord(init.benchmarkConfig, ['historicalReferenceBytes']);
+        if (typeof config.historicalReferenceBytes !== 'string' || init.authoritativeOptions === undefined
+          || init.reportOptions === undefined || typeof init.keyResolver !== 'function') {
+          throw new CalibrationFatalError('calibration:benchmark-authority-input-invalid');
+        }
+        benchmarkHistory = prepareCalibrationBenchmarkHistory({
+          historicalReferenceBytes: config.historicalReferenceBytes,
+          historicalReferenceHash: identityInput.historicalReferenceHash,
+        });
+        evidenceCheck();
+      }
     } catch {
-      throw new CalibrationFatalError('calibration:runtime-options-invalid');
+      throw new CalibrationFatalError(benchmarkMode
+        ? 'calibration:benchmark-authority-input-invalid' : 'calibration:runtime-options-invalid');
     }
   }
   const isStrict = !('allowedKeys' in init);
@@ -1743,9 +1806,11 @@ function createLedgerCore(
     : undefined;
   let verifyArtifacts: CalibrationAuthoritativeReportOptions['verifyStageReportArtifacts'] | undefined;
   if (rawAuthority !== undefined) {
-    const options = captureStrictReportRecord(rawAuthority, ['verifyStageReportArtifacts'], 'calibration:report-authority-options-invalid');
+    const options = benchmarkMode ? benchmarkInputRecord(rawAuthority, ['verifyStageReportArtifacts'])
+      : captureStrictReportRecord(rawAuthority, ['verifyStageReportArtifacts'], 'calibration:report-authority-options-invalid');
     if (typeof options.verifyStageReportArtifacts !== 'function' || rawReportOptions === undefined) {
-      throw new CalibrationFatalError('calibration:report-authority-options-invalid');
+      throw new CalibrationFatalError(benchmarkMode
+        ? 'calibration:benchmark-authority-input-invalid' : 'calibration:report-authority-options-invalid');
     }
     verifyArtifacts = options.verifyStageReportArtifacts as CalibrationAuthoritativeReportOptions['verifyStageReportArtifacts'];
   }
@@ -1754,7 +1819,8 @@ function createLedgerCore(
   }
   let reportOptions: CalibrationProtocolReportOptions | undefined;
   try {
-    reportOptions = isStrict && rawReportOptions !== undefined ? captureStrictReportOptions(rawReportOptions) : undefined;
+    reportOptions = isStrict && rawReportOptions !== undefined ? captureStrictReportOptions(benchmarkMode
+      ? benchmarkInputRecord(rawReportOptions, ['getReportOutcomePlan']) : rawReportOptions) : undefined;
     if (evidenceMode && reportOptions !== undefined) {
       const readPlan = reportOptions.getReportOutcomePlan;
       reportOptions = { getReportOutcomePlan: (profile) => {
@@ -1764,7 +1830,7 @@ function createLedgerCore(
       } };
     }
   } catch {
-    throw new CalibrationFatalError(verifyArtifacts === undefined
+    throw new CalibrationFatalError(benchmarkMode ? 'calibration:benchmark-authority-input-invalid' : verifyArtifacts === undefined
       ? 'calibration:report-options-invalid' : 'calibration:report-authority-options-invalid');
   }
   const identity = isStrict ? cloneStrictIdentity(identityInput) : identityInput;
@@ -2136,6 +2202,7 @@ function createLedgerCore(
   function verifyReceipt(stage: StageName, profile: CalibrationProfile): {
     receipt: Readonly<CalibrationPublishedReportReceipt>;
     measurements: Readonly<CalibrationReportMeasurements>;
+    report: unknown;
   } {
     try {
       reconcileReceiptJournals(stage, profile, 'calibration:artifact-verification-failed');
@@ -2149,7 +2216,7 @@ function createLedgerCore(
       const receipt = captureReceipt(envelope.receipt, 'calibration:artifact-verification-failed');
       assertMeasuredBinding(measurements, receipt, snapshot);
       if (poisoned) throw new CalibrationFatalError('calibration:artifact-verification-failed');
-      return { receipt, measurements };
+      return { receipt, measurements, report: envelope.report };
     } catch {
       poisoned = true;
       throw new CalibrationFatalError('calibration:artifact-verification-failed');
@@ -2248,9 +2315,164 @@ function createLedgerCore(
     }
   }
 
+  function benchmarkCurrentAuthority(): void {
+    evidenceCheck();
+    requireLock();
+    if (!authorityReady && !authoritativeReplay) {
+      throw new CalibrationFatalError('calibration:artifact-authority-lock-required');
+    }
+    evidenceSource();
+    const owner = safeReadLock();
+    evidenceCheck();
+    if (owner === undefined || !sameOwner(owner, heldOwner!)) {
+      throw new CalibrationFatalError('calibration:runtime-current-owner-required');
+    }
+    // Locked replay can be visiting an older epoch before its later legal
+    // transition frame. The physical lock is current throughout that replay.
+    if (!authoritativeReplay && !sameOwner(evidenceSnapshot().owner, heldOwner!)) {
+      throw new CalibrationFatalError('calibration:runtime-current-owner-required');
+    }
+  }
+
+  function benchmarkEvidencePrefix(): ReadonlyArray<{
+    stage: StageName;
+    profile: CalibrationProfile;
+    receipt: Readonly<CalibrationPublishedReportReceipt>;
+    input: Readonly<Omit<RuntimeBindingInput, 'receipt'>>;
+  }> {
+    evidenceCheck();
+    if (selectedProfile === undefined || pinnedModelVersion === undefined || evidencePlans === undefined
+      || tokenReservation?.status !== 'completed' || tokenCountReserved !== 1
+      || completedStages.length < 3 || completedStages.length > 4
+      || completedStages.some((stage, index) => stage !== STAGE_ORDER[index])) {
+      throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+    }
+    strictAssertStageReady('preflight');
+    strictAssertStageReady('benchmark');
+    const snapshot = evidenceSnapshot();
+    if (snapshot.activeAttempt !== null) throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+    const plan = evidencePlans[selectedProfile];
+    const canonical = new Map(plan.map((row) => [canonicalReservationKey(row.key), row]));
+    const finished = snapshot.events.filter((event) => event.type === 'runtime_attempt_finished');
+    const finishedKeys = new Set(finished.map((event) => canonicalReservationKey(event.key)));
+    if (plan.length !== 158 || canonical.size !== 158 || finished.length !== 158 || finishedKeys.size !== 158
+      || reservations.size !== PLANNED_IMAGE_CALLS || reservationOrder.length !== PLANNED_IMAGE_CALLS
+      || imageReserved !== PLANNED_IMAGE_CALLS || nonReservationsByKey.size !== 12) {
+      throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+    }
+    let imageCount = 0;
+    let barcodeCount = 0;
+    for (const [id, row] of canonical) {
+      if (!finishedKeys.has(id)) throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+      if (row.scanMode === 'barcode') {
+        barcodeCount += 1;
+        const outcome = nonReservationsByKey.get(id);
+        if (row.key.stage !== 'benchmark' || reservations.has(id) || outcome?.reason !== 'barcode') {
+          throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+        }
+      } else {
+        imageCount += 1;
+        const reservation = reservations.get(id);
+        if (nonReservationsByKey.has(id) || reservation === undefined || reservation.status === 'reserved'
+          || reservation.journalHash === undefined || !journalByHash.has(reservation.journalHash)) {
+          throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+        }
+      }
+    }
+    if (imageCount !== PLANNED_IMAGE_CALLS || barcodeCount !== 12) {
+      throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+    }
+    const pairs: readonly (readonly [StageName, CalibrationProfile])[] = [
+      ['preflight', 'LOW'], ['preflight', 'MEDIUM'], ['development', 'LOW'], ['development', 'MEDIUM'],
+      ['validation', selectedProfile], ['benchmark', selectedProfile],
+    ];
+    const bindings = snapshot.events.filter((event) => event.type === 'runtime_report_bound');
+    if (bindings.length !== pairs.length || receipts.size !== pairs.length) {
+      throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+    }
+    return pairs.map(([stage, profile]) => {
+      const receipt = receipts.get(pairId(stage, profile));
+      const bound = bindings.find((event) => event.stage === stage && event.profile === profile);
+      if (receipt === undefined || bound === undefined || !sameReceipt(receipt, bound.receipt)) {
+        throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+      }
+      const input = evidenceState!.pairInput(stage, profile, bound.throughSequence);
+      const digest = hashCalibrationRuntimeEvidenceBinding({ ...input, receipt });
+      evidenceCheck();
+      if (digest !== bound.bindingSha256) throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+      return { stage, profile, receipt, input };
+    });
+  }
+
+  function benchmarkStageGate(replayType?: string): void {
+    if (benchmarkHistory === undefined) throw new CalibrationFatalError('calibration:benchmark-runtime-evidence-required');
+    try {
+      const pairs = benchmarkEvidencePrefix();
+      // Constructor replay has no current-owner authority and performs no
+      // artifact I/O here. A later locked refresh verifies the same prefix.
+      if (replayType !== undefined && !authoritativeReplay) return;
+      benchmarkCurrentAuthority();
+      let freshBenchmarkReport: unknown;
+      for (const pair of pairs) {
+        const verified = verifyReceipt(pair.stage, pair.profile);
+        benchmarkCurrentAuthority();
+        if (!sameReceipt(pair.receipt, verified.receipt)) {
+          throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+        }
+        if (pair.stage === 'benchmark') freshBenchmarkReport = verified.report;
+      }
+      const freshPairs = benchmarkEvidencePrefix();
+      const benchmark = freshPairs.find((pair) => pair.stage === 'benchmark')!;
+      const assessment = benchmarkHistory.assess(freshBenchmarkReport);
+      evidenceCheck();
+      if (!assessment.comparison.compatible || assessment.comparison.deltas === undefined
+        || SUPPORTED_HISTORICAL_DELTA_FIELDS.some((field) => !Number.isFinite(assessment.comparison.deltas![field]))
+        || !assessment.subset.passed) {
+        throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+      }
+      const plan = evidencePlans![selectedProfile!].filter((row) => row.key.stage === 'benchmark');
+      const imageKeys = new Set(plan.filter((row) => row.scanMode !== 'barcode').map((row) => canonicalReservationKey(row.key)));
+      const barcodeKeys = new Set(plan.filter((row) => row.scanMode === 'barcode').map((row) => canonicalReservationKey(row.key)));
+      let visionCallCount = 0;
+      let suppliedBarcodeImageCallCount = 0;
+      let suppliedBarcodeVisionCallCount = 0;
+      for (const event of benchmark.input.events) {
+        const id = canonicalReservationKey(event.key);
+        if (barcodeKeys.has(id)) {
+          if (event.type === 'runtime_operation_started' && event.operation === 'image') suppliedBarcodeImageCallCount += 1;
+          if ((event.type === 'runtime_operation_started' && event.operation === 'vision')
+            || event.type === 'runtime_request_authorized') suppliedBarcodeVisionCallCount += 1;
+        }
+        if (event.type !== 'runtime_operation_started' || event.operation !== 'vision' || !imageKeys.has(id)) continue;
+        visionCallCount += 1; // Count attempts, never collapse extra starts to one key.
+        const attempt = benchmark.input.events.filter((candidate) => candidate.attempt === event.attempt
+          && canonicalReservationKey(candidate.key) === id);
+        if (attempt.filter((candidate) => candidate.type === 'runtime_request_authorized').length !== 1
+          || attempt.filter((candidate) => candidate.type === 'runtime_operation_settled' && candidate.operation === 'vision').length !== 1
+          || attempt.filter((candidate) => candidate.type === 'runtime_attempt_finished' && candidate.terminal.kind === 'image').length !== 1) {
+          throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+        }
+      }
+      const metrics: CalibrationStageGateMetrics = {
+        ...assessment.measurements.stage, visionCallCount,
+        suppliedBarcodeImageCallCount, suppliedBarcodeVisionCallCount,
+        // Structural fact of this mediated image/vision/snapshot protocol,
+        // NOT attestation of arbitrary callbacks, SDK or network activity.
+        suppliedBarcodeLiveOffCallCount: 0,
+      };
+      if (!evaluateCalibrationStageGate('benchmark', metrics).passed) {
+        throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+      }
+      benchmarkCurrentAuthority();
+    } catch {
+      poisoned = true;
+      throw new CalibrationFatalError('calibration:benchmark-authority-failed');
+    }
+  }
+
   function measuredStageGate(stage: StageName, replayType?: string): void {
     if (verifyArtifacts === undefined) return;
-    if (stage === 'benchmark') throw new CalibrationFatalError('calibration:benchmark-runtime-evidence-required');
+    if (stage === 'benchmark') return benchmarkStageGate(replayType);
     const profiles: readonly CalibrationProfile[] = stage === 'validation'
       ? (selectedProfile === undefined ? [] : [selectedProfile]) : ['LOW', 'MEDIUM'];
     if (profiles.length === 0) {
@@ -4213,7 +4435,9 @@ function createLedgerCore(
       return;
     }
     strictAssertStageReady(nextStage);
-    persistLedgerEvent({ type: 'stage_completed', stage: nextStage, passed: true, at: strictNowIso() });
+    const at = strictNowIso();
+    if (benchmarkMode && nextStage === 'benchmark') benchmarkCurrentAuthority();
+    persistLedgerEvent({ type: 'stage_completed', stage: nextStage, passed: true, at });
     completedStages.push(nextStage);
   }
 
@@ -4564,10 +4788,11 @@ function createLedgerCore(
         throw new CalibrationFatalError('calibration:reentrant-call');
       }
       evidenceBusy = true;
-      // Benchmark completion remains unconditionally denied, including a
-      // repeated call after poison. Strict comparison does not reflect args.
+      // Old evidence mode remains denied; only the explicitly selected new
+      // mode may delegate to its fresh measured gate. No argument reflection.
       const message = name === 'completeStage' && args[0] === 'benchmark'
-        ? 'calibration:benchmark-runtime-evidence-required' : 'calibration:runtime-operation-failed';
+        ? (benchmarkMode ? 'calibration:benchmark-authority-failed' : 'calibration:benchmark-runtime-evidence-required')
+        : 'calibration:runtime-operation-failed';
       try {
         evidenceCheck();
         evidenceSource();
