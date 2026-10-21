@@ -20,6 +20,18 @@ import { cpSync, existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import {
+  closeSync,
+  constants,
+  fstatSync,
+  fsyncSync,
+  lstatSync,
+  openSync,
+  realpathSync,
+  renameSync as nodeRenameSync,
+  writeSync as nodeWriteSync,
+} from "node:fs";
+import { basename, dirname } from "node:path";
+import {
   CALIBRATION_ROOT,
   evaluateCalibrationStageGate,
   selectCalibrationProfile,
@@ -573,4 +585,247 @@ export async function openBenchmarkTemplate(
 ): Promise<Readonly<BenchmarkNativeCase>> {
   const baseDir = copyBenchmarkTemplate(roots, template);
   return openBenchmarkBase(baseDir, overrides);
+}
+
+// ── Task 3 Step 2: benchmark completion native witness ──
+//
+// makeBenchmarkCompletionWitness observes the five low-level native syscall
+// seams (RuntimeEvidenceFileStoreOverrides) used to publish exactly one new
+// benchmark stage_completed ledger row, correlating them by descriptor/path
+// identity so only that target publication can be armed and cut.
+
+const BENCHMARK_LEDGER_FILE_NAME = "ledger.json";
+const BENCHMARK_TEMP_NAME_PATTERN = /^ledger\.json\.tmp\.\d+\.\d+\.json$/;
+
+export type BenchmarkCutOperation = "write" | "file-fsync" | "close" | "rename" | "directory-fsync";
+
+export interface BenchmarkCompletionWitness {
+  readonly overrides: RuntimeEvidenceFileStoreOverrides;
+  arm(operation: BenchmarkCutOperation, side: "before" | "after"): void;
+  disarm(): void;
+  readonly trace: readonly string[];
+  readonly hitCount: number;
+}
+
+interface BenchmarkWriteTargetIdentity {
+  readonly fd: number;
+  readonly tempPath: string;
+  readonly dev: number;
+  readonly ino: number;
+  closed: boolean;
+  initialWriteSeen: boolean;
+}
+
+function delegateFsyncDirSync(dir: string): void {
+  const fd = openSync(dir, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
+  try {
+    fsyncSync(fd);
+  } finally {
+    closeSync(fd);
+  }
+}
+
+export function makeBenchmarkCompletionWitness(root: string): BenchmarkCompletionWitness {
+  const canonicalRoot = realpathSync(root);
+  const trace: string[] = [];
+  let hitCount = 0;
+  let hit = false;
+  let armed: { operation: BenchmarkCutOperation; side: "before" | "after" } | undefined;
+  let target: BenchmarkWriteTargetIdentity | undefined;
+  let renameSucceeded = false;
+
+  function isArmedCut(operation: BenchmarkCutOperation, side: "before" | "after"): boolean {
+    return !hit && armed !== undefined && armed.operation === operation && armed.side === side;
+  }
+
+  function fireFault(operation: BenchmarkCutOperation, side: "before" | "after"): never {
+    trace.push(`${operation}:fault-${side}`);
+    hit = true;
+    hitCount += 1;
+    throw new Error(`calibration:benchmark-completion-witness-${operation}-fault-${side}`);
+  }
+
+  function runCut<T>(operation: BenchmarkCutOperation, delegate: () => T, afterDelegate?: () => void): T {
+    trace.push(`${operation}:before`);
+    if (isArmedCut(operation, "before")) fireFault(operation, "before");
+    const result = delegate();
+    afterDelegate?.();
+    trace.push(`${operation}:after`);
+    if (isArmedCut(operation, "after")) fireFault(operation, "after");
+    return result;
+  }
+
+  function matchesTargetFd(fd: number): boolean {
+    if (target === undefined || target.closed || fd !== target.fd) return false;
+    try {
+      const stat = fstatSync(fd);
+      return stat.dev === target.dev && stat.ino === target.ino;
+    } catch {
+      return false;
+    }
+  }
+
+  function recognizeTargetWrite(
+    fd: number,
+    buffer: Buffer,
+    offset: number,
+  ): BenchmarkWriteTargetIdentity | undefined {
+    if (offset !== 0) return undefined;
+    let linkPath: string;
+    try {
+      linkPath = realpathSync(`/proc/self/fd/${fd}`);
+    } catch {
+      return undefined;
+    }
+    if (dirname(linkPath) !== canonicalRoot || !BENCHMARK_TEMP_NAME_PATTERN.test(basename(linkPath))) {
+      return undefined;
+    }
+    let fdStat: ReturnType<typeof fstatSync>;
+    let pathStat: ReturnType<typeof lstatSync>;
+    try {
+      fdStat = fstatSync(fd);
+      pathStat = lstatSync(linkPath);
+    } catch {
+      return undefined;
+    }
+    if (!fdStat.isFile() || pathStat.isSymbolicLink() || !pathStat.isFile()) return undefined;
+    if (fdStat.dev !== pathStat.dev || fdStat.ino !== pathStat.ino) return undefined;
+    let currentRows: unknown;
+    try {
+      currentRows = JSON.parse(readFileSync(resolve(canonicalRoot, BENCHMARK_LEDGER_FILE_NAME), "utf8"));
+    } catch {
+      return undefined;
+    }
+    if (!Array.isArray(currentRows)) return undefined;
+    let newRows: unknown;
+    try {
+      newRows = JSON.parse(buffer.toString("utf8"));
+    } catch {
+      return undefined;
+    }
+    if (!Array.isArray(newRows) || newRows.length !== currentRows.length + 1) return undefined;
+    for (let index = 0; index < currentRows.length; index += 1) {
+      if (JSON.stringify(newRows[index]) !== JSON.stringify(currentRows[index])) return undefined;
+    }
+    const added: unknown = newRows[currentRows.length];
+    if (typeof added !== "object" || added === null) return undefined;
+    const addedRecord = added as Record<string, unknown>;
+    if (
+      Object.keys(addedRecord).length !== 4 ||
+      addedRecord["type"] !== "stage_completed" ||
+      addedRecord["stage"] !== "benchmark" ||
+      addedRecord["passed"] !== true ||
+      typeof addedRecord["at"] !== "string"
+    ) {
+      return undefined;
+    }
+    return { fd, tempPath: linkPath, dev: fdStat.dev, ino: fdStat.ino, closed: false, initialWriteSeen: false };
+  }
+
+  function fdWriteSync(fd: number, buffer: Buffer, offset: number, length: number): number {
+    if (target === undefined) {
+      const identity = recognizeTargetWrite(fd, buffer, offset);
+      if (identity !== undefined) target = identity;
+    }
+    if (target === undefined || !matchesTargetFd(fd)) {
+      return nodeWriteSync(fd, buffer, offset, length);
+    }
+    const cutEligible = !target.initialWriteSeen && offset === 0;
+    target.initialWriteSeen = true;
+    trace.push("write:before");
+    if (cutEligible && isArmedCut("write", "before")) fireFault("write", "before");
+    const count = nodeWriteSync(fd, buffer, offset, length);
+    trace.push("write:after");
+    if (cutEligible && isArmedCut("write", "after")) fireFault("write", "after");
+    return count;
+  }
+
+  function fdFsyncSync(fd: number): void {
+    if (!matchesTargetFd(fd)) {
+      fsyncSync(fd);
+      return;
+    }
+    runCut("file-fsync", () => fsyncSync(fd));
+  }
+
+  function fdCloseSync(fd: number): void {
+    const frame = target;
+    if (frame === undefined || !matchesTargetFd(fd)) {
+      closeSync(fd);
+      return;
+    }
+    if (hit) {
+      trace.push("cleanup:close:before");
+      closeSync(fd);
+      frame.closed = true;
+      trace.push("cleanup:close:after");
+      return;
+    }
+    runCut("close", () => closeSync(fd), () => { frame.closed = true; });
+  }
+
+  function renameSync(from: string, to: string): void {
+    if (target === undefined || from !== target.tempPath ||
+      to !== resolve(canonicalRoot, BENCHMARK_LEDGER_FILE_NAME)) {
+      nodeRenameSync(from, to);
+      return;
+    }
+    let source: ReturnType<typeof lstatSync> | undefined;
+    try { source = lstatSync(from); } catch { /* Non-target native rename retains its own error. */ }
+    if (source === undefined || !source.isFile() || source.isSymbolicLink() ||
+      source.dev !== target.dev || source.ino !== target.ino) {
+      nodeRenameSync(from, to);
+      return;
+    }
+    runCut("rename", () => nodeRenameSync(from, to), () => {
+      renameSucceeded = true;
+    });
+  }
+
+  function fsyncDirSync(dir: string): void {
+    let isCanonical = false;
+    try { isCanonical = realpathSync(dir) === canonicalRoot; } catch { /* Delegate native directory errors. */ }
+    const isTarget = renameSucceeded && target !== undefined && isCanonical;
+    if (!isTarget) {
+      delegateFsyncDirSync(dir);
+      return;
+    }
+    runCut("directory-fsync", () => delegateFsyncDirSync(dir));
+    if (!hit) {
+      renameSucceeded = false;
+      target = undefined;
+    }
+  }
+
+  return Object.freeze({
+    overrides: Object.freeze({ fdWriteSync, fdFsyncSync, fdCloseSync, renameSync, fsyncDirSync }),
+    arm(operation: BenchmarkCutOperation, side: "before" | "after"): void {
+      armed = { operation, side };
+    },
+    disarm(): void {
+      armed = undefined;
+      if (target === undefined || target.closed) return;
+      let stat: ReturnType<typeof fstatSync>;
+      try {
+        stat = fstatSync(target.fd);
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code !== "EBADF" && code !== "ENOENT") throw error;
+        return;
+      }
+      if (stat.dev !== target.dev || stat.ino !== target.ino) return;
+      try {
+        closeSync(target.fd);
+        target.closed = true;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "EBADF") throw error;
+      }
+    },
+    get trace(): readonly string[] {
+      return trace;
+    },
+    get hitCount(): number {
+      return hitCount;
+    },
+  });
 }
