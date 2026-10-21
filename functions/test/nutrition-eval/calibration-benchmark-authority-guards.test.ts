@@ -9,7 +9,8 @@
  * Runtime stage-completion reentry/privacy/returned-alias cases remain a
  * later bounded pass in this file.
  */
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
 import { evaluateCalibrationStageGate } from "../../src/nutrition-eval/calibration";
 import { measureCalibrationStageReport } from "../../src/nutrition-eval/calibration-report-measurements";
 import type { CalibrationStageGateMetrics } from "../../src/nutrition-eval/calibration-report-measurements";
@@ -28,12 +29,18 @@ import { deriveCanonicalAllowedKeys } from "../../src/nutrition-eval/calibration
 import { CalibrationFatalError } from "../../src/nutrition-eval/fatal-error";
 import {
   makeRuntimeEvidenceCoreBacking,
+  makeRuntimeEvidenceCoreFixture,
   makeRuntimeEvidenceData,
 } from "./calibration-runtime-evidence-fixtures";
 import type {
   RuntimeCanonicalPlans,
   RuntimeEvidenceCoreBacking,
+  RuntimeEvidenceCoreFixture,
 } from "./calibration-runtime-evidence-fixtures";
+import type { JournalEntry } from "../../src/nutrition-eval/calibration";
+import type { CalibrationReportPublicationResult } from "../../src/nutrition-eval/calibration-report-publication";
+import { prepareCalibrationStageReportReconstructor } from "../../src/nutrition-eval/calibration-report-assembly";
+import { renderNutritionEvalJson, renderNutritionEvalMarkdown } from "../../src/nutrition-eval/report";
 
 const SMALL_TEST_TIMEOUT = 5000;
 
@@ -709,4 +716,434 @@ describe("benchmark authority constructor boundaries", () => {
     ledger.acquireLock({ ...fixture.owner });
     expect(fixture.backing.trace).toContain("writeLockExclusive");
   }, SMALL_TEST_TIMEOUT);
+});
+
+// Trusted software fixture ONLY. Older runtime mode creates a genuine
+// unfinished prefix; every guard below targets a distinct NEW benchmark-mode
+// ledger and fresh owned buffers. No native publication or SDK attestation.
+interface RuntimeGuardTemplate {
+  readonly data: Awaited<ReturnType<typeof makeRuntimeEvidenceData>>;
+  readonly eventBytes: string;
+  readonly journalBytes: string;
+  readonly clock: number;
+}
+
+// Full 158-outcome construction/replay, not a small constructor boundary.
+const FULL_HISTORY_TEST_TIMEOUT = 600000;
+
+let runtimePrefix: RuntimeEvidenceCoreFixture | undefined;
+let runtimeData: RuntimeGuardTemplate["data"] | undefined;
+let runtimeTemplate: RuntimeGuardTemplate | undefined;
+
+afterAll(() => {
+  runtimePrefix?.cleanup();
+  runtimePrefix = undefined;
+  runtimeData = undefined;
+  runtimeTemplate = undefined;
+});
+
+function requireRuntimePrefix(): RuntimeEvidenceCoreFixture {
+  if (runtimePrefix === undefined) throw new Error("runtime guard prefix foundation is missing");
+  return runtimePrefix;
+}
+
+async function openRuntimeGuardFixture() {
+  const template = runtimeTemplate;
+  if (template === undefined) throw new Error("released runtime guard template is missing");
+  const backing = makeRuntimeEvidenceCoreBacking();
+  const events: unknown = JSON.parse(template.eventBytes);
+  const journals: unknown = JSON.parse(template.journalBytes);
+  if (!Array.isArray(events) || !Array.isArray(journals)) throw new Error("guard template must contain arrays");
+  backing.events.push(...events);
+  backing.journals.push(...journals as JournalEntry[]);
+  backing.clock = template.clock;
+  const { data } = template;
+  const owner = { ...data.header.owner };
+  const identity = { ...data.header.identity };
+  const reconstructor = await prepareCalibrationStageReportReconstructor(data.context);
+  let lastResult: CalibrationReportPublicationResult | undefined;
+  const readHealthyGitState = () => ({
+    headCommit: "a".repeat(40), functionsTreeId: identity.functionsTreeId, dirtyPaths: [] as string[],
+  });
+  const ledger = createBenchmarkAuthorityCalibrationLedger(
+    backing.deps,
+    identity,
+    (profile) => deriveCanonicalAllowedKeys(data.context.files, profile),
+    { getReportOutcomePlan: (profile) => profile === undefined ? data.plans.initial : data.plans[profile] },
+    {
+      verifyStageReportArtifacts: (params) => {
+        backing.trace.push(`verify:${params.stage}:${params.profile}`);
+        backing.faults.onVerify?.();
+        const report = reconstructor.reconstruct(params);
+        const result: CalibrationReportPublicationResult = {
+          report,
+          receipt: {
+            stage: params.stage, profile: params.profile, runId: report.runId,
+            jsonSha256: createHash("sha256").update(renderNutritionEvalJson(report), "utf8").digest("hex"),
+            markdownSha256: createHash("sha256").update(renderNutritionEvalMarkdown(report), "utf8").digest("hex"),
+          },
+        };
+        lastResult = result;
+        return backing.faults.onVerified === undefined ? result : backing.faults.onVerified(result);
+      },
+    },
+    {
+      initialOwner: owner,
+      plans: data.plans,
+      readCurrentGitState: () => {
+        backing.gitReads += 1;
+        backing.trace.push("readCurrentGitState");
+        return backing.faults.onReadGitState === undefined
+          ? readHealthyGitState() : backing.faults.onReadGitState();
+      },
+    },
+    { historicalReferenceBytes: data.context.files["historical-reference"] },
+  );
+  ledger.acquireLock({ ...owner });
+  return { ledger, backing, owner, readHealthyGitState, getLastResult: () => lastResult };
+}
+
+const HEALTHY_BENCHMARK_SUMMARY = {
+  stage: "benchmark" as const, passed: true,
+  completedStages: ["preflight", "development", "validation"] as const,
+};
+
+type RuntimeGuardFixture = Awaited<ReturnType<typeof openRuntimeGuardFixture>>;
+type ReflectionTrap = "getPrototypeOf" | "ownKeys" | "getOwnPropertyDescriptor";
+const RUNTIME_REFLECTION_TRAPS: readonly ReflectionTrap[] = [
+  "getPrototypeOf", "ownKeys", "getOwnPropertyDescriptor",
+];
+
+function reflectWithHook<T extends object>(target: T, trap: ReflectionTrap, hook: () => void): T {
+  return new Proxy(target, {
+    getPrototypeOf(value) {
+      if (trap === "getPrototypeOf") hook();
+      return Reflect.getPrototypeOf(value);
+    },
+    ownKeys(value) {
+      if (trap === "ownKeys") hook();
+      return Reflect.ownKeys(value);
+    },
+    getOwnPropertyDescriptor(value, key) {
+      if (trap === "getOwnPropertyDescriptor") hook();
+      return Reflect.getOwnPropertyDescriptor(value, key);
+    },
+  });
+}
+
+function runtimeOwnedState(f: RuntimeGuardFixture) {
+  return {
+    eventCount: f.backing.events.length,
+    eventBytes: JSON.stringify(f.backing.events),
+    journalBytes: JSON.stringify(f.backing.journals),
+    lockBytes: JSON.stringify(f.backing.lock),
+    traceStart: f.backing.trace.length,
+  };
+}
+
+function expectRuntimeStateUnchanged(f: RuntimeGuardFixture, before: ReturnType<typeof runtimeOwnedState>): void {
+  // Check the next forbidden append as a primitive before any rich formatting.
+  expect(f.backing.events.length).toBe(before.eventCount);
+  expect(JSON.stringify(f.backing.events)).toBe(before.eventBytes);
+  expect(JSON.stringify(f.backing.journals)).toBe(before.journalBytes);
+  expect(JSON.stringify(f.backing.lock)).toBe(before.lockBytes);
+  expect(f.backing.trace.slice(before.traceStart).filter((call) => CONSTRUCTOR_MUTATING_PORTS.includes(call)))
+    .toEqual([]);
+}
+
+function expectRuntimeAbort(
+  f: RuntimeGuardFixture,
+  before: ReturnType<typeof runtimeOwnedState>,
+  action: () => void,
+  foreignHandles: readonly unknown[] | (() => readonly unknown[]) = [],
+  counts?: TrapCounts,
+): void {
+  let threw = false;
+  let caught: unknown;
+  try { action(); } catch (error) { threw = true; caught = error; }
+  expect(threw).toBe(true);
+  const handles = typeof foreignHandles === "function" ? foreignHandles() : foreignHandles;
+  for (const handle of [f, f.ledger, f.backing, f.backing.deps, f.owner, ...handles]) {
+    expect(caught !== handle).toBe(true);
+  }
+  if (counts !== undefined) expectCleanForeignRejection(counts);
+  expect(caught instanceof CalibrationFatalError).toBe(true);
+  expect((caught as CalibrationFatalError).message).toBe("calibration:benchmark-authority-failed");
+  expect(Object.hasOwn(caught as object, "cause")).toBe(false);
+  expectRuntimeStateUnchanged(f, before);
+}
+
+function expectPermanentRuntimePoison(f: RuntimeGuardFixture, before: ReturnType<typeof runtimeOwnedState>): void {
+  delete f.backing.faults.onReadGitState;
+  delete f.backing.faults.onVerify;
+  delete f.backing.faults.onVerified;
+  const traceLength = f.backing.trace.length;
+  const gitReads = f.backing.gitReads;
+  expectRuntimeAbort(f, before, () => f.ledger.completeStage("benchmark", HEALTHY_BENCHMARK_SUMMARY));
+  expect(f.backing.trace.length).toBe(traceLength);
+  expect(f.backing.gitReads).toBe(gitReads);
+}
+
+function swallowedRuntimeReentry(f: RuntimeGuardFixture) {
+  const witness: { hits: number; caught: unknown } = { hits: 0, caught: undefined };
+  return {
+    witness,
+    hook: () => {
+      witness.hits += 1;
+      try { f.ledger.getCounts(); } catch (error) { witness.caught = error; }
+    },
+  };
+}
+
+function expectSwallowedRuntimeReentry(witness: { hits: number; caught: unknown }): void {
+  expect(witness.hits).toBe(1);
+  expect(witness.caught instanceof CalibrationFatalError).toBe(true);
+  expect((witness.caught as CalibrationFatalError).message).toBe("calibration:reentrant-call");
+  expect(Object.hasOwn(witness.caught as object, "cause")).toBe(false);
+}
+
+// Only traverses known public API return data, never an unknown caught value.
+function attemptReturnedMutation(value: unknown): number {
+  if (value === null || typeof value !== "object") return 0;
+  let attempts = 0;
+  for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+    if (!descriptor.enumerable || !Object.hasOwn(descriptor, "value")) continue;
+    attempts += attemptReturnedMutation(descriptor.value);
+    if (descriptor.value === null || typeof descriptor.value !== "object") {
+      attempts += 1;
+      Reflect.set(value, key, "caller-mutated-return");
+    }
+  }
+  if (Array.isArray(value)) { attempts += 1; Reflect.set(value, "length", 0); }
+  return attempts;
+}
+
+describe.sequential("benchmark authority runtime boundaries", () => {
+  it("qualifies a real older-runtime preflight software prefix", async () => {
+    runtimeData = await makeRuntimeEvidenceData();
+    runtimePrefix = await makeRuntimeEvidenceCoreFixture();
+    expect(runtimePrefix.identity).toEqual(runtimeData.header.identity);
+    expect(runtimePrefix.owner).toEqual(runtimeData.header.owner);
+    expect(runtimePrefix.plans).toEqual(runtimeData.plans);
+    runtimePrefix.finishPreflight();
+    expect(runtimePrefix.ledger.getCompletedStages()).toEqual(["preflight"]);
+  }, FULL_HISTORY_TEST_TIMEOUT);
+
+  it("qualifies the real development prefix and measured MEDIUM tie selection", () => {
+    const prefix = requireRuntimePrefix();
+    prefix.finishDevelopment();
+    expect(prefix.ledger.getSelectedProfile()).toBe("MEDIUM");
+    expect(prefix.ledger.getCompletedStages()).toEqual(["preflight", "development"]);
+  }, FULL_HISTORY_TEST_TIMEOUT);
+
+  it("qualifies the real validation software prefix", () => {
+    const prefix = requireRuntimePrefix();
+    prefix.finishValidation();
+    expect(prefix.ledger.getCompletedStages()).toEqual(["preflight", "development", "validation"]);
+  }, FULL_HISTORY_TEST_TIMEOUT);
+
+  it("releases a genuine unfinished benchmark prefix with 158 finishes and six bindings", () => {
+    const prefix = requireRuntimePrefix();
+    const data = runtimeData;
+    if (data === undefined) throw new Error("runtime guard data foundation is missing");
+    for (const row of prefix.plans.MEDIUM.filter((item) => item.key.stage === "benchmark")) {
+      prefix.completeOutcomeKey(row.key);
+    }
+    prefix.ledger.admitStageReportReceipt("benchmark", "MEDIUM");
+    prefix.ledger.bindRuntimeStageReport("benchmark", "MEDIUM");
+    const snapshot = prefix.ledger.getRuntimeEvidenceSnapshot();
+    const finished = snapshot.events.filter((event) => event.type === "runtime_attempt_finished");
+    expect(finished).toHaveLength(158);
+    expect(finished.filter((event) => event.terminal.kind === "image")).toHaveLength(146);
+    expect(finished.filter((event) => event.terminal.kind === "non_reservation")).toHaveLength(12);
+    expect(snapshot.events.filter((event) => event.type === "runtime_report_bound")
+      .map((event) => `${event.stage}|${event.profile}`)).toEqual([
+      "preflight|LOW", "preflight|MEDIUM", "development|LOW", "development|MEDIUM",
+      "validation|MEDIUM", "benchmark|MEDIUM",
+    ]);
+    expect(prefix.ledger.getCompletedStages()).toEqual(["preflight", "development", "validation"]);
+    prefix.ledger.releaseLock({ ...prefix.owner });
+    expect(prefix.backing.lock).toBeUndefined();
+    runtimeTemplate = {
+      data, eventBytes: JSON.stringify(prefix.events), journalBytes: JSON.stringify(prefix.journals),
+      clock: prefix.backing.clock,
+    };
+    prefix.cleanup();
+    runtimePrefix = undefined;
+  }, FULL_HISTORY_TEST_TIMEOUT);
+
+  it("a fresh new-factory core completes the healthy benchmark by one event without rewriting its prefix", async () => {
+    const f = await openRuntimeGuardFixture();
+    const eventBytes = JSON.stringify(f.backing.events);
+    const journalBytes = JSON.stringify(f.backing.journals);
+    const eventCount = f.backing.events.length;
+    const traceStart = f.backing.trace.length;
+    f.ledger.completeStage("benchmark", HEALTHY_BENCHMARK_SUMMARY);
+    expect(f.backing.events).toHaveLength(eventCount + 1);
+    expect(JSON.stringify(f.backing.events.slice(0, eventCount))).toBe(eventBytes);
+    expect(f.backing.events.at(-1)).toMatchObject({ type: "stage_completed", stage: "benchmark", passed: true });
+    expect(f.ledger.getCompletedStages()).toEqual(["preflight", "development", "validation", "benchmark"]);
+    expect(JSON.stringify(f.backing.journals)).toBe(journalBytes);
+    expect(f.backing.lock).toEqual(f.owner);
+    expect(f.backing.trace.slice(traceStart).filter((call) => CONSTRUCTOR_MUTATING_PORTS.includes(call)))
+      .toEqual(["appendLedgerEvent", "fsyncLedgerFile", "fsyncLedgerDir"]);
+  }, FULL_HISTORY_TEST_TIMEOUT);
+
+  it.each(["Git reader", "report verifier"] as const)(
+    "%s swallowing same-instance reentry and returning valid data aborts before mutation and poisons permanently",
+    async (boundary) => {
+      const f = await openRuntimeGuardFixture();
+      const before = runtimeOwnedState(f);
+      const reentry = swallowedRuntimeReentry(f);
+      if (boundary === "Git reader") {
+        f.backing.faults.onReadGitState = () => { reentry.hook(); return f.readHealthyGitState(); };
+      } else {
+        f.backing.faults.onVerify = reentry.hook;
+      }
+      expectRuntimeAbort(f, before, () => f.ledger.completeStage("benchmark", HEALTHY_BENCHMARK_SUMMARY));
+      expectSwallowedRuntimeReentry(reentry.witness);
+      if (boundary === "report verifier") expect(f.getLastResult() !== undefined).toBe(true);
+      expectPermanentRuntimePoison(f, before);
+    }, FULL_HISTORY_TEST_TIMEOUT,
+  );
+
+  it.each(RUNTIME_REFLECTION_TRAPS)(
+    "valid Git result %s swallowing same-instance reentry blocks the next mutation permanently",
+    async (trap) => {
+      const f = await openRuntimeGuardFixture();
+      const before = runtimeOwnedState(f);
+      const reentry = swallowedRuntimeReentry(f);
+      const input = reflectWithHook(f.readHealthyGitState(), trap, reentry.hook);
+      f.backing.faults.onReadGitState = () => input;
+      expectRuntimeAbort(f, before, () => f.ledger.completeStage("benchmark", HEALTHY_BENCHMARK_SUMMARY), [input]);
+      expectSwallowedRuntimeReentry(reentry.witness);
+      expectPermanentRuntimePoison(f, before);
+    }, FULL_HISTORY_TEST_TIMEOUT,
+  );
+
+  it.each(RUNTIME_REFLECTION_TRAPS)(
+    "valid verifier result %s swallowing same-instance reentry blocks the next mutation permanently",
+    async (trap) => {
+      const f = await openRuntimeGuardFixture();
+      const before = runtimeOwnedState(f);
+      const reentry = swallowedRuntimeReentry(f);
+      let input: object | undefined;
+      f.backing.faults.onVerified = (result) => {
+        input = reflectWithHook(result, trap, reentry.hook);
+        return input as CalibrationReportPublicationResult;
+      };
+      expectRuntimeAbort(f, before, () => f.ledger.completeStage("benchmark", HEALTHY_BENCHMARK_SUMMARY), () => [input]);
+      expect(input !== undefined).toBe(true);
+      expectSwallowedRuntimeReentry(reentry.witness);
+      expectPermanentRuntimePoison(f, before);
+    }, FULL_HISTORY_TEST_TIMEOUT,
+  );
+
+  it.each(RUNTIME_REFLECTION_TRAPS)(
+    "valid gate summary %s swallowing same-instance reentry blocks the next mutation permanently",
+    async (trap) => {
+      const f = await openRuntimeGuardFixture();
+      const before = runtimeOwnedState(f);
+      const reentry = swallowedRuntimeReentry(f);
+      const input = reflectWithHook({ ...HEALTHY_BENCHMARK_SUMMARY }, trap, reentry.hook);
+      expectRuntimeAbort(f, before, () => f.ledger.completeStage("benchmark", input), [input]);
+      expectSwallowedRuntimeReentry(reentry.witness);
+      expectPermanentRuntimePoison(f, before);
+    }, FULL_HISTORY_TEST_TIMEOUT,
+  );
+
+  it.each([
+    ["Git reader", "counted foreign proxy"], ["Git reader", "revoked foreign proxy"],
+    ["Git result descriptor", "counted foreign proxy"], ["Git result descriptor", "revoked foreign proxy"],
+    ["report verifier", "counted foreign proxy"], ["report verifier", "revoked foreign proxy"],
+    ["verifier result descriptor", "counted foreign proxy"], ["verifier result descriptor", "revoked foreign proxy"],
+    ["gate summary descriptor", "counted foreign proxy"], ["gate summary descriptor", "revoked foreign proxy"],
+  ] as const)(
+    "%s throwing a distinct %s stays private, blocks mutation and permanently poisons",
+    async (boundary, kind) => {
+      const f = await openRuntimeGuardFixture();
+      const before = runtimeOwnedState(f);
+      const counted = kind === "counted foreign proxy" ? makeTrapCountingThrow() : undefined;
+      const foreign = counted === undefined ? makeRevokedForeignThrow() : counted.error;
+      let hits = 0;
+      const throwForeign = () => { hits += 1; throw foreign; };
+      let input: object | undefined;
+      let summary = { ...HEALTHY_BENCHMARK_SUMMARY };
+      if (boundary === "Git reader") {
+        f.backing.faults.onReadGitState = throwForeign;
+      } else if (boundary === "Git result descriptor") {
+        input = reflectWithHook(f.readHealthyGitState(), "getOwnPropertyDescriptor", throwForeign);
+        f.backing.faults.onReadGitState = () => input as ReturnType<typeof f.readHealthyGitState>;
+      } else if (boundary === "report verifier") {
+        f.backing.faults.onVerify = throwForeign;
+      } else if (boundary === "verifier result descriptor") {
+        f.backing.faults.onVerified = (result) => {
+          input = reflectWithHook(result, "getOwnPropertyDescriptor", throwForeign);
+          return input as CalibrationReportPublicationResult;
+        };
+      } else {
+        summary = reflectWithHook(summary, "getOwnPropertyDescriptor", throwForeign);
+        input = summary;
+      }
+      expectRuntimeAbort(f, before, () => f.ledger.completeStage("benchmark", summary),
+        () => [foreign, input, summary], counted?.counts);
+      expect(hits).toBe(1);
+      expectPermanentRuntimePoison(f, before);
+      if (counted !== undefined) expectCleanForeignRejection(counted.counts);
+    }, FULL_HISTORY_TEST_TIMEOUT,
+  );
+
+  it("captures a real mutable verifier result without freezing or retaining caller report and receipt aliases", async () => {
+    const f = await openRuntimeGuardFixture();
+    let callerResult: CalibrationReportPublicationResult | undefined;
+    f.backing.faults.onVerified = (result) => {
+      callerResult = JSON.parse(JSON.stringify(result)) as CalibrationReportPublicationResult;
+      return callerResult;
+    };
+    const admitted = f.ledger.admitStageReportReceipt("benchmark", "MEDIUM");
+    const receiptBytes = JSON.stringify(admitted);
+    const caller = callerResult;
+    if (caller === undefined) throw new Error("real verifier result was not captured");
+    expect(Object.isFrozen(caller)).toBe(false);
+    expect(Object.isFrozen(caller.report)).toBe(false);
+    expect(Object.isFrozen(caller.receipt)).toBe(false);
+    const before = runtimeOwnedState(f);
+    expect(Reflect.set(caller.report, "runId", "caller-mutated-report")).toBe(true);
+    expect(Reflect.set(caller.receipt, "jsonSha256", "0".repeat(64))).toBe(true);
+    expect(JSON.stringify(admitted)).toBe(receiptBytes);
+    delete f.backing.faults.onVerified;
+    expect(JSON.stringify(f.ledger.admitStageReportReceipt("benchmark", "MEDIUM"))).toBe(receiptBytes);
+    expectRuntimeStateUnchanged(f, before);
+    f.ledger.completeStage("benchmark", HEALTHY_BENCHMARK_SUMMARY);
+    expect(f.backing.events.length).toBe(before.eventCount + 1);
+    expect(JSON.stringify(f.backing.events.slice(0, before.eventCount))).toBe(before.eventBytes);
+    expect(f.ledger.getCompletedStages()).toEqual(["preflight", "development", "validation", "benchmark"]);
+  }, FULL_HISTORY_TEST_TIMEOUT);
+
+  it.each(["runtime snapshot", "stage report", "completed predictions", "receipt", "runtime binding"] as const)(
+    "mutating returned %s cannot alter owned history or later healthy benchmark completion",
+    async (boundary) => {
+      const f = await openRuntimeGuardFixture();
+      const read = () => {
+        switch (boundary) {
+          case "runtime snapshot": return f.ledger.getRuntimeEvidenceSnapshot();
+          case "stage report": return f.ledger.getStageReportSnapshot("benchmark", "MEDIUM");
+          case "completed predictions": return f.ledger.getCompletedReportPredictions();
+          case "receipt": return f.ledger.admitStageReportReceipt("benchmark", "MEDIUM");
+          case "runtime binding": return f.ledger.bindRuntimeStageReport("benchmark", "MEDIUM");
+        }
+      };
+      const returned = read();
+      const original = JSON.stringify(returned);
+      const before = runtimeOwnedState(f);
+      expect(attemptReturnedMutation(returned)).toBeGreaterThan(0);
+      expect(JSON.stringify(read())).toBe(original);
+      expectRuntimeStateUnchanged(f, before);
+      f.ledger.completeStage("benchmark", HEALTHY_BENCHMARK_SUMMARY);
+      expect(f.backing.events.length).toBe(before.eventCount + 1);
+      expect(JSON.stringify(f.backing.events.slice(0, before.eventCount))).toBe(before.eventBytes);
+      expect(JSON.stringify(f.backing.journals)).toBe(before.journalBytes);
+      expect(f.ledger.getCompletedStages()).toEqual(["preflight", "development", "validation", "benchmark"]);
+    }, FULL_HISTORY_TEST_TIMEOUT,
+  );
 });
