@@ -138,6 +138,7 @@ function completeOutcome(
   key: CalibrationReportOutcomeKey,
   evalCase: NutritionEvalCase,
   forceFailure: boolean,
+  perturbBenchmarkMealProtein = false,
 ): void {
   const ref = ledger.startRuntimeAttempt({ ...key });
   if (evalCase.scanMode === "barcode") {
@@ -154,11 +155,32 @@ function completeOutcome(
   ledger.reserve({ ...key });
   ledger.authorizeRuntimeRequest(ref);
   ledger.settleRuntimeOperation(ref, "vision", "returned");
-  const hash = forceFailure
-    ? ledger.appendResultJournal(
+  let hash: string;
+  if (forceFailure) {
+    hash = ledger.appendResultJournal(
       buildProducerResultJournal(key, failurePrediction(key, evalCase.scanMode, "provider"), "http_5xx", CORE_PINNED_VERSION),
-    )
-    : ledger.appendResultJournal(buildCoreSuccessJournal({ ...key }, createCoreExactPrediction(evalCase, key.sampleIndex)));
+    );
+  } else {
+    let prediction = createCoreExactPrediction(evalCase, key.sampleIndex);
+    if (perturbBenchmarkMealProtein && key.stage === "benchmark" && evalCase.scanMode === "meal") {
+      const diagnostics = prediction.diagnostics;
+      const rawNutrients = diagnostics?.rawNutrients;
+      if (typeof prediction.proteinG !== "number" || !Number.isFinite(prediction.proteinG)
+        || diagnostics === undefined || rawNutrients === undefined
+        || typeof rawNutrients.proteinG !== "number" || !Number.isFinite(rawNutrients.proteinG)) {
+        throw new CalibrationFatalError("calibration:benchmark-authority-fixture-protein-missing");
+      }
+      prediction = {
+        ...prediction,
+        proteinG: prediction.proteinG * 1.4,
+        diagnostics: {
+          ...diagnostics,
+          rawNutrients: { ...rawNutrients, proteinG: rawNutrients.proteinG * 1.4 },
+        },
+      };
+    }
+    hash = ledger.appendResultJournal(buildCoreSuccessJournal({ ...key }, prediction));
+  }
   ledger.complete({ ...key }, hash);
   ledger.finishRuntimeAttempt(ref);
 }
@@ -401,7 +423,7 @@ export async function buildBenchmarkTemplate(
   profile: CalibrationProfile,
   scenario: "prior-failure" | "benchmark-meal-protein" = "prior-failure",
 ): Promise<Readonly<BenchmarkTemplate>> {
-  if (scenario !== "prior-failure") {
+  if (scenario !== "prior-failure" && scenario !== "benchmark-meal-protein") {
     throw new CalibrationFatalError("calibration:benchmark-authority-fixture-scenario-unsupported");
   }
   const mini = makeMiniGitRepoTask4(roots);
@@ -471,7 +493,8 @@ export async function buildBenchmarkTemplate(
 
   for (const row of selectedPlan) {
     if (row.key.stage !== "benchmark") continue;
-    completeOutcome(ledger, row.key, resolveEvalCase(context, row.key.caseId), false);
+    completeOutcome(ledger, row.key, resolveEvalCase(context, row.key.caseId), false,
+      scenario === "benchmark-meal-protein");
   }
   await publishAdmitBindAndMeasure(ledger, context, "benchmark", profile, bindings);
   // Benchmark intentionally stays uncompleted here: no ledger.completeStage
