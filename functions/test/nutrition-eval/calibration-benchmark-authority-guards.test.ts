@@ -1,13 +1,17 @@
 /**
- * Calibration benchmark authority guards (Task 3 Step 1, Slices A and B).
+ * Calibration benchmark authority guards (Task 3 Step 1, Slices A, B, and C).
  *
  * Slice A: full-gate discriminator unit matrix. Slice B: opt-in benchmark
  * authority constructor boundaries (valid baseline, config/runtime-option
  * negative and hostile-reflection controls with full foreign
  * reflection/coercion counters, caller-alias independence for runtime options and
- * plans, zero mutating-port witness).
- * Runtime stage-completion reentry/privacy/returned-alias cases remain a
- * later bounded pass in this file.
+ * plans, zero mutating-port witness). Slice C: reachable runtime
+ * stage-completion reentry, privacy, permanent-poison, and returned-alias
+ * controls.
+ *
+ * This is trusted-core qualification only: it does not exercise native
+ * filesystem recovery, SDK dispatch, live nutrition accuracy, or production
+ * or security readiness.
  */
 import { afterAll, describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";

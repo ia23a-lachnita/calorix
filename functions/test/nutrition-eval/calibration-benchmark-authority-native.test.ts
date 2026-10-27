@@ -1650,3 +1650,410 @@ describe.sequential("task3 native completion cuts", () => {
     }
   }
 });
+
+interface RenameCutOldState {
+  readonly template: Readonly<BenchmarkTemplate>;
+  readonly baseDir: string;
+  readonly canonical: string;
+  readonly f: Readonly<BenchmarkNativeCase>;
+  readonly oldWitness: BenchmarkCompletionWitness;
+  readonly oldOwner: CalibrationOwner;
+  readonly before: BenchmarkDiskInvariantSnapshot;
+  readonly inventoryBefore: string[];
+  readonly postFaultLedgerBytes: Buffer;
+  readonly postFaultEvents: readonly Record<string, unknown>[];
+  readonly originalBindings: readonly (RuntimeEvidenceEvent & { type: "runtime_report_bound" })[];
+}
+
+async function setupRenameCutOldState(
+  roots: string[],
+  side: "before" | "after",
+): Promise<RenameCutOldState> {
+  const template = requireFoundationTemplate("MEDIUM", "prior-failure");
+  const baseDir = copyBenchmarkTemplate(roots, template);
+  const canonical = resolve(baseDir, CALIBRATION_ROOT);
+  const oldWitness = makeBenchmarkCompletionWitness(canonical);
+  const f = await openBenchmarkBase(baseDir, oldWitness.overrides);
+  const oldOwner = f.context.owner;
+  expect(oldWitness.trace).toEqual([]);
+  expect(oldWitness.hitCount).toBe(0);
+  const bindings = captureBenchmarkReportBindings(f);
+  const before = captureBenchmarkDiskInvariants(f, bindings);
+  expect(
+    before.events.some((event) => event["type"] === "stage_completed" && event["stage"] === "benchmark"),
+  ).toBe(false);
+  expect(before.ledgerBytes.equals(Buffer.from(JSON.stringify(before.events)))).toBe(true);
+  const inventoryBefore = readdirSync(canonical).sort();
+
+  const originalBindings = f.ledger.getRuntimeEvidenceSnapshot().events.filter(
+    (event): event is RuntimeEvidenceEvent & { type: "runtime_report_bound" } =>
+      event.type === "runtime_report_bound",
+  );
+  expect(originalBindings.length).toBe(6);
+
+  oldWitness.arm("rename", side);
+  const thrown = captureThrown(() => {
+    f.ledger.completeStage("benchmark", {
+      stage: "benchmark",
+      passed: true,
+      completedStages: ["preflight", "development", "validation"],
+    });
+  });
+  assertOwnedCalibrationFatal(thrown);
+  expect(oldWitness.hitCount).toBe(1);
+  expect(oldWitness.trace).toEqual(expectedCompletionCutTrace("rename", side));
+
+  const ledgerPath = resolve(canonical, "ledger.json");
+  const postFaultLedgerBytes = readFileSync(ledgerPath);
+  const postFaultEvents = f.readEvents();
+  if (isCompletionCutPublished("rename", side)) {
+    expect(postFaultEvents).toHaveLength(before.events.length + 1);
+    expect(postFaultEvents.slice(0, before.events.length)).toEqual(before.events);
+    const lastEvent = postFaultEvents[postFaultEvents.length - 1];
+    if (lastEvent === undefined) throw new Error("missing stage_completed benchmark event");
+    expect(lastEvent).toEqual({
+      type: "stage_completed", stage: "benchmark", passed: true, at: expect.any(String),
+    });
+    expect(postFaultLedgerBytes.equals(Buffer.from(JSON.stringify([...before.events, lastEvent])))).toBe(true);
+  } else {
+    expect(postFaultEvents).toEqual(before.events);
+    expect(postFaultLedgerBytes.equals(before.ledgerBytes)).toBe(true);
+  }
+  expect(readFileSync(resolve(canonical, "journal.json")).equals(before.journalBytes)).toBe(true);
+  expect(f.readJournals()).toEqual(before.journals);
+  for (const [path, bytes] of before.reportBytes) {
+    expect(readFileSync(path).equals(bytes)).toBe(true);
+  }
+  expect(f.readLockBytes().equals(before.lockBytes)).toBe(true);
+  expect(readdirSync(canonical).sort()).toEqual(inventoryBefore);
+
+  oldWitness.disarm();
+
+  return {
+    template, baseDir, canonical, f, oldWitness, oldOwner, before,
+    inventoryBefore, postFaultLedgerBytes, postFaultEvents, originalBindings,
+  };
+}
+
+function procStatLine(pid: number, startTicks: number): string {
+  return `${pid} (comm) S 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 ${startTicks}`;
+}
+
+async function captureRejected(run: () => Promise<unknown>): Promise<unknown> {
+  try {
+    await run();
+  } catch (error: unknown) {
+    return error;
+  }
+  throw new Error("expected the promise to reject");
+}
+
+function assertOwnedRuntimeOperationFailed(error: unknown): void {
+  if (!(error instanceof CalibrationFatalError)) {
+    throw new Error("expected an owned CalibrationFatalError");
+  }
+  expect(error.message).toBe("calibration:runtime-operation-failed");
+  expect(Object.hasOwn(error, "cause")).toBe(false);
+}
+
+interface RawCalibrationOwnerShape {
+  readonly hostname: string;
+  readonly bootId: string;
+  readonly pid: number;
+  readonly startTicks: number;
+  readonly acquiredAt: string;
+}
+
+function readOwnedLockJson(lockBytes: Buffer): RawCalibrationOwnerShape {
+  const parsed: unknown = JSON.parse(lockBytes.toString("utf8"));
+  if (typeof parsed !== "object" || parsed === null) {
+    throw new Error("expected lock bytes to decode to an owner object");
+  }
+  const record = parsed as Record<string, unknown>;
+  const keys = Object.keys(record);
+  if (
+    keys.length !== 5 ||
+    typeof record["hostname"] !== "string" ||
+    typeof record["bootId"] !== "string" ||
+    typeof record["pid"] !== "number" ||
+    typeof record["startTicks"] !== "number" ||
+    typeof record["acquiredAt"] !== "string"
+  ) {
+    throw new Error("expected a closed five-field calibration owner shape");
+  }
+  return {
+    hostname: record["hostname"],
+    bootId: record["bootId"],
+    pid: record["pid"],
+    startTicks: record["startTicks"],
+    acquiredAt: record["acquiredAt"],
+  };
+}
+
+async function assertRecoveredBenchmarkBindings(
+  f: Readonly<BenchmarkNativeCase>,
+  profile: CalibrationProfile,
+  originalBindings: readonly (RuntimeEvidenceEvent & { type: "runtime_report_bound" })[],
+): Promise<void> {
+  assertFoundationActualInventory(f, profile);
+  const snapshot = f.ledger.getRuntimeEvidenceSnapshot();
+  expect(snapshot.activeAttempt).toBeNull();
+  const bound = snapshot.events.filter(
+    (event): event is RuntimeEvidenceEvent & { type: "runtime_report_bound" } =>
+      event.type === "runtime_report_bound",
+  );
+  expect(bound.length).toBe(6);
+  expect(bound).toEqual(originalBindings);
+  const verifier = await prepareCalibrationStageReportArtifactVerifier(f.context);
+  for (const binding of bound) {
+    assertFoundationBindingDigest(f.context, snapshot, binding);
+    const reportSnapshot = f.ledger.getStageReportSnapshot(binding.stage, binding.profile);
+    const verified = verifier.verify({ stage: binding.stage, profile: binding.profile, snapshot: reportSnapshot });
+    expect(verified.receipt).toEqual(binding.receipt);
+  }
+}
+
+describe.sequential("task3 native recovery", () => {
+  for (const side of CUT_SIDES) {
+    for (const livenessMode of ["enoent", "pid-reused"] as const) {
+      it(`task3 native recovery ${livenessMode} rename ${side}`, async () => {
+        const old = await setupRenameCutOldState(roots, side);
+        const {
+          template, baseDir, canonical, f, oldWitness, oldOwner, before,
+          inventoryBefore, postFaultEvents, originalBindings,
+        } = old;
+        const oldLockBytes = f.readLockBytes();
+        const seenPids: number[] = [];
+        const procStatReader = (pid: number): string => {
+          seenPids.push(pid);
+          if (livenessMode === "enoent") {
+            throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+          }
+          return procStatLine(pid, oldOwner.startTicks + 1);
+        };
+        const freshWitness = makeBenchmarkCompletionWitness(canonical);
+        const f2 = await openBenchmarkBase(baseDir, { ...freshWitness.overrides, procStatReader });
+        try {
+          expect(seenPids).toEqual([oldOwner.pid]);
+          expect(f2.context.owner).not.toEqual(oldOwner);
+          expect(f2.context.owner.acquiredAt).not.toBe(oldOwner.acquiredAt);
+
+          const archiveName = `lock.archive.${oldOwner.pid}.${oldOwner.startTicks}.json`;
+          const archivePath = resolve(canonical, archiveName);
+          expect(readFileSync(archivePath).equals(oldLockBytes)).toBe(true);
+
+          const newLockBytes = f2.readLockBytes();
+          expect(newLockBytes.equals(oldLockBytes)).toBe(false);
+          expect(JSON.parse(newLockBytes.toString("utf8"))).toEqual(f2.context.owner);
+
+          const eventsAfterRecovery = f2.readEvents();
+          expect(eventsAfterRecovery).toHaveLength(postFaultEvents.length + 1);
+          expect(eventsAfterRecovery.slice(0, postFaultEvents.length)).toEqual(postFaultEvents);
+          const recoveryEvent = eventsAfterRecovery[eventsAfterRecovery.length - 1];
+          if (recoveryEvent === undefined) throw new Error("missing lock_recovery event");
+          expect(recoveryEvent).toEqual({
+            type: "lock_recovery",
+            staleOwner: oldOwner,
+            recoveringOwner: f2.context.owner,
+            at: expect.any(String),
+          });
+          const ledgerAfterRecoveryBytes = readFileSync(resolve(canonical, "ledger.json"));
+          expect(ledgerAfterRecoveryBytes.equals(Buffer.from(JSON.stringify(eventsAfterRecovery)))).toBe(true);
+
+          expect(readFileSync(resolve(canonical, "journal.json")).equals(before.journalBytes)).toBe(true);
+          expect(f2.readJournals()).toEqual(before.journals);
+          for (const [path, bytes] of before.reportBytes) {
+            expect(readFileSync(path).equals(bytes)).toBe(true);
+          }
+          expect(readdirSync(canonical).sort()).toEqual([...inventoryBefore, archiveName].sort());
+
+          await assertRecoveredBenchmarkBindings(f2, template.profile, originalBindings);
+          expect(f2.readLockBytes().equals(newLockBytes)).toBe(true);
+
+          const expectedCompletedStages = side === "before"
+            ? ["preflight", "development", "validation"]
+            : ["preflight", "development", "validation", "benchmark"];
+          expect(f2.ledger.getCompletedStages()).toEqual(expectedCompletedStages);
+
+          const firstResult = f2.ledger.completeStage("benchmark", {
+            stage: "benchmark",
+            passed: true,
+            completedStages: ["preflight", "development", "validation"],
+          });
+          expect(firstResult).toBeUndefined();
+
+          const eventsAfterFirstComplete = f2.readEvents();
+          if (side === "before") {
+            expect(eventsAfterFirstComplete).toHaveLength(eventsAfterRecovery.length + 1);
+            expect(eventsAfterFirstComplete.slice(0, eventsAfterRecovery.length)).toEqual(eventsAfterRecovery);
+            const newCompletion = eventsAfterFirstComplete[eventsAfterFirstComplete.length - 1];
+            if (newCompletion === undefined) throw new Error("missing stage_completed benchmark event");
+            expect(newCompletion).toEqual({
+              type: "stage_completed", stage: "benchmark", passed: true, at: expect.any(String),
+            });
+            expect(freshWitness.trace).toEqual(fullOperationTrace());
+          } else {
+            expect(eventsAfterFirstComplete).toEqual(eventsAfterRecovery);
+            expect(freshWitness.trace).toEqual([]);
+          }
+          const benchmarkCompletions = eventsAfterFirstComplete.filter(
+            (event) => event["type"] === "stage_completed" && event["stage"] === "benchmark",
+          );
+          expect(benchmarkCompletions).toHaveLength(1);
+          expect(f2.ledger.getCompletedStages()).toEqual(["preflight", "development", "validation", "benchmark"]);
+          expect(freshWitness.hitCount).toBe(0);
+          const ledgerAfterFirstComplete = readFileSync(resolve(canonical, "ledger.json"));
+          expect(ledgerAfterFirstComplete.equals(Buffer.from(JSON.stringify(eventsAfterFirstComplete)))).toBe(true);
+          expect(f2.readLockBytes().equals(newLockBytes)).toBe(true);
+
+          const secondResult = f2.ledger.completeStage("benchmark", {
+            stage: "benchmark",
+            passed: true,
+            completedStages: ["preflight", "development", "validation"],
+          });
+          expect(secondResult).toBeUndefined();
+          expect(f2.readEvents()).toEqual(eventsAfterFirstComplete);
+          expect(readFileSync(resolve(canonical, "ledger.json")).equals(ledgerAfterFirstComplete)).toBe(true);
+          expect(freshWitness.trace).toEqual(side === "before" ? fullOperationTrace() : []);
+          expect(freshWitness.hitCount).toBe(0);
+          expect(f2.readLockBytes().equals(newLockBytes)).toBe(true);
+
+          expect(readFileSync(resolve(canonical, "journal.json")).equals(before.journalBytes)).toBe(true);
+          expect(f2.readJournals()).toEqual(before.journals);
+          for (const [path, bytes] of before.reportBytes) {
+            expect(readFileSync(path).equals(bytes)).toBe(true);
+          }
+          expect(readdirSync(canonical).sort()).toEqual([...inventoryBefore, archiveName].sort());
+
+          expect(readFileSync(archivePath).equals(oldLockBytes)).toBe(true);
+          f2.ledger.releaseLock({ ...f2.context.owner });
+          expect(existsSync(resolve(canonical, "lock.json"))).toBe(false);
+          expect(readFileSync(archivePath).equals(oldLockBytes)).toBe(true);
+
+          assertFoundationTemplateUnchanged(template);
+        } finally {
+          oldWitness.disarm();
+          freshWitness.disarm();
+        }
+      }, 600000);
+    }
+  }
+
+  for (const refusal of [
+    { name: "live", mode: "live" as const },
+    { name: "unknown-eacces", mode: "eacces" as const },
+    { name: "malformed-proc-stat", mode: "malformed" as const },
+  ]) {
+    it(`task3 native recovery refusal ${refusal.name} rename after`, async () => {
+      const old = await setupRenameCutOldState(roots, "after");
+      const {
+        template, canonical, baseDir, f, oldWitness, oldOwner, before,
+        inventoryBefore, postFaultEvents, postFaultLedgerBytes,
+      } = old;
+      const oldLockBytes = f.readLockBytes();
+      const seenPids: number[] = [];
+      const procStatReader = (pid: number): string => {
+        seenPids.push(pid);
+        if (refusal.mode === "eacces") {
+          throw Object.assign(new Error("EACCES"), { code: "EACCES" });
+        }
+        if (refusal.mode === "malformed") {
+          return "no-paren-at-all";
+        }
+        return procStatLine(pid, oldOwner.startTicks);
+      };
+      const freshWitness = makeBenchmarkCompletionWitness(canonical);
+      try {
+        const rejected = await captureRejected(() =>
+          openBenchmarkBase(baseDir, { ...freshWitness.overrides, procStatReader }),
+        );
+        assertOwnedRuntimeOperationFailed(rejected);
+        expect(seenPids).toEqual([oldOwner.pid]);
+
+        expect(f.readEvents()).toEqual(postFaultEvents);
+        expect(readFileSync(resolve(canonical, "ledger.json")).equals(postFaultLedgerBytes)).toBe(true);
+        expect(readFileSync(resolve(canonical, "journal.json")).equals(before.journalBytes)).toBe(true);
+        expect(f.readJournals()).toEqual(before.journals);
+        for (const [path, bytes] of before.reportBytes) {
+          expect(readFileSync(path).equals(bytes)).toBe(true);
+        }
+        expect(f.readLockBytes().equals(oldLockBytes)).toBe(true);
+        expect(readdirSync(canonical).sort()).toEqual(inventoryBefore);
+        const archivePath = resolve(canonical, `lock.archive.${oldOwner.pid}.${oldOwner.startTicks}.json`);
+        expect(existsSync(archivePath)).toBe(false);
+        expect(freshWitness.trace).toEqual([]);
+        expect(freshWitness.hitCount).toBe(0);
+
+        assertFoundationTemplateUnchanged(template);
+      } finally {
+        oldWitness.disarm();
+        freshWitness.disarm();
+      }
+    }, 600000);
+  }
+
+  it("task3 native recovery tampered artifact rejection rename after", async () => {
+    const old = await setupRenameCutOldState(roots, "after");
+    const {
+      template, canonical, baseDir, f, oldWitness, oldOwner, before,
+      inventoryBefore, postFaultEvents, postFaultLedgerBytes,
+    } = old;
+    const oldLockBytes = f.readLockBytes();
+    const artifactPath = resolve(canonical, "reports", "benchmark-medium.json");
+    const originalArtifactBytes = readFileSync(artifactPath);
+    const seenPids: number[] = [];
+    let tamperCount = 0;
+    const procStatReader = (pid: number): string => {
+      seenPids.push(pid);
+      if (tamperCount === 0) {
+        writeFileSync(artifactPath, `${readFileSync(artifactPath, "utf8")} `);
+        tamperCount += 1;
+      }
+      throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+    };
+    const freshWitness = makeBenchmarkCompletionWitness(canonical);
+    try {
+      const rejected = await captureRejected(() =>
+        openBenchmarkBase(baseDir, { ...freshWitness.overrides, procStatReader }),
+      );
+      assertOwnedRuntimeOperationFailed(rejected);
+      expect(seenPids).toEqual([oldOwner.pid]);
+      expect(tamperCount).toBe(1);
+
+      const archivePath = resolve(canonical, `lock.archive.${oldOwner.pid}.${oldOwner.startTicks}.json`);
+      expect(readFileSync(archivePath).equals(oldLockBytes)).toBe(true);
+
+      const newLockBytes = f.readLockBytes();
+      expect(newLockBytes.equals(oldLockBytes)).toBe(false);
+      const newOwnerShape = readOwnedLockJson(newLockBytes);
+      expect(newOwnerShape.hostname).toBe(oldOwner.hostname);
+      expect(newOwnerShape.bootId).toBe(oldOwner.bootId);
+      expect(newOwnerShape.pid).toBe(oldOwner.pid);
+      expect(newOwnerShape.startTicks).toBe(oldOwner.startTicks);
+      expect(typeof newOwnerShape.acquiredAt).toBe("string");
+      expect(newOwnerShape.acquiredAt).not.toBe(oldOwner.acquiredAt);
+
+      expect(f.readEvents()).toEqual(postFaultEvents);
+      expect(readFileSync(resolve(canonical, "ledger.json")).equals(postFaultLedgerBytes)).toBe(true);
+      expect(readFileSync(resolve(canonical, "journal.json")).equals(before.journalBytes)).toBe(true);
+      expect(f.readJournals()).toEqual(before.journals);
+      for (const [path, bytes] of before.reportBytes) {
+        if (path === artifactPath) continue;
+        expect(readFileSync(path).equals(bytes)).toBe(true);
+      }
+      const tamperedBytes = readFileSync(artifactPath);
+      expect(tamperedBytes.equals(originalArtifactBytes)).toBe(false);
+      expect(tamperedBytes.equals(Buffer.from(`${originalArtifactBytes.toString("utf8")} `))).toBe(true);
+
+      expect(freshWitness.trace).toEqual([]);
+      expect(freshWitness.hitCount).toBe(0);
+      const archiveName = `lock.archive.${oldOwner.pid}.${oldOwner.startTicks}.json`;
+      expect(readdirSync(canonical).sort()).toEqual([...inventoryBefore, archiveName].sort());
+
+      assertFoundationTemplateUnchanged(template);
+    } finally {
+      oldWitness.disarm();
+      freshWitness.disarm();
+    }
+  }, 600000);
+});
