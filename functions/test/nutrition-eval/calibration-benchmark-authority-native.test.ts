@@ -24,6 +24,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { CALIBRATION_ROOT } from "../../src/nutrition-eval/calibration";
+import { CalibrationFatalError } from "../../src/nutrition-eval/fatal-error";
 import type { CalibrationOwner } from "../../src/nutrition-eval/calibration";
 import { createBenchmarkAuthorityFileCalibrationLedgerDeps } from "../../src/nutrition-eval/calibration-file-store";
 import { makeBenchmarkCompletionWitness } from "./calibration-benchmark-authority-fixtures";
@@ -44,7 +45,7 @@ import type { CalibrationStageGateMetrics } from "../../src/nutrition-eval/calib
 import type { CalibrationReportOutcomeKey } from "../../src/nutrition-eval/calibration-report-state";
 import { hashCalibrationRuntimeEvidenceBinding } from "../../src/nutrition-eval/calibration-runtime-evidence-codec";
 import type { RuntimeEvidenceEvent, RuntimePairEvent } from "../../src/nutrition-eval/calibration-runtime-evidence-codec";
-import { buildBenchmarkTemplate, openBenchmarkTemplate } from "./calibration-benchmark-authority-fixtures";
+import { buildBenchmarkTemplate, openBenchmarkTemplate, copyBenchmarkTemplate, openBenchmarkBase } from "./calibration-benchmark-authority-fixtures";
 import type { BenchmarkTemplate } from "./calibration-benchmark-authority-fixtures";
 import { SUPPORTED_HISTORICAL_DELTA_FIELDS } from "../../src/nutrition-eval/historical-reference-pure";
 import type { JournalEntry } from "../../src/nutrition-eval/calibration";
@@ -143,7 +144,6 @@ function publicationSteps(
 afterAll(() => {
   for (const root of roots) rmSync(root, { recursive: true, force: true });
 });
-
 describe.sequential("benchmark completion native witness controls", () => {
   it("extends a locked native ledger by one benchmark stage_completed event while disarmed", () => {
     const root = makeRoot();
@@ -1238,5 +1238,295 @@ describe.sequential("native benchmark foundations", () => {
 
     expect(existsSync(resolve(f.baseDir, CALIBRATION_ROOT, "lock.json"))).toBe(false);
     assertFoundationTemplateUnchanged(template);
+  }, 600000);
+});
+
+interface BenchmarkReportBinding {
+  readonly jsonPath: string;
+  readonly mdPath: string;
+}
+
+function captureBenchmarkReportBindings(
+  f: Readonly<BenchmarkNativeCase>,
+): ReadonlyMap<string, BenchmarkReportBinding> {
+  const snapshot = f.ledger.getRuntimeEvidenceSnapshot();
+  const bound = snapshot.events.filter(
+    (event): event is RuntimeEvidenceEvent & { type: "runtime_report_bound" } =>
+      event.type === "runtime_report_bound",
+  );
+  expect(bound).toHaveLength(6);
+  const bindings = new Map<string, BenchmarkReportBinding>();
+  for (const event of bound) {
+    const pairId = `${event.stage}|${event.profile}`;
+    const base = resolve(f.baseDir, CALIBRATION_ROOT, "reports", `${event.stage}-${event.profile.toLowerCase()}`);
+    bindings.set(pairId, { jsonPath: `${base}.json`, mdPath: `${base}.md` });
+  }
+  expect(bindings.size).toBe(6);
+  return bindings;
+}
+
+interface BenchmarkDiskInvariantSnapshot {
+  readonly ledgerBytes: Buffer;
+  readonly journalBytes: Buffer;
+  readonly lockBytes: Buffer;
+  readonly events: readonly Record<string, unknown>[];
+  readonly journals: readonly Record<string, unknown>[];
+  readonly reportBytes: ReadonlyMap<string, Buffer>;
+}
+
+function captureBenchmarkDiskInvariants(
+  f: Readonly<BenchmarkNativeCase>,
+  bindings: ReadonlyMap<string, BenchmarkReportBinding>,
+): BenchmarkDiskInvariantSnapshot {
+  const reportBytes = new Map<string, Buffer>();
+  for (const binding of bindings.values()) {
+    reportBytes.set(binding.jsonPath, readFileSync(binding.jsonPath));
+    reportBytes.set(binding.mdPath, readFileSync(binding.mdPath));
+  }
+  expect(reportBytes.size).toBe(12);
+  return {
+    ledgerBytes: readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "ledger.json")),
+    journalBytes: readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "journal.json")),
+    lockBytes: f.readLockBytes(),
+    events: f.readEvents(),
+    journals: f.readJournals(),
+    reportBytes,
+  };
+}
+
+function assertBenchmarkDiskInvariantsUnchanged(
+  before: Readonly<BenchmarkDiskInvariantSnapshot>,
+  f: Readonly<BenchmarkNativeCase>,
+): void {
+  expect(f.readLockBytes().equals(before.lockBytes)).toBe(true);
+  expect(readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "ledger.json")).equals(before.ledgerBytes)).toBe(true);
+  expect(readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "journal.json")).equals(before.journalBytes)).toBe(true);
+  expect(f.readEvents()).toEqual(before.events);
+  expect(f.readJournals()).toEqual(before.journals);
+  for (const [path, bytes] of before.reportBytes) {
+    expect(readFileSync(path).equals(bytes)).toBe(true);
+  }
+}
+
+function assertOwnedCalibrationFatal(error: unknown): void {
+  if (!(error instanceof CalibrationFatalError)) {
+    throw new Error("expected an owned CalibrationFatalError");
+  }
+  expect(error.message).toBe("calibration:benchmark-authority-failed");
+  expect(Object.hasOwn(error, "cause")).toBe(false);
+}
+
+function captureThrown(run: () => void): unknown {
+  try {
+    run();
+  } catch (error: unknown) {
+    return error;
+  }
+  throw new Error("expected completeStage to reject");
+}
+
+describe.sequential("task3 native completion", () => {
+  it("actual healthy LOW completion", async () => {
+    const profile = "LOW";
+    const template = requireFoundationTemplate(profile, "prior-failure");
+    const baseDir = copyBenchmarkTemplate(roots, template);
+    const witness = makeBenchmarkCompletionWitness(resolve(baseDir, CALIBRATION_ROOT));
+    const f = await openBenchmarkBase(baseDir, witness.overrides);
+    try {
+      expect(witness.trace).toEqual([]);
+      expect(witness.hitCount).toBe(0);
+      const bindings = captureBenchmarkReportBindings(f);
+      const before = captureBenchmarkDiskInvariants(f, bindings);
+      expect(
+        before.events.some((event) => event["type"] === "stage_completed" && event["stage"] === "benchmark"),
+      ).toBe(false);
+
+      const firstResult = f.ledger.completeStage("benchmark", {
+        stage: "benchmark",
+        passed: true,
+        completedStages: ["preflight", "development", "validation"],
+      });
+      expect(firstResult).toBeUndefined();
+
+      const afterFirstEvents = f.readEvents();
+      expect(afterFirstEvents).toHaveLength(before.events.length + 1);
+      expect(afterFirstEvents.slice(0, before.events.length)).toEqual(before.events);
+      const lastEvent = afterFirstEvents[afterFirstEvents.length - 1];
+      if (lastEvent === undefined) throw new Error("missing stage_completed benchmark event");
+      expect(lastEvent).toEqual({
+        type: "stage_completed",
+        stage: "benchmark",
+        passed: true,
+        at: expect.any(String),
+      });
+      expect(before.ledgerBytes.equals(Buffer.from(JSON.stringify(before.events)))).toBe(true);
+      const ledgerAfterFirst = readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "ledger.json"));
+      expect(ledgerAfterFirst.equals(Buffer.from(JSON.stringify([...before.events, lastEvent])))).toBe(true);
+
+      expect(readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "journal.json")).equals(before.journalBytes)).toBe(true);
+      expect(f.readJournals()).toEqual(before.journals);
+      for (const [path, bytes] of before.reportBytes) {
+        expect(readFileSync(path).equals(bytes)).toBe(true);
+      }
+      expect(f.readLockBytes().equals(before.lockBytes)).toBe(true);
+      expect(witness.trace).toEqual(fullOperationTrace());
+      expect(witness.hitCount).toBe(0);
+
+      const secondResult = f.ledger.completeStage("benchmark", {
+        stage: "benchmark",
+        passed: true,
+        completedStages: ["preflight", "development", "validation"],
+      });
+      expect(secondResult).toBeUndefined();
+      expect(readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "ledger.json")).equals(ledgerAfterFirst)).toBe(true);
+      expect(f.readEvents()).toEqual(afterFirstEvents);
+      expect(readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "journal.json")).equals(before.journalBytes)).toBe(true);
+      expect(f.readJournals()).toEqual(before.journals);
+      for (const [path, bytes] of before.reportBytes) {
+        expect(readFileSync(path).equals(bytes)).toBe(true);
+      }
+      expect(f.readLockBytes().equals(before.lockBytes)).toBe(true);
+      expect(witness.trace).toEqual(fullOperationTrace());
+      expect(witness.hitCount).toBe(0);
+    } finally {
+      witness.disarm();
+      f.ledger.releaseLock({ ...f.context.owner });
+    }
+    expect(existsSync(resolve(f.baseDir, CALIBRATION_ROOT, "lock.json"))).toBe(false);
+    assertFoundationTemplateUnchanged(template);
+  }, 600000);
+
+  it("actual healthy MEDIUM completion", async () => {
+    const profile = "MEDIUM";
+    const template = requireFoundationTemplate(profile, "prior-failure");
+    const baseDir = copyBenchmarkTemplate(roots, template);
+    const witness = makeBenchmarkCompletionWitness(resolve(baseDir, CALIBRATION_ROOT));
+    const f = await openBenchmarkBase(baseDir, witness.overrides);
+    try {
+      expect(witness.trace).toEqual([]);
+      expect(witness.hitCount).toBe(0);
+      const bindings = captureBenchmarkReportBindings(f);
+      const before = captureBenchmarkDiskInvariants(f, bindings);
+      expect(
+        before.events.some((event) => event["type"] === "stage_completed" && event["stage"] === "benchmark"),
+      ).toBe(false);
+
+      const firstResult = f.ledger.completeStage("benchmark", {
+        stage: "benchmark",
+        passed: true,
+        completedStages: ["preflight", "development", "validation"],
+      });
+      expect(firstResult).toBeUndefined();
+
+      const afterFirstEvents = f.readEvents();
+      expect(afterFirstEvents).toHaveLength(before.events.length + 1);
+      expect(afterFirstEvents.slice(0, before.events.length)).toEqual(before.events);
+      const lastEvent = afterFirstEvents[afterFirstEvents.length - 1];
+      if (lastEvent === undefined) throw new Error("missing stage_completed benchmark event");
+      expect(lastEvent).toEqual({
+        type: "stage_completed",
+        stage: "benchmark",
+        passed: true,
+        at: expect.any(String),
+      });
+      expect(before.ledgerBytes.equals(Buffer.from(JSON.stringify(before.events)))).toBe(true);
+      const ledgerAfterFirst = readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "ledger.json"));
+      expect(ledgerAfterFirst.equals(Buffer.from(JSON.stringify([...before.events, lastEvent])))).toBe(true);
+
+      expect(readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "journal.json")).equals(before.journalBytes)).toBe(true);
+      expect(f.readJournals()).toEqual(before.journals);
+      for (const [path, bytes] of before.reportBytes) {
+        expect(readFileSync(path).equals(bytes)).toBe(true);
+      }
+      expect(f.readLockBytes().equals(before.lockBytes)).toBe(true);
+      expect(witness.trace).toEqual(fullOperationTrace());
+      expect(witness.hitCount).toBe(0);
+
+      const secondResult = f.ledger.completeStage("benchmark", {
+        stage: "benchmark",
+        passed: true,
+        completedStages: ["preflight", "development", "validation"],
+      });
+      expect(secondResult).toBeUndefined();
+      expect(readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "ledger.json")).equals(ledgerAfterFirst)).toBe(true);
+      expect(f.readEvents()).toEqual(afterFirstEvents);
+      expect(readFileSync(resolve(f.baseDir, CALIBRATION_ROOT, "journal.json")).equals(before.journalBytes)).toBe(true);
+      expect(f.readJournals()).toEqual(before.journals);
+      for (const [path, bytes] of before.reportBytes) {
+        expect(readFileSync(path).equals(bytes)).toBe(true);
+      }
+      expect(f.readLockBytes().equals(before.lockBytes)).toBe(true);
+      expect(witness.trace).toEqual(fullOperationTrace());
+      expect(witness.hitCount).toBe(0);
+    } finally {
+      witness.disarm();
+      f.ledger.releaseLock({ ...f.context.owner });
+    }
+    expect(existsSync(resolve(f.baseDir, CALIBRATION_ROOT, "lock.json"))).toBe(false);
+    assertFoundationTemplateUnchanged(template);
+  }, 600000);
+
+  it("actual protein-negative completion rejection and permanent poison", async () => {
+    const profile = "MEDIUM";
+    const template = requireFoundationTemplate(profile, "benchmark-meal-protein");
+    const baseDir = copyBenchmarkTemplate(roots, template);
+    const witness = makeBenchmarkCompletionWitness(resolve(baseDir, CALIBRATION_ROOT));
+    const f = await openBenchmarkBase(baseDir, witness.overrides);
+    try {
+      const verifier = await prepareCalibrationStageReportArtifactVerifier(f.context);
+      const verifiedBenchmark = verifier.verify({
+        stage: "benchmark",
+        profile: "MEDIUM",
+        snapshot: f.ledger.getStageReportSnapshot("benchmark", "MEDIUM"),
+      });
+      const history = prepareCalibrationBenchmarkHistory({
+        historicalReferenceBytes: f.context.files["historical-reference"],
+        historicalReferenceHash: f.context.identity.historicalReferenceHash,
+      });
+      const assessment = history.assess(verifiedBenchmark.report);
+      expect(assessment.comparison.compatible).toBe(true);
+      expect(
+        SUPPORTED_HISTORICAL_DELTA_FIELDS.every((field) => {
+          const value = assessment.comparison.deltas?.[field];
+          return typeof value === "number" && Number.isFinite(value);
+        }),
+      ).toBe(true);
+      expect(assessment.subset.passed).toBe(true);
+      expect(assessment.measurements.stage.medianMealProteinRelativeError).toBeGreaterThan(0.35);
+      expect(assessment.measurements.stage.meanMacroRelativeError).toBeLessThan(0.45);
+
+      expect(witness.trace).toEqual([]);
+      expect(witness.hitCount).toBe(0);
+      const bindings = captureBenchmarkReportBindings(f);
+      const before = captureBenchmarkDiskInvariants(f, bindings);
+      expect(
+        before.events.some((event) => event["type"] === "stage_completed" && event["stage"] === "benchmark"),
+      ).toBe(false);
+
+      const completeOnce = (): unknown =>
+        captureThrown(() => {
+          f.ledger.completeStage("benchmark", {
+            stage: "benchmark",
+            passed: true,
+            completedStages: ["preflight", "development", "validation"],
+          });
+        });
+
+      assertOwnedCalibrationFatal(completeOnce());
+      assertBenchmarkDiskInvariantsUnchanged(before, f);
+      expect(witness.trace).toEqual([]);
+      expect(witness.hitCount).toBe(0);
+
+      witness.disarm();
+
+      assertOwnedCalibrationFatal(completeOnce());
+      assertBenchmarkDiskInvariantsUnchanged(before, f);
+      expect(witness.trace).toEqual([]);
+      expect(witness.hitCount).toBe(0);
+
+      assertFoundationTemplateUnchanged(template);
+    } finally {
+      witness.disarm();
+    }
   }, 600000);
 });
