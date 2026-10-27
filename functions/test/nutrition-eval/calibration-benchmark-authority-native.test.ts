@@ -1530,3 +1530,123 @@ describe.sequential("task3 native completion", () => {
     }
   }, 600000);
 });
+
+function expectedCompletionCutTrace(
+  operation: BenchmarkCutOperation,
+  side: "before" | "after",
+): string[] {
+  const trace: string[] = [];
+  const operationIndex = CUT_OPERATIONS.indexOf(operation);
+  for (let i = 0; i < operationIndex; i += 1) {
+    trace.push(`${CUT_OPERATIONS[i]}:before`, `${CUT_OPERATIONS[i]}:after`);
+  }
+  if (side === "before") {
+    trace.push(`${operation}:before`, `${operation}:fault-before`);
+  } else {
+    trace.push(`${operation}:before`, `${operation}:after`, `${operation}:fault-after`);
+  }
+  if (operation === "write" || operation === "file-fsync") {
+    trace.push("cleanup:close:before", "cleanup:close:after");
+  }
+  return trace;
+}
+
+function isCompletionCutPublished(operation: BenchmarkCutOperation, side: "before" | "after"): boolean {
+  return operation === "directory-fsync" || (operation === "rename" && side === "after");
+}
+
+describe.sequential("task3 native completion cuts", () => {
+  for (const operation of CUT_OPERATIONS) {
+    for (const side of CUT_SIDES) {
+      it(`task3 native completeStage fault cut ${operation} ${side}`, async () => {
+        const profile = "MEDIUM";
+        const template = requireFoundationTemplate(profile, "prior-failure");
+        const baseDir = copyBenchmarkTemplate(roots, template);
+        const canonical = resolve(baseDir, CALIBRATION_ROOT);
+        const witness = makeBenchmarkCompletionWitness(canonical);
+        const f = await openBenchmarkBase(baseDir, witness.overrides);
+        try {
+          expect(witness.trace).toEqual([]);
+          expect(witness.hitCount).toBe(0);
+          const bindings = captureBenchmarkReportBindings(f);
+          const before = captureBenchmarkDiskInvariants(f, bindings);
+          expect(
+            before.events.some((event) => event["type"] === "stage_completed" && event["stage"] === "benchmark"),
+          ).toBe(false);
+          expect(before.ledgerBytes.equals(Buffer.from(JSON.stringify(before.events)))).toBe(true);
+          const ledgerPath = resolve(canonical, "ledger.json");
+          const journalPath = resolve(canonical, "journal.json");
+          const inventoryBefore = readdirSync(canonical).sort();
+
+          witness.arm(operation, side);
+          const thrown = captureThrown(() => {
+            f.ledger.completeStage("benchmark", {
+              stage: "benchmark",
+              passed: true,
+              completedStages: ["preflight", "development", "validation"],
+            });
+          });
+          assertOwnedCalibrationFatal(thrown);
+          expect(witness.hitCount).toBe(1);
+          expect(witness.trace).toEqual(expectedCompletionCutTrace(operation, side));
+
+          const postFaultLedgerBytes = readFileSync(ledgerPath);
+          const postFaultEvents = f.readEvents();
+          if (isCompletionCutPublished(operation, side)) {
+            expect(postFaultEvents).toHaveLength(before.events.length + 1);
+            expect(postFaultEvents.slice(0, before.events.length)).toEqual(before.events);
+            const lastEvent = postFaultEvents[postFaultEvents.length - 1];
+            if (lastEvent === undefined) throw new Error("missing stage_completed benchmark event");
+            expect(lastEvent).toEqual({
+              type: "stage_completed",
+              stage: "benchmark",
+              passed: true,
+              at: expect.any(String),
+            });
+            expect(
+              postFaultLedgerBytes.equals(Buffer.from(JSON.stringify([...before.events, lastEvent]))),
+            ).toBe(true);
+          } else {
+            expect(postFaultEvents).toEqual(before.events);
+            expect(postFaultLedgerBytes.equals(before.ledgerBytes)).toBe(true);
+          }
+
+          expect(readFileSync(journalPath).equals(before.journalBytes)).toBe(true);
+          expect(f.readJournals()).toEqual(before.journals);
+          for (const [path, bytes] of before.reportBytes) {
+            expect(readFileSync(path).equals(bytes)).toBe(true);
+          }
+          expect(f.readLockBytes().equals(before.lockBytes)).toBe(true);
+          expect(readdirSync(canonical).sort()).toEqual(inventoryBefore);
+
+          const postFaultTrace = [...witness.trace];
+          witness.disarm();
+
+          const secondThrown = captureThrown(() => {
+            f.ledger.completeStage("benchmark", {
+              stage: "benchmark",
+              passed: true,
+              completedStages: ["preflight", "development", "validation"],
+            });
+          });
+          assertOwnedCalibrationFatal(secondThrown);
+          expect(witness.hitCount).toBe(1);
+          expect(witness.trace).toEqual(postFaultTrace);
+          expect(readFileSync(ledgerPath).equals(postFaultLedgerBytes)).toBe(true);
+          expect(f.readEvents()).toEqual(postFaultEvents);
+          expect(readFileSync(journalPath).equals(before.journalBytes)).toBe(true);
+          expect(f.readJournals()).toEqual(before.journals);
+          for (const [path, bytes] of before.reportBytes) {
+            expect(readFileSync(path).equals(bytes)).toBe(true);
+          }
+          expect(f.readLockBytes().equals(before.lockBytes)).toBe(true);
+          expect(readdirSync(canonical).sort()).toEqual(inventoryBefore);
+
+          assertFoundationTemplateUnchanged(template);
+        } finally {
+          witness.disarm();
+        }
+      }, 600000);
+    }
+  }
+});
