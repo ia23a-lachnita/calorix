@@ -111,9 +111,19 @@ Return only owned safe result/aggregate data, never reports/cases/images/prompts
 **Fixture interfaces (NEW test helper only):**
 
 ```ts
+export type ControllerVisionRequest = Parameters<ReturnType<typeof createCalibrationGenAIClient>['models']['generateContent']>[0];
+export type ControllerTokenRequest = Parameters<ReturnType<typeof createCalibrationGenAIClient>['models']['countTokens']>[0];
+export interface ControllerFixtureOptions {
+ winner:CalibrationProfile;
+ extraTransportOnVision?:number; // 1-based SDK-entry ordinal; absent means no hidden retry
+}
 export interface ControllerWitness {
  visionByStage:Record<StageName,number>; sdkVision:number; sdkToken:number;
  transportVision:number; barcodeLookups:number;
+ readonly imageLoads:ReadonlyArray<Readonly<{stage:StageName|undefined;caseId:string;key?:Readonly<CalibrationReportOutcomeKey>}>>;
+ readonly snapshotLookups:ReadonlyArray<Readonly<{stage:StageName|undefined;barcode:string}>>;
+ readonly visionRequests:ReadonlyArray<Readonly<{stage:StageName|undefined;request:ControllerVisionRequest}>>;
+ readonly tokenRequests:ReadonlyArray<Readonly<{stage:StageName|undefined;request:ControllerTokenRequest}>>;
 }
 export interface DriverFixture {
  root:string; context:CalibrationPreparedContext;
@@ -132,10 +142,10 @@ export interface NativeCliFixture {
  bindingCount():number;
 }
 export async function makeCalibrationDriverFixture(
- roots:string[],options:{winner:CalibrationProfile},
+ roots:string[],options:ControllerFixtureOptions,
 ):Promise<DriverFixture>;
 export async function makeCalibrationNativeCliFixture(
- roots:string[],options:{winner:CalibrationProfile},
+ roots:string[],options:ControllerFixtureOptions,
 ):Promise<NativeCliFixture>;
 ```
 
@@ -220,3 +230,12 @@ Review history is retained honestly: initial3.8 oversized and bounded calls time
 Ruling: decline forced releaseLock in test afterEach; await owned work, inspect failed prefixes, remove exactly disposable fixture roots and restore spies. This preserves success-only release and truthful failure state; the reviewer explicitly agreed. Cost if wrong: cleanup must expose outstanding work rather than mask it; owned-root registration/awaits and failure-prefix assertions are required. No extra ledger method/authority/recovery is introduced.
 
 This is written-plan constructibility review only; no implementation/test/SDK dispatch/liveaccuracy/security/production approval follows. The user authorized execution on 2026-10-28 and removed repeated plan-approval pauses within the approved roadmap. The established inline method and editing-worker order remain selected, with direct host edits authorized only after those routes are exhausted. Task-heading spacing is normalized for the existing task-brief extractor; task behavior, interfaces and verification requirements are unchanged.
+
+
+## Execution amendment: independent fixture observations — 2026-10-28
+
+Antigravity MCP primary3.8 in `calorix-native-controller-task1-fixture-foundation-20261028` agreed to the bounded TEST-ONLY interface amendment above (`PLAN_AMENDMENT_STATUS: agree`). The first329line helper candidate was explicitly rejected (`AGREEMENT_STATUS: disagree`, sixmustfixes, refined to8); no source or test outcome was accepted. The amendment makes already-required request-body, image/barcode isolation and hidden-retry controls constructible; no driverDeps/nativeCLI/product API, authority codec/event, dataset/model/metric/threshold or production file map changes. No new user approval is required within the approved roadmap.
+
+Record SDK counters at actual method ENTRY, including forbidden/malformed calls; increment the fake transport counter only on actual fake transport delegation. `extraTransportOnVision` causes exactly one chosen fake SDK invocation to delegate twice, so an adversarial actual controller run yields146SDK/147transport and independent arithmetic qualification rejects it. Normal146/146 remains unchanged. Capture owned stable SDK request frames with the exact installed types. Native asset interception sees caseID and caller stage, not profile/sample; expose optional full key ONLY at the driver image-port boundary where it exists. Fake native media encodes caseID; derive LOW-fixture degradation from actual SDK thinkingConfig.thinkingLevel and caller stage, never invented native key metadata. Token media preparation may create a separate first-case load; never mislabel it as imageSDK dispatch or barcode-image access.
+
+Implement all native-fixture root/bootstrap/factory/media/snapshot observations by delegating actual originals captured before spies. No empty `void options` placeholder, fabricated context/verifier/nativeGit/counters/products or history dispatch. Test files restore spies/owned roots only after awaited work/failure-prefix inspection; no forced failure unlock. Return all raw finished rows without Map/set dedupe, and throw for malformed finished rows. Remove the false generateChat classification for an omitted optional generateVision source. Route the driver token port through existing countCalibrationTokens with fixed firstDev prompt/media/timeout. Add real-parser controls for all4public labels as well as all4realOFF products; any malformed fake raw response must be repaired in fixture wire, never by weakening existing parser/normalizer/data/gates.
