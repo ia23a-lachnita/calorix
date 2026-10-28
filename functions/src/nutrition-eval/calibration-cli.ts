@@ -971,26 +971,41 @@ export async function executeCalibrationPreflight(
   };
 }
 
+export type CalibrationCliInvocationValidation =
+  | Readonly<{ valid: true; stage: CalibrationCliStage; thinkingLevel?: CalibrationCliThinkingLevel }>
+  | Readonly<{ valid: false; result: CalibrationCliResult }>;
+
+/** Pure argument/environment checks shared with the opt-in native entry. */
+export function validateCalibrationCliInvocation(
+  argv: readonly string[],
+  env: Record<string, string | undefined> = process.env,
+): CalibrationCliInvocationValidation {
+  const tokens: readonly string[] = Array.isArray(argv) ? argv : [];
+  const source = env ?? {};
+
+  if (referencesGemini25(tokens) || referencesGemini25(Object.values(source))) {
+    return { valid: false, result: fail('gemini_2_5_forbidden') };
+  }
+
+  const parsedArgv = parseCalibrationArgv(tokens);
+  if (!parsedArgv.ok) return { valid: false, result: fail(parsedArgv.failureCode) };
+  const stage = parsedArgv.parsed.stage;
+  const thinkingLevel = parsedArgv.parsed.thinkingLevel;
+
+  const envFailure = validateCalibrationEnv(source);
+  if (envFailure !== undefined) return { valid: false, result: fail(envFailure) };
+  return { valid: true, stage, ...(thinkingLevel === undefined ? {} : { thinkingLevel }) };
+}
+
 export async function runCalibrationCli(
   argv: readonly string[],
   env: Record<string, string | undefined> = process.env,
   deps: CalibrationCliDeps = {},
 ): Promise<CalibrationCliResult> {
-  const tokens: readonly string[] = Array.isArray(argv) ? argv : [];
-  const source = env ?? {};
+  const validation = validateCalibrationCliInvocation(argv, env);
+  if (!validation.valid) return validation.result;
+  const { stage, thinkingLevel } = validation;
   const hooks = deps ?? {};
-
-  if (referencesGemini25(tokens) || referencesGemini25(Object.values(source))) {
-    return fail('gemini_2_5_forbidden');
-  }
-
-  const parsedArgv = parseCalibrationArgv(tokens);
-  if (!parsedArgv.ok) return fail(parsedArgv.failureCode);
-  const stage = parsedArgv.parsed.stage;
-  const thinkingLevel = parsedArgv.parsed.thinkingLevel;
-
-  const envFailure = validateCalibrationEnv(source);
-  if (envFailure !== undefined) return fail(envFailure);
 
   const verifyPreflightState = hooks.verifyPreflightState;
   const createClient = hooks.createClient;
@@ -1051,9 +1066,16 @@ export async function runCalibrationCli(
 }
 
 if (require.main === module) {
-  void runCalibrationCli(process.argv.slice(2), process.env).then((result) => {
+  const argv = process.argv.slice(2);
+  const validation = validateCalibrationCliInvocation(argv, process.env);
+  const print = (result: Readonly<CalibrationCliResult>): void => {
+    process.stdout.write(`${JSON.stringify(result)}\n`);
     process.exitCode = result.exitCode;
-  }).catch(() => {
-    process.exitCode = 1;
-  });
+  };
+  if (!validation.valid) print(validation.result);
+  else {
+    // Load only after pure validation; bootstrap imports this module too.
+    void import('./calibration-native-cli').then((native) => native.runNativeCalibrationCli(argv, process.env))
+      .then(print).catch(() => print(fail('stage_failed')));
+  }
 }
