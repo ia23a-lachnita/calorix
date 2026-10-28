@@ -55,7 +55,7 @@ opaque experimental reserve. Do not route to a model absent from the refreshed
 
 Before each fallback, record the ISO timestamp, exact model, category, and provider/tool message in `docs/implementation-status.md`. Claude is the paid last route.
 
-Codex host/child agents **never directly edit application code**; they remain allowed for read-only research, investigation, review, planning, and sub-orchestration.
+Use the permitted editing workers first. Under the user's standing 2026-10-28 instruction, once all applicable routes are exhausted, unavailable, or fail to deliver within a recorded reasonable runtime bound, the main host may directly edit application code without asking again. Record exact route failures and preserve test-first development, independent review, verification, commits and pushes. Child agents remain read-only unless separately authorized.
 
 Workers (OpenCode and Claude Code headless) never commit or push; the main host reviews, verifies, commits, and pushes. This route is an explicit exception to the general do-not-shell-out rule.
 
@@ -107,6 +107,7 @@ The main agent retains requirements interpretation, architecture and tradeoffs, 
 ## 6. Work Contract
 
 - Plan before multi-file or architecture changes; keep diffs small and focused; inspect files before editing.
+- Within the already approved roadmap, continue reviewed plans without requesting another user approval. The user's standing 2026-10-28 instruction overrides older plan/skill approval pauses; required Antigravity pre-implementation and post-implementation review gates remain in force. Genuine scope changes and destructive actions still require their applicable authorization.
 - Test-first for logic changes and bug fixes; add or update tests with the change.
 - For UI changes, compare against the dark/light mockups and `.claude/design.md`, and verify with the `ui-diff` MCP pipeline or runtime screenshots (see `.claude/tools.md`).
 - Firebase/GCP safety gates before any write/deploy: confirm active project/environment, read current Firestore/Storage rules first, run emulator/local tests where applicable, run a security review for auth/rules/user-data changes, and get explicit confirmation for destructive operations or deploys.

@@ -14,7 +14,22 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-10-28: Benchmark authority closed; native controller written plan awaiting user review
+#### Current task — 2026-10-28: Native controller Task1 tests-first execution
+
+User authorized this plan with “looks good continue” and standing no-repeat-plan-approval / direct-host-edit-after-exhausted-routes instructions. Mandatory Antigravity plan/research/code/result reviews, TDD, verification, commit/push and clean-worktree rules stay in force; no change to approved model route or destructive/live/deploy authorization. Same global rules persisted and repository AGENTS aligned.
+
+Execution is INLINE on new `feat/calibration-native-controller`, reusing the existing clean linked worktree. Whole-feature/Task1BASE `3c8ffbc6bea6ed6210797429e6714806c24a64d3`; parent feature branch/history and original checkout's user config preserved. All148prerequisiteFunctions/protected3config hashes pinned; dependency installation unchanged. Fresh prior committed-source DEFAULT4368PASS1oldSKIP/actual0 is the unchanged-source baseline, not a new controller qualification. No redundant full-baseline rerun before edits; final required full parent gates remain mandatory. Existing node_modules/build caches retained on disk, no installs.
+
+Current Task1Steps1–2: strongest-first editing routes author ONLY new driver tests, independent fixture-controls test and shared test helper; no application source until actual RED and fixture-controls GREEN. Main reviews all deliverables and actual method/scope. Literal worker order follows current Calorix AGENTS (confirmed Grok4.6, Qwen3.7max, refreshed permitted OpenCode catalog, paid Sonnet5 last). Record exact failure/category/ISO before fallback; if all routes exhausted, direct host edits are already authorized without another question. No route tried or failure inferred yet in this phase.
+
+Intended first verification from functions: whole `calibration-stage-driver.test.ts` serial/JSON must show honest missing-module/feature RED; separate whole `calibration-native-controller-fixture-controls.test.ts` serial/JSON must PASS before production source. Actual controls use real frozen OFF parser/normalizers/scorer and no forbidden transport. New tests still absent at setup; no RED/GREEN or Task1 completion claimed. Before worker source stage: scope/types/MCP checks, then new driver+thin canonical decision export only. Disk-backed own TMP/cache/logs and per-plan ledger/briefs are configured; do not reuse or restore the completed benchmark scratch, which remains recoverable in Trash.
+
+Antigravity complete normative214linev7 plan review/correctedaggregate is already green in `calorix-native-controller-written-plan-final-20261028`, primary `gemini-3.8-flash`, agree/MUST_FIXnone. This turn only changes user-authorized workflow policy, approval status and heading whitespace for existing task extractor; no model/interface/gate change requiring a new architectural plan review. Actual implementation/result reviews still required.
+
+Next: collect tests-only worker deliverable/actual exit, inspect complete source/protected hashes, run fixture-controls and driver RED, continue without user approval pauses. ParentTask7/defaultCLI146SDK and real3.8accuracy remain OPEN/UNMEASURED; no live inference/account/device/UI/emulator/deploy operations are authorized by current setup. UIrun/diffcounts/auditLimited/visualClassificationStatus N/A.
+
+#### Previous completed stage — benchmark authority closure
+
 
 Benchmark-authority Task3Step4 and all13implementation steps COMPLETE at 2026-10-28T06:36:38.955317+00:00. Isolated branch `feat/calibration-benchmark-authority`; Task3BASE `18cee030a5ffac76e50b08ff1b88abade1f22a5e`; wholefeatureBASE `fe792e553f5bbe622a0bbbe61dbac69cdab01987`. Functions source remains `cdb094b479ed733f6cdf8ba6f6311c8532466044` (all148tracked files unchanged), committed-source checkpoint `d06c0556d4fd5bfa4ea778ca13183abc2bb539b9` was pushed/live-origin verified. This final closure/publication is documentation only; commit identity and push outcome are verified from Git after commit.
 

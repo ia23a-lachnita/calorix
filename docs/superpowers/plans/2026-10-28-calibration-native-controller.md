@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-12-calibration-controller-runtime-design.md`, final default-CLI boundary; parent `docs/superpowers/plans/2026-09-23-gemini-38-nutrition-calibration.md` Task7 Steps4–7. Existing producer and benchmark-authority specs remain binding prerequisites.
 
-**Plan status:** Written-plan review complete; awaiting user review before implementation. Benchmark-authority Task3 passed its fresh committed-source DEFAULT and both final reviews, and its owned scratch cleanup is verified. Existing inline host plus normal editing-worker method is preserved. No native controller source or tests exist yet; this plan does not authorize live calibration or production changes.
+**Plan status:** Authorized for execution by the user's 2026-10-28 “looks good continue” and standing instruction to proceed through already approved roadmaps without further plan approvals. Antigravity written-plan review is complete. Benchmark-authority Task3 passed its fresh committed-source DEFAULT and both final reviews, and its owned scratch cleanup is verified. Preserve inline execution, normal editing routes first, and the now-authorized direct-edit fallback after all routes are exhausted. This plan does not authorize live calibration or production changes.
 
 ## Global Constraints
 
@@ -20,7 +20,7 @@
 - Canonical full protocol: preflight2image requests, development48, validation48, benchmark48; cumulative image reservations2/50/98/146;158finished outcomes; benchmark60outcomes. Token count is separately reserved/completed once. Every prediction has `cached:false`; no response cache. Barcode work uses only prepared OFF data and zero image/vision/live-OFF calls.
 - Reuse one existing native root/header/lock/journal/event codec/report formats. No new seal, event, ledger method, schema field or caller verifier that grants authority. Driver DI is a trusted test seam; native entry never accepts context/ledger/verifier/counter overrides or new CLI flags.
 - Native entry explicitly acquires once per valid command using existing ownership/liveness policy; no background takeover, `recoverAfterCrash`, implicit retry/reset/unlock or root repair. Uncertain effects remain visible. Only successful healthy completion initiates release; release itself may fail after a real effect, so assert actual bytes rather than promise every failed command retains a lock file.
-- All repository application/tests use normal strongest-first editing workers, literal patches and the existing review/verification/commit/push discipline. Host writes planning/tracking only. No carry-forward native-edit exception. Preserve user configs by fingerprint only and preserve original checkout changes.
+- Try normal strongest-first editing workers using literal patches. If every applicable route is exhausted, unavailable or fails within a recorded reasonable runtime bound, the main host may edit directly without another approval, under the user's standing 2026-10-28 instruction. Preserve test-first development and all review/verification/commit/push gates. Preserve user configs by fingerprint only and preserve original checkout changes.
 - Use a clean isolated workspace and verified disk-backed task TMP/cache/log paths. No shared `/tmp` cleanup. Before execution freeze prerequisite source/tests/config hashes and capture Task1BASE; documentation-only HEAD movement does not change Functions-tree identity. Do not rerun a passed unchanged broad suite between every partial test increment.
 
 ## Review Focus
@@ -104,7 +104,7 @@ export async function runNativeCalibrationCli(
 
 Return only owned safe result/aggregate data, never reports/cases/images/prompts/raw errors/private paths. Successful execution includes existing receipt IDs/hashes and seven historical deltas/subset/provenance at benchmark; this is operator output only, never read back as admission. Existing hashed JSON/Markdown reports and ledger schemas remain unchanged. Invalid/preparation failures have no execution summary. Use existing safe failure codes; native prep/acquisition failure maps to `preflight_verification_failed`, release failure to `stage_failed`.
 
-### Task1: Implement the leased serial stage driver
+### Task 1: Implement the leased serial stage driver
 
 **Files:** New driver, new driver test/fixture and independent fixture-controls test; minimal decision export in calibration.ts; tracking.
 
@@ -178,7 +178,7 @@ After the stage rows finish: publish each required native report pair -> admit -
 - [ ] **Step4: GREEN all driver controls, strict/build/lint.** Preserve600000ms only for new real full-history cases,5000ms small controls. Test all selection reasons via literal discriminating metrics; no input mutation. Include sample2/3 metadata, both profile routes (LOW native-entry positive is Task2), twelve isolated barcodes, expired facade, cache traps, slow image excluded from analysis latency, raw provider/parse failure in losing development profile, preflight first failure stops MEDIUM, metadata mismatch/missing/duplicate hooks, swallowed reentry, invalid method-count snapshot and actual extra SDK-method invocation before journal, foreign thrown proxy zero reads, source/owner drift and uncertain journal/report publication. All rejected repeats on a poisoned driver initiate no new port/native effect; an already-entered opaque call may retain its actual effects, with no later delegation or fabricated rollback. Adversarial fake internal retry produces146SDK-method/147transport attempts and MUST fail independent witness qualification; do not pretend the controller observes opaque retry internals.
 - [ ] **Step5: Scoped actual code/results review, checkpoint commit/push.** No generic runner/schema/threshold/helper rewrite. Native standalone driver proof is not default-entry qualification or live accuracy.
 
-### Task2: Wire the actual native CLI and command
+### Task 2: Wire the actual native CLI and command
 
 **Files:** New native CLI/test; existing calibration-cli.ts, `functions/package.json`, new fixture only as authorized by reviewed actual failures; tracking.
 
@@ -195,7 +195,7 @@ CLI `require.main` performs pure validation first and lazily imports native entr
 - [ ] **Step4: GREEN full native/legacy controls and exact real typing/build/lint.** Test malformed command through actual compiled main WITHOUT opt-in (no real client/network), native LOW full protocol, selected-profile mismatch before client, healthy repeat before client with zero new requests, fresh-owner source/report tamper rejection, incomplete/reserved prefix refusal, explicitly recovered unreserved eligibility, native acquisition/liveness refusal, token failure with zero image requests, native stage failure retains uncertain effects, report-pair publication failure, and healthy release before/after effect fault with honest bytes. All12 artifacts/sixbindings/158canonicalfinishes are asserted by actual native readers. Snapshots are read/parsed once per startup (four per invocation; no lease-time reread); twelve runtime barcode lookups cause no media/provider/OFF access.
 - [ ] **Step5: Scoped code/result review, track, commit/push.** Source remains hermetic; fake inference is not measured3.8 accuracy. No live command is run, despite the now-runnable entry.
 
-### Task3: Qualify the complete native command and hand off live gates
+### Task 3: Qualify the complete native command and hand off live gates
 
 **Files:** Plan/status only unless a genuine reviewed RED demands repair inside the map.
 
@@ -219,4 +219,4 @@ Review history is retained honestly: initial3.8 oversized and bounded calls time
 
 Ruling: decline forced releaseLock in test afterEach; await owned work, inspect failed prefixes, remove exactly disposable fixture roots and restore spies. This preserves success-only release and truthful failure state; the reviewer explicitly agreed. Cost if wrong: cleanup must expose outstanding work rather than mask it; owned-root registration/awaits and failure-prefix assertions are required. No extra ledger method/authority/recovery is introduced.
 
-This is written-plan constructibility review only. Proposed driver/nativeCLI/test paths do not yet exist, so no implementation/test/SDK dispatch/liveaccuracy/security/production approval follows. Please review this published plan before implementation; the established inline/normal-worker execution method remains selected.
+This is written-plan constructibility review only; no implementation/test/SDK dispatch/liveaccuracy/security/production approval follows. The user authorized execution on 2026-10-28 and removed repeated plan-approval pauses within the approved roadmap. The established inline method and editing-worker order remain selected, with direct host edits authorized only after those routes are exhausted. Task-heading spacing is normalized for the existing task-brief extractor; task behavior, interfaces and verification requirements are unchanged.
