@@ -4926,6 +4926,12 @@ export function selectCalibrationProfile(low: CalibrationProfileMetrics, medium:
   return selectProfileDecision(low, medium).profile;
 }
 
+export function selectCalibrationProfileDecision(
+  low: CalibrationProfileMetrics, medium: CalibrationProfileMetrics,
+): Readonly<{ profile: CalibrationProfile; reason: CalibrationProfileSelectionReason }> {
+  return Object.freeze(selectProfileDecision(low, medium));
+}
+
 // ── Pure stage gates ─────────────────────────────────────────────────────────
 
 export interface CalibrationStageGateResult {
