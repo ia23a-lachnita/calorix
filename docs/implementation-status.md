@@ -14,7 +14,11 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-10-28: Native controller Task2 qualified; source checkpoint next
+#### Current task — 2026-10-28: Native controller Task3 full qualification
+
+Task2 CLOSED at source checkpoint `ee0674d163fe7a34c481df95a1d7c9bc5a25a5a4`, committed/pushed, liveorigin equality and clean isolated checkout verified. Task2 ledger verifies retained actual246 run/AST/source/review without claiming a second test execution. All five Task2 steps checked. Task3BASE is that exact source checkpoint; complete task3 brief read. Continue same branch/worktree, preserve original checkout/config and all active/unmerged branches. Intended next verification: exact eight-file strict TypeScript command from Task3Step1, then build/full lint and fullfivefile314-expected focus (expected population only, not a result). Then actual nutrition and literal `npm run test:verify`, all raw receipt/nativeexit/source/multiset/deadline checks, wholefeatureMCP+ONEfreshnative reviewer, finalcommit/push/freshcommittedfocus. No gate waived; current3.8 accuracy remains unmeasured. Task-private preload dry probe0, producttests executed0; exact/symlink/mis-main/worker/flags/nativeexit checks passed. Task3 product gates not yet run. Large temp/cache/log files remain in owned ext4 scratch.
+
+#### Completed Task2 — 2026-10-28: Native command checkpoint
 
 Continue isolated `feat/calibration-native-controller`, pre-checkpoint HEAD `514d6bba8250cb799c127b31dd3bba799baa08f6`, immutable Task2BASE `3ab76dfe4c8575b2a1eb4ee738eb65b1fd418d7d`. Task1 CLOSED/pushed. Task2 implementation and scoped code/actual-results review are now QUALIFIED; commit/push next, then Task3 broad parent verification. Original checkout/user config preserved. All150protected prerequisite Functions files and3config fingerprints unchanged; fourTask2sourcepins unchanged through reviews. One script only; no lockfile/dependency/config/threshold/dataset change.
 
