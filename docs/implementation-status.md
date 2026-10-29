@@ -14,7 +14,13 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-10-29: Native controller COMPLETE; parent live account/source gate next
+#### Current task — 2026-10-29: Parent Task8 Step1 source/account boundary ACTIVE
+
+Approved parent `docs/superpowers/plans/2026-09-23-gemini-38-nutrition-calibration.md` Task8Stage0/1 proceeds without anotherplanapproval. Reusedcleanisolatedworktree on NEW `feat/calibration-live-development`, BASE/nativecompletioncb8613291311107d76c20873ad8c9afddbac00e7, application sourceee0674d163fe7a34c481df95a1d7c9bc5a25a5a4/Functions tree240c3bb2e04e86c96d4cdd82c84f5437985ba6d4 unchanged. Completednativebranch retained. Task-ownedpreflightTMP/log/cache filesystemverifiedext4; /tmpunused.
+
+Currentauthorizedoperation is READ-ONLY source/accountpreflight: cleanFunctions/source/remoteexact, ADCquotaprojectONLY(nosecretvalues), activecredentialcount, exactprojectcalorix-xurschnellbillingenabled andVertexaiplatform.googleapis.comenabled. Intendedverification uses explicitproject gcloudread-onlycommands andsource/configfingerprints; never setproject,editcredentials,enableAPI/billing/quotas orcloudresources. No currentliveopt-in andZEROruntimeinferencecalls. Do not claimVertexmodelavailability fromconstructor/APIenabled alone. Afterboundarypasses, mandatoryimmediateACTUALliteralnpmruntest:verify withbothlive/fetchflagsunset, thenonlyapprovedoncepreflight1separatetoken+2images/development48 viaexact3.8Vertex/us/v1/endpoint/30s/noretries. Anyblockedaccount/model/quota/gatestopsinstead offallback/rerun. Productiondefaults/old2.5referencefrozen; no active2.5call/deploy/cloudwrite. Fullsource/current3.8accuracyremainsunmeasured.
+
+#### Completed native controller — 2026-10-29
 
 Approved nativecontroller plan Tasks1–3 are CLOSED and allstepschecked; parent calibration Task7Steps4–7 nowqualified. Clean isolated feat/calibration-native-controller, accepted application sourceee0674d163fe7a34c481df95a1d7c9bc5a25a5a4/Functions tree240c3bb2e04e86c96d4cdd82c84f5437985ba6d4 (all154files unchanged). Pre-focus trackingcommit7a5aa12c9d438b09fa11c53e172e8586cdeb85d9 pushed/liveoriginequal and checkoutclean before actualrun. Originalcheckout/user.mcp.json/config3 andactiveunmergedbranches preserved.
 
@@ -26,7 +32,7 @@ Finalwholefeatureprimarygemini-3.8-flash AntigravityMCP `calorix-native-controll
 
 FullMEDIUMdriver andLOWfour-native-command hermeticprotocols prove146SDKimage-methodentries(2/48/48/48),1separatetoken,12realpreparedOFFlookups,158uniquecanonicalfinishes,6bindings,all12reportartifacts programmaticallychecked(sixJSONschema+sixMarkdownbyte/hash/nativeverification). Adversarial146SDK/147FAKEtransportattempts failsindependentqualification; noopaqueHTTP/crash/powerloss/visualsecurityattestation. No liveinference/account/cloud/device/deploy/defaultswitch duringthisimplementation. ACTIVE3.8NUTRITIONACCURACYUNMEASURED; frozen2.5referenceonly. UIrunIDs/diffcounts/auditLimited/visualClassificationStatus N/A.
 
-Next authorized parentTask8 is source/account boundary ONLY first: correctcalorix-xurschnell ADCquotaproject,billing,VertexAPI availability,source/remoteexact. No liveopt-in until thatpasses AND immediateactualdeterministicparentgate. Then approvedone-timepreflight1token+2images/development48, onlyexact3.8Vertex/us/v1 route,nofallback/2.5/rerun. Userstandingroadmapapprovalpersists; no repeatplanapprovalrequired. Productionmodelmigration/deploy/cloudmutationseparatelygated. Currentnativeplanownedcleanupnext(recoverableTrashonlyown572MiB+SDD+identifiednewdebuglogs,noactivejobs); originalworktree/branch/config andunrelated/sharedartifactsretained.
+Next authorized parentTask8 is source/account boundary ONLY first: correctcalorix-xurschnell ADCquotaproject,billing,VertexAPI availability,source/remoteexact. No liveopt-in until thatpasses AND immediateactualdeterministicparentgate. Then approvedone-timepreflight1token+2images/development48, onlyexact3.8Vertex/us/v1 route,nofallback/2.5/rerun. Userstandingroadmapapprovalpersists; no repeatplanapprovalrequired. Productionmodelmigration/deploy/cloudmutationseparatelygated. NativeplanownedcleanupVERIFIED: exactscratch+itsSDD recoverablyTrashed, onlypreviouslyabsentfunctions/firestore-debug.log collected; noactiveownedjobs,154source/config3 verifiedaftercleanup, checkoutclean. Originalworktree/branch/config andunrelated/sharedartifactsretained. All20rulings/costsretainedforfinalreport;nodeferredminors.
 
 #### Task3 parent receipt qualification — 2026-10-29
 
