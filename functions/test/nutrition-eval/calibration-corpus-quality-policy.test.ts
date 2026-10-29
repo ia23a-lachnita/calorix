@@ -1,7 +1,15 @@
 import { createHash } from 'crypto';
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-import { parseQualityVocabulary } from '../../src/nutrition-eval/calibration-corpus-quality-policy';
+import {
+  parseQualityVocabulary, prepareQualityPool, rankQualityDish, selectQualityCandidates,
+} from '../../src/nutrition-eval/calibration-corpus-quality-policy';
+import type {
+  QualityPool, QualitySourceBundle, QualitySourcePins,
+} from '../../src/nutrition-eval/calibration-corpus-quality-policy';
+import { fillCalibrationSlots } from '../../src/nutrition-eval/calibration-corpus';
+import type { EligibleDish } from '../../src/nutrition-eval/calibration-corpus';
 
 import type { ExpectedSourceBytes } from '../../src/nutrition-eval/calibration-corpus';
 
@@ -177,5 +185,191 @@ describe('parseQualityVocabulary: source byte decoding', () => {
     expect(expected.byteLength).toBe(1);
 
     expect(() => parseQualityVocabulary(bytes, expected)).toThrow(/utf-8|utf8/i);
+  });
+});
+
+// Synthetic metadata exercises eligibility only; it does not replace any
+// historical dish's nutrition. The committed v1 bytes supply quarantine IDs.
+const V1_MANIFEST_BYTES = new Uint8Array(readFileSync(
+  new URL('../../eval/nutrition/calibration-manifest.json', import.meta.url),
+));
+const V1_IDS: string[] = JSON.parse(new TextDecoder().decode(V1_MANIFEST_BYTES))
+  .cases.map((row: { source: { objectId: string } }) => row.source.objectId);
+const BENCHMARK_IDS = [
+  'dish_1558549605', 'dish_1558639787', 'dish_1558639818', 'dish_1560456326',
+  'dish_1561663580', 'dish_1562788601', 'dish_1564427430', 'dish_1565035746',
+  'dish_1565898402', 'dish_1566328724', 'dish_1566838351', 'dish_1567107839',
+];
+const EXPECTED_QUARANTINE = [...V1_IDS, ...BENCHMARK_IDS].sort();
+const POOL_VOCAB = VALID_VOCAB_TEXT +
+  'fixture_a,1,1,0,0,0\nfixture_b,2,1,0,0,0\n';
+
+function dishCsv(id: string, options: {
+  ingredientIds?: number[]; names?: string[]; kcal?: number; mass?: number;
+  fat?: number; carb?: number; protein?: number;
+} = {}): string {
+  const ids = options.ingredientIds ?? [54];
+  const { kcal = 100, mass = 100, fat = 1, carb = 5, protein = 18 } = options;
+  const fields: Array<string | number> = [id, kcal, mass, fat, carb, protein];
+  ids.forEach((ingredient, index) => fields.push(
+    `ingr_${String(ingredient).padStart(10, '0')}`, options.names?.[index] ?? 'fixture',
+    Math.max(mass, 1) / ids.length, Math.max(kcal, 0) / ids.length,
+    Math.max(fat, 0) / ids.length, Math.max(carb, 0) / ids.length,
+    Math.max(protein, 0) / ids.length,
+  ));
+  return fields.join(',');
+}
+
+function bundleFor(rows: string[], trainIds?: string[]): QualitySourceBundle {
+  return {
+    cafe1: encode(rows.join('\n') + '\n'), cafe2: encode(''),
+    trainSplit: encode((trainIds ?? rows.map(row => row.split(',')[0]!)).join('\n') + '\n'),
+    vocabulary: encode(POOL_VOCAB), v1Manifest: V1_MANIFEST_BYTES.slice(),
+  };
+}
+
+function pinsForBundle(bundle: QualitySourceBundle): QualitySourcePins {
+  return {
+    cafe1: pinFor(bundle.cafe1), cafe2: pinFor(bundle.cafe2),
+    trainSplit: pinFor(bundle.trainSplit), vocabulary: pinFor(bundle.vocabulary),
+    v1Manifest: pinFor(bundle.v1Manifest),
+  };
+}
+
+describe('prepareQualityPool: trusted sources and semantic eligibility', () => {
+  it.each(['cafe1', 'cafe2', 'trainSplit', 'vocabulary', 'v1Manifest'] as const)(
+    'rejects the %s source pin before accepting a pool', key => {
+      const bundle = bundleFor([dishCsv('dish_9000000001')]);
+      const pins = pinsForBundle(bundle);
+      pins[key] = { ...pins[key], sha256: 'f'.repeat(64) };
+      expect(() => prepareQualityPool(bundle, pins)).toThrow(/sha256 mismatch/);
+    },
+  );
+
+  it('checks every pin before parsing even an earlier malformed source', () => {
+    const bundle = bundleFor([]);
+    bundle.cafe1 = encode('not a dish CSV');
+    const pins = pinsForBundle(bundle);
+    pins.cafe2 = { ...pins.cafe2, sha256: 'f'.repeat(64) };
+    expect(() => prepareQualityPool(bundle, pins)).toThrow(/sha256 mismatch/);
+  });
+
+  it('excludes deprecated IDs, deprecated descriptions and unknown IDs before ranking', () => {
+    const bundle = bundleFor([
+      dishCsv('dish_9000000004', { ingredientIds: [999, 998, 453] }),
+      dishCsv('dish_9000000002', { ingredientIds: [453], names: [''] }),
+      dishCsv('dish_9000000001', { names: [''] }),
+      dishCsv('dish_9000000003', { names: [' DEPRECATED '] }),
+    ]);
+    const before = Object.fromEntries(Object.entries(bundle).map(([key, value]) => [key, [...value]]));
+    const pool = prepareQualityPool(bundle, pinsForBundle(bundle));
+    expect(pool.eligible.map(row => row.dishId)).toEqual(['dish_9000000001']);
+    expect(pool.excluded).toEqual([
+      { dishId: 'dish_9000000002', reason: 'deprecated_ingredient', affectedIngredientIds: ['ingr_0000000453'] },
+      { dishId: 'dish_9000000003', reason: 'deprecated_ingredient', affectedIngredientIds: ['ingr_0000000054'] },
+      { dishId: 'dish_9000000004', reason: 'unknown_ingredient', affectedIngredientIds: ['ingr_0000000998', 'ingr_0000000999'] },
+    ]);
+    expect(Object.fromEntries(Object.entries(bundle).map(([key, value]) => [key, [...value]]))).toEqual(before);
+  });
+
+  it('quarantines all forty old training dishes and twelve benchmark meals with exact digests', () => {
+    const bundle = bundleFor([
+      dishCsv(V1_IDS[0]!), dishCsv(BENCHMARK_IDS[0]!), dishCsv('dish_9000000001'),
+    ]);
+    const pool = prepareQualityPool(bundle, pinsForBundle(bundle));
+    expect(pool.quarantineIds).toEqual(EXPECTED_QUARANTINE);
+    expect(pool.quarantineIds).toHaveLength(52);
+    expect(pool.quarantineDigest).toBe(createHash('sha256').update(JSON.stringify(EXPECTED_QUARANTINE)).digest('hex'));
+    expect(pool.eligible.map(row => row.dishId)).toEqual(['dish_9000000001']);
+    expect(pool.excluded.find(row => row.dishId === V1_IDS[0])?.reason).toBe('quarantined_v1');
+    expect(pool.excluded.find(row => row.dishId === BENCHMARK_IDS[0])?.reason).toBe('quarantined_benchmark');
+    expect(pool.sourceDigests).toEqual({
+      cafe1: pinFor(bundle.cafe1).sha256, cafe2: pinFor(bundle.cafe2).sha256,
+      trainSplit: pinFor(bundle.trainSplit).sha256, vocabulary: pinFor(bundle.vocabulary).sha256,
+      v1Manifest: pinFor(bundle.v1Manifest).sha256,
+    });
+  });
+
+  it('retains legacy totals and missing-metadata exclusions without reclassifying them as quality fixes', () => {
+    const ids = [1, 2, 3, 4].map(n => `dish_900000000${n}`);
+    const bundle = bundleFor([
+      dishCsv(ids[0]!, { kcal: 0 }), dishCsv(ids[1]!, { mass: 0 }),
+      dishCsv(ids[2]!, { fat: -1 }),
+    ], ids);
+    const pool = prepareQualityPool(bundle, pinsForBundle(bundle));
+    expect(pool.eligible).toEqual([]);
+    expect(pool.excluded.map(row => [row.dishId, row.reason])).toEqual([
+      [ids[0], 'non_positive_calories'], [ids[1], 'non_positive_mass'],
+      [ids[2], 'negative_macros'], [ids[3], 'missing_metadata'],
+    ]);
+  });
+
+  it('fails on duplicate metadata instead of silently skipping source corruption', () => {
+    const bundle = bundleFor([dishCsv('dish_9000000001')]);
+    bundle.cafe2 = bundle.cafe1.slice();
+    expect(() => prepareQualityPool(bundle, pinsForBundle(bundle))).toThrow(/duplicate/);
+  });
+});
+
+function selectionPool(): QualityPool {
+  const eligible: EligibleDish[] = [];
+  for (const componentBin of [0, 1, 2] as const) {
+    for (const calorieBin of [0, 1, 2] as const) {
+      for (const macroBin of [0, 1, 2] as const) {
+        for (let i = 0; i < 5; i += 1) eligible.push({
+          dishId: `dish_${9001000000 + componentBin * 100000 + calorieBin * 10000 + macroBin * 1000 + i}`,
+          componentBin, calorieBin, macroBin, totalMass: 100,
+          totalCalories: [100, 250, 500][calorieBin]!, totalProtein: macroBin === 0 ? 20 : 1,
+          totalCarb: macroBin === 1 ? 20 : 1, totalFat: macroBin === 2 ? 20 : 1,
+        });
+      }
+    }
+  }
+  return { eligible, excluded: [], quarantineIds: EXPECTED_QUARANTINE,
+    sourceDigests: { cafe1: '', cafe2: '', trainSplit: '', vocabulary: '', v1Manifest: '' }, quarantineDigest: '' };
+}
+
+describe('quality selection: fixed namespace, old defaults and disjoint exact schedules', () => {
+  it('uses an independently calculated v2 rank rather than the old v1 seed', () => {
+    expect(rankQualityDish('dish_9000000101')).toBe('e70e4ec1da13078ea569aec0e845ee747d7e1bd0c6c9e250f8b6cf40ff8dc0b8');
+  });
+
+  it('keeps the legacy default while honoring an explicit rank callback on the pure filler', () => {
+    const pool = [101, 102, 103].map(n => ({ ...selectionPool().eligible[0]!, dishId: `dish_9000000${n}` }));
+    const schedule = { development: [{ componentBin: 0 as const, calorieBin: 0 as const, macroBin: 0 as const }], validation: [] };
+    expect(fillCalibrationSlots(pool, schedule).development.map(row => row.dishId)).toEqual(['dish_9000000101']);
+    const options = { rankDishId: (id: string) => id.endsWith('103') ? '0' : '1' + id } as unknown as
+      NonNullable<Parameters<typeof fillCalibrationSlots>[2]>;
+    expect(fillCalibrationSlots(pool, schedule, options).development.map(row => row.dishId)).toEqual(['dish_9000000103']);
+  });
+
+  it('fills exactly twenty-four and sixteen disjoint balanced slots independently of input order', () => {
+    const pool = selectionPool();
+    const selected = selectQualityCandidates(pool, new Set());
+    const all = [...selected.development, ...selected.validation];
+    expect(selected.development).toHaveLength(24);
+    expect(selected.validation).toHaveLength(16);
+    expect(new Set(all.map(row => row.dishId)).size).toBe(40);
+    expect(all.some(row => EXPECTED_QUARANTINE.includes(row.dishId))).toBe(false);
+    for (const axis of ['componentBin', 'calorieBin', 'macroBin'] as const) {
+      expect([0, 1, 2].map(bin => selected.development.filter(row => row[axis] === bin).length)).toEqual([8, 8, 8]);
+    }
+    expect([0, 1, 2].map(bin => selected.validation.filter(row => row.componentBin === bin).length)).toEqual([6, 5, 5]);
+    expect([0, 1, 2].map(bin => selected.validation.filter(row => row.calorieBin === bin).length)).toEqual([5, 5, 6]);
+    expect([0, 1, 2].map(bin => selected.validation.filter(row => row.macroBin === bin).length)).toEqual([5, 6, 5]);
+    expect(selectQualityCandidates({ ...pool, eligible: [...pool.eligible].reverse() }, new Set())).toEqual(selected);
+  });
+
+  it('replaces only within the same stratum and refuses neighboring-stratum rescue', () => {
+    const pool = selectionPool();
+    const selected = selectQualityCandidates(pool, new Set());
+    const first = selected.development[0]!;
+    const rejected = new Set([first.dishId]);
+    const replaced = selectQualityCandidates(pool, rejected);
+    expect(replaced.development[0]!.dishId).not.toBe(first.dishId);
+    expect([replaced.development[0]!.componentBin, replaced.development[0]!.calorieBin, replaced.development[0]!.macroBin]).toEqual([0, 0, 0]);
+    expect([...rejected]).toEqual([first.dishId]);
+    const exhausted = new Set(pool.eligible.filter(row => row.componentBin === 0 && row.calorieBin === 0 && row.macroBin === 0).map(row => row.dishId));
+    expect(() => selectQualityCandidates(pool, exhausted)).toThrow(/stratum exhausted/);
   });
 });

@@ -456,6 +456,7 @@ export interface CalibrationSlotSchedule {
 
 export interface CalibrationSlotFillOptions {
   skipDishIds?: Set<string>;
+  rankDishId?: (dishId: string) => string;
 }
 
 export interface CalibrationSlotFillResult {
@@ -470,6 +471,7 @@ function stratumKey(s: CalibrationStratum): string {
 function buildRankedStrataIndex(
   pool: EligibleDish[],
   skipDishIds?: Set<string>,
+  rankDishId: (dishId: string) => string = rankHash,
 ): Map<string, EligibleDish[]> {
   const byStratum = new Map<string, EligibleDish[]>();
   for (const candidate of pool) {
@@ -481,8 +483,8 @@ function buildRankedStrataIndex(
   }
   for (const list of byStratum.values()) {
     list.sort((a, b) => {
-      const ha = rankHash(a.dishId);
-      const hb = rankHash(b.dishId);
+      const ha = rankDishId(a.dishId);
+      const hb = rankDishId(b.dishId);
       if (ha < hb) return -1;
       if (ha > hb) return 1;
       return a.dishId < b.dishId ? -1 : a.dishId > b.dishId ? 1 : 0;
@@ -496,7 +498,7 @@ export function fillCalibrationSlots(
   schedule: CalibrationSlotSchedule,
   options: CalibrationSlotFillOptions = {},
 ): CalibrationSlotFillResult {
-  const byStratum = buildRankedStrataIndex(pool, options.skipDishIds);
+  const byStratum = buildRankedStrataIndex(pool, options.skipDishIds, options.rankDishId);
   const usedIds = new Set<string>();
 
   function fillGroup(slots: readonly CalibrationStratum[]): EligibleDish[] {

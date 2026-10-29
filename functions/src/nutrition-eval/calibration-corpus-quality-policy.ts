@@ -1,6 +1,13 @@
-import { parseAndVerifySource, parseCsvRecords } from './calibration-corpus';
+import { createHash } from 'node:crypto';
+import {
+  parseAndVerifySource, parseCsvRecords, verifyPinnedSourceBytes,
+  parseDishMetadataCsv, mergeDishMetadata, parseTrainSplit, buildExcludedDishes,
+  buildEligibleDishes, FROZEN_PUBLIC_MANIFEST_DISH_IDS, fillCalibrationSlots,
+  DEVELOPMENT_SLOT_SCHEDULE, VALIDATION_SLOT_SCHEDULE,
+} from './calibration-corpus';
+import { StrictCalibrationManifestSchema } from './schema';
 
-import type { ExpectedSourceBytes } from './calibration-corpus';
+import type { ExpectedSourceBytes, EligibleDish, CalibrationSlotFillResult } from './calibration-corpus';
 
 export interface QualityIngredient {
   ingredientId: string;
@@ -93,4 +100,92 @@ export function parseQualityVocabulary(
   expected: ExpectedSourceBytes,
 ): ReadonlyMap<string, QualityIngredient> {
   return parseAndVerifySource(bytes, expected, parseVocabularyText);
+}
+
+export interface QualitySourceBundle {
+  cafe1: Uint8Array;
+  cafe2: Uint8Array;
+  trainSplit: Uint8Array;
+  vocabulary: Uint8Array;
+  v1Manifest: Uint8Array;
+}
+
+export type QualitySourcePins = { [K in keyof QualitySourceBundle]: ExpectedSourceBytes };
+export type QualityExcludedReason =
+  | 'non_positive_calories' | 'non_positive_mass' | 'negative_macros' | 'missing_metadata'
+  | 'deprecated_ingredient' | 'unknown_ingredient' | 'quarantined_v1' | 'quarantined_benchmark';
+
+export interface QualityPool {
+  eligible: EligibleDish[];
+  excluded: Array<{ dishId: string; reason: QualityExcludedReason; affectedIngredientIds: string[] }>;
+  quarantineIds: readonly string[];
+  sourceDigests: Readonly<Record<keyof QualitySourceBundle, string>>;
+  quarantineDigest: string;
+}
+
+export function prepareQualityPool(bundle: QualitySourceBundle, pins: QualitySourcePins): QualityPool {
+  // Own the bytes and verify every pin before any source is decoded or parsed.
+  const owned: QualitySourceBundle = {
+    cafe1: Uint8Array.from(bundle.cafe1), cafe2: Uint8Array.from(bundle.cafe2),
+    trainSplit: Uint8Array.from(bundle.trainSplit), vocabulary: Uint8Array.from(bundle.vocabulary),
+    v1Manifest: Uint8Array.from(bundle.v1Manifest),
+  };
+  const keys = ['cafe1', 'cafe2', 'trainSplit', 'vocabulary', 'v1Manifest'] as const;
+  for (const key of keys) verifyPinnedSourceBytes(owned[key], pins[key]);
+  const text = (bytes: Uint8Array): string => new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  const vocabulary = parseQualityVocabulary(owned.vocabulary, pins.vocabulary);
+  const manifest = StrictCalibrationManifestSchema.parse(JSON.parse(text(owned.v1Manifest)));
+  const oldTraining = new Set(manifest.cases.map(row => row.source.objectId));
+  const benchmark = new Set(FROZEN_PUBLIC_MANIFEST_DISH_IDS);
+  const quarantineIds = [...new Set([...oldTraining, ...benchmark])].sort();
+  const trainIds = parseTrainSplit(text(owned.trainSplit));
+  const metadata = mergeDishMetadata(
+    parseDishMetadataCsv(text(owned.cafe1)), parseDishMetadataCsv(text(owned.cafe2)),
+  );
+  const legacy = new Map(buildExcludedDishes(trainIds, metadata).map(row => [row.dishId, row.reason]));
+  const excluded: QualityPool['excluded'] = [];
+  const acceptedIds: string[] = [];
+  for (const dishId of trainIds) {
+    const exclude = (reason: QualityExcludedReason, affectedIngredientIds: string[] = []): void => {
+      excluded.push({ dishId, reason, affectedIngredientIds });
+    };
+    if (oldTraining.has(dishId)) { exclude('quarantined_v1'); continue; }
+    if (benchmark.has(dishId)) { exclude('quarantined_benchmark'); continue; }
+    const oldReason = legacy.get(dishId);
+    if (oldReason !== undefined) { exclude(oldReason); continue; }
+    const row = metadata.get(dishId);
+    if (row === undefined) throw new Error('quality pool has unclassified missing metadata');
+    const unknown = [...new Set(row.ingredients
+      .filter(ingredient => !vocabulary.has(ingredient.ingredientId))
+      .map(ingredient => ingredient.ingredientId))].sort();
+    if (unknown.length > 0) { exclude('unknown_ingredient', unknown); continue; }
+    const deprecated = [...new Set(row.ingredients.filter(ingredient =>
+      vocabulary.get(ingredient.ingredientId)!.deprecated || ingredient.name.trim().toLowerCase() === 'deprecated',
+    ).map(ingredient => ingredient.ingredientId))].sort();
+    if (deprecated.length > 0) { exclude('deprecated_ingredient', deprecated); continue; }
+    acceptedIds.push(dishId);
+  }
+  excluded.sort((a, b) => a.dishId < b.dishId ? -1 : a.dishId > b.dishId ? 1 : 0);
+  return {
+    eligible: buildEligibleDishes(acceptedIds, metadata).sort((a, b) => a.dishId < b.dishId ? -1 : a.dishId > b.dishId ? 1 : 0),
+    excluded, quarantineIds,
+    sourceDigests: {
+      cafe1: createHash('sha256').update(owned.cafe1).digest('hex'),
+      cafe2: createHash('sha256').update(owned.cafe2).digest('hex'),
+      trainSplit: createHash('sha256').update(owned.trainSplit).digest('hex'),
+      vocabulary: createHash('sha256').update(owned.vocabulary).digest('hex'),
+      v1Manifest: createHash('sha256').update(owned.v1Manifest).digest('hex'),
+    },
+    quarantineDigest: createHash('sha256').update(JSON.stringify(quarantineIds)).digest('hex'),
+  };
+}
+
+export function rankQualityDish(dishId: string): string {
+  return createHash('sha256').update('calorix-n5k-calibration-v2:' + dishId).digest('hex');
+}
+
+export function selectQualityCandidates(pool: QualityPool, rejectedIds: ReadonlySet<string>): CalibrationSlotFillResult {
+  return fillCalibrationSlots(pool.eligible, {
+    development: DEVELOPMENT_SLOT_SCHEDULE, validation: VALIDATION_SLOT_SCHEDULE,
+  }, { skipDishIds: new Set(rejectedIds), rankDishId: rankQualityDish });
 }
