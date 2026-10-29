@@ -14,7 +14,7 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-10-29: Native controller Task3 wide verification qualified; final reviews next
+#### Current task — 2026-10-29: Native controller Task3 final reviews qualified; committed focus next
 
 Same isolated `feat/calibration-native-controller`; Task2 source checkpoint and immutable Task3BASE `ee0674d163fe7a34c481df95a1d7c9bc5a25a5a4`. All154Functions files and tree `240c3bb2e04e86c96d4cdd82c84f5437985ba6d4` unchanged; threeprotectedconfigs match. Original checkout/user-owned .mcp.json and all active/unmerged branches preserved. No application source edits duringTask3.
 
@@ -26,7 +26,7 @@ Literal `npm run test:verify`, run `task3-parent-test-verify-20261029`, CLOSED a
 
 Function-only emulator actually loaded processEntry,aiChat,retryEntryAnalysis,aggregateDailyLogs under demo-no-project. Firestoretriggers ignored in function-only phase: load proof, not end-to-end trigger execution. CLI warns requestedNode20 ran under hostNode22 and firebase-functions SDK is outdated; no upgrade made and no Node20/production/security approval inferred. Existingdisk-backed emulatorjars/taskJavaTMP used; all selectedports free at actualparentstart and emulatorphase; nootherprojectprocess stopped. Bothlive/fetchflags unset. Preloader SHAef88c6d4a7137f12e39fa392271607a84e4a0f0127c43a5787dca8669d587ded and runner SHA70d84fc00e3c6cec20e2e981db1e2c0968b7cc796f803e59b5e9fc2065f0a6e7 unchanged.
 
-Task3Steps1–3 QUALIFIED, Task3 remains OPEN: wholefeatureMCP+ONEfreshnative reviewer, finalsource/trackingcommit/push/freshcommittedfocus. No source gate or review waived; no real-model-accuracy/defaultproduction/security approval inferred from units. No remoteCI success claim. Continue finalreviews, never rerun completed unchanged widegates just to recover context.
+Task3Steps1–4 QUALIFIED, Task3 remains OPEN for finalsource/trackingcommit/push/freshcommittedfocus. WholefeatureMCP andONEfreshnative review are complete; no productfix required. No source gate or review waived; no real-model-accuracy/defaultproduction/security approval inferred from units. No remoteCI success claim. Next actual command is freshcommittedfivefilefocus314 after this exacttrackingcommit/push; never rerun completed unchanged widegates just to recover context.
 
 Measurement clarification reviewed primary3.8 agree/MUST_FIXnone, TASK3_MEASUREMENT_INTERPRETATION_ONLY. All314focus and98newcases across wide gates retain strict source-derived per-case raw wall checks. Every other legacy assertion/source/callback timeout/nativeexit stays unchanged; audit all legacy rawcase durations separately (Vitest2 includes hooks in case duration, callback timeout scopes differ). Historical all62file baseline audit found12raw observations above callback bounds (10authoritative-report,1artifact-reader,1runtime-core); not a current failure or a claim of callback timeout violations. Current wide runs remain pending; new timing observations must be named and compared, never silently labeled pre-existing. Corrected review fixes prior five-new-files/suite-budget wording (three newfiles98cases plus216oldcontrols, per-case budgets). No old timer/test edits or waiver.
 
@@ -39,7 +39,7 @@ Literal `npm run test:verify`, run `task3-parent-test-verify-20261029`, CLOSED a
 
 Function-only emulator actually loaded processEntry,aiChat,retryEntryAnalysis,aggregateDailyLogs under demo-no-project. Firestoretriggers ignored in function-only phase: load proof, not end-to-end trigger execution. CLI warns requestedNode20 ran under hostNode22 and firebase-functions SDK is outdated; no upgrade made and no Node20/production/security approval inferred. Existingdisk-backed emulatorjars/taskJavaTMP used; all selectedports free at actualparentstart and emulatorphase; nootherprojectprocess stopped. Bothlive/fetchflags unset. Preloader SHAef88c6d4a7137f12e39fa392271607a84e4a0f0127c43a5787dca8669d587ded and runner SHA70d84fc00e3c6cec20e2e981db1e2c0968b7cc796f803e59b5e9fc2065f0a6e7 unchanged.
 
-Task3Steps1–3 QUALIFIED, Task3 remains OPEN: wholefeatureMCP+ONEfreshnative reviewer, finalsource/trackingcommit/push/freshcommittedfocus. No source gate or review waived; no real-model-accuracy/defaultproduction/security approval inferred from units. No remoteCI success claim. Continue finalreviews, never rerun completed unchanged widegates just to recover context.
+Task3Steps1–4 QUALIFIED, Task3 remains OPEN for finalsource/trackingcommit/push/freshcommittedfocus. WholefeatureMCP andONEfreshnative review are complete; no productfix required. No source gate or review waived; no real-model-accuracy/defaultproduction/security approval inferred from units. No remoteCI success claim. Next actual command is freshcommittedfivefilefocus314 after this exacttrackingcommit/push; never rerun completed unchanged widegates just to recover context.
 
 
 Legacy hook-inclusive raw duration observations (all historical names, callback bound5000ms):
@@ -49,6 +49,38 @@ Legacy hook-inclusive raw duration observations (all historical names, callback 
 - `test/nutrition-eval/calibration-authoritative-reports.test.ts` / `opt-out fixture mode and legacy genuine generation opt-out validation helpers genuinely yield missing, failure and interruption counts`: 7363.082ms.
 - `test/nutrition-eval/calibration-authoritative-reports.test.ts` / `receipt seals reject genuine late replay writes before legacy duplicates a genuine barcode nonreservation event after the benchmark receipt fails provisional replay`: 5216.316ms.
 - `test/nutrition-eval/calibration-runtime-evidence-core.test.ts` / `ordinary failed ports do not create crash-retry entitlement a dead-owner unreserved barcode read resumes only after explicit abandonment under a new epoch`: 6229.742ms.
+
+
+#### Whole-feature review continuation — 2026-10-29
+
+Initial single fresh native reviewer (`gpt-6-astra`, high) failed before delivering findings: category USAGE_LIMIT; exact tool message `Agent errored: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 3:54 AM.` Failure observed before host interruption around01:18UTC; original exact second unavailable, not fabricated. Same review seat retried after reset at06:36UTC, no second reviewer spawned. This is not approval, no billing/config changes.
+
+Original Antigravity finalpart1 collection was lost by interruption: at06:35UTC functions.wait returned `Script error: exec cell 170 not found`. Read persisted MCP conversation `calorix-native-controller-whole-feature-final-20261029`, turntimestamp2026-10-29T01:18:16.453Z, recovered full nonempty primary3.8 result: explicit agree/MUST_FIXnone, scope WHOLE_FEATURE_PART1_DRIVER_CODE_ONLY. Entire344line driver plus6line export reviewed; native assembly/tests/results excluded pending laterparts. Preserved recovered response and original collection failure separately; no fallback or CLI substitution. Git clean after recovery; code/tree unchanged. Boundedpart2 native entry currently running, not green yet.
+
+#### Whole-feature independent reviewer — 2026-10-29
+
+ONE fresh native reviewer (`gpt-6-astra`, high), same originally failed reviewseat retried after reset, completed read-only review of allnewsource/tests plus relevant interfaces/plan/spec/ledger. Critical:none, Important:none, Minor:none. Independently154Functions hashes zero mismatches; raw receipt hashes/populations314focus,4071+1skipnutrition,4466+1skipDEFAULT,125rules,1integration andthreechildexit0 checked; realfourfunctionload evidence read. Conditional assessment accepts hermetic feature only after remaining MCPresults/freshcommittedfocus. No codefix required. Everydeclined-to-judge item regraded by actual impact and recorded below.
+
+
+Final: Ruling: live3.8 nutrition accuracy set aside — retain unmeasured label and require separate parent live gates; fake SDK outputs cannot score real foods — cost if wrong: orchestration could be mistaken for accuracy; no default migration authorized here.
+Final: Ruling: universal network isolation/opaque SDK retries set aside — qualify actual mediated SDK methods and independently distinguish fake transport attempts, no universal HTTP claim — cost if wrong: hidden retries may consume extra real quota; retain explicit limitation.
+Final: Ruling: physical crash/power-loss durability set aside — controlled normal child exits establish only tested prefixes and explicit recovery, not physical persistence — cost if wrong: actual crash durability needs a separate physical-failure gate.
+Final: Ruling: Node20/production readiness set aside — accept actual hostNode22 hermetic and function-load evidence only; Node20 and end-to-end triggers remain unqualified — cost if wrong: runtime-specific deployment failures remain possible until production-runtime gates.
+Final: Ruling: automatic recovery/refunds set aside — preserve fail-closed consumed/uncertain history and require explicit operator abandonment; no retry entitlement invented — cost if wrong: manual intervention required after failure, with no automatic quota refund.
+Final: Ruling: lock release after unsuccessful valid commands set aside — retain approved success-only release even on selected-profile mismatch; tests verify retained lock — cost if wrong: operator must inspect/recover a safe refusal before further work.
+Final: Ruling: native helper token rejection classified unknown set aside — raw rejected port yields unknown, malformed returned token record yields empty_response; no additional introspection of caught errors — cost if wrong: pre-SDK media failures share coarse unknown category but cannot gain retry/refund.
+Final: Ruling: unchanged wide suite reruns during review set aside — accept independently hashchecked actual receipts/source identity and retain required fresh postcommit314focus; no unchanged full DEFAULT duplicate for bookkeeping — cost if wrong: later environment drift outside pinned source may escape broad rerun, while committedfocus still runs.
+
+
+Antigravity parts1driver and2entry are agree/MUST_FIXnone, strictlycodeonly. Part3 fixture/native411tests is agree/MUST_FIXnone; response-noise correction required for falsely suggesting all12 artifacts schema-validated and universal unforgeable witness. Actualscope is sixJSON schema plus sixMarkdownbyte/hash/nativechecks; independent hermetic witness, not security/opaqueHTTPproof. Part4driver691tests returned agree/MUST_FIXnone and explicitlycorrected allthree summary overclaims. Finalactualresults wholefeature verdictstillpending. No source mutation after review.
+
+#### Corrected final whole-feature review — 2026-10-29
+
+Primary `gemini-3.8-flash` Antigravity MCP, persistent `calorix-native-controller-whole-feature-final-20261029`, completed fullcode/spec/plan review in fourboundedparts (driver+thinexport, nativeentry+legacydiff+script, allfixture/native411tests, all691drivertests) and actualfullresults. Final explicit `AGREEMENT_STATUS: agree` / `MUST_FIX: none`, SCOPE WHOLE_FEATURE_CODE_AND_ACTUAL_HERMETIC_RESULTS_BEFORE_COMMITTED_FOCUS. Strict/build/lint, actualfocus314, nutrition4071+1oldskip, literalparent4592+1oldskip/3child0, source154/config3/old+98/subset/rawbudget evidence assessed. ConditionalONLY on mandatory remainingexactcommit/push+freshcommittedfocus314; not alreadyrun. Nativefreshreview0Critical/Important/Minor independentlycompleted. No source changes or fixes after Task2sourceee0674d/Functions tree240c3bb2e04e86c96d4cdd82c84f5437985ba6d4.
+
+MCP response-noise recorded/corrected explicitly: sixJSONschema/sixMarkdownbytehashnative scope; hermeticwitness notunforgeable/opaqueHTTPproof;146SDK/147FAKEtransportclosures; CLIoneownedJSONline vsunrelatedSDKdebug; final inventedscriptname retracted for actualeval:nutrition:calibration; incorrecteditoriallineanchors withdrawn; lintstrictlyFunctions; actualfourdefinitionsloaded withFirestoretriggersinactive. Preserveinitialnoisyresponses separately, accept correctedfinal only. No reviewmodel fallback orCLI substitution. Current3.8foodaccuracy unmeasured; no production/security/Node20/E2Etriggerapproval.
+
+Remotehygiene refreshed read-only: fouractualactive/unmergedbranches, noopenPRs; originalusercheckout and .mcp.json untouched; no remotebranchdeleted. Trackingcheckpointnext, then run task3-postcommit-focused-20261029 with exactStep1fivefile command, diskbackedTMP/cache, bothlive/fetchflagsunset.
 
 #### Completed Task2 — 2026-10-28: Native command checkpoint
 
