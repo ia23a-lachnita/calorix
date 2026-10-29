@@ -14,7 +14,17 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-10-29: Parent Task8 development REJECTED; protocol v1 HALTED
+#### Current task — 2026-10-29: Offline corpus-quality recovery design
+
+Clean linked worktree reused on docs/calibration-corpus-repair-design from c6bfe0ff21dadbd3944d6203fd4e9a6baed7cedd. This is research/design only: no application/test source edits, dependency installation, new inference, held-out image/output inspection, ledger construction/recovery, root reset or production write. Frozen implementation ee0674d/Functions tree240c3bb2e04e86c96d4cdd82c84f5437985ba6d4 and all11realprotocolfiles/config3 are pinned. Source unchanged; no duplicate full verifier for documentation. Intended verification: source/config/canonical-prefix fingerprints, primary-source hashes, 24-photo audit coverage and independent research/design review, then docs whitespace/links, commit and push. Previous Task8 outcome remains halted below.
+
+New primary source: the plural official ingredients_metadata.csv endpoint exists (21540bytes,SHA87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb). Its named apple54 entry is cal/g0.520,fat0.002,carbs0.140,protein0.003; deprecated453 has identical cal/fat but carbs0.003/protein0.140. Four vocabulary IDs are deprecated:231,453,458,470. The singular documented path's404 did not establish missing ingredient data. This is stronger annotation provenance, not an authoritative corrected dish label.
+
+Main has now viewed all24development photos and inspected all48normalized numeric summaries, not full raw model responses or independent measured truth. Four images show an additional food-bearing container (slots0,10,20,23); one target food is clipped at the image boundary (slot5). These are qualitative observations, not established causes of prediction errors. No held-out image/output inspected. The original3-photo review scope in the earlier result note remains historically accurate. New offline all24leave-one-case-out influence diagnostic recomputes original pooled means and finds neither profile meets the0.5numeric gate under ANY single-case deletion; best (apple deletion) LOW0.5886022358704036/MEDIUM0.6065291938379295. This is influence analysis ONLY, not accepted rescoring or a label change. No frozen report, score, gate or selection was changed.
+
+Research and whole written PhaseA design reviewed: fresh native builder check nothing important left; corrected primary3.8/High MCP calorix-corpus-repair-research-20261029 explicit AGREEMENT_STATUS agree/MUST_FIX none, scope OFFLINE_CORPUS_RESEARCH_AND_PHASE_A_DESIGN_ONLY. Exact overclaims/corrections recorded in [reviewed design](superpowers/specs/2026-10-29-calibration-corpus-quality-recovery-design.md). Source154/config3/canonical11 unchanged after review. Next: write/review the bounded offline implementation plan and execute permitted worker/TDD routes without another roadmap approval. No new active protocol or model-call budget is created.
+
+#### Recorded Task8 outcome — 2026-10-29: development REJECTED; protocol v1 HALTED
 
 Cleanisolated feat/calibration-live-development, applicationimplementationee0674d163fe7a34c481df95a1d7c9bc5a25a5a4/Functions tree240c3bb2e04e86c96d4cdd82c84f5437985ba6d4 unchanged154files/config3. CompletednativeTask7retainedcb86132; development execution tracking HEAD6c8d848; result commitf9d9362 pushed. Approvedroadmapcontinueswithoutnewplanapproval; actualclouddeploy/write/proddefaultmigrationnotauthorizedhere.
 
