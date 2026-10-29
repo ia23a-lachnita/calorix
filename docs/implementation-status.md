@@ -14,7 +14,7 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-10-29: Parent Task8 Step2 qualified; once-only preflight next
+#### Current task — 2026-10-29: Parent Task8 preflight PASSED; development next
 
 Cleanisolated feat/calibration-live-development, applicationimplementationee0674d163fe7a34c481df95a1d7c9bc5a25a5a4/Functions tree240c3bb2e04e86c96d4cdd82c84f5437985ba6d4 unchanged154files/config3. CompletednativeTask7retainedcb86132; currenttrackingpreviousc91af0c. Approvedroadmapcontinueswithoutnewplanapproval; actualclouddeploy/write/proddefaultmigrationnotauthorizedhere.
 
@@ -45,6 +45,14 @@ Unchangedassertions/callbacktimers/native0; hook-inclusivewallobservationsonly, 
 - `test/nutrition-eval/calibration-runtime-evidence-producer.test.ts` / `foundation uses native prefix and codecs`: 6737.273ms vs 5000ms; NEWtimingname.
 - `test/nutrition-eval/calibration-runtime-evidence-producer.test.ts` / `finishes exactly one native LOW image outcome after adapter dispatch and publication`: 5229.781ms vs 5000ms; NEWtimingname.
 - `test/nutrition-eval/calibration-runtime-evidence-producer.test.ts` / `finishes exactly one native MEDIUM image outcome after adapter dispatch and publication`: 5067.372ms vs 5000ms; NEWtimingname.
+
+#### Actual once-only preflight — 2026-10-29
+
+`task8-live-preflight-20261029` nativecommand ACTUALexit0/59.379s, started09:39:35.311082Z/finished09:40:34.691087Z, trackingHEAD1a48166da9dd4557224359de00159a4b0b3b23fd/sourceee/Functions tree240c3 unchanged. ExactVertexprojectcalorix-xurschnell/us/v1/gemini-3.8-flash pinnedroute; oneSDKcountTokensandtwoSDKimage-methodentriesLOWthenMEDIUM, ledgercumulative2images/1token. BothJSONreportsschema/hashandbothMarkdownhashverifiedagainstactualnativeadmittedreceipts; healthyreleaseverifiedlockABSENT. Provider-reportedmodelVersionpinned`gemini-3.8-flash`(oneuniquevalue/3diskoccurrences), notclaimofunderlyingweightattestation. No errors/fallback/retry/2.5request. PreflighttworesultsareONEdish, notnutritionaccuracyqualification; development/validation/benchmarkremainpending.
+
+LOWrunIDcalibration-preflight-low-ee0674d163fe-20261029T094017539Z, JSONSHAdad81c14551fe010a2bc0add7f02981cfd6051d62a80de69bab1b69611b03c13/Markdownba71c99e75fcd0a737c8ce0e7fdcec7ccaadd7a1251d42f4485dbdb9674d5921. MEDIUMrunIDcalibration-preflight-medium-ee0674d163fe-20261029T094022478Z, JSONSHA5eeb4ff6e2b4a28483ec002f64980485a5115d5f9ca83268a75ec036b0b9888e/Markdown3cdb93763cc748e2f7a431d105abc256f0d029f2f825f81707476bfcfbe3a278. All4artifactfilescheckedprogrammatically, no manualimage/outputaccuracyorvisualdiffclaim. Rawreports/journal/headerremaincanonicalignoredruntime; doNOTreset/cleanup/recoverorre-runpreflight.
+
+NextsameapprovedTask8Step4: oneactualdevelopmentcommand24LOW+24MEDIUM,48SDKimages/cumulative50,zeroadditionaltokencount; frozenprofilewinner/advancegate only. Externalactualstage-resultreviewrequiredbeforeTask8accepted. MaintaincleanHEAD/exactorigin/source154/config3/accountrechecks; sourceunchanged. WholeTask8OPEN, no production/Node20/security/promotionapproval.
 
 #### Official lifecycle/source fallback risk — 2026-10-29
 
