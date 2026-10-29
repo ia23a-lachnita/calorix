@@ -83,7 +83,7 @@ export function parseTrainSplit(text: string): string[] {
 
 // ── RFC 4180 dish-metadata CSV parsing ──────────────────────────────────────
 
-function parseCsvRecords(text: string): string[][] {
+export function parseCsvRecords(text: string): string[][] {
   const records: string[][] = [];
   let field = '';
   let record: string[] = [];
