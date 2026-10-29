@@ -318,7 +318,7 @@ Use `medium` instead of `low` in the last two commands only when the ledger sele
 - Runtime only: `.nutrition-eval/calibration/calorix-gemini-38-calibration-v1/`
 
 - [x] **Step 1: Verify source and account boundary without revealing credentials.** Record branch/HEAD, derived implementation commit and clean Functions tree ID, ADC quota project, billing status, Vertex API status, and exact local/remote equality. Do not print tokens. Confirm production defaults still name `gemini-2.5-flash` but do not call that model.
-- [ ] **Step 2: Run deterministic verification immediately before inference.** Run `cd functions && npm run test:verify`. Stop on failure.
+- [x] **Step 2: Run deterministic verification immediately before inference.** Run `cd functions && npm run test:verify`. Stop on failure.
 - [ ] **Step 3: Run preflight once.** Set only the explicit live opt-in and run the `preflight` command. Require one separately reserved 3.8 token count and two valid image results, LOW then MEDIUM, on the fixed first development slot. Record privacy-safe exact error categories and stop rather than fallback.
 - [ ] **Step 4: Run development once.** Execute 24 development cases once at LOW and once at MEDIUM. The ledger must finish at `50` cumulative image calls (`2 + 48`). Select by the frozen priority and stop if the winner misses any advance gate.
 - [ ] **Step 5: Inspect and record privacy-safe evidence.** Record run ID, code/dataset/prompt/schema/reference hashes, both profile summaries, selection reason, cumulative reserved/completed/failed counts, provider errors, and whether all 48 artifacts were inspected or only report invariants were verified. Do not commit raw reports.
