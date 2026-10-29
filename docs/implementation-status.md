@@ -14,7 +14,9 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-10-29: Offline corpus Task1 complete; Task2 audit/CLI next
+#### Current task — 2026-10-29: Offline corpus Task2 — audit/CLI test-first
+
+Task2 begins from clean pushed Task1commit c941fe88ef949e72b2bc9c008c4fc64fe4b15f14 on feat/calibration-corpus-quality. Task1task-done verified retained actual156focus/build/lint/probe/source/review receipts, explicitly not another producttest execution. Existing editingroute failures and paid5hourlimit authorize native edits for remainingPhaseA; no repeatpermission. Next verification command is serialnewaudit/CLItestfiles forbehavioralRED beforetheirlogic, thenfocusedGREEN/build/lint and literalassembled npm run test:verify. ONEfreshnativewholefeature review andMCPactualsource/result gate remainrequired beforefeatureacceptance. No new foodinference, v1rootoperations, runtimeversionactivation or budget.
 
 Task1 full metadata policy now verified/reviewed. Actual hostRED20parserPASS+14pool/rankFAIL/native1/4.534s; GREEN156PASS (34policy+122legacy)/17.365s,build0/28.394s,lint0/43.783s. Code clones/validates allfivepins beforeparse; filters oldsemantic/quarantine/unknown/deprecated beforev2rank, preservesolddefaultslotranking; newpublicsourcepins separate. Actualcompiledprobe4059train→3996eligible/63excluded(40v1+22deprecated+1oldinvalid),52quarantine,24/16unique freshMETADATAIDs with no images/QC/inference. Review corrected primary3.8/High MCP calorix-corpus-quality-policy-implementation-20261029 explicitagree/MUST_FIXnone, scopeTASK1_OFFLINE_CORPUS_METADATA_POLICY_ONLY. Postreviewcode/config3/canonical11fingerprints unchanged. This checkpoint commit/push contains Task1source/tests/pins/tracking. WholePhaseAfeature remainsINCOMPLETE: Task2nativeaudit/CLI+freshfullparent+ONEfreshnativewholefeature/MCP andTask3actualphotos/finalartifact stillrequired.
 
