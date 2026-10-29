@@ -26,25 +26,7 @@ Correctedprimary3.8MCP `calorix-task8-case-wall-observations-20261029` explicita
 
 Freshreadonlyaccount09:33:59UTC: ADCquota_projectcalorix-xurschnell/noincompatibleoverride, refresh0/tokenpresentbooleanonly(no task/chatsecretstored), active1/billingEnabledtrue/VertexAPIenabled. Publicfirstlockedimageverified09:33:55UTC viaexistingloader:355827bytesPNG640x480/SHA73b864e5450ddde775226593e5d4b1fb0510a5300aab89cc3f46a16859a683fa, exactcommittedcasecalibration-dish_1565117892, ext4canonicalassetcache, caloricmodelrequests0/canonicalCALIBRATIONrootstillABSENT/noledger/clientcreated. Imageassetpreparationisnotmodelinference; no modelsmoke/quota-tierassumption. CurrenthostNode22.23.3local-evalcaveatretained; no installations/config/productionchanges.
 
-Nextafterthisexacttrackingcommit/push/currentcleanHEADremote+source/ADC/rootrecheck: approvedONCEactualnative preflight(one separatelyreserved3.8token count, LOWthenMEDIUM2images), thenONLYifhealthydevelopment48images/cumulative50. Guardedoperatorrun-live-stage.pypreparedNOTYETexecuted; refusesduplicateattemptfiles, requiresactualparentproof/source/config andfreshaccountrecheck, retainsfailedwidewall+reviewed2-caseassessment. No fallback/retry/2.5/rootreset/implicitrecovery. Onanyactualerrorstopandinspecttruthfulprefix. Step8resultreviewrequiredafteractualstage. Active3.8foodaccuracyUNMEASURED. UIrun/diffcounts/auditLimited/visualClassificationStatusN/A.
-
-
-#### Task8 legacy raw timing observations — 2026-10-29
-
-Unchangedassertions/callbacktimers/native0; hook-inclusivewallobservationsonly, notcallbackfailureorperformancefix. All12retained;8namesmatchhistorical12,4newlyobservednamesexplicit.
-
-- `test/nutrition-eval/calibration-authoritative-reports.test.ts` / `pure gate literal boundaries (new file only) report-based validation kcal, protein, carbs, fat, mass and latency fail the intended field`: 18090.197ms vs 5000ms; historicallyobserved.
-- `test/nutrition-eval/calibration-authoritative-reports.test.ts` / `pure gate literal boundaries (new file only) report-based validation p90, pooled mean and parse diagnostics isolate the intended field`: 7653.475ms vs 5000ms; historicallyobserved.
-- `test/nutrition-eval/calibration-authoritative-reports.test.ts` / `benchmark native admission remains fail-closed (60 outcomes) admits a complete 60-outcome report then blocks completion for runtime evidence`: 5432.506ms vs 5000ms; historicallyobserved.
-- `test/nutrition-eval/calibration-authoritative-reports.test.ts` / `opt-out fixture mode and legacy genuine generation opt-out validation helpers genuinely yield missing, failure and interruption counts`: 7677.568ms vs 5000ms; historicallyobserved.
-- `test/nutrition-eval/calibration-authoritative-reports.test.ts` / `genuine barcode post-admission seal a complete benchmark receipt seals actual barcode data before duplicate checks or effects`: 5360.266ms vs 5000ms; historicallyobserved.
-- `test/nutrition-eval/calibration-authoritative-reports.test.ts` / `receipt seals reject genuine late replay writes before legacy duplicates a genuine barcode nonreservation event after the benchmark receipt fails provisional replay`: 5556.667ms vs 5000ms; historicallyobserved.
-- `test/nutrition-eval/calibration-report-artifact-verification.test.ts` / `calibration report artifact verification (tests-only) one prepared reader verifies all six actual stage/profile pairs, without evaluating failure gates`: 6217.364ms vs 5000ms; historicallyobserved.
-- `test/nutrition-eval/calibration-runtime-evidence-core.test.ts` / `ordinary failed ports do not create crash-retry entitlement a dead-owner unreserved barcode read resumes only after explicit abandonment under a new epoch`: 7075.242ms vs 5000ms; historicallyobserved.
-- `test/nutrition-eval/calibration-runtime-evidence-producer-native.test.ts` / `fresh native recovery at image-settle with declared dead preserves consumed authority`: 5229.673ms vs 5000ms; NEWtimingname.
-- `test/nutrition-eval/calibration-runtime-evidence-producer.test.ts` / `foundation uses native prefix and codecs`: 6737.273ms vs 5000ms; NEWtimingname.
-- `test/nutrition-eval/calibration-runtime-evidence-producer.test.ts` / `finishes exactly one native LOW image outcome after adapter dispatch and publication`: 5229.781ms vs 5000ms; NEWtimingname.
-- `test/nutrition-eval/calibration-runtime-evidence-producer.test.ts` / `finishes exactly one native MEDIUM image outcome after adapter dispatch and publication`: 5067.372ms vs 5000ms; NEWtimingname.
+Actualonce-onlypreflightnowPASSED (detailsbelow),2SDKimages+1token,source/reporthashescheckedandlockabsent. GuardedoperatorpreflightattemptisCOMPLETEandmustnotrepeat; currentnativecalibrationrootexistswithitsrealheader/journal/reports. Nextapprovedonedeverun24LOW+24MEDIUM=48SDKimages/cumulative50,0additionaltoken. Currentsource/accountproofandcleanHEADremoteverifiedagainbeforedev. Frozenprofilewinner/advancegatesandMCPactualresultreviewremainrequired. No fallback/retry/2.5/rootreset/implicitrecovery. BroadnutritionaccuracyUNQUALIFIED: onlyonepreflightdishobservedatbothprofiles. UIrun/diffcounts/auditLimited/visualClassificationStatusN/A.
 
 #### Actual once-only preflight — 2026-10-29
 
