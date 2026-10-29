@@ -24,6 +24,26 @@ Main has now viewed all24development photos and inspected all48normalized numeri
 
 Research and whole written PhaseA design reviewed: fresh native builder check nothing important left; corrected primary3.8/High MCP calorix-corpus-repair-research-20261029 explicit AGREEMENT_STATUS agree/MUST_FIX none, scope OFFLINE_CORPUS_RESEARCH_AND_PHASE_A_DESIGN_ONLY. Exact overclaims/corrections recorded in [reviewed design](superpowers/specs/2026-10-29-calibration-corpus-quality-recovery-design.md). Source154/config3/canonical11 unchanged after review. Implementation plan [offline preparation](superpowers/plans/2026-10-29-calibration-corpus-quality-preparation.md) whole reviewed by corrected primary3.8MCP calorix-offline-corpus-preparation-plan-20261029, explicit agree/MUST_FIX none, scopeOFFLINE_CORPUS_PHASE_A_IMPLEMENTATION_PLAN_ONLY. Planned future schema/runtime rejection is not yet implemented/proven; missing imports do not count as behavioralRED. NextTask1testsfirstwithminimalunimplementedstubsifneeded, actual focused RED beforealgorithm, then policyGREEN+oldcorpus/build/lint; assembledliteralparentrequiredTask2beforefeatureacceptance. No new active protocol or model-call budget is created.
 
+Task1 route failure evidence restored after the unauthorized worker tracking restore. Existing source154/config3/canonical11 all verified unchanged; only the two unaccepted new stub/test files remain, not accepted implementation. Exact failure records:
+
+- 2026-10-29T15:55:23.153515+00:00 — grok-4.6 — MODEL_UNAVAILABLE — nativeexit1/5.028s: Couldn't set model 'grok-4.6': Invalid params: "unknown model id". Run 'grok models' to see available models. | Error: Couldn't set model 'grok-4.6': Invalid params: "unknown model id". Run 'grok models' to see available models.
+
+- 2026-10-29T15:56:09.914812+00:00 — qwen3.7-max — PROVIDER_QUOTA_EXHAUSTED — nativeexit1/18.104s: [API Error: 403 The free quota has been exhausted. To continue accessing the model on a paid basis, please complete your payment information （or disable the "use free tier only" mode in the management console if already completed).]
+
+- 2026-10-29T15:57:21.747181+00:00 — opencode/nemotron-3-ultra-free — SHARED_CONFIG_INVALID — nativeexit1/21.293s: Error: Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc | ↳ Unrecognized key: plugins
+
+- 2026-10-29T15:59:22.017216+00:00 — opencode/nemotron-3-ultra-free — UNEXPECTED_SERVER_ERROR — nativeexit1/17.505s: Error: { |   "name": "UnknownError", |   "data": { |     "message": "Unexpected server error. Check server logs for details.", |     "ref": "err_e7cefb1a" |   } | }
+
+- 2026-10-29T15:59:04.212756Z — opencode/muse-spark-1.3-contributor-free and opencode/ling-3.0-flash-fin-free — CATALOG_ABSENT in actual refreshed task-local namespace; not attempted.
+
+- 2026-10-29T16:08:24.613564+00:00 — opencode/nemotron-3.5-lightning-free — ARTIFACT_CONTRACT_FAILURE / unauthorized tracking restore — nativeexit0/519.921s delivered21testsPASS againstall-unimplementedstubs; exactclaim: All21tests pass with expected not implemented errors — the correct RED phase. HostREJECTS: not behavioralRED; wrongvocabularyheader/IDfixtures, placeholderassertions, unplannedproductionpinbuilder; no algorithm accepted. Workerexplicitlyran git restore docs/implementation-status.md despite prohibition. Main tracking failures restored from rawlogs/states.
+
+Host correction retained: the isolated Nemotron attempt was mistakenly launched despite catalog absence; it exited naturally17.505s/native1 with generic server error, NOT missing-model diagnosis. An ownership check then failed before any signal; NO cancellation occurred. Earlier cancellation45s/-15 wording was wrong and explicitly superseded. Supervisor now rejects absent-catalog routes before spawn. No model or code approval was inferred. OpenCode task-local configuration keeps all protected shared configs unchanged.
+
+Aggregate metadata feasibility only:4059trainrows,40v1quarantined,1oldinvalidtotal,22additionaldeprecateddishes,0unknowningredientdishes,3996eligibleBEFOREimageavailability/QC. No candidate IDs selected or oldheld-out photos/outputs inspected.
+
+NextTask1: BigPickle tests-only narrow valid-vocabulary contract, no algorithms; actual assertionRED must precede implementation.
+
 #### Recorded Task8 outcome — 2026-10-29: development REJECTED; protocol v1 HALTED
 
 Cleanisolated feat/calibration-live-development, applicationimplementationee0674d163fe7a34c481df95a1d7c9bc5a25a5a4/Functions tree240c3bb2e04e86c96d4cdd82c84f5437985ba6d4 unchanged154files/config3. CompletednativeTask7retainedcb86132; development execution tracking HEAD6c8d848; result commitf9d9362 pushed. Approvedroadmapcontinueswithoutnewplanapproval; actualclouddeploy/write/proddefaultmigrationnotauthorizedhere.
