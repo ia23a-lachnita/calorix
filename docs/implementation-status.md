@@ -4303,4 +4303,3 @@ Task3 fullnutrition legacy RAW case-time observations (source/config frozen; the
 | calibration-authoritative-reports.test.ts | genuine barcode post-admission seal a complete benchmark receipt seals actual barcode data before duplicate checks or effects | 5109.857 | 5000 |
 | calibration-authoritative-reports.test.ts | receipt seals reject genuine late replay writes before legacy duplicates a genuine barcode nonreservation event after the benchmark receipt fails provisional replay | 5274.879 | 5000 |
 | calibration-runtime-evidence-core.test.ts | ordinary failed ports do not create crash-retry entitlement a dead-owner unreserved barcode read resumes only after explicit abandonment under a new epoch | 6363.146 | 5000 |
-
