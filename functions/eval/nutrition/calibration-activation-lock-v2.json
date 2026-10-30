@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "protocolVersion": "calorix-gemini-38-calibration-v2",
+  "ledgerProtocolVersion": "v2",
+  "candidate": {
+    "candidateId": "calorix-n5k-quality-candidate-v2",
+    "checklistVersion": "single-container-v1",
+    "rawSha256": "3b8bd3280a1d2941082a8d95422e62336b93222022fd6d2f4528aa23980e8b2b",
+    "producer": {
+      "implementationCommit": "eb8431e0167091a75fe46bfc84c7da431c51ccb6",
+      "functionsTreeId": "3c5dbe35b4946524a085e01df79b2c0283b8ca11"
+    },
+    "corpusLockRawSha256": "a9f0b32112a92efcd3cc911f9142973732770398b545cd1aed4cdb8f16d38bc9",
+    "quarantineDigest": "4f348798181f1eb1ae8dbd73fb0bfb0b8c14bb973b02bd5be06afc0be5627066"
+  },
+  "shared": {
+    "publicManifestHash": "2dc17d06752c2981862690953a7b134235bb6a20da4dc9b5fef5528f91f5bb56",
+    "promptHash": "205b635a252e1f378023f5e1f3c670a6fba0ecfdfc8ce4f08f30efa24c544263",
+    "responseSchemaHash": "1237ece38177ff83fcbb97fb0630718ca8943b0f17833721f19d4510876e94b0",
+    "offLockRawSha256": "2b9d7b9baecb22ec20662f52010810fdb4f2fde3dd7c464d73b0cb56855003a1",
+    "historicalReferenceRawSha256": "fd712bee2d4229bc8476d1cc25fce1a21172e6013c6abfe8949498cc5ce15acb"
+  },
+  "prior": {
+    "root": ".nutrition-eval/calibration/calorix-gemini-38-calibration-v1/",
+    "protocolVersion": "calorix-gemini-38-calibration-v1",
+    "imageReservations": 50,
+    "tokenReservations": 1,
+    "evidenceSha256": {
+      "ledger.json": "93e4695589560adbac55c39ebaae86e2ed8f26657ebc87808dff83b3d1245aa1",
+      "journal.json": "403489acaeb227c684319a79d8aa5b29d796797f2623782c50613ada5f96f648",
+      "lock.json": "aa33000b7233a649dfdc7a357e04950cdad7c4ff3ee0c8ee531ceaab7cb3df74",
+      "reports/development-low.md": "021a24a76627b361bfd9f24f9828232e1c1f11eddf6f4004a0d5784862d7bb59",
+      "reports/development-medium.md": "4749a6927bcb7fc48c20e9eb70e8e8945f8836a1cdd735911041cd2a3ed9ff92",
+      "reports/preflight-medium.md": "3cdb93763cc748e2f7a431d105abc256f0d029f2f825f81707476bfcfbe3a278",
+      "reports/preflight-medium.json": "5eeb4ff6e2b4a28483ec002f64980485a5115d5f9ca83268a75ec036b0b9888e",
+      "reports/preflight-low.md": "ba71c99e75fcd0a737c8ce0e7fdcec7ccaadd7a1251d42f4485dbdb9674d5921",
+      "reports/preflight-low.json": "dad81c14551fe010a2bc0add7f02981cfd6051d62a80de69bab1b69611b03c13",
+      "reports/development-medium.json": "43401c3ef59dee40268cfe16c9450070ae78fb04bcea6a0ee2a1ac1dbf5b9924",
+      "reports/development-low.json": "3e68e0760449f160f83b9e030e3175a4f912715c98e5b03bbebc127862820925"
+    }
+  },
+  "route": {
+    "provider": "vertex-ai",
+    "project": "calorix-xurschnell",
+    "location": "us",
+    "model": "gemini-3.8-flash",
+    "apiVersion": "v1",
+    "httpTimeoutMs": 30000
+  },
+  "budget": {
+    "priorImageReservations": 50,
+    "plannedImageCalls": 146,
+    "hardImageCeiling": 146,
+    "tokenCountCalls": 1,
+    "workstreamImageCeiling": 196,
+    "containmentImageCeiling": 300
+  }
+}
