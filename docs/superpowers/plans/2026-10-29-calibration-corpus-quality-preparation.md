@@ -102,8 +102,8 @@ expect(allSelectedIds.some(id => quarantinedIds.has(id))).toBe(false);
 
 **Files:** tracking docs only; ignored offline artifacts/images remain local.
 
-- [ ] **Step 1: Verify clean exact source/remote and unchanged v1 evidence/config.** Pin the committed offline tool source. Verify disk backing and explicit public-download scope. No ADC/token refresh/model smoke is needed for public assets.
-- [ ] **Step 2: Run the actual opt-in preparation command.** Record raw exit and actual candidate/exclusion/download counts. Metadata/source failure aborts, no fallback source. Do not open quarantined old validation/benchmark images.
+- [x] **Step 1: Verify clean exact source/remote and unchanged v1 evidence/config.** Pin the committed offline tool source. Verify disk backing and explicit public-download scope. No ADC/token refresh/model smoke is needed for public assets.
+- [x] **Step 2: Run the actual opt-in preparation command.** Record raw exit and actual candidate/exclusion/download counts. Metadata/source failure aborts, no fallback source. Do not open quarantined old validation/benchmark images.
 - [ ] **Step 3: Perform photo QC for every considered candidate.** View actual hashed images and record exact dispositions through the command. Reprepare only to replace rejected/missing-image candidates in their own strata. Retain all decisions/notes/bytes and bounded claims; no model predictions or corrected truths.
 - [ ] **Step 4: Finalize and verify.** Require complete40pass,24/16counts/margins/disjointness, immutable source/image/QC hashes, zero model calls and read-only verification exit0. Inspect the actual final artifact, not merely command counts. A rejected candidate is not a failed model experiment.
 - [ ] **Step 5: Review, record, commit and push.** Antigravity reviews actual inventory/artifact/results and declares exact photo-inspection scope. Commit privacy-safe counts/digests/limitations only, `Record offline corpus quality qualification`, push. Preserve rejected v1 untouched. Next is the separate concrete v2 runtime/version/budget design, never implicit activation.

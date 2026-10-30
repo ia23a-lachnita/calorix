@@ -1,6 +1,6 @@
 # Offline corpus quality preparation
 
-The preparation tool has passed its focused tests and full local backend verification. Actual candidate photo review is still pending. This checkpoint does not qualify nutrition accuracy, activate a calibration protocol, or change the deployed model.
+The preparation tool has passed its focused tests and full local backend verification. Actual candidate photo review is in progress. This checkpoint does not qualify nutrition accuracy, activate a calibration protocol, or change the deployed model.
 
 The tool selects a separate 24-development/16-validation candidate set from pinned Nutrition5k sources. It excludes the 52 quarantined IDs, deprecated or unknown ingredients, and existing semantic exclusions before ranking. Public downloads require explicit opt-in. Image review binds each decision to the case, image hash, checklist and append-only correction history. Finalization requires 40 selected passes; verification reproduces source, image, selection and consideration history without downloads or writes.
 
@@ -47,4 +47,4 @@ Both backend emulator phases used `demo-no-project`. Four function definitions l
 
 Path checks address accidental existing symlinks rather than hostile same-user filesystem races. Header inspection verifies image metadata; actual pixel readability and scene quality require viewing every considered photo. Operator QC and source hashes do not certify physical food mass, hidden ingredients or nutrient truth.
 
-The next stage is actual public preparation, exhaustive candidate photo QC, draft inventory review, finalization and read-only verification. No candidate photo has yet been accepted. The rejected protocol v1 evidence remains frozen, and this tool creates no permission for another model run.
+The initial public preparation produced 40 photos and 30 HTTP 404 skips. All 40 photos were individually viewed by the main agent, yielding 33 pass observations and seven rejections. Native CLI commands are recording those decisions; replacement review and final corpus qualification remain pending. The first outer terminal ended with code 143 without a native wait receipt; a fresh cache-only preparation command reproduced the retained inventory and exited 0 in 49.126 seconds, without replacing bytes or downloading again. The next steps are replacement QC, mutable draft inventory review, finalization and read-only verification. No candidate corpus has yet been finalized. The rejected protocol v1 evidence remains frozen, and this tool creates no permission for another model run.
