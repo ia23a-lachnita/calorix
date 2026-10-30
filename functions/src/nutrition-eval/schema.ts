@@ -1169,7 +1169,7 @@ export const StrictCalibrationManifestSchema = z
     });
   });
 
-function canonicalizeForHash(value: unknown): unknown {
+export function canonicalizeForHash(value: unknown): unknown {
   if (Array.isArray(value)) return value.map((item) => canonicalizeForHash(item));
   if (value !== null && typeof value === 'object') {
     const source = value as Record<string, unknown>;
@@ -1197,6 +1197,174 @@ export function hashCalibrationSourceLock(sourceLock: unknown): string {
 export type StrictCalibrationManifest = z.infer<typeof StrictCalibrationManifestSchema>;
 export type CalibrationSourceLock = z.infer<typeof CalibrationSourceLockSchema>;
 export type ExcludedCalibrationDish = z.infer<typeof ExcludedDishSchema>;
+
+// ── Task 1: strict calibration v2 manifest schema ───────────────────────────
+//
+// Mirrors the v1 strict schema above (same field shapes, same pinned 40-slot
+// schedule/base URL/attribution constants) but with its own dataset id and
+// rank prefix so a v1 rank can never satisfy a v2 manifest and vice versa.
+
+const CALIBRATION_V2_DATASET_ID = 'calorix-n5k-calibration-v2' as const;
+const RANK_PREFIX_V2 = 'calorix-n5k-calibration-v2:';
+
+function expectedCalibrationRankV2(dishId: string): string {
+  return createHash('sha256').update(`${RANK_PREFIX_V2}${dishId}`).digest('hex');
+}
+
+const StrictCalibrationCaseV2Schema = z
+  .strictObject({
+    id: z.string().min(1),
+    visibility: z.literal('public'),
+    scanMode: z.literal('meal'),
+    source: z.strictObject({
+      dataset: z.literal('nutrition5k'),
+      objectId: z.string().regex(/^dish_[0-9]+$/),
+    }),
+    image: z.strictObject({
+      url: z.string().url(),
+      sha256: z.string().regex(/^[0-9a-f]{64}$/),
+      mediaType: z.literal('image/png'),
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+    }),
+    truth: z.strictObject({
+      basis: z.literal('portion'),
+      amount: z.literal(1),
+      unit: z.literal('portion'),
+      kcal: z.number().finite().positive(),
+      proteinG: z.number().finite().nonnegative(),
+      carbsG: z.number().finite().nonnegative(),
+      fatG: z.number().finite().nonnegative(),
+      referenceMassG: z.number().finite().positive(),
+    }),
+    toleranceClass: z.literal('meal-estimate'),
+    attributionId: z.literal(CALIBRATION_ATTRIBUTION_ID),
+    group: z.enum(['development', 'validation']),
+    stratum: CalibrationStratumSchema,
+    rank: z.string().regex(/^[0-9a-f]{64}$/),
+    slotIndex: z.number().int().min(0).max(39),
+  })
+  .superRefine((calibrationCase, context) => {
+    const expectedId = `calibration-${calibrationCase.source.objectId}`;
+    if (calibrationCase.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: 'id must be exactly calibration-<dishId>',
+      });
+    }
+    const expectedRank = expectedCalibrationRankV2(calibrationCase.source.objectId);
+    if (calibrationCase.rank !== expectedRank) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rank'],
+        message: 'rank must equal sha256("calorix-n5k-calibration-v2:" + dishId) exactly',
+      });
+    }
+  });
+
+export const StrictCalibrationManifestV2Schema: z.ZodType<StrictCalibrationManifestV2> = z
+  .strictObject({
+    version: z.literal(2),
+    datasetId: z.literal(CALIBRATION_V2_DATASET_ID),
+    sourceLockHash: z.string().regex(/^[0-9a-f]{64}$/),
+    cases: z.array(StrictCalibrationCaseV2Schema).length(40),
+  })
+  .superRefine((manifest, context) => {
+    const ids = manifest.cases.map((c) => c.id);
+    if (new Set(ids).size !== ids.length) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['cases'], message: 'duplicate case id' });
+    }
+    const dishIds = manifest.cases.map((c) => c.source.objectId);
+    if (new Set(dishIds).size !== dishIds.length) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['cases'], message: 'duplicate dish id' });
+    }
+
+    manifest.cases.forEach((calibrationCase, index) => {
+      if (calibrationCase.slotIndex !== index) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cases', index, 'slotIndex'],
+          message: 'slotIndex must equal the case\'s ascending array position',
+        });
+      }
+
+      const expectedGroup = index < 24 ? 'development' : 'validation';
+      if (calibrationCase.group !== expectedGroup) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cases', index, 'group'],
+          message: 'group must match the pinned slot range (0-23 development, 24-39 validation)',
+        });
+      }
+
+      const expectedStratum = CALIBRATION_SCHEDULE_STRATA[index];
+      if (
+        expectedStratum !== undefined &&
+        (calibrationCase.stratum.componentBin !== expectedStratum[0] ||
+          calibrationCase.stratum.calorieBin !== expectedStratum[1] ||
+          calibrationCase.stratum.macroBin !== expectedStratum[2])
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cases', index, 'stratum'],
+          message: 'stratum must match the pinned schedule tuple for this slot',
+        });
+      }
+
+      const expectedUrl = `${CALIBRATION_BASE_URL}imagery/realsense_overhead/${calibrationCase.source.objectId}/rgb.png`;
+      if (calibrationCase.image.url !== expectedUrl) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cases', index, 'image', 'url'],
+          message: 'image url must be the exact pinned overhead-image URL for this dish',
+        });
+      }
+    });
+  });
+
+export interface StrictCalibrationManifestV2Case {
+  id: string;
+  visibility: 'public';
+  scanMode: 'meal';
+  source: { dataset: 'nutrition5k'; objectId: string };
+  image: {
+    url: string;
+    sha256: string;
+    mediaType: 'image/png';
+    width: number;
+    height: number;
+  };
+  truth: {
+    basis: 'portion';
+    amount: 1;
+    unit: 'portion';
+    kcal: number;
+    proteinG: number;
+    carbsG: number;
+    fatG: number;
+    referenceMassG: number;
+  };
+  toleranceClass: 'meal-estimate';
+  attributionId: string;
+  group: 'development' | 'validation';
+  stratum: { componentBin: 0 | 1 | 2; calorieBin: 0 | 1 | 2; macroBin: 0 | 1 | 2 };
+  rank: string;
+  slotIndex: number;
+}
+
+export interface StrictCalibrationManifestV2 {
+  version: 2;
+  datasetId: 'calorix-n5k-calibration-v2';
+  sourceLockHash: string;
+  cases: StrictCalibrationManifestV2Case[];
+}
+
+export function hashStrictCalibrationManifestV2(value: unknown): string {
+  const parsed = StrictCalibrationManifestV2Schema.parse(value);
+  const canonical = canonicalizeForHash(parsed);
+  return createHash('sha256').update(JSON.stringify(canonical), 'utf8').digest('hex');
+}
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
