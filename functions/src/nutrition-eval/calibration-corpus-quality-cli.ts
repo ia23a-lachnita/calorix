@@ -4,17 +4,19 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { z } from 'zod';
 import {
-  QUALITY_WORKING_ROOT, QUALITY_CANDIDATE_ID, QUALITY_CHECKLIST_VERSION,
+  QUALITY_WORKING_ROOT,
   createQualityAudit, validateQualityAudit, addQualityPhoto, recordQualityDecision,
   recordQualityImageSkip, finalizeQualityAudit, qualityReviewStatus,
 } from './calibration-corpus-quality-audit';
 import type { QualityAudit, QualityAuditContext, QualityDecisionInput } from './calibration-corpus-quality-audit';
 import {
   buildSourceUrl, buildOverheadImageUrl, verifyPinnedSourceBytes, verifyOverheadImage,
-  OverheadImageCheckError, parseDishMetadataCsv, mergeDishMetadata, CALIBRATION_SOURCE_PATHS,
+  OverheadImageCheckError,
 } from './calibration-corpus';
 import type { FetchImageResult } from './calibration-corpus';
-import { prepareQualityPool, parseQualityVocabulary } from './calibration-corpus-quality-policy';
+import {
+  QualitySourceLockSchema, CORPUS_QUALITY_PUBLIC_PATHS, buildQualityAuditContext,
+} from './calibration-corpus-quality-source';
 import type { QualitySourceBundle, QualitySourcePins } from './calibration-corpus-quality-policy';
 
 export interface QualityCliDeps {
@@ -36,16 +38,7 @@ export function createNativeQualityCliDeps(): QualityCliDeps {
 }
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_AUDIT_BYTES = 4 * 1024 * 1024;
-const publicPaths = { ...CALIBRATION_SOURCE_PATHS, vocabulary: 'metadata/ingredients_metadata.csv' };
 const sha = z.string().regex(/^[a-f0-9]{64}$/);
-const pinSchema = z.strictObject({ byteLength: z.number().int().positive().max(4 * 1024 * 1024), sha256: sha });
-const publicPin = pinSchema.extend({ path: z.string(), url: z.string().url() }).strict();
-const lockSchema = z.strictObject({
-  candidateId: z.literal(QUALITY_CANDIDATE_ID), rankPrefix: z.literal('calorix-n5k-calibration-v2:'),
-  checklistVersion: z.literal(QUALITY_CHECKLIST_VERSION),
-  sources: z.strictObject({ metadataCafe1: publicPin, metadataCafe2: publicPin, trainSplit: publicPin, vocabulary: publicPin }),
-  v1Manifest: pinSchema.extend({ path: z.literal('functions/eval/nutrition/calibration-manifest.json') }).strict(),
-});
 type Command = { name: 'prepare' | 'finalize' | 'verify'; allowDownloads: boolean } |
   { name: 'record-quality'; allowDownloads: false; input: Omit<QualityDecisionInput, 'at'> };
 class CommandError extends Error {
@@ -182,10 +175,10 @@ async function loadNativeContext(deps: QualityCliDeps, working: string, allowDow
   const codeCheckpoint = { implementationCommit: git(['log', '-1', '--format=%H', '--', 'functions']),
     functionsTreeId: git(['rev-parse', 'HEAD:functions']) };
   const lockBytes = await readBounded(root, join(root, 'functions/eval/nutrition/corpus-quality-source-lock-v2.json'), 65_536);
-  const lock = lockSchema.parse(JSON.parse(lockBytes.toString('utf8')));
-  const cache = async (key: keyof typeof publicPaths): Promise<Buffer> => {
+  const lock = QualitySourceLockSchema.parse(JSON.parse(lockBytes.toString('utf8')));
+  const cache = async (key: keyof typeof CORPUS_QUALITY_PUBLIC_PATHS): Promise<Buffer> => {
     const pin = lock.sources[key];
-    if (pin.path !== publicPaths[key] || pin.url !== buildSourceUrl(publicPaths[key])) return fail('source_mismatch');
+    if (pin.path !== CORPUS_QUALITY_PUBLIC_PATHS[key] || pin.url !== buildSourceUrl(CORPUS_QUALITY_PUBLIC_PATHS[key])) return fail('source_mismatch');
     const path = join(working, 'inputs', key + '.bin');
     let bytes: Buffer;
     try { bytes = await readBounded(root, path, pin.byteLength); }
@@ -206,14 +199,7 @@ async function loadNativeContext(deps: QualityCliDeps, working: string, allowDow
     v1Manifest: await readBounded(root, join(root, lock.v1Manifest.path), lock.v1Manifest.byteLength) };
   const pins: QualitySourcePins = { cafe1: lock.sources.metadataCafe1, cafe2: lock.sources.metadataCafe2,
     trainSplit: lock.sources.trainSplit, vocabulary: lock.sources.vocabulary, v1Manifest: lock.v1Manifest };
-  const pool = prepareQualityPool(bundle, pins);
-  const vocabulary = parseQualityVocabulary(bundle.vocabulary, pins.vocabulary);
-  const decoder = new TextDecoder('utf-8', { fatal: true });
-  const metadata = mergeDishMetadata(parseDishMetadataCsv(decoder.decode(bundle.cafe1)), parseDishMetadataCsv(decoder.decode(bundle.cafe2)));
-  return { pool, codeCheckpoint, sourceLockSha256: digest(lockBytes),
-    ingredientsByDish: new Map(pool.eligible.map(row => [row.dishId, metadata.get(row.dishId)!.ingredients.map(item => ({
-      ingredientId: item.ingredientId, sourceName: item.name, vocabularyName: vocabulary.get(item.ingredientId)!.name,
-    }))])) };
+  return buildQualityAuditContext(bundle, pins, digest(lockBytes), codeCheckpoint);
 }
 function blobPath(working: string, hash: string): string { return join(working, 'images', hash + '.bin'); }
 async function checkedImage(id: string, bytes: Uint8Array) {
