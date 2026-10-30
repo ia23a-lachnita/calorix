@@ -17,6 +17,7 @@
     "eval:nutrition:calibration": "npm run build && node lib/nutrition-eval/calibration-cli.js",
     "eval:nutrition:release": "npm run build && node lib/nutrition-eval/cli.js release",
     "eval:nutrition:calibration-corpus": "npm run build && node lib/nutrition-eval/calibration-corpus.js",
+    "eval:nutrition:corpus-quality": "npm run build && node lib/nutrition-eval/calibration-corpus-quality-cli.js",
     "deploy": "firebase deploy --only functions"
   },
   "engines": {
