@@ -14,7 +14,7 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-10-30: Phase B runtime design; no activation
+#### Current task — 2026-10-30: V2 implementation plan review; no product edits or activation
 
 Phase A qualification is committed and pushed at `47b607e6f5c019d5a423325c291d5fa43f7717f1`; actual origin SHA matched and checkout was clean. New branch `feat/calibration-v2-runtime` starts at that exact checkpoint in the same isolated linked worktree. Original checkout/user `.mcp.json` remains preserved. No product source edits have begun.
 
@@ -30,7 +30,7 @@ Whole-design fallback `gemini-3.7-flash` failed 2026-10-30T15:00:40.110847+00:00
 
 Whole-design final fallback `gemini-3.6-flash` failed 2026-10-30T15:01:45.079388+00:00: `Error executing ask-ai: agy exited with code 1. / error: invalid model selection (--model "gemini-3.6-flash" --effort "high"): --effort is not supported for model "gemini-3.6-flash"`. All3 routes failed for this broad request; no whole-design agreement. Next primary attempt separates bounded actual runtime-boundary inspection from whole written-document review, with no model/effort/CLI substitution or gate relaxation.
 
-Next: commit/push the reviewed design, then write/review the concrete runtime implementation plan and refresh ordered editing-worker routes before source edits. No food/tokenSDK request or new ledger/budget is authorized by candidate qualification. V1 failed evidence/lock stays frozen; no old held-out photo/output inspection, production default/prompt/schema/gate change or cloud deployment.
+Reviewed design is committed/pushed at `45ff64e386f118e945057211c6cf5e6687a46db6`, exact origin verified and source baseline clean. The concrete [runtime plan](superpowers/plans/2026-10-30-calibration-v2-runtime.md) has passed host self-review and awaits whole-plan MCP approval. Fresh focused existing controls are the next baseline check; no source edit or worker starts before the plan gate. Next: plan review, commit/push, then ordered worker refresh and Task1 test-first admission. No food/tokenSDK request or new ledger/budget is authorized by candidate qualification. V1 failed evidence/lock stays frozen; no old held-out photo/output inspection, production default/prompt/schema/gate change or cloud deployment.
 
 Separate release work remains: Node20 engines/CI target has published decommission date2026-10-30; host verification usedNode22.23.3, deployedruntime unqueried/no outage claim. Supported runtime/SDK/CI/staging qualification precedes deployment. Actual workflow onlymainpush/PR-to-main, nofeatureCIrun/noopenPR; no giant490commitPR/workflow change/remote branch deletion.
 
