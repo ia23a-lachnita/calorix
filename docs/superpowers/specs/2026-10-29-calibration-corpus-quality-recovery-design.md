@@ -1,6 +1,6 @@
 # Calibration corpus-quality recovery design
 
-Date: 2026-10-29. Status: reviewed offline Phase A design; implementation planning next. This describes the next **offline** stage of the approved nutrition-calibration roadmap. It does not reopen protocol v1 or authorize another inference run.
+Date: 2026-10-29. Status: offline Phase A implemented and candidate qualified on 2026-10-30; separate Phase B design next. This describes the next **offline** stage of the approved nutrition-calibration roadmap. It does not reopen protocol v1 or authorize another inference run.
 
 ## Problem and evidence
 
