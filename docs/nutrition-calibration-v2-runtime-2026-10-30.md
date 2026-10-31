@@ -218,6 +218,29 @@ Primary3.8/High corrected pre-review `calorix-v2-identity-codec-plan-20261031` a
 
 The current Task2 native-edit fallback remains bounded to this attempt, following the recorded worker failures, with independent review and verification retained. No image/token SDK request, additional visual inspection, actual canonical runtime activation, cloud mutation or deployment occurred. Runtime evidence state, three strict v2 ledger factories, canonical key planning, v2 metadata and the general reader remain open. This slice does not qualify native budgeting, nutrition accuracy, security, whole-runtime behavior or production readiness.
 
+## Task2 runtime evidence state — reviewed subcheckpoint, 2026-11-01
+
+The explicit v2 preparation entry requires the original registered context before inspecting parameters. Shared preparation and header capture use the published v2 full-identity codec only through that checked boundary; the old entry remains v1. Every immutable preview result closes over the same original context. Snapshots and pair inputs expose owned data, never context registration or a grant. Existing plan validation, event/fact handling, transitions and structural owner handoff rules remain shared.
+
+| Host run | Native exit | Result / measured time |
+| --- | ---: | --- |
+| `task2-runtime-state-host-red-01` | 1 | V1 fixture/control passes;14new cases fail /15total;6.112s |
+| `task2-runtime-state-host-green-01` | 0 | 15new tests pass;6.360s |
+| `task2-runtime-state-host-controls-01` | 0 | 1108pass /15files /0fail /0skip;144.767s |
+| `task2-runtime-state-host-build-01` | 0 | Build;63.191s |
+| `task2-runtime-state-host-lint-01` | 0 | Lint;74.651s |
+| `task2-runtime-state-cold-import-01` | 0 | Five compiled CJS entry orders;4.632s |
+
+Final controls rawSHA `f5af9c31d937740e22b5d276fc903c031f57c8dae36e8e34ea19e8ea608499ea`. Exact1093prior names/statuses remain plus15new, and final controls/build/lint bind identical unchanged source/test inputs. Actual RED preceded the algorithm. The independent trusted fixture and five-frame dataset-load-failure trace passed through the unchanged v1 state before v2 existed. The v2 trace then verified immutable previews, full-identity pair data and a compatible binding hash without an SDK request or reservation.
+
+The fixture supplies50initial and158expanded outcomes,146vision and12barcode, from its independent expected training manifest and fixed public inputs (12meal,4label,4barcode cases). This verifies structural dependency injection and state behavior; it is not native v2 canonical-key generation or authentication of arbitrary supplied case IDs. Native derivation remains a later Task2 gate.
+
+Only three of41existing top-level bodies changed;38others remain exact, with two functions added. Common preparation and preview bodies remain exact except for context arguments. Five cold entry orders preserve the v1 golden/root/cap300 and reject fabricated contexts through seven entry guards with zero payload traps, counted SDK constructions and fetch calls. The cold probe has no filesystem write counter. Unit cases separately count common asynchronous write/mkdir/rename operations at0. Neither is exhaustive filesystem, syscall, transport or import attestation, nor a compiled positive state-machine/native candidate/budget qualification.
+
+Primary3.8/High pre-review `calorix-v2-runtime-state-plan-20261031` agreed before implementation. Corrected post-review `calorix-v2-runtime-state-implementation-20261031` returned agreement/MUSTnone, scope `PARTIAL_TASK2_RUNTIME_STATE_ONLY`; an unsupported cold-import zero-file-writes statement was explicitly retracted. Source fingerprints, three configs, eleven frozen v1 evidence files and candidate rawSHA remain exact after review. Verification was not repeated solely because the local date advanced; run IDs and measured UTC receipts are retained.
+
+The current Task2 native-edit fallback and all remaining review/verification gates remain in force. No actual image/token SDK call, canonical runtime activation, new visual inspection, cloud mutation or deployment occurred. The three strict v2 ledger counterparts, canonical key derivation, v2 metadata and general report reader remain open, as do Tasks3–5. This slice does not qualify native budgeting, nutrition accuracy, security or production readiness.
+
 ## Remaining work
 
 Continue [Task2 of the reviewed runtime plan](superpowers/plans/2026-10-30-calibration-v2-runtime.md): private registered contexts and closed identity/root/codec bindings. Task3 adds report authority, the stage driver and explicit native v2 CLI. Task4 requires one fresh native whole-feature review, a fresh full backend parent, Antigravity whole-result review and current source/account/budget qualification. Only then may Task5 execute the once-only live stages, stopping at the first failure. These remain open; Task1 data qualification does not promote the model or authorize deployment.

@@ -1,3 +1,5 @@
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 /**
  * Pure immutable reduction and keyed reconciliation for calibration durable
  * runtime evidence (Task 2 Step 3).
@@ -13,6 +15,7 @@ import { createHash } from 'node:crypto';
 import {
   captureCalibrationRuntimeEvidenceEvent,
   captureCalibrationRuntimeEvidenceHeader,
+  captureCalibrationRuntimeEvidenceHeaderV2,
 } from './calibration-runtime-evidence-codec';
 import type {
   RuntimeBindingInput,
@@ -598,11 +601,12 @@ function capturePlans(value: unknown): ValidatedPlans {
   return { initial, LOW: low, MEDIUM: medium, initialById, lowById, mediumById };
 }
 
-function captureParams(value: unknown): { header: RuntimeEvidenceHeader; plans: ValidatedPlans } {
+function captureParams(value: unknown, checkedContext?: Readonly<CalibrationV2PreparedContext>): { header: RuntimeEvidenceHeader; plans: ValidatedPlans } {
   const map = captureExact(value, ['header', 'plans'], inputInvalid);
   let header: RuntimeEvidenceHeader;
   try {
-    header = captureCalibrationRuntimeEvidenceHeader(map.get('header'));
+    header = checkedContext === undefined ? captureCalibrationRuntimeEvidenceHeader(map.get('header'))
+      : captureCalibrationRuntimeEvidenceHeaderV2(checkedContext, map.get('header'));
   } catch {
     return inputInvalid();
   }
@@ -1852,6 +1856,7 @@ function createState(
   plans: ValidatedPlans,
   identityCommit: string,
   mutable: Mutable,
+  checkedContext?: Readonly<CalibrationV2PreparedContext>,
 ): Readonly<CalibrationRuntimeEvidenceState> {
   const preview = (frame: unknown): Readonly<CalibrationRuntimeEvidenceState> => {
     let captured: CapturedFrame;
@@ -1881,7 +1886,7 @@ function createState(
     } catch {
       return transitionInvalid();
     }
-    return createState(header, plans, identityCommit, next);
+    return createState(header, plans, identityCommit, next, checkedContext);
   };
   const snapshot = (): Readonly<RuntimeEvidenceSnapshot> => makeSnapshot(mutable);
   const pairInput = (
@@ -1898,10 +1903,10 @@ function createState(
   return deepFreeze({ preview, snapshot, pairInput }) as Readonly<CalibrationRuntimeEvidenceState>;
 }
 
-export function prepareCalibrationRuntimeEvidenceState(params: unknown): Readonly<CalibrationRuntimeEvidenceState> {
+function prepareCore(params: unknown, checkedContext?: Readonly<CalibrationV2PreparedContext>): Readonly<CalibrationRuntimeEvidenceState> {
   let parsed: { header: RuntimeEvidenceHeader; plans: ValidatedPlans };
   try {
-    parsed = captureParams(params);
+    parsed = captureParams(params, checkedContext);
   } catch {
     return inputInvalid();
   }
@@ -1924,5 +1929,16 @@ export function prepareCalibrationRuntimeEvidenceState(params: unknown): Readonl
     keys: new Map(),
     epoch: 0,
   };
-  return createState(parsed.header, parsed.plans, identityCommit, mutable);
+  return createState(parsed.header, parsed.plans, identityCommit, mutable, checkedContext);
+}
+
+export function prepareCalibrationRuntimeEvidenceStateV2(
+  context: Readonly<CalibrationV2PreparedContext>, params: unknown,
+): Readonly<CalibrationRuntimeEvidenceState> {
+  const ownedContext = requireCalibrationV2Context(context);
+  return prepareCore(params, ownedContext);
+}
+
+export function prepareCalibrationRuntimeEvidenceState(params: unknown): Readonly<CalibrationRuntimeEvidenceState> {
+  return prepareCore(params);
 }
