@@ -1,3 +1,5 @@
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 /**
  * Task 6 atomic file store: real-filesystem CalibrationLedgerDeps.
  *
@@ -48,6 +50,10 @@ import { captureCalibrationReportJournalEntry } from './calibration-report-journ
 const LEDGER_FILE = 'ledger.json';
 const JOURNAL_FILE = 'journal.json';
 const LOCK_FILE = 'lock.json';
+
+const LEGACY_STORAGE = Object.freeze({ root: CALIBRATION_ROOT });
+const V2_STORAGE = Object.freeze({ root: '.nutrition-eval/calibration/calorix-gemini-38-calibration-v2/' });
+
 
 const FILE_MODE = 0o600;
 const DIR_MODE = 0o700;
@@ -150,13 +156,14 @@ function createNativeFileCalibrationLedgerDeps(
   owner: CalibrationOwner,
   overrides: RuntimeEvidenceFileStoreOverrides | undefined,
   nonMutatingPreparationReads: boolean,
+  context?: Readonly<CalibrationV2PreparedContext>,
 ): CalibrationLedgerDeps {
   try {
     if (typeof baseDir !== 'string' || baseDir.includes('\0') || !isAbsolute(baseDir) || resolve(baseDir) !== baseDir) return nativeInputFailure();
     const ownedOwner = captureNativeOwner(owner);
     const hooks = captureNativeRecord(overrides === undefined ? {} : overrides, NATIVE_HOOKS, true);
     for (const key of Object.keys(hooks)) if (typeof hooks[key] !== 'function') return nativeInputFailure();
-    return createFileCalibrationLedgerDepsImpl(baseDir, Object.freeze(hooks) as RuntimeEvidenceFileStoreOverrides, ownedOwner, nonMutatingPreparationReads);
+    return createFileCalibrationLedgerDepsImpl(baseDir, Object.freeze(hooks) as RuntimeEvidenceFileStoreOverrides, ownedOwner, nonMutatingPreparationReads, context);
   } catch { return nativeInputFailure(); }
 }
 
@@ -369,9 +376,12 @@ function createFileCalibrationLedgerDepsImpl(
   overrides: CalibrationFileStoreOverrides,
   nativeOwner?: Readonly<CalibrationOwner>,
   nonMutatingPreparationReads = false,
+  context?: Readonly<CalibrationV2PreparedContext>,
 ): CalibrationLedgerDeps {
+  const ownedContext = context === undefined ? undefined : requireCalibrationV2Context(context);
+  const binding = ownedContext === undefined ? LEGACY_STORAGE : V2_STORAGE;
   const callerBase = resolve(baseDir ?? process.cwd());
-  const canonicalDir = resolve(callerBase, CALIBRATION_ROOT);
+  const canonicalDir = resolve(callerBase, binding.root);
   type DirectoryIdentity = { path: string; dev: number; ino: number };
   let directories: readonly DirectoryIdentity[] | undefined;
   let lockIdentity: Stats | undefined;
@@ -975,7 +985,8 @@ function createFileCalibrationLedgerDepsImpl(
   }
 
   function getRoot(): string {
-    return CALIBRATION_ROOT;
+    if (ownedContext !== undefined) requireCalibrationV2Context(ownedContext);
+    return binding.root;
   }
 
   function readLock(): CalibrationOwner | undefined {
@@ -1258,4 +1269,25 @@ function createFileCalibrationLedgerDepsImpl(
     } catch { return nativeFail(); }
     finally { nativeReadOnlyTraversal = false; nativeBusy = false; }
   }]))) as unknown as CalibrationLedgerDeps;
+}
+
+export function createFileCalibrationLedgerDepsV2(
+  context: Readonly<CalibrationV2PreparedContext>, overrides?: CalibrationFileStoreOverrides,
+): CalibrationLedgerDeps {
+  const owned = requireCalibrationV2Context(context);
+  return createFileCalibrationLedgerDepsImpl(owned.baseDir, overrides ?? {}, undefined, false, owned);
+}
+
+export function createRuntimeEvidenceFileCalibrationLedgerDepsV2(
+  context: Readonly<CalibrationV2PreparedContext>, overrides?: RuntimeEvidenceFileStoreOverrides,
+): CalibrationLedgerDeps {
+  const owned = requireCalibrationV2Context(context);
+  return createNativeFileCalibrationLedgerDeps(owned.baseDir, owned.owner, overrides, false, owned);
+}
+
+export function createBenchmarkAuthorityFileCalibrationLedgerDepsV2(
+  context: Readonly<CalibrationV2PreparedContext>, overrides?: RuntimeEvidenceFileStoreOverrides,
+): CalibrationLedgerDeps {
+  const owned = requireCalibrationV2Context(context);
+  return createNativeFileCalibrationLedgerDeps(owned.baseDir, owned.owner, overrides, true, owned);
 }

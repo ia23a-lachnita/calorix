@@ -1,3 +1,5 @@
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 /**
  * Task 6 Step 5: fail-closed calibration ledger, pure profile selection,
  * stage gates, and meal-only metric aggregation.
@@ -73,6 +75,24 @@ export const HARD_CALL_CEILING = 300;
 const FIXED_PROTOCOL_VERSION = 'v1';
 const FIXED_PROVIDER = 'vertex-ai';
 const FIXED_MODEL = 'gemini-3.8-flash';
+
+// Closed choices, selected by an explicit factory, never payload metadata.
+interface ClosedCalibrationProtocol {
+  readonly protocolVersion: string; readonly provider: string; readonly model: string;
+  readonly plannedImageCalls: number; readonly hardCeiling: number; readonly root: string;
+}
+const LEGACY_PROTOCOL: Readonly<ClosedCalibrationProtocol> = Object.freeze({
+  protocolVersion: FIXED_PROTOCOL_VERSION, provider: FIXED_PROVIDER, model: FIXED_MODEL,
+  plannedImageCalls: PLANNED_IMAGE_CALLS, hardCeiling: HARD_CALL_CEILING, root: CALIBRATION_ROOT,
+});
+const V2_PROTOCOL: Readonly<ClosedCalibrationProtocol> = Object.freeze({
+  protocolVersion: 'v2', provider: FIXED_PROVIDER, model: FIXED_MODEL,
+  plannedImageCalls: 146, hardCeiling: 146,
+  root: '.nutrition-eval/calibration/calorix-gemini-38-calibration-v2/',
+});
+// Retain original registration with each new handle; no public grant/alias.
+const registeredV2Ledgers = new WeakMap<object, Readonly<CalibrationV2PreparedContext>>();
+
 
 // ── Shared types ─────────────────────────────────────────────────────────────
 
@@ -325,20 +345,20 @@ const NONBLANK_IDENTITY_FIELDS: ReadonlyArray<keyof CalibrationIdentity> = [
  * Distinct from `ledger.assertIdentity`, which checks a later *candidate*
  * identity for drift against this already-fixed one.
  */
-function assertFixedIdentity(identity: CalibrationIdentity): void {
-  if (identity.protocolVersion !== FIXED_PROTOCOL_VERSION) {
+function assertFixedIdentity(identity: CalibrationIdentity, binding: Readonly<ClosedCalibrationProtocol> = LEGACY_PROTOCOL): void {
+  if (identity.protocolVersion !== binding.protocolVersion) {
     throw new CalibrationFatalError('calibration:identity-invalid:protocolVersion');
   }
-  if (identity.provider !== FIXED_PROVIDER) {
+  if (identity.provider !== binding.provider) {
     throw new CalibrationFatalError('calibration:identity-invalid:provider');
   }
-  if (identity.model !== FIXED_MODEL) {
+  if (identity.model !== binding.model) {
     throw new CalibrationFatalError('calibration:identity-invalid:model');
   }
-  if (identity.plannedImageCalls !== PLANNED_IMAGE_CALLS) {
+  if (identity.plannedImageCalls !== binding.plannedImageCalls) {
     throw new CalibrationFatalError('calibration:identity-invalid:plannedImageCalls');
   }
-  if (identity.hardCeiling !== HARD_CALL_CEILING) {
+  if (identity.hardCeiling !== binding.hardCeiling) {
     throw new CalibrationFatalError('calibration:identity-invalid:hardCeiling');
   }
   for (const field of NONBLANK_IDENTITY_FIELDS) {
@@ -1642,7 +1662,13 @@ function createLedgerCore(
     | { keyResolver: CalibrationKeyResolver; reportOptions?: CalibrationProtocolReportOptions | undefined;
       authoritativeOptions?: CalibrationAuthoritativeReportOptions | undefined;
       runtimeOptions?: CalibrationRuntimeEvidenceOptions; benchmarkConfig?: unknown },
+  v2Context?: Readonly<CalibrationV2PreparedContext>,
 ): CalibrationLedger {
+  const context = v2Context === undefined ? undefined : requireCalibrationV2Context(v2Context);
+  const binding = context === undefined ? LEGACY_PROTOCOL : V2_PROTOCOL;
+  if (context !== undefined && identityInput !== context.identity) {
+    throw new CalibrationFatalError('calibration:v2-context-unregistered');
+  }
   const evidenceMode = 'runtimeOptions' in init;
   const benchmarkMode = 'benchmarkConfig' in init;
   let benchmarkHistory: Readonly<CalibrationBenchmarkHistory> | undefined;
@@ -1837,7 +1863,7 @@ function createLedgerCore(
   if (isStrict) {
     assertExactStrictIdentity(identity);
   } else {
-    assertFixedIdentity(identity);
+    assertFixedIdentity(identity, binding);
   }
   let initialAllowedKeys: ReservationKey[];
   if (isStrict) {
@@ -2356,8 +2382,8 @@ function createLedgerCore(
     const finished = snapshot.events.filter((event) => event.type === 'runtime_attempt_finished');
     const finishedKeys = new Set(finished.map((event) => canonicalReservationKey(event.key)));
     if (plan.length !== 158 || canonical.size !== 158 || finished.length !== 158 || finishedKeys.size !== 158
-      || reservations.size !== PLANNED_IMAGE_CALLS || reservationOrder.length !== PLANNED_IMAGE_CALLS
-      || imageReserved !== PLANNED_IMAGE_CALLS || nonReservationsByKey.size !== 12) {
+      || reservations.size !== binding.plannedImageCalls || reservationOrder.length !== binding.plannedImageCalls
+      || imageReserved !== binding.plannedImageCalls || nonReservationsByKey.size !== 12) {
       throw new CalibrationFatalError('calibration:benchmark-authority-failed');
     }
     let imageCount = 0;
@@ -2379,7 +2405,7 @@ function createLedgerCore(
         }
       }
     }
-    if (imageCount !== PLANNED_IMAGE_CALLS || barcodeCount !== 12) {
+    if (imageCount !== binding.plannedImageCalls || barcodeCount !== 12) {
       throw new CalibrationFatalError('calibration:benchmark-authority-failed');
     }
     const pairs: readonly (readonly [StageName, CalibrationProfile])[] = [
@@ -2827,6 +2853,9 @@ function createLedgerCore(
     }
   }
 
+  // Some legacy storage readers create their directory during preparation.
+  // Validate the actual dependency root before those first replay reads.
+  assertBoundaryRoot();
   resetAndReplay();
 
   function safeReadLock(): CalibrationOwner | undefined {
@@ -2982,6 +3011,23 @@ function createLedgerCore(
     return hash;
   }
 
+  function assertBoundaryRoot(opts?: { runDir?: string }): void {
+    let actualRoot: unknown;
+    let requestedRoot: unknown;
+    try {
+      actualRoot = deps.getRoot();
+      if (evidenceMode) evidenceCheck();
+      requestedRoot = opts?.runDir;
+      if (evidenceMode) evidenceCheck();
+    } catch {
+      throw new CalibrationFatalError('calibration:root-redirected');
+    }
+    // An override cannot conceal the root where the dependency really writes.
+    if (actualRoot !== binding.root || (requestedRoot !== undefined && requestedRoot !== binding.root)) {
+      throw new CalibrationFatalError('calibration:root-redirected');
+    }
+  }
+
   function acquireLock(owner: CalibrationOwner, opts?: { runDir?: string }): void {
     checkPoison();
     if (isStrict) {
@@ -2990,20 +3036,7 @@ function createLedgerCore(
     if (heldOwner !== undefined) {
       throw new CalibrationFatalError('calibration:lock-already-held');
     }
-    let effectiveRoot: unknown;
-    if (isStrict) {
-      try {
-        effectiveRoot = opts?.runDir ?? deps.getRoot();
-      } catch {
-        throw new CalibrationFatalError('calibration:root-redirected');
-      }
-    } else {
-      effectiveRoot = opts?.runDir ?? deps.getRoot();
-    }
-    if (evidenceMode) evidenceCheck();
-    if (effectiveRoot !== CALIBRATION_ROOT) {
-      throw new CalibrationFatalError('calibration:root-redirected');
-    }
+    assertBoundaryRoot(opts);
     const existing = safeReadLock();
     if (existing === undefined) {
       safeWriteLockExclusive(owner);
@@ -3138,7 +3171,7 @@ function createLedgerCore(
     if (reservations.has(id)) {
       throw new CalibrationFatalError('calibration:reservation-duplicate');
     }
-    if (imageReserved + 1 > HARD_CALL_CEILING) {
+    if (imageReserved + 1 > binding.hardCeiling) {
       throw new CalibrationFatalError('calibration:reservation-ceiling-exceeded');
     }
     reservations.set(id, { key, status: 'reserved' });
@@ -3157,7 +3190,7 @@ function createLedgerCore(
       throw new CalibrationFatalError('calibration:synthetic-unsupported');
     }
     const attemptNumber = descriptor.index + 1;
-    if (attemptNumber > HARD_CALL_CEILING) {
+    if (attemptNumber > binding.hardCeiling) {
       throw new CalibrationFatalError(
         `calibration:ceiling-exceeded:${descriptor.reason}`,
       );
@@ -3737,7 +3770,7 @@ function createLedgerCore(
       throw new CalibrationFatalError('calibration:ledger-event-duplicate:reserved');
     }
     strictAssertReserveAllowed(key);
-    if (imageReserved + 1 > HARD_CALL_CEILING) {
+    if (imageReserved + 1 > binding.hardCeiling) {
       throw new CalibrationFatalError('calibration:reservation-ceiling-exceeded');
     }
     reservations.set(id, { key, status: 'reserved' });
@@ -4112,7 +4145,7 @@ function createLedgerCore(
     if (reservations.has(id)) {
       throw new CalibrationFatalError('calibration:reservation-duplicate');
     }
-    if (imageReserved + 1 > HARD_CALL_CEILING) {
+    if (imageReserved + 1 > binding.hardCeiling) {
       throw new CalibrationFatalError('calibration:reservation-ceiling-exceeded');
     }
     const at = strictNowIso();
@@ -5115,3 +5148,12 @@ export function evaluateCalibrationStageGate(
 
 export type { CalibrationMealMetrics } from './calibration-report-measurements';
 export { aggregateCalibrationMealMetrics } from './calibration-report-measurements';
+
+export function createCalibrationLedgerV2(
+  context: Readonly<CalibrationV2PreparedContext>, deps: CalibrationLedgerDeps, allowedKeys: readonly ReservationKey[],
+): CalibrationLedger {
+  const ownedContext = requireCalibrationV2Context(context);
+  const ledger = Object.freeze(createLedgerCore(deps, ownedContext.identity, { allowedKeys }, ownedContext));
+  registeredV2Ledgers.set(ledger, ownedContext);
+  return ledger;
+}

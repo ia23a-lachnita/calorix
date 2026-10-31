@@ -162,6 +162,39 @@ Antigravity MCP primary `gemini-3.8-flash`, server-supplied High, returned corre
 
 This subcheckpoint does not implement v2 ledger/root/cap/codec/metadata enforcement or the stage CLI. It makes no nutrition accuracy, full-runtime, security or production-readiness claim. No ledger/client construction, SDK inference/token count, additional visual inspection, cloud mutation or deployment occurred. FullTask2 and the later review/full-parent/actual-source/account/budget/live gates remain open.
 
+## Next base-ledger/root boundary — research only
+
+The narrowed pre-implementation review in `calorix-v2-base-ledger-root-plan-20261031` returned explicit agreement/MUSTnone from primary3.8/High after the first primary timeout and two High-wrapper-incompatible fallback routes. It confirms that BASE mode has no strict protocol header or runtime codec dependency. The next coherent substage is the explicit baseV2ledger factory and three context-bound file-dependency factories. The lock boundary must validate the actual dependency root as well as any supplied `runDir`; a supplied canonical override must not conceal crossed storage. No implementation/result approval follows from this research.
+
+Ruling: clarify Task2 ceiling146/147 proof from actual reachability: keep the existing146allowed-key constructor limit, reserve146real planned keys and assert count146, then exercise pure reserveSynthetic(index146) to hit the direct147>146 diagnostic ceiling error without an extra event/count; ordinary147thkeys must explicitly be reported as unplanned/duplicate rejections, and strict/native synthetic stays forbidden later — actualsource plus narrowedprimaryMCP agrees, no constructor weakening/testgrant/newnativecapability — cost if wrong: the real reserve imageReserved+1 defensive ceiling branch remains unreachable under the valid146unique-key plan and is not directly executed; proof combines actual full-capacity accounting with a separate diagnostic ceiling comparison, rather than demonstrating a147th ordinary reservation at that branch.
+
+## Task2 base ledger and fixed storage roots — reviewed subcheckpoint, 2026-10-31
+
+`createCalibrationLedgerV2` and the three v2 file-dependency factories now require the original registered context. Private frozen choices bind v1/v2 identity, image ceiling and canonical storage root. The v2 base handle is frozen and retains its context through a private WeakMap; file closures retain the original context. Old factories remain v1, and no public descriptor, grant, root override or version selector was introduced. Base mode intentionally emits no strict protocol header; the remaining strict factories/codecs are separate work.
+
+The new tests exposed two existing root-order issues: a canonical `runDir` could conceal the dependency's actual root, and constructor replay could create the wrong legacy directory before the acquisition check. The shared guard now checks the actual root before initial replay and checks both actual root and any override again at acquisition. Invalid crossed storage rejects earlier at construction. All prior valid canonical controls remain unchanged and passing.
+
+| Host run | Native exit | Result / measured time |
+| --- | ---: | --- |
+| `task2-base-ledger-root-host-red-01` | 1 | 1pass /31fail /32tests, including real existing override bypass;8.952s |
+| `task2-base-ledger-root-host-green-01` | 1 | First algorithm:31pass /1constructor-order failure;8.845s |
+| `task2-base-ledger-root-host-red-02` | 1 | Explicit constructor regression:31pass /2fail /33tests;8.776s |
+| `task2-base-ledger-root-host-green-02` | 0 | 37new tests pass;8.780s |
+| `task2-base-ledger-root-host-controls-01` | 0 | 1061pass /13files /0fail /0skip;168.978s |
+| `task2-base-ledger-root-host-build-01` | 0 | Build;45.081s |
+| `task2-base-ledger-root-host-lint-01` | 0 | Lint;89.022s |
+| `task2-base-ledger-root-cold-import-01` | 0 | Store-first and ledger-first compiled imports;4.549s |
+
+Final controls rawSHA `26527058307dfd66ff6960b3f8f6a9d9fe74d1f16f1cc4e8a094313b8748cc30`. All1024prior names/statuses are preserved plus37new, with identical unchanged source/test input maps across the final controls/build/lint. Only four existing top-level function bodies changed;72others remain byte-exact, and four explicit factories were added. No existing test was edited. Compiled imports retain the v1 root and reject fabricated contexts before dependency access; counted SDK constructors and fetch calls are0.
+
+The cap proof follows the recorded ruling:146actual planned reservations reach image count146, then the direct pure diagnostic comparison rejects index146/attempt147 without another event/count. An ordinary147thkey is rejected as unplanned; it does not reach the defensive count guard. That real count-guard branch is unreachable under the valid146unique-key plan and is not claimed as executed. Token reservations are capped separately at one. Strict/native v2 synthetic prohibition remains to be verified with the later strict counterparts. No production constraint or allowed-key limit was weakened to manufacture coverage.
+
+Primary `gemini-3.8-flash`/server High post-review in `calorix-v2-base-ledger-root-implementation-20261031` returned explicit agreement/MUSTnone, scope `PARTIAL_TASK2_BASE_LEDGER_AND_FIXED_STORAGE_ROOTS_ONLY`. Four source/test hashes, three configs, eleven frozen v1 files and candidate rawSHA remain exact after review. Real file tests intentionally write owned disk-backed temporary repositories; no exhaustive filesystem/syscall attestation is claimed. Unit contexts use real admission/registration with a trusted fixture digest seam, rather than an actual fixed-candidate probe.
+
+The paid editor's tests-only attempt ended143 after300.711s without output/files, following today's recorded stronger-route failures. The standing native-edit fallback was therefore applied to this Task2 attempt, with actual RED, independent review, verification and commit/push gates. The cost is reduced editor/host separation; this does not claim permanent account or subscription exhaustion. Task4's one fresh native whole-feature review and full parent remain mandatory.
+
+No SDK image/token call, new visual inspection, cloud mutation, deployment or actual canonical runtime activation occurred. This is not fullTask2, native-budget, nutrition-accuracy, security or production acceptance. Next are strict v2 identity/report/runtime codec captures and the three remaining ledger counterparts, plus canonical keys and metadata; Tasks3–5 remain open.
+
 ## Remaining work
 
 Continue [Task2 of the reviewed runtime plan](superpowers/plans/2026-10-30-calibration-v2-runtime.md): private registered contexts and closed identity/root/codec bindings. Task3 adds report authority, the stage driver and explicit native v2 CLI. Task4 requires one fresh native whole-feature review, a fresh full backend parent, Antigravity whole-result review and current source/account/budget qualification. Only then may Task5 execute the once-only live stages, stopping at the first failure. These remain open; Task1 data qualification does not promote the model or authorize deployment.
