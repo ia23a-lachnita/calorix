@@ -85,7 +85,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function assertValidBaseDir(value: unknown): asserts value is string {
+export function assertValidBaseDir(value: unknown): asserts value is string {
   if (typeof value !== 'string' || value.trim().length === 0 || !isAbsolute(value)) {
     throw bootstrapFatal('calibration:bootstrap-input-invalid:baseDir');
   }
@@ -105,7 +105,7 @@ interface ValidatedGitSnapshot {
   dirtyPaths: string[];
 }
 
-function validateGitSnapshot(raw: unknown): ValidatedGitSnapshot {
+export function validateGitSnapshot(raw: unknown): ValidatedGitSnapshot {
   if (!isRecord(raw)) {
     throw bootstrapFatal('calibration:bootstrap-git-state-invalid');
   }
@@ -164,7 +164,7 @@ function validateGitSnapshot(raw: unknown): ValidatedGitSnapshot {
   };
 }
 
-function assertCleanFunctionsTree(dirtyPaths: readonly string[]): void {
+export function assertCleanFunctionsTree(dirtyPaths: readonly string[]): void {
   for (const entry of dirtyPaths) {
     if (entry === 'functions' || entry.startsWith('functions/')) {
       throw bootstrapFatal('calibration:bootstrap-git-dirty');
@@ -215,7 +215,7 @@ interface ValidatedOwner {
   acquiredAt: string;
 }
 
-function validateOwner(raw: unknown): ValidatedOwner {
+export function validateOwner(raw: unknown): ValidatedOwner {
   if (!isRecord(raw)) {
     throw bootstrapFatal('calibration:bootstrap-owner-invalid');
   }

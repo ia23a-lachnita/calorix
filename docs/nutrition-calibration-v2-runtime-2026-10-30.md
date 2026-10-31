@@ -112,6 +112,26 @@ Antigravity MCP primary `gemini-3.8-flash` with server-supplied High effort revi
 
 The fixed declared route remains `vertex-ai`, project `calorix-xurschnell`, location`us`, model`gemini-3.8-flash`, APIv1,30000ms. No model fallback or recovery route was used. The lock allows146new image reservations and one new token count; prior50images plus146would total196images under300containment. Token counts remain separate. These are ceilings, not spent calls or live-qualification permission.
 
+## Task2 context registration — reviewed subcheckpoint, 2026-10-31
+
+The guarded `prepareCalibrationV2BootstrapContext` now validates the fixed native lock pin, real candidate admission, current source before/after await, owner and shipped shared input hashes before registering an owned immutable context. `requireCalibrationV2Context` accepts only that original object through a private WeakMap. Copies, fabricated records, getters and revoked proxies cannot gain registration by matching metadata. The private TypeScript brand aids static checking; casts can bypass types, so the WeakMap supplies runtime authority.
+
+The context preserves the existing six fields and exact raw activation-lock text, including formatting, separately from the canonical derived manifest. Four existing version-neutral bootstrap validators are exported without changing their bodies or V1 defaults. No descriptor, alias-registration or grant API is exposed. Native bootstrap composition, ledger/root/ceiling enforcement, codecs and metadata changes remain open; the context's146ceiling field alone does not prove reservation147is rejected.
+
+| Run | Native exit | Result / measured whole-process time |
+| --- | ---: | --- |
+| `task2-existing-controls-baseline-01` | 0 | 933existing core tests,9files;126.866s |
+| `task2-bindings-host-red-02` | 1 | 50prior admission pass /28intended stub failures;16.722s |
+| `task2-bindings-host-green-01` | 0 | 1011pass,11files, zero failures/skips;86.907s |
+| `task2-bindings-host-build-01` | 0 | `npm run build`;31.131s |
+| `task2-bindings-host-lint-01` | 0 | `npm run lint`;43.966s |
+
+FinalGREEN rawSHA `324398d1a36faff7fc48f281fb57716dda232cfe2cf40c15e7bd157167d0b4f1`. All933baseline case/status entries and50admission controls are preserved plus28new tests. SDK construction, fetch and common filesystem-write guard counters remain0. The host observed actual RED before writing algorithms. All four source/test fingerprints, protected configurations,11frozen v1 files and candidate remained exact after review and on the next-day resume; Node remained22.23.3. Tests were not rerun solely because the date changed.
+
+Corrected Antigravity MCP primary `gemini-3.8-flash` with server-supplied High effort returned `AGREEMENT_STATUS: agree` /`MUST_FIX: none` in `calorix-v2-registered-context-slice-20261030`, exactscope `PARTIAL_TASK2_GUARDED_CONTEXT_REGISTRATION_ONLY`. It inspected all four source/test files and RED/GREEN/build/lint receipts. Initial wording overstated TypeScript branding and a prospective import-cycle failure; the corrected review confirms runtime WeakMap authority and no demonstrated current failure. Extracting identical capture validators into a pure leaf module before ledger integration is the agreed preventive next step, rather than relying on import ordering. This is not approval of unwritten ledger code or whole-runtime readiness.
+
+Task2's ordered editing routes were freshly exhausted: configured Grok unavailable, Qwen free quota exhausted, three approved catalog routes absent, and Lightning/BigPickle/paidSonnet produced no files within their recorded301seconds-or-less bounds. Native host fallback for remainingTask2 was recorded under the standing rule; it does not assert permanent account exhaustion. The reduced worker/author separation is offset by mandatory independent reviews and exact-source verification. No food/token SDK call, budget/root/ledger activation, new visual inspection, production default or deployment change occurred.
+
 ## Remaining work
 
 Continue [Task2 of the reviewed runtime plan](superpowers/plans/2026-10-30-calibration-v2-runtime.md): private registered contexts and closed identity/root/codec bindings. Task3 adds report authority, the stage driver and explicit native v2 CLI. Task4 requires one fresh native whole-feature review, a fresh full backend parent, Antigravity whole-result review and current source/account/budget qualification. Only then may Task5 execute the once-only live stages, stopping at the first failure. These remain open; Task1 data qualification does not promote the model or authorize deployment.
