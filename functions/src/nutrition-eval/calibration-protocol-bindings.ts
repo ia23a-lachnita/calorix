@@ -4,7 +4,7 @@ import type { CalibrationV2AdmissionInput } from './calibration-v2-admission';
 import { createHash } from 'node:crypto';
 import { types } from 'node:util';
 import { CalibrationFatalError } from './fatal-error';
-import { assertValidBaseDir, validateGitSnapshot, assertCleanFunctionsTree, validateOwner } from './calibration-bootstrap';
+import { assertValidBaseDir, validateGitSnapshot, assertCleanFunctionsTree, validateOwner } from './calibration-bootstrap-capture';
 import { admitCalibrationV2Candidate } from './calibration-v2-admission';
 import { CALIBRATION_ACTIVATION_LOCK_V2_SHA256 } from './calibration-v2-lock';
 import { hashNutritionEvalManifest, hashNutritionEvalPrompts } from './cli';
