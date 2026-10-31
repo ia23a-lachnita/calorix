@@ -1,3 +1,5 @@
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 /**
  * Pure report-state shared types and closed capture codecs (Task 1 Step 3,
  * bounded first piece: module only).
@@ -367,9 +369,14 @@ function canonicalKeyId(key: CalibrationReportOutcomeKey): string {
   return `${key.stage}|${key.profile}|${key.caseId}|${key.sampleIndex}`;
 }
 
-function captureIdentity(value: unknown): Readonly<CalibrationIdentity> {
+// Only explicit, checked-context boundaries select the second closed choice.
+const V1_IDENTITY = Object.freeze({ protocolVersion: 'v1', hardCeiling: 300 });
+const V2_IDENTITY = Object.freeze({ protocolVersion: 'v2', hardCeiling: 146 });
+
+function captureIdentity(value: unknown, checkedContext?: Readonly<CalibrationV2PreparedContext>): Readonly<CalibrationIdentity> {
+  const binding = checkedContext === undefined ? V1_IDENTITY : V2_IDENTITY;
   const map = captureEnumerableExact(value, IDENTITY_FIELDS);
-  if (map.get('protocolVersion') !== 'v1') {
+  if (map.get('protocolVersion') !== binding.protocolVersion) {
     throw new Error('calibration-report-state:identity-invalid:protocolVersion');
   }
   if (map.get('provider') !== 'vertex-ai') {
@@ -381,7 +388,7 @@ function captureIdentity(value: unknown): Readonly<CalibrationIdentity> {
   if (map.get('plannedImageCalls') !== 146) {
     throw new Error('calibration-report-state:identity-invalid:plannedImageCalls');
   }
-  if (map.get('hardCeiling') !== 300) {
+  if (map.get('hardCeiling') !== binding.hardCeiling) {
     throw new Error('calibration-report-state:identity-invalid:hardCeiling');
   }
   const implementationCommit = map.get('implementationCommit');
@@ -400,7 +407,11 @@ function captureIdentity(value: unknown): Readonly<CalibrationIdentity> {
   }
   const owned: Record<string, unknown> = {};
   for (const field of IDENTITY_FIELDS) {
-    owned[field] = map.get(field);
+    const primitive = map.get(field);
+    if (checkedContext !== undefined && primitive !== checkedContext.identity[field]) {
+      throw new Error('calibration-report-state:identity-mismatch');
+    }
+    owned[field] = primitive;
   }
   Object.freeze(owned);
   return owned as Readonly<CalibrationIdentity>;
@@ -574,7 +585,7 @@ function captureImageRow(value: unknown): CalibrationImageTerminalOutcome {
   throw new Error('calibration-report-state:image-row-status-invalid');
 }
 
-export function captureCalibrationStageReportSnapshot(value: unknown): CalibrationStageReportSnapshot {
+function captureStageReportSnapshotCore(value: unknown, checkedContext?: Readonly<CalibrationV2PreparedContext>): CalibrationStageReportSnapshot {
   try {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
       throw new Error('calibration-report-state:snapshot-invalid');
@@ -643,7 +654,7 @@ export function captureCalibrationStageReportSnapshot(value: unknown): Calibrati
     if (profile !== 'LOW' && profile !== 'MEDIUM') {
       throw new Error('calibration-report-state:profile-invalid');
     }
-    const identity = captureIdentity(map.get('identity'));
+    const identity = captureIdentity(map.get('identity'), checkedContext);
 
     let startedAt: string | undefined;
     if (map.has('startedAt')) {
@@ -745,4 +756,13 @@ export function captureCalibrationStageReportSnapshot(value: unknown): Calibrati
   } catch {
     return fatal('calibration:stage-report-state-invalid');
   }
+}
+
+export function captureCalibrationStageReportSnapshotV2(context: Readonly<CalibrationV2PreparedContext>, value: unknown): CalibrationStageReportSnapshot {
+  const ownedContext = requireCalibrationV2Context(context);
+  return captureStageReportSnapshotCore(value, ownedContext);
+}
+
+export function captureCalibrationStageReportSnapshot(value: unknown): CalibrationStageReportSnapshot {
+  return captureStageReportSnapshotCore(value);
 }

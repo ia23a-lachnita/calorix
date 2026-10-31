@@ -195,6 +195,29 @@ The paid editor's tests-only attempt ended143 after300.711s without output/files
 
 No SDK image/token call, new visual inspection, cloud mutation, deployment or actual canonical runtime activation occurred. This is not fullTask2, native-budget, nutrition-accuracy, security or production acceptance. Next are strict v2 identity/report/runtime codec captures and the three remaining ledger counterparts, plus canonical keys and metadata; Tasks3–5 remain open.
 
+## Task2 pure identity codecs — reviewed subcheckpoint, 2026-10-31
+
+Six explicit v2 functions now capture stage snapshots and runtime headers/events, encode headers/events, and hash runtime bindings. Every v2 entry first requires the original registered context. Shared private cores retain existing capture/refinement/serialization behavior while checking the fixed v2 protocol/146ceiling and all15identity fields against that owned context. Legacy exports remain v1. Owned frozen payloads remain data and never acquire context registration or authority.
+
+Identity-free runtime events keep their version1 bytes in both entry families. The protocol boundary is the header, snapshot or full-identity binding; identical identity-free events are not falsely treated as cross-version errors. Header owners remain structurally checked for durable process handoffs, rather than being forced to equal the current context owner. Receipt run ID prefixes still match the identity's implementation commit.
+
+| Host run | Native exit | Result / measured time |
+| --- | ---: | --- |
+| `task2-identity-codec-host-red-03` | 1 | Independent literal v1 golden passes;31new cases fail /32total;7.386s |
+| `task2-identity-codec-host-green-01` | 0 | 32new tests pass;7.232s |
+| `task2-identity-codec-host-controls-01` | 0 | 1093pass /14files /0fail /0skip;154.912s |
+| `task2-identity-codec-host-build-01` | 0 | Build;74.075s |
+| `task2-identity-codec-host-lint-01` | 0 | Lint;85.945s |
+| `task2-identity-codec-cold-import-01` | 0 | Four compiled CJS entry orders;2.620s |
+
+Final controls rawSHA `a84bd314e2be8e12466b3b15313aedd22401ccd1f6093eb5abd869909179c2e6`. Exact1061prior names/statuses remain plus32new, with identical unchanged source/test hashes across final controls/build/lint. Commit/tree drift cases use valid40hex replacements to exercise binding beyond format rejection. The v1 byte test pins1222literal bytes plus an independently computed SHA from explicit fixture data using Python standard JSON before any codec change; expected bytes were never obtained from the codec under test.
+
+Six existing top-level bodies changed and42others remain exact. Three original structural cores are preserved byte-for-byte except for the checked-context argument to identity capture; old event capture/encoding is entirely unchanged. Six public v2 wrappers and four private helpers were added. Four cold import orders preserve v1 bytes/root/cap300 and reject fabricated contexts at all six entries with zero payload traps, counted SDK constructors and fetch calls. This is limited to the exercised entries, not exhaustive module/transport/syscall attestation or an actual fixed-candidate probe. Common asynchronous write/mkdir/rename counters are0 during unit operations; this is not a blanket filesystem attestation.
+
+Primary3.8/High corrected pre-review `calorix-v2-identity-codec-plan-20261031` agreed to the design before implementation. The first primary timed out and two fallback models rejected High effort. A narrowed response incorrectly described planned guards as already implemented; the reviewer explicitly retracted those present-tense implementation/result claims while source was still throwing stubs. Only the corrected pre-plan agreement was accepted. Actual RED preceded the algorithm. Primary3.8/High post-review `calorix-v2-identity-codec-implementation-20261031` then returned agreement/MUSTnone, scope `PARTIAL_TASK2_IDENTITY_CODECS_ONLY`, against actual source/results. All three source/test fingerprints, three configs, eleven prior v1 files and candidate rawSHA stayed exact after review.
+
+The current Task2 native-edit fallback remains bounded to this attempt, following the recorded worker failures, with independent review and verification retained. No image/token SDK request, additional visual inspection, actual canonical runtime activation, cloud mutation or deployment occurred. Runtime evidence state, three strict v2 ledger factories, canonical key planning, v2 metadata and the general reader remain open. This slice does not qualify native budgeting, nutrition accuracy, security, whole-runtime behavior or production readiness.
+
 ## Remaining work
 
 Continue [Task2 of the reviewed runtime plan](superpowers/plans/2026-10-30-calibration-v2-runtime.md): private registered contexts and closed identity/root/codec bindings. Task3 adds report authority, the stage driver and explicit native v2 CLI. Task4 requires one fresh native whole-feature review, a fresh full backend parent, Antigravity whole-result review and current source/account/budget qualification. Only then may Task5 execute the once-only live stages, stopping at the first failure. These remain open; Task1 data qualification does not promote the model or authorize deployment.

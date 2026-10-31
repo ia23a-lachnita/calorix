@@ -1,3 +1,5 @@
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 /**
  * Calibration durable runtime evidence closed codec (Task 1 Step 3).
  *
@@ -373,9 +375,14 @@ function captureProfile(value: unknown): CalibrationProfile {
   return value as CalibrationProfile;
 }
 
-function captureIdentity(value: unknown): Readonly<CalibrationIdentity> {
+// Only explicit, checked-context boundaries select the second closed choice.
+const V1_IDENTITY = Object.freeze({ protocolVersion: 'v1', hardCeiling: 300 });
+const V2_IDENTITY = Object.freeze({ protocolVersion: 'v2', hardCeiling: 146 });
+
+function captureIdentity(value: unknown, checkedContext?: Readonly<CalibrationV2PreparedContext>): Readonly<CalibrationIdentity> {
+  const binding = checkedContext === undefined ? V1_IDENTITY : V2_IDENTITY;
   const map = captureExactRecord(value, IDENTITY_FIELDS);
-  if (map.get('protocolVersion') !== 'v1') {
+  if (map.get('protocolVersion') !== binding.protocolVersion) {
     fail();
   }
   if (map.get('provider') !== 'vertex-ai') {
@@ -387,7 +394,7 @@ function captureIdentity(value: unknown): Readonly<CalibrationIdentity> {
   if (map.get('plannedImageCalls') !== 146) {
     fail();
   }
-  if (map.get('hardCeiling') !== 300) {
+  if (map.get('hardCeiling') !== binding.hardCeiling) {
     fail();
   }
   captureHex(map.get('implementationCommit'), HEX40_PATTERN);
@@ -397,7 +404,11 @@ function captureIdentity(value: unknown): Readonly<CalibrationIdentity> {
   }
   const owned: Record<string, unknown> = {};
   for (const field of IDENTITY_FIELDS) {
-    owned[field] = map.get(field);
+    const primitive = map.get(field);
+    if (checkedContext !== undefined && primitive !== checkedContext.identity[field]) {
+      fail();
+    }
+    owned[field] = primitive;
   }
   return deepFreeze(owned) as unknown as Readonly<CalibrationIdentity>;
 }
@@ -682,12 +693,12 @@ function canonicalKeyId(key: Readonly<CalibrationReportOutcomeKey>): string {
   return `${key.stage}|${key.profile}|${key.caseId}|${key.sampleIndex}`;
 }
 
-export function captureCalibrationRuntimeEvidenceHeader(value: unknown): Readonly<RuntimeEvidenceHeader> {
+function captureHeaderCore(value: unknown, checkedContext?: Readonly<CalibrationV2PreparedContext>): Readonly<RuntimeEvidenceHeader> {
   const map = captureExactRecord(value, HEADER_FIELDS);
   if (map.get('type') !== 'protocol_identity') {
     fail();
   }
-  const identity = captureIdentity(map.get('identity'));
+  const identity = captureIdentity(map.get('identity'), checkedContext);
   const at = captureTimestamp(map.get('at'));
   if (map.get('reportAuthority') !== 'verified_artifacts_v1') {
     fail();
@@ -957,13 +968,16 @@ export function captureCalibrationRuntimeEvidenceEvent(value: unknown): Readonly
   }
 }
 
-export function encodeCalibrationRuntimeEvidenceHeader(value: unknown): string {
-  const captured = captureCalibrationRuntimeEvidenceHeader(value);
+function encodeCapturedRuntimeHeader(captured: Readonly<RuntimeEvidenceHeader>): string {
   const encoded = canonicalize(captured);
   if (Buffer.byteLength(encoded, 'utf8') > RECORD_BOUND) {
     fail();
   }
   return encoded;
+}
+
+export function encodeCalibrationRuntimeEvidenceHeader(value: unknown): string {
+  return encodeCapturedRuntimeHeader(captureCalibrationRuntimeEvidenceHeader(value));
 }
 
 export function encodeCalibrationRuntimeEvidenceEvent(value: unknown): string {
@@ -975,12 +989,12 @@ export function encodeCalibrationRuntimeEvidenceEvent(value: unknown): string {
   return encoded;
 }
 
-export function hashCalibrationRuntimeEvidenceBinding(value: unknown): string {
+function hashBindingCore(value: unknown, checkedContext?: Readonly<CalibrationV2PreparedContext>): string {
   const map = captureExactRecord(value, BINDING_FIELDS);
   if (map.get('version') !== 1) {
     fail();
   }
-  const identity = captureIdentity(map.get('identity'));
+  const identity = captureIdentity(map.get('identity'), checkedContext);
   const stage = captureStage(map.get('stage'));
   const profile = captureProfile(map.get('profile'));
   const throughSequence = captureNonNegativeIndex(map.get('throughSequence'));
@@ -1047,4 +1061,37 @@ export function hashCalibrationRuntimeEvidenceBinding(value: unknown): string {
   const frozen = deepFreeze(owned) as unknown as Readonly<RuntimeBindingInput>;
   const encoded = canonicalize(frozen);
   return createHash('sha256').update(encoded, 'utf8').digest('hex');
+}
+
+export function captureCalibrationRuntimeEvidenceHeaderV2(context: Readonly<CalibrationV2PreparedContext>, value: unknown): Readonly<RuntimeEvidenceHeader> {
+  const ownedContext = requireCalibrationV2Context(context);
+  return captureHeaderCore(value, ownedContext);
+}
+
+export function captureCalibrationRuntimeEvidenceEventV2(context: Readonly<CalibrationV2PreparedContext>, value: unknown): Readonly<RuntimeEvidenceEvent> {
+  requireCalibrationV2Context(context);
+  return captureCalibrationRuntimeEvidenceEvent(value);
+}
+
+export function encodeCalibrationRuntimeEvidenceHeaderV2(context: Readonly<CalibrationV2PreparedContext>, value: unknown): string {
+  const ownedContext = requireCalibrationV2Context(context);
+  return encodeCapturedRuntimeHeader(captureHeaderCore(value, ownedContext));
+}
+
+export function encodeCalibrationRuntimeEvidenceEventV2(context: Readonly<CalibrationV2PreparedContext>, value: unknown): string {
+  requireCalibrationV2Context(context);
+  return encodeCalibrationRuntimeEvidenceEvent(value);
+}
+
+export function hashCalibrationRuntimeEvidenceBindingV2(context: Readonly<CalibrationV2PreparedContext>, value: unknown): string {
+  const ownedContext = requireCalibrationV2Context(context);
+  return hashBindingCore(value, ownedContext);
+}
+
+export function captureCalibrationRuntimeEvidenceHeader(value: unknown): Readonly<RuntimeEvidenceHeader> {
+  return captureHeaderCore(value);
+}
+
+export function hashCalibrationRuntimeEvidenceBinding(value: unknown): string {
+  return hashBindingCore(value);
 }
