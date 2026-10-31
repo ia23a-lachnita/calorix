@@ -142,6 +142,26 @@ Antigravity MCP primary `gemini-3.8-flash` with server-supplied High effort retu
 
 Ordered editor availability was refreshed after the overnight gap. Free-route exact errors/absences and180second delivery bounds are recorded in tracking; paid `claude-sonnet-5` then delivered the three allowed files, native0/162.071s. Its current availability supersedes the previous bounded native-fallback account, without erasing that historical record. The shorter mechanical-refactor bound can reject a legitimate slow worker sooner; all routes, owned-process checks, host verification and independent reviews remain required. Next native wiring uses the working editor route, tests first.
 
+## Task2 native bootstrap composition — reviewed subcheckpoint, 2026-10-31
+
+`calibration-v2-bootstrap.ts` now composes the five fixed read ports from the existing native Git/owner/committed-asset readers and Task1 raw admission reader. Creation is lazy, and committed reads accept only the three shared asset paths plus a lowercase40hex commit. It reexports the original guarded preparation factory, preserving the same private context registry. No configurable pin, descriptor, output root or CLI override was added.
+
+| Host run | Native exit | Result / whole-process time |
+| --- | ---: | --- |
+| `task2-native-bootstrap-host-red-01` | 1 | 13new tests fail on the unimplemented factory /wrong fatal class;5.567s |
+| `task2-native-bootstrap-host-branch-01` | 1 | 12pass /1real Git-index preservation failure;8.169s |
+| `task2-native-bootstrap-host-green-01` | 0 | 1024pass /12files /0fail /0skip;135.207s |
+| `task2-native-bootstrap-host-build-01` | 0 | `npm run build`;45.793s |
+| `task2-native-bootstrap-host-lint-01` | 0 | `npm run lint`;61.742s |
+
+FinalGREEN rawSHA `b0eac2d77b25c716fba6399815fe12ff12e2108ad2ac93b82623db0d5235aebc`. All1011prior case/status entries remain plus13new, and all three final checks bind the same unchanged source/test hashes. The real mtime-only fixture reached the actual native Git reader and exposed optional index refresh. Only then did the worker add `GIT_OPTIONAL_LOCKS=0` to the shared helper; its exercised index bytes now remain unchanged. V1 identity/root/cap/API/serialization remain unchanged, while suppressing that incidental write is the intentional operational correction.
+
+Tests use actual temporary Git repositories, three shipped shared asset byte sets and Linux process-owner reads. Only the trusted native raw-input reader and native digest pin are replaced for fixture admission; the real pure admission and guarded context algorithms run, and the original registry accepts the owned context while rejecting its clone. The unit seam does not replace Task4's actual fixed-candidate native probe. Existing tests were not changed. Three paid editor deliveries exited0 in454.132s,248.091s and26.008s; host observed RED, reviewed source and collected verification.
+
+Antigravity MCP primary `gemini-3.8-flash`, server-supplied High, returned corrected `AGREEMENT_STATUS: agree` /`MUST_FIX: none` in `calorix-v2-native-bootstrap-composition-20261031`, scope `PARTIAL_TASK2_NATIVE_BOOTSTRAP_COMPOSITION_ONLY`. The correction narrows counter evidence: common asynchronous write/mkdir/rename, fetch and SDK construction are counted, and lazy factory creation counts synchronous/asynchronous file reads and native exec calls. These are not exhaustive filesystem/syscall instrumentation; fixture setup/cleanup intentionally writes owned disk-backed temporary repositories. The separate Git-index assertion covers its exercised scenario. No module-load isolation is claimed for this composition module. Source fingerprints, three configs, eleven frozen v1 files and candidate rawSHA remained exact after review.
+
+This subcheckpoint does not implement v2 ledger/root/cap/codec/metadata enforcement or the stage CLI. It makes no nutrition accuracy, full-runtime, security or production-readiness claim. No ledger/client construction, SDK inference/token count, additional visual inspection, cloud mutation or deployment occurred. FullTask2 and the later review/full-parent/actual-source/account/budget/live gates remain open.
+
 ## Remaining work
 
 Continue [Task2 of the reviewed runtime plan](superpowers/plans/2026-10-30-calibration-v2-runtime.md): private registered contexts and closed identity/root/codec bindings. Task3 adds report authority, the stage driver and explicit native v2 CLI. Task4 requires one fresh native whole-feature review, a fresh full backend parent, Antigravity whole-result review and current source/account/budget qualification. Only then may Task5 execute the once-only live stages, stopping at the first failure. These remain open; Task1 data qualification does not promote the model or authorize deployment.

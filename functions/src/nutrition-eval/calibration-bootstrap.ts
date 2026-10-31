@@ -136,6 +136,7 @@ function gitExec(root: string, args: readonly string[]): string {
       timeout: 10000,
       maxBuffer: 8 * 1024 * 1024,
       stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' },
     }) as unknown as string;
     return typeof out === 'string' ? out : String(out);
   } catch {
