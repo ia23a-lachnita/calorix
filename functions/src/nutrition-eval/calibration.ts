@@ -5206,3 +5206,11 @@ export function createBenchmarkAuthorityCalibrationLedgerV2(
   registeredV2Ledgers.set(ledger, ownedContext);
   return ledger as CalibrationRuntimeEvidenceLedger;
 }
+
+export function requireMatchingCalibrationV2Ledger(context: Readonly<CalibrationV2PreparedContext>, handle: unknown): void {
+  const ownedContext = requireCalibrationV2Context(context);
+  // Low-level handle/context pairing only; not a native SDK admission check.
+  if (handle === null || typeof handle !== 'object' || registeredV2Ledgers.get(handle) !== ownedContext) {
+    throw new CalibrationFatalError('calibration:v2-ledger-context-mismatch');
+  }
+}
