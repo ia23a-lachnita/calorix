@@ -36,6 +36,7 @@ import {
   captureCalibrationNonReservationEntry,
   captureCalibrationNonReservationEvent,
   captureCalibrationStageReportSnapshot,
+  captureCalibrationStageReportSnapshotV2,
 } from './calibration-report-state';
 import type {
   CalibrationNonReservationEntry,
@@ -46,8 +47,11 @@ import type {
 } from './calibration-report-state';
 import {
   captureCalibrationRuntimeEvidenceEvent,
+  captureCalibrationRuntimeEvidenceEventV2,
   captureCalibrationRuntimeEvidenceHeader,
+  captureCalibrationRuntimeEvidenceHeaderV2,
   hashCalibrationRuntimeEvidenceBinding,
+  hashCalibrationRuntimeEvidenceBindingV2,
 } from './calibration-runtime-evidence-codec';
 import type {
   RuntimeAttemptRef,
@@ -56,7 +60,7 @@ import type {
   RuntimePayload,
   RuntimeTerminal,
 } from './calibration-runtime-evidence-codec';
-import { prepareCalibrationRuntimeEvidenceState } from './calibration-runtime-evidence-state';
+import { prepareCalibrationRuntimeEvidenceState, prepareCalibrationRuntimeEvidenceStateV2 } from './calibration-runtime-evidence-state';
 import type {
   CalibrationRuntimeEvidenceState,
   RuntimeCanonicalPlans,
@@ -762,8 +766,10 @@ function cloneStrictIdentity(input: unknown): CalibrationIdentity {
   }
 }
 
-/** Fixed v1/vertex-ai/gemini-3.8-flash/146/300 plus exact lowercase hex binding. */
-function assertExactStrictIdentity(identity: CalibrationIdentity): void {
+/** Closed protocol facts plus exact lowercase hex binding. */
+function assertExactStrictIdentity(
+  identity: CalibrationIdentity, binding: Readonly<ClosedCalibrationProtocol> = LEGACY_PROTOCOL,
+): void {
   let values: Record<string, unknown>;
   try {
     values = {} as Record<string, unknown>;
@@ -773,19 +779,19 @@ function assertExactStrictIdentity(identity: CalibrationIdentity): void {
   } catch {
     throw new CalibrationFatalError('calibration:identity-invalid');
   }
-  if (values.protocolVersion !== FIXED_PROTOCOL_VERSION) {
+  if (values.protocolVersion !== binding.protocolVersion) {
     throw new CalibrationFatalError('calibration:identity-invalid:protocolVersion');
   }
-  if (values.provider !== FIXED_PROVIDER) {
+  if (values.provider !== binding.provider) {
     throw new CalibrationFatalError('calibration:identity-invalid:provider');
   }
-  if (values.model !== FIXED_MODEL) {
+  if (values.model !== binding.model) {
     throw new CalibrationFatalError('calibration:identity-invalid:model');
   }
-  if (values.plannedImageCalls !== PLANNED_IMAGE_CALLS) {
+  if (values.plannedImageCalls !== binding.plannedImageCalls) {
     throw new CalibrationFatalError('calibration:identity-invalid:plannedImageCalls');
   }
-  if (values.hardCeiling !== HARD_CALL_CEILING) {
+  if (values.hardCeiling !== binding.hardCeiling) {
     throw new CalibrationFatalError('calibration:identity-invalid:hardCeiling');
   }
   if (typeof values.implementationCommit !== 'string' || !HEX40_PATTERN.test(values.implementationCommit)) {
@@ -1669,6 +1675,17 @@ function createLedgerCore(
   if (context !== undefined && identityInput !== context.identity) {
     throw new CalibrationFatalError('calibration:v2-context-unregistered');
   }
+  // These closures retain the original registration across replay and transitions.
+  const captureStageSnapshot: typeof captureCalibrationStageReportSnapshot = (value) => context === undefined
+    ? captureCalibrationStageReportSnapshot(value) : captureCalibrationStageReportSnapshotV2(context, value);
+  const captureRuntimeEvent: typeof captureCalibrationRuntimeEvidenceEvent = (value) => context === undefined
+    ? captureCalibrationRuntimeEvidenceEvent(value) : captureCalibrationRuntimeEvidenceEventV2(context, value);
+  const captureRuntimeHeader: typeof captureCalibrationRuntimeEvidenceHeader = (value) => context === undefined
+    ? captureCalibrationRuntimeEvidenceHeader(value) : captureCalibrationRuntimeEvidenceHeaderV2(context, value);
+  const hashRuntimeBinding: typeof hashCalibrationRuntimeEvidenceBinding = (value) => context === undefined
+    ? hashCalibrationRuntimeEvidenceBinding(value) : hashCalibrationRuntimeEvidenceBindingV2(context, value);
+  const prepareRuntimeState: typeof prepareCalibrationRuntimeEvidenceState = (value) => context === undefined
+    ? prepareCalibrationRuntimeEvidenceState(value) : prepareCalibrationRuntimeEvidenceStateV2(context, value);
   const evidenceMode = 'runtimeOptions' in init;
   const benchmarkMode = 'benchmarkConfig' in init;
   let benchmarkHistory: Readonly<CalibrationBenchmarkHistory> | undefined;
@@ -1861,7 +1878,7 @@ function createLedgerCore(
   }
   const identity = isStrict ? cloneStrictIdentity(identityInput) : identityInput;
   if (isStrict) {
-    assertExactStrictIdentity(identity);
+    assertExactStrictIdentity(identity, binding);
   } else {
     assertFixedIdentity(identity, binding);
   }
@@ -1977,7 +1994,7 @@ function createLedgerCore(
     const eventIndex = evidenceSnapshot().lastEventIndex + 1;
     const type = event.type;
     if (typeof type === 'string' && type.startsWith('runtime_')) {
-      return { kind: 'runtime', eventIndex, event: captureCalibrationRuntimeEvidenceEvent(event) };
+      return { kind: 'runtime', eventIndex, event: captureRuntimeEvent(event) };
     }
     if (type === 'reserved') return { kind: 'reserved', eventIndex, key: event.key as ReservationKey };
     if (type === 'completed' || type === 'failed') {
@@ -2021,7 +2038,7 @@ function createLedgerCore(
     const record = captureStrictReportRecord(raw, ['key', 'attempt'], 'calibration:runtime-ref-invalid');
     // The codec owns key/attempt validation. This owned synthetic event is
     // validation data only and is never persisted or counted as execution.
-    const event = captureCalibrationRuntimeEvidenceEvent({ type: 'runtime_attempt_started', version: 1,
+    const event = captureRuntimeEvent({ type: 'runtime_attempt_started', version: 1,
       owner: evidenceSnapshot().owner, at: evidenceSnapshot().owner.acquiredAt,
       sequence: 1, key: record.key, attempt: record.attempt });
     if (event.type !== 'runtime_attempt_started') throw new CalibrationFatalError('calibration:runtime-ref-invalid');
@@ -2033,7 +2050,7 @@ function createLedgerCore(
     const snapshot = evidenceSnapshot();
     const at = strictNowIso();
     evidenceCheck();
-    return captureCalibrationRuntimeEvidenceEvent({ ...payload, version: 1,
+    return captureRuntimeEvent({ ...payload, version: 1,
       sequence: snapshot.sequence + 1, owner: heldOwner, at });
   }
 
@@ -2079,13 +2096,13 @@ function createLedgerCore(
     const previous = evidenceSnapshot().events.find((event) => event.type === 'runtime_report_bound' && event.stage === stage && event.profile === profile);
     if (previous?.type === 'runtime_report_bound') {
       const input = evidenceState!.pairInput(stage, profile, previous.throughSequence);
-      const digest = hashCalibrationRuntimeEvidenceBinding({ ...input, receipt });
+      const digest = hashRuntimeBinding({ ...input, receipt });
       if (digest !== previous.bindingSha256 || !sameReceipt(receipt, previous.receipt)) throw new CalibrationFatalError('calibration:runtime-binding-conflict');
       return previous;
     }
     const throughSequence = evidenceSnapshot().sequence;
     const input = evidenceState!.pairInput(stage, profile, throughSequence);
-    const bindingSha256 = hashCalibrationRuntimeEvidenceBinding({ ...input, receipt });
+    const bindingSha256 = hashRuntimeBinding({ ...input, receipt });
     const event = evidencePublish({ type: 'runtime_report_bound', stage, profile, receipt, throughSequence, bindingSha256 });
     if (event.type !== 'runtime_report_bound') throw new CalibrationFatalError('calibration:runtime-binding-invalid');
     return event;
@@ -2423,7 +2440,7 @@ function createLedgerCore(
         throw new CalibrationFatalError('calibration:benchmark-authority-failed');
       }
       const input = evidenceState!.pairInput(stage, profile, bound.throughSequence);
-      const digest = hashCalibrationRuntimeEvidenceBinding({ ...input, receipt });
+      const digest = hashRuntimeBinding({ ...input, receipt });
       evidenceCheck();
       if (digest !== bound.bindingSha256) throw new CalibrationFatalError('calibration:benchmark-authority-failed');
       return { stage, profile, receipt, input };
@@ -2945,7 +2962,7 @@ function createLedgerCore(
       if (evidenceMode) {
         owned = evidenceCapture(event) as Readonly<Record<string, unknown>>;
         candidate = owned.type === 'protocol_identity'
-          ? prepareCalibrationRuntimeEvidenceState({ header: captureCalibrationRuntimeEvidenceHeader(owned), plans: evidencePlans })
+          ? prepareRuntimeState({ header: captureRuntimeHeader(owned), plans: evidencePlans })
           : evidenceState!.preview(evidenceFrame(owned));
         evidenceCheck();
       }
@@ -3489,9 +3506,9 @@ function createLedgerCore(
 
   function strictValidateHeaderEvent(event: unknown): void {
     if (evidenceMode) {
-      const header = captureCalibrationRuntimeEvidenceHeader(event);
+      const header = captureRuntimeHeader(event);
       strictAssertIdentity(header.identity);
-      evidenceState = prepareCalibrationRuntimeEvidenceState({ header, plans: evidencePlans });
+      evidenceState = prepareRuntimeState({ header, plans: evidencePlans });
       evidenceHistory = [header as unknown as Readonly<Record<string, unknown>>];
       return;
     }
@@ -4752,7 +4769,7 @@ function createLedgerCore(
     if (pinnedModelVersion !== undefined) {
       snapshotInput['pinnedModelVersion'] = pinnedModelVersion;
     }
-    return captureCalibrationStageReportSnapshot(snapshotInput);
+    return captureStageSnapshot(snapshotInput);
   }
 
   const baseLedger: CalibrationLedger = {
@@ -5156,4 +5173,36 @@ export function createCalibrationLedgerV2(
   const ledger = Object.freeze(createLedgerCore(deps, ownedContext.identity, { allowedKeys }, ownedContext));
   registeredV2Ledgers.set(ledger, ownedContext);
   return ledger;
+}
+
+export function createProtocolCalibrationLedgerV2(
+  context: Readonly<CalibrationV2PreparedContext>, deps: CalibrationLedgerDeps, keyResolver: CalibrationKeyResolver,
+  reportOptions?: CalibrationProtocolReportOptions, authoritativeOptions?: CalibrationAuthoritativeReportOptions,
+): CalibrationProtocolLedger {
+  const ownedContext = requireCalibrationV2Context(context);
+  const ledger = Object.freeze(createLedgerCore(deps, ownedContext.identity, { keyResolver, reportOptions, authoritativeOptions }, ownedContext));
+  registeredV2Ledgers.set(ledger, ownedContext);
+  return ledger as CalibrationProtocolLedger;
+}
+
+export function createRuntimeEvidenceCalibrationLedgerV2(
+  context: Readonly<CalibrationV2PreparedContext>, deps: CalibrationLedgerDeps, keyResolver: CalibrationKeyResolver,
+  reportOptions: CalibrationProtocolReportOptions, authoritativeOptions: CalibrationAuthoritativeReportOptions,
+  runtimeOptions: CalibrationRuntimeEvidenceOptions,
+): CalibrationRuntimeEvidenceLedger {
+  const ownedContext = requireCalibrationV2Context(context);
+  const ledger = Object.freeze(createLedgerCore(deps, ownedContext.identity, { keyResolver, reportOptions, authoritativeOptions, runtimeOptions }, ownedContext));
+  registeredV2Ledgers.set(ledger, ownedContext);
+  return ledger as CalibrationRuntimeEvidenceLedger;
+}
+
+export function createBenchmarkAuthorityCalibrationLedgerV2(
+  context: Readonly<CalibrationV2PreparedContext>, deps: CalibrationLedgerDeps, keyResolver: CalibrationKeyResolver,
+  reportOptions: CalibrationProtocolReportOptions, authoritativeOptions: CalibrationAuthoritativeReportOptions,
+  runtimeOptions: CalibrationRuntimeEvidenceOptions, config: unknown,
+): CalibrationRuntimeEvidenceLedger {
+  const ownedContext = requireCalibrationV2Context(context);
+  const ledger = Object.freeze(createLedgerCore(deps, ownedContext.identity, { keyResolver, reportOptions, authoritativeOptions, runtimeOptions, benchmarkConfig: config }, ownedContext));
+  registeredV2Ledgers.set(ledger, ownedContext);
+  return ledger as CalibrationRuntimeEvidenceLedger;
 }
