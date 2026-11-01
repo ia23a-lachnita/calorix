@@ -8,10 +8,12 @@ import type { Stats } from 'node:fs';
 import { parse, resolve, sep } from 'node:path';
 import { CALIBRATION_ROOT } from './calibration';
 import type { CalibrationOwner, CalibrationProfile, StageName } from './calibration';
-import { assembleCalibrationStageReport } from './calibration-report-assembly';
+import { assembleCalibrationStageReport, assembleCalibrationStageReportV2 } from './calibration-report-assembly';
 import { CalibrationFatalError } from './fatal-error';
 import { renderNutritionEvalJson, renderNutritionEvalMarkdown } from './report';
 import type { NutritionEvalReport } from './schema';
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 
 export interface CalibrationPublishedReportReceipt {
   readonly stage: StageName;
@@ -39,6 +41,7 @@ const LOCK = Symbol('lock-invalid');
 const TAMPER = Symbol('file-tampered');
 const FAILED = Symbol('publication-failed');
 const invalid = () => new CalibrationFatalError('calibration:report-publication-input-invalid');
+const V2_ROOT = '.nutrition-eval/calibration/calorix-gemini-38-calibration-v2/';
 
 /** No property gets, caller-owned freezes, or foreign exception inspection. */
 function ownRecord(value: unknown, fields: readonly string[], exact = true): Record<string, unknown> {
@@ -176,12 +179,14 @@ function fsFatal(error: unknown): CalibrationFatalError {
     error === TAMPER ? 'calibration:report-file-tampered' : 'calibration:report-publication-failed');
 }
 
-export async function publishCalibrationStageReport(
+async function publishCalibrationStageReportCore(
   params: unknown,
-  overrides?: CalibrationReportPublicationOverrides,
+  overrides: CalibrationReportPublicationOverrides | undefined,
+  checkedContext?: Readonly<CalibrationV2PreparedContext>,
 ): Promise<Readonly<CalibrationReportPublicationResult>> {
-  const request = ownRecord(params, ['stage', 'profile', 'context', 'readSnapshot']);
-  const context = ownRecord(request.context, ['baseDir', 'identity', 'owner', 'firstDevelopmentCaseId', 'report', 'files']);
+  const request = ownRecord(params, checkedContext === undefined
+    ? ['stage', 'profile', 'context', 'readSnapshot'] : ['stage', 'profile', 'readSnapshot']);
+  const context = checkedContext ?? ownRecord(request.context, ['baseDir', 'identity', 'owner', 'firstDevelopmentCaseId', 'report', 'files']);
   const stage = request.stage;
   const profile = request.profile;
   if ((stage !== 'preflight' && stage !== 'development' && stage !== 'validation' && stage !== 'benchmark') ||
@@ -190,14 +195,16 @@ export async function publishCalibrationStageReport(
   const baseDir = resolve(context.baseDir);
   const owner = captureOwner(context.owner);
   const hooks = captureHooks(overrides);
-  const root = resolve(baseDir, CALIBRATION_ROOT);
+  const root = resolve(baseDir, checkedContext === undefined ? CALIBRATION_ROOT : V2_ROOT);
   const reports = resolve(root, 'reports');
   let held: HeldLock;
   try { held = openHeldLock(root, owner); } catch (error) { throw fsFatal(error); }
   try {
     // Call immediately: the assembler owns every source primitive before its first await.
     // Keep its documented static errors unchanged rather than wrapping as filesystem failures.
-    const report = await assembleCalibrationStageReport({ ...request, context: { ...context, baseDir, owner } });
+    const report = await (checkedContext === undefined
+      ? assembleCalibrationStageReport({ ...request, context: { ...context, baseDir, owner } })
+      : assembleCalibrationStageReportV2(checkedContext, request));
     const temps = new Set<string>();
     try {
       const assertPaths = () => { checkLock(root, owner, held); validateReports(reports); };
@@ -259,4 +266,18 @@ export async function publishCalibrationStageReport(
       for (const temp of temps) { try { unlinkSync(temp); } catch { /* Best effort, only owned names. */ } }
     }
   } finally { closeReadLock(held.fd); }
+}
+
+export async function publishCalibrationStageReport(
+  params: unknown, overrides?: CalibrationReportPublicationOverrides,
+): Promise<Readonly<CalibrationReportPublicationResult>> {
+  return publishCalibrationStageReportCore(params, overrides);
+}
+
+export async function publishCalibrationStageReportV2(
+  context: Readonly<CalibrationV2PreparedContext>, params: unknown,
+  overrides?: CalibrationReportPublicationOverrides,
+): Promise<Readonly<CalibrationReportPublicationResult>> {
+  const ownedContext = requireCalibrationV2Context(context);
+  return publishCalibrationStageReportCore(params, overrides, ownedContext);
 }

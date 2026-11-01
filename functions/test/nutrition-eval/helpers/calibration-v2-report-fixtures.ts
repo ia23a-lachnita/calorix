@@ -9,17 +9,20 @@ import type { CalibrationProfile, JournalEntry, ReservationKey, StageName } from
 import type { CalibrationStageReportSnapshot } from '../../../src/nutrition-eval/calibration-report-state';
 import type { NutritionEvalCase } from '../../../src/nutrition-eval/schema';
 import { captureCalibrationReportPrediction } from '../../../src/nutrition-eval/calibration-report-journal';
-import { strictLedgerFixture } from './calibration-v2-strict-ledger-fixtures';
+import { prepareCalibrationV2BootstrapContext } from '../../../src/nutrition-eval/calibration-protocol-bindings';
+import { v2BootstrapFixture } from './calibration-v2-bootstrap-fixtures';
 import { memoryWorld, V1_ROOT } from './calibration-v2-ledger-fixtures';
 
 export const reportHash = (text: string) => createHash('sha256').update(text).digest('hex');
 
 // These are trusted fixture inputs, not native admission or SDK evidence. No
 // scorer, report builder, registration, ledger or planner algorithm is mocked.
-export async function reportFixture(setPin: (sha: string) => void, mixed = false, legacy = false) {
-  const registered = await strictLedgerFixture(setPin);
+export async function reportFixture(setPin: (sha: string) => void, mixed = false, legacy = false, baseDir = '/fixture/calorix') {
+  const input = v2BootstrapFixture(); input.deps.baseDir = baseDir;
+  setPin(input.fixture.input.expectedActivationLockSha256);
+  const registered = { context: await prepareCalibrationV2BootstrapContext(input.deps) };
   const context = legacy ? await prepareCalibrationBootstrapContext({
-    baseDir: '/fixture/calorix',
+    baseDir,
     readGitState: () => ({ headCommit: 'a'.repeat(40), implementationCommit: 'b'.repeat(40),
       functionsTreeId: 'c'.repeat(40), dirtyPaths: [] }),
     readCommittedFile: path => readFileSync(new URL('../../../../' + path, import.meta.url), 'utf8'),

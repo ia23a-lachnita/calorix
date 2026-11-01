@@ -5,7 +5,9 @@ import type { Stats } from 'node:fs';
 import { parse, resolve, sep } from 'node:path';
 import { CALIBRATION_ROOT } from './calibration';
 import type { CalibrationOwner, CalibrationProfile, StageName } from './calibration';
-import { prepareCalibrationStageReportReconstructor } from './calibration-report-assembly';
+import { prepareCalibrationStageReportReconstructor, prepareCalibrationStageReportReconstructorV2 } from './calibration-report-assembly';
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 import type { CalibrationStageReportReconstructor } from './calibration-report-assembly';
 import type { CalibrationReportPublicationResult } from './calibration-report-publication';
 import type { CalibrationStageReportSnapshot } from './calibration-report-state';
@@ -237,16 +239,32 @@ function createVerifier(
     return result!;
   } });
 }
-export async function prepareCalibrationStageReportArtifactVerifier(
+async function prepareCalibrationStageReportArtifactVerifierCore(
   context: unknown,
+  checkedContext?: Readonly<CalibrationV2PreparedContext>,
 ): Promise<Readonly<CalibrationStageReportArtifactVerifier>> {
   const captured = ownRecord(context, ['baseDir', 'identity', 'owner', 'firstDevelopmentCaseId', 'report', 'files']);
   if (typeof captured.baseDir !== 'string' || captured.baseDir.trim().length === 0 || captured.baseDir.includes('\0') ||
     typeof constants.O_NOFOLLOW !== 'number' || constants.O_NOFOLLOW <= 0 ||
     typeof constants.O_NONBLOCK !== 'number' || constants.O_NONBLOCK <= 0) throw new CalibrationFatalError(INPUT);
-  const root = resolve(captured.baseDir, CALIBRATION_ROOT);
+  const root = resolve(captured.baseDir, checkedContext === undefined ? CALIBRATION_ROOT
+    : '.nutrition-eval/calibration/calorix-gemini-38-calibration-v2/');
   const owner = captureOwner(captured.owner);
   // Invoke immediately: reconstructor owns all identity/file primitives before suspension.
-  const ready = await prepareCalibrationStageReportReconstructor(captured);
+  const ready = await (checkedContext === undefined ? prepareCalibrationStageReportReconstructor(captured)
+    : prepareCalibrationStageReportReconstructorV2(checkedContext));
   return createVerifier(root, owner, ready);
+}
+
+export async function prepareCalibrationStageReportArtifactVerifier(
+  context: unknown,
+): Promise<Readonly<CalibrationStageReportArtifactVerifier>> {
+  return prepareCalibrationStageReportArtifactVerifierCore(context);
+}
+
+export async function prepareCalibrationStageReportArtifactVerifierV2(
+  context: Readonly<CalibrationV2PreparedContext>,
+): Promise<Readonly<CalibrationStageReportArtifactVerifier>> {
+  const ownedContext = requireCalibrationV2Context(context);
+  return prepareCalibrationStageReportArtifactVerifierCore(ownedContext, ownedContext);
 }
