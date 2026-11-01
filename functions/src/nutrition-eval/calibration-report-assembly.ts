@@ -1,8 +1,10 @@
 /** Pure reconstruction: no filesystem, clock, provider, normalization or ledger effects. */
 import type { CalibrationPreparedContext } from './calibration-bootstrap';
-import { deriveCanonicalReportOutcomePlan } from './calibration-bootstrap';
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { deriveCanonicalReportOutcomePlan, deriveCanonicalReportOutcomePlanV2 } from './calibration-bootstrap';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 import type { CalibrationProfile, StageName } from './calibration';
-import { captureCalibrationStageReportSnapshot } from './calibration-report-state';
+import { captureCalibrationStageReportSnapshot, captureCalibrationStageReportSnapshotV2 } from './calibration-report-state';
 import type { CalibrationStageReportSnapshot } from './calibration-report-state';
 import {
   CALIBRATION_PREFLIGHT_FILE_NAMES, CALIBRATION_MANIFEST_SHA256,
@@ -13,7 +15,8 @@ import type { CalibrationPreflightFileName } from './calibration-cli';
 import { CalibrationFatalError } from './fatal-error';
 import { buildNutritionEvalReport, renderNutritionEvalJson, renderNutritionEvalMarkdown } from './report';
 import { scoreNutritionCase } from './scorer';
-import { CALIBRATION_PROTOCOL_VERSION, parseNutritionEvalManifest, StrictCalibrationManifestSchema } from './schema';
+import { CALIBRATION_PROTOCOL_VERSION, CALIBRATION_PROTOCOL_VERSION_V2, parseNutritionEvalManifest,
+  StrictCalibrationManifestSchema, StrictCalibrationManifestV2Schema } from './schema';
 import type { CalibrationInfo, NutritionEvalCase, NutritionEvalReport, NutritionPrediction } from './schema';
 
 export interface AssembleCalibrationStageReportParams {
@@ -63,6 +66,7 @@ function tuple(caseId: string, sample: number): string { return `${caseId}|${sam
 /** Owned, frozen source populations captured once before the first await. */
 type OwnedTrainingCase = NutritionEvalCase & { readonly group: string };
 interface OwnedReportSource {
+  readonly checkedContext?: Readonly<CalibrationV2PreparedContext>;
   readonly identity: Readonly<Record<string, unknown>>;
   readonly firstDevelopmentCaseId: string;
   readonly trainingCases: readonly OwnedTrainingCase[];
@@ -89,7 +93,8 @@ function buildCalibrationStageReport(
   const stage: StageName = rawStage;
   const profile: CalibrationProfile = rawProfile;
   let snapshot: CalibrationStageReportSnapshot;
-  try { snapshot = captureCalibrationStageReportSnapshot(rawSnapshot); }
+  try { snapshot = source.checkedContext === undefined ? captureCalibrationStageReportSnapshot(rawSnapshot)
+    : captureCalibrationStageReportSnapshotV2(source.checkedContext, rawSnapshot); }
   catch { throw new CalibrationFatalError(INVALID); }
   if (snapshot.stage !== stage || snapshot.profile !== profile ||
     IDENTITY_FIELDS.some((field) => snapshot.identity[field] !== source.identity[field]) ||
@@ -145,11 +150,13 @@ function buildCalibrationStageReport(
   try {
     const report = buildNutritionEvalReport(results, {
       runId: `calibration-${stage}-${profile.toLowerCase()}-${snapshot.identity.implementationCommit.slice(0, 12)}-${timestamp.replace(/[^0-9TZ]/g, '')}`,
-      timestamp, datasetId, datasetHash: stage === 'benchmark' ? CALIBRATION_PUBLIC_MANIFEST_HASH : CALIBRATION_MANIFEST_SHA256,
+      timestamp, datasetId, datasetHash: stage === 'benchmark' ? CALIBRATION_PUBLIC_MANIFEST_HASH
+        : source.checkedContext === undefined ? CALIBRATION_MANIFEST_SHA256 : source.checkedContext.identity.manifestHash,
       adapterModelId: 'gemini-3.8-flash', promptHash: snapshot.identity.promptHash,
       codeSha: snapshot.identity.implementationCommit, samples: samples.length, baselineOnly: false,
       publicCases: sourceCases.length, privateCases: 0,
-      calibration: { protocolVersion: CALIBRATION_PROTOCOL_VERSION, project: 'calorix-xurschnell', location: 'us',
+      calibration: { protocolVersion: source.checkedContext === undefined ? CALIBRATION_PROTOCOL_VERSION : CALIBRATION_PROTOCOL_VERSION_V2,
+        project: 'calorix-xurschnell', location: 'us',
         model: 'gemini-3.8-flash', thinkingLevel: profile, schemaHash: snapshot.identity.responseSchemaHash,
         stage, imageCallsReserved: snapshot.counts.imageCallsReserved, imageCallsCompleted: snapshot.counts.imageCallsCompleted,
         imageCallsFailed: snapshot.counts.imageCallsFailed, safeErrors,
@@ -231,6 +238,47 @@ export async function assembleCalibrationStageReport(params: unknown): Promise<N
   const readSnapshot = request.readSnapshot as AssembleCalibrationStageReportParams['readSnapshot'];
   // The factory captures descriptors/source synchronously before it suspends.
   const ready = await prepareCalibrationStageReportReconstructor(request.context);
+  let snapshot: unknown;
+  try { snapshot = readSnapshot(stage, profile); }
+  catch { throw new CalibrationFatalError('calibration:stage-report-read-failed'); }
+  return ready.reconstruct({ stage, profile, snapshot });
+}
+
+export async function prepareCalibrationStageReportReconstructorV2(
+  context: Readonly<CalibrationV2PreparedContext>,
+): Promise<Readonly<CalibrationStageReportReconstructor>> {
+  const ownedContext = requireCalibrationV2Context(context);
+  try {
+    const training = StrictCalibrationManifestV2Schema.parse(JSON.parse(ownedContext.files['calibration-manifest']));
+    const publicManifest = parseNutritionEvalManifest(JSON.parse(ownedContext.files['public-manifest']));
+    deriveCanonicalReportOutcomePlanV2(ownedContext);
+    const source: OwnedReportSource = {
+      checkedContext: ownedContext,
+      identity: ownedContext.identity,
+      firstDevelopmentCaseId: ownedContext.firstDevelopmentCaseId,
+      trainingCases: training.cases,
+      publicCases: publicManifest.cases,
+      trainingDatasetId: training.datasetId,
+      publicDatasetId: publicManifest.datasetId,
+    };
+    freezeOwned(source);
+    return createCalibrationStageReportReconstructor(source);
+  } catch { throw new CalibrationFatalError(INVALID); }
+}
+
+export async function assembleCalibrationStageReportV2(
+  context: Readonly<CalibrationV2PreparedContext>, params: unknown,
+): Promise<NutritionEvalReport> {
+  const ownedContext = requireCalibrationV2Context(context);
+  const request = ownRecord(params, ['stage', 'profile', 'readSnapshot']);
+  const stage = request.stage;
+  const profile = request.profile;
+  if ((stage !== 'preflight' && stage !== 'development' && stage !== 'validation' && stage !== 'benchmark') ||
+    (profile !== 'LOW' && profile !== 'MEDIUM') || typeof request.readSnapshot !== 'function') {
+    throw new CalibrationFatalError(INVALID);
+  }
+  const readSnapshot = request.readSnapshot as AssembleCalibrationStageReportParams['readSnapshot'];
+  const ready = await prepareCalibrationStageReportReconstructorV2(ownedContext);
   let snapshot: unknown;
   try { snapshot = readSnapshot(stage, profile); }
   catch { throw new CalibrationFatalError('calibration:stage-report-read-failed'); }

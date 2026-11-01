@@ -13,7 +13,6 @@ import type {
 } from './historical-reference';
 import type {
   BaselineComparison,
-  CalibrationInfo,
   NutritionCaseResult,
   NutritionEvalReport,
 } from './schema';
@@ -31,7 +30,7 @@ export interface NutritionEvalReportMetadata {
   publicCases: number;
   privateCases: number;
   comparison?: BaselineComparison;
-  calibration?: CalibrationInfo;
+  calibration?: NonNullable<NutritionEvalReport['calibration']>;
 }
 
 function percentile(sorted: readonly number[], percentileValue: number): number {
