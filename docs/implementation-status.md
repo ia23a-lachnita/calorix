@@ -14,7 +14,7 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-11-01: Task2 qualified; implementation publication pending
+#### Current task — 2026-11-01: Task2 complete; Task3 research and plan gate next
 
 The approved design `45ff64e386f118e945057211c6cf5e6687a46db6` and plan `ab26aee14d1464ebfdf048cac499a71b803c312e` remain in force. Task1 is complete on isolated branch `feat/calibration-v2-runtime`: source checkpoint `2e4f385db441990eb1bd3cbb4c1d14da9f486f0b`, Functions tree `78eee179cb3d1a61945371a72676fa25bbaca764`, pushed/exact-origin/clean before the actual probe. [Complete source/data proof and limits](nutrition-calibration-v2-runtime-2026-10-30.md).
 
@@ -36,6 +36,10 @@ Correctedprimary3.8/High MCP calorix-v2-registered-context-slice-20261030 explic
 
 
 
+
+Task2 COMPLETE on implementation checkpoint cde20977658aa2c2858609d5922ee1379977b5d4/Functions tree257fe7bff7304cbf91c931038cf475df79f360e0, pushed/exact-origin/clean verified. task-done actualnative0 oncommittedsource recordscommitsa98cdb3..cde2097, commandpython3 .superpowers/sdd/2026-10-30-calibration-v2-runtime/verify-task2-checkpoint.py ->1566retainedactualtests/146currentinputs/suiteRerunfalse. AllfiveTask2checkboxeschecked aftersourcepush; thiscompletiontrackingupdatechangesdocsonly. Correctedfinalprimary3.8/High MCPexplicitagree/MUSTnone offlineTask2qualification, allsource inputs/protectedpinscurrentexact. No actualnative stage/SDK/accuracy/security/productionapproval.
+
+NextTask3: reportauthority/nativeledger/producer/stageDriver/nativeV2CLI. NoTask3implementation/testcodebegun. FirstbroadresearchMCPprimarytimeout300,3.7+3.6Highincompatible; narrowedresearch/planmustfinish beforecode, noCLIreviewsubstitution. Oneopen seam: existingprivateV2ledgerMapretainsoriginalctx buthasnoreadguard; researchmustchooseminimaloriginalctx/handle-matchguardwithoutpublicregistration/nativegrant. Reusecurrentcleanisolatedworktree; refreshstrongest-firsteditingroutesforTask3oncepre-reviewready, do notcarryTask2nativeexceptionpermanently. Onefreshnativewholefeature review/fullbackendparent/actualfixedcandidate+sanitizedaccount/source/budgetgatesremainTask4, once-onlySDKstagesTask5.
 Task2 final offline qualification wrapper actualnative0 at2026-11-01T16:17:25Z binds all146current source/test inputs to finaltask2-metadata-host-controls-01 native0/915.507s/1566PASS20files0fail0skip/rawSHAa71da6f75ef067a0a4c623ae89909c5ff830b003d678d837910c63a7303ded12. Exact1394priorstrict+13canonical+159newmetadata cases;267authority/runtime cases are WITHIN1394 and are freshly rerunonfinalsource. Earlier1140canonical =1394-267+13. Build0/68.021s/lint0/79.638s; all146inputmaps identical/currentexact, oldtestbodies untouched. Sevencompiledprocesses0/5.096s preserve1222legacybytes/V1root/cap300/12fakecontextguards/traps0/namedSDKconstructor0/fetch0; compileddatareaderV1+V2positive/caps/downstreamrefinement checks, notnativecontext/SDKadmission. AllretainedTask2component source/result gatesgreen; correctedfinalprimary3.8/High MCP calorix-v2-report-metadata-plan-20261101 explicitagree/MUSTnone TASK2_CLOSED_BINDINGS_AND_METADATA_FINAL_QUALIFICATION_ONLY, corrected testcasecompositionbeforeacceptance.
 
 Source3/config3/priorV1files11/RAWcandidateaudit exact; canonicalV2rootabsent. No all63candidateentryreverification inTask2wrapper, no exhaustivefilesystem/transport/importattestation, no actualnative147counterbranchrequestproof. PriorapprovedRuling:146actualunique pureledger reservations +directsynthetic index146diagnostic; fixedplanmeans counter147branchunreachable, no testgrant/widening. Native/runtime synthetic remainsforbidden, token1separate. No actualSDK/liveimage/token/heldout/visual/cloud/deploy or accuracy/security/productionqualification. Freshwholefeature native review/fullbackendparent/actualfixedcandidate/account/source/budget gatesremainTask4.

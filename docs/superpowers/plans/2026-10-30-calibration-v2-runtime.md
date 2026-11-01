@@ -81,7 +81,7 @@ Required named tests include `rejects_unregistered_context_clone` (`requireCalib
 - [x] **Step 2: Run actual focused behavioral RED** for the new Task2 test files with serial Vitest flags; retain named failures before algorithms. Stubs may throw; syntax/import failures are preparation diagnostics.
 - [x] **Step 3: Implement small closed bindings and wrappers.** Refactor existing cores only at version-sensitive checks/delegations; preserve legacy call signatures, primitive capture, durability and serialized layouts. Native v2 is still unconnected to a CLI/client.
 - [x] **Step 4: Run GREEN and existing controls.** Use serial Vitest on all new Task2 test files plus `calibration.test.ts`, `calibration-bootstrap.test.ts`, `calibration-file-store.test.ts`, `calibration-protocol-ledger.test.ts`, `calibration-stage-outcomes.test.ts`, `calibration-runtime-evidence-codec.test.ts`, `calibration-runtime-evidence-state.test.ts`, `calibration-canonical-keys.test.ts` and `schema.test.ts`, all under `test/nutrition-eval/`; then build/lint and protected hashes. No removed/renamed/weakened existing test or timeout.
-- [ ] **Step 5: Scoped MCP source/results review, commit `Add closed protocol version bindings`, push exact source.** Record version/root/cap/capture proof and that actual native stage execution is not available/qualified yet.
+- [x] **Step 5: Scoped MCP source/results review, commit `Add closed protocol version bindings`, push exact source.** Record version/root/cap/capture proof and that actual native stage execution is not available/qualified yet.
 
 ## Task 3: V2 report authority, stage driver and explicit native CLI
 
