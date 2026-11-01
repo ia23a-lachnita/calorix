@@ -14,7 +14,7 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-11-01: Task2 strict ledgers verified; canonical plans next
+#### Current task — 2026-11-01: Task2 canonical plans verified/reviewed; metadata next
 
 The approved design `45ff64e386f118e945057211c6cf5e6687a46db6` and plan `ab26aee14d1464ebfdf048cac499a71b803c312e` remain in force. Task1 is complete on isolated branch `feat/calibration-v2-runtime`: source checkpoint `2e4f385db441990eb1bd3cbb4c1d14da9f486f0b`, Functions tree `78eee179cb3d1a61945371a72676fa25bbaca764`, pushed/exact-origin/clean before the actual probe. [Complete source/data proof and limits](nutrition-calibration-v2-runtime-2026-10-30.md).
 
@@ -30,6 +30,16 @@ Correctedprimary3.8/High MCP calorix-v2-registered-context-slice-20261030 explic
 
 
 
+
+
+
+Currentcanonical source onbasee38bc90 is implemented via permitted opencode/big-pickle and hostverified. ActualRED01 native1/21.338s:41PASS(40oldV1+1defaultboundary)12expectednewFAIL; focusedGREEN01 native0/17.103s/53PASS. Finaltask2-canonical-plans-host-controls-01 native0/214.643s/1140PASS17files/0fail0skip/rawSHA0c7d57027ec5fed93462ba1e12ccab49b256a79802b5ae5effb8deaf62cb4573:1127priorfocusedcase/status+13new. Build0/94.006s/lint0/107.167s, all144inputmaps identical/currentexact; allprevious testbytes unchanged. 267extra legacyruntime/authority controls are historical onstrictsourcee38bc90, NOT rerun for thispureplanner stage; freshfullparent remains mandatoryTask4. No productledger/authority change. AST16oldfunctions:14othersbodyexact, twoexistingwrappersnowdelegateprivatecores; movedoldbodies exactafter reviewedrawhash/schema/innerdelegation substitutions. No publiccore/descriptor/selector.
+
+Sixfreshcompiledentryorders0/4.293s retain1222legacygolden/root/cap300;12fake-context guards/traps0/SDKconstructor0/fetch0. Named counters only; no cold filesystem interception/exhaustive OS/transport/import attestation. Source2/config3/prior11/candidate exact, canonicalV2rootabsent. Corrected canonicalpostMCP primary3.8/High conversationcalorix-v2-canonical-plans-plan-20261101 explicitagree/MUSTnone PARTIAL_TASK2_CANONICAL_PLANS_SOURCE_AND_RESULTS_ONLY, savedtask2-canonical-plans-post-review-38-corrected.json. Reviewer retracted12barcode "cases": actual4cases x3samples=12outcomes, public20cases12meal4label4barcode. Source2/config3/prior11/candidate exact afterreview. Boundedcommit/push next; wholeTask2 stillOPEN. No wholeTask2/native/accuracy/security/production qualification.
+
+Next metadata/generalreader PROSPECTIVE pre-review now primary3.8/High explicitagree/MUSTnone PREIMPLEMENTATION_TASK2_REPORT_METADATA_READER_ONLY, savedtask2-metadata-pre-review-38-narrow.json. Original3.8timeout and3.7/3.6Higherrors retained below, notcountedgreen. Future explicitV2schema reserved146/generalreader two-variant union/allcommonrefinements planned; inferredtypesarecompile-time only, datareader admissionneverconfersnativeauthority. Metadata tests-only briefpreparedbutNOT launched untilcanonicalcheckpointclean/pushed. No metadata source/test/algorithm yet. Mainnativeeditingexceptionnotinvoked; deliveredworker source frozen byhoststop exactownedgroup -15/362.242s, notquota/worker-successclaim.
+
+Strict-ledger checkpoint e38bc90583b2089fa96bf5f6fd2e44ebe30b5824/Functions treebecc62426c2f301f9215d5d3a5a83fcaece395c6 is pushed/exact origin/clean before this stage. Current Task2 canonical-planning stage begins on that source, corrected pre-MCP already green. First route fresh grok-4.6 tests+throwingstubs-only worker; previous routes are historical, not assumed exhausted after overnight gap. Intended RED/green command serial Vitest calibration-v2-canonical-plans, then prior control population/build/lint/coldCJS/postreview. Current ignored test draft is not algorithm code or actual test execution. V2 metadata/general reader/native composition remain later.
 
 Task2 strict-ledger checkpoint on base77e42fd is verified and independently reviewed for bounded commit/push. Three explicit V2 factories now freeze/register handles and retain the original context in the existing controller's header/event/state/snapshot/binding-hash calls. Only closed strict-identity expectations and dispatch change; 60/62 old function bodies exact. No controller duplication, native admission token or public alias grant. Low-level plans/verifier remain trusted fixture DI; actual report artifacts/native composition stay Task3.
 
@@ -4498,3 +4508,26 @@ StateactualRED01 native1/6.112s/1V1fixturecontrolPASS14newFAIL15/inputsunchanged
 StatepostMCPresponse-noise {"at": "2026-10-31T22:59:38.731908+00:00", "model": "gemini-3.8-flash", "category": "MCP_UNMEASURED_COLD_IMPORT_FILESYSTEM_CLAIM", "message": "Postresponse cold-import section added 0 file write operations, but cold script counts only payload traps/SDKconstruct/fetch, not filesystem writes. Unitguards separately count commonasyncwrite/mkdir/rename. Sourceunchanged; boundedwordingcorrectionbeforefinalgreenacceptance.", "agreementAccepted": false}; no codechange, correctedfinitecounterdescriptionrequestedinsameconversation.
 
 Strict3factorypreMCPprimary3.8/High explicitagree/MUSTnone PREIMPLEMENTATION_TASK2_STRICT_LEDGERS_ONLY. Newtests+3throwingstubs only; existingcalibrationfunctionbodiesunchanged. TrustedportV1baseline3modes validatesfixtures beforeV2algorithm; privatectx-boundcodec/state/snapshot/hashdispatch/coherenttrustedverifierportsapproved, actualnativeexecutionadmissionnotgranted. ActualREDnext.
+
+Task2 canonical planning fresh route failure {"at": "2026-11-01T14:51:54.902923+00:00", "model": "grok-4.6", "category": "MODEL_UNAVAILABLE", "nativeExitCode": 1, "elapsedSeconds": 6.023, "message": "Couldn't set model 'grok-4.6': Invalid params: \"unknown model id\". Run 'grok models' to see available models.\nError: Couldn't set model 'grok-4.6': Invalid params: \"unknown model id\". Run 'grok models' to see available models."}
+
+Task2 canonical planning fresh route failure {"at": "2026-11-01T14:52:22.832598+00:00", "model": "qwen3.7-max", "category": "PROVIDER_FREE_QUOTA_EXHAUSTED", "nativeExitCode": 1, "elapsedSeconds": 16.016, "message": "[API Error: 403 The free quota has been exhausted. To continue accessing the model on a paid basis, please complete your payment information \uff08or disable the \"use free tier only\" mode in the management console if already completed).]"}
+
+Task2 canonical planning fresh route failure {"at": "2026-11-01T14:53:16.164319+00:00", "model": "opencode/nemotron-3-ultra-free", "category": "MODEL_ABSENT_FROM_REFRESHED_CATALOG", "message": "Exact route absent from successful opencode models opencode --refresh --verbose; not attempted, per contract.", "catalogReceipt": "task2-canonical-plans-opencode-catalog-20261101.json"}
+
+Task2 canonical planning fresh route failure {"at": "2026-11-01T14:53:16.169590+00:00", "model": "opencode/muse-spark-1.3-contributor-free", "category": "MODEL_ABSENT_FROM_REFRESHED_CATALOG", "message": "Exact route absent from successful opencode models opencode --refresh --verbose; not attempted, per contract.", "catalogReceipt": "task2-canonical-plans-opencode-catalog-20261101.json"}
+
+Task2 canonical planning fresh route failure {"model": "opencode/nemotron-3.5-lightning-free", "category": "WORKER_RUNTIME_BOUND", "message": "No permitted-file progress for180s or absolute600s runtime reached; no quota exhaustion inferred.", "nativeExitCode": -15, "elapsedSeconds": 180.425, "at": "2026-11-01T14:58:52.102399+00:00", "context": "Initial return0 delivered nested-export preparation error; bounded repair had no permitted-file progress and was terminated by supervisor; no quota exhaustion inferred."}
+
+Task2 canonical planning fresh route failure {"at": "2026-11-01T14:59:24.140027+00:00", "model": "opencode/ling-3.0-flash-fin-free", "category": "MODEL_ABSENT_FROM_REFRESHED_CATALOG", "message": "Exact route absent from successful 2026-11-01T14:52 catalog refresh; not attempted per contract."}
+
+Task2 canonical preparation repair opencode/big-pickle native0/82.088s restored all16 old function bodies exact and added onlytwo top-level throwingstubs/typeimport; copied13test draft exact. Host actual behavioralRED01 native1/21.338s:40oldcanonicalcontrols+1newdefault-boundaryPASS12newexpectedFAIL/rawSHAb5b7a1fe0b2f7e17190af10ba964567c4fe87227831a2c03ca62b67b6376c257. No syntax/harness error, no other oldsource modified. Same available reserve worker now authorized for sole-file minimal shared planning cores; no paid route/native exception needed.
+
+Task2 canonical implementation opencode/big-pickle delivered sole-file shared-core source; host stopped exact owned process group after delivered diff/status checks to freeze revision, native-15/362.242s (HOST_STOP_AFTER_SOURCE_DELIVERY), not worker test success or quota failure. SourceSHA2a1def905ea3698cf088be855175279e95b1b217a7a4d2335f6f496986dfcd58; host GREEN pending. No native application editing exception invoked.
+
+Task2 metadata pre-review route failure {"at": "2026-11-01T15:09:22.092931+00:00", "model": "gemini-3.8-flash", "category": "MCP_TIMEOUT", "message": "tool call error: tool call failed for `antigravity-mcp/ask-ai`\n\nCaused by:\n    timed out awaiting tools/call after 300s", "scope": "PREIMPLEMENTATION_TASK2_REPORT_METADATA_READER_ONLY"}
+
+Task2 metadata pre-review route failure {"at": "2026-11-01T15:09:43.164535+00:00", "model": "gemini-3.7-flash", "category": "MCP_MODEL_EFFORT_INCOMPATIBILITY", "message": "Error executing ask-ai: agy exited with code 1.\nerror: invalid model selection (--model \"gemini-3.7-flash\" --effort \"high\"): --effort is not supported for model \"gemini-3.7-flash\""}
+
+Task2 metadata pre-review route failure {"at": "2026-11-01T15:10:11.231236+00:00", "model": "gemini-3.6-flash", "category": "MCP_MODEL_EFFORT_INCOMPATIBILITY", "message": "Error executing ask-ai: agy exited with code 1.\nerror: invalid model selection (--model \"gemini-3.6-flash\" --effort \"high\"): --effort is not supported for model \"gemini-3.6-flash\""}
+All3 metadata-plan routes failed; no metadata pre-review approval or permission to implement metadata inferred. Narrowed retry on canonical primary may follow, no CLI substitution.

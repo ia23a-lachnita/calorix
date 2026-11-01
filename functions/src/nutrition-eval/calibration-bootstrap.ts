@@ -16,6 +16,8 @@ import { hostname } from 'node:os';
 import { isAbsolute, resolve } from 'node:path';
 import type { CalibrationIdentity, CalibrationLedger, CalibrationOwner } from './calibration';
 import type { CalibrationProfile, ReservationKey } from './calibration';
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 import { HARD_CALL_CEILING, PLANNED_IMAGE_CALLS } from './calibration';
 import {
   CALIBRATION_HISTORICAL_REFERENCE_SHA256,
@@ -47,7 +49,11 @@ import {
   MEAL_ANALYSIS_PROMPT,
 } from '../prompts';
 import { hashNutritionEvalManifest, resolveNutritionEvalRuntimePaths } from './cli';
-import { parseNutritionEvalManifest, StrictCalibrationManifestSchema } from './schema';
+import {
+  parseNutritionEvalManifest,
+  StrictCalibrationManifestSchema,
+  StrictCalibrationManifestV2Schema,
+} from './schema';
 
 export { assertValidBaseDir, validateGitSnapshot, assertCleanFunctionsTree, validateOwner };
 
@@ -499,6 +505,14 @@ export function deriveCanonicalAllowedKeys(
   files: Record<CalibrationPreflightFileName, string>,
   selectedProfile?: CalibrationProfile,
 ): readonly ReservationKey[] {
+  return deriveCanonicalAllowedKeysCore(files, selectedProfile);
+}
+
+function deriveCanonicalAllowedKeysCore(
+  files: Record<CalibrationPreflightFileName, string>,
+  selectedProfile?: CalibrationProfile,
+  ownedContext?: Readonly<CalibrationV2PreparedContext>,
+): readonly ReservationKey[] {
   let calibrationBytes: unknown;
   let publicBytes: unknown;
   let selected: CalibrationProfile | undefined;
@@ -532,9 +546,12 @@ export function deriveCanonicalAllowedKeys(
   const calibrationText: string = calibrationBytes;
   const publicText: string = publicBytes;
 
+  const expectedManifestHash = ownedContext === undefined
+    ? CALIBRATION_MANIFEST_SHA256
+    : ownedContext.identity.manifestHash;
   if (
     createHash('sha256').update(calibrationText, 'utf8').digest('hex') !==
-    CALIBRATION_MANIFEST_SHA256
+    expectedManifestHash
   ) {
     throw new CalibrationFatalError('calibration:canonical-keys-invalid');
   }
@@ -548,7 +565,10 @@ export function deriveCanonicalAllowedKeys(
     cases: Array<{ id: string; group: string }>;
   };
   try {
-    calibrationManifest = StrictCalibrationManifestSchema.parse(
+    const manifestSchema = ownedContext === undefined
+      ? StrictCalibrationManifestSchema
+      : StrictCalibrationManifestV2Schema;
+    calibrationManifest = manifestSchema.parse(
       calibrationRaw,
     ) as unknown as { cases: Array<{ id: string; group: string }> };
   } catch {
@@ -832,7 +852,7 @@ interface ReportOutcomeRow {
 
 /**
  * Source-derived frozen outcome plan (pure, synchronous). Calls the
- * unchanged `deriveCanonicalAllowedKeys` on the same owned strings to prove
+ * unchanged `deriveCanonicalAllowedKeysCore` on the same owned strings to prove
  * pinned bytes/hash/unknown-field policy, then independently re-parses the
  * identical validated strings (never re-reads the hash) to recover each
  * case's source `scanMode` and manifest slot/sample order, which
@@ -842,6 +862,14 @@ interface ReportOutcomeRow {
 export function deriveCanonicalReportOutcomePlan(
   files: Record<CalibrationPreflightFileName, string>,
   selectedProfile?: CalibrationProfile,
+): readonly CalibrationPlannedReportOutcome[] {
+  return deriveCanonicalReportOutcomePlanCore(files, selectedProfile);
+}
+
+function deriveCanonicalReportOutcomePlanCore(
+  files: Record<CalibrationPreflightFileName, string>,
+  selectedProfile?: CalibrationProfile,
+  ownedContext?: Readonly<CalibrationV2PreparedContext>,
 ): readonly CalibrationPlannedReportOutcome[] {
   try {
     const owned = captureReportPlanFilesRecord(files);
@@ -857,10 +885,13 @@ export function deriveCanonicalReportOutcomePlan(
     // Unchanged pinned-bytes/hash/unknown-field policy proof on the same
     // owned strings; its own allowed-key set is not reused here, only its
     // fail-closed validation of calibration/public manifest bytes.
-    deriveCanonicalAllowedKeys(owned, selected);
+    deriveCanonicalAllowedKeysCore(owned, selected, ownedContext);
 
     const calibrationRaw = JSON.parse(owned['calibration-manifest']) as unknown;
-    const calibrationManifest = StrictCalibrationManifestSchema.parse(calibrationRaw) as unknown as {
+    const manifestSchema = ownedContext === undefined
+      ? StrictCalibrationManifestSchema
+      : StrictCalibrationManifestV2Schema;
+    const calibrationManifest = manifestSchema.parse(calibrationRaw) as unknown as {
       cases: Array<{ id: string; group: string }>;
     };
     const devIds: string[] = [];
@@ -944,4 +975,28 @@ export function deriveCanonicalReportOutcomePlan(
   } catch {
     throw new CalibrationFatalError('calibration:report-outcome-plan-invalid');
   }
+}
+
+export function deriveCanonicalAllowedKeysV2(
+  context: Readonly<CalibrationV2PreparedContext>,
+  selectedProfile?: CalibrationProfile,
+): readonly ReservationKey[] {
+  const ownedContext = requireCalibrationV2Context(context);
+  return deriveCanonicalAllowedKeysCore(
+    ownedContext.files,
+    selectedProfile,
+    ownedContext,
+  );
+}
+
+export function deriveCanonicalReportOutcomePlanV2(
+  context: Readonly<CalibrationV2PreparedContext>,
+  selectedProfile?: CalibrationProfile,
+): readonly CalibrationPlannedReportOutcome[] {
+  const ownedContext = requireCalibrationV2Context(context);
+  return deriveCanonicalReportOutcomePlanCore(
+    ownedContext.files,
+    selectedProfile,
+    ownedContext,
+  );
 }
