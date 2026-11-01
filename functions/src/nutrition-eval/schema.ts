@@ -422,6 +422,12 @@ export const CalibrationInfoSchema = z.object({
   }).optional(),
 });
 
+export const CALIBRATION_PROTOCOL_VERSION_V2 = 'calorix-gemini-38-calibration-v2' as const;
+export const CalibrationInfoV2Schema = CalibrationInfoSchema.extend({
+  protocolVersion: z.literal(CALIBRATION_PROTOCOL_VERSION_V2),
+  imageCallsReserved: z.number().int().nonnegative().max(146),
+});
+
 const ZeroSafeSummaryFields = {
   medianProteinRelativeError: z.number().finite().nonnegative().optional(),
   medianCarbsRelativeError: z.number().finite().nonnegative().optional(),
@@ -698,7 +704,7 @@ export const NutritionEvalReportSchema = z.preprocess((value, context) =>
   publicCases: z.number().int().nonnegative(),
   privateCases: z.number().int().nonnegative(),
   comparison: BaselineComparisonSchema.optional(),
-  calibration: CalibrationInfoSchema.optional(),
+  calibration: z.union([CalibrationInfoSchema, CalibrationInfoV2Schema]).optional(),
   summary: z.object({
     totalCases: z.number().int().nonnegative(),
     runCases: z.number().int().nonnegative(),
@@ -739,7 +745,7 @@ export const NutritionEvalReportSchema = z.preprocess((value, context) =>
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['summary', 'parseCases'], message: 'parse cases cannot exceed run cases' });
   }
   const calibration = report.calibration;
-  if (calibration?.protocolVersion !== CALIBRATION_PROTOCOL_VERSION) return;
+  if (calibration === undefined) return;
   for (const field of ['safeErrors', 'latencyCoverage'] as const) {
     if (Object.prototype.hasOwnProperty.call(calibration, field) && calibration[field] === undefined) {
       context.addIssue({ code: z.ZodIssueCode.custom, path: ['calibration', field], message: 'present metadata must be defined' });
