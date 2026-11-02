@@ -114,6 +114,8 @@ Task3 qualification — 2026-11-02: same-source serial batches `task3-native-cli
 
 ## Task 4: Whole runtime qualification and recorded source/budget gate
 
+Fresh native whole-feature review complete:0Critical/1Important/1Minor on206frozen Functions inputs. Important: standalone V2 preflight still uses mutable preparation reads; append4metadata/counter RED cases and swap only its store to existing benchmark-native readonly preparation, preserving V1 and archive denial. Corrected prospective MCP repair plan agrees/MUST_FIX:none; ordered workers and actual RED/GREEN still pending. Step2 remains open until this one fix pass is verified. No second native reviewer. Final-index assertion Minor deferred with admission-phase-only report scope; all declined behaviors ruled on. Full backend/native/account/assets qualification remains pending.
+
 **Files:** tracking docs and ignored disk-backed receipts; product changes only for real reviewed important findings with RED/GREEN.
 
 - [ ] **Step 1: Pin actual committed source/inputs/config/prior evidence/candidate.** Check exact remote SHA and clean Functions source. Preserve every previous default case/status entry from the qualified4667PASS+1oldskip source; the new runtime adds passing cases rather than changing prior populations.
