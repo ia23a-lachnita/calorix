@@ -3,7 +3,8 @@ import { admitCalibrationV2Candidate } from './calibration-v2-admission';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
-import { isAbsolute, join, relative, resolve } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
+import { readCalibrationV2BoundedFile as readBounded } from './calibration-v2-native-read';
 import {
   CALIBRATION_ACTIVATION_LOCK_V2_PATH, CALIBRATION_ACTIVATION_LOCK_V2_SHA256,
   CALIBRATION_V2_PRIOR_EVIDENCE_PATHS, CalibrationActivationLockV2Schema,
@@ -37,28 +38,6 @@ function requireDigest(bytes: Uint8Array, expected: string, label: string): void
   if (createHash('sha256').update(bytes).digest('hex') !== expected) fail(label + ':sha256 mismatch');
 }
 function json(bytes: Uint8Array): unknown { return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)); }
-
-// Fixed paths with per-segment symlink rejection. Like the existing offline
-// reader, this is not a guarantee against a hostile local filesystem race.
-async function confined(root: string, path: string): Promise<void> {
-  const rel = relative(root, path);
-  if (rel.startsWith('..') || isAbsolute(rel)) fail('unsafe path');
-  let current = root;
-  for (const part of ['', ...rel.split('/').filter(Boolean)]) {
-    if (part) current = join(current, part);
-    if ((await fs.lstat(current)).isSymbolicLink()) fail('symlink path rejected');
-  }
-}
-async function readBounded(root: string, relativePath: string, max: number): Promise<Buffer> {
-  const path = resolve(root, relativePath);
-  await confined(root, path);
-  const stat = await fs.stat(path);
-  if (!stat.isFile() || stat.size > max) fail('file size bound exceeded');
-  const bytes = await fs.readFile(path);
-  if (bytes.length > max) fail('file size bound exceeded');
-  await confined(root, path);
-  return bytes;
-}
 
 export async function readNativeCalibrationV2AdmissionInput(repositoryRoot: string): Promise<CalibrationV2AdmissionInput> {
   if (!isAbsolute(repositoryRoot) || resolve(repositoryRoot) !== repositoryRoot) fail('canonical repository path required');
