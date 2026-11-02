@@ -39,7 +39,7 @@ import {
 } from './calibration-cli';
 import type { CalibrationPreflightFileName } from './calibration-cli';
 import { CALIBRATION_MODEL } from '../genai-adapter';
-import { createFileCalibrationLedgerDeps, createFileCalibrationLedgerDepsV2 } from './calibration-file-store';
+import { createFileCalibrationLedgerDeps, createBenchmarkAuthorityFileCalibrationLedgerDepsV2 } from './calibration-file-store';
 import { createCalibrationPreflightLedgerHooks } from './calibration-preflight-ledger';
 import type { CalibrationPreflightLedgerProviderHooks } from './calibration-preflight-ledger';
 import { CalibrationFatalError } from './fatal-error';
@@ -52,7 +52,7 @@ export async function runCalibrationProtocolPreflightSessionV2(
 ): Promise<CalibrationPreflightStageResult> {
   const owned = requireCalibrationV2Context(context);
   const providers = captureProtocolV2Providers(deps);
-  const native = createFileCalibrationLedgerDepsV2(owned);
+  const native = createBenchmarkAuthorityFileCalibrationLedgerDepsV2(owned);
   const started = (): never => { throw new CalibrationFatalError('calibration:preflight-already-started'); };
   if (native.readLock() !== undefined) return started();
   // Even a dead owner appearing after the precheck may never be archived.

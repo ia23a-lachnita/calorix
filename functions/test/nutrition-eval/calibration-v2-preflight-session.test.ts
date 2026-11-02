@@ -1,6 +1,7 @@
 /** Real context admission, native owner/Git and protocol store; only provider replies are fake. */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { prepareCalibrationBootstrapContext } from '../../src/nutrition-eval/calibration-bootstrap';
 import { createProtocolCalibrationLedgerV2 } from '../../src/nutrition-eval/calibration';
@@ -12,13 +13,26 @@ import type { CalibrationPreflightImageRequest } from '../../src/nutrition-eval/
 import { CalibrationFatalError } from '../../src/nutrition-eval/fatal-error';
 import { nativeMiniFixture, nativeV2RuntimeFixture, nativeTreeSnapshot } from './helpers/calibration-v2-native-runtime-fixtures';
 
+const fsWitness = vi.hoisted(() => ({ enabled: false,
+  calls: { chmodSync: 0, mkdirSync: 0, renameSync: 0, unlinkSync: 0, linkSync: 0, writeSync: 0 } }));
+vi.mock('node:fs', async original => {
+  const actual = await original<typeof import('node:fs')>();
+  return { ...actual, ...Object.fromEntries(
+    (['chmodSync', 'mkdirSync', 'renameSync', 'unlinkSync', 'linkSync', 'writeSync'] as const).map(name =>
+      [name, (...args: unknown[]) => {
+        if (fsWitness.enabled) fsWitness.calls[name]++;
+        return Reflect.apply(actual[name], undefined, args);
+      }]),
+  ) };
+});
+
 const trust = vi.hoisted(() => ({ sha: '' }));
 vi.mock('../../src/nutrition-eval/calibration-v2-lock', async original => ({
   ...await original<typeof import('../../src/nutrition-eval/calibration-v2-lock')>(),
   get CALIBRATION_ACTIVATION_LOCK_V2_SHA256() { return trust.sha; },
 }));
 const roots: string[] = [];
-afterEach(() => { vi.restoreAllMocks(); for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
+afterEach(() => { fsWitness.enabled = false; vi.restoreAllMocks(); for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
 const fixture = () => nativeV2RuntimeFixture(roots, sha => { trust.sha = sha; });
 const version = 'gemini-3.8-preflight-fixture';
 function ports() {
@@ -136,9 +150,17 @@ describe('one-shot standalone V2 protocol preflight', () => {
 
   it('blocks stale-owner archival if a lock appears between the precheck and acquisition', async () => {
     const f = await fixture(); const deps = ports(); const original = stores.createFileCalibrationLedgerDepsV2;
+    const originalBenchmark = stores.createBenchmarkAuthorityFileCalibrationLedgerDepsV2;
     let archiveCalls = 0; let afterRace: Record<string, unknown> | undefined; let reads = 0;
     vi.spyOn(stores, 'createFileCalibrationLedgerDepsV2').mockImplementation(context => {
       const native = original(context);
+      return { ...native, readLock: () => {
+        if (++reads === 2) { seedLock(f, 'dead'); afterRace = nativeTreeSnapshot(f.root); }
+        return native.readLock();
+      }, archiveLock: owner => { archiveCalls++; native.archiveLock(owner); } };
+    });
+    vi.spyOn(stores, 'createBenchmarkAuthorityFileCalibrationLedgerDepsV2').mockImplementation(context => {
+      const native = originalBenchmark(context);
       return { ...native, readLock: () => {
         if (++reads === 2) { seedLock(f, 'dead'); afterRace = nativeTreeSnapshot(f.root); }
         return native.readLock();
@@ -148,4 +170,49 @@ describe('one-shot standalone V2 protocol preflight', () => {
     expect(afterRace).toBeDefined(); expect(nativeTreeSnapshot(f.root)).toEqual(afterRace);
     expect(archiveCalls).toBe(0); expect(deps.countTokens).not.toHaveBeenCalled(); expect(deps.generateImage).not.toHaveBeenCalled();
   }, 30000);
+
+  it.each([{ label: '0755', mode: 0o755 }, { label: '0700', mode: 0o700 }])(
+    'preserves retained-lock metadata at $label with zero preparation mutations', async ({ mode }) => {
+      const f = await fixture(); const deps = ports(); seedLock(f, 'dead');
+      chmodSync(f.root, mode);
+      await rejectWithoutPreparationEffects(f, deps);
+    }, 30000);
+
+  it.each([{ label: '0755', mode: 0o755 }, { label: '0700', mode: 0o700 }])(
+    'preserves a genuine copied V1 header at $label with zero preparation mutations', async ({ mode }) => {
+      const f = await fixture(); const deps = ports();
+      const oldContext = await prepareCalibrationBootstrapContext(f.nativePorts);
+      // Separate fixture setup callbacks create genuine V1 state, never a target V2 request.
+      await runCalibrationProtocolPreflightSession({ context: oldContext, ...ports() });
+      expect(rows(f.v1Root)[0]?.identity?.protocolVersion).toBe('v1');
+      cpSync(f.v1Root, f.root, { recursive: true, preserveTimestamps: true });
+      chmodSync(f.root, mode);
+      expect(rows(f.root)[0]?.identity?.protocolVersion).toBe('v1');
+      await rejectWithoutPreparationEffects(f, deps);
+    }, 30000);
 });
+
+function metadataInventory(root: string): Record<string, unknown> {
+  const inventory: Record<string, unknown> = {};
+  function visit(path: string, key: string): void {
+    const stat = lstatSync(path, { bigint: true });
+    inventory[key] = { mode: stat.mode.toString(), size: stat.size.toString(),
+      mtimeNs: stat.mtimeNs.toString(), ctimeNs: stat.ctimeNs.toString(),
+      sha256: stat.isFile() ? createHash('sha256').update(readFileSync(path)).digest('hex') : null };
+    if (stat.isDirectory()) for (const name of readdirSync(path).sort()) visit(join(path, name), key + '/' + name);
+  }
+  visit(root, '.'); return inventory;
+}
+
+async function rejectWithoutPreparationEffects(
+  f: Awaited<ReturnType<typeof fixture>>, deps: ReturnType<typeof ports>,
+): Promise<void> {
+  const before = metadataInventory(f.root);
+  for (const name of Object.keys(fsWitness.calls) as Array<keyof typeof fsWitness.calls>) fsWitness.calls[name] = 0;
+  fsWitness.enabled = true;
+  try { await expect(runCalibrationProtocolPreflightSessionV2(f.context, deps)).rejects.toThrow(CalibrationFatalError); }
+  finally { fsWitness.enabled = false; }
+  expect(deps.countTokens).not.toHaveBeenCalled(); expect(deps.generateImage).not.toHaveBeenCalled();
+  expect(fsWitness.calls).toEqual({ chmodSync: 0, mkdirSync: 0, renameSync: 0, unlinkSync: 0, linkSync: 0, writeSync: 0 });
+  expect(metadataInventory(f.root)).toEqual(before);
+}
