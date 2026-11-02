@@ -5,22 +5,25 @@ import type { OffProduct } from '../off-client';
 import { evaluateCalibrationStageGate, selectCalibrationProfileDecision } from './calibration';
 import type { CalibrationProfile, CalibrationRuntimeEvidenceLedger, JournalEntry, StageName } from './calibration';
 import type { CalibrationPreparedContext } from './calibration-bootstrap';
-import { deriveCanonicalReportOutcomePlan } from './calibration-bootstrap';
+import { deriveCanonicalReportOutcomePlan, deriveCanonicalReportOutcomePlanV2 } from './calibration-bootstrap';
 import { verifyCalibrationPreflightState } from './calibration-cli';
 import { prepareCalibrationBenchmarkHistory } from './calibration-benchmark-history';
 import type { CalibrationBenchmarkHistoricalAssessment } from './calibration-benchmark-history';
-import { captureProducerInput } from './calibration-runtime-evidence-producer-input';
-import { prepareCalibrationRuntimeEvidenceProducer } from './calibration-runtime-evidence-producer';
+import { captureProducerInput, captureProducerInputV2 } from './calibration-runtime-evidence-producer-input';
+import { prepareCalibrationRuntimeEvidenceProducer, prepareCalibrationRuntimeEvidenceProducerV2 } from './calibration-runtime-evidence-producer';
 import { captureCalibrationReportJournalEntry, captureCalibrationReportPrediction } from './calibration-report-journal';
-import { assembleCalibrationStageReport } from './calibration-report-assembly';
+import { assembleCalibrationStageReport, assembleCalibrationStageReportV2 } from './calibration-report-assembly';
 import { measureCalibrationStageReport } from './calibration-report-measurements';
-import { publishCalibrationStageReport } from './calibration-report-publication';
+import { publishCalibrationStageReport, publishCalibrationStageReportV2 } from './calibration-report-publication';
 import type { CalibrationPublishedReportReceipt, CalibrationReportPublicationResult } from './calibration-report-publication';
 import type { CalibrationReportOutcomeKey } from './calibration-report-state';
 import { createLiveNutritionEvalAdapter } from './live-adapter';
-import { parseNutritionEvalManifest, StrictCalibrationManifestSchema } from './schema';
+import { parseNutritionEvalManifest, StrictCalibrationManifestSchema, StrictCalibrationManifestV2Schema } from './schema';
 import type { NutritionPrediction } from './schema';
 import { CalibrationFatalError } from './fatal-error';
+import { captureCalibrationV2ExecutionBinding } from './calibration-v2-execution-capture';
+import type { CalibrationV2ExecutionBinding } from './calibration-v2-execution-capture';
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
 
 export interface CalibrationSdkMethodCounts { readonly vision: number; readonly tokenCount: number }
 export interface CalibrationStageDriverDeps {
@@ -33,6 +36,9 @@ export interface CalibrationStageDriverDeps {
   readonly nowMs: () => number;
   readonly getSdkMethodCounts: () => Readonly<CalibrationSdkMethodCounts>;
 }
+export type CalibrationStageDriverDepsV2 = Omit<CalibrationStageDriverDeps, 'context'> & {
+  readonly context: Readonly<CalibrationV2PreparedContext>;
+};
 export interface CalibrationStageExecutionResult {
   readonly stage: StageName;
   readonly selectedProfile?: CalibrationProfile;
@@ -92,6 +98,12 @@ function observed<T>(promise: Promise<T>): Promise<T> { void promise.then(undefi
 function keyId(key: CalibrationReportOutcomeKey): string { return `${key.stage}|${key.profile}|${key.caseId}|${key.sampleIndex}`; }
 
 export async function prepareCalibrationStageDriver(deps: unknown): Promise<Readonly<CalibrationStageDriver>> {
+  return prepareCalibrationStageDriverCore(deps);
+}
+
+async function prepareCalibrationStageDriverCore(
+  deps: unknown, binding?: Readonly<CalibrationV2ExecutionBinding>,
+): Promise<Readonly<CalibrationStageDriver>> {
   // Capture every foreign descriptor/function before the first suspension; no effects.
   let input: ReturnType<typeof captureProducerInput>;
   let native: Readonly<DriverLedger>;
@@ -100,17 +112,19 @@ export async function prepareCalibrationStageDriver(deps: unknown): Promise<Read
   let getSdkMethodCounts: CalibrationStageDriverDeps['getSdkMethodCounts'];
   try {
     const owned = data(deps, FIELDS);
+    if (binding !== undefined && (owned.context !== binding.context || owned.ledger !== binding.ledger)) throw freshFatal();
     for (const name of ['countTokens', 'nowMs', 'getSdkMethodCounts']) if (typeof owned[name] !== 'function') throw freshFatal();
-    input = captureProducerInput({ context: owned.context, ledger: owned.ledger,
+    input = (binding === undefined ? captureProducerInput : captureProducerInputV2)({ context: owned.context, ledger: owned.ledger,
       loadImage: owned.loadImage, generateVision: owned.generateVision, lookupSnapshot: owned.lookupSnapshot });
     native = captureMethods(owned.ledger);
     countTokens = owned.countTokens as typeof countTokens;
     nowMs = owned.nowMs as typeof nowMs;
     getSdkMethodCounts = owned.getSdkMethodCounts as typeof getSdkMethodCounts;
-    await verifyCalibrationPreflightState({ files: input.context.files });
+    if (binding === undefined) await verifyCalibrationPreflightState({ files: input.context.files });
   } catch { throw freshFatal(); }
   const context = input.context;
-  const training = StrictCalibrationManifestSchema.parse(JSON.parse(context.files['calibration-manifest']));
+  const training = (binding === undefined ? StrictCalibrationManifestSchema : StrictCalibrationManifestV2Schema)
+    .parse(JSON.parse(context.files['calibration-manifest']));
   const benchmark = parseNutritionEvalManifest(JSON.parse(context.files['public-manifest']));
   const cases = new Map([...training.cases, ...benchmark.cases].map((row) => [row.id, row]));
   const history = prepareCalibrationBenchmarkHistory({ historicalReferenceBytes: context.files['historical-reference'],
@@ -245,7 +259,9 @@ export async function prepareCalibrationStageDriver(deps: unknown): Promise<Read
         if (completed.length !== predecessors.length) return fail();
         if (stage === 'preflight') await token();
         guard();
-        const producer = await prepareCalibrationRuntimeEvidenceProducer({ context, ledger,
+        const producer = await (binding === undefined ? prepareCalibrationRuntimeEvidenceProducer : prepareCalibrationRuntimeEvidenceProducerV2)({
+          context, ledger: binding === undefined ? ledger : binding.ledger,
+          ...(binding === undefined ? {} : { checkExecution: guard }),
           ...(selected === undefined ? {} : { selectedProfile: selected }),
           loadImage: (key: Readonly<CalibrationReportOutcomeKey>) => observed(wait(() => input.loadImage(key))),
           generateVision: ((...args) => observed(wait(() => input.generateVision(...args)))) as GenAIAdapter['generateVision'],
@@ -253,7 +269,8 @@ export async function prepareCalibrationStageDriver(deps: unknown): Promise<Read
         });
         guard();
         const finished = new Set(runtime.events.filter((event) => event.type === 'runtime_attempt_finished').map((event) => keyId(event.key)));
-        const rows = deriveCanonicalReportOutcomePlan(context.files, selected).filter((row) => row.key.stage === stage);
+        const rows = (binding === undefined ? deriveCanonicalReportOutcomePlan(context.files, selected)
+          : deriveCanonicalReportOutcomePlanV2(binding.context, selected)).filter((row) => row.key.stage === stage);
         for (const row of rows) {
           if (finished.has(keyId(row.key))) continue;
           const evalCase = cases.get(row.key.caseId);
@@ -304,7 +321,9 @@ export async function prepareCalibrationStageDriver(deps: unknown): Promise<Read
           if (stage === 'preflight' && prediction.parseStatus !== 'success') return fail();
         }
         for (const profile of profiles) {
-          const result = await wait(() => publishCalibrationStageReport({ stage, profile, context, readSnapshot: ledger.getStageReportSnapshot }));
+          const result = await wait(() => binding === undefined
+            ? publishCalibrationStageReport({ stage, profile, context, readSnapshot: ledger.getStageReportSnapshot })
+            : publishCalibrationStageReportV2(binding.context, { stage, profile, readSnapshot: ledger.getStageReportSnapshot }));
           receipts.push(ledger.admitStageReportReceipt(stage, profile));
           ledger.bindRuntimeStageReport(stage, profile);
           reports.push(result);
@@ -329,7 +348,9 @@ export async function prepareCalibrationStageDriver(deps: unknown): Promise<Read
       }
       let historical: CalibrationStageExecutionResult['historical'];
       if (stage === 'benchmark') {
-        const report = await wait(() => assembleCalibrationStageReport({ stage, profile: selected, context, readSnapshot: ledger.getStageReportSnapshot }));
+        const report = await wait(() => binding === undefined
+          ? assembleCalibrationStageReport({ stage, profile: selected, context, readSnapshot: ledger.getStageReportSnapshot })
+          : assembleCalibrationStageReportV2(binding.context, { stage, profile: selected, readSnapshot: ledger.getStageReportSnapshot }));
         const assessment = call(() => history.assess(report));
         historical = Object.freeze({ comparison: assessment.comparison, subset: assessment.subset, provenance: assessment.provenance });
       }
@@ -341,4 +362,9 @@ export async function prepareCalibrationStageDriver(deps: unknown): Promise<Read
     finally { active = false; }
   }
   return Object.freeze({ executeStage: (stage: StageName) => observed(execute(stage)) });
+}
+
+export async function prepareCalibrationStageDriverV2(deps: unknown): Promise<Readonly<CalibrationStageDriver>> {
+  const binding = captureCalibrationV2ExecutionBinding(deps);
+  return prepareCalibrationStageDriverCore(deps, binding);
 }

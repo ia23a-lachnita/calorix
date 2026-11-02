@@ -16,7 +16,7 @@ import { requireCalibrationV2Context } from './calibration-protocol-bindings';
  */
 import { createHash } from 'crypto';
 import { CalibrationFatalError } from './fatal-error';
-import { CALIBRATION_PROTOCOL_VERSION } from './schema';
+import { CALIBRATION_PROTOCOL_VERSION, CALIBRATION_PROTOCOL_VERSION_V2 } from './schema';
 import type { NutritionPrediction } from './schema';
 import type {
   CalibrationReportMeasurements,
@@ -2219,7 +2219,7 @@ function createLedgerCore(
     const expectedOutcomes = snapshot.images.length + snapshot.nonReservations.length;
     const uniqueCases = new Set([...snapshot.images, ...snapshot.nonReservations].map((row) => row.key.caseId)).size;
     const planned = new Set([...snapshot.images, ...snapshot.nonReservations].map((row) => `${row.key.caseId}|${row.key.sampleIndex}`));
-    if (meta === undefined || meta.protocolVersion !== CALIBRATION_PROTOCOL_VERSION
+    if (meta === undefined || meta.protocolVersion !== (context === undefined ? CALIBRATION_PROTOCOL_VERSION : CALIBRATION_PROTOCOL_VERSION_V2)
       || meta.project !== 'calorix-xurschnell' || meta.location !== 'us'
       || meta.model !== identity.model || report.adapterModelId !== identity.model
       || report.codeSha !== identity.implementationCommit || report.promptHash !== identity.promptHash

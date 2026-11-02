@@ -4,8 +4,11 @@ import type { GenAIAdapter } from '../genai-adapter';
 import type { OffProduct } from '../off-client';
 import type { CalibrationIdentity, CalibrationProfile, CalibrationRuntimeEvidenceLedger } from './calibration';
 import { HARD_CALL_CEILING, PLANNED_IMAGE_CALLS } from './calibration';
-import { deriveCanonicalReportOutcomePlan } from './calibration-bootstrap';
+import { deriveCanonicalReportOutcomePlan, deriveCanonicalReportOutcomePlanV2 } from './calibration-bootstrap';
+import { captureCalibrationV2ExecutionBinding } from './calibration-v2-execution-capture';
+import type { CalibrationV2ExecutionBinding } from './calibration-v2-execution-capture';
 import type { CalibrationPreparedContext } from './calibration-bootstrap';
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
 import {
   CALIBRATION_PREFLIGHT_COMPATIBILITY_NOTES,
   CALIBRATION_PREFLIGHT_DATASET_ID,
@@ -85,13 +88,14 @@ function ledgerMethods(value: unknown): Readonly<ProducerLedgerMethods> {
 }
 
 export function captureProducerInput(deps: unknown): Readonly<CapturedProducerInput> {
-  try {
-    const request = data(deps, ['context', 'ledger', 'loadImage', 'generateVision', 'lookupSnapshot'], ['selectedProfile']);
-    if (typeof request.loadImage !== 'function' || typeof request.generateVision !== 'function'
-      || typeof request.lookupSnapshot !== 'function') return invalid();
-    const selectedProfile = request.selectedProfile;
-    if (Object.hasOwn(request, 'selectedProfile') && selectedProfile !== 'LOW' && selectedProfile !== 'MEDIUM') return invalid();
-    const context = data(request.context, ['baseDir', 'identity', 'owner', 'firstDevelopmentCaseId', 'report', 'files']);
+  return captureProducerInputCore(deps);
+}
+
+function captureProducerContextAndPlan(
+  rawContext: unknown, profile: CalibrationProfile | undefined, checkedContext?: Readonly<CalibrationV2PreparedContext>,
+): { context: CalibrationPreparedContext; plan: CapturedProducerInput['plan'] } {
+  if (checkedContext !== undefined) return { context: checkedContext, plan: deriveCanonicalReportOutcomePlanV2(checkedContext, profile) };
+    const context = data(rawContext, ['baseDir', 'identity', 'owner', 'firstDevelopmentCaseId', 'report', 'files']);
     const baseDir = context.baseDir;
     const firstDevelopmentCaseId = context.firstDevelopmentCaseId;
     if (typeof baseDir !== 'string' || baseDir.includes('\0') || !isAbsolute(baseDir) || resolve(baseDir) !== baseDir
@@ -121,7 +125,6 @@ export function captureProducerInput(deps: unknown): Readonly<CapturedProducerIn
       if (typeof bytes !== 'string') return invalid();
       files[name] = bytes;
     }
-    const profile = selectedProfile as CalibrationProfile | undefined;
     const plan = deriveCanonicalReportOutcomePlan(files, profile);
     if (plan.find((row) => row.key.stage === 'preflight')?.key.caseId !== firstDevelopmentCaseId) return invalid();
     const report = data(context.report, ['datasetId', 'publicManifestHash', 'promptHash',
@@ -150,8 +153,26 @@ export function captureProducerInput(deps: unknown): Readonly<CapturedProducerIn
         compatibilityNotes: Object.freeze(ownedNotes), historicalCompatible: false as const,
       }),
     });
+  return { context: ownedContext, plan };
+}
+
+function captureProducerInputCore(
+  deps: unknown, binding?: Readonly<CalibrationV2ExecutionBinding>,
+): Readonly<CapturedProducerInput & { readonly checkExecution?: () => void }> {
+  try {
+    const request = data(deps, ['context', 'ledger', 'loadImage', 'generateVision', 'lookupSnapshot'],
+      binding === undefined ? ['selectedProfile'] : ['selectedProfile', 'checkExecution']);
+    if (binding !== undefined && (request.context !== binding.context || request.ledger !== binding.ledger)) return invalid();
+    if (Object.hasOwn(request, 'checkExecution') && typeof request.checkExecution !== 'function') return invalid();
+    if (typeof request.loadImage !== 'function' || typeof request.generateVision !== 'function'
+      || typeof request.lookupSnapshot !== 'function') return invalid();
+    const selectedProfile = request.selectedProfile;
+    if (Object.hasOwn(request, 'selectedProfile') && selectedProfile !== 'LOW' && selectedProfile !== 'MEDIUM') return invalid();
+    const profile = selectedProfile as CalibrationProfile | undefined;
+    const { context: ownedContext, plan } = captureProducerContextAndPlan(request.context, profile, binding?.context);
     return Object.freeze({
       context: ownedContext, ledger: ledgerMethods(request.ledger),
+      ...(binding !== undefined && Object.hasOwn(request, 'checkExecution') ? { checkExecution: request.checkExecution as () => void } : {}),
       ...(profile === undefined ? {} : { selectedProfile: profile }), plan,
       loadImage: request.loadImage as CalibrationRuntimeEvidenceProducerDeps['loadImage'],
       generateVision: request.generateVision as GenAIAdapter['generateVision'],
@@ -194,3 +215,19 @@ export function assertProducerExecutionIdentity(
     return invalid();
   }
 }
+
+export type CapturedProducerInputV2 = CapturedProducerInput & {
+  readonly context: Readonly<CalibrationV2PreparedContext>;
+  readonly checkExecution?: () => void;
+};
+
+export function captureProducerInputV2(deps: unknown): Readonly<CapturedProducerInputV2> {
+  const binding = captureCalibrationV2ExecutionBinding(deps);
+  const input = captureProducerInputCore(deps, binding);
+  return Object.freeze({ ...input, context: binding.context });
+}
+
+export type CalibrationRuntimeEvidenceProducerDepsV2 = Omit<CalibrationRuntimeEvidenceProducerDeps, 'context'> & {
+  readonly context: Readonly<CalibrationV2PreparedContext>;
+  readonly checkExecution?: () => void;
+};

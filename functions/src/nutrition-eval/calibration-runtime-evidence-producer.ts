@@ -2,17 +2,18 @@
 import type { CalibrationPlannedReportOutcome, CalibrationReportOutcomeKey } from './calibration-report-state';
 import type { RuntimeAttemptRef, RuntimeOperation } from './calibration-runtime-evidence-codec';
 import type { CalibrationOutcomeCapabilities } from './calibration-runtime-capabilities';
-import { CalibrationRuntimeProviderError, prepareCalibrationRuntimeCapabilities } from './calibration-runtime-capabilities';
+import { CalibrationRuntimeProviderError, prepareCalibrationRuntimeCapabilities, prepareCalibrationRuntimeCapabilitiesV2 } from './calibration-runtime-capabilities';
 import { verifyCalibrationPreflightState } from './calibration-cli';
 import {
   assertProducerExecutionIdentity,
   captureProducerInput,
+  captureProducerInputV2,
   captureProducerOutcomeKey,
 } from './calibration-runtime-evidence-producer-input';
-import type { CapturedProducerInput } from './calibration-runtime-evidence-producer-input';
+import type { CapturedProducerInput, CapturedProducerInputV2, ProducerLedgerMethods } from './calibration-runtime-evidence-producer-input';
 import { CalibrationFatalError } from './fatal-error';
 
-export type { CalibrationRuntimeEvidenceProducerDeps } from './calibration-runtime-evidence-producer-input';
+export type { CalibrationRuntimeEvidenceProducerDeps, CalibrationRuntimeEvidenceProducerDepsV2 } from './calibration-runtime-evidence-producer-input';
 export interface CalibrationRuntimeEvidenceProducer {
   readonly runOutcome: <T>(
     key: unknown,
@@ -59,11 +60,17 @@ function observed<T>(promise: Promise<T>): Promise<T> {
 export async function prepareCalibrationRuntimeEvidenceProducer(
   deps: unknown,
 ): Promise<Readonly<CalibrationRuntimeEvidenceProducer>> {
+  return prepareCalibrationRuntimeEvidenceProducerCore(deps);
+}
+
+async function prepareCalibrationRuntimeEvidenceProducerCore(
+  deps: unknown, ownedV2?: Readonly<CapturedProducerInputV2>,
+): Promise<Readonly<CalibrationRuntimeEvidenceProducer>> {
   let input: Readonly<CapturedProducerInput>;
   try {
     // All foreign records/functions are captured before the first await.
-    input = captureProducerInput(deps);
-    await verifyCalibrationPreflightState({ files: input.context.files });
+    input = ownedV2 ?? captureProducerInput(deps);
+    if (ownedV2 === undefined) await verifyCalibrationPreflightState({ files: input.context.files });
   } catch {
     throw freshFatal();
   }
@@ -119,8 +126,31 @@ export async function prepareCalibrationRuntimeEvidenceProducer(
     invocation[operation] = result;
   }
 
-  const primitive = prepareCalibrationRuntimeCapabilities({
-    files: input.context.files,
+  // The parent hook is foreign code too: detect swallowed reentry before
+  // dispatching the next native operation, not only after it has written.
+  if (ownedV2?.checkExecution !== undefined) {
+    const parentCheck = ownedV2.checkExecution;
+    const receiver = input.ledger;
+    const localCheck = (): (() => void) => {
+      const value = active;
+      if (value === null) return fail();
+      if (value.phase === 'capturing') return () => guardCapture(value);
+      const phase = value.phase;
+      if (phase !== 'work' && phase !== 'publishing') return fail();
+      return () => guard(value, phase);
+    };
+    const ledger = Object.freeze(Object.fromEntries(Object.entries(receiver).map(([name, method]) => [name, (...args: unknown[]) => {
+      const check = localCheck();
+      check(); parentCheck(); check();
+      const result: unknown = Reflect.apply(method, receiver, args);
+      check(); parentCheck(); check();
+      return result;
+    }]))) as Readonly<ProducerLedgerMethods>;
+    input = Object.freeze({ ...input, ledger });
+  }
+
+  const primitiveDeps = {
+    ...(ownedV2 === undefined ? { files: input.context.files } : {}),
     ...(input.selectedProfile === undefined ? {} : { selectedProfile: input.selectedProfile }),
     loadImage: (key: Readonly<CalibrationReportOutcomeKey>) => observed((async () => {
       const invocation = current();
@@ -253,7 +283,9 @@ export async function prepareCalibrationRuntimeEvidenceProducer(
         invocation.pending--;
       }
     },
-  });
+  };
+  const primitive = ownedV2 === undefined ? prepareCalibrationRuntimeCapabilities(primitiveDeps)
+    : prepareCalibrationRuntimeCapabilitiesV2(ownedV2.context, primitiveDeps);
 
   function facade(invocation: Invocation, capabilities: Readonly<CalibrationOutcomeCapabilities>): Readonly<CalibrationOutcomeCapabilities> {
     function asyncOperation<T>(operation: () => Promise<T>, allowProviderRejection = false): Promise<T> {
@@ -373,4 +405,11 @@ export async function prepareCalibrationRuntimeEvidenceProducer(
   }
 
   return Object.freeze({ runOutcome });
+}
+
+export async function prepareCalibrationRuntimeEvidenceProducerV2(
+  deps: unknown,
+): Promise<Readonly<CalibrationRuntimeEvidenceProducer>> {
+  const input = captureProducerInputV2(deps);
+  return prepareCalibrationRuntimeEvidenceProducerCore(undefined, input);
 }
