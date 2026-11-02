@@ -1,22 +1,28 @@
 /** Unused opt-in native composition. No client, stage, reservation or lock acquisition. */
 import { isAbsolute, resolve } from 'node:path';
-import { createBenchmarkAuthorityCalibrationLedger, createRuntimeEvidenceCalibrationLedger } from './calibration';
+import { createBenchmarkAuthorityCalibrationLedger, createBenchmarkAuthorityCalibrationLedgerV2,
+  createRuntimeEvidenceCalibrationLedger } from './calibration';
 import { prepareCalibrationBenchmarkHistory } from './calibration-benchmark-history';
 import type { CalibrationRuntimeEvidenceLedger } from './calibration';
 import {
   createCalibrationBootstrapReadDeps,
   deriveCanonicalAllowedKeys,
+  deriveCanonicalAllowedKeysV2,
   deriveCanonicalReportOutcomePlan,
+  deriveCanonicalReportOutcomePlanV2,
 } from './calibration-bootstrap';
 import type { CalibrationPreparedContext } from './calibration-bootstrap';
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 import {
   CALIBRATION_PREFLIGHT_FILE_NAMES,
   CALIBRATION_PREFLIGHT_DATASET_ID,
   CALIBRATION_PREFLIGHT_COMPATIBILITY_NOTES,
 } from './calibration-cli';
-import { createBenchmarkAuthorityFileCalibrationLedgerDeps, createRuntimeEvidenceFileCalibrationLedgerDeps } from './calibration-file-store';
+import { createBenchmarkAuthorityFileCalibrationLedgerDeps, createBenchmarkAuthorityFileCalibrationLedgerDepsV2,
+  createRuntimeEvidenceFileCalibrationLedgerDeps } from './calibration-file-store';
 import type { RuntimeEvidenceFileStoreOverrides } from './calibration-file-store';
-import { prepareCalibrationStageReportArtifactVerifier } from './calibration-report-artifact-verification';
+import { prepareCalibrationStageReportArtifactVerifier, prepareCalibrationStageReportArtifactVerifierV2 } from './calibration-report-artifact-verification';
 import { captureCalibrationRuntimeEvidenceHeader } from './calibration-runtime-evidence-codec';
 import { CalibrationFatalError } from './fatal-error';
 
@@ -92,33 +98,57 @@ export async function prepareNativeCalibrationBenchmarkAuthorityLedger(
   return prepareNativeLedger(params, overrides, true);
 }
 
+export async function prepareNativeCalibrationBenchmarkAuthorityLedgerV2(
+  params: unknown,
+  overrides?: RuntimeEvidenceFileStoreOverrides,
+): Promise<Readonly<CalibrationRuntimeEvidenceLedger>> {
+  let context: unknown;
+  try { context = record(params, ['context']).context; }
+  catch { throw new CalibrationFatalError('calibration:benchmark-authority-native-input-invalid'); }
+  // Only the outer container is reflected before this identity lookup.
+  const ownedContext = requireCalibrationV2Context(context);
+  return prepareNativeLedger(params, overrides, true, ownedContext);
+}
+
 async function prepareNativeLedger(
   params: unknown,
   overrides: RuntimeEvidenceFileStoreOverrides | undefined,
   benchmarkAuthority: boolean,
+  checkedContext?: Readonly<CalibrationV2PreparedContext>,
 ): Promise<Readonly<CalibrationRuntimeEvidenceLedger>> {
   try {
     // Capture context AND low-level hooks synchronously before any await.
-    const context = captureContext(params);
+    const context = checkedContext ?? captureContext(params);
     if (benchmarkAuthority) {
       prepareCalibrationBenchmarkHistory({ historicalReferenceBytes: context.files['historical-reference'],
         historicalReferenceHash: context.identity.historicalReferenceHash });
     }
-    const deps = benchmarkAuthority
+    const deps = checkedContext !== undefined
+      ? createBenchmarkAuthorityFileCalibrationLedgerDepsV2(checkedContext, overrides)
+      : benchmarkAuthority
       ? createBenchmarkAuthorityFileCalibrationLedgerDeps(context.baseDir, context.owner, overrides)
       : createRuntimeEvidenceFileCalibrationLedgerDeps(context.baseDir, context.owner, overrides);
     const readCurrentGitState = createCalibrationBootstrapReadDeps(context.baseDir).readGitState;
     const plans = Object.freeze({
-      initial: deriveCanonicalReportOutcomePlan(context.files),
-      LOW: deriveCanonicalReportOutcomePlan(context.files, 'LOW'),
-      MEDIUM: deriveCanonicalReportOutcomePlan(context.files, 'MEDIUM'),
+      initial: checkedContext === undefined ? deriveCanonicalReportOutcomePlan(context.files)
+        : deriveCanonicalReportOutcomePlanV2(checkedContext),
+      LOW: checkedContext === undefined ? deriveCanonicalReportOutcomePlan(context.files, 'LOW')
+        : deriveCanonicalReportOutcomePlanV2(checkedContext, 'LOW'),
+      MEDIUM: checkedContext === undefined ? deriveCanonicalReportOutcomePlan(context.files, 'MEDIUM')
+        : deriveCanonicalReportOutcomePlanV2(checkedContext, 'MEDIUM'),
     });
-    const verifier = await prepareCalibrationStageReportArtifactVerifier(context);
+    const verifier = await (checkedContext === undefined ? prepareCalibrationStageReportArtifactVerifier(context)
+      : prepareCalibrationStageReportArtifactVerifierV2(checkedContext));
     const args: Parameters<typeof createRuntimeEvidenceCalibrationLedger> = [deps, context.identity,
-      (profile) => deriveCanonicalAllowedKeys(context.files, profile),
+      (profile) => checkedContext === undefined ? deriveCanonicalAllowedKeys(context.files, profile)
+        : deriveCanonicalAllowedKeysV2(checkedContext, profile),
       { getReportOutcomePlan: (profile) => profile === undefined ? plans.initial : plans[profile] },
       { verifyStageReportArtifacts: verifier.verify },
       { initialOwner: context.owner, plans, readCurrentGitState }];
+    if (checkedContext !== undefined) {
+      return createBenchmarkAuthorityCalibrationLedgerV2(checkedContext, deps, args[2], args[3], args[4], args[5],
+        { historicalReferenceBytes: context.files['historical-reference'] });
+    }
     return benchmarkAuthority
       ? createBenchmarkAuthorityCalibrationLedger(...args, { historicalReferenceBytes: context.files['historical-reference'] })
       : createRuntimeEvidenceCalibrationLedger(...args);
