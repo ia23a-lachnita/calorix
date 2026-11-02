@@ -123,11 +123,14 @@ async function prepareNativeLedger(
       prepareCalibrationBenchmarkHistory({ historicalReferenceBytes: context.files['historical-reference'],
         historicalReferenceHash: context.identity.historicalReferenceHash });
     }
-    const deps = checkedContext !== undefined
+    const nativeDeps = checkedContext !== undefined
       ? createBenchmarkAuthorityFileCalibrationLedgerDepsV2(checkedContext, overrides)
       : benchmarkAuthority
       ? createBenchmarkAuthorityFileCalibrationLedgerDeps(context.baseDir, context.owner, overrides)
       : createRuntimeEvidenceFileCalibrationLedgerDeps(context.baseDir, context.owner, overrides);
+    const deps = checkedContext === undefined ? nativeDeps : Object.freeze({ ...nativeDeps,
+      archiveLock: (): never => { throw new CalibrationFatalError('calibration:v2-stale-lock-forbidden'); },
+    });
     const readCurrentGitState = createCalibrationBootstrapReadDeps(context.baseDir).readGitState;
     const plans = Object.freeze({
       initial: checkedContext === undefined ? deriveCanonicalReportOutcomePlan(context.files)

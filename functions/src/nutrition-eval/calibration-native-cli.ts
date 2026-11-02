@@ -8,22 +8,29 @@ import {
 } from '../genai-adapter';
 import type { CalibrationCountTokensClient, GenAIAdapter, GenAIClient } from '../genai-adapter';
 import { loadVerifiedCaseImage } from './assets';
-import { createCalibrationBootstrapReadDeps, prepareCalibrationBootstrapContext } from './calibration-bootstrap';
+import { createCalibrationBootstrapReadDeps, prepareCalibrationBootstrapContext, deriveCanonicalReportOutcomePlanV2 } from './calibration-bootstrap';
 import { runCalibrationCli, validateCalibrationCliInvocation } from './calibration-cli';
 import type { CalibrationCliFailureCode, CalibrationCliResult } from './calibration-cli';
 import { prepareCalibrationOffSnapshotStore } from './calibration-off-snapshot-store';
-import { prepareNativeCalibrationBenchmarkAuthorityLedger } from './calibration-runtime-evidence-ledger';
-import { prepareCalibrationStageDriver } from './calibration-stage-driver';
+import { prepareNativeCalibrationBenchmarkAuthorityLedger, prepareNativeCalibrationBenchmarkAuthorityLedgerV2 } from './calibration-runtime-evidence-ledger';
+import { prepareCalibrationStageDriver, prepareCalibrationStageDriverV2 } from './calibration-stage-driver';
 import type { CalibrationSdkMethodCounts, CalibrationStageExecutionResult } from './calibration-stage-driver';
 import type { CalibrationReportOutcomeKey } from './calibration-report-state';
-import { parseNutritionEvalManifest, StrictCalibrationManifestSchema } from './schema';
+import { parseNutritionEvalManifest, StrictCalibrationManifestSchema, StrictCalibrationManifestV2Schema } from './schema';
 import type { StageName } from './calibration';
+import type { NutritionEvalCase } from './schema';
+import { createCalibrationV2BootstrapReadDeps, prepareCalibrationV2BootstrapContext } from './calibration-v2-bootstrap';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
+import { createBenchmarkAuthorityFileCalibrationLedgerDepsV2 } from './calibration-file-store';
+import { readNativeCalibrationV2CaseImage } from './calibration-v2-native-images';
 import { CalibrationFatalError } from './fatal-error';
 
 export interface CalibrationNativeCliResult extends CalibrationCliResult {
   readonly execution?: Readonly<CalibrationStageExecutionResult>;
 }
 const STAGES: readonly StageName[] = ['preflight', 'development', 'validation', 'benchmark'];
+const V2_NATIVE = Symbol('separate-native-entry');
+const IMAGE_PREFIX = Object.freeze({ preflight: 0, development: 2, validation: 50, benchmark: 98 });
 const fatal = () => new CalibrationFatalError('calibration:native-cli-failed');
 function failed(failureCode: CalibrationCliFailureCode): Readonly<CalibrationNativeCliResult> {
   return Object.freeze({ exitCode: 1, failureCode });
@@ -31,6 +38,18 @@ function failed(failureCode: CalibrationCliFailureCode): Readonly<CalibrationNat
 
 export async function runNativeCalibrationCli(
   argv: readonly string[], env: Record<string, string | undefined> = process.env,
+): Promise<Readonly<CalibrationNativeCliResult>> {
+  return runNativeCalibrationCliCore(argv, env);
+}
+
+export async function runNativeCalibrationV2Cli(
+  argv: readonly string[], env: Record<string, string | undefined> = process.env,
+): Promise<Readonly<CalibrationNativeCliResult>> {
+  return runNativeCalibrationCliCore(argv, env, V2_NATIVE);
+}
+
+async function runNativeCalibrationCliCore(
+  argv: readonly string[], env: Record<string, string | undefined>, mode?: typeof V2_NATIVE,
 ): Promise<Readonly<CalibrationNativeCliResult>> {
   let executing = false;
   try {
@@ -40,14 +59,20 @@ export async function runNativeCalibrationCli(
     const validation = validateCalibrationCliInvocation(tokens, source);
     if (!validation.valid) return Object.freeze({ ...validation.result });
     const { stage } = validation;
-    const context = await prepareCalibrationBootstrapContext(createCalibrationBootstrapReadDeps());
+    const context = await (mode === V2_NATIVE
+      ? prepareCalibrationV2BootstrapContext(createCalibrationV2BootstrapReadDeps())
+      : prepareCalibrationBootstrapContext(createCalibrationBootstrapReadDeps()));
+    const v2Context = mode === V2_NATIVE ? requireCalibrationV2Context(context) : undefined;
+    // Never acquire or archive a retained V2 lock, regardless of owner liveness.
+    if (v2Context !== undefined && createBenchmarkAuthorityFileCalibrationLedgerDepsV2(v2Context).readLock() !== undefined) throw fatal();
     const store = await prepareCalibrationOffSnapshotStore({
       lockText: context.files['off-lock'],
       readSnapshot: async (path: string) => execFileSync('git', ['show', `${context.identity.implementationCommit}:${path}`], {
         cwd: context.baseDir, encoding: 'utf8',
       }),
     });
-    const training = StrictCalibrationManifestSchema.parse(JSON.parse(context.files['calibration-manifest']));
+    const training = (v2Context === undefined ? StrictCalibrationManifestSchema : StrictCalibrationManifestV2Schema)
+      .parse(JSON.parse(context.files['calibration-manifest']));
     const benchmark = parseNutritionEvalManifest(JSON.parse(context.files['public-manifest']));
     const cases = new Map([...training.cases, ...benchmark.cases].map((row) => [row.id, row]));
     const first = cases.get(context.firstDevelopmentCaseId);
@@ -55,7 +80,7 @@ export async function runNativeCalibrationCli(
     if (!first || first.scanMode !== 'meal' || !Array.isArray(prompts) || typeof prompts[0] !== 'string') throw fatal();
     const firstPrompt: string = prompts[0];
     const cacheRoot = resolve(context.baseDir, '.nutrition-eval/cache');
-    const ledger = await prepareNativeCalibrationBenchmarkAuthorityLedger({ context });
+    const ledger = await (v2Context === undefined ? prepareNativeCalibrationBenchmarkAuthorityLedger : prepareNativeCalibrationBenchmarkAuthorityLedgerV2)({ context });
     ledger.acquireLock(context.owner);
     let vision: GenAIAdapter | undefined;
     let tokenClient: CalibrationCountTokensClient | undefined;
@@ -64,13 +89,18 @@ export async function runNativeCalibrationCli(
     let sdkVision = 0;
     let sdkToken = 0;
     function bound(): void { if (vision === undefined || tokenClient === undefined) throw fatal(); }
+    const trainingIds = new Set(training.cases.map(row => row.id));
+    async function caseBytes(row: NutritionEvalCase): Promise<Uint8Array> {
+      if (v2Context !== undefined && trainingIds.has(row.id)) return readNativeCalibrationV2CaseImage(v2Context, row.id);
+      return loadVerifiedCaseImage(row, { cacheRoot, ...(v2Context === undefined ? { fetchFn: fetch } : {}) });
+    }
     const image = async (key: Readonly<CalibrationReportOutcomeKey>): Promise<Uint8Array> => {
       bound();
       const row = cases.get(key.caseId);
       if (!row || row.scanMode === 'barcode') throw fatal();
-      return loadVerifiedCaseImage(row, { cacheRoot, fetchFn: fetch });
+      return caseBytes(row);
     };
-    const driver = await prepareCalibrationStageDriver({
+    const driver = await (v2Context === undefined ? prepareCalibrationStageDriver : prepareCalibrationStageDriverV2)({
       context, ledger,
       loadImage: image,
       generateVision: ((...args) => {
@@ -80,7 +110,7 @@ export async function runNativeCalibrationCli(
       lookupSnapshot: (barcode: string) => { bound(); return store.get(barcode); },
       countTokens: async () => {
         bound();
-        const bytes = await loadVerifiedCaseImage(first, { cacheRoot, fetchFn: fetch });
+        const bytes = await caseBytes(first);
         return countCalibrationTokens(tokenClient!, { model: CALIBRATION_MODEL, prompt: firstPrompt,
           imageBase64: Buffer.from(bytes).toString('base64'), imageMediaType: first.image.mediaType, timeoutMs: CALIBRATION_TIMEOUT_MS });
       },
@@ -100,6 +130,20 @@ export async function runNativeCalibrationCli(
           || !predecessors.every((name, index) => completed[index] === name)
           || (!completed.includes(stage) && completed.length !== predecessors.length)) throw fatal();
         if (completed.includes(stage)) ledger.completeStage(stage, { stage, passed: true, completedStages: predecessors });
+        else if (v2Context !== undefined) {
+          const counts = ledger.getCounts();
+          const runtime = ledger.getRuntimeEvidenceSnapshot();
+          if (counts.imageReserved !== IMAGE_PREFIX[stage] || counts.tokenCountReserved !== (stage === 'preflight' ? 0 : 1)
+            || runtime.events.some(event => event.type === 'runtime_report_bound' ? event.stage === stage : event.key.stage === stage)) throw fatal();
+          // All current stage assets must be available before client construction.
+          // Re-read and verify bytes again at use; no response or image bypass cache.
+          const selected = ledger.getSelectedProfile();
+          const plan = deriveCanonicalReportOutcomePlanV2(v2Context, selected).filter(row => row.key.stage === stage && row.scanMode !== 'barcode');
+          for (const id of new Set(plan.map(row => row.key.caseId))) {
+            const row = cases.get(id); if (row === undefined) throw fatal();
+            await caseBytes(row);
+          }
+        }
       },
       createClient: () => {
         if (reference !== undefined) throw fatal();
