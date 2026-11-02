@@ -1,5 +1,33 @@
 # Separate calibration runtime preparation
 
+## Current qualification status — 2026-11-02
+
+Tasks 1–3 are implemented; Task 4 qualification remains open. The reviewed Important fix is committed in `d50265ecdb5d46554e6e047b135853ba46ab14b1`, Functions tree `3eb7f956ef77c7f1d580f77135a0b3f9097f98c3`. The diagnostic checkpoint changes tracking documents only.
+
+| Run | Native exit | Actual result |
+| --- | ---: | --- |
+| `task4-parent-test-verify-01-20261102` | 1 | Build/lint passed; default 5,239 passed, 12 timed out, one existing skip; 88 files; 7,228.785 s. Rules/load not run. |
+| `task4-timeout-current-original-budget-01` | 0 | Four selected current-source cases passed; 18.895 s. |
+| `task4-timeout-baseline-original-budget-01` | 0 | Same four selected cases passed on clean isolated `45ff64e`; 18.611 s. |
+| `task4-timeout-current-whole-file-01` | 0 | All 199 cases in the failing file passed, zero skips/failures; 685.141 s. |
+
+The first parent retains all 4,542 prior default case names by Counter, with 12 old passing statuses changed to timeouts and 710 additional passing cases. Every failure reported `Test timed out in 5000ms`, in guarded artifact reconciliation or report-without-receipt tests. Source tests, fixtures, configuration, dependency lockfile, assertions and time budgets were unchanged. The paired diagnostics used the same installed dependencies and disk-backed temporary storage. Their unselected cases are outside diagnostic scope, not new skips in the full parent.
+
+The entire-file diagnostic preserves the exact 199-case name multiset. All 12 formerly timed-out cases passed in 2,940.404–3,291.327 ms, compared with 5,795.929–7,905.251 ms in the first parent. Post-run checks matched all 210 source/root inputs, 71 compiled/runtime artifacts, three protected configurations, 11 frozen V1 files and candidate audit. The canonical V2 root is absent. This establishes non-reproduction in the tested contexts; **the original cause remains unresolved**. It does not qualify the full backend or prove a host-only cause.
+
+| Raw receipt | SHA-256 |
+| --- | --- |
+| Failed full parent default tests | `77a9d91abd507b009294d8cc1db49d5203292b772308efb39b331a598bf0c4c4` |
+| Current four-case diagnostic | `4ba30fceac3fa716c5bfb89eb84602259b4ea3b576ae664ebe1cbdcdf1928686` |
+| Baseline four-case diagnostic | `81e21fb6ca317828276fd0b93f798e97392a821488806f4ce723661d6c327190` |
+| Entire 199-case diagnostic | `c3af9aa44e17e81f3a3303bc5393de4d20641296339f6bb1097ee61a101663dd` |
+
+Antigravity MCP `gemini-3.8-flash`, with server-supplied High effort, returned explicit agreement and no must-fix findings for `TASK4_TIMEOUT_DIAGNOSTIC_RESULTS_AND_SINGLE_FRESH_PARENT_NEXT_STEP`. It reviewed supplied inline source/receipt facts and the proposed next gate. No test execution was credited to this review, and it did not approve unseen backend, security, production or accuracy results. The reviewed next step is one fresh literal `npm run test:verify` after a tracking-only commit/push and a fresh clean source/runtime pin. Original selectors, budgets and the six serial/report flags remain fixed. Persistent failure requires profiling the delayed boundary before any broader retry.
+
+The full native parent must pass, including unchanged prior case/status Counters, 125 rules tests and one function-load test. Actual fixed-trust bootstrap/admission/assets/account checks and final assembled-result MCP review are also pending. No live image/token requests have run; V2 nutrition accuracy is unknown. The once-only 146-image/one-token ceiling, prior 50 images (196 total), frozen V1 evidence and first-failure stop rule remain unchanged. The deferred final-index diagnostic supports only its initial admission phase; the attribution type precision Minor also remains deferred.
+
+## Historical implementation checkpoints
+
 Task1 is complete: strict v2 manifest/schema hashing, shared source assembly, the pinned activation lock and pure/native historical-candidate admission. The actual compiled reader passed on clean source `2e4f385db441990eb1bd3cbb4c1d14da9f486f0b`, Functions tree `78eee179cb3d1a61945371a72676fa25bbaca764`. All445focused tests, build, lint and scoped source/result Antigravity reviews passed.
 
 This qualifies the data-admission boundary. Private runtime contexts, reports/native stage CLI, whole-runtime qualification and the once-only live experiment remain Tasks2–5. No new food prediction/token SDK request, runtime budget/ledger activation, production default change or accuracy result is implied.
