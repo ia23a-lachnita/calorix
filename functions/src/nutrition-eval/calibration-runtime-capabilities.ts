@@ -10,7 +10,9 @@
  * writer, ledger, client, snapshot reader, controller, network, cache or
  * durable authority is created here.
  */
-import { deriveCanonicalReportOutcomePlan } from './calibration-bootstrap';
+import { deriveCanonicalReportOutcomePlan, deriveCanonicalReportOutcomePlanV2 } from './calibration-bootstrap';
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
 import { CalibrationFatalError } from './fatal-error';
 import type {
   CalibrationProfile,
@@ -71,6 +73,12 @@ export function prepareCalibrationRuntimeCapabilities(
 export function prepareCalibrationRuntimeCapabilities(
   deps: unknown,
 ): Readonly<CalibrationRuntimeCapabilities> {
+  return prepareCalibrationRuntimeCapabilitiesCore(deps);
+}
+
+function prepareCalibrationRuntimeCapabilitiesCore(
+  deps: unknown, checkedContext?: Readonly<CalibrationV2PreparedContext>,
+): Readonly<CalibrationRuntimeCapabilities> {
   const FILE_NAMES = [
     'public-manifest',
     'prompt',
@@ -81,7 +89,7 @@ export function prepareCalibrationRuntimeCapabilities(
     'historical-reference',
   ] as const;
   const DEP_REQUIRED = [
-    'files',
+    ...(checkedContext === undefined ? ['files'] : []),
     'loadImage',
     'generateVision',
     'reserveImage',
@@ -285,7 +293,7 @@ export function prepareCalibrationRuntimeCapabilities(
       failInput();
     }
   }
-  const filesValue = depsValues.get('files');
+  const filesValue = checkedContext === undefined ? depsValues.get('files') : checkedContext.files;
   const loadImageValue = depsValues.get('loadImage');
   const generateVisionValue = depsValues.get('generateVision');
   const reserveImageValue = depsValues.get('reserveImage');
@@ -345,7 +353,8 @@ export function prepareCalibrationRuntimeCapabilities(
   // Canonical plan on the same owned strings (planner failure propagates as
   // its own fresh CalibrationFatalError; never mapped to input-invalid).
   const plan: readonly CalibrationPlannedReportOutcome[] =
-    selectedProfile === undefined
+    checkedContext !== undefined ? deriveCanonicalReportOutcomePlanV2(checkedContext, selectedProfile)
+      : selectedProfile === undefined
       ? deriveCanonicalReportOutcomePlan(ownedFiles)
       : deriveCanonicalReportOutcomePlan(ownedFiles, selectedProfile);
 
@@ -1196,4 +1205,11 @@ export function prepareCalibrationRuntimeCapabilities(
     getPlannedOutcomes,
     getObservations,
   }) as Readonly<CalibrationRuntimeCapabilities>;
+}
+
+export function prepareCalibrationRuntimeCapabilitiesV2(
+  context: Readonly<CalibrationV2PreparedContext>, deps: unknown,
+): Readonly<CalibrationRuntimeCapabilities> {
+  const ownedContext = requireCalibrationV2Context(context);
+  return prepareCalibrationRuntimeCapabilitiesCore(deps, ownedContext);
 }
