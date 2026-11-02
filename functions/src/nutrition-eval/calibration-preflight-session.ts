@@ -12,14 +12,15 @@ import { createCalibrationLedger } from './calibration';
 import type {
   CalibrationIdentity,
   CalibrationLedger,
+  CalibrationProtocolLedger,
   CalibrationOwner,
   CalibrationProfile,
   ReservationKey,
 } from './calibration';
-import { createProtocolCalibrationLedger } from './calibration';
+import { createProtocolCalibrationLedger, createProtocolCalibrationLedgerV2 } from './calibration';
 import { createHash } from 'node:crypto';
 import { isAbsolute, resolve } from 'node:path';
-import { deriveCanonicalAllowedKeys } from './calibration-bootstrap';
+import { deriveCanonicalAllowedKeys, deriveCanonicalAllowedKeysV2 } from './calibration-bootstrap';
 import type { CalibrationPreparedContext } from './calibration-bootstrap';
 import { executeCalibrationPreflight } from './calibration-cli';
 import type { CalibrationPreflightStageResult } from './calibration-cli';
@@ -38,11 +39,36 @@ import {
 } from './calibration-cli';
 import type { CalibrationPreflightFileName } from './calibration-cli';
 import { CALIBRATION_MODEL } from '../genai-adapter';
-import { createFileCalibrationLedgerDeps } from './calibration-file-store';
+import { createFileCalibrationLedgerDeps, createFileCalibrationLedgerDepsV2 } from './calibration-file-store';
 import { createCalibrationPreflightLedgerHooks } from './calibration-preflight-ledger';
 import type { CalibrationPreflightLedgerProviderHooks } from './calibration-preflight-ledger';
 import { CalibrationFatalError } from './fatal-error';
 import { captureCalibrationReportJournalEntry } from './calibration-report-journal';
+import type { CalibrationV2PreparedContext } from './calibration-protocol-bindings';
+import { requireCalibrationV2Context } from './calibration-protocol-bindings';
+
+export async function runCalibrationProtocolPreflightSessionV2(
+  context: Readonly<CalibrationV2PreparedContext>, deps: unknown,
+): Promise<CalibrationPreflightStageResult> {
+  const owned = requireCalibrationV2Context(context);
+  const providers = captureProtocolV2Providers(deps);
+  const native = createFileCalibrationLedgerDepsV2(owned);
+  const started = (): never => { throw new CalibrationFatalError('calibration:preflight-already-started'); };
+  if (native.readLock() !== undefined) return started();
+  // Even a dead owner appearing after the precheck may never be archived.
+  const fileDeps = Object.freeze({ ...native, archiveLock: started });
+  const ledger = createProtocolCalibrationLedgerV2(owned, fileDeps,
+    profile => deriveCanonicalAllowedKeysV2(owned, profile));
+  const requireUnspent = (): void => {
+    const counts = ledger.getCounts();
+    if (counts.tokenCountReserved > 0 || counts.imageReserved > 0) started();
+  };
+  requireUnspent();
+  ledger.acquireLock(owned.owner);
+  requireUnspent();
+  // No crash recovery, reservation replay, retry, or failure-side release.
+  return executePreparedProtocolPreflight(owned, providers, ledger);
+}
 
 export interface CalibrationPreflightSessionDeps
   extends CalibrationPreflightLedgerProviderHooks {
@@ -243,6 +269,14 @@ export async function runCalibrationProtocolPreflightSession(
     throw new CalibrationFatalError('calibration:preflight-already-started');
   }
 
+  return executePreparedProtocolPreflight(snap, validated, ledger);
+}
+
+async function executePreparedProtocolPreflight(
+  snap: Pick<ProtocolSessionSnapshot, 'firstDevelopmentCaseId' | 'owner'>,
+  validated: Pick<ValidatedProtocolSessionDeps, 'countTokens' | 'generateImage'>,
+  ledger: CalibrationProtocolLedger,
+): Promise<CalibrationPreflightStageResult> {
   const ledgerRecorder: CalibrationPreflightLedgerProviderHooks['recordSafeError'] =
     (entry) => ledger.recordSafeError(entry);
   const baseHooks = createCalibrationPreflightLedgerHooks(ledger, {
@@ -275,6 +309,25 @@ export async function runCalibrationProtocolPreflightSession(
   ledger.completeStage('preflight', { stage: 'preflight', passed: true, completedStages: [] });
   ledger.releaseLock(snap.owner);
   return result;
+}
+
+export type CalibrationProtocolPreflightSessionDepsV2 = Readonly<Pick<ValidatedProtocolSessionDeps, 'countTokens' | 'generateImage'>>;
+
+function captureProtocolV2Providers(deps: unknown): CalibrationProtocolPreflightSessionDepsV2 {
+  try {
+    if (deps === null || typeof deps !== 'object' || Array.isArray(deps)) return protocolInputInvalid();
+    const proto = Object.getPrototypeOf(deps);
+    if (proto !== Object.prototype && proto !== null) return protocolInputInvalid();
+    const keys = Reflect.ownKeys(deps);
+    if (keys.length !== 2 || keys.some(key => key !== 'countTokens' && key !== 'generateImage')) return protocolInputInvalid();
+    const read = (key: string): unknown => {
+      const value = Object.getOwnPropertyDescriptor(deps, key);
+      if (!value || value.enumerable !== true || !Object.hasOwn(value, 'value') || typeof value.value !== 'function') return protocolInputInvalid();
+      return value.value;
+    };
+    return Object.freeze({ countTokens: read('countTokens') as ValidatedProtocolSessionDeps['countTokens'],
+      generateImage: read('generateImage') as ValidatedProtocolSessionDeps['generateImage'] });
+  } catch { return protocolInputInvalid(); }
 }
 
 const PROTOCOL_SESSION_ALLOWED_DEPS = ['context', 'countTokens', 'generateImage'] as const;
