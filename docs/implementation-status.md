@@ -14,7 +14,20 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-11-03: five-task runtime plan closed; development failed
+#### Current task — 2026-11-03: read-only failure investigation complete
+
+The completed V2 protocol remains sealed after failed development; do not rerun/unlock/recover/tune it. New isolated branch `docs/calibration-failure-diagnostics`, base `29ffa7ab6c53510a6fdf3c2894075ea8b36bd2c2`, contains research/tracking only. [Investigation plan](superpowers/plans/2026-11-03-calibration-failure-investigation.md); [post-mortem](nutrition-calibration-failure-diagnostics-2026-11-03.md).
+
+Source tracing found deterministic loss of provider categories through deliberate static error replacement and generic journal writing. The original three failure causes cannot be recovered from retained artifacts; no claim about unexamined external telemetry. Nine synthetic status/category cases passed; no fetch attempt or raw-message serialization. Two existing adapter controls passed (ordinary provider mapping / fatal propagation); 54 tests were excluded by the name filter. No full-suite rerun or new inference occurred.
+
+All 45 successful development outputs match their persisted raw nutrient values. This rules out a change between those recorded representations only, not earlier parsing/normalization or global truth alignment. The largest outlier's truth exactly matches pinned official egg-white metadata; host viewed one development photo, reviewer none. No food-confusion explanation is proven. Fat relative errors are ratios 73.0113/69.6215 (7,301%/6,962%), with approximately 25 g absolute errors. No exclusion-based qualification, corpus correction or gate change was made.
+
+Corrected primary Antigravity MCP research consultation agrees / MUST_FIX none, scope FAILURE_DIAGNOSTICS_RESEARCH_DIRECTION_ONLY; actual-result/document review also agrees / MUST_FIX none, scope READONLY_FAILURE_INVESTIGATION_ACTUAL_RESULTS_AND_REPORT_ONLY. This documentation checkpoint is committed/pushed on the research branch, with clean exact-origin verification. The candidate next direction is a hermetic native-boundary safe-category design. It is not yet a concrete implementation contract: original request identity, lifecycle and trusted publication seam must be resolved and reviewed. Fatal/poison/foreign-key/reentry failures must stay fatal, never be hidden by `unknown`. No application code, live protocol, model/prompt/gate change or deployment is authorized by this research document.
+
+The retained experiment proof still passes: original runtime worktree clean/exact origin, source210/runtime71, V1 eleven files, three protected configs and failed V2 root bytes/modes/mtime/ctime unchanged. The original checkout's user changes remain preserved. Broader production/held-out qualification stays open; this investigation does not improve measured accuracy or cloud reliability.
+
+#### Historical terminal experiment checkpoint — 2026-11-03
+
 
 The approved [calibration-v2 runtime plan](superpowers/plans/2026-10-30-calibration-v2-runtime.md) has reached its terminal experiment outcome. Tasks 1–4 passed software/input qualification; Task 5 passed preflight and **failed development**. Validation and frozen benchmark were **NOT RUN / blocked**. Neither profile is accuracy qualified. This does not approve Calorix for production. Do not restart, unlock, recover, retry, tune or spend the unused budget under this plan.
 
