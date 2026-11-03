@@ -1,6 +1,42 @@
 # Separate calibration runtime preparation
 
-## Current qualification status — 2026-11-02
+## Software and read-only qualification — 2026-11-03
+
+Tasks 1–4 are complete at this tracking checkpoint, with actual commit/push and immediate execution checks required before Task 5. Qualified execution HEAD `7ead887cab625c6eddc05f10f98354db53eeed31`, Functions implementation `d50265ecdb5d46554e6e047b135853ba46ab14b1`, tree `3eb7f956ef77c7f1d580f77135a0b3f9097f98c3`. Only tracking documents change after these executions; all 210 source/root and 71 compiled/SDK artifact hashes remain bound to them.
+
+| Gate / actual run | Native exit | Result |
+| --- | ---: | --- |
+| `task4-parent-test-verify-02-20261103` | 0 | Literal full parent, 8,093.464 s; build/lint, 5,251 default passing cases plus one old skip, 125 rules cases, one retry-handler emulator integration, separate four-export startup load. |
+| `task4-actual-native-bootstrap-02` | 0 | 66.005 s; real fixed-trust admission and registered bootstrap; 40 training and 16 cached public SHA/header checks. |
+| `task4-readonly-account-scoped-02` | 0 | 16.693 s; all nine project/ADC/API/billing/environment booleans true; every underlying CLI exit 0. |
+
+Total software tests: **5,377 passed, zero failed, one existing skip, 90 Vitest files**. Default population: 5,252 instances / 5,234 unique case/status keys. All old 4,541 passing default statuses plus the skip are preserved by Counter; 710 passing cases were added. The single emulator case races two direct retry-handler calls against real emulator Firestore and stubs analysis/model/push ports. The separate `test:functions-load` script is a no-op whose emulator startup loads `processEntry`, `aiChat`, `retryEntryAnalysis` and `aggregateDailyLogs`; it is not an additional counted Vitest case. These gates do not establish deployed trigger E2E, supported production runtime, model accuracy or release readiness. The host used Node 22.23.3 / SDK 2.19.0, not deployed Node 20 validation.
+
+| Receipt / log | SHA-256 |
+| --- | --- |
+| Full-parent default JSON | `755020fd58a5e296a1581aa14f1532c2f8cced357104cb6d915ffbf26469a6be` |
+| Rules JSON | `7b9baf126c5a30d029bfa6fa5cbae60bb4e9bba942e8048cc90f24b10d048392` |
+| Retry-handler emulator JSON | `1915eff42291b9585ecef7d95d7eaa14d9a94aa74670014d4ad0240e71ffc28a` |
+| Full-parent log | `4df8e5927227a90dbb1466c9dc468113bafd04d6333f49c2d888e1c3bb79b913` |
+| Actual native/bootstrap/asset log | `22c2d4a0d67d62bcd2c8b924188db4e1edb8d63f0a36037d4c6f93ed60c92632` |
+| Scoped account log (sanitized helper output only) | `7ee873cbc1fa96e14f04bcb15fd41e495027fd66b7c5855c28292ae3a29cf80a` |
+| Exact local cache-copy provenance inventory | `fd3df09bebb0f438ff822b4939688efe569ff00badb956e40129996198680465` |
+
+The real native probe admits the finalized historical candidate under fixed trust while the unchanged old offline CLI rejects it under its current-code identity guard (expected native 1 / `operation_failed`). Registered context identity binds activation-lock raw SHA `fc61701815b950f5574dd1a70056787cea4423477321448526ef850f984bd0bd` and derived-manifest raw SHA `c6e990cd15d31a9cbd7e2961ad4997d2948a80c403120226a5825edd50243fce`. The historical producer remains `eb8431e0167091a75fe46bfc84c7da431c51ccb6` / tree `3c5dbe35b4946524a085e01df79b2c0283b8ca11`; no runtime source identity was rewritten into the audit.
+
+All 63 candidate inventory entries, 11 frozen V1 files and three protected configurations remained exact. Named write/fetch/forbidden admission-import/SDK-constructor/client-factory/ledger-factory counters were zero; no V2 root or new reservation was created. SDK/runtime module imports are permitted during bootstrap, with constructors/methods/factories blocked. Hooks are finite parent-process checks, not OS or child-process transport attestation. The `nativeGitIndexUnchanged` result covers initial admission only; the final whole-probe index-byte assertion remains a deferred Minor. File SHA/header reads were exhaustive for the 40 training plus 16 public inputs; no photo was visually inspected in this probe. Earlier Phase A main-agent visual review covered 56 candidate photos, while its reviewer sampled four; that is a different population and review scope.
+
+The initial native probe failed because all 16 required frozen public-cache files were absent from the isolated cache. All existed in the original checkout. Before copying, every file passed SHA/media/dimension/size checks; copies used exclusive `wx` and 0600 mode. All 24 existing destination cache files and all source files stayed unchanged. No download, image transform, new case selection, manifest/truth edit or model call occurred. Initial failure evidence remains retained.
+
+The initial account probe found the global gcloud project unset. ADC quota project, token/account presence, Vertex API and billing already matched `calorix-xurschnell`. An explicit child-only `CLOUDSDK_CORE_PROJECT=calorix-xurschnell` made the unchanged strict account checks pass; saved global properties and the unset default remained unchanged. Credential overrides are absent. Raw CLI stdout/stderr, credential JSON, access tokens and account email stayed private and were not serialized; only booleans/project IDs and separate native-exit metadata were retained. Correct project/API/billing checks **do not guarantee Pro entitlement, available Vertex quota or successful inference**.
+
+Antigravity MCP `gemini-3.8-flash`, server-supplied High, returned explicit `AGREEMENT_STATUS: agree` / `MUST_FIX: none` for corrected assembled-source/full-parent results and `TASK4_ACTUAL_READONLY_INPUTS_AND_QUALIFICATION_RECORD_ONLY`. This relies on supplied actual source/receipt facts, earlier bounded actual source reviews and byte continuity; it does not credit new exhaustive source/raw-response/photo inspection or reviewer test execution. The original timeout cause remains unresolved and the failed first parent is retained; no source, timeout, assertion or host change was made to obtain the later passing executions.
+
+Qualification records use a completion wrapper that revalidates the retained real native exits, raw SHA digests, full Counter populations, source/runtime fingerprints and clean exact remote. It runs no new test suite or inference. After this tracking-only commit/push, the immediate Task 5 gate must recheck the same Functions implementation/tree and source/runtime bytes at one clean execution HEAD, scoped account context and absent V2 state.
+
+No live calibration image/token SDK requests have run; V2 nutrition accuracy is unknown. The once-only route remains Vertex / `calorix-xurschnell` / `us` / `gemini-3.8-flash` / API v1 / 30 s, LOW/MEDIUM. New ceiling: 146 images plus one token count; prior V1 images 50 gives at most 196 below containment 300. Preserve V1 and stop the first failed/ambiguous stage with no retry, model fallback, recovery, unlock, new 2.5 request or post-result corpus tuning. Actual result review remains required before any accuracy claim. Deferred Minors remain final-index diagnostic scope and compile-time attribution type precision.
+
+## Historical timeout diagnosis — 2026-11-02
 
 Tasks 1–3 are implemented; Task 4 qualification remains open. The reviewed Important fix is committed in `d50265ecdb5d46554e6e047b135853ba46ab14b1`, Functions tree `3eb7f956ef77c7f1d580f77135a0b3f9097f98c3`. The diagnostic checkpoint changes tracking documents only.
 
@@ -24,7 +60,7 @@ The entire-file diagnostic preserves the exact 199-case name multiset. All 12 fo
 
 Antigravity MCP `gemini-3.8-flash`, with server-supplied High effort, returned explicit agreement and no must-fix findings for `TASK4_TIMEOUT_DIAGNOSTIC_RESULTS_AND_SINGLE_FRESH_PARENT_NEXT_STEP`. It reviewed supplied inline source/receipt facts and the proposed next gate. No test execution was credited to this review, and it did not approve unseen backend, security, production or accuracy results. The reviewed next step is one fresh literal `npm run test:verify` after a tracking-only commit/push and a fresh clean source/runtime pin. Original selectors, budgets and the six serial/report flags remain fixed. Persistent failure requires profiling the delayed boundary before any broader retry.
 
-The full native parent must pass, including unchanged prior case/status Counters, 125 rules tests and one function-load test. Actual fixed-trust bootstrap/admission/assets/account checks and final assembled-result MCP review are also pending. No live image/token requests have run; V2 nutrition accuracy is unknown. The once-only 146-image/one-token ceiling, prior 50 images (196 total), frozen V1 evidence and first-failure stop rule remain unchanged. The deferred final-index diagnostic supports only its initial admission phase; the attribution type precision Minor also remains deferred.
+The full native parent must pass, including unchanged prior case/status Counters, 125 rules tests, one local retry-handler emulator integration and the separate four-export startup load. Actual fixed-trust bootstrap/admission/assets/account checks and final assembled-result MCP review are also pending. No live image/token requests have run; V2 nutrition accuracy is unknown. The once-only 146-image/one-token ceiling, prior 50 images (196 total), frozen V1 evidence and first-failure stop rule remain unchanged. The deferred final-index diagnostic supports only its initial admission phase; the attribution type precision Minor also remains deferred.
 
 ## Historical implementation checkpoints
 
