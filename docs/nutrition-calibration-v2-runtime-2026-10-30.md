@@ -1,6 +1,88 @@
-# Separate calibration runtime preparation
+# Separate calibration runtime results
 
-## Software and read-only qualification — 2026-11-03
+## Once-only experiment — terminal development failure, 2026-11-03
+
+**The experiment is complete as a preserved failure. Neither profile qualified. Validation and the frozen public benchmark were NOT RUN. This work does not approve the app for production.** Tasks 1–4 qualified the separate runtime; Task 5 executed the approved sequence once and stopped at its first failed stage. No further model requests are authorized by this experiment's unused budget.
+
+Every actual stage used clean exact-origin execution HEAD `4b747d57f0735645b580ca7c0d34d4906e3b4530`, Functions implementation `d50265ecdb5d46554e6e047b135853ba46ab14b1`, tree `3eb7f956ef77c7f1d580f77135a0b3f9097f98c3`. Route: Vertex AI / project `calorix-xurschnell` / location `us` / `gemini-3.8-flash` / API `v1`, 30-second request timeout, LOW and MEDIUM, uncached sample index 1. All 210 source/root and 71 compiled/SDK hashes remained unchanged through execution and numerical review. No fallback, model change, retry, recovery, unlock, new 2.5 request, data/prompt/threshold edit, deployment or production-data mutation occurred.
+
+| Actual run | Native exit | Reached result |
+| --- | ---: | --- |
+| `task5-immediate-native-01` | 0 | 68.356 s, trusted admission/registered bootstrap and all 40 training / 16 public SHA/header inputs; named effect counters zero. |
+| `task5-immediate-account-01` | 0 | 19.563 s, all nine sanitized booleans true / all six underlying CLI exits 0. Child-only `CLOUDSDK_CORE_PROJECT=calorix-xurschnell`; global project remains unset and saved properties unchanged. |
+| `task5-native-preflight-01` | 0 | 09:26:53.943883Z–09:27:44.560030Z, 50.616 s; two image attempts and one token-count request returning 1,424 counted prompt tokens. Route/schema/token smoke passed; no accuracy qualification. |
+| `task5-native-development-01` | 1 | 09:30:14.054318Z–09:38:13.442164Z, 479.387 s; 48 image attempts, CLI `stage_failed`, no durable profile selection. |
+| Validation / frozen benchmark | NOT RUN | Blocked by development. No corresponding artifacts, reservations or outcomes. |
+
+Correct project/ADC/API/billing checks establish target context; they do not prove Pro entitlement, quota capacity or general inference reliability. Raw tokens, credentials and account identities were not logged.
+
+### Development accuracy and reliability
+
+Each profile attempted the same 24 development dishes once. Accuracy statistics below exclude failed predictions: 23 LOW and 22 MEDIUM successful cases. Latency includes all 24 attempts per profile. These are development results, not held-out or real-world accuracy estimates.
+
+| Metric / fixed gate | LOW | MEDIUM |
+| --- | ---: | ---: |
+| Successful predictions / minimum 23 of 24 | 23 / 24 | **22 / 24, FAIL** |
+| Median absolute calorie error | 31.024048 kcal | 36.375008 kcal |
+| Median relative calorie error / maximum 35% | 24.600819% | 18.440897% |
+| p90 relative calorie error | 70.124201% | 45.463187% |
+| Mean zero-safe macro relative error / maximum 0.50 | **1.426888633, FAIL** | **1.506471007, FAIL** |
+| Positive-truth macro pairs | 69 | 66 |
+| Median protein / carbs / fat relative error | 18.8213% / 30.2348% / 28.8168% | 18.4934% / 23.5714% / 25.8394% |
+| Mean / median meal-mass relative error | 25.6115% / 19.7605% | 29.4905% / 21.1467% |
+| Catastrophic calorie misses / maximum 6 | 4 | 2 |
+| Unsafe completions / required 0 | 0 | 0 |
+| Successful predictions marked `needs_review` | 23 / 23 | 22 / 22 |
+| p90 analysis latency / maximum 30,000 ms | 7,179.149904 ms | 20,473.808948 ms |
+
+A catastrophic miss means a prediction below half or above twice its reference calories. All successful predictions needed review, so zero unsafe completions does not establish automatic logging accuracy. The fixed selector internally ranked LOW first (`higher_parse`, 23 versus 22); the failed LOW macro gate prevented durable admission. MEDIUM independently failed parse coverage and macros. No selected profile exists.
+
+The zero-safe macro metric pools absolute gram error divided by each exact positive reference value, including small positive values; it excludes zero-reference pairs and reports those separately. There were no zero-reference macro pairs here. The ordinary macro metric uses a denominator floor of 1 and is a different measure (LOW 0.704538064, MEDIUM 0.718809684). Neither metric or its gate was changed.
+
+The fat reference for `calibration-dish_1565021965` was 0.354 g. LOW predicted 26.2 g (absolute error 25.846 g, relative error 73.011299435); MEDIUM predicted 25 g (absolute error 24.646 g, relative error 69.621468927). These are substantial absolute errors as well as large relative errors. The five largest macro pairs contributed 80.1277% / 81.4395% of the LOW / MEDIUM pooled relative-error sums. Numerical evidence alone does not identify a photo, annotation, ingredient or model-cause explanation. No case was removed, truth revised, prompt tuned or threshold relaxed after seeing these results.
+
+### Exact terminal accounting and errors
+
+V2 spent **50 image attempts**: two preflight plus 48 development. All 50 have exactly one reservation, request authorization, attempt start, journal outcome, terminal event and attempt finish; 47 successful predictions (two preflight plus 45 development) and three terminal provider failures. Ledger `completed: 50` means recorded terminal outcomes, **not 50 successful predictions**. Four report JSON/Markdown pairs have matching admitted receipts and runtime bindings. Only preflight has a passed `stage_completed` event; no `profile_selected` event exists.
+
+| Profile / development case, sample 1 | Safe category / code | Analysis latency |
+| --- | --- | ---: |
+| LOW `calibration-dish_1563464389` | `unknown` / `provider_request_failed` | 28,005.692089999968 ms |
+| MEDIUM `calibration-dish_1561661850` | `unknown` / `provider_request_failed` | 28,595.577151999983 ms |
+| MEDIUM `calibration-dish_1558632198` | `unknown` / `provider_request_failed` | 28,107.26545300003 ms |
+
+Failure response model versions are `n/a`; all 47 successful journal entries carry the pinned `gemini-3.8-flash` version. No raw provider status/cause was retained, so quota exhaustion and timeout are **unresolved**, not diagnosed from proximity to 30 seconds. There was no provider fallback or failed-case retry. Individual error predictions were recorded within the fixed development stage; the existing 23-of-24 coverage gate permits one per profile. The failed stage stopped all later stages.
+
+One `lock_recovery` ledger event is the existing healthy stage-owner handoff from PID 3151042 to 3154667 after successful preflight released its lock. It does not represent clearing the failed development lock or stale-owner recovery. The failed V2 root, journal, reports and retained lock remain unchanged in bytes, modes, sizes, mtime and ctime; audit reads may update atime. V1's 11 frozen files and all three protected configurations also remain unchanged. No recovery/ledger factory was invoked during numerical review.
+
+New consumption is 50 images and **one token-count request**, whose result was 1,424 counted prompt tokens; this is not a claim about generation or billed token usage. With V1's 50 images, actual cumulative image attempts are **100**, against the planned maximum 196 (prior 50 plus at most 146 new), below the historical containment 300. V1 and V2 each made one token-count request. The 96 unused V2 image slots convey no authority to continue after failure.
+
+### Artifact identities, verification and review limits
+
+| Stage / profile | Exact report run ID | JSON SHA-256 | Markdown SHA-256 |
+| --- | --- | --- | --- |
+| preflight / LOW | `calibration-preflight-low-d50265ecdb5d-20261103T092730397Z` | `79292b399baddeda29da5c0bab88130d69e496b1b9eeabafc7adc6829a8f2151` | `e3ab0561c990cb38f36e1723dc73dbf098acc849b1299fd0b73564425354bbe2` |
+| preflight / MEDIUM | `calibration-preflight-medium-d50265ecdb5d-20261103T092735659Z` | `f275e23a635b3f4c0984aaeddd64e24a74453ac8efa8a57105ccdc15d87becda` | `d652216ec7c8e8c689af40224191788b7882889326765b5c8cadd1ba37976c15` |
+| development / LOW | `calibration-development-low-d50265ecdb5d-20261103T093048350Z` | `3b74601cb329cb03547ffbbd8720d66fca4349c916fce70e98efd4275e6cc826` | `f02c14aff9c20ad2068bc5ba58e5e7edbdd560aad91e2ce8d9e4b4a78444c3a1` |
+| development / MEDIUM | `calibration-development-medium-d50265ecdb5d-20261103T093056265Z` | `34939cc3ecbc3637ee6f1e196bfbbaf68ad48668a6b16cd63ad1c2c74e9cf922` | `80e5dbf740ae2d28c352310ea1242bb56eb6bc67ffb677c4163b3a5a541ae048` |
+
+Preflight stdout SHA-256: `91ebf5c10177ce01defd1f9d3b95cb416a0636df71674ddf87eaaead7d250143`. Development stdout: `16994c791434c362d262cbe29b84aa22048ca77b5440d59fee8558bca64a116a`. Both stderr streams were empty. The unchanged failed ledger SHA-256 is `b3f7fb8e47eabaa427a8de8451131e254ff092fee13432bc9760282eab7b785c`; journal `051ca7e44697d859665497db6c64be7c0fdf2ffbdf3d91207c2a18d41dc50737`; retained lock `ac3679a20dd0709cb6de9326b4c8e145cd6300b060b7cb288dd28666288eaabb`.
+
+The host's independent read-only numeric audit covered **every one of the 50 case rows in all four generated reports**. It recomputed nutrient errors, exact-positive zero-safe macro means, type-7 medians/p90, 12-significant-digit mass/density diagnostics, parse/safety/review counts and latencies. It checked all 50 full journal hashes, 47 successful four-nutrient prediction hashes (mass is not in that hash), all unique key chains, four JSON/Markdown receipt hashes and equality to their runtime-bound receipts. This checks receipt consistency; it does not claim an independent reimplementation of every runtime-binding digest or hostile OS/network attestation. An initial audit-helper assumption included mass in the prediction hash; comparison with actual source corrected that helper before the final passing audit. No production/evidence data changed.
+
+Antigravity MCP reviewer `gemini-3.8-flash`, server-supplied High, conversation `calorix-v2-task5-actual-results-20261103`, returned corrected **`AGREEMENT_STATUS: agree` / `MUST_FIX: none`**, scope `TASK5_ACTUAL_NUMERIC_RESULTS_AND_STOP_RECORD_ONLY`. It reviewed inline supplied facts, numeric audit results and receipts only, ran no commands and did not independently inspect all report rows, raw SDK responses, photos or source files. Initial response noise about token allocation, single-case validation and denominator-only interpretation was explicitly corrected in the same conversation. Reviewer and recovery fallback routes: **none**.
+
+No new photo or exhaustive raw SDK payload review was performed for Task 5. Phase A's earlier visual review of 56 candidate photos and reviewer sampling of four are separate evidence. No UI visual-diff run occurred: diff counts, `auditLimited`, auditor/recovery routes and `visualClassificationStatus` are **not applicable** to this numerical nutrition experiment.
+
+Software verification remains the retained actual `npm run test:verify` result of 5,377 PASS / one existing skip, build/lint and separate four-export startup. The final change is reports/tracking only, so that 8,093-second suite was not repeated. Fresh final checks rerun only the read-only audit, verify actual native-stage exits/stdout digests, failed gates, source/runtime/V1/config/evidence preservation, documentation diff and clean exact remote. Proofs/logs are retained in a task-owned disk-backed evidence archive; no credentials or local run artifacts are committed.
+
+### Remaining work and decision record
+
+This five-task runtime/once-only experiment plan is closed with a **failed accuracy/reliability result**, not a completed production-release roadmap. Open items are the failed macro gate, three unexplained provider failures, absent admitted profile and unrun held-out validation/benchmark. Any later experiment needs its own reviewed protocol, budget and preservation of these results; this plan authorizes no tuning or new inference. The different V1 corpus prevents a controlled V1/V2 model-regression comparison; historical 2.5 references remain available and no new 2.5 request was made.
+
+Supported deployment-runtime qualification, deployed trigger/notification E2E, device/UI/release gates and production promotion remain separate work. Their current global status must be checked in the broader release roadmap before new release work. Full calibration [rulings and deferred minors](nutrition-calibration-v2-decisions-2026-11-03.md) are preserved chronologically. The two Minors are compile-time attribution-literal precision and a final whole-probe Git-index-byte assertion; runtime validation and the narrower current evidence claims remain enforced.
+
+## Historical software and read-only qualification — before Task 5
 
 Tasks 1–4 are complete at this tracking checkpoint, with actual commit/push and immediate execution checks required before Task 5. Qualified execution HEAD `7ead887cab625c6eddc05f10f98354db53eeed31`, Functions implementation `d50265ecdb5d46554e6e047b135853ba46ab14b1`, tree `3eb7f956ef77c7f1d580f77135a0b3f9097f98c3`. Only tracking documents change after these executions; all 210 source/root and 71 compiled/SDK artifact hashes remain bound to them.
 
