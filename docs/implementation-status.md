@@ -14,7 +14,16 @@ Read this section before acting. It supersedes contradictory runtime/device inst
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)
 
-#### Current task — 2026-11-03: read-only failure investigation complete
+#### Current task — 2026-11-03: actual nutrition accuracy optimization
+
+The user's original goal is to improve the tracker against the saved2.5 baseline and exceed it. Earlier unchanged-model evaluation and diagnostic-only work were too narrow an interpretation; the user did not newly expand the overall goal. V1/V2 failed runs stay sealed, but their stop rules do not prohibit new reviewed repair experiments. No repeated user plan approval is needed.
+
+Branch `feat/nutrition-accuracy-development`, base `b94b5006e10f444ebaed093b6d865969789e9a57`, existing clean isolated worktree reused. [Candidate design](superpowers/specs/2026-11-03-nutrition-accuracy-development-design.md); [implementation and24-image experiment plan](superpowers/plans/2026-11-03-nutrition-accuracy-development.md). Corrected Antigravity research direction agrees; design gate and fresh builder check found/fixed a success-population issue: any lost baseline-success ID vetoes progress. Corrected primary3.8/High design and implementation/24-call-plan reviews agree / MUST_FIX none. Builder check is complete. Implementation/result reviews remain required. No new code or model calls yet.
+
+Task1 next: permitted-worker test-first candidate prompt + small evaluator/native entrypoint using existing adapter/schema/scorer. Production prompt/default remains unchanged. Task2 then measures exactly24developmentimages/MEDIUM/one sample, no retry/count/warmup/fallback, distinct once-onlyroot and pinned source. Initial verification: build/lint plus new tests and relevant existing adapter/scorer/report/generation controls; command paths resolved before launch. Accuracy improvement is unproven until the actual trial; failure informs another concrete repair, not abandonment of the goal. Heldout validation/publicbenchmark remain untouched for frozen-candidate comparison; saved2.5aggregate cannot be fairly compared to24differentdevdishes.
+
+#### Historical diagnostic-only investigation checkpoint
+
 
 The completed V2 protocol remains sealed after failed development; do not rerun/unlock/recover/tune it. New isolated branch `docs/calibration-failure-diagnostics`, base `29ffa7ab6c53510a6fdf3c2894075ea8b36bd2c2`, contains research/tracking only. [Investigation plan](superpowers/plans/2026-11-03-calibration-failure-investigation.md); [post-mortem](nutrition-calibration-failure-diagnostics-2026-11-03.md).
 
