@@ -10,6 +10,25 @@ Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-ru
 
 ## Fresh Session Handoff (Authoritative)
 
+### Current Task — V7.1 Tier-1 photo pilot (2026-11-08)
+
+Task1 focused12/12 GREEN after actual missing-module RED; TypeScript build0 and lint0. Full Functions suite actively running; external implementation review pending. Task2 local meal/store/widget tests authored before implementation, remote compile-RED pending (host FVM absent). Task3 evaluator tests actual RED: ModuleNotFoundError evaluate_meals. No code accuracy/phone/runtime claim.
+
+Native-edit exception applies to continued work after chat reset per explicit standing user instruction and handoff. Refreshed Lightning route on this task exhausted180s/native124 at2026-11-07T23:41:07Z: delivered contradictory question tests, empty-component success expectations and syntax errors; no valid behavioral RED accepted. Rejected file archived outside repo and removed. Current Grok unknown-model, Qwen403 and refreshed absent Ultra/Muse/Ling match existing route receipts. Carry forward SAME-day final-route failures without pretending permanent unavailability: BigPickle2026-11-07T21:48:57.747448Z and21:50:07.882161Z, no permitted progress300.238s/300.230s (native-15); paid claude-sonnet-5 at21:55:14.529970Z, empty300.459s/native143. Exact failure category/message retained below and original JSONL. No spend-cap message; no whole-account exhaustion asserted. Host now writes genuine tests/source, preserves independent review/verification/commit/push. No new editing model selected.
+
+Fresh baseline117/117 passed. Read-only Vertex model GET succeeded for publishers/google/models/gemini-3.8-flash; project cacheConfig is DURABLE (not zero retention). No inference yet. ARTEMIS trace ca9ad385-06f0-46d4-ba94-7ecb8e409a21 verified Scan labels before test authoring but failed at433s with `TimeoutError: LLM call timed out after 180 seconds.` Logs show429 quota. Required mobile_diagnose(attempt_fix=true) returned degraded5/5 required pass; optional scrcpy missing/helper fallback, no emulator/system software installation. This is exploration, not current-source UI validation.
+
+User execution directive replaces the pending HIGH/public-image roadmap. Binding source: `docs/superpowers/specs/2026-11-08-v71-binding-addendum.md`, overriding V7. Worktree is clean isolated existing linked checkout, new branch `feat/tier1-photo-pilot` from `5b70e88`. Original dirty `.mcp.json` and sealed experiments untouched. Remote fetch/prune succeeded; no open PRs; active/unmerged branches retained.
+
+Build existing Flutter/CameraX capture into local-first approximate served meal logging; opt-in pinned A1 cloud analysis, editable/save/manual/repeat/delete; executable weighed-meal A0/A1 measurement. No training, geometry, public dataset expansion, old experiment reruns or production deployment. Actual new weighed meals: **0/30**.
+
+Preimplementation Antigravity conversation `calorix-tier1-v71-20261108`, primary `gemini-3.8-flash`: explicit AGREEMENT_STATUS agree / MUST_FIX none. Review covers plan only. Fresh phone identity confirmed Samsung SM-G780G, Android13, R58R61161NA via phone-adb. Read-only ARTEMIS exploration trace ca9ad385-06f0-46d4-ba94-7ecb8e409a21 ongoing; no current-source runtime claim.
+
+Worker refresh 2026-11-07T23:36Z: grok-4.6 unavailable, exact `Couldn't set model 'grok-4.6': Invalid params: "unknown model id". Run 'grok models' to see available models.` Native1. qwen3.7-max native1 exact `[API Error: 403 The free quota has been exhausted. To continue accessing the model on a paid basis, please complete your payment information （or disable the "use free tier only" mode in the management console if already completed).]` Successful isolated catalog refresh native0 exposes only approved `opencode/nemotron-3.5-lightning-free` and `opencode/big-pickle`; Ultra, Muse1.3, Ling absent (not quota failures). Preserve global invalid config; bounded worker tests-only route next. Historical failures remain below, not permanent availability claims.
+
+Verification intended: Functions focused RED/GREEN then full build/lint/tests serial; Flutter pinned FVM analyze/tests via CI (host lacks FVM, cached container amd64 cannot be assumed native ARM); intermediate test APK source SHA/checksum/certificate gate; physical phone runtime exploration; zero-meal evaluator no invented accuracy. Storage scratch on verified `/dev/sda2` ext4 under task directory, TMPDIR disk-backed.
+
+
 Read this section before acting. It supersedes contradictory runtime/device instructions in historical entries below. Historical evidence remains useful, but it is not current operating policy.
 
 ### Gemini 3.8 nutrition calibration design — 2026-09-23 (current)

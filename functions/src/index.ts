@@ -164,3 +164,12 @@ export const aggregateDailyLogs = onDocumentWritten(
     }
   },
 );
+
+/** Tier1 opt-in inference only: no photo storage or meal document mutation. */
+export const analyzeTier1Meal = onCall(
+  {region:LOCATION,memory:'512MiB',timeoutSeconds:60,maxInstances:2,concurrency:1},
+  async request => {
+    const {createTier1Handler}=await import('./tier1-callable');
+    return createTier1Handler()(request);
+  },
+);
