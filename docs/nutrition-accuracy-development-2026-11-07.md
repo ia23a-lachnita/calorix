@@ -1,0 +1,23 @@
+# Meal accuracy development candidate 1
+
+## Implementation qualification — 2026-11-07
+
+An opt-in candidate now adds general food/preparation, component mass/density and macro-plausibility guidance to the unchanged production meal prompt. It reuses the existing adapter, schema, normalizer, scorer and report builder. Production and historical V1/V2 paths are untouched. This implements an accuracy hypothesis; no improvement is established until the actual experiment.
+
+The native once-only entrypoint uses Vertex / `calorix-xurschnell` / `us` / `gemini-3.8-flash` / API v1 / MEDIUM / 30 s. Approved trial: the same24FINAL development dishes, one sample each, maximum24imageSDKmethodcalls, zero token-count/warmup/retry/fallback. Manifest SHA-256 `59231d1cfda7e8a795901086f379f0bdb331dbf082ff51b37e3758e381bebd4e`. Saved MEDIUM baseline JSON SHA `34939cc3ecbc3637ee6f1e196bfbbaf68ad48668a6b16cd63ad1c2c74e9cf922`. The new root is exclusive and partial/completed runs cannot resume; old failed roots remain preserved.
+
+Host final verification `final-controls-20261107`: **294PASS,0FAIL,0SKIP,sixfiles**, including all260old case/status instances and34newcases. Actual build/lint native0. All206previously trackedFunctions files remain byte-identical; five source/data/test files added. Raw test JSON SHA `dc299976795e6302950f60b89e2214507cf4a4d95a836d12c0c55df343aad535`. This is focused qualification, not another execution of the older5,377-test backend parent. No Flutter/UI behavior changed.
+
+One fresh native whole-feature review reported0Critical,2Important,1Minor. Four new regression cases failed on the observed metadata/item-retention defects (21PASS/4FAIL), then passed in the final run. Present foreign/non-string model metadata now fails even for empty responses. Oversized final JSON retains only marker/length/hash, including no copied item array; the existing parser still sees the complete original text and calculates full detected-item counts and nutrition. One deferredMinor: genuine empty response failures can lack the optional safe-category tag, while their provider failure/spent attempt remains recorded. No second native reviewer was dispatched.
+
+Corrected Antigravity MCP `gemini-3.8-flash`, server High, conversation `calorix-accuracy-development-implementation-20261107`, returned `AGREEMENT_STATUS: agree` / `MUST_FIX: none`, scope `ACTUAL_ACCURACY_CANDIDATE_IMPLEMENTATION_AND_HERMETIC_RESULTS_ONLY`. It reviewed supplied exact source/receipts inline, ran no commands and performed no food-image inspection. Initial response overclaims about memory/parsing bounds, HTTP attestation, crash durability and qualification thresholds were corrected. No reviewer/recovery/model fallback.
+
+Synthetic native filesystem tests fake SDK and positive image verification; the missing-cache negative uses the real offline verifier. They do not establish real food accuracy or power-loss/hostile-process security. Actual host checks verify cached image SHA/header/dimensions separately before live. All24PNG files were copied exactly from the prior frozen development inputs,9,166,361bytes, no network/transform. V1 elevenfiles and failedV2 bytes/modes/mtime/ctime remain exact after review.
+
+The [approved plan](superpowers/plans/2026-11-03-nutrition-accuracy-development.md) requires fresh account/project/source/runtime/cache qualification and clean exact origin after this implementation commit/push before the24-call run. **Actual candidate accuracy remains unmeasured; no new food/token request has run.** All22baseline-success IDs must remain successful to claim progress. Progress also requires coverage>=23/24,unsafe0,catastrophic<=2,calorie median<=18.4409%/p90<=45.4632%,zero-safe macro<1.506471. Absolute macro goal<=0.50 and each macro median<=0.35 remain separate from progress. No automatic promotion.
+
+The saved2.5 run uses20different benchmark cases,three samples/60outcomes. The current3.8 reference uses24development dishes,one sample perLOW/MEDIUM arm. These references cannot establish which pipeline is better overall. A frozen improved candidate must validate before the same-public-benchmark aggregate comparison; no new2.5request or invented historical per-case prediction. No held-out image/output has been opened for this candidate.
+
+## Actual trial
+
+Pending the pre-live checks above. The experiment must remain on one clean execution HEAD throughout; actual reached run IDs, model versions, counts/errors and full24-case comparison will be recorded here afterwards. A failed candidate informs another concrete repair under a bounded reviewed iteration; it does not close the overall accuracy-improvement objective.

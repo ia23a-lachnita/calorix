@@ -1,0 +1,678 @@
+{
+  "version": 1,
+  "datasetId": "calorix-n5k-accuracy-development-v1",
+  "cases": [
+    {
+      "id": "calibration-dish_1564761388",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1564761388"
+      },
+      "image": {
+        "sha256": "98d9b16bda04e47a29de7def27666138f99d338e55a45ebfc862b620a3ec5db1",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564761388/rgb.png"
+      },
+      "truth": {
+        "kcal": 54.599998,
+        "proteinG": 10.5,
+        "carbsG": 0.735,
+        "fatG": 0.21,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 105
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1563220087",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1563220087"
+      },
+      "image": {
+        "sha256": "dcd43a37be9a0349b9bd365153358b8b5ab7119842efb5c257ad53875e2750b9",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563220087/rgb.png"
+      },
+      "truth": {
+        "kcal": 162.740005,
+        "proteinG": 7.344,
+        "carbsG": 19.859999,
+        "fatG": 6.424,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 98
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1564428515",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1564428515"
+      },
+      "image": {
+        "sha256": "97111d9e18efb39d3d19f9309cc34f4ec0516b0e5cf051886fe489f5be90930f",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564428515/rgb.png"
+      },
+      "truth": {
+        "kcal": 484.618347,
+        "proteinG": 29.964256,
+        "carbsG": 35.868031,
+        "fatG": 25.66441,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 479
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1565021965",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1565021965"
+      },
+      "image": {
+        "sha256": "8b06f3e06146fc70fa2ae3b91ce38f3878b48d297ea3e9ec8d163a5ca44cbc08",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565021965/rgb.png"
+      },
+      "truth": {
+        "kcal": 92.039993,
+        "proteinG": 17.700001,
+        "carbsG": 1.239,
+        "fatG": 0.354,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 177
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1563898722",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1563898722"
+      },
+      "image": {
+        "sha256": "5d8a7a1b282f90f36b7bdc2ca93a91e70efd2418d6262190026adc468a2c0646",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563898722/rgb.png"
+      },
+      "truth": {
+        "kcal": 343.350006,
+        "proteinG": 23.232,
+        "carbsG": 9.870001,
+        "fatG": 23.472,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 303
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1566333291",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1566333291"
+      },
+      "image": {
+        "sha256": "2224eac43291d100ed5a8d69270db1fcfd545fc0253ad25e1d9424942717e01a",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566333291/rgb.png"
+      },
+      "truth": {
+        "kcal": 549.755615,
+        "proteinG": 41.324966,
+        "carbsG": 49.02037,
+        "fatG": 21.439438,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 439
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1562183065",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1562183065"
+      },
+      "image": {
+        "sha256": "95fcfaaa641073a77fc4364c141a97860497f95bba01bc54440466a0e22bfef8",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562183065/rgb.png"
+      },
+      "truth": {
+        "kcal": 16.5,
+        "proteinG": 2.325,
+        "carbsG": 2.475,
+        "fatG": 0.225,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 75
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1559590130",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1559590130"
+      },
+      "image": {
+        "sha256": "9cb3264142a8d9fc89d7b5dad482bde2d1acd857e2dd7107709b6620308d94ae",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559590130/rgb.png"
+      },
+      "truth": {
+        "kcal": 194.405991,
+        "proteinG": 35.888,
+        "carbsG": 1.521,
+        "fatG": 4.107,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 152
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1566333228",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1566333228"
+      },
+      "image": {
+        "sha256": "9afa3b0723c387f1777953a3605755638555af9f88987fed8648b72f3d1a0fac",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566333228/rgb.png"
+      },
+      "truth": {
+        "kcal": 498.545258,
+        "proteinG": 37.857738,
+        "carbsG": 39.679134,
+        "fatG": 20.378201,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 304
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1558637698",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1558637698"
+      },
+      "image": {
+        "sha256": "889581b26d2ae188e5fa41466e80e88f49dac7f252b12e84302b2b70f551b6ac",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558637698/rgb.png"
+      },
+      "truth": {
+        "kcal": 12.25,
+        "proteinG": 0.882,
+        "carbsG": 2.45,
+        "fatG": 0.147,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 49
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1562691409",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1562691409"
+      },
+      "image": {
+        "sha256": "368b002701bf971c2c0795962dd0bc1daa68a593e6b8159278fb6b74025966d3",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562691409/rgb.png"
+      },
+      "truth": {
+        "kcal": 225.98999,
+        "proteinG": 10.52,
+        "carbsG": 22.084,
+        "fatG": 10.48,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 164
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1560543605",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1560543605"
+      },
+      "image": {
+        "sha256": "9fa9c012eea3bddfd10e8f5a27158d2e5116eaea4bfdc5801195577ba64b39c9",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560543605/rgb.png"
+      },
+      "truth": {
+        "kcal": 485.570892,
+        "proteinG": 63.553284,
+        "carbsG": 22.652529,
+        "fatG": 27.281401,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 501
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1563464389",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1563464389"
+      },
+      "image": {
+        "sha256": "adb0dee8444d932a93d15594ca32a34e625dee098d70eafc7ab1874537e44b38",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563464389/rgb.png"
+      },
+      "truth": {
+        "kcal": 91.970001,
+        "proteinG": 6.29,
+        "carbsG": 0.238,
+        "fatG": 7.14,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 17
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1565640772",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1565640772"
+      },
+      "image": {
+        "sha256": "61f792ea3302d2c05ed0f09e0a9995a3474c867d7427a831023e2d176a143844",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565640772/rgb.png"
+      },
+      "truth": {
+        "kcal": 241.169998,
+        "proteinG": 43.658001,
+        "carbsG": 2.862,
+        "fatG": 5.148,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 191
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1561661850",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1561661850"
+      },
+      "image": {
+        "sha256": "2162dcc83eecd3dd88ede99870d21abe6cf11a9b1a6cc2b3a9915fd9529b863b",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1561661850/rgb.png"
+      },
+      "truth": {
+        "kcal": 648.975952,
+        "proteinG": 35.485809,
+        "carbsG": 67.575478,
+        "fatG": 25.375412,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 264
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1558632198",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1558632198"
+      },
+      "image": {
+        "sha256": "f8796b2863f2e3eef83739f88544e6e274dea0a482096f12e7eb5c43a1c3993d",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558632198/rgb.png"
+      },
+      "truth": {
+        "kcal": 16.796001,
+        "proteinG": 1.586,
+        "carbsG": 0.832,
+        "fatG": 0.884,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 26
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1560443474",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1560443474"
+      },
+      "image": {
+        "sha256": "ad96cd222237e0565fae183dd9dbbcf6028689aae2cf34937b3323466aabc9eb",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560443474/rgb.png"
+      },
+      "truth": {
+        "kcal": 172.779999,
+        "proteinG": 1.993,
+        "carbsG": 43.25,
+        "fatG": 0.725,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 317
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1567022383",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1567022383"
+      },
+      "image": {
+        "sha256": "07926f5f4beb57cc74e6d21baea7fb86cf0a9bb6163514f51f32538b81e6044b",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1567022383/rgb.png"
+      },
+      "truth": {
+        "kcal": 527.088013,
+        "proteinG": 70.595001,
+        "carbsG": 21.214001,
+        "fatG": 17.344999,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 508
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1566328894",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1566328894"
+      },
+      "image": {
+        "sha256": "ee7d357d844e63f99ae6b409bc02e35b4a51d027b4a4b954b6780cadaf606b91",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566328894/rgb.png"
+      },
+      "truth": {
+        "kcal": 236.650986,
+        "proteinG": 9.968,
+        "carbsG": 29.815001,
+        "fatG": 8.366,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 89
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1563824279",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1563824279"
+      },
+      "image": {
+        "sha256": "39de1c4b95a4126f3b8f56a1b817988865f52ce599fd91c9a56e9278fd2c7426",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563824279/rgb.png"
+      },
+      "truth": {
+        "kcal": 58.599998,
+        "proteinG": 0.761,
+        "carbsG": 6.138,
+        "fatG": 3.895,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 79
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1565725188",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1565725188"
+      },
+      "image": {
+        "sha256": "c6ee52f8145bc714cba91bee999b67c1e4572dbf0e24702fd0bd143f64ae7a44",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565725188/rgb.png"
+      },
+      "truth": {
+        "kcal": 543.117004,
+        "proteinG": 69.798996,
+        "carbsG": 25.107,
+        "fatG": 17.928001,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 521
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1558636544",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1558636544"
+      },
+      "image": {
+        "sha256": "6bed71824887c49f105f504564cadbb07afa56ab4eb48f523cba576ccca845a4",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558636544/rgb.png"
+      },
+      "truth": {
+        "kcal": 410.451019,
+        "proteinG": 15.904,
+        "carbsG": 16.117001,
+        "fatG": 35.145,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 71
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1563294441",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1563294441"
+      },
+      "image": {
+        "sha256": "9bd0885d127a3d453d92d74acd1adcb61abc1a8cf410e874a5cfebb647e70e9f",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563294441/rgb.png"
+      },
+      "truth": {
+        "kcal": 65.199997,
+        "proteinG": 0.889,
+        "carbsG": 16.793999,
+        "fatG": 0.241,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 162
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    },
+    {
+      "id": "calibration-dish_1563303350",
+      "visibility": "public",
+      "scanMode": "meal",
+      "source": {
+        "dataset": "nutrition5k",
+        "objectId": "dish_1563303350"
+      },
+      "image": {
+        "sha256": "b3813f665ea681094e67bf45911ced132474fbde6eef0178749ef678002639b7",
+        "width": 640,
+        "height": 480,
+        "mediaType": "image/png",
+        "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563303350/rgb.png"
+      },
+      "truth": {
+        "kcal": 202.221436,
+        "proteinG": 28.384161,
+        "carbsG": 8.355268,
+        "fatG": 5.756976,
+        "basis": "portion",
+        "amount": 1,
+        "unit": "portion",
+        "referenceMassG": 167
+      },
+      "toleranceClass": "meal-estimate",
+      "attributionId": "nutrition5k-cc-by-4.0"
+    }
+  ]
+}
