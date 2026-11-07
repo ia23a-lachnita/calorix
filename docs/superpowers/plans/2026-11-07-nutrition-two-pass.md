@@ -24,10 +24,10 @@ Same24FINAL development images/truths/manifestSHA59231d1cfda7e8a795901086f379f0b
 **Files:** create `functions/src/nutrition-eval/accuracy-two-pass.ts`, `accuracy-two-pass-cli.ts`, matching `functions/test/nutrition-eval/accuracy-two-pass.test.ts`, `accuracy-two-pass-cli.test.ts`. No existing Functions file changes.
 **Interfaces:** `runTwoPassAccuracyDevelopment(cases, deps, identity)` wraps `runAccuracyDevelopment`; deps reuse loadImage/createClient/nowMs/persistOutcome with `reserveStage(caseId,stage)` and `persistStage(stageRecord)`. Result report/diagnostics/stages/sdkVisionCalls(actual)/inventoryCalls/nutritionCalls/logicalAnalysisCalls. Native `runNativeTwoPassAccuracyDevelopment(repositoryRoot,env)` guarded import, no argv; opt-in `RUN_NUTRITION_TWO_PASS_DEV=1`. See spec for exact schemas/guards.
 
-- [ ] Ordered worker routes write behavioral tests plus typed throwing stub only; host verifies genuine RED before algorithms. Bounds300s no permitted-file progress/900s absolute; record exact failures before fallback.
-- [ ] Implement inventory-only image call and bounded strict schema, then image+inventory nutrition call using existing parser/scorer. Durable actual reservations/stage outcomes; firstfatal/counter/metadata guards, ordinary failure skip, no truth/ID in prompts. Set deterministic composite prompt hash.
-- [ ] Implement native source/cache/SDK checks, exclusive root and fsynced journals/reports/diagnostics/complete hash bindings. Counters allow ordinary inventory failure (<=48), all24dishoutcomes required for completion. Partial root stays spent.
-- [ ] Host new focus plus retained294controls/build/lint. Old211source hashes exact. One fresh whole-feature read-only review; fix Important/Critical test-first and record declined limits/minors. Mandatory MCP actualsource/hermeticresults green. Update docs/status, commit/push, clean exactorigin.
+- [x] Ordered worker routes write behavioral tests plus typed throwing stub only; host verifies genuine RED before algorithms. Bounds300s no permitted-file progress/900s absolute; record exact failures before fallback.
+- [x] Implement inventory-only image call and bounded strict schema, then image+inventory nutrition call using existing parser/scorer. Durable actual reservations/stage outcomes; firstfatal/counter/metadata guards, ordinary failure skip, no truth/ID in prompts. Set deterministic composite prompt hash.
+- [x] Implement native source/cache/SDK checks, exclusive root and fsynced journals/reports/diagnostics/complete hash bindings. Counters allow ordinary inventory failure (<=48), all24dishoutcomes required for completion. Partial root stays spent.
+- [x] Host new focus plus retained294controls/build/lint. Old211source hashes exact. One fresh whole-feature read-only review; fix Important/Critical test-first and record declined limits/minors. Mandatory MCP actualsource/hermeticresults green. Update docs/status, commit/push, clean exactorigin.
 
 ## Task 2: Actual bounded measurement and next repair decision
 
@@ -38,3 +38,5 @@ Same24FINAL development images/truths/manifestSHA59231d1cfda7e8a795901086f379f0b
 - [ ] Update result/status/checkboxes; commit/push exactorigin and GitHub plan link.
 
 Corrected MCP3.8/serverHigh preimplementation research/design/implementation-plan/48callbudget review agrees/MUST_FIX none, conversation calorix-accuracy-two-pass-design-20261107. No new calls have run under this experiment.
+
+Task1 sourcequalified321PASS0FAIL0skip8files/build0/lint0,211oldfilesexact. Onefreshnative review0Critical0Important3Minor deferred, correctedMCPsource/hermeticagreement/MUSTnone. No actualtwo-passcall yet. See [implementation and actualresult report](../../nutrition-two-pass-development-2026-11-07.md). Sourcecheckpoint commit/push and freshprelivequalification precedeTask2.
