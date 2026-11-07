@@ -5,6 +5,9 @@
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
 
     <application
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/local_data_extraction_rules"
         android:label="AppName"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

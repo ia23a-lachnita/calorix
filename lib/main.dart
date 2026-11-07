@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'features/tier1/tier1_app.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,6 +25,15 @@ const _useEmulator = bool.fromEnvironment('USE_EMULATOR', defaultValue: false);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Tier1 starts locally. Legacy auth/queues/seeding never run by default.
+  if (!const bool.fromEnvironment('CALORIX_LEGACY_CLOUD')) {
+    runApp(Tier1App(initializeCloud: () async {
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      }
+    }));
+    return;
+  }
   initializeTimezoneDatabase();
   final synchronizer = TimezoneSynchronizer(FlutterTimezoneSource());
   await synchronizer.syncOnce();

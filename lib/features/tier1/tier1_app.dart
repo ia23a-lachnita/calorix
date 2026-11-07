@@ -1,0 +1,270 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/theme/app_theme.dart';
+import '../../shared/services/camera_service.dart';
+import 'local_meal.dart';
+import 'local_meal_store.dart';
+import 'tier1_cloud.dart';
+
+/// Focused local-first workflow. Legacy Firebase services are never mounted here.
+class Tier1App extends StatelessWidget {
+  const Tier1App({super.key,this.store,this.camera,this.cloud,this.initializeCloud});
+  final Tier1MealStore? store;
+  final CameraService? camera;
+  final Tier1Cloud? cloud;
+  final Future<void> Function()? initializeCloud;
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    title:AppConstants.appDisplayName,debugShowCheckedModeBanner:false,
+    theme:AppTheme.light(),darkTheme:AppTheme.dark(),
+    home:_Tier1Home(store:store,camera:camera,cloud:cloud??(initializeCloud==null?null:FirebaseTier1Cloud(initializeCloud!))));
+}
+
+class _Tier1Home extends StatefulWidget {
+  const _Tier1Home({this.store,this.camera,this.cloud});
+  final Tier1MealStore? store;
+  final CameraService? camera;
+  final Tier1Cloud? cloud;
+  @override
+  State<_Tier1Home> createState()=>_Tier1HomeState();
+}
+class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
+  late final CameraService _camera=widget.camera??DeviceCameraService();
+  Tier1MealStore? _store;
+  List<Tier1Meal> _meals=[];
+  String? _error;
+  bool _history=false,_busy=false;
+  @override
+  void initState(){super.initState();WidgetsBinding.instance.addObserver(this);unawaited(_initialize());}
+  Future<void> _initialize() async {
+    try {
+      _store=widget.store??Tier1MealStore(Directory('${(await getApplicationDocumentsDirectory()).path}/tier1'));
+      await _refresh();
+      if (_camera is CameraLifecycleService) await (_camera as CameraLifecycleService).resume();
+      if (mounted) setState((){});
+    } catch (_) {if(mounted)setState(()=>_error='Could not open local history. Existing files were preserved.');}
+  }
+  Future<void> _refresh() async {
+    final records=await _store!.load();
+    records.sort((a,b)=>b.capturedAt.compareTo(a.capturedAt));
+    if(mounted)setState(()=>_meals=records);
+  }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if(_camera is! CameraLifecycleService)return;
+    final lifecycle=_camera as CameraLifecycleService;
+    if(state==AppLifecycleState.resumed){unawaited(lifecycle.resume().then((_){if(mounted)setState((){});}).catchError((_){if(mounted)setState(()=>_error='Camera unavailable. Manual entry still works.');}));}
+    else {unawaited(lifecycle.pause());}
+  }
+  @override
+  void dispose(){WidgetsBinding.instance.removeObserver(this);if(_camera is CameraLifecycleService)unawaited((_camera as CameraLifecycleService).dispose());super.dispose();}
+  Future<void> _open(Tier1Meal meal) async {
+    if(_store==null)return;
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder:(_)=>_MealEditor(meal:meal,store:_store!,cloud:widget.cloud)));
+    await _refresh();
+    if(mounted)setState(()=>_history=true);
+  }
+  Future<void> _capture() async {
+    if(_busy||_store==null||_error!=null)return;
+    setState(()=>_busy=true);
+    try {
+      if(!await _camera.hasPermission()){
+        final permission=await _camera.requestPermission();
+        if(permission!=CameraPermissionRequestResult.granted)throw StateError('Camera permission needed');
+      }
+      final shutter=DateTime.now();
+      final file=await _camera.captureStill();
+      if(file==null)return;
+      final bytes=await file.readAsBytes();
+      if(bytes.length>30*1024*1024 || bytes.length<8 || bytes[0]!=255 || bytes[1]!=216)throw const FormatException('JPEG capture required');
+      final codec=await ui.instantiateImageCodec(bytes);
+      final frame=await codec.getNextFrame();
+      final width=frame.image.width,height=frame.image.height;
+      frame.image.dispose();codec.dispose();
+      final device=_camera is DeviceCameraService?(_camera as DeviceCameraService).previewController:null;
+      final id=const Uuid().v4();
+      final path=await _store!.retainPhoto(id,file.path);
+      final meal=Tier1Meal(id:id,capturedAt:shutter,name:'New meal',photoPath:path,source:'photo',metadata:{
+        'capturedAt':shutter.toUtc().toIso8601String(),'width':width,'height':height,'jpegBytes':bytes.length,
+        'cameraId':device?.description.name,'lensDirection':device?.description.lensDirection.name,
+        'sensorOrientation':device?.description.sensorOrientation,'deviceOrientation':device?.value.deviceOrientation.name,
+        'focusMode':device?.value.focusMode.name,'exposureMode':device?.value.exposureMode.name,
+        'focalLength':null,'intrinsics':null,'zoom':null,'gpsRequested':false,
+        'qualityWarnings':width<640||height<640?['Low resolution; consider retaking']:[],
+      });
+      try {await _store!.save(meal);}catch(_){await File(path).delete();rethrow;}
+      final saved=(await _store!.load()).firstWhere((m)=>m.id==id);
+      if(mounted)await _open(saved);
+    } catch (_) {if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Photo could not be saved. Retake or use manual entry.')));}
+    finally {if(mounted)setState(()=>_busy=false);}
+  }
+  Widget _cameraView() {
+    final controller=_camera is DeviceCameraService?(_camera as DeviceCameraService).previewController:null;
+    return Stack(fit:StackFit.expand,children:[
+      if(controller!=null&&controller.value.isInitialized)CameraPreview(controller)
+      else Center(child:Text('One photo of your meal',style:Theme.of(context).textTheme.titleLarge)),
+      Positioned(left:20,right:20,bottom:24,child:Column(mainAxisSize:MainAxisSize.min,children:[
+        const Text('Photos stay on this phone until you choose cloud analysis.',textAlign:TextAlign.center),
+        const SizedBox(height:16),
+        Semantics(label:'Take meal photo',button:true,child:FilledButton.icon(onPressed:_busy?null:_capture,
+          icon:const Icon(Icons.camera_alt_outlined),label:Text(_busy?'Saving photo…':'Take photo'))),
+      ])),
+    ]);
+  }
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar:AppBar(title:Text(AppConstants.appDisplayName),actions:[TextButton(onPressed:()=>setState(()=>_history=!_history),child:Text(_history?'Camera':'History'))]),
+    body:Column(children:[
+      if(_error!=null)Padding(padding:const EdgeInsets.all(16),child:Text(_error!)),
+      Expanded(child:_store==null?const Center(child:CircularProgressIndicator()):_history?
+        (_meals.isEmpty?const Center(child:Text('No saved meals yet. Take a photo or enter a meal.')):
+        ListView.builder(itemCount:_meals.length,itemBuilder:(context,index){final meal=_meals[index];return ListTile(
+          leading:meal.photoPath==null?const Icon(Icons.restaurant):Image.file(File(meal.photoPath!),width:56,height:56,fit:BoxFit.cover,errorBuilder:(_,__,___)=>const Icon(Icons.image_not_supported_outlined)),
+          title:Text(meal.name),subtitle:Text('${meal.served==null?'No estimate yet':'Approximate served · ${meal.served!.kcal.round()} kcal'}\n${meal.consumedKcal==null?'Consumption not confirmed':'Confirmed consumed · ${meal.consumedKcal!.round()} kcal'}'),
+          isThreeLine:true,onTap:()=>_open(meal));})):_cameraView()),
+      SafeArea(top:false,child:Padding(padding:const EdgeInsets.all(12),child:Row(children:[
+        Expanded(child:OutlinedButton.icon(onPressed:_store==null||_error!=null?null:()=>_open(Tier1Meal(id:const Uuid().v4(),capturedAt:DateTime.now(),name:'New meal')),icon:const Icon(Icons.edit_outlined),label:const Text('Manual entry'))),
+      ]))),
+    ]));
+}
+
+class _MealEditor extends StatefulWidget {
+  const _MealEditor({required this.meal,required this.store,this.cloud});
+  final Tier1Meal meal;
+  final Tier1MealStore store;
+  final Tier1Cloud? cloud;
+  @override
+  State<_MealEditor> createState()=>_MealEditorState();
+}
+class _MealEditorState extends State<_MealEditor> {
+  late Tier1Meal _meal=widget.meal;
+  final _form=GlobalKey<FormState>();
+  late final _name=TextEditingController(text:_meal.name=='New meal'?'':_meal.name);
+  late final _kcal=TextEditingController(text:_meal.served?.kcal.toString()??'');
+  late final _protein=TextEditingController(text:_meal.served?.proteinG?.toString()??'');
+  late final _carbs=TextEditingController(text:_meal.served?.carbsG?.toString()??'');
+  late final _fat=TextEditingController(text:_meal.served?.fatG?.toString()??'');
+  bool _busy=false;
+  String? _message;
+  @override
+  void dispose(){for(final c in [_name,_kcal,_protein,_carbs,_fat]){c.dispose();}super.dispose();}
+  void _fill(){_name.text=_meal.name;_kcal.text=_meal.served?.kcal.toString()??'';_protein.text=_meal.served?.proteinG?.toString()??'';_carbs.text=_meal.served?.carbsG?.toString()??'';_fat.text=_meal.served?.fatG?.toString()??'';}
+  Future<void> _persist(Tier1Meal meal) async {
+    await widget.store.save(meal);
+    _meal=(await widget.store.load()).firstWhere((m)=>m.id==meal.id);
+  }
+  Future<void> _save() async {
+    if(!_form.currentState!.validate()||_busy)return;
+    try {
+      await _persist(_meal.edit(_name.text,Tier1Nutrients(kcal:double.parse(_kcal.text),proteinG:double.tryParse(_protein.text),carbsG:double.tryParse(_carbs.text),fatG:double.tryParse(_fat.text))));
+      if(mounted)Navigator.pop(context);
+    }catch(_){if(mounted)setState(()=>_message='Could not save. Existing history was preserved.');}
+  }
+  Future<void> _estimate() async {
+    if(_busy||_meal.photoPath==null)return;
+    final approved=await showDialog<bool>(context:context,builder:(context)=>AlertDialog(
+      title:const Text('Send this photo for analysis?'),
+      content:const Text('This photo will be sent to Google Cloud in the United States for an approximate food estimate. Photo metadata is removed before sending. Google may cache or retain requests under its service terms. The app keeps your meal and photo on this phone. You can continue with manual entry instead.'),
+      actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Keep local')),
+        FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Send photo'))]));
+    if(approved!=true||!mounted)return;
+    setState((){_busy=true;_message=null;});
+    try {
+      await _persist(_meal.withConsent());
+      final revision=_meal.revision;
+      final cloud=widget.cloud;
+      if(cloud==null)throw StateError('Cloud unavailable');
+      final result=await cloud.analyze(_meal.photoPath!,consent:true);
+      final applied=await widget.store.replaceIfRevision(_meal.withAnalysis(result),revision);
+      if(applied){_meal=(await widget.store.load()).firstWhere((m)=>m.id==_meal.id);_fill();}
+      if(mounted)setState(()=>_message=applied?'Approximate estimate saved. Check the foods and portions.':'Your newer changes were kept; this result was discarded.');
+    }catch(_){if(mounted)setState(()=>_message='Photo analysis is unavailable. Your photo is saved on this phone. Enter or correct the meal below.');}
+    finally{if(mounted)setState(()=>_busy=false);}
+  }
+  Future<void> _consume(double? fraction) async {
+    try{await _persist(fraction==null?_meal.clearConsumption():_meal.confirmConsumption(fraction));if(mounted)setState((){});}
+    catch(_){if(mounted)setState(()=>_message='Consumption could not be saved.');}
+  }
+  Future<void> _answer(Map<String,dynamic> question,Map<String,dynamic> option) async {
+    if(_meal.source!='A1'||question['answered']==true)return;
+    final analysis=Map<String,dynamic>.from(_meal.analysis!);
+    final totals=Map<String,dynamic>.from(analysis['totals'] as Map);
+    final add=Map<String,dynamic>.from(option['add'] as Map);
+    for(final key in ['kcal','proteinG','carbsG','fatG']){totals[key]=(totals[key] as num)+(add[key] as num);}
+    analysis['totals']=totals;analysis['question']={...question,'answered':true,'answer':option['id']};
+    analysis['userPreparationAnswer']=option['label'];
+    try{await _persist(_meal.withAnalysis(analysis));_fill();if(mounted)setState((){});}
+    catch(_){if(mounted)setState(()=>_message='Could not save the preparation answer.');}
+  }
+  Future<void> _repeat() async {
+    final multiplier=TextEditingController(text:'1');
+    final confirmed=await showDialog<bool>(context:context,builder:(context)=>AlertDialog(
+      title:const Text('Log this meal again?'),content:Column(mainAxisSize:MainAxisSize.min,children:[
+        const Text('Confirm the foods and recipe are the same. This repeats an estimate, not a weighed reference.'),
+        TextField(controller:multiplier,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Portion multiplier'))]),
+      actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Cancel')),
+        FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Confirm repeat'))]));
+    final amount=double.tryParse(multiplier.text);multiplier.dispose();
+    if(confirmed!=true||amount==null)return;
+    try{await widget.store.save(_meal.repeat(const Uuid().v4(),DateTime.now(),amount));if(mounted)Navigator.pop(context);}
+    catch(_){if(mounted)setState(()=>_message='Choose a portion multiplier above 0 and at most 10.');}
+  }
+  Future<void> _delete() async {
+    final confirmed=await showDialog<bool>(context:context,builder:(context)=>AlertDialog(title:const Text('Delete this meal and photo?'),content:const Text('This removes the saved local record and its photo. It cannot remove provider logs from a past analysis request.'),actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Cancel')),FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Delete'))]));
+    if(confirmed!=true)return;
+    try{await widget.store.delete(_meal.id);if(mounted)Navigator.pop(context);}
+    catch(_){if(mounted)setState(()=>_message='Deletion could not finish. Check local storage and try again.');}
+  }
+  Widget _number(String label,TextEditingController controller,{bool isRequired=false}) => TextFormField(
+    controller:controller,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:label),
+    validator:(text){if(text==null||text.trim().isEmpty)return isRequired?'Enter served calories':null;final n=double.tryParse(text);return n==null||!n.isFinite||n<0||n>1000000?'Enter a finite value from 0 to 1000000':null;});
+  @override
+  Widget build(BuildContext context) {
+    final analysis=_meal.analysis;
+    final question=analysis?['question'] is Map?Map<String,dynamic>.from(analysis!['question'] as Map):null;
+    return Scaffold(appBar:AppBar(title:const Text('Meal estimate'),actions:[IconButton(tooltip:'Delete meal',onPressed:_delete,icon:const Icon(Icons.delete_outline))]),
+      body:Form(key:_form,child:ListView(padding:const EdgeInsets.all(20),children:[
+        if(_meal.photoPath!=null)ClipRRect(borderRadius:BorderRadius.circular(24),child:Image.file(File(_meal.photoPath!),height:220,fit:BoxFit.cover,errorBuilder:(_,__,___)=>const Text('Saved photo is unavailable'))),
+        const SizedBox(height:16),Text('Approximate served calories',style:Theme.of(context).textTheme.headlineSmall),
+        Text(_meal.consumedKcal==null?'Consumption not confirmed':'Confirmed consumed · ${_meal.consumedKcal!.round()} kcal'),
+        if(_message!=null)Padding(padding:const EdgeInsets.symmetric(vertical:12),child:Text(_message!,semanticsLabel:_message)),
+        if(_meal.photoPath!=null)FilledButton.icon(onPressed:_busy?null:_estimate,icon:const Icon(Icons.auto_awesome_outlined),label:Text(_busy?'Estimating…':'Estimate photo')),
+        TextFormField(controller:_name,decoration:const InputDecoration(labelText:'Meal name'),validator:(v)=>v==null||v.trim().isEmpty||v.trim().length>160?'Enter a meal name (up to 160 characters)':null),
+        const SizedBox(height:12),_number('Served kcal',_kcal,isRequired:true),
+        const SizedBox(height:12),_number('Protein g (optional)',_protein),
+        const SizedBox(height:12),_number('Carbs g (optional)',_carbs),
+        const SizedBox(height:12),_number('Fat g (optional)',_fat),
+        const SizedBox(height:16),FilledButton(onPressed:_busy?null:_save,child:const Text('Save meal')),
+        const Text('Saving corrections resets consumption to unconfirmed. Missing macros stay unknown.'),
+        if(analysis!=null)...[
+          const Divider(),const Text('Recognized foods and nutrient sources'),
+          for(final raw in (analysis['components'] as List? ?? []))Builder(builder:(_){
+            final c=Map<String,dynamic>.from(raw as Map);final source=Map<String,dynamic>.from(c['source'] as Map);
+            return Padding(padding:const EdgeInsets.symmetric(vertical:8),child:Text('${c['name']} · ${c['massG']} g · ${c['preparation']}\n${source['kind']=='database_match'?'Database nutrient record (food match estimated): ${source['recordId']}':'Unverified model nutrient estimate'}\n${(c['assumptions'] as List? ?? []).join('; ')}'));
+          }),
+          for(final ambiguity in (analysis['ambiguities'] as List? ?? []))Text('Unresolved: $ambiguity'),
+          if(question!=null&&question['answered']!=true&&_meal.source=='A1')...[
+            Text(question['text'] as String),
+            for(final raw in question['options'] as List)TextButton(onPressed:_busy?null:()=>_answer(question,Map<String,dynamic>.from(raw as Map)),child:Text((raw as Map)['label'] as String)),
+          ],
+          if(question?['answered']==true)Text('Preparation: ${analysis['userPreparationAnswer']??question!['answer']}'),
+          if(_meal.source=='manual_correction')const Text('Totals were manually corrected. Original recognition is retained for comparison.'),
+        ],
+        if(_meal.served!=null)...[
+          const Divider(),Wrap(spacing:8,children:[
+            OutlinedButton(onPressed:_busy?null:()=>_consume(1),child:const Text('Ate all')),
+            OutlinedButton(onPressed:_busy?null:()=>_consume(.5),child:const Text('Ate half')),
+            TextButton(onPressed:_busy?null:()=>_consume(null),child:const Text('Leave unconfirmed')),
+          ]),
+          const Text('A fraction is an approximate shortcut; selective leftovers can have different calories.'),
+          OutlinedButton(onPressed:_busy?null:_repeat,child:const Text('Repeat meal')),
+        ],
+      ])));
+  }
+}
