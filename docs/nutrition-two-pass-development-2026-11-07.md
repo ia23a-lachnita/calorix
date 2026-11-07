@@ -20,11 +20,70 @@ Corrected Antigravity3.8/serverHigh implementation/hermetic-results gate explici
 
 Ordered editing routes were attempted under current task bounds: Grok unknownmodel, Qwen explicit403quota, Ultra/Muse1.3/Ling absent refreshedcatalog, Lightning invalid behavioral tests, BigPickle core/native each300s without file progress, paidSonnet300.459s empty/native143. No quota exhaustion inferred from silence; no spend-cap message, so the special subscription-usage probe rule did not trigger. The standing native-edit exception applied, with TDD/review/verification/commit/push gates retained. The global OpenCode config’s invalid plugins key was bypassed with an existing isolated task config, without editing global/user configuration.
 
-## Actual measurement
+## Actual measurement — completed, rejected
 
-Not yet run. Remaining pre-live gates: clean committed/pushed source, fresh scoped account/project/ADC/API/billing checks, exact24offlineimage/source/runtime/schema/SDK/old-evidence pins. Then invoke the reviewed entrypoint once: `RUN_NUTRITION_TWO_PASS_DEV=1 CLOUDSDK_CORE_PROJECT=calorix-xurschnell node lib/nutrition-eval/accuracy-two-pass-cli.js` from functions. No source/docs changes during that attempt.
+Run `accuracy-two-pass-v1-b6907187610e-2026-11-07T22-10-18-077Z`; execution HEAD `d2df80c413aee76c94fd1c2178dd8b49343348ec`, implementation `b6907187610e680941d5e11f0211296cd6c1a0e5`, Functions tree `4141e2f4d232d9412b587480e72d2d62e96dfde3`. Native0,326.502s. Fixed Vertex/calorix-xurschnell/us/3.8/v1/MEDIUM/30s, SDK2.19.0. Composite prompt SHA `7fdb9618816a1297ec67902cc7d160d23b9c2aa88ae7939a39d3af07db31ad11`. No fallback/recovery/retry/warmup or new token count.
 
-Progress requires all24candidate1successes still parsed and all22originalsuccesses preserved, unsafe0,severe<=2,calorie median<=18.4409%/P90<=45.4632%,zero-safe macro<1.5064710070741663. Absolute goal remains pooledmacro<=0.50 plus each macro median<=0.35. Full24coverage is primary; common-success accuracy is secondary. Progress alone does not qualify production. Untouched16validation×3 and final same-public-benchmark comparison have separate later review/budgets. No new2.5request and no superiority claim from these different development/benchmark datasets.
+**16parsed/24attempted;40actualimageSDKcalls=24inventory+16nutrition,24logicalanalyses.**40reservations/40stageoutcomes/24dishoutcomes. Seven inventory failures each contain four alternatives where local validation allows three. The outgoing schema/prompt omitted that limit, so these are our request/validator contract errors, not provider failures. One actual provider-stage failure is sanitized HTTP5xx on dish1560543605, no exact5xxnumber or raw payload retained. Generic report labels all8provider_request_failed; stage failure codes are authoritative. Seven original22successes and eight candidate1successes lost: progression vetoed. Known egg-white outlier was again named mozzarella in inventory but rejected before nutrients; no final nutrient prediction exists, and no fat-error fix is claimed.
+
+| Metric | Original MEDIUM | Candidate1 | Two-passV1 |
+| --- | ---: | ---: | ---: |
+| Parsed/attempted |22/24|24/24|16/24|
+| Calorie median relative error |18.4409%|21.1570%|22.9727%|
+| Calorie P90 relative error |45.4632%|67.5869%|69.8731%|
+| Severe calorie misses |2|3|3|
+| Unsafe complete |0|0|0|
+| Zero-safe macro mean (pairs) |1.506471 (66)|1.518007 (72)|0.572686 (48)|
+| Legacy macro mean |0.718810|0.716847|0.393299|
+| Protein median relative error |18.4934%|19.6607%|21.9546%|
+| Carbs median relative error |23.5714%|22.0517%|27.5787%|
+| Fat median relative error |25.8394%|32.9624%|46.3961%|
+| Mean mass relative error |29.4905%|26.0022%|30.5035%|
+| Median mass relative error |21.1467%|18.5604%|25.5007%|
+| Mean carb-density relative error |39.2316%|37.1073%|19.3313%|
+| Mean fat-density relative error |515.1464%|516.2767%|93.7214%|
+| Median/P90 latency |7.627/20.474s|7.846/10.476s|13.515/17.189s|
+
+Accuracy uses parsed cases, so reduced macro averages are not improvement evidence. On the common15successes, new calorie median21.4032% vs20.3593%,P9051.8472% vs39.6736%,zero-safe macro0.565540 vs0.497782,severe2 vs1: these metrics worsened. Other diagnostics need not all worsen; common mean mass error29.9730% vs30.6404% slightly lower. Single-sample, noncontemporaneous evidence does not establish causal decomposition effects. Full24coverage remains primary. Candidate fails progression and absolute meanmacro<=0.50/fatmedian<=0.35; do not promote. All16parsed predictions need_review solely nutrition_basis_ambiguous; eight failed cases are not successful review predictions. Unsafe0 is not accuracy evidence.
+
+All24numeric rows and40stage records were independently audited against image/truth/manifest pins, request counters, journal ordering and completion digests. All39retained structured JSON responses have matching byte lengths/hashes; the provider failure has no response and no missing text was invented. No oversized result. Source215/runtime75/cache24 unchanged throughout. HistoricalV1/V2/candidate1 raw bytes/modes/mtime/ctime remain exact; source/runtime version snapshot retained before any next repair. The audit initially compared file-type-inclusive stat mode with permissions-only pin; representation was corrected and metadata matches. This is a host audit correction, not a model rerun.
+
+Complete/report/diagnostics/events SHA respectively `18cae75f6aa44ad04fa4168aa58a0816f7c9a811a75db3f9f6120c9ec18f91f0`, `b82215b48bb04be291be2dfab8b9f1e5e9f2a5208623f58f248fa1737f8fb9c7`, `eb009b7e700b1a8688256ee90eb69134a5a8895ba2fd3aecf1366e6e7291343b`, `979ec5ea5f10a17b1805865cd52c47e84d2e2d388d1ec31d7443134f194a6c8b`. Raw SDK precedence banner followed by valid completedJSON was handled explicitly; no wrapper-output ambiguity or rerun. SDK counts are not HTTP/server-execution attestation.
+
+Fresh scoped account probe passed9checks/sixunderlyingCLIexits0,14.287s,timestamp2026-11-07T22:09:51.530859Z; correct project/ADC/API/billing context is not subscription entitlement or quota guarantee. One known-outlier source photo was inspected by host; this is not exhaustive photo verification. Antigravity inspected supplied numerical/structured evidence, zero photos. No UI-diff run; auditLimited/visualClassificationStatus/diff-status counts are not applicable to this backend experiment.
+
+Corrected Antigravity3.8/serverHigh actual-results conversation `calorix-accuracy-two-pass-actual-results-20261107` explicitly agrees/MUST_FIX none, scope ACTUAL_TWO_PASS_V1_RESULTS_ONLY. Its initial request to retain raw HTTP payloads was rejected under the privacy contract; overclaims that all individual gates/all metrics failed or that causal compound error was established were corrected. It recommends offline contract repair, then a separately reviewed HIGH single-pass trial; no new plan or request budget is approved by this result signoff.
+
+The next concrete repair is to emit the alternatives limit in the wire schema and prompt without relaxing validation, trimming retained responses or hiding failures, and test that offline. Google documents array maxItems in [structured output](https://ai.google.dev/gemini-api/docs/structured-output); this is schema guidance, not food-truth assurance. The next accuracy hypothesis is single-pass3.8 HIGH with the same candidate1prompt/cases, reducing new calls to24 rather than repeating48immediately. [Google’s thinking support table](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/thinking) lists LOW/MEDIUM/HIGH for3.8Flash, defaultMEDIUM; no empirical HIGH benefit is claimed. That profile/budget requires its own concrete review before execution. Actual cumulative priorimageSDK164 (100old+24candidate1+40two-pass); another24wouldcap188, unused8fromthis sealed attempt are not replay credit. Heldouts and saved2.5 remain untouched; no deployment.
+
+### All24 final outcomes
+
+| Case suffix | Final result | kcal prediction/truth | Inventory issue |
+| --- | --- | --- | --- |
+|1564761388|Scrambled Egg Whites|68/54.599998|none|
+|1563220087|Pepperoni pizza slice with steamed broccoli|138/162.740005|none|
+|1564428515|Roasted Chicken with Cauliflower and Mixed Salad|335/484.618347|none|
+|1565021965|failed; no nutrition estimate|—/92.039993|alternatives_count|
+|1563898722|Scrambled Eggs with Steamed Broccoli|195/343.350006|none|
+|1566333291|failed; no nutrition estimate|—/549.755615|alternatives_count|
+|1562183065|Cooked button mushrooms|13/16.5|none|
+|1559590130|Diced Chicken Breast with Asparagus|222/194.405991|none|
+|1566333228|Pizza, Caesar Salad, and Chicken Meal|675/498.545258|none|
+|1558637698|Cauliflower florets|28/12.25|none|
+|1562691409|Scrambled Eggs with Roasted Sweet Potato|248/225.98999|none|
+|1560543605|failed; no nutrition estimate|—/485.570892|HTTP5xx|
+|1563464389|failed; no nutrition estimate|—/91.970001|alternatives_count|
+|1565640772|failed; no nutrition estimate|—/241.169998|alternatives_count|
+|1561661850|failed; no nutrition estimate|—/648.975952|alternatives_count|
+|1558632198|Mixed Salad Greens|3/16.796001|none|
+|1560443474|Mixed Berries and Pineapple|104/172.779999|none|
+|1567022383|failed; no nutrition estimate|—/527.088013|alternatives_count|
+|1566328894|Cheese pizza|186/236.650986|none|
+|1563824279|Sliced Red Onion and Kalamata Olives|68/58.599998|none|
+|1565725188|failed; no nutrition estimate|—/543.117004|alternatives_count|
+|1558636544|whole almonds|174/410.451019|none|
+|1563294441|Fresh Pineapple and Watermelon|62/65.199997|none|
+|1563303350|baked chicken breast with cooked carrots|200/202.221436|none|
 
 ## Review limits accepted
 

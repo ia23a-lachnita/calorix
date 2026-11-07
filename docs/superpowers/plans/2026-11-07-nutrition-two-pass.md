@@ -31,12 +31,14 @@ Same24FINAL development images/truths/manifestSHA59231d1cfda7e8a795901086f379f0b
 
 ## Task 2: Actual bounded measurement and next repair decision
 
-- [ ] Fresh sanitized account9checks;24offlineassets/source/runtime/SDK/promptschema/previousrun pins. Confirm newroot absent and budget48max/combined172max. Host stdout parser accepts documentedSDKbanner plus one exactcompletedJSON; raw preserved.
-- [ ] Invoke compiled native CLI exactly once with opt-in and scopedproject. No source/docs mutation, retry or restart. Retain every reservation/stage/dishoutcome; stopped/failedattempt cannot resume.
-- [ ] Independently audit full24 numeric/rawfinalJSON plus firststage inventory, allactualSDKcounts/hash/source/oldruns. Coverage first: require all24candidate1successes and original22successes for progress. Compare originalMEDIUM thresholds and candidate1, full24primary/commonsecondary; no superiority vs2.5differentdataset.
-- [ ] Mandatory actual-results MCP review; preserve failure and choose another concrete repair, or freeze advancing candidate and separately review untouchedvalidation/finalcomparison budgets. No production promotion from development.
-- [ ] Update result/status/checkboxes; commit/push exactorigin and GitHub plan link.
+- [x] Fresh sanitized account9checks;24offlineassets/source/runtime/SDK/promptschema/previousrun pins. Confirm newroot absent and budget48max/combined172max. Host stdout parser accepts documentedSDKbanner plus one exactcompletedJSON; raw preserved.
+- [x] Invoke compiled native CLI exactly once with opt-in and scopedproject. No source/docs mutation, retry or restart. Retain every reservation/stage/dishoutcome; stopped/failedattempt cannot resume.
+- [x] Independently audit full24 numeric/rawfinalJSON plus firststage inventory, allactualSDKcounts/hash/source/oldruns. Coverage first: require all24candidate1successes and original22successes for progress. Compare originalMEDIUM thresholds and candidate1, full24primary/commonsecondary; no superiority vs2.5differentdataset.
+- [x] Mandatory actual-results MCP review; preserve failure and choose another concrete repair, or freeze advancing candidate and separately review untouchedvalidation/finalcomparison budgets. No production promotion from development.
+- [x] Update result/status/checkboxes; commit/push exactorigin and GitHub plan link.
 
 Corrected MCP3.8/serverHigh preimplementation research/design/implementation-plan/48callbudget review agrees/MUST_FIX none, conversation calorix-accuracy-two-pass-design-20261107. No new calls have run under this experiment.
 
 Task1 sourcequalified321PASS0FAIL0skip8files/build0/lint0,211oldfilesexact. Onefreshnative review0Critical0Important3Minor deferred, correctedMCPsource/hermeticagreement/MUSTnone. No actualtwo-passcall yet. See [implementation and actualresult report](../../nutrition-two-pass-development-2026-11-07.md). Sourcecheckpoint commit/push and freshprelivequalification precedeTask2.
+
+Task2actualcompleted40SDK/16parsed24attempted;7inventorycontractfailures+1HTTP5xx, notpromoted. Correctedactual-resultsMCPagree/MUSTnone. Nextofflinecontractfix+separatelyreviewedHIGHsinglepass24trial selected; no oldrootreplay orheldouts. See fullreport.
