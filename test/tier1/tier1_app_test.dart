@@ -69,13 +69,36 @@ void main() {
     await tester.scrollUntilVisible(find.text('Repeat meal'),200,scrollable:find.byType(Scrollable).first);
     await tester.tap(find.text('Repeat meal'));
     await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last,'1.5');
+    await tester.pump();
     await tester.tap(find.text('Confirm repeat'));
     await tester.pumpAndSettle();
     expect(tester.takeException(),isNull);
     final repeated=(await store.load()).where((m)=>m.repeatOf=='repeat-source').single;
-    expect(repeated.served!.kcal,420);
+    expect(repeated.served!.kcal,630);
     expect(repeated.consumedKcal,isNull);
     expect(find.text('Camera'),findsOneWidget);
+  });
+
+  testWidgets('cancel repeat preserves the source and stays in the editor', (tester) async {
+    final store=_MemoryStore();
+    await store.save(Tier1Meal(id:'cancel-source',capturedAt:DateTime.utc(2026,11,8),name:'Cancel source',served:Tier1Nutrients(kcal:420)).confirmConsumption(1));
+    await tester.pumpWidget(Tier1App(store:store,camera:FakeCameraService()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('History'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel source'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Repeat meal'),200,scrollable:find.byType(Scrollable).first);
+    await tester.tap(find.text('Repeat meal'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last,'1.5');
+    await tester.pump();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(),isNull);
+    expect(find.text('Meal estimate'),findsOneWidget);
+    expect((await store.load()).single.consumedKcal,420);
   });
 
 }

@@ -5,6 +5,8 @@ Baseline commit: 5b70e88ad60ade812e35a14da8a06f5203ef732b
 Branch: feat/tier1-photo-pilot
 CI42442507875 at4ec60b4 also stopped before dialog: scrollUntilVisible targeted the last Scrollable (an EditableText), not the meal ListView. Correct to first/outer Scrollable. Neither failed run is behavioral RED. Production unchanged; hardware failure remains actual.
 
+CI42442797338/e7d1068 corrected outer-list navigation passed959/1skip and analyzer. Default unfocused multiplier did NOT reproduce phone failure. Match actual phone path by editing multiplier1.5 (focuses field) before Confirm; add focused Cancel preservation regression. Production unchanged. Native phoneRED remains _children.contains after focused repeat confirmation.
+
 Current Task: Reproduce and fix repeat dialog dismissal; verify signed APK on Samsung.
 
 Repeat regression correction: CI42441897786 Flutter job128612702308 failed at ensureVisible (lazy ListView child absent), before dialog interaction. This is a test harness failure, NOT behavioral RED. Replace with scrollUntilVisible; production unchanged. Actual phone repeat crash remains independently observed. Photo deletion passed record+file assertions; two owned diagnostic manual records remain for final repeat/restart/cleanup checks.
