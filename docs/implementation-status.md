@@ -1,8 +1,12 @@
-# Implementation Status — Complete Handoff Screens and Product Quality
+# Implementation Status — V7.1 Tier-1 Photo Pilot
 
-Plan: docs/superpowers/plans/2026-07-17-complete-handoff-screens-product-quality.md
-Baseline commit: f9f0d49174c81a23ec8cd7f6713a51da021422b2
-Branch: fix/test-apk-pem-verification
+Plan: docs/superpowers/plans/2026-11-08-tier1-photo-pilot.md
+Baseline commit: 5b70e88ad60ade812e35a14da8a06f5203ef732b
+Branch: feat/tier1-photo-pilot
+Current Task: Reproduce and fix repeat dialog dismissal; verify signed APK on Samsung.
+
+Repeat regression correction: CI42441897786 Flutter job128612702308 failed at ensureVisible (lazy ListView child absent), before dialog interaction. This is a test harness failure, NOT behavioral RED. Replace with scrollUntilVisible; production unchanged. Actual phone repeat crash remains independently observed. Photo deletion passed record+file assertions; two owned diagnostic manual records remain for final repeat/restart/cleanup checks.
+
 Flutter command: fvm flutter
 Flutter: 3.41.9 stable, Dart 3.11.5, DevTools 2.54.2
 Functions scripts: test=vitest run, lint=eslint src test, build=tsc -p tsconfig.json, test:watch=vitest, test:rules=firebase emulators:exec --only firestore vitest rules config, deploy=out of scope

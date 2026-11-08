@@ -66,7 +66,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Repeat source'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Repeat meal'));
+    await tester.scrollUntilVisible(find.text('Repeat meal'),200,scrollable:find.byType(Scrollable).last);
     await tester.tap(find.text('Repeat meal'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Confirm repeat'));
