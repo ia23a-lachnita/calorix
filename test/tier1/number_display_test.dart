@@ -59,6 +59,7 @@ void main() {
         await visible(tester,field('Served kcal'),delta:-180);await tester.enterText(field('Served kcal'),'300');
       } else if(action=='clear fat') {await tester.enterText(field('Fat g (optional)'),'');}
       await visible(tester,find.text('Save meal'));await tester.tap(find.text('Save meal'));await tester.pumpAndSettle();
+      expect(find.text('Camera'),findsOneWidget);expect(find.text('Meal estimate'),findsNothing);
       expect(tester.takeException(),isNull);
       final saved=(await data.load()).single;
       expect(saved.served!.fatG,action=='clear fat'?isNull:artifact);
@@ -75,6 +76,7 @@ void main() {
       await open(tester,data);await visible(tester,field('Fat g (optional)'));
       expect(tester.widget<TextFormField>(field('Fat g (optional)')).controller!.text,entry.value);
       await visible(tester,find.text('Save meal'));await tester.tap(find.text('Save meal'));await tester.pumpAndSettle();
+      expect(find.text('Camera'),findsOneWidget);expect(find.text('Meal estimate'),findsNothing);
       final saved=(await data.load()).single;expect(saved.served!.fatG,entry.key);expect(saved.consumedFraction,1);expect(saved.source,'A1');
     });
   }
@@ -86,6 +88,7 @@ void main() {
     await tester.tap(find.text('Send photo'));await tester.pumpAndSettle();expect(cloud.calls,1);
     await visible(tester,field('Fat g (optional)'));expect(tester.widget<TextFormField>(field('Fat g (optional)')).controller!.text,'6.72');
     await visible(tester,find.text('Save meal'));await tester.tap(find.text('Save meal'));await tester.pumpAndSettle();
+      expect(find.text('Camera'),findsOneWidget);expect(find.text('Meal estimate'),findsNothing);
     final saved=(await data.load()).single;expect(saved.served!.fatG,artifact);expect(saved.source,'A1');expect(saved.analysis,analysis());
   });
 }
