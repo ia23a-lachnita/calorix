@@ -2,6 +2,8 @@
 
 The existing Flutter app now starts in the local Tier1 workflow. The old cloud app remains available only with `--dart-define=CALORIX_LEGACY_CLOUD=true`; that legacy mode is not the V7.1 privacy/served-intake implementation.
 
+[The public evaluation](tier1-public-eval-2026-11-08/report.md) now contains20 actual measured-reference cases. Personal weighing is deferred, not required before using the app or this benchmark. No printed reference object or second photograph is needed. The current numeric-display fix shows values such as6.72 while preserving the exact original estimate and confirmed intake when saved unchanged.
+
 Build with the existing intermediate **Test Android APK** workflow (`android-test-apk.yml`) from the desired pushed branch. It runs verification, prepares the existing Firebase config from repository secrets, builds Flutter3.41.9 via FVM and records source SHA, APK SHA256 and signer in `metadata.json`. Download `android-test-apk-<source SHA>`, compare those values, and install only that source-matched artifact. Do not use an old release APK as evidence.
 
 ```bash

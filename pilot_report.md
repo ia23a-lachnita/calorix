@@ -8,13 +8,17 @@ Existing Flutter CameraX still capture, app theme, Firebase project and SDK were
 
 No medical, numerical accuracy, interval, unseen-user/device or production-readiness claim. Database nutrient records do not verify visual food matching or portion mass. A1 uses a hosted model ID, not downloadable immutable weights; returned model drift fails closed. The small catalog has limited coverage. A0 shares A1 recognition/preparation and tests serving priors only. No old public-image outcome is a weighed Android reference.
 
-## Unmeasured
+## Measured public evaluation
 
-**Physical weighed Android meals:0/30.** Served/consumed MAE, bias, P90, mixed-meal accuracy, user correction rate, end-to-end phone latency and inference expense are unmeasured. The empty dataset `docs/tier1-pilot-empty.json` deliberately produces null error/cost metrics. Synthetic recipe tests validate arithmetic only. Missing consumption and missing cost remain unknown. No participant data or physical weighing was fabricated.
+The unchanged A1 ran once on each of20 frozen Nutrition5k TEST RGB scans with real measured-component references:20/20 valid estimates, served-kcal MAE71.54, bias−7.77, P90 absolute error155.45. This exploratory sample contains12 references below200kcal, eight from200–600 and none above600. A0 covered only1/20, so no overall comparison is possible. Unverified model nutrient densities supplied85.43% of predicted energy. [Full results, limitations and numeric evidence](docs/tier1-public-eval-2026-11-08/report.md). These public measurements are separate from the Android pilot.
+
+## Android-specific measurements still missing
+
+**Physical weighed Android meals:0/30.** Android-specific served/consumed MAE, bias, P90, mixed-meal accuracy, user correction rate, end-to-end phone latency and inference expense are unmeasured. The empty Android dataset `docs/tier1-pilot-empty.json` deliberately produces null error/cost metrics. Synthetic recipe tests validate arithmetic only. Missing consumption and missing cost remain unknown. Two owner-phone food screenshots demonstrate returned/saved estimates but have no weighed references. No participant data or physical weighing was fabricated. Public evaluation does not require collecting those Android meals first.
 
 ## Decision
 
-The source/checksum/signer-verified local workflow is installed on the dedicated phone; the explicitly approved callable deployment is now complete. The single highest-value next experiment is **one weighed mixed meal**: record the recipe and cooked yield independently, take one phone JPEG, freeze the original A0/A1 outputs, answer at most one preparation question, and compare complete served kcal before manual edits. Continue to30 different physical meals without selecting away difficult dishes. Only that evidence can justify additional model complexity.
+The local workflow and approved callable deployment are working. The measured engineering gap is nutrient-record coverage and matching: six records leave A0 unscorable on19/20 public cases and most A1 energy unverified. The next experiment should evaluate a separately versioned, broader audited nutrient catalog with the same recognition/portion pipeline. Keep the completed run frozen and report paired coverage/error changes; do not assume more database matches automatically improve calorie accuracy. Depth, printed reference objects and model training have no demonstrated priority from these results.
 
 ## Actual verification
 

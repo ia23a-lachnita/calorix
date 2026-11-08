@@ -50,6 +50,10 @@ local_retention: app-private until user deletes; Android backup and transfer exc
 privacy_scope: personal opt-in prototype; public distribution review remains separate
 accuracy_claims: none; no numeric uncertainty intervals
 real_weighed_meal_count: 0
+real_weighed_meal_count_scope: owner Android pilot only; public references counted separately
+public_evaluation_cases: 20
+public_evaluation_report: docs/tier1-public-eval-2026-11-08/report.md
+public_evaluation_execution_commit: 0bf1369b7e1d14e8f5316d505d7007c671119a57
 pilot_target_different_meals: 30
 
 wire_constraint_policy: structural grammar only; numeric/string/array limits enforced by strict Zod client validator, not wire decoding
