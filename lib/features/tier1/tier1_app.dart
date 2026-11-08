@@ -172,14 +172,14 @@ class _MealEditorState extends State<_MealEditor> {
   final _form=GlobalKey<FormState>();
   late final _name=TextEditingController(text:_meal.name=='New meal'?'':_meal.name);
   late final _kcal=TextEditingController(text:_displayNutrient(_meal.served?.kcal));
-  late final _protein=TextEditingController(text:_meal.served?.proteinG?.toString()??'');
-  late final _carbs=TextEditingController(text:_meal.served?.carbsG?.toString()??'');
-  late final _fat=TextEditingController(text:_meal.served?.fatG?.toString()??'');
+  late final _protein=TextEditingController(text:_displayNutrient(_meal.served?.proteinG));
+  late final _carbs=TextEditingController(text:_displayNutrient(_meal.served?.carbsG));
+  late final _fat=TextEditingController(text:_displayNutrient(_meal.served?.fatG));
   bool _busy=false,_dirty=false;
   String? _message;
   @override
   void dispose(){for(final c in [_name,_kcal,_protein,_carbs,_fat]){c.dispose();}super.dispose();}
-  void _fill(){_name.text=_meal.name;_kcal.text=_displayNutrient(_meal.served?.kcal);_protein.text=_meal.served?.proteinG?.toString()??'';_carbs.text=_meal.served?.carbsG?.toString()??'';_fat.text=_meal.served?.fatG?.toString()??'';}
+  void _fill(){_name.text=_meal.name;_kcal.text=_displayNutrient(_meal.served?.kcal);_protein.text=_displayNutrient(_meal.served?.proteinG);_carbs.text=_displayNutrient(_meal.served?.carbsG);_fat.text=_displayNutrient(_meal.served?.fatG);}
   Future<void> _persist(Tier1Meal meal) async {
     await widget.store.save(meal);
     _meal=(await widget.store.load()).firstWhere((m)=>m.id==meal.id);
