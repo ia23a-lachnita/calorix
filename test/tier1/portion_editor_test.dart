@@ -13,9 +13,12 @@ import 'support/portion_fixtures.dart';
 class _Store extends Tier1MealStore {
   _Store():super(Directory('.'));
   final records=<Tier1Meal>[];
-  bool conflict=false,fail=false;
+  bool conflict=false,fail=false,failAfterCommit=false,_failLoad=false;
   @override
-  Future<List<Tier1Meal>> load() async=>List.of(records);
+  Future<List<Tier1Meal>> load() async {
+    if(_failLoad){_failLoad=false;throw FileSystemException('fixture reload refused');}
+    return List.of(records);
+  }
   @override
   Future<void> save(Tier1Meal meal) async {
     final index=records.indexWhere((m)=>m.id==meal.id);
@@ -29,7 +32,9 @@ class _Store extends Tier1MealStore {
     if(index<0)return false;
     if(conflict){conflict=false;records[index]=records[index].edit('Concurrent',Tier1Nutrients(kcal:777)).withRevision(records[index].revision+1);return false;}
     if(records[index].revision!=expected)return false;
-    await save(meal);return true;
+    await save(meal);
+    if(failAfterCommit){failAfterCommit=false;_failLoad=true;}
+    return true;
   }
 }
 class _Cloud extends Tier1Cloud {
@@ -123,6 +128,20 @@ void main(){
     await dialog(tester);store.fail=true;await apply(tester,'86');
     expect(store.records.single.toJson(),before);expect(find.text('Meal estimate'),findsOneWidget);
     await visible(tester,find.textContaining('Reopen the meal'),delta:-160);
+    expect(tester.takeException(),isNull);
+  });
+  testWidgets('committed portion survives reload failure without leaving stale write controls', (tester) async {
+    final store=await open(tester);await dialog(tester);store.failAfterCommit=true;
+    await apply(tester,'86');
+    expect(store.records.single.served!.kcal,closeTo(613.5,1e-9));
+    expect(store.records.single.toJson()['portionOverrides'],{'1':86.0});
+    // Closing the stale editor prevents Save/Ate all overwriting the committed CAS.
+    expect(find.text('Meal estimate'),findsNothing);
+    await tester.tap(find.text('Portion meal'));await tester.pumpAndSettle();
+    await visible(tester,find.text('Ate all'));await tester.tap(find.text('Ate all'));await tester.pumpAndSettle();
+    expect(store.records.single.consumedKcal,closeTo(613.5,1e-9));
+    expect(store.records.single.toJson()['portionOverrides'],{'1':86.0});
+    expect((store.records.single.toJson()['adjustmentHistory'] as List).last['kind'],'portion');
     expect(tester.takeException(),isNull);
   });
   testWidgets('explicit new inference archives corrected baseline without extra portion requests', (tester) async {
