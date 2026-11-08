@@ -227,6 +227,7 @@ class _MealEditorState extends State<_MealEditor> {
     final component=(opening.analysis!['components'] as List)[index] as Map;
     final original=(component['massG'] as num).toDouble();
     var gramsText=_displayNutrient(current),closed=false;
+    var committed=false;
     final form=GlobalKey<FormState>();
     setState(()=>_busy=true);
     try {
@@ -263,10 +264,18 @@ class _MealEditorState extends State<_MealEditor> {
         messenger.showSnackBar(const SnackBar(content:Text('Meal changed; reopen it to edit.')));
         return;
       }
+      committed=true;
       _meal=(await widget.store.load()).firstWhere((m)=>m.id==opening.id);
       if(!mounted)return;
       _fill();setState((){_dirty=false;_message='Portion saved. Check the approximate totals; consumption is unconfirmed.';});
-    }catch(_){if(mounted)setState(()=>_message='Could not save this portion. Reopen the meal to check saved values.');}
+    }catch(_){
+      if(!mounted)return;
+      if(committed){
+        final messenger=ScaffoldMessenger.of(context);
+        Navigator.pop(context);
+        messenger.showSnackBar(const SnackBar(content:Text('Portion saved, but could not refresh. Reopen the meal to check saved values.')));
+      }else{setState(()=>_message='Could not save this portion. Reopen the meal to check saved values.');}
+    }
     finally{if(mounted)setState(()=>_busy=false);}
   }
   Future<void> _repeat() async {
