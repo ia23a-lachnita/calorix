@@ -1297,7 +1297,7 @@ void main() {
     });
 
     test(
-        'Functions verification job uses Node 20 and working-directory '
+        'Functions verification job uses Node 22 and working-directory '
         'functions for npm ci, npm run build, npm run lint, npm test', () {
       final workflow = loadVerify();
       final functions = jobNamed(workflow, 'functions');
@@ -1309,8 +1309,8 @@ void main() {
       final nodeWith = _stepWith(steps, 'actions/setup-node');
       expect(nodeWith, isNotNull,
           reason: 'an actions/setup-node step is required');
-      expect(nodeWith!['node-version'], '20',
-          reason: 'Node version must be 20 via actions/setup-node');
+      expect(nodeWith!['node-version'], '22',
+          reason: 'Node version must be 22 via actions/setup-node');
 
       for (final step in steps) {
         final run = step['run'] as String? ?? '';
