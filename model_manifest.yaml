@@ -32,6 +32,7 @@ A0: frozen serving priors with same A1 identities, preparation, question answer 
 cost_usd_per_request: null
 cost_status: unmeasured; SDK token usage recorded, no zero-cost/free claim
 pricing_reference: https://cloud.google.com/vertex-ai/generative-ai/pricing
+server_runtime: nodejs22
 authentication: ADC on server; authenticated Firebase callable; no model secret in Android
 app_server_photo_retention: no persistence or raw request logging in Tier1 callable
 provider_retention: provider-managed abuse monitoring and caching; not zero retention
