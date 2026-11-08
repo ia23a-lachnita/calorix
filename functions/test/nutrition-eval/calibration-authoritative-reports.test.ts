@@ -368,6 +368,8 @@ describe('trailing fifth option capture', () => {
     let causeReads = 0;
     let stackReads = 0;
     const foreign = new Error('foreign-boom');
+    // Materialize Node 20's lazy stack before installing hostile getters.
+    void Object.getOwnPropertyDescriptor(foreign, 'stack');
     Object.defineProperty(foreign, 'message', {
       enumerable: true,
       get: (): string => {
@@ -2366,6 +2368,8 @@ describe('admission primitive validation and hostile verifier envelopes', () => 
     let nameReads = 0;
     let causeReads = 0;
     const hostile = new Error('foreign-boom');
+    // Materialize Node 20's lazy stack before installing hostile getters.
+    void Object.getOwnPropertyDescriptor(hostile, 'stack');
     Object.defineProperty(hostile, 'message', {
       configurable: true,
       enumerable: true,

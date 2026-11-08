@@ -39,6 +39,7 @@ void main() async {
   await synchronizer.syncOnce();
   await applyCalorixFullscreenSystemUi();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseMessaging.instance.setAutoInitEnabled(true);
 
   if (_useEmulator) {
     // Android emulator reaches host via 10.0.2.2; everything else uses localhost

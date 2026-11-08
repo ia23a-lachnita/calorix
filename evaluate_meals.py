@@ -102,8 +102,11 @@ def reference_energy(meal):
                     raise ValueError('Homogeneous allocation must use identical mass and energy fractions')
                 if method == 'measured_ingredient_allocation' and not allocation.get('allocation_evidence'):
                     raise ValueError('Selective allocation requires independent evidence')
-            elif method != 'measured_ingredient_allocation':
-                raise ValueError('Direct ingredient allocation requires measurement')
+            else:
+                if method != 'measured_ingredient_allocation':
+                    raise ValueError('Direct ingredient allocation requires measurement')
+                if abs(ef-mf) > 1e-6 and not allocation.get('allocation_evidence'):
+                    raise ValueError('Unequal direct ingredient mass/energy fractions require independent evidence')
             total += energy[key]*ef
             allocated_mass += mass[key]*mf
             use = source_use.setdefault(key, [0., 0.])
@@ -183,7 +186,7 @@ def evaluate(dataset):
                 for key in ('model_version', 'nutrient_data_version', 'preparation_context_id'):
                     if not p.get(key):
                         raise ValueError(f'Prediction provenance missing {key}')
-            for key in ('latency_ms', 'cost_usd', 'active_user_ms', 'wall_clock_ms'):
+            for key in ('latency_ms', 'shutter_to_estimate_ms', 'cost_usd', 'active_user_ms', 'wall_clock_ms'):
                 if p.get(key) is not None:
                     number(p[key], key)
             by_route[route] = p
@@ -193,7 +196,7 @@ def evaluate(dataset):
         counts = Counter()
         served, consumed, sensitivity, assisted = [], [], [], []
         mixed, single, size = [], [], {'under_200': [], '200_to_600': [], 'over_600': []}
-        latencies, costs, interaction, walls = [], [], [], []
+        latencies, shutters, costs, interaction, walls = [], [], [], [], []
         costs_missing = False
         for meal in meals:
             p = predictions[meal['meal_id']].get(route)
@@ -205,7 +208,7 @@ def evaluate(dataset):
                     costs_missing = True
                 else:
                     costs.append(p['cost_usd'])
-                for key, target in [('latency_ms', latencies), ('active_user_ms', interaction), ('wall_clock_ms', walls)]:
+                for key, target in [('latency_ms', latencies), ('shutter_to_estimate_ms', shutters), ('active_user_ms', interaction), ('wall_clock_ms', walls)]:
                     if p.get(key) is not None:
                         target.append(p[key])
             if not p or status not in ('ok', 'manual'):
@@ -229,7 +232,8 @@ def evaluate(dataset):
             'served': metrics(served), 'consumed': metrics(consumed), 'served_A_plus_B_sensitivity': metrics(sensitivity),
             'assisted_workflow': metrics(assisted), 'mixed_meals': metrics(mixed), 'single_meals': metrics(single),
             'energy_size_bins': {k: metrics(v) for k, v in size.items()},
-            'shutter_to_estimate_ms': {'measured': len(latencies), 'p50': quantile(latencies, .5), 'p95': quantile(latencies, .95)},
+            'inference_latency_ms': {'measured': len(latencies), 'p50': quantile(latencies, .5), 'p95': quantile(latencies, .95)},
+            'shutter_to_estimate_ms': {'measured': len(shutters), 'p50': quantile(shutters, .5), 'p95': quantile(shutters, .95)},
             'active_user_ms': {'measured': len(interaction), 'p50': quantile(interaction, .5), 'p95': quantile(interaction, .95)},
             'wall_clock_ms': {'measured': len(walls), 'p50': quantile(walls, .5), 'p95': quantile(walls, .95)},
             'cost_usd_total': sum(costs) if costs and not costs_missing and not counts['missing'] else None,

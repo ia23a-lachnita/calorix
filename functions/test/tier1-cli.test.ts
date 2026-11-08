@@ -17,3 +17,18 @@ it('records A0 coverage failure without dropping successful unverified A1 foods'
   expect(report.predictions.map(p=>p.status)).toEqual(['failed','ok']);
   expect(report.predictions[1]?.served_kcal).toBe(200);
 });
+
+it('applies an answer to the saved inference without requiring a new image', async () => {
+  const {applyPilotAnswer}=await import('../src/tier1-cli');
+  const saved=createPilotPredictions(make(),'saved-meal');
+  const answered=applyPilotAnswer(JSON.parse(JSON.stringify(saved)),'oil_10g');
+  expect(answered.predictions[1]?.served_kcal).toBeCloseTo(218.4);
+  expect(answered.predictions[0]?.served_kcal).toBeCloseTo(348.4);
+  expect(() => applyPilotAnswer(answered,'oil_10g')).toThrow();
+});
+it('an inapplicable pre-supplied answer never discards successful inference', () => {
+  const noQuestion=reconcileInventory({schemaVersion:1,mealName:'Rice',components:[rice],ambiguities:[],askAddedFat:false});
+  const result=createPilotPredictions(noQuestion,'no-question','oil_10g');
+  expect(result.predictions[1]?.status).toBe('ok');
+  expect(result.predictions[1]?.served_kcal).toBe(130);
+});

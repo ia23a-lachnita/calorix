@@ -25,10 +25,10 @@ cd functions
 npm ci
 npm run build
 node lib/tier1-cli.js --image /absolute/path/meal.jpg --meal-id meal-001 --output /disk/path/meal-001-predictions.json --cloud-consent tier1-v1
-# Optional, only if the result contains the single preparation question:
-# --preparation-answer none|oil_5g|oil_10g|oil_15g
+# After inspecting the saved single question, answer with ZERO further inference:
+node lib/tier1-cli.js --answer-file /disk/path/meal-001-predictions.json --preparation-answer oil_10g --output /disk/path/meal-001-answered.json
 ```
 
-The explicit CLI consent flag authorizes sending that photo to the same US Vertex route. Use configured ADC; never put credentials in files committed to Git. Existing output paths are refused **before** another inference. Each command makes one A1 image request with no model fallback; A0 uses the same predicted identities and nutrients with fixed portions. Unknown foods can make A0 fail. Preserve every failure receipt. A question answer supplied on the command line must be your actual answer, not derived from hidden reference weights. In-app answers recalculate locally and make no additional image request.
+The explicit CLI consent flag authorizes sending that photo to the same US Vertex route. Use configured ADC; never put credentials in files committed to Git. Existing output paths are refused **before** another inference. Each command makes one A1 image request with no model fallback; A0 uses the same predicted identities and nutrients with fixed portions. Unknown foods can make A0 fail. Preserve every failure receipt. Use --answer-file to apply your actual preparation answer after reading the saved question. That route never invokes the model and preserves the original file. A pre-supplied inapplicable answer is ignored with a warning, preserving successful inference. Answers must not be derived from hidden reference weights. In-app answers recalculate locally and make no additional image request.
 
 Follow [the weighing SOP](../reference_sop.md), fill [meal_schema.json](../meal_schema.json) with real observations and the CLI prediction rows, then run `python3 evaluate_meals.py /disk/path/meals.json --output /disk/path/report.json`. Raw pilot data/photos stay private and uncommitted. Unit fixtures and the empty template do not count as measurements.

@@ -55,3 +55,10 @@ describe('Tier1 nutrient reconciliation', () => {
     expect(() => estimateA0([])).toThrow();
   });
 });
+
+it('supplies the same attributed oil component for offline Android adjustment', () => {
+  const initial=reconcileInventory(inventory({askAddedFat:true}));
+  const option=initial.question!.options.find(o=>o.id==='oil_10g');
+  expect(option?.component?.source.recordId).toBe('usda:171413');
+  expect(option?.component?.nutrients.kcal).toBeCloseTo(88.4);
+});

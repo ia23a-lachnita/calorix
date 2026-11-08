@@ -38,7 +38,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   late final CameraService _camera=widget.camera??DeviceCameraService();
   Tier1MealStore? _store;
   List<Tier1Meal> _meals=[];
-  String? _error;
+  String? _error,_cameraWarning;
   bool _history=false,_busy=false;
   @override
   void initState(){super.initState();WidgetsBinding.instance.addObserver(this);unawaited(_initialize());}
@@ -46,9 +46,11 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     try {
       _store=widget.store??Tier1MealStore(Directory('${(await getApplicationDocumentsDirectory()).path}/tier1'));
       await _refresh();
+    } catch (_) {if(mounted)setState(()=>_error='Could not open local history. Existing files were preserved.');return;}
+    try {
       if (_camera is CameraLifecycleService) await (_camera as CameraLifecycleService).resume();
-      if (mounted) setState((){});
-    } catch (_) {if(mounted)setState(()=>_error='Could not open local history. Existing files were preserved.');}
+      if (mounted) setState(()=>_cameraWarning=null);
+    }catch(_){if(mounted)setState(()=>_cameraWarning='Camera unavailable. Manual entry still works.');}
   }
   Future<void> _refresh() async {
     final records=await _store!.load();
@@ -59,7 +61,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if(_camera is! CameraLifecycleService)return;
     final lifecycle=_camera as CameraLifecycleService;
-    if(state==AppLifecycleState.resumed){unawaited(lifecycle.resume().then((_){if(mounted)setState((){});}).catchError((_){if(mounted)setState(()=>_error='Camera unavailable. Manual entry still works.');}));}
+    if(state==AppLifecycleState.resumed){unawaited(lifecycle.resume().then((_){if(mounted)setState(()=>_cameraWarning=null);}).catchError((_){if(mounted)setState(()=>_cameraWarning='Camera unavailable. Manual entry still works.');}));}
     else {unawaited(lifecycle.pause());}
   }
   @override
@@ -73,6 +75,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   Future<void> _capture() async {
     if(_busy||_store==null||_error!=null)return;
     setState(()=>_busy=true);
+    String? ownedCapture;
     try {
       if(!await _camera.hasPermission()){
         final permission=await _camera.requestPermission();
@@ -81,6 +84,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       final shutter=DateTime.now();
       final file=await _camera.captureStill();
       if(file==null)return;
+      ownedCapture=file.path;
       final bytes=await file.readAsBytes();
       if(bytes.length>30*1024*1024 || bytes.length<8 || bytes[0]!=255 || bytes[1]!=216)throw const FormatException('JPEG capture required');
       final codec=await ui.instantiateImageCodec(bytes);
@@ -89,7 +93,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       frame.image.dispose();codec.dispose();
       final device=_camera is DeviceCameraService?(_camera as DeviceCameraService).previewController:null;
       final id=const Uuid().v4();
-      final path=await _store!.retainPhoto(id,file.path);
+      final path=await _store!.retainCapture(id,file.path);
       final meal=Tier1Meal(id:id,capturedAt:shutter,name:'New meal',photoPath:path,source:'photo',metadata:{
         'capturedAt':shutter.toUtc().toIso8601String(),'width':width,'height':height,'jpegBytes':bytes.length,
         'cameraId':device?.description.name,'lensDirection':device?.description.lensDirection.name,
@@ -102,7 +106,10 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       final saved=(await _store!.load()).firstWhere((m)=>m.id==id);
       if(mounted)await _open(saved);
     } catch (_) {if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Photo could not be saved. Retake or use manual entry.')));}
-    finally {if(mounted)setState(()=>_busy=false);}
+    finally {
+      if(ownedCapture!=null){try{final temporary=File(ownedCapture);if(await temporary.exists())await temporary.delete();}catch(_){/* No unrelated cache cleanup. */}}
+      if(mounted)setState(()=>_busy=false);
+    }
   }
   Widget _cameraView() {
     final controller=_camera is DeviceCameraService?(_camera as DeviceCameraService).previewController:null;
@@ -122,6 +129,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     appBar:AppBar(title:Text(AppConstants.appDisplayName),actions:[TextButton(onPressed:()=>setState(()=>_history=!_history),child:Text(_history?'Camera':'History'))]),
     body:Column(children:[
       if(_error!=null)Padding(padding:const EdgeInsets.all(16),child:Text(_error!)),
+      if(_cameraWarning!=null)Padding(padding:const EdgeInsets.all(16),child:Text(_cameraWarning!)),
       Expanded(child:_store==null?const Center(child:CircularProgressIndicator()):_history?
         (_meals.isEmpty?const Center(child:Text('No saved meals yet. Take a photo or enter a meal.')):
         ListView.builder(itemCount:_meals.length,itemBuilder:(context,index){final meal=_meals[index];return ListTile(
@@ -191,15 +199,9 @@ class _MealEditorState extends State<_MealEditor> {
     try{await _persist(fraction==null?_meal.clearConsumption():_meal.confirmConsumption(fraction));if(mounted)setState((){});}
     catch(_){if(mounted)setState(()=>_message='Consumption could not be saved.');}
   }
-  Future<void> _answer(Map<String,dynamic> question,Map<String,dynamic> option) async {
-    if(_meal.source!='A1'||question['answered']==true)return;
-    final analysis=Map<String,dynamic>.from(_meal.analysis!);
-    final totals=Map<String,dynamic>.from(analysis['totals'] as Map);
-    final add=Map<String,dynamic>.from(option['add'] as Map);
-    for(final key in ['kcal','proteinG','carbsG','fatG']){totals[key]=(totals[key] as num)+(add[key] as num);}
-    analysis['totals']=totals;analysis['question']={...question,'answered':true,'answer':option['id']};
-    analysis['userPreparationAnswer']=option['label'];
-    try{await _persist(_meal.withAnalysis(analysis));_fill();if(mounted)setState((){});}
+  Future<void> _answer(String answer) async {
+    if(_busy||_dirty)return;
+    try{await _persist(_meal.answerPreparation(answer));_fill();if(mounted)setState((){});}
     catch(_){if(mounted)setState(()=>_message='Could not save the preparation answer.');}
   }
   Future<void> _repeat() async {
@@ -251,7 +253,7 @@ class _MealEditorState extends State<_MealEditor> {
           for(final ambiguity in (analysis['ambiguities'] as List? ?? []))Text('Unresolved: $ambiguity'),
           if(question!=null&&question['answered']!=true&&_meal.source=='A1')...[
             Text(question['text'] as String),
-            for(final raw in question['options'] as List)TextButton(onPressed:_busy?null:()=>_answer(question,Map<String,dynamic>.from(raw as Map)),child:Text((raw as Map)['label'] as String)),
+            for(final raw in question['options'] as List)TextButton(onPressed:_busy||_dirty?null:()=>_answer((raw as Map)['id'] as String),child:Text((raw as Map)['label'] as String)),
           ],
           if(question?['answered']==true)Text('Preparation: ${analysis['userPreparationAnswer']??question!['answer']}'),
           if(_meal.source=='manual_correction')const Text('Totals were manually corrected. Original recognition is retained for comparison.'),

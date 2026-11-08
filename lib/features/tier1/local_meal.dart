@@ -57,7 +57,33 @@ class Tier1Meal {
   Tier1Meal withConsent() => _copy(cloudConsent:true);
   Tier1Meal confirmConsumption(double fraction) => _copy(fraction:fraction);
   Tier1Meal clearConsumption() => _copy(resetConsumption:true);
-  Tier1Meal edit(String name,Tier1Nutrients nutrients) => _copy(name:name.trim(),served:nutrients,source:'manual_correction',resetConsumption:true);
+  Tier1Meal edit(String name,Tier1Nutrients nutrients) {
+    final sameNutrition=served!=null && served!.kcal==nutrients.kcal &&
+      served!.proteinG==nutrients.proteinG && served!.carbsG==nutrients.carbsG && served!.fatG==nutrients.fatG;
+    if(name.trim()==this.name && sameNutrition)return this;
+    return _copy(name:name.trim(),served:nutrients,source:'manual_correction',resetConsumption:!sameNutrition);
+  }
+  Tier1Meal answerPreparation(String answer) {
+    if(source!='A1' || analysis==null)throw StateError('No active preparation question');
+    final value=Map<String,dynamic>.from(analysis!);
+    final rawQuestion=value['question'];
+    if(rawQuestion is! Map || rawQuestion['answered']==true)throw StateError('No unanswered question');
+    final question=Map<String,dynamic>.from(rawQuestion);
+    final options=(question['options'] as List).map((o)=>Map<String,dynamic>.from(o as Map));
+    final option=options.where((o)=>o['id']==answer).firstOrNull;
+    if(option==null)throw ArgumentError('Unsupported preparation answer');
+    final components=List<dynamic>.from(value['components'] as List);
+    if(option['component']!=null)components.add(Map<String,dynamic>.from(option['component'] as Map));
+    final totals=<String,double>{'kcal':0,'proteinG':0,'carbsG':0,'fatG':0};
+    for(final component in components){
+      final nutrients=Map<String,dynamic>.from((component as Map)['nutrients'] as Map);
+      for(final key in totals.keys){totals[key]=totals[key]!+(nutrients[key] as num).toDouble();}
+    }
+    value['components']=components;value['totals']=totals;
+    value['question']={...question,'answered':true,'answer':answer};
+    value['userPreparationAnswer']=option['label'];
+    return withAnalysis(value);
+  }
   Tier1Meal withAnalysis(Map<String,dynamic> value) => _copy(
     name:value['mealName'] as String,served:Tier1Nutrients.fromJson(Map<String,dynamic>.from(value['totals'] as Map)),
     analysis:value,source:'A1',resetConsumption:true);

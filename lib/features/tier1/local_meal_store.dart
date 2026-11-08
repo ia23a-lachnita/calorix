@@ -59,6 +59,11 @@ class Tier1MealStore {
     final backup=File('${root.path}/meals.previous.json');
     if (await backup.exists()) await backup.delete();
   });
+  /// CameraService.captureStill returns an owned temporary capture, never gallery media.
+  Future<String> retainCapture(String id,String source) async {
+    try {return await retainPhoto(id,source);}
+    finally {final captured=File(source);if(await captured.exists())await captured.delete();}
+  }
   Future<String> retainPhoto(String id,String source) async {
     if (!RegExp(r'^[a-zA-Z0-9_-]{1,80}$').hasMatch(id)) throw ArgumentError('Invalid photo ID');
     final photos=Directory('${root.path}/photos');

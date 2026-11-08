@@ -1077,6 +1077,8 @@ describe('descriptor capture matrix', () => {
     let causeReads = 0;
     let stackReads = 0;
     const foreign = new Error('foreign-boom');
+    // Materialize Node 20's lazy stack before installing hostile getters.
+    void Object.getOwnPropertyDescriptor(foreign, 'stack');
     Object.defineProperty(foreign, 'message', {
       enumerable: true,
       get: (): string => {

@@ -16,7 +16,7 @@ export interface Tier1Estimate {
   schemaVersion:1; mealName:string;
   components:Array<Component & {nutrients:Nutrients;source:{kind:'database_match'|'unverified_vlm_estimate';recordId:string|null;sourceUrl:string|null;version:string|null;description:string|null}}>;
   totals:Nutrients; ambiguities:string[];
-  question:null|{id:'added-fat';text:string;answered:boolean;answer:PreparationAnswer|null;options:Array<{id:PreparationAnswer;label:string;add:Nutrients}>};
+  question:null|{id:'added-fat';text:string;answered:boolean;answer:PreparationAnswer|null;options:Array<{id:PreparationAnswer;label:string;add:Nutrients;component:Tier1Estimate['components'][number]|null}>};
   provenance:{model:string;catalogVersion:string;promptSha256:string;schemaVersion:1;returnedModel?:string;latencyMs?:number;inputTokens?:number|null;outputTokens?:number|null;costUsd?:number|null};
   requiresReview:boolean; rawInventory?:Inventory;
 }
@@ -32,8 +32,11 @@ function sum(values:Nutrients[]):Nutrients {
   return values.reduce((a,b)=>({kcal:a.kcal+b.kcal,proteinG:a.proteinG+b.proteinG,carbsG:a.carbsG+b.carbsG,fatG:a.fatG+b.fatG}),{kcal:0,proteinG:0,carbsG:0,fatG:0});
 }
 const oil = CATALOG.find(r=>r.id==='usda:171413')!;
+function oilComponent(grams:number):Tier1Estimate['components'][number] {
+  return {name:'Additional oil (olive-oil nutrient proxy)',massG:grams,catalogId:oil.id,preparation:oil.preparation,assumptions:['User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed'],estimatedPer100:null,nutrients:scaleNutrients(oil.per100,grams/100),source:{kind:'database_match',recordId:oil.id,sourceUrl:oil.sourceUrl,version:CATALOG_VERSION,description:oil.description}};
+}
 function question():NonNullable<Tier1Estimate['question']> {
-  return {id:'added-fat',text:'Was there extra oil in this serving, beyond the foods and sauces listed?',answered:false,answer:null,options:([['none','No extra oil',0],['oil_5g','About 1 tsp oil (5 g)',5],['oil_10g','About 2 tsp oil (10 g)',10],['oil_15g','About 1 tbsp oil (15 g)',15]] as const).map(([id,label,grams])=>({id,label,add:scaleNutrients(oil.per100,grams/100)}))};
+  return {id:'added-fat',text:'Was there extra oil in this serving, beyond the foods and sauces listed?',answered:false,answer:null,options:([['none','No extra oil',0],['oil_5g','About 1 tsp oil (5 g)',5],['oil_10g','About 2 tsp oil (10 g)',10],['oil_15g','About 1 tbsp oil (15 g)',15]] as const).map(([id,label,grams])=>({id,label,add:scaleNutrients(oil.per100,grams/100),component:grams?oilComponent(grams):null}))};
 }
 export function reconcileInventory(value:unknown):Tier1Estimate {
   const inventory=parseInventory(value);
@@ -50,8 +53,7 @@ export function answerPreparation(estimate:Tier1Estimate,answer:PreparationAnswe
   if(!estimate.question||estimate.question.answered) throw new Error('Question unavailable or already answered');
   const option=estimate.question.options.find(o=>o.id===answer);
   if(!option) throw new Error('Unsupported answer');
-  const grams={none:0,oil_5g:5,oil_10g:10,oil_15g:15}[answer];
-  const addition=grams?reconcileInventory({schemaVersion:1,mealName:'Additional oil',components:[{name:'User-confirmed additional olive oil',massG:grams,catalogId:oil.id,preparation:'oil',assumptions:['User estimate of additional oil; not weighed'],estimatedPer100:null}],ambiguities:[],askAddedFat:false}).components:[];
+  const addition=option.component?[option.component]:[];
   return {...estimate,components:[...estimate.components,...addition],totals:sum([estimate.totals,option.add]),question:{...estimate.question,answered:true,answer},requiresReview:estimate.components.some(c=>c.source.kind!=='database_match')||estimate.ambiguities.length>0};
 }
 export function estimateA0(catalogIds:string[]):Tier1Estimate {
