@@ -79,6 +79,9 @@ jobs:
       - name: Test meal evaluation and public data preparation
         run: python3 -m unittest discover -s tests -p 'test_*.py'
 
+      - name: Test frozen public evaluation guards
+        run: node --test tool/frozen_public_eval.test.cjs
+
       - name: Build
         working-directory: functions
         run: npm run build
