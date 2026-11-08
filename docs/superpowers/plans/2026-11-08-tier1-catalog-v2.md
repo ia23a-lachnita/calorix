@@ -20,9 +20,9 @@
 
 - [x] Source parser TDD: build_tier1_catalog.py accepts archive+selection, checks source identity, exact descriptions, unique IDs and all4 units/values; emits deterministic typed catalog/source receipt. Tests rejectmissing/duplicates/invalids and prove original values preserved. Verify RED then GREEN.
 - [x] Freeze general-food selection (at most90) and generate actual official records with exact per-row hashes. Integration tests prove new representative cooked pasta/protein/produce map to database densities/priors while unknown recipes remain unverified. Add or change no inference policy besides allowed records. Verify real behavioral RED then GREEN, full build/lint/focused tests.
-- [ ] Pre-live source review, versioned model manifest with current digests, full Functions/Python checks; commit/push source and frozen selection before run. Keep old results immutable.
+- [x] Pre-live source review, versioned model manifest with current digests, full Functions/Python checks; commit/push source and frozen selection before run. Keep old results immutable.
 - [x] One fresh run directory and exactly one revised20-image development comparison using unchanged JPEGs. Report successful coverage and paired error, all failures/latency/unknown cost, ingredient/energy slices and nutrient provenance; independently check all selected source values and results.
-- [ ] Post-implementation/result MCP review, update pilot_report/status, commit/push clean. No stopping merely to ask user to install an APK; no new phone build needed for backend-only work.
+- [x] Post-implementation/result MCP review, update pilot_report/status, commit/push clean. No stopping merely to ask user to install an APK; no new phone build needed for backend-only work.
 
 Pre-review conversation calorix-tier1-catalog-v2-20261108, primary3.8: agree/none. Response mistakenly described historical FOOD_DES/NUT_DATA/NDB formats although proposal says FoodData Central CSV/FDC IDs; record as review response noise, not source evidence. Accept cooked-only staples; reject automatic4/4/9 acceptance threshold because official energy derivations/fibre differ. Verify exact official values/units instead.
 
@@ -33,3 +33,6 @@ Ruling: launch full Functions suite in parallel with the bounded live comparison
 
 
 Measured result: source842b208,20/20valid/20SDKcalls/noquestions/failures/retries. Same manifest/inputs asv1, all40receipts/original references and all comparison metrics independently audited. A1MAE78.0513 vs71.5383, paired+6.5130 (6better/11worse/3same); P90137.7969 vs155.4549. A0coverage6/20, pairedsubset A0MAE206.1118/A1MAE81.7218; unverifiedenergy62.0604% vs85.4311%. Candidate NOTpromoted; v1 remainsdeployed. ResultMCP exactagree/MUSTnone. Its extra causal/statistical rhetoric is not adopted. Report/CSV/summary/chart authored docs/tier1-catalog-v2-2026-11-08/. FullFunctions regression still activelyrunning; no fullsuitepass claim yet. Nextbounded public measurement plan docs/superpowers/plans/2026-11-08-tier1-mealrange.md, no userphone dependency.
+
+
+Final status: experiment complete, NOTpromoted. Candidate archived at functions/eval/tier1-public/catalog-v2.json, active source restored exact0bf1f96 after30-case evidence. FinalCI42520021316source dd7901c SUCCESS5340backend/967Flutter/28Python/5Node,2historicalskips,build/lint/analyzer/APK. Independent data/source/metric audits andMCPsource/result/restoration green. Qualitative reference-blind10-image audit completed separately, notgoldtruth. Final report docs/tier1-mealrange-2026-11-08/report.md; legacycloudallfourcanonicalmetadata unchanged, no newdeploy. Featurebranch retained/pushed, no ownerphone dependency.

@@ -20,7 +20,9 @@ Both frozen A1 variants now have predictions for30 unique Nutrition5k public sca
 
 Keep the deployed six-record A1 baseline and match the source default to it. Preserve the73-record candidate, source provenance and frozen engine842b208 for reproducibility. A0 coverage1/30 versus7/30 remains too limited for an overall ranking. Better database attribution did not resolve calorie accuracy; high-energy underprediction and food/portion/preparation mismatches need further work. No printed object, owner installation or personal weighing is a prerequisite for the completed public evaluation.
 
-The highest-value next experiment is a blinded inventory/portion-error audit of the10 higher-energy scans, with explicit many-to-many reference-to-prediction matching and unresolved cases retained. Use that evidence to distinguish missing/misidentified foods from portion and preparation errors before selecting another model intervention. Do not apply reference-weight scaling as a deployable correction or infer general accuracy from these30 scans.
+A secondary-assistant reference-blind inventory audit of the additional10 is now complete, followed by anonymous prediction/reference-label comparison. It records many-to-many composites and uncertain identities without claiming gold food labels or omission counts. The apple/almond/cauliflower example retains all three groups but underestimates almond mass55–65g versus86g. [Qualitative audit](docs/tier1-mealrange-2026-11-08/inventory-audit.md).
+
+The next highest-value experiment is optional per-component portion correction while retaining the original unedited estimate: test whether one user-confirmed correction reduces served error and interaction effort without another photo/model call. Public reference-weight scaling is only an unavailable-oracle diagnostic; it cannot establish real correction behavior or general accuracy.
 
 ## Actual verification
 
