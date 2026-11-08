@@ -39,7 +39,8 @@ provider_cache_observed: DURABLE on 2026-11-07 (read only; unchanged)
 provider_terms: https://cloud.google.com/vertex-ai/generative-ai/docs/data-governance
 cloud_consent_version: tier1-v1
 cloud_region_disclosure: United States
-photo_metadata_upload: recompressed JPEG, EXIF removed
+photo_metadata_upload: Android recompresses JPEG and removes EXIF; CLI transmits supplied JPEG unchanged
+cli_photo_metadata_policy: operator must provide a metadata-stripped JPEG if location or other EXIF is sensitive
 local_retention: app-private until user deletes; Android backup and transfer excluded
 privacy_scope: personal opt-in prototype; public distribution review remains separate
 accuracy_claims: none; no numeric uncertainty intervals

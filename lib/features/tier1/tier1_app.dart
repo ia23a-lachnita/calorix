@@ -209,17 +209,32 @@ class _MealEditorState extends State<_MealEditor> {
     catch(_){if(mounted)setState(()=>_message='Could not save the preparation answer.');}
   }
   Future<void> _repeat() async {
-    final multiplier=TextEditingController(text:'1');
-    final confirmed=await showDialog<bool>(context:context,builder:(context)=>AlertDialog(
-      title:const Text('Log this meal again?'),content:Column(mainAxisSize:MainAxisSize.min,children:[
-        const Text('Confirm the foods and recipe are the same. This repeats an estimate, not a weighed reference.'),
-        TextField(controller:multiplier,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'Portion multiplier'))]),
-      actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Cancel')),
-        FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Confirm repeat'))]));
-    final amount=double.tryParse(multiplier.text);multiplier.dispose();
-    if(confirmed!=true||amount==null)return;
-    try{await widget.store.save(_meal.repeat(const Uuid().v4(),widget.clock.now(),amount));if(mounted)Navigator.pop(context);}
-    catch(_){if(mounted)setState(()=>_message='Choose a portion multiplier above 0 and at most 10.');}
+    if(_busy||_dirty)return;
+    setState(()=>_busy=true);
+    try {
+      var multiplierText='1';
+      var closed=false;
+      final route=DialogRoute<bool>(context:context,builder:(dialogContext)=>AlertDialog(
+        title:const Text('Log this meal again?'),content:Column(mainAxisSize:MainAxisSize.min,children:[
+          const Text('Confirm the foods and recipe are the same. This repeats an estimate, not a weighed reference.'),
+          TextFormField(initialValue:'1',onChanged:(value)=>multiplierText=value,
+            keyboardType:const TextInputType.numberWithOptions(decimal:true),
+            decoration:const InputDecoration(labelText:'Portion multiplier'))]),
+        actions:[TextButton(onPressed:(){if(closed)return;closed=true;Navigator.pop(dialogContext,false);},child:const Text('Cancel')),
+          FilledButton(onPressed:(){if(closed)return;closed=true;Navigator.pop(dialogContext,true);},child:const Text('Confirm repeat'))]));
+      final confirmed=await Navigator.of(context).push(route);
+      // A pop result precedes overlay removal. Do not pop the editor during it.
+      await route.completed;
+      if(confirmed!=true||!mounted)return;
+      final amount=double.tryParse(multiplierText);
+      if(amount==null||!amount.isFinite||amount<=0||amount>10){
+        setState(()=>_message='Choose a portion multiplier above 0 and at most 10.');
+        return;
+      }
+      await widget.store.save(_meal.repeat(const Uuid().v4(),widget.clock.now(),amount));
+      if(mounted)Navigator.pop(context);
+    }catch(_){if(mounted)setState(()=>_message='Could not save the repeated meal. Try again.');}
+    finally{if(mounted)setState(()=>_busy=false);}
   }
   Future<void> _delete() async {
     final confirmed=await showDialog<bool>(context:context,builder:(context)=>AlertDialog(title:const Text('Delete this meal and photo?'),content:const Text('This removes the saved local record and its photo. It cannot remove provider logs from a past analysis request.'),actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Cancel')),FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Delete'))]));

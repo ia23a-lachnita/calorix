@@ -7,6 +7,8 @@ CI42442507875 at4ec60b4 also stopped before dialog: scrollUntilVisible targeted 
 
 CI42442797338/e7d1068 corrected outer-list navigation passed959/1skip and analyzer. Default unfocused multiplier did NOT reproduce phone failure. Match actual phone path by editing multiplier1.5 (focuses field) before Confirm; add focused Cancel preservation regression. Production unchanged. Native phoneRED remains _children.contains after focused repeat confirmation.
 
+ACTUAL focused RED: CI42443153837/e16e3b9 Flutter job128616457528 failed both edited1.5 Confirm and Cancel with TextEditingController used after disposed at tier1_app.dart216, followed by framework cascades. Approved MCP calorix-tier1-repeat-dialog-20261108 agree/MUSTnone. Fix uses framework-owned TextFormField, lexical text, explicit DialogRoute.completed before parent pop, operation busy and per-action closed guards, separate amount validation/storage errors. Next full CI + source/hash/signer-verified APK + Samsung retest. No real meals or cloud upload.
+
 Current Task: Reproduce and fix repeat dialog dismissal; verify signed APK on Samsung.
 
 Repeat regression correction: CI42441897786 Flutter job128612702308 failed at ensureVisible (lazy ListView child absent), before dialog interaction. This is a test harness failure, NOT behavioral RED. Replace with scrollUntilVisible; production unchanged. Actual phone repeat crash remains independently observed. Photo deletion passed record+file assertions; two owned diagnostic manual records remain for final repeat/restart/cleanup checks.
