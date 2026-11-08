@@ -49,3 +49,16 @@ assets:
     approval_state: user-requested bounded public evaluation; distinct from Android weighed references
     transformations: RGB PNG to JPEG85/subsampling2, EXIF removed, no resize; original labels retained
     evidence_link: https://github.com/google-research-datasets/Nutrition5k#license--contact
+
+  - source_id: usda-sr-2018-tier1-20261108-v2
+    source_url: https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip
+    asset_version: official6MB CSV archive SHA b80817294b8850530aaedf2e515c02593b1824f763a0ff356e5c2081643e6fd0;73 selected FDC records
+    license: USDA FoodData Central public-domain nutrient data; retain attribution and provenance
+    code_license: not applicable (nutrient data)
+    weights_license: not applicable
+    evaluation_allowed: true
+    redistribution_allowed: true
+    commercial_training_allowed: not used for training
+    privacy_basis: public nutrient composition records; no user photographs
+    approval_state: local prototype candidate; active deployment remains six-record v1
+    evidence_link: https://fdc.nal.usda.gov/data-documentation/

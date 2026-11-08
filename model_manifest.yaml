@@ -1,4 +1,4 @@
-manifest_version: 1
+manifest_version: 2
 baseline: A1
 requested_model: gemini-3.8-flash
 returned_model_policy: exact equality or explicit failure
@@ -17,13 +17,13 @@ timeout_ms: 30000
 sdk_attempts: 1
 model_fallback: none
 prompt_source: functions/src/tier1-analysis.ts:TIER1_PROMPT
-prompt_sha256: 7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566
+prompt_sha256: 334aa2b51c53c16f6af836f40a4dd959a1f8a203fdb11d88959235bf694088f2
 output_schema_source: functions/src/tier1-analysis.ts:TIER1_RESPONSE_SCHEMA
 output_schema_version: 1
-output_schema_sha256: 4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185
+output_schema_sha256: 852f13b529f679dd219b645e2cb66cc7cbb298ddaa633e5ef8ab742e054d8904
 nutrient_catalog: functions/src/tier1-catalog.ts
-nutrient_catalog_version: usda-sr-2019-tier1-20261108-v1
-nutrient_catalog_records: 6
+nutrient_catalog_version: usda-sr-2018-tier1-20261108-v2
+nutrient_catalog_records: 73
 nutrient_source: USDA FoodData Central SR Legacy; real record IDs/preparation/publication/retrieval/response SHA retained
 matching_policy: nutrient records verified; visual identity and preparation match remain estimates
 unmatched_policy: explicitly unverified VLM per-100g estimate, requires review, never invented record IDs
@@ -58,3 +58,13 @@ pilot_target_different_meals: 30
 
 wire_constraint_policy: structural grammar only; numeric/string/array limits enforced by strict Zod client validator, not wire decoding
 wire_compatibility_evidence: bounded grammar HTTP400; same structural grammar text request HTTP200 on 2026-11-08
+
+candidate_status: catalog v2 is a local/evaluation candidate; not deployed
+active_deployment_catalog_version: usda-sr-2019-tier1-20261108-v1
+active_deployment_prompt_sha256: 7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566
+active_deployment_schema_sha256: 4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185
+catalog_selection: tool/tier1-catalog-selection-v2.json
+catalog_source_provenance: functions/eval/tier1-public/catalog-v2-provenance.json
+catalog_archive_sha256: b80817294b8850530aaedf2e515c02593b1824f763a0ff356e5c2081643e6fd0
+nutrient_catalog_sha256: 8f317a52c7097972f525ce7ddb180a32d289bdfdbea095357dcf2382bed43d33
+portion_prior_sha256: 0d5c228d328d6c1fe54d1c422bec91cca7fcb5c89a01e1ee7f2c1e1224b8cacd
