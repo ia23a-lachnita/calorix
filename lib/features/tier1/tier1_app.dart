@@ -83,10 +83,13 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   @override
   void dispose(){WidgetsBinding.instance.removeObserver(this);if(_camera is CameraLifecycleService)unawaited((_camera as CameraLifecycleService).dispose());super.dispose();}
   Future<void> _open(Tier1Meal meal) async {
-    if(_store==null)return;
+    if(_store==null||_error!=null)return;
     await Navigator.of(context).push(MaterialPageRoute<void>(builder:(_)=>_MealEditor(meal:meal,store:_store!,cloud:widget.cloud,clock:widget.clock)));
-    await _refresh();
-    if(mounted)setState(()=>_history=true);
+    if(!mounted)return;
+    try{
+      await _refresh();
+      if(mounted)setState(()=>_history=true);
+    }catch(_){if(mounted)setState(()=>_error='Could not refresh local history. Reopen the app to check saved values.');}
   }
   Future<void> _capture() async {
     if(_busy||_store==null||_error!=null)return;
@@ -151,7 +154,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         ListView.builder(itemCount:_meals.length,itemBuilder:(context,index){final meal=_meals[index];return ListTile(
           leading:meal.photoPath==null?const Icon(Icons.restaurant):Image.file(File(meal.photoPath!),width:56,height:56,fit:BoxFit.cover,errorBuilder:(_,__,___)=>const Icon(Icons.image_not_supported_outlined)),
           title:Text(meal.name),subtitle:Text('${meal.served==null?'No estimate yet':'Approximate served · ${meal.served!.kcal.round()} kcal'}\n${meal.consumedKcal==null?'Consumption not confirmed':'Confirmed consumed · ${meal.consumedKcal!.round()} kcal'}'),
-          isThreeLine:true,onTap:()=>_open(meal));})):_cameraView()),
+          isThreeLine:true,onTap:_error!=null?null:()=>_open(meal));})):_cameraView()),
       SafeArea(top:false,child:Padding(padding:const EdgeInsets.all(12),child:Row(children:[
         Expanded(child:OutlinedButton.icon(onPressed:_store==null||_error!=null?null:()=>_open(Tier1Meal(id:const Uuid().v4(),capturedAt:widget.clock.now(),name:'New meal')),icon:const Icon(Icons.edit_outlined),label:const Text('Manual entry'))),
       ]))),
