@@ -60,5 +60,20 @@ assets:
     redistribution_allowed: true
     commercial_training_allowed: not used for training
     privacy_basis: public nutrient composition records; no user photographs
-    approval_state: local prototype candidate; active deployment remains six-record v1
+    approval_state: archived evaluated candidate; source default and active deployment remain six-record v1
     evidence_link: https://fdc.nal.usda.gov/data-documentation/
+
+  - source_id: nutrition5k-tier1-mealrange-20261108-v1
+    source_url: https://github.com/google-research-datasets/Nutrition5k
+    asset_version: ten frozen additional RGB TEST IDs; functions/eval/tier1-public/manifest-mealrange-v1.json
+    license: CC-BY-4.0
+    attribution: Thames et al., Nutrition5k, CVPR2021
+    code_license: not applicable (data)
+    weights_license: not applicable
+    evaluation_allowed: true
+    redistribution_allowed: true with attribution
+    commercial_training_allowed: not used for training
+    privacy_basis: public licensed cafeteria-food photographs; no user photos uploaded
+    approval_state: user-requested public evaluation; new IDs may share capture dates and incremental plates
+    transformations: RGB PNG to JPEG85/subsampling2, EXIF removed, no resize; labels unchanged
+    evidence_link: https://github.com/google-research-datasets/Nutrition5k#license--contact

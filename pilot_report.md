@@ -10,7 +10,7 @@ No medical, general accuracy qualification, per-meal interval, unseen-user/devic
 
 ## Measured public evaluation
 
-The unchanged A1 ran once on each of20 frozen Nutrition5k TEST RGB scans with real measured-component references:20/20 valid estimates, served-kcal MAE71.54, bias−7.77, P90 absolute error155.45. This exploratory sample contains12 references below200kcal, eight from200–600 and none above600. A0 covered only1/20, so no overall comparison is possible. Unverified model nutrient densities supplied85.43% of predicted energy. [Full results, limitations and numeric evidence](docs/tier1-public-eval-2026-11-08/report.md). These public measurements are separate from the Android pilot.
+Both frozen A1 variants now have predictions for30 unique Nutrition5k public scans (20 original plus10 energy-stratified), not30 independent completed meals. Active six-record baseline:30/30valid, served-kcal MAE112.02, bias−69.49, P90absolute error264.44. Additional10 alone:MAE192.99, with substantial underprediction on higher-energy scans. The73-record candidate has combined MAE111.93 but worse P90280.01 and normalized error; attribution improves without a consistent accuracy gain. It is archived, not promoted. [Full results, all30 rows, scope and verification](docs/tier1-mealrange-2026-11-08/report.md). Owner Android references remain separate.
 
 ## Android-specific measurements still missing
 
@@ -18,9 +18,9 @@ The unchanged A1 ran once on each of20 frozen Nutrition5k TEST RGB scans with re
 
 ## Decision
 
-The working deployed callable remains the six-record v1 baseline. A73-record candidate was implemented with exact USDA source checks and independently audited, then run once on the same20 public images. Coverage and attribution improved, but MAE rose71.54→78.05kcal while P90 fell155.45→137.80. This reused development comparison does not establish an accuracy improvement, so v2 is not promoted. [Actual comparison and source evidence](docs/tier1-catalog-v2-2026-11-08/report.md).
+Keep the deployed six-record A1 baseline and match the source default to it. Preserve the73-record candidate, source provenance and frozen engine842b208 for reproducibility. A0 coverage1/30 versus7/30 remains too limited for an overall ranking. Better database attribution did not resolve calorie accuracy; high-energy underprediction and food/portion/preparation mismatches need further work. No printed object, owner installation or personal weighing is a prerequisite for the completed public evaluation.
 
-Continue public measurement with10 previously unviewed scans across200–1000kcal, at least two reference ingredients and150g, under both frozen versions. Preserve all original20 cases and report the fresh10 and combined30 separately. This corrects the first sample's lack of >600kcal references without claiming independent completed plates. No printed object, owner installation or personal weighing is a prerequisite. No model/candidate tuning based on those outcomes.
+The highest-value next experiment is a blinded inventory/portion-error audit of the10 higher-energy scans, with explicit many-to-many reference-to-prediction matching and unresolved cases retained. Use that evidence to distinguish missing/misidentified foods from portion and preparation errors before selecting another model intervention. Do not apply reference-weight scaling as a deployable correction or infer general accuracy from these30 scans.
 
 ## Actual verification
 

@@ -2,7 +2,7 @@
 
 The existing Flutter app now starts in the local Tier1 workflow. The old cloud app remains available only with `--dart-define=CALORIX_LEGACY_CLOUD=true`; that legacy mode is not the V7.1 privacy/served-intake implementation.
 
-[The public evaluation](tier1-public-eval-2026-11-08/report.md) now contains20 actual measured-reference cases. Personal weighing is deferred, not required before using the app or this benchmark. No printed reference object or second photograph is needed. The current numeric-display fix shows values such as6.72 while preserving the exact original estimate and confirmed intake when saved unchanged.
+[The public evaluation](tier1-mealrange-2026-11-08/report.md) now contains30 unique measured-reference public scans, with the higher-energy cohort reported separately. Personal weighing is deferred, not required before using the app or this benchmark. No printed reference object or second photograph is needed. The current numeric-display fix shows values such as6.72 while preserving the exact original estimate and confirmed intake when saved unchanged.
 
 **Current verified APK:** [download the ZIP](https://github.com/ia23a-lachnita/calorix/actions/runs/42499864134/artifacts/13625671619), extract it and open `calorix-1.0.0+1-android-test.apk` on your Android phone to install as an update. No connection to this workspace is needed. [Source/checksum/signer and Samsung verification](tier1-public-eval-2026-11-08/verification.md); artifact expires2026-12-08.
 
