@@ -66,8 +66,18 @@ jobs:
         working-directory: functions
         run: npm ci
 
-      - name: Test weighed-meal evaluator
-        run: python3 -m unittest discover -s tests -p test_evaluate_meals.py
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tool/public-eval-requirements.txt
+
+      - name: Install public image preprocessing dependency
+        run: python3 -m pip install -r tool/public-eval-requirements.txt
+
+      - name: Test meal evaluation and public data preparation
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
 
       - name: Build
         working-directory: functions

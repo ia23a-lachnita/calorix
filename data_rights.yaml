@@ -34,3 +34,18 @@ assets:
     code_license: not applicable
     weights_license: not applicable
     approval_state: zero meals; no third-party recruitment or public photo redistribution
+
+  - source_id: nutrition5k-tier1-public-20261108-v1
+    source_url: https://github.com/google-research-datasets/Nutrition5k
+    asset_version: pinned metadata/source hashes and20 selected TEST scan/image hashes in functions/eval/tier1-public/manifest-v1.json
+    license: CC-BY-4.0
+    attribution: Thames et al., Nutrition5k, CVPR2021
+    code_license: not applicable (data)
+    weights_license: not applicable (no weights downloaded)
+    evaluation_allowed: true
+    redistribution_allowed: true with attribution
+    commercial_training_allowed: not used for training
+    privacy_basis: public licensed cafeteria food images; no user screenshots sent to model
+    approval_state: user-requested bounded public evaluation; distinct from Android weighed references
+    transformations: RGB PNG to JPEG85/subsampling2, EXIF removed, no resize; original labels retained
+    evidence_link: https://github.com/google-research-datasets/Nutrition5k#license--contact

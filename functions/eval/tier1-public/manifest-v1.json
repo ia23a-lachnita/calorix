@@ -1,0 +1,2755 @@
+{
+  "schemaVersion": 1,
+  "scope": "public_dataset",
+  "datasetId": "nutrition5k",
+  "split": "official overhead-available TEST; RGB image only",
+  "sampleCount": 20,
+  "sources": [
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/dish_metadata_cafe1.csv",
+      "sha256": "881df31f27c2343d0ce219964527e0796f6ddadd60701ce6840fa801e8c2a960",
+      "bytes": 2206282
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/dish_metadata_cafe2.csv",
+      "sha256": "ef9f800d7b9c2e7e9a9e7cda5cbb4cfe51c760a8c1af4c05786ccf051bf5d77d",
+      "bytes": 101817
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+      "sha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+      "bytes": 21540
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/dish_ids/splits/rgb_train_ids.txt",
+      "sha256": "efd34a682b5483b01e6bd0a7c1267efec28440a8194985f9d3817d8ebc8169bd",
+      "bytes": 64944
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/dish_ids/splits/rgb_test_ids.txt",
+      "sha256": "560ff0eedb1a2027c21f5da3a4c38a53fa201c87d108e76b11cceaa1d956ac8e",
+      "bytes": 11344
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/dish_ids/splits/depth_test_ids.txt",
+      "sha256": "6e43a5334a72bd06fa9c0d4b3bc86e2f57e5342b0b260d3fa003a76f7e39eca2",
+      "bytes": 8112
+    }
+  ],
+  "license": {
+    "id": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "Thames et al., Nutrition5k, CVPR2021"
+  },
+  "preprocessing": {
+    "pillow": "11.1.0",
+    "jpegLibrary": "6.2",
+    "jpegTurbo": "2.1.5",
+    "format": "RGB JPEG",
+    "quality": 85,
+    "subsampling": 2,
+    "exif": "removed",
+    "resize": false
+  },
+  "questionPolicy": "Unanswered; no owner preparation knowledge and no reference-derived answers",
+  "androidWeighedMeals": 0,
+  "pretrainingExposure": "unknown",
+  "referenceBasis": "Original dataset recipe-derived nutrients and measured component masses",
+  "cases": [
+    {
+      "id": "dish_1559934477",
+      "captureDate": "2019-06-07",
+      "reference": {
+        "kcal": 25.08,
+        "massG": 57.0,
+        "fatG": 1.197,
+        "carbsG": 2.451,
+        "proteinG": 1.824
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000006",
+          "name": "caesar salad",
+          "kcal": 25.08,
+          "massG": 57.0,
+          "fatG": 1.197,
+          "carbsG": 2.451,
+          "proteinG": 1.824
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "c117268bc2869a994d64a440f0bf4c377c3758ea69d5547c0760597110c8d112",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559934477/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "9f2101d1394113c82abfb89f88214ebb1245bf600e512af6c8ce6414d20305dd",
+      "inputSha256": "911f3efd91b17fa9979f2bae7fe9e22c0866dd4e36c0abf9e53bc299e618e660",
+      "inputPath": "inputs/dish_1559934477.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1558461607",
+      "captureDate": "2019-05-21",
+      "reference": {
+        "kcal": 87.629997,
+        "massG": 127.0,
+        "fatG": 0.254,
+        "carbsG": 22.860001,
+        "proteinG": 0.889
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000440",
+          "name": "grapes",
+          "kcal": 87.63,
+          "massG": 127.0,
+          "fatG": 0.254,
+          "carbsG": 22.86,
+          "proteinG": 0.889
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "79dd10799e5fd584a5c27899356968cb6a95ea699211cc7cb3befe012e60fe90",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558461607/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "c8b6b0c9e23d7d81880156f19124f42f28a87048eba23195774eb98aa2a9b459",
+      "inputSha256": "a5fbbcd0e8d884a8d3e29c65237c1f983ff332f0eda7950723ef06dbf7eca7e4",
+      "inputPath": "inputs/dish_1558461607.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1566416701",
+      "captureDate": "2019-08-21",
+      "reference": {
+        "kcal": 198.53717,
+        "massG": 122.0,
+        "fatG": 6.648317,
+        "carbsG": 2.900097,
+        "proteinG": 30.318871
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 1.41531822,
+          "massG": 0.949878,
+          "fatG": 0.00474939,
+          "carbsG": 0.31345974,
+          "proteinG": 0.060792192
+        },
+        {
+          "id": "ingr_0000000046",
+          "name": "mushroom",
+          "kcal": 1.04486624,
+          "massG": 4.749392,
+          "fatG": 0.014248176,
+          "carbsG": 0.156729936,
+          "proteinG": 0.147231152
+        },
+        {
+          "id": "ingr_0000000514",
+          "name": "wheat berry",
+          "kcal": 8.64389253,
+          "massG": 9.498783,
+          "fatG": 0.047493915,
+          "carbsG": 1.814267553,
+          "proteinG": 0.398948886
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 8.39692152,
+          "massG": 0.949878,
+          "fatG": 0.949878,
+          "carbsG": 0.0,
+          "proteinG": 0.0
+        },
+        {
+          "id": "ingr_0000000441",
+          "name": "butter",
+          "kcal": 6.81062526,
+          "massG": 0.949878,
+          "fatG": 0.76940118,
+          "carbsG": 0.000949878,
+          "proteinG": 0.007599024
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0.0,
+          "massG": 0.949878,
+          "fatG": 0.0,
+          "carbsG": 0.0,
+          "proteinG": 0.0
+        },
+        {
+          "id": "ingr_0000000133",
+          "name": "shallots",
+          "kcal": 0.0949878,
+          "massG": 0.474939,
+          "fatG": 0.000949878,
+          "carbsG": 0.015672987,
+          "proteinG": 0.007124085
+        },
+        {
+          "id": "ingr_0000000428",
+          "name": "white wine",
+          "kcal": 0.1947254,
+          "massG": 0.23747,
+          "fatG": 0.0,
+          "carbsG": 0.00617422,
+          "proteinG": 0.00023747
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 0.1899756,
+          "massG": 0.474939,
+          "fatG": 0.000949878,
+          "carbsG": 0.044169327,
+          "proteinG": 0.00949878
+        },
+        {
+          "id": "ingr_0000000515",
+          "name": "arugula",
+          "kcal": 0.593674,
+          "massG": 2.374696,
+          "fatG": 0.016622872,
+          "carbsG": 0.087863752,
+          "proteinG": 0.061742096
+        },
+        {
+          "id": "ingr_0000000341",
+          "name": "cream",
+          "kcal": 12.777762219,
+          "massG": 3.799513,
+          "fatG": 1.390621758,
+          "carbsG": 0.102586851,
+          "proteinG": 0.106386364
+        },
+        {
+          "id": "ingr_0000000519",
+          "name": "oregano",
+          "kcal": 0.8014599,
+          "massG": 0.296837,
+          "fatG": 0.01187348,
+          "carbsG": 0.20481753,
+          "proteinG": 0.02671533
+        },
+        {
+          "id": "ingr_0000000518",
+          "name": "thyme",
+          "kcal": 0.29980537,
+          "massG": 0.296837,
+          "fatG": 0.005046229,
+          "carbsG": 0.07124088,
+          "proteinG": 0.01781022
+        },
+        {
+          "id": "ingr_0000000521",
+          "name": "basil",
+          "kcal": 0.11398536,
+          "massG": 0.474939,
+          "fatG": 0.0,
+          "carbsG": 0.00949878,
+          "proteinG": 0.01899756
+        },
+        {
+          "id": "ingr_0000000516",
+          "name": "rosemary",
+          "kcal": 0.38885647,
+          "massG": 0.296837,
+          "fatG": 0.016919709,
+          "carbsG": 0.0593674,
+          "proteinG": 0.008608273
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "kcal": 0.0403699,
+          "massG": 0.23747,
+          "fatG": 0.0,
+          "carbsG": 0.01329832,
+          "proteinG": 0.00094988
+        },
+        {
+          "id": "ingr_0000000028",
+          "name": "chicken",
+          "kcal": 156.72993435,
+          "massG": 94.987839,
+          "fatG": 3.419562204,
+          "carbsG": 0.0,
+          "proteinG": 29.44623009
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "6fae7b9167870d758056e9a3dcfcb0662daaacd7c4d7db20e3a8dbc9fbf43ea3",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566416701/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "bd22f3f161d85a740a0489d61651d04a4f8dd012955138ba8e67079c2d667cdc",
+      "inputSha256": "65678e42ad5d6bda986fcc481d9c42b82c3dc7b9b01606502aaf54afaa6e9945",
+      "inputPath": "inputs/dish_1566416701.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1563389548",
+      "captureDate": "2019-07-17",
+      "reference": {
+        "kcal": 438.828003,
+        "massG": 194.0,
+        "fatG": 28.906,
+        "carbsG": 0.194,
+        "proteinG": 43.843998
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000105",
+          "name": "grilled chicken",
+          "kcal": 438.828,
+          "massG": 194.0,
+          "fatG": 28.906,
+          "carbsG": 0.194,
+          "proteinG": 43.844
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "e37d3c0756ccf636a0bbffea248ea5949006eb816ac908f25c7926146125ac99",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563389548/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "bb7971e43076da39b783a637ded5cfc2924e3b34996ffd2c13572c080d5f10af",
+      "inputSha256": "aaff4bd962c51281a66db70e4bfa85892e30aaad384ff5ddbc083a9a1b0a66c5",
+      "inputPath": "inputs/dish_1563389548.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1567785622",
+      "captureDate": "2019-09-06",
+      "reference": {
+        "kcal": 30.779999,
+        "massG": 54.0,
+        "fatG": 0.162,
+        "carbsG": 7.56,
+        "proteinG": 0.378
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000013",
+          "name": "berries",
+          "kcal": 30.78,
+          "massG": 54.0,
+          "fatG": 0.162,
+          "carbsG": 7.56,
+          "proteinG": 0.378
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "405c6d75f4e83e2ba558c2f0a09f35cb0b91b2a3b522e9f042aa40981132b29a",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1567785622/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "18c6d02c8da72dcbfd2c5c247d24705aec96bfa415860f9bc07096123ba79916",
+      "inputSha256": "3dc31a657b3d5e59ab129e0f55f95ae6885a0ed440c8ad4c912d688d4b2cd374",
+      "inputPath": "inputs/dish_1567785622.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1566589933",
+      "captureDate": "2019-08-23",
+      "reference": {
+        "kcal": 89.060005,
+        "massG": 122.0,
+        "fatG": 5.856,
+        "carbsG": 2.318,
+        "proteinG": 9.76
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000050",
+          "name": "tofu",
+          "kcal": 89.06,
+          "massG": 122.0,
+          "fatG": 5.856,
+          "carbsG": 2.318,
+          "proteinG": 9.76
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "b2c231ace360ab86b078637104cc271d991f29113797378d5ea49ab06ba14ef9",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566589933/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "707353b5db1b70f9d6bd14217be6be60522177e70f1ac16340b1a19680140102",
+      "inputSha256": "1cee9aca83ea11fd91231275e7eedde0e0bc1d720995e0eda14454bb2ede3cc6",
+      "inputPath": "inputs/dish_1566589933.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1562963246",
+      "captureDate": "2019-07-12",
+      "reference": {
+        "kcal": 324.39798,
+        "massG": 122.0,
+        "fatG": 11.467999,
+        "carbsG": 40.870003,
+        "proteinG": 13.664001
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000011",
+          "name": "cheese pizza",
+          "kcal": 324.398,
+          "massG": 122.0,
+          "fatG": 11.468,
+          "carbsG": 40.87,
+          "proteinG": 13.664
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "c22d651c3c2bde9144eb4c1715610f7803d7454a664b151ba36fac4e2021c234",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562963246/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "558423a7465b91f13cdf04d620b5b160657544f1f6a2f9fa5265c3d06f2b613b",
+      "inputSha256": "8efa6ecc244aad3e65f242693d47e0e093ac7b318097036a66a0be1775546bf3",
+      "inputPath": "inputs/dish_1562963246.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1560975517",
+      "captureDate": "2019-06-19",
+      "reference": {
+        "kcal": 42.389999,
+        "massG": 99.0,
+        "fatG": 1.858,
+        "carbsG": 4.608,
+        "proteinG": 3.064
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000027",
+          "name": "broccoli",
+          "kcal": 4.55,
+          "massG": 13.0,
+          "fatG": 0.052,
+          "carbsG": 0.91,
+          "proteinG": 0.312
+        },
+        {
+          "id": "ingr_0000000006",
+          "name": "caesar salad",
+          "kcal": 37.84,
+          "massG": 86.0,
+          "fatG": 1.806,
+          "carbsG": 3.698,
+          "proteinG": 2.752
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "25b5ec86de27f1b9a7cde4f6cb67b2ea76fe69bdfb963edf12e7b864c8f24af1",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560975517/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "c34ce8ec625930f8bf7f1e73cc56157ed9bc52835fb5c8b2d87349459bd93c17",
+      "inputSha256": "db61d696a9c3fdc3f801feed93ad9c53089d3f157b200883ea0ca8f10bc043a0",
+      "inputPath": "inputs/dish_1560975517.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1558030182",
+      "captureDate": "2019-05-16",
+      "reference": {
+        "kcal": 67.759995,
+        "massG": 88.0,
+        "fatG": 0.088,
+        "carbsG": 14.96,
+        "proteinG": 1.76
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000005",
+          "name": "potatoes",
+          "kcal": 67.76,
+          "massG": 88.0,
+          "fatG": 0.088,
+          "carbsG": 14.96,
+          "proteinG": 1.76
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "fa9e803124857778a67fe410a749c27e0bd9b165e2bca32fae8b57aff8e4ccfb",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558030182/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "9b3543c19a5ab0eb96c60f39fd8343363ab7147d9e5d5a85b654c996c58abcd0",
+      "inputSha256": "2ca6fe0d6c1da896fed2af3bee93cca2fbd013270a57a903fff3cf92caddcefc",
+      "inputPath": "inputs/dish_1558030182.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1558376437",
+      "captureDate": "2019-05-20",
+      "reference": {
+        "kcal": 13.26,
+        "massG": 39.0,
+        "fatG": 0.078,
+        "carbsG": 3.12,
+        "proteinG": 0.312
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000037",
+          "name": "cantaloupe",
+          "kcal": 13.26,
+          "massG": 39.0,
+          "fatG": 0.078,
+          "carbsG": 3.12,
+          "proteinG": 0.312
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "e4fce5c4f2e583cc094d4c29bf923adc2476991d56ead7b790969559f15078f7",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558376437/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "fbe11d568b8b583380af317925bc01e4e3693a418109b3ac43120b321f9b4eff",
+      "inputSha256": "b16c40982d5daadb9385defa0a914ef9fb98e225a890ba43f9a5057a0d253b96",
+      "inputPath": "inputs/dish_1558376437.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1560203400",
+      "captureDate": "2019-06-10",
+      "reference": {
+        "kcal": 293.279999,
+        "massG": 104.0,
+        "fatG": 12.48,
+        "carbsG": 33.279999,
+        "proteinG": 12.48
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000392",
+          "name": "pepperoni pizza",
+          "kcal": 293.28,
+          "massG": 104.0,
+          "fatG": 12.48,
+          "carbsG": 33.28,
+          "proteinG": 12.48
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "4d31b586f85d58b9247ee4d24d725fe69238876283d89dda054249d24fa1c57a",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560203400/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "fc3120aba80b5305b10ceb95d91a04c88cfb4a420a76f1ad5241e8a816453676",
+      "inputSha256": "c280672f43feef455445f4bfe20b0a2c267205d8b9cf0033e79830d88e05d873",
+      "inputPath": "inputs/dish_1560203400.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1557862783",
+      "captureDate": "2019-05-14",
+      "reference": {
+        "kcal": 442.97998,
+        "massG": 258.0,
+        "fatG": 24.919001,
+        "carbsG": 3.85,
+        "proteinG": 50.416
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000007",
+          "name": "cauliflower",
+          "kcal": 19.25,
+          "massG": 77.0,
+          "fatG": 0.231,
+          "carbsG": 3.85,
+          "proteinG": 1.386
+        },
+        {
+          "id": "ingr_0000000010",
+          "name": "steak",
+          "kcal": 319.78,
+          "massG": 118.0,
+          "fatG": 22.42,
+          "carbsG": 0.0,
+          "proteinG": 29.5
+        },
+        {
+          "id": "ingr_0000000028",
+          "name": "chicken",
+          "kcal": 103.95,
+          "massG": 63.0,
+          "fatG": 2.268,
+          "carbsG": 0.0,
+          "proteinG": 19.53
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "ba64dde72d51cbf73ff8fa9bbbd0362f6e19a43f5f5807fbb9b0a62d362aa3b1",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1557862783/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "ee5cea71bf9ca69cf3af9d66d753a93f52e0569ab31dd0ace49050f7488ea7e3",
+      "inputSha256": "bf99a8f9c0994d2d7368509a6e9427bfbbc1fdc78eac2b9fe95459740a6d77ba",
+      "inputPath": "inputs/dish_1557862783.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1568401261",
+      "captureDate": "2019-09-13",
+      "reference": {
+        "kcal": 530.393372,
+        "massG": 443.0,
+        "fatG": 26.350721,
+        "carbsG": 34.582966,
+        "proteinG": 39.131962
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0.0,
+          "massG": 0.425401,
+          "fatG": 0.0,
+          "carbsG": 0.0,
+          "proteinG": 0.0
+        },
+        {
+          "id": "ingr_0000000021",
+          "name": "squash",
+          "kcal": 23.255239565,
+          "massG": 113.440193,
+          "fatG": 0.340320579,
+          "carbsG": 3.856966562,
+          "proteinG": 1.020961737
+        },
+        {
+          "id": "ingr_0000000045",
+          "name": "carrot",
+          "kcal": 30.75,
+          "massG": 75.0,
+          "fatG": 0.15,
+          "carbsG": 7.5,
+          "proteinG": 0.675
+        },
+        {
+          "id": "ingr_0000000042",
+          "name": "avocado",
+          "kcal": 40.0,
+          "massG": 25.0,
+          "fatG": 3.75,
+          "carbsG": 2.25,
+          "proteinG": 0.5
+        },
+        {
+          "id": "ingr_0000000141",
+          "name": "tuna salad",
+          "kcal": 426.36,
+          "massG": 228.0,
+          "fatG": 20.976,
+          "carbsG": 20.976,
+          "proteinG": 36.936
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 10.02811368,
+          "massG": 1.134402,
+          "fatG": 1.134402,
+          "carbsG": 0.0,
+          "proteinG": 0.0
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "28540f7d51abb327682948527bbe683b045d9a6da675012553c96014a3b774cf",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1568401261/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "19e62bdfce4a5c9fe7e052cced21e5dec16a6ed45ab7f69759389355c4b1fb35",
+      "inputSha256": "ab7372719e73fdee584ec725ca06298720ae1f51b8518cb895d00b3dd6679e18",
+      "inputPath": "inputs/dish_1568401261.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1565810969",
+      "captureDate": "2019-08-14",
+      "reference": {
+        "kcal": 4.6,
+        "massG": 20.0,
+        "fatG": 0.08,
+        "carbsG": 0.72,
+        "proteinG": 0.58
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000036",
+          "name": "spinach (raw)",
+          "kcal": 4.6,
+          "massG": 20.0,
+          "fatG": 0.08,
+          "carbsG": 0.72,
+          "proteinG": 0.58
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "ac7de1ce6fb0e913eb7f63f79ac2f6ab1dca04414849d59efd7e320ea51bf50f",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565810969/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "34d543b6e207548d1f82167a4dc5f60e0182aab0025eac47dbbfc9eb31ba1ebb",
+      "inputSha256": "c9c7824ffb405aa86781d4d6c89a3a0047187e1f7d13895d084bac955c26ded5",
+      "inputPath": "inputs/dish_1565810969.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1564675411",
+      "captureDate": "2019-08-01",
+      "reference": {
+        "kcal": 235.531006,
+        "massG": 308.0,
+        "fatG": 7.033,
+        "carbsG": 2.708,
+        "proteinG": 35.193001
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000128",
+          "name": "egg whites",
+          "kcal": 148.2,
+          "massG": 285.0,
+          "fatG": 0.57,
+          "carbsG": 1.995,
+          "proteinG": 28.5
+        },
+        {
+          "id": "ingr_0000000080",
+          "name": "turkey bacon",
+          "kcal": 87.331,
+          "massG": 23.0,
+          "fatG": 6.463,
+          "carbsG": 0.713,
+          "proteinG": 6.693
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "d12fba5dc2f77ca03c57e55d621c68d5f92d483fdcfc28e7cc3ea52320edf938",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564675411/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "2323c352815ec00254d9db088fb7dc39f52672ae807ee5ae00e8ad08ec5c07fd",
+      "inputSha256": "8340ebf93d47529ff7b54190c04c6e94e81276cac9c70c2c6c7ec4c0e21b7a27",
+      "inputPath": "inputs/dish_1564675411.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1562009810",
+      "captureDate": "2019-07-01",
+      "reference": {
+        "kcal": 119.880005,
+        "massG": 108.0,
+        "fatG": 0.972,
+        "carbsG": 24.84,
+        "proteinG": 2.808
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000023",
+          "name": "brown rice",
+          "kcal": 119.88,
+          "massG": 108.0,
+          "fatG": 0.972,
+          "carbsG": 24.84,
+          "proteinG": 2.808
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "23cfdb4049e4ca6356d7b4ed87181328ffd2f1228685c54b63c3ecab5fc82b26",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562009810/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "2c06305c13f6d47d08e2ed09b6333d28621d4185fbaf682843b162ffa2964753",
+      "inputSha256": "0be63d4f01fc7ee7035865efbbca91fbf808c0318a2c40fe7b12149efd4521f4",
+      "inputPath": "inputs/dish_1562009810.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1566920339",
+      "captureDate": "2019-08-27",
+      "reference": {
+        "kcal": 449.531708,
+        "massG": 730.0,
+        "fatG": 5.042439,
+        "carbsG": 32.087563,
+        "proteinG": 58.560974
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000128",
+          "name": "egg whites",
+          "kcal": 296.4,
+          "massG": 570.0,
+          "fatG": 1.14,
+          "carbsG": 3.99,
+          "proteinG": 57.0
+        },
+        {
+          "id": "ingr_0000000437",
+          "name": "sweet potato",
+          "kcal": 118.6341494,
+          "massG": 156.097565,
+          "fatG": 0.0,
+          "carbsG": 28.0975617,
+          "proteinG": 1.56097565
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 34.49756076,
+          "massG": 3.902439,
+          "fatG": 3.902439,
+          "carbsG": 0.0,
+          "proteinG": 0.0
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "17777089b9ceff6b44a6256b8f08e579fbec0788d9b7f91449e67d19c4a324f1",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566920339/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "dbd67cd16de42e62c048ed8c3d45c0a337c86dae25dca0e67645ab8db5506d2e",
+      "inputSha256": "2420ac2875fb53c7558aac6f3ab00d04529bb3807887a40a51419a750efa735a",
+      "inputPath": "inputs/dish_1566920339.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1559157454",
+      "captureDate": "2019-05-29",
+      "reference": {
+        "kcal": 34.564575,
+        "massG": 28.0,
+        "fatG": 3.284461,
+        "carbsG": 1.127364,
+        "proteinG": 0.671958
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000515",
+          "name": "arugula",
+          "kcal": 4.726451,
+          "massG": 18.905804,
+          "fatG": 0.132340628,
+          "carbsG": 0.699514748,
+          "proteinG": 0.491550904
+        },
+        {
+          "id": "ingr_0000000517",
+          "name": "chard",
+          "kcal": 0.64144684,
+          "massG": 3.376036,
+          "fatG": 0.006752072,
+          "carbsG": 0.124913332,
+          "proteinG": 0.060768648
+        },
+        {
+          "id": "ingr_0000000189",
+          "name": "vinegar",
+          "kcal": 0.0,
+          "massG": 0.633007,
+          "fatG": 0.0,
+          "carbsG": 0.0,
+          "proteinG": 0.0
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 0.00844,
+          "massG": 0.0211,
+          "fatG": 4.22e-05,
+          "carbsG": 0.0019623,
+          "proteinG": 0.000422
+        },
+        {
+          "id": "ingr_0000000124",
+          "name": "walnuts",
+          "kcal": 4.411127331,
+          "massG": 0.675207,
+          "fatG": 0.433482894,
+          "carbsG": 0.093853773,
+          "proteinG": 0.101956257
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0.0,
+          "massG": 0.126601,
+          "fatG": 0.0,
+          "carbsG": 0.0,
+          "proteinG": 0.0
+        },
+        {
+          "id": "ingr_0000000126",
+          "name": "mustard",
+          "kcal": 0.129344226,
+          "massG": 0.211002,
+          "fatG": 0.006963066,
+          "carbsG": 0.01266012,
+          "proteinG": 0.007807074
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 23.87532836,
+          "massG": 2.700829,
+          "fatG": 2.700829,
+          "carbsG": 0.0,
+          "proteinG": 0.0
+        },
+        {
+          "id": "ingr_0000000201",
+          "name": "blueberries",
+          "kcal": 0.772436808,
+          "massG": 1.350414,
+          "fatG": 0.004051242,
+          "carbsG": 0.194459616,
+          "proteinG": 0.009452898
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "0debe5465ee748ba807cb11f019070be735b3f0a201dfac909ed1a9cf5d4b7a4",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559157454/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "34f2feb25935ace89b0b94c71f12dcce5d0d3599ea7a38f15d75dbd138c6979b",
+      "inputSha256": "28a5394d5e29b499388ba0926d573d9ad5096576e7572cd206dfdd8e5803e405",
+      "inputPath": "inputs/dish_1559157454.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1564160043",
+      "captureDate": "2019-07-26",
+      "reference": {
+        "kcal": 245.0,
+        "massG": 98.0,
+        "fatG": 1.47,
+        "carbsG": 48.02,
+        "proteinG": 9.898001
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000264",
+          "name": "bagels",
+          "kcal": 245.0,
+          "massG": 98.0,
+          "fatG": 1.47,
+          "carbsG": 48.02,
+          "proteinG": 9.898
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "aca7711012d5fb57ce826739267e9b0ce44eba8caa692d4b5d55d6f8e84d1d38",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564160043/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "93892cf06babb078fe331284bc0fce57d89b608982456325dcdf03afefd55f88",
+      "inputSha256": "f6790ca9acf26e19fd658a5863e8529f20ac3936ffb22df362ad948ca8cea6a5",
+      "inputPath": "inputs/dish_1564160043.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    },
+    {
+      "id": "dish_1562876494",
+      "captureDate": "2019-07-11",
+      "reference": {
+        "kcal": 40.10693,
+        "massG": 26.0,
+        "fatG": 1.171626,
+        "carbsG": 0.542953,
+        "proteinG": 6.487736
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 0.0051208,
+          "massG": 0.012802,
+          "fatG": 2.5604e-05,
+          "carbsG": 0.001190586,
+          "proteinG": 0.00025604
+        },
+        {
+          "id": "ingr_0000000028",
+          "name": "chicken",
+          "kcal": 33.79615965,
+          "massG": 20.482521,
+          "fatG": 0.737370756,
+          "carbsG": 0.0,
+          "proteinG": 6.34958151
+        },
+        {
+          "id": "ingr_0000000021",
+          "name": "squash",
+          "kcal": 0.20994583,
+          "massG": 1.024126,
+          "fatG": 0.003072378,
+          "carbsG": 0.034820284,
+          "proteinG": 0.009217134
+        },
+        {
+          "id": "ingr_0000000514",
+          "name": "wheat berry",
+          "kcal": 1.86390932,
+          "massG": 2.048252,
+          "fatG": 0.01024126,
+          "carbsG": 0.391216132,
+          "proteinG": 0.086026584
+        },
+        {
+          "id": "ingr_0000000036",
+          "name": "spinach (raw)",
+          "kcal": 0.11777449,
+          "massG": 0.512063,
+          "fatG": 0.002048252,
+          "carbsG": 0.018434268,
+          "proteinG": 0.014849827
+        },
+        {
+          "id": "ingr_0000000485",
+          "name": "zucchini",
+          "kcal": 0.1536189,
+          "massG": 1.024126,
+          "fatG": 0.004096504,
+          "carbsG": 0.027651402,
+          "proteinG": 0.011265386
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "kcal": 0.01741021,
+          "massG": 0.102413,
+          "fatG": 0.0,
+          "carbsG": 0.005735128,
+          "proteinG": 0.000409652
+        },
+        {
+          "id": "ingr_0000000516",
+          "name": "rosemary",
+          "kcal": 0.06707986,
+          "massG": 0.051206,
+          "fatG": 0.002918742,
+          "carbsG": 0.0102412,
+          "proteinG": 0.001484974
+        },
+        {
+          "id": "ingr_0000000521",
+          "name": "basil",
+          "kcal": 0.01228944,
+          "massG": 0.051206,
+          "fatG": 0.0,
+          "carbsG": 0.00102412,
+          "proteinG": 0.00204824
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 3.621306,
+          "massG": 0.40965,
+          "fatG": 0.40965,
+          "carbsG": 0.0,
+          "proteinG": 0.0
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 0.15259537,
+          "massG": 0.102413,
+          "fatG": 0.000512065,
+          "carbsG": 0.03379629,
+          "proteinG": 0.006554432
+        },
+        {
+          "id": "ingr_0000000518",
+          "name": "thyme",
+          "kcal": 0.05171806,
+          "massG": 0.051206,
+          "fatG": 0.000870502,
+          "carbsG": 0.01228944,
+          "proteinG": 0.00307236
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0.0,
+          "massG": 0.025603,
+          "fatG": 0.0,
+          "carbsG": 0.0,
+          "proteinG": 0.0
+        },
+        {
+          "id": "ingr_0000000524",
+          "name": "parsley",
+          "kcal": 0.037995223,
+          "massG": 0.102413,
+          "fatG": 0.000819304,
+          "carbsG": 0.006554432,
+          "proteinG": 0.002969977
+        }
+      ],
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "78c50b156db16e402baf9813265f9581c5587b48bf6b1777e38a7adcba7cc8ea",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562876494/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "0436fb15a933def224b66d8c8c898082e3411f0e4fb4ab041a61c50e494fa693",
+      "inputSha256": "3f1135ea6de056975804cba2b3ebc10329843c7e2b288c0e6a8604a18b22d81c",
+      "inputPath": "inputs/dish_1562876494.jpg",
+      "inputStatus": "ready",
+      "inputFailure": null
+    }
+  ],
+  "selection": {
+    "seed": "calorix-tier1-public-v1-20261108",
+    "previousIds": [
+      "dish_1558115011",
+      "dish_1558115764",
+      "dish_1558116547",
+      "dish_1558549605",
+      "dish_1558630006",
+      "dish_1558632198",
+      "dish_1558636544",
+      "dish_1558637698",
+      "dish_1558639787",
+      "dish_1558639818",
+      "dish_1559241099",
+      "dish_1559590130",
+      "dish_1559846311",
+      "dish_1559846504",
+      "dish_1560356523",
+      "dish_1560442303",
+      "dish_1560442450",
+      "dish_1560443474",
+      "dish_1560456326",
+      "dish_1560543605",
+      "dish_1560798707",
+      "dish_1560800836",
+      "dish_1560874667",
+      "dish_1561393550",
+      "dish_1561492204",
+      "dish_1561575410",
+      "dish_1561661850",
+      "dish_1561663580",
+      "dish_1561665747",
+      "dish_1562096372",
+      "dish_1562173267",
+      "dish_1562183065",
+      "dish_1562184705",
+      "dish_1562602627",
+      "dish_1562688382",
+      "dish_1562689601",
+      "dish_1562691409",
+      "dish_1562788601",
+      "dish_1563220087",
+      "dish_1563294441",
+      "dish_1563303350",
+      "dish_1563464389",
+      "dish_1563480534",
+      "dish_1563563467",
+      "dish_1563812535",
+      "dish_1563824279",
+      "dish_1563898722",
+      "dish_1563910708",
+      "dish_1563986093",
+      "dish_1564000490",
+      "dish_1564427430",
+      "dish_1564428515",
+      "dish_1564588719",
+      "dish_1564761388",
+      "dish_1564778057",
+      "dish_1565021675",
+      "dish_1565021965",
+      "dish_1565035746",
+      "dish_1565117892",
+      "dish_1565118096",
+      "dish_1565119642",
+      "dish_1565640772",
+      "dish_1565711115",
+      "dish_1565725188",
+      "dish_1565898402",
+      "dish_1565972363",
+      "dish_1566328724",
+      "dish_1566328894",
+      "dish_1566333228",
+      "dish_1566333291",
+      "dish_1566501473",
+      "dish_1566838351",
+      "dish_1566844803",
+      "dish_1567022383",
+      "dish_1567107839",
+      "dish_1567629081"
+    ],
+    "previousDates": [
+      "2019-05-17",
+      "2019-05-22",
+      "2019-05-23",
+      "2019-05-30",
+      "2019-06-03",
+      "2019-06-06",
+      "2019-06-12",
+      "2019-06-13",
+      "2019-06-14",
+      "2019-06-17",
+      "2019-06-18",
+      "2019-06-24",
+      "2019-06-25",
+      "2019-06-26",
+      "2019-06-27",
+      "2019-07-02",
+      "2019-07-03",
+      "2019-07-08",
+      "2019-07-09",
+      "2019-07-10",
+      "2019-07-15",
+      "2019-07-16",
+      "2019-07-18",
+      "2019-07-19",
+      "2019-07-22",
+      "2019-07-23",
+      "2019-07-24",
+      "2019-07-29",
+      "2019-07-31",
+      "2019-08-02",
+      "2019-08-05",
+      "2019-08-06",
+      "2019-08-12",
+      "2019-08-13",
+      "2019-08-15",
+      "2019-08-16",
+      "2019-08-20",
+      "2019-08-22",
+      "2019-08-26",
+      "2019-08-28",
+      "2019-08-29",
+      "2019-09-04"
+    ],
+    "eligibleScans": 141,
+    "eligibleDates": 25,
+    "selectedDates": [
+      "2019-06-07",
+      "2019-05-21",
+      "2019-08-21",
+      "2019-07-17",
+      "2019-09-06",
+      "2019-08-23",
+      "2019-07-12",
+      "2019-06-19",
+      "2019-05-16",
+      "2019-05-20",
+      "2019-06-10",
+      "2019-05-14",
+      "2019-09-13",
+      "2019-08-14",
+      "2019-08-01",
+      "2019-07-01",
+      "2019-08-27",
+      "2019-05-29",
+      "2019-07-26",
+      "2019-07-11"
+    ],
+    "exclusionCounts": {
+      "deprecated_ingredient": 6,
+      "invalid_total": 1,
+      "mass_sum_mismatch": 1,
+      "previous_date": 346,
+      "previous_id": 12
+    },
+    "excluded": [
+      {
+        "id": "dish_1556575327",
+        "reason": "mass_sum_mismatch"
+      },
+      {
+        "id": "dish_1557861216",
+        "reason": "invalid_total"
+      },
+      {
+        "id": "dish_1558031351",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558031394",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558110297",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558110335",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558110385",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558110436",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558110478",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558113430",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558113477",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558113941",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558114086",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558114145",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558114209",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558114284",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558373074",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558373159",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558376768",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558376984",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558544663",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558545738",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558546434",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558546558",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558546663",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558549413",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558549605",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1558549773",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558549806",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558630176",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558630207",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558630288",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558630325",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558635400",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558635489",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558635523",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558635546",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558635618",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639412",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639440",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639482",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639526",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639555",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639787",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1558639818",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1558639849",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639876",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558641164",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558641200",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558641253",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558641287",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558641320",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559233445",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559233570",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559233627",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559233715",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559233756",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559238993",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559239151",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559239256",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559239369",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559578551",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559578579",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559578599",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559841950",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559841979",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559842047",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559844272",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559844323",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559844366",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559844458",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559844490",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559846688",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849020",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849053",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849097",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849412",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849466",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849497",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849537",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559850283",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559850314",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559850338",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560367904",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560367926",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560367952",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560367980",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560368019",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560368395",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560368464",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560368506",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560368570",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444869",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444892",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444914",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444931",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444948",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444967",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444985",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560445004",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560456305",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560456326",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1560456348",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560456370",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526408",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526447",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526472",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526490",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526514",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526530",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526552",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560800918",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560800951",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560800988",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801020",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801041",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801773",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801797",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801829",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801859",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801883",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561393715",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561393741",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561393764",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561405332",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561405356",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561405389",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561405411",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574368",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574394",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574428",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574456",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574479",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574783",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574815",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574848",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561577848",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561577947",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561578775",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561578800",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561578839",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561578865",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561654326",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561654346",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561654374",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561654392",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561661324",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561661347",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561661377",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662160",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662190",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662216",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662814",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662842",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662869",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662926",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561663541",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561663580",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1561663606",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561667207",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561667238",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562085672",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562099053",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562099076",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562099134",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562099157",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562168648",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562168673",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562168696",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562168800",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562172561",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562172600",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562172643",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562617703",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562617939",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562618000",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562690886",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562690917",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562690950",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562691000",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562691032",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562691064",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562700496",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562700568",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562700593",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562703345",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562703382",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562703408",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562703447",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562774099",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562774129",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562774159",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562774180",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562774206",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562776428",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562776465",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562776497",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562786103",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562788506",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562788536",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562788568",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562788601",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1562790775",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562790824",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562790855",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563208412",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563208439",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563208459",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563218408",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563220987",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563221025",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563221054",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563221086",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563221157",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563294987",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563295016",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563295044",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563305513",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563478751",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563551105",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563551134",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563551164",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563551194",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563551220",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565289",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565323",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565354",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565415",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565454",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565508",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563566909",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563566939",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563566965",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563897047",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563897087",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563897938",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563897981",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563898019",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563898084",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563898107",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563909469",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563909507",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563909550",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563909580",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563984140",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563984167",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563984199",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563984242",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563984296",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563996441",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563996464",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563996485",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563996509",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563998210",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563998244",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563998279",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563998323",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563998513",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564427406",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564427430",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1564427455",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564428102",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564428144",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564428181",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564588820",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564588859",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564588889",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564588919",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773826",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773847",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773876",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773903",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773942",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773976",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020755",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020796",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020822",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020867",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020895",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020926",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565030350",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565030391",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565034605",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565034635",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565034661",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565034681",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565035715",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565035746",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1565035774",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565035802",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565035830",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565035858",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565117429",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565117463",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565118700",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565118729",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565118782",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565123783",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565123816",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565123845",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565123881",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565638478",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565638515",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565638550",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565638599",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565711453",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565711498",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565711527",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565711570",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565894858",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565894889",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565894910",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565896662",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565896701",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565896745",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898128",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898158",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898193",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898230",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898331",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898361",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898402",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1565898432",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565974375",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565974409",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565986702",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565986733",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566316681",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566316726",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566316757",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566328724",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1566328745",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566328776",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566328805",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566328831",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566501575",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566501594",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566502437",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566502472",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566502505",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566502537",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566502573",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566838286",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566838317",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566838351",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1566838378",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566838407",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566849862",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566849895",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566849923",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566849955",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566849987",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566850031",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566850099",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566850142",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566851549",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566851584",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566851616",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566851677",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566851704",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567007719",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567007751",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567007783",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567007814",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567007848",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567107839",
+        "reason": "previous_id"
+      }
+    ],
+    "rule": "One scan per SHA256-ranked UTC date, then SHA256-ranked ID; date thinning is a heuristic, not independent final-plate proof"
+  }
+}
