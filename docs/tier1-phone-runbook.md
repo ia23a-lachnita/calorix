@@ -18,7 +18,16 @@ Local use requires neither sign-in nor a network. Tap **Take photo** (grant came
 
 **Estimate photo** separately asks whether to send this JPEG to Google Cloud in the US. Declining keeps it local. Before sending, image metadata is stripped; anonymous Firebase authentication happens lazily if needed. There is no app-owned server photo/meal persistence on this route; Google provider caching/abuse retention may apply. No API key belongs in the APK. The callable must first be reviewed and deployed to `calorix-xurschnell`; this task does not silently deploy it. Missing callable, disabled anonymous auth, offline/quota/schema errors leave manual entry and the saved photo available.
 
-For the CLI comparator on an authorized local photo:
+For the CLI comparator, first take the single JPEG on the phone and keep it local. The debug test APK permits an owner-controlled USB export. Copy the local meal JSON, find that meal's UUID, then copy only its JPEG (replace the example paths/UUID):
+
+```bash
+/home/agent-runner/.local/bin/phone-adb exec-out run-as com.calorix.calorix cat app_flutter/tier1/meals.json > /disk/path/phone-meals.json
+/home/agent-runner/.local/bin/phone-adb exec-out run-as com.calorix.calorix cat app_flutter/tier1/photos/MEAL_UUID.jpg > /disk/path/meal.jpg
+```
+
+Keep exports private and uncommitted. This USB route is for the dedicated debug pilot, not a public release export feature. Use one CLI inference for the paired comparator below; a separate in-app inference is a separate attempt and must not be substituted into that pair. Record the CLI path explicitly; model latency does not establish in-app shutter-to-estimate latency.
+
+For the comparator on that authorized local JPEG:
 
 ```bash
 cd functions

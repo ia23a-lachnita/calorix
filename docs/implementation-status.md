@@ -3,24 +3,27 @@
 Plan: docs/superpowers/plans/2026-11-08-tier1-photo-pilot.md
 Baseline commit: 5b70e88ad60ade812e35a14da8a06f5203ef732b
 Branch: feat/tier1-photo-pilot
-CI42442507875 at4ec60b4 also stopped before dialog: scrollUntilVisible targeted the last Scrollable (an EditableText), not the meal ListView. Correct to first/outer Scrollable. Neither failed run is behavioral RED. Production unchanged; hardware failure remains actual.
 
-CI42442797338/e7d1068 corrected outer-list navigation passed959/1skip and analyzer. Default unfocused multiplier did NOT reproduce phone failure. Match actual phone path by editing multiplier1.5 (focuses field) before Confirm; add focused Cancel preservation regression. Production unchanged. Native phoneRED remains _children.contains after focused repeat confirmation.
+## Fresh Session Handoff (Authoritative)
 
-ACTUAL focused RED: CI42443153837/e16e3b9 Flutter job128616457528 failed both edited1.5 Confirm and Cancel with TextEditingController used after disposed at tier1_app.dart216, followed by framework cascades. Approved MCP calorix-tier1-repeat-dialog-20261108 agree/MUSTnone. Fix uses framework-owned TextFormField, lexical text, explicit DialogRoute.completed before parent pop, operation busy and per-action closed guards, separate amount validation/storage errors. Next full CI + source/hash/signer-verified APK + Samsung retest. No real meals or cloud upload.
+Current Task: Independent Tier1 implementation, review, full CI and Samsung checks complete. Await explicit confirmation to deploy only analyzeTier1Meal to calorix-xurschnell, then collect the first independently weighed mixed meal. Physical benchmark remains **0/30**; no calorie accuracy or actual phone-to-callable food inference is claimed.
 
-Current Task: Reproduce and fix repeat dialog dismissal; verify signed APK on Samsung.
+Application source **452ef4976a5adf10b8d784401641102892a73740** is committed and pushed on feat/tier1-photo-pilot. Full intermediate APK CI **42443418299** SUCCESS: Functions95files/5331passed/1historicalskip, build/lint; Flutter960passed/1historicalskip; focused analyzerNoissues; evaluator11passed; signed APK. APK SHA256 **221f25756481e680f0ed7d41a85468e8be885e645cafe9ba9e9cf7e25d4dff60**, signer **38815fd37711f170e534cf3c8767de7f0f7ca5f958e755d8a47b03fe2b764b7c**. Final source/checksum/pinned signer/compiled privacy manifest checks all completed sequentially BEFORE install; Android update Success, no data wipe/uninstall. Installed on SamsungSM-G780G/Android13/R58R61161NA.
 
-Repeat regression correction: CI42441897786 Flutter job128612702308 failed at ensureVisible (lazy ListView child absent), before dialog interaction. This is a test harness failure, NOT behavioral RED. Replace with scrollUntilVisible; production unchanged. Actual phone repeat crash remains independently observed. Photo deletion passed record+file assertions; two owned diagnostic manual records remain for final repeat/restart/cleanup checks.
+Existing CameraX/theme/Firebase/CI reused. Default is focused local Tier1 UI; legacy app preserved via CALORIX_LEGACY_CLOUD=true. Backend/CLI pinned3.8 + six actual USDA records, strict validation, explicit unverified nutrients, one optional question; no provider fallback. Manifest/schema/SOP/evaluator/pilot report delivered. Cloud callable remains undeployed under AGENTS explicit-confirmation rule; production rules/data untouched.
+
+Phone checks: manual edit/save, unknown macros and intake, restart persistence, Ate all, unchanged-save confirmation, retained JPEG/metadata, declined explicit US/retention cloud consent, saved photo correction, photo/record deletion. Repeat defect independently found on hardware: focused multiplier1.5 Confirm/Cancel disposed controller prematurely. Exact edited-field tests RED at e16e3b9/run42443153837, fixed using framework-owned field state and awaited DialogRoute.completed; full CI and final actual Samsung focused Confirm→630kcal/unconfirmed and focused Cancel→unchanged passed at452ef49. Final screenshots09/10 visually inspected. All FOUR owned diagnostic IDs/photo/backup removed with assertions; legacy/user data untouched. Final app opens camera. These diagnostic meals are not weighed references.
+
+Antigravity primary3.8 final reviews explicit AGREEMENT_STATUS agree / MUST_FIX none: calorix-tier1-v71-20261108-final, calorix-tier1-callable-security-20261108, calorix-node20-proxy-fixtures-20261108, calorix-tier1-repeat-dialog-20261108. Repeat reviewer reversed teardown order; actual pinned Flutter source disproved it and reviewer retracted both mandatory findings before final green. Independent branch review9important issues fixed. Runtime visuals sampled only, no exhaustive parity/UI-diff claim. Exact routes/failures/results and artifact details: **docs/tier1-verification-2026-11-08.md**. Run instructions: **docs/tier1-phone-runbook.md**. Final tracking-only commit follows this application source; lib/android/pubspec diff against452ef49 is empty.
 
 Flutter command: fvm flutter
 Flutter: 3.41.9 stable, Dart 3.11.5, DevTools 2.54.2
 Functions scripts: test=vitest run, lint=eslint src test, build=tsc -p tsconfig.json, test:watch=vitest, test:rules=firebase emulators:exec --only firestore vitest rules config, deploy=out of scope
 Preserved untracked artifacts (verified present at baseline): .claude/ui-diff-runs/, .gemini/settings.json.bak-20260517-220447, assets/calorix_icons/, docs/screenshots/today-screen-2026-06-17-adb-current.png, docs/screenshots/today-screen-2026-07-01-parity-fixes.png, docs/screenshots/today-screen-preflight-2026-06-05.png
 
-## Fresh Session Handoff (Authoritative)
+## Earlier session chronology (superseded by final handoff above)
 
-### Current Task — V7.1 Tier-1 photo pilot (2026-11-08)
+### Earlier V7.1 progress (2026-11-08)
 
 DEVICE BLOCKER found afterCIgreen6ebd7b4: realrepeatdialogconfirmednew630record/unconfirmed correctly, thenredscreen framework.dart7230 _children.contains(child). Reproductionwidgettestaddedbeforefix; suspectedprematurecontrollerdisposeaftershowDialogFuturebeforeexitanimation. ScopedMCPdebugconsultpending; nextcommitTESTSONLY→fullCIactualRED, thenframeworkownedTextFormFieldcontrollerfix/GREEN/rebuild/retest. No newplan/nativepermissionneeded. DoNOTcallphoneworkflowcomplete. Own3testrecords currently2manualrecords IDs30538e77-59d9-4a00-bd69-447da535d3cb andcee7b3f5-8816-4888-a231-73ef51232845, bothTier1Manual_6ebd7b4; mustdeleteONLYowneddiagnosticrecordsaftertest.0realweighedmeals.
 
