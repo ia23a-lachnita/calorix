@@ -57,4 +57,25 @@ void main() {
     expect(find.widgetWithText(TextFormField,'Meal name'),findsOneWidget);
   });
 
+  testWidgets('repeat confirmation closes cleanly and resets consumption', (tester) async {
+    final store=_MemoryStore();
+    await store.save(Tier1Meal(id:'repeat-source',capturedAt:DateTime.utc(2026,11,8),name:'Repeat source',served:Tier1Nutrients(kcal:420)).confirmConsumption(1));
+    await tester.pumpWidget(Tier1App(store:store,camera:FakeCameraService()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('History'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Repeat source'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Repeat meal'));
+    await tester.tap(find.text('Repeat meal'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Confirm repeat'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(),isNull);
+    final repeated=(await store.load()).where((m)=>m.repeatOf=='repeat-source').single;
+    expect(repeated.served!.kcal,420);
+    expect(repeated.consumedKcal,isNull);
+    expect(find.text('Camera'),findsOneWidget);
+  });
+
 }
