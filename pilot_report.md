@@ -22,7 +22,9 @@ Keep the deployed six-record A1 baseline and match the source default to it. Pre
 
 A secondary-assistant reference-blind inventory audit of the additional10 is now complete, followed by anonymous prediction/reference-label comparison. It records many-to-many composites and uncertain identities without claiming gold food labels or omission counts. The apple/almond/cauliflower example retains all three groups but underestimates almond mass55–65g versus86g. [Qualitative audit](docs/tier1-mealrange-2026-11-08/inventory-audit.md).
 
-The next highest-value experiment is optional per-component portion correction while retaining the original unedited estimate: test whether one user-confirmed correction reduces served error and interaction effort without another photo/model call. Public reference-weight scaling is only an unavailable-oracle diagnostic; it cannot establish real correction behavior or general accuracy.
+Optional per-component portion correction is now implemented, retaining original predictions and an adjustment history. Full CI42527604689 passed988Flutter/5340Functions/28Python/5Node checks with the2historical skips unchanged; focused Samsung runtime verified editing, exact restore/no-op, restart, corrected intake/repeat and deletion on the source-matched signed APK. [Detailed verification and known viewport limitation](docs/tier1-portion-verification-2026-11-08.md). The native replay used an existing public prediction and scripted grams; no new accuracy or user-effort measurement is claimed.
+
+The next highest-value experiment is whether one actual user's optional correction reduces reference-backed served error and interaction time without another photo/model call. Public reference-weight scaling is an unavailable-oracle diagnostic; it cannot establish real correction behavior or general accuracy.
 
 ## Actual verification
 
