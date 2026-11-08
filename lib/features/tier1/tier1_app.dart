@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/time/clock.dart';
 import '../../shared/services/camera_service.dart';
 import 'local_meal.dart';
 import 'local_meal_store.dart';
@@ -14,8 +15,9 @@ import 'tier1_cloud.dart';
 
 /// Focused local-first workflow. Legacy Firebase services are never mounted here.
 class Tier1App extends StatelessWidget {
-  const Tier1App({super.key,this.store,this.camera,this.cloud,this.initializeCloud});
+  const Tier1App({super.key,this.store,this.camera,this.cloud,this.initializeCloud,this.clock});
   final Tier1MealStore? store;
+  final Clock? clock;
   final CameraService? camera;
   final Tier1Cloud? cloud;
   final Future<void> Function()? initializeCloud;
@@ -23,12 +25,13 @@ class Tier1App extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     title:AppConstants.appDisplayName,debugShowCheckedModeBanner:false,
     theme:AppTheme.light(),darkTheme:AppTheme.dark(),
-    home:_Tier1Home(store:store,camera:camera,cloud:cloud??(initializeCloud==null?null:FirebaseTier1Cloud(initializeCloud!))));
+    home:_Tier1Home(store:store,camera:camera,clock:clock??RealClock(),cloud:cloud??(initializeCloud==null?null:FirebaseTier1Cloud(initializeCloud!))));
 }
 
 class _Tier1Home extends StatefulWidget {
-  const _Tier1Home({this.store,this.camera,this.cloud});
+  const _Tier1Home({this.store,this.camera,this.cloud,required this.clock});
   final Tier1MealStore? store;
+  final Clock clock;
   final CameraService? camera;
   final Tier1Cloud? cloud;
   @override
@@ -68,7 +71,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   void dispose(){WidgetsBinding.instance.removeObserver(this);if(_camera is CameraLifecycleService)unawaited((_camera as CameraLifecycleService).dispose());super.dispose();}
   Future<void> _open(Tier1Meal meal) async {
     if(_store==null)return;
-    await Navigator.of(context).push(MaterialPageRoute<void>(builder:(_)=>_MealEditor(meal:meal,store:_store!,cloud:widget.cloud)));
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder:(_)=>_MealEditor(meal:meal,store:_store!,cloud:widget.cloud,clock:widget.clock)));
     await _refresh();
     if(mounted)setState(()=>_history=true);
   }
@@ -81,7 +84,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         final permission=await _camera.requestPermission();
         if(permission!=CameraPermissionRequestResult.granted)throw StateError('Camera permission needed');
       }
-      final shutter=DateTime.now();
+      final shutter=widget.clock.now();
       final file=await _camera.captureStill();
       if(file==null)return;
       ownedCapture=file.path;
@@ -137,14 +140,15 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
           title:Text(meal.name),subtitle:Text('${meal.served==null?'No estimate yet':'Approximate served · ${meal.served!.kcal.round()} kcal'}\n${meal.consumedKcal==null?'Consumption not confirmed':'Confirmed consumed · ${meal.consumedKcal!.round()} kcal'}'),
           isThreeLine:true,onTap:()=>_open(meal));})):_cameraView()),
       SafeArea(top:false,child:Padding(padding:const EdgeInsets.all(12),child:Row(children:[
-        Expanded(child:OutlinedButton.icon(onPressed:_store==null||_error!=null?null:()=>_open(Tier1Meal(id:const Uuid().v4(),capturedAt:DateTime.now(),name:'New meal')),icon:const Icon(Icons.edit_outlined),label:const Text('Manual entry'))),
+        Expanded(child:OutlinedButton.icon(onPressed:_store==null||_error!=null?null:()=>_open(Tier1Meal(id:const Uuid().v4(),capturedAt:widget.clock.now(),name:'New meal')),icon:const Icon(Icons.edit_outlined),label:const Text('Manual entry'))),
       ]))),
     ]));
 }
 
 class _MealEditor extends StatefulWidget {
-  const _MealEditor({required this.meal,required this.store,this.cloud});
+  const _MealEditor({required this.meal,required this.store,this.cloud,required this.clock});
   final Tier1Meal meal;
+  final Clock clock;
   final Tier1MealStore store;
   final Tier1Cloud? cloud;
   @override
@@ -214,7 +218,7 @@ class _MealEditorState extends State<_MealEditor> {
         FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Confirm repeat'))]));
     final amount=double.tryParse(multiplier.text);multiplier.dispose();
     if(confirmed!=true||amount==null)return;
-    try{await widget.store.save(_meal.repeat(const Uuid().v4(),DateTime.now(),amount));if(mounted)Navigator.pop(context);}
+    try{await widget.store.save(_meal.repeat(const Uuid().v4(),widget.clock.now(),amount));if(mounted)Navigator.pop(context);}
     catch(_){if(mounted)setState(()=>_message='Choose a portion multiplier above 0 and at most 10.');}
   }
   Future<void> _delete() async {

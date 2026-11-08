@@ -8,13 +8,6 @@ on:
     branches:
       - main
   workflow_call:
-  workflow_dispatch:
-    inputs:
-      scope:
-        description: 'Verification scope (all is required for APK builds)'
-        type: choice
-        options: [all, tier1]
-        default: all
 
 permissions:
   contents: read
@@ -49,18 +42,12 @@ jobs:
         run: pwsh --version
 
       - name: Run tests
-        run: |
-          if [ "${{ inputs.scope }}" = "tier1" ]; then
-            fvm flutter test test/tier1 --reporter expanded
-          else
-            fvm flutter test --reporter compact
-          fi
+        run: fvm flutter test --reporter compact
 
       - name: Analyze Tier1 feature
         run: fvm flutter analyze lib/features/tier1 test/tier1
 
   functions:
-    if: github.event_name != 'workflow_dispatch' || inputs.scope != 'tier1'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
