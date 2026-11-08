@@ -18,7 +18,9 @@ The unchanged A1 ran once on each of20 frozen Nutrition5k TEST RGB scans with re
 
 ## Decision
 
-The local workflow and approved callable deployment are working. The measured engineering gap is nutrient-record coverage and matching: six records leave A0 unscorable on19/20 public cases and most A1 energy unverified. The next experiment should evaluate a separately versioned, broader audited nutrient catalog with the same recognition/portion pipeline. Keep the completed run frozen and report paired coverage/error changes; do not assume more database matches automatically improve calorie accuracy. Depth, printed reference objects and model training have no demonstrated priority from these results.
+The working deployed callable remains the six-record v1 baseline. A73-record candidate was implemented with exact USDA source checks and independently audited, then run once on the same20 public images. Coverage and attribution improved, but MAE rose71.54→78.05kcal while P90 fell155.45→137.80. This reused development comparison does not establish an accuracy improvement, so v2 is not promoted. [Actual comparison and source evidence](docs/tier1-catalog-v2-2026-11-08/report.md).
+
+Continue public measurement with10 previously unviewed scans across200–1000kcal, at least two reference ingredients and150g, under both frozen versions. Preserve all original20 cases and report the fresh10 and combined30 separately. This corrects the first sample's lack of >600kcal references without claiming independent completed plates. No printed object, owner installation or personal weighing is a prerequisite. No model/candidate tuning based on those outcomes.
 
 ## Actual verification
 

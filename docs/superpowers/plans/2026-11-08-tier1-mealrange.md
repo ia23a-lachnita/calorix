@@ -1,0 +1,14 @@
+# Tier1 meal-energy benchmark extension
+
+> Execute continuously with superpowers:executing-plans. User directs autonomous continuation without requiring their phone. Existing worker-exhaustion/native-edit exception persists for the same Tier1 feature; keep pre/post MCP review, TDD, commits and pushes.
+
+**Goal:** Add10 previously unviewed public reference scans with meal-sized energy and compare both frozen versions, yielding30 unique public cases without pretending they are owner Android meals.
+**Architecture:** Reuse pinned Nutrition5k parsing/JPEG conversion and the existing runPublicEvaluation API. Freeze10 selected IDs before image download. Use unchanged v1 code from0bf1f96 and unchanged v2 from842b208, isolated source/compiled modules with pre-network source/digest checks. No model/catalog/prompt tuning, phone change, deployment or mandatory weighing.
+**Spec:** V7.1 with user's explicit priority to use public evaluation and keep executing.
+
+- [ ] TDD selection: official overheadRGBTEST, original source validity/nondeprecated/sum checks, exclude76legacyIDs/their42dates and20recentIDs;150gminimum,>=2reference ingredients; energy strata [600,1000):4, [400,600):3, [200,400):3. Process high→mid→low, hash-rank dates then IDs with seed calorix-tier1-mealrange-20261108-v1, one unique date within10. Dates from recent20 may recur; disclose correlation. No fallback/replacement if quota unavailable. Test quotas, deterministic order, ID/date exclusions and range boundaries.
+- [ ] Freeze selected10 and hashes before individually fetching PNGs; same RGBJPEG85/subsampling2/emptyEXIF/noresize. Data failures retained. Existing20 references/runs unchanged; do not call these10 completed independent plates.
+- [ ] TDD frozen-engine preflight: exact Git source commits, committed/clean manifest, source/compiled digests and current locked dependency versions, reject reused run directory/control receipt and missing consent before networking. Use ordinary detached clean worktree or byte-verified isolated compilation; do not alter either engine. Existing API max20 preserved; exactly10 calls per engine, no retry/fallback or reference answers.
+- [ ] Commit/push source/manifest and pre-live review before20maximum new requests. Produce fresh10 and combined30 descriptive metrics separately, all coverage/failures/unknowns and both A0paired subsets. Complete available regression checks and independent result/source review, update status/pilot and push. No installation handoff as a prerequisite.
+
+Pre-MCP calorix-tier1-mealrange-20261108 primary3.8 agree/MUSTnone. Source availability47eligible scans/19dates (25low/14dates,11mid/7,11high/8). Catalog expansion remains unpromoted after reused20 MAE71.54→78.05; no post-result tuning. Reviewer extra language suggesting a Pareto launch threshold, significance or causal mass dominance is not adopted. Baseline and candidate are frozen experiments, not automatic production promotions.
