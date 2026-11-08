@@ -20,7 +20,7 @@ prompt_source: functions/src/tier1-analysis.ts:TIER1_PROMPT
 prompt_sha256: 7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566
 output_schema_source: functions/src/tier1-analysis.ts:TIER1_RESPONSE_SCHEMA
 output_schema_version: 1
-output_schema_sha256: 8332c48b180aca302fae90d6e372c06114cb3e08ec11c3279a665e9f8f02e755
+output_schema_sha256: 4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185
 nutrient_catalog: functions/src/tier1-catalog.ts
 nutrient_catalog_version: usda-sr-2019-tier1-20261108-v1
 nutrient_catalog_records: 6
@@ -45,3 +45,6 @@ privacy_scope: personal opt-in prototype; public distribution review remains sep
 accuracy_claims: none; no numeric uncertainty intervals
 real_weighed_meal_count: 0
 pilot_target_different_meals: 30
+
+wire_constraint_policy: structural grammar only; numeric/string/array limits enforced by strict Zod client validator, not wire decoding
+wire_compatibility_evidence: bounded grammar HTTP400; same structural grammar text request HTTP200 on 2026-11-08

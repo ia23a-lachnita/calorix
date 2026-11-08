@@ -110,6 +110,22 @@ class EvaluatorTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             reference_energy(m)
 
+    def test_batch_input_fraction_divergence_also_requires_evidence(self):
+        m = meal()
+        m['cooking_batches'][0]['ingredient_allocations'][0]['energy_fraction'] = 0
+        with self.assertRaises(ValueError):
+            reference_energy(m)
+
+    def test_timing_path_strata_do_not_blend_question_and_retake(self):
+        a, b = meal(), meal('m2')
+        pa, pb = prediction('A1', 180), prediction('A1', 180)
+        pa.update(workflow_path='question', shutter_to_estimate_ms=15000)
+        pb.update(workflow_path='retake', shutter_to_estimate_ms=40000)
+        a['predictions'], b['predictions'] = [pa], [pb]
+        route = evaluate({'schema_version': '1.0', 'meals': [a, b]})['routes']['A1']
+        self.assertEqual(route['timing_by_path']['question']['shutter_to_estimate_ms']['p50'], 15000)
+        self.assertEqual(route['timing_by_path']['retake']['shutter_to_estimate_ms']['p50'], 40000)
+
 
 if __name__ == '__main__':
     unittest.main()

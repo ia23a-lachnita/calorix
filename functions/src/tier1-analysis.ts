@@ -67,7 +67,16 @@ export function estimateA0(catalogIds:string[]):Tier1Estimate {
 }
 
 const nutrientWire={type:'object',additionalProperties:false,properties:{kcal:{type:'number',minimum:0,maximum:10000},proteinG:{type:'number',minimum:0,maximum:100},carbsG:{type:'number',minimum:0,maximum:100},fatG:{type:'number',minimum:0,maximum:100}},required:['kcal','proteinG','carbsG','fatG']};
-export const TIER1_RESPONSE_SCHEMA={type:'object',additionalProperties:false,properties:{schemaVersion:{type:'integer',enum:[1]},mealName:{type:'string',minLength:1,maxLength:160},components:{type:'array',minItems:0,maxItems:20,items:{type:'object',additionalProperties:false,properties:{name:{type:'string',minLength:1,maxLength:160},massG:{type:'number',minimum:1e-9,maximum:100000},catalogId:{anyOf:[{type:'string',enum:CATALOG.map(r=>r.id)},{type:'null'}]},preparation:{type:'string',minLength:1,maxLength:200},assumptions:{type:'array',maxItems:8,items:{type:'string',maxLength:300}},estimatedPer100:{anyOf:[nutrientWire,{type:'null'}]}},required:['name','massG','catalogId','preparation','assumptions','estimatedPer100']}},ambiguities:{type:'array',maxItems:10,items:{type:'string',maxLength:300}},askAddedFat:{type:'boolean'}},required:['schemaVersion','mealName','components','ambiguities','askAddedFat']};
+const validationWireShape={type:'object',additionalProperties:false,properties:{schemaVersion:{type:'integer',enum:[1]},mealName:{type:'string',minLength:1,maxLength:160},components:{type:'array',minItems:0,maxItems:20,items:{type:'object',additionalProperties:false,properties:{name:{type:'string',minLength:1,maxLength:160},massG:{type:'number',minimum:1e-9,maximum:100000},catalogId:{anyOf:[{type:'string',enum:CATALOG.map(r=>r.id)},{type:'null'}]},preparation:{type:'string',minLength:1,maxLength:200},assumptions:{type:'array',maxItems:8,items:{type:'string',maxLength:300}},estimatedPer100:{anyOf:[nutrientWire,{type:'null'}]}},required:['name','massG','catalogId','preparation','assumptions','estimatedPer100']}},ambiguities:{type:'array',maxItems:10,items:{type:'string',maxLength:300}},askAddedFat:{type:'boolean'}},required:['schemaVersion','mealName','components','ambiguities','askAddedFat']};
+
+/** Vertex rejects the bounded grammar (actual HTTP400). Keep structure on wire;
+ * strict numeric/string/array limits remain enforced by parseInventory/Zod. */
+function structuralWire(value:unknown):unknown {
+  if(Array.isArray(value))return value.map(structuralWire);
+  if(value && typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([key])=>!['minimum','maximum','exclusiveMinimum','minItems','maxItems','minLength','maxLength'].includes(key)).map(([key,item])=>[key,structuralWire(item)]));
+  return value;
+}
+export const TIER1_RESPONSE_SCHEMA=structuralWire(validationWireShape) as Record<string,unknown>;
 
 export class Tier1InferenceFailure extends Error {
   constructor(readonly category:'no_food') {super(category);}

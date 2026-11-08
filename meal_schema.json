@@ -207,6 +207,10 @@
                         "type": "number",
                         "minimum": 0,
                         "maximum": 1
+                      },
+                      "allocation_evidence": {
+                        "type": "string",
+                        "minLength": 1
                       }
                     },
                     "required": [
@@ -306,7 +310,8 @@
                       "component_mass_allocation_fraction",
                       "allocation_method"
                     ],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "Fractions describe source energy and mass. The executable evaluator requires independent evidence when direct ingredient fractions differ; this relational rule is enforced by evaluate_meals.py."
                   }
                 },
                 "homogeneous": {
@@ -444,6 +449,14 @@
                   "type": [
                     "string",
                     "null"
+                  ]
+                },
+                "workflow_path": {
+                  "enum": [
+                    "no_question",
+                    "question",
+                    "retake",
+                    "unknown"
                   ]
                 }
               },

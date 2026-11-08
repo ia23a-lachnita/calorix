@@ -69,6 +69,8 @@ def reference_energy(meal):
                 raise ValueError('Unknown batch ingredient')
             ef = fraction(allocation.get('energy_fraction'), 'ingredient energy fraction')
             mf = fraction(allocation.get('mass_fraction'), 'ingredient mass fraction')
+            if abs(ef-mf) > 1e-6 and not allocation.get('allocation_evidence'):
+                raise ValueError('Unequal batch ingredient mass/energy fractions require independent evidence')
             ingredient_use[i][0] += ef
             ingredient_use[i][1] += mf
             retained += energy[('ingredient', i)]*ef
@@ -191,6 +193,9 @@ def evaluate(dataset):
                     number(p[key], key)
             by_route[route] = p
         predictions[meal['meal_id']] = by_route
+    def timing(values):
+        return {'measured': len(values), 'p50': quantile(values, .5), 'p95': quantile(values, .95)}
+
     routes = {}
     for route in ('A0', 'A1'):
         counts = Counter()
@@ -198,12 +203,19 @@ def evaluate(dataset):
         mixed, single, size = [], [], {'under_200': [], '200_to_600': [], 'over_600': []}
         latencies, shutters, costs, interaction, walls = [], [], [], [], []
         costs_missing = False
+        paths = {p: {k: [] for k in ('latency_ms', 'shutter_to_estimate_ms', 'active_user_ms', 'wall_clock_ms')} for p in ('no_question', 'question', 'retake', 'unknown')}
         for meal in meals:
             p = predictions[meal['meal_id']].get(route)
             status = p['status'] if p else 'missing'
             counts[status] += 1
             ref = references[meal['meal_id']]
             if p:
+                path = p.get('workflow_path', 'unknown')
+                if path not in paths:
+                    raise ValueError('Invalid workflow timing path')
+                for key in paths[path]:
+                    if p.get(key) is not None:
+                        paths[path][key].append(p[key])
                 if p.get('cost_usd') is None:
                     costs_missing = True
                 else:
@@ -236,6 +248,7 @@ def evaluate(dataset):
             'shutter_to_estimate_ms': {'measured': len(shutters), 'p50': quantile(shutters, .5), 'p95': quantile(shutters, .95)},
             'active_user_ms': {'measured': len(interaction), 'p50': quantile(interaction, .5), 'p95': quantile(interaction, .95)},
             'wall_clock_ms': {'measured': len(walls), 'p50': quantile(walls, .5), 'p95': quantile(walls, .95)},
+            'timing_by_path': {path: {('inference_latency_ms' if key == 'latency_ms' else key): timing(values) for key, values in fields.items()} for path, fields in paths.items()},
             'cost_usd_total': sum(costs) if costs and not costs_missing and not counts['missing'] else None,
             'corrections': sum(p.get('corrections', 0) for ps in predictions.values() if (p := ps.get(route))),
             'missing_foods': sum(len(p.get('missing_foods', [])) for ps in predictions.values() if (p := ps.get(route)))}

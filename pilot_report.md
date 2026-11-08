@@ -18,7 +18,10 @@ Ship the code to the dedicated phone for local workflow testing after source/che
 
 ## Actual verification
 
-- Initial Functions controls117/117 passed. Tier1 focused tests pass; final counts/full-suite status are in the persistent status file.
-- Evaluator7/7 synthetic tests passed; empty input yields0 meals and null accuracy.
+- Initial Functions controls117/117 passed; latest Tier1 backend/CLI19/19 pass, with strict parser and consent tests. The full Pi suite passed5326 tests/1 historical skip; it began before the final CLI addition and is supplemented by the focused run. Final immutable CI remains the completion gate.
+- Evaluator11/11 synthetic tests passed; empty input yields0 meals and null accuracy. Timing distinguishes model inference from shutter-to-estimate and question/retake paths.
 - Android test-first CI42426878949 at6dfefa1:949 passed,1 historical skip,2 new expected compile failures because Tier1 modules were absent.
-- Subsequent/final builds, source checksums, physical runtime evidence and remaining blockers will be appended here after they finish. No current-source phone result is implied by source inspection.
+- Focused Flutter run42438268764 at837c428 passed9/9 local/widget tests; analysis then found4 style/cast issues, now corrected pending final CI.
+- New inference was exercised only on an owned generated **blank, non-food JPEG**:4 image SDK requests total (first3 rejected by the provider schema compiler; final accepted structural wire produced explicit `no_food` with the exact3.8 model pin). Four text-only diagnostic calls isolated schema compatibility. These are transport/error-path checks, not food or calorie evidence. Strict local Zod limits remain enforced; wire grammar does not enforce numeric/string/array bounds.
+- Node20 CI's3 preexisting hostile-error fixture failures were reproduced and corrected by eagerly materializing V8's lazy stack before installing getters. All original zero-read assertions remain; focused3/3 pass on Node20.
+- Final builds, source checksums, physical runtime evidence and remaining blockers will be appended after they finish. No current-source phone result is implied by source inspection.

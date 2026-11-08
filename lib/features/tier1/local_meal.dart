@@ -28,7 +28,9 @@ class Tier1Meal {
     this.consumedFraction, this.cloudConsent = false, this.source = 'manual',
     this.revision = 0, this.repeatOf}) {
     if (!RegExp(r'^[a-zA-Z0-9_-]{1,80}$').hasMatch(id) || name.trim().isEmpty ||
-        name.length > 160 || revision < 0) throw ArgumentError('Invalid meal record');
+        name.length > 160 || revision < 0) {
+      throw ArgumentError('Invalid meal record');
+    }
     if (consumedFraction != null && (!consumedFraction!.isFinite || consumedFraction! < 0 || consumedFraction! > 1 || served == null)) {
       throw ArgumentError('Invalid confirmed consumption');
     }

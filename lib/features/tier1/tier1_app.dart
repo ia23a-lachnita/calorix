@@ -91,7 +91,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       final frame=await codec.getNextFrame();
       final width=frame.image.width,height=frame.image.height;
       frame.image.dispose();codec.dispose();
-      final device=_camera is DeviceCameraService?(_camera as DeviceCameraService).previewController:null;
+      final device=_camera is DeviceCameraService?_camera.previewController:null;
       final id=const Uuid().v4();
       final path=await _store!.retainCapture(id,file.path);
       final meal=Tier1Meal(id:id,capturedAt:shutter,name:'New meal',photoPath:path,source:'photo',metadata:{
@@ -112,7 +112,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     }
   }
   Widget _cameraView() {
-    final controller=_camera is DeviceCameraService?(_camera as DeviceCameraService).previewController:null;
+    final controller=_camera is DeviceCameraService?_camera.previewController:null;
     return Stack(fit:StackFit.expand,children:[
       if(controller!=null&&controller.value.isInitialized)CameraPreview(controller)
       else Center(child:Text('One photo of your meal',style:Theme.of(context).textTheme.titleLarge)),
@@ -126,7 +126,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   }
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar:AppBar(title:Text(AppConstants.appDisplayName),actions:[TextButton(onPressed:()=>setState(()=>_history=!_history),child:Text(_history?'Camera':'History'))]),
+    appBar:AppBar(title:const Text(AppConstants.appDisplayName),actions:[TextButton(onPressed:()=>setState(()=>_history=!_history),child:Text(_history?'Camera':'History'))]),
     body:Column(children:[
       if(_error!=null)Padding(padding:const EdgeInsets.all(16),child:Text(_error!)),
       if(_cameraWarning!=null)Padding(padding:const EdgeInsets.all(16),child:Text(_cameraWarning!)),
