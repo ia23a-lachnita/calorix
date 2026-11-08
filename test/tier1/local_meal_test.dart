@@ -49,4 +49,38 @@ void main() {
     expect(await store.replaceIfRevision(first,first.revision),isFalse);
     expect(await store.load(),isEmpty);
   });
+  test('unchanged edit preserves confirmed consumption and original provenance', () {
+    final confirmed=meal('a').confirmConsumption(1);
+    final saved=confirmed.edit('Rice',Tier1Nutrients(kcal:260,proteinG:5.38,carbsG:56.34,fatG:0.56));
+    expect(saved.consumedKcal,260);
+    expect(saved.source,confirmed.source);
+  });
+  test('preparation answer retains component arithmetic and source once', () {
+    final original=meal('a').withAnalysis({
+      'mealName':'Rice','totals':{'kcal':260,'proteinG':5.38,'carbsG':56.34,'fatG':.56},
+      'components':[{'name':'Rice','massG':200,'nutrients':{'kcal':260,'proteinG':5.38,'carbsG':56.34,'fatG':.56},'source':{'kind':'database_match','recordId':'usda:168878'}}],
+      'ambiguities':[], 'question':{'id':'added-fat','answered':false,'answer':null,'options':[
+        {'id':'oil_10g','label':'About 2 tsp oil (10 g)', 'add':{'kcal':88.4,'proteinG':0,'carbsG':0,'fatG':10},
+         'component':{'name':'Additional oil','massG':10,'nutrients':{'kcal':88.4,'proteinG':0,'carbsG':0,'fatG':10},'source':{'kind':'database_match','recordId':'usda:171413'}}}
+      ]}});
+    final answered=original.answerPreparation('oil_10g');
+    expect(answered.served!.kcal,closeTo(348.4,.00001));
+    final components=answered.analysis!['components'] as List;
+    expect(components.length,2);
+    expect((components.last as Map)['source']['recordId'],'usda:171413');
+    expect(() => answered.answerPreparation('oil_10g'),throwsStateError);
+  });
+  test('owned camera capture is disposed after retention and delete removes retained copy', () async {
+    final root=await Directory.systemTemp.createTemp('calorix-tier1-test-');
+    addTearDown(() => root.delete(recursive:true));
+    final captured=File('${root.path}/owned-camera-cache.jpg');
+    await captured.writeAsBytes([255,216,255,217]);
+    final store=Tier1MealStore(Directory('${root.path}/history'));
+    final retained=await store.retainCapture('photo',captured.path);
+    expect(await captured.exists(),isFalse);
+    await store.save(Tier1Meal(id:'photo',capturedAt:date,name:'Photo',photoPath:retained));
+    await store.delete('photo');
+    expect(await File(retained).exists(),isFalse);
+  });
+
 }

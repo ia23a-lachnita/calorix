@@ -1,0 +1,47 @@
+manifest_version: 1
+baseline: A1
+requested_model: gemini-3.8-flash
+returned_model_policy: exact equality or explicit failure
+weight_snapshot: hosted service ID; immutable weight snapshot unavailable
+provider: Google Cloud Vertex
+project: calorix-xurschnell
+location: us
+endpoint: https://aiplatform.us.rep.googleapis.com/
+api_version: v1
+sdk: '@google/genai@2.19.0'
+thinking_level: LOW
+zero_shot: true
+image_count: 1
+max_output_tokens: 8192
+timeout_ms: 30000
+sdk_attempts: 1
+model_fallback: none
+prompt_source: functions/src/tier1-analysis.ts:TIER1_PROMPT
+prompt_sha256: 7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566
+output_schema_source: functions/src/tier1-analysis.ts:TIER1_RESPONSE_SCHEMA
+output_schema_version: 1
+output_schema_sha256: 6a9fc1c5fe250da1f5dd8951b449c354f6952b2cf4c46156f7d12fb3cad8a702
+nutrient_catalog: functions/src/tier1-catalog.ts
+nutrient_catalog_version: usda-sr-2019-tier1-20261108-v1
+nutrient_catalog_records: 6
+nutrient_source: USDA FoodData Central SR Legacy; real record IDs/preparation/publication/retrieval/response SHA retained
+matching_policy: nutrient records verified; visual identity and preparation match remain estimates
+unmatched_policy: explicitly unverified VLM per-100g estimate, requires review, never invented record IDs
+question_policy: at most one optional additional-oil question; deterministic locally applied nutrients; no second image request
+A0: frozen serving priors with same A1 identities, preparation, question answer and catalog; uncovered food is failure
+cost_usd_per_request: null
+cost_status: unmeasured; SDK token usage recorded, no zero-cost/free claim
+pricing_reference: https://cloud.google.com/vertex-ai/generative-ai/pricing
+authentication: ADC on server; authenticated Firebase callable; no model secret in Android
+app_server_photo_retention: no persistence or raw request logging in Tier1 callable
+provider_retention: provider-managed abuse monitoring and caching; not zero retention
+provider_cache_observed: DURABLE on 2026-11-07 (read only; unchanged)
+provider_terms: https://cloud.google.com/vertex-ai/generative-ai/docs/data-governance
+cloud_consent_version: tier1-v1
+cloud_region_disclosure: United States
+photo_metadata_upload: recompressed JPEG, EXIF removed
+local_retention: app-private until user deletes; Android backup and transfer excluded
+privacy_scope: personal opt-in prototype; public distribution review remains separate
+accuracy_claims: none; no numeric uncertainty intervals
+real_weighed_meal_count: 0
+pilot_target_different_meals: 30

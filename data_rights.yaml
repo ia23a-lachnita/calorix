@@ -1,0 +1,36 @@
+manifest_version: 1
+assets:
+  - source_id: usda-sr-2019-tier1-20261108-v1
+    source_url: https://fdc.nal.usda.gov/data-documentation/
+    asset_version: six SR Legacy records fetched 2026-11-07; individual publication/retrieval/SHA in catalog
+    license: USDA FoodData Central public data; retain attribution and provenance
+    code_license: not applicable (nutrient data)
+    weights_license: not applicable
+    evaluation_allowed: true
+    redistribution_allowed: true
+    commercial_training_allowed: not used for training
+    privacy_basis: public nutrient composition records, no meal photos
+    approval_state: small attributed nutrient subset for prototype
+    evidence_link: https://fdc.nal.usda.gov/api-guide.html
+  - source_id: vertex-gemini-3.8-flash
+    source_url: https://cloud.google.com/terms/service-terms
+    asset_version: hosted model ID, exact returned version required
+    license: hosted Google Cloud service terms; no weights downloaded
+    code_license: Apache-2.0 SDK
+    weights_license: provider-hosted, not redistributed
+    commercial_training_allowed: no training performed
+    evaluation_allowed: personal opt-in inference under configured project terms
+    redistribution_allowed: no model weights redistributed
+    privacy_basis: explicit per-photo consent, metadata stripped, US provider processing disclosed
+    approval_state: prototype only; public distribution/third-party data review pending
+    evidence_link: https://cloud.google.com/vertex-ai/generative-ai/docs/data-governance
+  - source_id: physical-android-pilot
+    asset_version: not collected
+    source_url: local private phone capture
+    privacy_basis: owner-controlled personal meals, explicit cloud opt-in
+    evaluation_allowed: only after real collection and independent weighed reference
+    redistribution_allowed: false
+    commercial_training_allowed: false
+    code_license: not applicable
+    weights_license: not applicable
+    approval_state: zero meals; no third-party recruitment or public photo redistribution

@@ -150,7 +150,7 @@ class _MealEditorState extends State<_MealEditor> {
   late final _protein=TextEditingController(text:_meal.served?.proteinG?.toString()??'');
   late final _carbs=TextEditingController(text:_meal.served?.carbsG?.toString()??'');
   late final _fat=TextEditingController(text:_meal.served?.fatG?.toString()??'');
-  bool _busy=false;
+  bool _busy=false,_dirty=false;
   String? _message;
   @override
   void dispose(){for(final c in [_name,_kcal,_protein,_carbs,_fat]){c.dispose();}super.dispose();}
@@ -222,7 +222,7 @@ class _MealEditorState extends State<_MealEditor> {
     catch(_){if(mounted)setState(()=>_message='Deletion could not finish. Check local storage and try again.');}
   }
   Widget _number(String label,TextEditingController controller,{bool isRequired=false}) => TextFormField(
-    controller:controller,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:label),
+    controller:controller,enabled:!_busy,onChanged:(_)=>setState(()=>_dirty=true),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:label),
     validator:(text){if(text==null||text.trim().isEmpty)return isRequired?'Enter served calories':null;final n=double.tryParse(text);return n==null||!n.isFinite||n<0||n>1000000?'Enter a finite value from 0 to 1000000':null;});
   @override
   Widget build(BuildContext context) {
@@ -234,8 +234,8 @@ class _MealEditorState extends State<_MealEditor> {
         const SizedBox(height:16),Text('Approximate served calories',style:Theme.of(context).textTheme.headlineSmall),
         Text(_meal.consumedKcal==null?'Consumption not confirmed':'Confirmed consumed · ${_meal.consumedKcal!.round()} kcal'),
         if(_message!=null)Padding(padding:const EdgeInsets.symmetric(vertical:12),child:Text(_message!,semanticsLabel:_message)),
-        if(_meal.photoPath!=null)FilledButton.icon(onPressed:_busy?null:_estimate,icon:const Icon(Icons.auto_awesome_outlined),label:Text(_busy?'Estimating…':'Estimate photo')),
-        TextFormField(controller:_name,decoration:const InputDecoration(labelText:'Meal name'),validator:(v)=>v==null||v.trim().isEmpty||v.trim().length>160?'Enter a meal name (up to 160 characters)':null),
+        if(_meal.photoPath!=null)FilledButton.icon(onPressed:_busy||_dirty?null:_estimate,icon:const Icon(Icons.auto_awesome_outlined),label:Text(_busy?'Estimating…':'Estimate photo')),
+        TextFormField(controller:_name,enabled:!_busy,onChanged:(_)=>setState(()=>_dirty=true),decoration:const InputDecoration(labelText:'Meal name'),validator:(v)=>v==null||v.trim().isEmpty||v.trim().length>160?'Enter a meal name (up to 160 characters)':null),
         const SizedBox(height:12),_number('Served kcal',_kcal,isRequired:true),
         const SizedBox(height:12),_number('Protein g (optional)',_protein),
         const SizedBox(height:12),_number('Carbs g (optional)',_carbs),
@@ -257,13 +257,14 @@ class _MealEditorState extends State<_MealEditor> {
           if(_meal.source=='manual_correction')const Text('Totals were manually corrected. Original recognition is retained for comparison.'),
         ],
         if(_meal.served!=null)...[
+          if(_dirty)const Text('Save changes before confirming consumption or repeating this meal.'),
           const Divider(),Wrap(spacing:8,children:[
-            OutlinedButton(onPressed:_busy?null:()=>_consume(1),child:const Text('Ate all')),
-            OutlinedButton(onPressed:_busy?null:()=>_consume(.5),child:const Text('Ate half')),
-            TextButton(onPressed:_busy?null:()=>_consume(null),child:const Text('Leave unconfirmed')),
+            OutlinedButton(onPressed:_busy||_dirty?null:()=>_consume(1),child:const Text('Ate all')),
+            OutlinedButton(onPressed:_busy||_dirty?null:()=>_consume(.5),child:const Text('Ate half')),
+            TextButton(onPressed:_busy||_dirty?null:()=>_consume(null),child:const Text('Leave unconfirmed')),
           ]),
           const Text('A fraction is an approximate shortcut; selective leftovers can have different calories.'),
-          OutlinedButton(onPressed:_busy?null:_repeat,child:const Text('Repeat meal')),
+          OutlinedButton(onPressed:_busy||_dirty?null:_repeat,child:const Text('Repeat meal')),
         ],
       ])));
   }

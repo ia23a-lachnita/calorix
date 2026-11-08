@@ -86,6 +86,30 @@ class EvaluatorTest(unittest.TestCase):
         m['consumed_reference_method'] = 'confirmed_ate_all'
         self.assertEqual(reference_energy(m)['consumed_kcal'], 180)
 
+    def test_inference_and_shutter_latency_are_separate_observations(self):
+        m = meal()
+        p = prediction('A1', 180)
+        p['shutter_to_estimate_ms'] = 20000
+        m['predictions'] = [p]
+        report = evaluate({'schema_version': '1.0', 'meals': [m]})['routes']['A1']
+        self.assertEqual(report['inference_latency_ms']['p50'], 1000)
+        self.assertEqual(report['shutter_to_estimate_ms']['p50'], 20000)
+        del p['shutter_to_estimate_ms']
+        report = evaluate({'schema_version': '1.0', 'meals': [m]})['routes']['A1']
+        self.assertIsNone(report['shutter_to_estimate_ms']['p50'])
+
+    def test_direct_ingredient_energy_mass_divergence_needs_evidence(self):
+        m = meal()
+        m['cooking_batches'] = []
+        m['plated_components'][0]['serving_cooked_mass_g'] = 100
+        m['plated_components'][0]['source_allocations'] = [{
+            'source_type': 'ingredient', 'source_id': 'rice',
+            'component_energy_allocation_fraction': 0,
+            'component_mass_allocation_fraction': 1,
+            'allocation_method': 'measured_ingredient_allocation'}]
+        with self.assertRaises(ValueError):
+            reference_energy(m)
+
 
 if __name__ == '__main__':
     unittest.main()

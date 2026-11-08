@@ -33,7 +33,7 @@ function sum(values:Nutrients[]):Nutrients {
 }
 const oil = CATALOG.find(r=>r.id==='usda:171413')!;
 function question():NonNullable<Tier1Estimate['question']> {
-  return {id:'added-fat',text:'Was there extra oil in this serving, beyond the foods and sauces listed?',answered:false,answer:null,options:([['none','No extra oil / skip',0],['oil_5g','About 1 tsp oil (5 g)',5],['oil_10g','About 2 tsp oil (10 g)',10],['oil_15g','About 1 tbsp oil (15 g)',15]] as const).map(([id,label,grams])=>({id,label,add:scaleNutrients(oil.per100,grams/100)}))};
+  return {id:'added-fat',text:'Was there extra oil in this serving, beyond the foods and sauces listed?',answered:false,answer:null,options:([['none','No extra oil',0],['oil_5g','About 1 tsp oil (5 g)',5],['oil_10g','About 2 tsp oil (10 g)',10],['oil_15g','About 1 tbsp oil (15 g)',15]] as const).map(([id,label,grams])=>({id,label,add:scaleNutrients(oil.per100,grams/100)}))};
 }
 export function reconcileInventory(value:unknown):Tier1Estimate {
   const inventory=parseInventory(value);
@@ -52,7 +52,7 @@ export function answerPreparation(estimate:Tier1Estimate,answer:PreparationAnswe
   if(!option) throw new Error('Unsupported answer');
   const grams={none:0,oil_5g:5,oil_10g:10,oil_15g:15}[answer];
   const addition=grams?reconcileInventory({schemaVersion:1,mealName:'Additional oil',components:[{name:'User-confirmed additional olive oil',massG:grams,catalogId:oil.id,preparation:'oil',assumptions:['User estimate of additional oil; not weighed'],estimatedPer100:null}],ambiguities:[],askAddedFat:false}).components:[];
-  return {...estimate,components:[...estimate.components,...addition],totals:sum([estimate.totals,option.add]),question:{...estimate.question,answered:true,answer}};
+  return {...estimate,components:[...estimate.components,...addition],totals:sum([estimate.totals,option.add]),question:{...estimate.question,answered:true,answer},requiresReview:estimate.components.some(c=>c.source.kind!=='database_match')||estimate.ambiguities.length>0};
 }
 export function estimateA0(catalogIds:string[]):Tier1Estimate {
   const components=catalogIds.map(id=>{
@@ -65,7 +65,17 @@ export function estimateA0(catalogIds:string[]):Tier1Estimate {
 }
 
 const nutrientWire={type:'object',additionalProperties:false,properties:{kcal:{type:'number',minimum:0,maximum:10000},proteinG:{type:'number',minimum:0,maximum:100},carbsG:{type:'number',minimum:0,maximum:100},fatG:{type:'number',minimum:0,maximum:100}},required:['kcal','proteinG','carbsG','fatG']};
-export const TIER1_RESPONSE_SCHEMA={type:'object',additionalProperties:false,properties:{schemaVersion:{type:'integer',enum:[1]},mealName:{type:'string',minLength:1,maxLength:160},components:{type:'array',minItems:1,maxItems:20,items:{type:'object',additionalProperties:false,properties:{name:{type:'string',minLength:1,maxLength:160},massG:{type:'number',exclusiveMinimum:0,maximum:100000},catalogId:{anyOf:[{type:'string',enum:CATALOG.map(r=>r.id)},{type:'null'}]},preparation:{type:'string',minLength:1,maxLength:200},assumptions:{type:'array',maxItems:8,items:{type:'string',maxLength:300}},estimatedPer100:{anyOf:[nutrientWire,{type:'null'}]}},required:['name','massG','catalogId','preparation','assumptions','estimatedPer100']}},ambiguities:{type:'array',maxItems:10,items:{type:'string',maxLength:300}},askAddedFat:{type:'boolean'}},required:['schemaVersion','mealName','components','ambiguities','askAddedFat']};
+export const TIER1_RESPONSE_SCHEMA={type:'object',additionalProperties:false,properties:{schemaVersion:{type:'integer',enum:[1]},mealName:{type:'string',minLength:1,maxLength:160},components:{type:'array',minItems:0,maxItems:20,items:{type:'object',additionalProperties:false,properties:{name:{type:'string',minLength:1,maxLength:160},massG:{type:'number',minimum:1e-9,maximum:100000},catalogId:{anyOf:[{type:'string',enum:CATALOG.map(r=>r.id)},{type:'null'}]},preparation:{type:'string',minLength:1,maxLength:200},assumptions:{type:'array',maxItems:8,items:{type:'string',maxLength:300}},estimatedPer100:{anyOf:[nutrientWire,{type:'null'}]}},required:['name','massG','catalogId','preparation','assumptions','estimatedPer100']}},ambiguities:{type:'array',maxItems:10,items:{type:'string',maxLength:300}},askAddedFat:{type:'boolean'}},required:['schemaVersion','mealName','components','ambiguities','askAddedFat']};
+
+export class Tier1InferenceFailure extends Error {
+  constructor(readonly category:'no_food') {super(category);}
+}
+/** The wire permits [] solely as an explicit failure, never as a zero-calorie success. */
+export function decodeTier1Output(text:string):Tier1Estimate {
+  const raw:unknown=JSON.parse(text);
+  if(raw && typeof raw==='object' && Array.isArray((raw as Record<string,unknown>).components) && ((raw as Record<string,unknown>).components as unknown[]).length===0)throw new Tier1InferenceFailure('no_food');
+  return reconcileInventory(raw);
+}
 
 /** Server/CLI only. ADC, fixed endpoint, one SDK attempt, no model fallback. */
 export async function inferTier1(imageBase64:string):Promise<Tier1Estimate> {
@@ -74,6 +84,6 @@ export async function inferTier1(imageBase64:string):Promise<Tier1Estimate> {
   const response=await client.models.generateContent({model:TIER1_MODEL,contents:[{role:'user',parts:[{text:TIER1_PROMPT},{inlineData:{mimeType:'image/jpeg',data:imageBase64}}]}],config:{responseMimeType:'application/json',responseJsonSchema:TIER1_RESPONSE_SCHEMA,thinkingConfig:{thinkingLevel:ThinkingLevel.LOW},maxOutputTokens:8192}});
   if(response.modelVersion!==TIER1_MODEL)throw new Error('Unexpected returned model version');
   if(!response.text)throw new Error('Empty model response');
-  const result=reconcileInventory(JSON.parse(response.text));
+  const result=decodeTier1Output(response.text);
   return {...result,provenance:{...result.provenance,returnedModel:response.modelVersion,latencyMs:Date.now()-start,inputTokens:response.usageMetadata?.promptTokenCount??null,outputTokens:response.usageMetadata?.candidatesTokenCount??null,costUsd:null}};
 }

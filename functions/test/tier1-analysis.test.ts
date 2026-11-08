@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { reconcileInventory, answerPreparation, estimateA0, parseInventory } from '../src/tier1-analysis';
+import { decodeTier1Output } from '../src/tier1-analysis';
 
 const rice = {name:'Rice',massG:200,catalogId:'usda:168878',preparation:'cooked',assumptions:[],estimatedPer100:null};
 const inventory = (extra = {}) => ({schemaVersion:1,mealName:'Rice bowl',components:[rice],ambiguities:[],askAddedFat:false,...extra});
+
+it('reports explicit non-food failure instead of a zero calorie meal', () => {
+  expect(() => decodeTier1Output(JSON.stringify(inventory({components:[]})))).toThrowError('no_food');
+});
 
 describe('Tier1 nutrient reconciliation', () => {
   it('computes served nutrients from actual cooked record, never model arithmetic', () => {

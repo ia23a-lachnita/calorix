@@ -1,0 +1,481 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ia23a-lachnita/calorix/meal_schema.json",
+  "title": "Calorix V7.1 physical weighed meals v1.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "evidence_scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "meals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "meal_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "physical_meal_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recipe_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "household_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "participant_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "capture_session_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "captured_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "device": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "minLength": 1
+              },
+              "android_version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "camera_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "image_sha256": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "model",
+              "android_version",
+              "image_sha256"
+            ],
+            "additionalProperties": false
+          },
+          "meal_type": {
+            "enum": [
+              "single",
+              "mixed"
+            ]
+          },
+          "reference_served_grade": {
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "unknown"
+            ]
+          },
+          "reference_consumed_grade": {
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "unknown"
+            ]
+          },
+          "reference_grade_reasons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "consumed_reference_method": {
+            "enum": [
+              "unknown",
+              "confirmed_ate_all",
+              "measured_component_leftovers"
+            ]
+          },
+          "reference_bounds_kcal": {
+            "type": "object",
+            "properties": {
+              "lower": {
+                "type": "number",
+                "minimum": 0
+              },
+              "upper": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "lower",
+              "upper"
+            ],
+            "additionalProperties": false
+          },
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "ingredient_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ingredient_input_g": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "ingredient_kcal_per_g": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 10
+                },
+                "ingredient_energy_source": {
+                  "type": "object",
+                  "properties": {
+                    "record_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "preparation": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "record_id",
+                    "version"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "ingredient_id",
+                "ingredient_input_g",
+                "ingredient_kcal_per_g",
+                "ingredient_energy_source"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "cooking_batches": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "cooking_batch_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ingredient_allocations": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "ingredient_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "energy_fraction": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "mass_fraction": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "required": [
+                      "ingredient_id",
+                      "energy_fraction",
+                      "mass_fraction"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "batch_cooked_edible_mass_g": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "homogeneous": {
+                  "type": "boolean"
+                },
+                "discarded_edible_energy_kcal": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "other_energy_losses_kcal": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "retention_assumption": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cooking_batch_id",
+                "ingredient_allocations",
+                "batch_cooked_edible_mass_g",
+                "homogeneous",
+                "discarded_edible_energy_kcal",
+                "other_energy_losses_kcal",
+                "retention_assumption"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "plated_components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "plated_component_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "serving_cooked_mass_g": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "source_allocations": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "source_type": {
+                        "enum": [
+                          "ingredient",
+                          "batch"
+                        ]
+                      },
+                      "source_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "component_energy_allocation_fraction": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "component_mass_allocation_fraction": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "allocation_method": {
+                        "enum": [
+                          "homogeneous_yield",
+                          "measured_ingredient_allocation"
+                        ]
+                      },
+                      "allocation_evidence": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "source_type",
+                      "source_id",
+                      "component_energy_allocation_fraction",
+                      "component_mass_allocation_fraction",
+                      "allocation_method"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "homogeneous": {
+                  "type": "boolean"
+                },
+                "leftover_cooked_mass_g": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "leftover_energy_kcal": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "leftover_reference_evidence": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "plated_component_id",
+                "serving_cooked_mass_g",
+                "source_allocations"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "predictions": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "properties": {
+                "route": {
+                  "enum": [
+                    "A0",
+                    "A1"
+                  ]
+                },
+                "status": {
+                  "enum": [
+                    "ok",
+                    "failed",
+                    "abstained",
+                    "manual"
+                  ]
+                },
+                "served_kcal": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "consumed_kcal": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "model_version": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "prompt_sha256": {
+                  "type": "string"
+                },
+                "nutrient_data_version": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "preparation_context_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "latency_ms": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "shutter_to_estimate_ms": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "active_user_ms": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "wall_clock_ms": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "cost_usd": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "corrections": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missing_foods": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "failure_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "raw_output_file": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "user_answer": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "route",
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "measurement_notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "meal_id",
+          "physical_meal_id",
+          "meal_type",
+          "reference_served_grade",
+          "reference_consumed_grade",
+          "ingredients",
+          "cooking_batches",
+          "plated_components",
+          "predictions"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "meals"
+  ],
+  "additionalProperties": false
+}
