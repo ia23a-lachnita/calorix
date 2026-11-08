@@ -56,6 +56,10 @@
 
 ## Verification completion notes
 
-Source452ef49 full Flutter960/1 existing skip and Tier1 analyzer passed. Final Functions5331/1 existing skip, build/lint/evaluator11, signed APK, preinstall integrity/privacy checks and actual Samsung focused repeat/cancel retest passed in run42443418299. Owned diagnostics were removed; deployment approval and real weighed references remain external blockers. Runtime regression was actual focused1.5 Confirm/Cancel controller-disposal RED, then current code GREEN. Initial harness lookup failures and an unfocused passing test are not called behavioral RED.
+Source452ef49 full Flutter960/1 existing skip and Tier1 analyzer passed. Final Functions5331/1 existing skip, build/lint/evaluator11, signed APK, preinstall integrity/privacy checks and actual Samsung focused repeat/cancel retest passed in run42443418299. Owned diagnostics were removed; deployment approval was subsequently granted and executed below. Real weighed references remain unavailable. Runtime regression was actual focused1.5 Confirm/Cancel controller-disposal RED, then current code GREEN. Initial harness lookup failures and an unfocused passing test are not called behavioral RED.
 
 The originally bounded smoke budget was amended through scoped MCP review for wire-schema diagnosis:4 owned blank/nonfood image requests plus4 text requests total, never meal-accuracy evidence. Structural grammar accepted; strict semantic limits remain in Zod. No fallback model and no real meals collected.
+
+## Authorized deployment follow-through
+
+User approved onlyanalyzeTier1Meal. Node20's actual retirement rejection required minimalNode22 engine/root-lock/CI update and matching existing contract expectation after RED. Source daf3e43 passed fullNode22 CI42470126908 and selected deployment returned0. Live ACTIVE revisionanalyzetier1meal-00001-puf/512Mi/60s/max2/concurrency1 verified; three old functions/rules unchanged. Negative auth401 and one consented owned non-food phone request AuthVALID/HTTP400/manualfallback verified; exact errorcategory unobserved. AppCheck warning/enforcementoff recorded, no public-security claim. Fixture cleaned. Approval blocker resolved; physical0/30 remains. See deployment receipt.

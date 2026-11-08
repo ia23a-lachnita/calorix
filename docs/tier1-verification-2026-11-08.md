@@ -1,5 +1,7 @@
 # Tier1 implementation and verification — 2026-11-08
 
+Update: the subsequent explicitly approved Node22 deployment succeeded. [Current deployment receipt](tier1-deployment-2026-11-08.md) records the live revision, fresh full CI, authenticated phone error-path test and remaining measurement limits.
+
 The V7.1 directive supersedes the old public-image/training roadmap. Source branch: `feat/tier1-photo-pilot`, based on `5b70e88`. Existing Flutter3.41.9, CameraX capture/service, theme, Firebase project, SDKs and CI signing were reused. The focused local Tier1 module is the default; the old app remains behind `CALORIX_LEGACY_CLOUD=true`. No old experiment was rerun or erased.
 
 ## Delivered behavior
@@ -42,10 +44,10 @@ The initial APK6ebd7b4 matched CI source/SHA256 and CI verified signing. An opti
 - Mandatory external review: `gemini-3.8-flash` via Antigravity MCP, yolo/read-only prompts. Final agree/none in `calorix-tier1-v71-20261108-final`, `calorix-tier1-callable-security-20261108`, `calorix-node20-proxy-fixtures-20261108`, and `calorix-tier1-repeat-dialog-20261108`. Early primary review timed out300s; canonical3.7/3.6 fallbacks rejected unsupported high effort. These failures were recorded, then scoped primary review succeeded. Public release/security readiness is not approved.
 - Independent read-only branch review found9 important implementation issues; all were corrected and regression-tested before final CI. Existing Node20 hostile-error fixture failures were reproduced and fixed by eagerly materializing V8's lazy stack before hostile getters, retaining original zero-read assertions.
 
-Dedicated Firestore/Storage emulator and live Firebase callable integration suites were not run for this route; no rules changed, and the new callable is undeployed. The CI counts above describe the actual unit/widget suites, not an end-to-end cloud deployment test.
+Dedicated Firestore/Storage emulator suites were not run for this route; no rules changed. At the initial implementation handoff the callable was undeployed; the subsequent live deployment and bounded callable smoke are documented in the update linked above. The CI counts above describe the actual unit/widget suites, not an end-to-end cloud deployment test.
 
 ## Remaining blockers
 
-`analyzeTier1Meal` is not deployed. Read-only project/function/rules checks succeeded; no production resources/data/rules were changed. Explicit deployment confirmation is required by `AGENTS.md`. Actual phone-to-callable food inference remains unverified until deployment/consent and a real meal exist.
+Deployment approval has since been granted and executed; see the current receipt above. The initial implementation handoff did not deploy or mutate cloud resources. Actual phone-to-callable **real-food** recognition and reference-calorie accuracy remain unverified until a real meal is supplied.
 
 **Weighed Android meals:0/30.** No MAE, bias, P90, coverage/generalization, phone end-to-end latency, correction rate or inference-cost claim. Synthetic fixtures test code only. Next experiment: one independently weighed mixed meal, freeze original paired A0/A1 outputs before corrections, answer at most one actual preparation question, and compare complete served energy. Follow [the phone runbook](tier1-phone-runbook.md) and [weighing SOP](../reference_sop.md).
