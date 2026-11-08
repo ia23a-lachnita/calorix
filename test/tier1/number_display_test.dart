@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,11 +13,25 @@ Future<void> visible(WidgetTester tester,Finder target,{double delta=180}) async
   await tester.scrollUntilVisible(target,delta,scrollable:find.byType(Scrollable).first);
   await tester.pumpAndSettle();
 }
-Future<Tier1MealStore> store() async {
-  final directory=await Directory.systemTemp.createTemp('tier1-display-test-');
-  addTearDown(()=>directory.delete(recursive:true));
-  return Tier1MealStore(directory);
+class _DisplayStore extends Tier1MealStore {
+  _DisplayStore():super(Directory('.'));
+  final records=<Tier1Meal>[];
+  @override
+  Future<List<Tier1Meal>> load() async=>List.of(records);
+  @override
+  Future<void> save(Tier1Meal meal) async {
+    final index=records.indexWhere((r)=>r.id==meal.id);
+    final saved=meal.withRevision(index<0?1:records[index].revision+1);
+    if(index<0){records.add(saved);}else{records[index]=saved;}
+  }
+  @override
+  Future<bool> replaceIfRevision(Tier1Meal meal,int revision) async {
+    final index=records.indexWhere((r)=>r.id==meal.id);
+    if(index<0||records[index].revision!=revision)return false;
+    await save(meal);return true;
+  }
 }
+Future<Tier1MealStore> store() async=>_DisplayStore();
 Tier1Nutrients nutrients({double fat=artifact})=>Tier1Nutrients(kcal:232,proteinG:9.28,carbsG:33.6,fatG:fat);
 Map<String,dynamic> analysis({double fat=artifact})=>{'schemaVersion':1,'mealName':'Floating meal','totals':nutrients(fat:fat).toJson(),'components':<dynamic>[],'ambiguities':<dynamic>[],'question':null,'provenance':{'model':'pinned-test'}};
 Future<void> open(WidgetTester tester,Tier1MealStore data,{Tier1Cloud? cloud}) async {
@@ -66,9 +79,8 @@ void main() {
     });
   }
   testWidgets('fresh cloud fill is readable and unchanged save keeps original analysis', (tester) async {
-    final data=await store();final file=File('${data.root.path}/fixture.png');
-    await file.writeAsBytes(base64Decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='));
-    await data.save(Tier1Meal(id:'cloud',capturedAt:DateTime.utc(2026,11,8),name:'Floating meal',photoPath:file.path,source:'photo'));
+    final data=await store();
+    await data.save(Tier1Meal(id:'cloud',capturedAt:DateTime.utc(2026,11,8),name:'Floating meal',photoPath:'/tier1-widget-only-missing-photo.jpg',source:'photo'));
     final cloud=_Cloud();await open(tester,data,cloud:cloud);
     await visible(tester,find.text('Estimate photo'));await tester.tap(find.text('Estimate photo'));await tester.pumpAndSettle();
     await tester.tap(find.text('Send photo'));await tester.pumpAndSettle();expect(cloud.calls,1);
