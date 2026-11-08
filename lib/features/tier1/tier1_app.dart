@@ -13,6 +13,19 @@ import 'local_meal.dart';
 import 'local_meal_store.dart';
 import 'tier1_cloud.dart';
 
+// Presentation only: the original model doubles remain the saved values.
+String _displayNutrient(double? value) {
+  if(value==null)return '';
+  if(value==0)return '0';
+  if(value>0&&value<.01)return value.toStringAsPrecision(2);
+  return value.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'),'').replaceFirst(RegExp(r'\.$'),'');
+}
+double? _numberFromField(TextEditingController controller,double? original) {
+  final text=controller.text.trim();
+  if(text==_displayNutrient(original))return original;
+  return text.isEmpty?null:double.tryParse(text);
+}
+
 /// Focused local-first workflow. Legacy Firebase services are never mounted here.
 class Tier1App extends StatelessWidget {
   const Tier1App({super.key,this.store,this.camera,this.cloud,this.initializeCloud,this.clock});
@@ -158,7 +171,7 @@ class _MealEditorState extends State<_MealEditor> {
   late Tier1Meal _meal=widget.meal;
   final _form=GlobalKey<FormState>();
   late final _name=TextEditingController(text:_meal.name=='New meal'?'':_meal.name);
-  late final _kcal=TextEditingController(text:_meal.served?.kcal.toString()??'');
+  late final _kcal=TextEditingController(text:_displayNutrient(_meal.served?.kcal));
   late final _protein=TextEditingController(text:_meal.served?.proteinG?.toString()??'');
   late final _carbs=TextEditingController(text:_meal.served?.carbsG?.toString()??'');
   late final _fat=TextEditingController(text:_meal.served?.fatG?.toString()??'');
@@ -166,7 +179,7 @@ class _MealEditorState extends State<_MealEditor> {
   String? _message;
   @override
   void dispose(){for(final c in [_name,_kcal,_protein,_carbs,_fat]){c.dispose();}super.dispose();}
-  void _fill(){_name.text=_meal.name;_kcal.text=_meal.served?.kcal.toString()??'';_protein.text=_meal.served?.proteinG?.toString()??'';_carbs.text=_meal.served?.carbsG?.toString()??'';_fat.text=_meal.served?.fatG?.toString()??'';}
+  void _fill(){_name.text=_meal.name;_kcal.text=_displayNutrient(_meal.served?.kcal);_protein.text=_meal.served?.proteinG?.toString()??'';_carbs.text=_meal.served?.carbsG?.toString()??'';_fat.text=_meal.served?.fatG?.toString()??'';}
   Future<void> _persist(Tier1Meal meal) async {
     await widget.store.save(meal);
     _meal=(await widget.store.load()).firstWhere((m)=>m.id==meal.id);
@@ -174,7 +187,7 @@ class _MealEditorState extends State<_MealEditor> {
   Future<void> _save() async {
     if(!_form.currentState!.validate()||_busy)return;
     try {
-      await _persist(_meal.edit(_name.text,Tier1Nutrients(kcal:double.parse(_kcal.text),proteinG:double.tryParse(_protein.text),carbsG:double.tryParse(_carbs.text),fatG:double.tryParse(_fat.text))));
+      await _persist(_meal.edit(_name.text,Tier1Nutrients(kcal:_numberFromField(_kcal,_meal.served?.kcal)!,proteinG:_numberFromField(_protein,_meal.served?.proteinG),carbsG:_numberFromField(_carbs,_meal.served?.carbsG),fatG:_numberFromField(_fat,_meal.served?.fatG))));
       if(mounted)Navigator.pop(context);
     }catch(_){if(mounted)setState(()=>_message='Could not save. Existing history was preserved.');}
   }
