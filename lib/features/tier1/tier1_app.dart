@@ -187,7 +187,7 @@ class _MealEditorState extends State<_MealEditor> {
   Future<void> _save() async {
     if(!_form.currentState!.validate()||_busy)return;
     try {
-      await _persist(_meal.edit(_name.text,Tier1Nutrients(kcal:_numberFromField(_kcal,_meal.served?.kcal)!,proteinG:_numberFromField(_protein,_meal.served?.proteinG),carbsG:_numberFromField(_carbs,_meal.served?.carbsG),fatG:_numberFromField(_fat,_meal.served?.fatG))));
+      await _persist(_meal.edit(_name.text,Tier1Nutrients(kcal:_numberFromField(_kcal,_meal.served?.kcal)!,proteinG:_numberFromField(_protein,_meal.served?.proteinG),carbsG:_numberFromField(_carbs,_meal.served?.carbsG),fatG:_numberFromField(_fat,_meal.served?.fatG)),at:widget.clock.now()));
       if(mounted)Navigator.pop(context);
     }catch(_){if(mounted)setState(()=>_message='Could not save. Existing history was preserved.');}
   }
@@ -206,7 +206,7 @@ class _MealEditorState extends State<_MealEditor> {
       final cloud=widget.cloud;
       if(cloud==null)throw StateError('Cloud unavailable');
       final result=await cloud.analyze(_meal.photoPath!,consent:true);
-      final applied=await widget.store.replaceIfRevision(_meal.withAnalysis(result),revision);
+      final applied=await widget.store.replaceIfRevision(_meal.withAnalysis(result,at:widget.clock.now()),revision);
       if(applied){_meal=(await widget.store.load()).firstWhere((m)=>m.id==_meal.id);_fill();}
       if(mounted)setState(()=>_message=applied?'Approximate estimate saved. Check the foods and portions.':'Your newer changes were kept; this result was discarded.');
     }catch(_){if(mounted)setState(()=>_message='Photo analysis is unavailable. Your photo is saved on this phone. Enter or correct the meal below.');}
@@ -218,8 +218,56 @@ class _MealEditorState extends State<_MealEditor> {
   }
   Future<void> _answer(String answer) async {
     if(_busy||_dirty)return;
-    try{await _persist(_meal.answerPreparation(answer));_fill();if(mounted)setState((){});}
+    try{await _persist(_meal.answerPreparation(answer,at:widget.clock.now()));_fill();if(mounted)setState((){});}
     catch(_){if(mounted)setState(()=>_message='Could not save the preparation answer.');}
+  }
+  Future<void> _portion(int index) async {
+    if(_busy||_dirty||!_meal.canCorrectPortions)return;
+    final opening=_meal,current=opening.componentMassG(index);
+    final component=(opening.analysis!['components'] as List)[index] as Map;
+    final original=(component['massG'] as num).toDouble();
+    var gramsText=_displayNutrient(current),closed=false;
+    final form=GlobalKey<FormState>();
+    setState(()=>_busy=true);
+    try {
+      final route=DialogRoute<double>(context:context,builder:(dialogContext)=>AlertDialog(
+        scrollable:true,title:Text('Portion: ${component['name']}'),
+        content:Form(key:form,child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[
+          Text('Original estimate: ${_displayNutrient(original)} g. Calories remain approximate and use the existing nutrient estimate. Enter 0 to exclude this food; its original estimate is retained.'),
+          if(opening.hasManualNutritionOverride)const Padding(padding:EdgeInsets.symmetric(vertical:8),
+            child:Text('Changing this portion replaces manual totals with a calculation from the listed foods.')),
+          TextFormField(initialValue:gramsText,onChanged:(text)=>gramsText=text,
+            keyboardType:const TextInputType.numberWithOptions(decimal:true),
+            decoration:const InputDecoration(labelText:'Served grams'),
+            validator:(text){final n=double.tryParse(text?.trim()??'');return n==null||!n.isFinite||n<0||n>100000?'Enter a finite weight from 0 to 100000 g':null;}),
+        ])),actions:[
+          TextButton(onPressed:(){if(closed)return;closed=true;Navigator.pop(dialogContext);},child:const Text('Cancel')),
+          TextButton(onPressed:(){if(closed)return;closed=true;Navigator.pop(dialogContext,original);},child:const Text('Use original')),
+          FilledButton(onPressed:(){
+            if(closed||!form.currentState!.validate())return;
+            final grams=gramsText.trim()==_displayNutrient(current)?current:double.parse(gramsText.trim());
+            closed=true;Navigator.pop(dialogContext,grams);
+          },child:const Text('Apply portion')),
+        ]));
+      final grams=await Navigator.of(context).push(route);
+      // Wait for the form/keyboard overlay to leave before saving or popping.
+      await route.completed;
+      if(grams==null||!mounted)return;
+      final updated=opening.correctPortion(index,grams,at:widget.clock.now());
+      if(identical(updated,opening))return;
+      final applied=await widget.store.replaceIfRevision(updated,opening.revision);
+      if(!mounted)return;
+      if(!applied){
+        final messenger=ScaffoldMessenger.of(context);
+        Navigator.pop(context);
+        messenger.showSnackBar(const SnackBar(content:Text('Meal changed; reopen it to edit.')));
+        return;
+      }
+      _meal=(await widget.store.load()).firstWhere((m)=>m.id==opening.id);
+      if(!mounted)return;
+      _fill();setState((){_dirty=false;_message='Portion saved. Check the approximate totals; consumption is unconfirmed.';});
+    }catch(_){if(mounted)setState(()=>_message='Could not save this portion. Reopen the meal to check saved values.');}
+    finally{if(mounted)setState(()=>_busy=false);}
   }
   Future<void> _repeat() async {
     if(_busy||_dirty)return;
@@ -262,7 +310,8 @@ class _MealEditorState extends State<_MealEditor> {
   Widget build(BuildContext context) {
     final analysis=_meal.analysis;
     final question=analysis?['question'] is Map?Map<String,dynamic>.from(analysis!['question'] as Map):null;
-    return Scaffold(appBar:AppBar(title:const Text('Meal estimate'),actions:[IconButton(tooltip:'Delete meal',onPressed:_delete,icon:const Icon(Icons.delete_outline))]),
+    final canCorrect=_meal.canCorrectPortions;
+    return Scaffold(appBar:AppBar(title:const Text('Meal estimate'),actions:[IconButton(tooltip:'Delete meal',onPressed:_busy?null:_delete,icon:const Icon(Icons.delete_outline))]),
       body:Form(key:_form,child:ListView(padding:const EdgeInsets.all(20),children:[
         if(_meal.photoPath!=null)ClipRRect(borderRadius:BorderRadius.circular(24),child:Image.file(File(_meal.photoPath!),height:220,fit:BoxFit.cover,errorBuilder:(_,__,___)=>const Text('Saved photo is unavailable'))),
         const SizedBox(height:16),Text('Approximate served calories',style:Theme.of(context).textTheme.headlineSmall),
@@ -278,17 +327,24 @@ class _MealEditorState extends State<_MealEditor> {
         const Text('Saving corrections resets consumption to unconfirmed. Missing macros stay unknown.'),
         if(analysis!=null)...[
           const Divider(),const Text('Recognized foods and nutrient sources'),
-          for(final raw in (analysis['components'] as List? ?? []))Builder(builder:(_){
-            final c=Map<String,dynamic>.from(raw as Map);final source=Map<String,dynamic>.from(c['source'] as Map);
-            return Padding(padding:const EdgeInsets.symmetric(vertical:8),child:Text('${c['name']} · ${c['massG']} g · ${c['preparation']}\n${source['kind']=='database_match'?'Database nutrient record (food match estimated): ${source['recordId']}':'Unverified model nutrient estimate'}\n${(c['assumptions'] as List? ?? []).join('; ')}'));
+          for(var index=0;index<(analysis['components'] as List? ?? []).length;index++)Builder(builder:(_){
+            final c=Map<String,dynamic>.from((analysis['components'] as List)[index] as Map);final source=Map<String,dynamic>.from(c['source'] as Map);
+            final current=canCorrect?_meal.componentMassG(index):null;
+            final original=c['massG'] is num?(c['massG'] as num).toDouble():null;
+            return Padding(padding:const EdgeInsets.symmetric(vertical:8),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+              Text('${c['name']} · ${current==null?c['massG']:_displayNutrient(current)} g · ${c['preparation']}\n${source['kind']=='database_match'?'Database nutrient record (food match estimated): ${source['recordId']}':'Unverified model nutrient estimate'}\n${(c['assumptions'] as List? ?? []).join('; ')}'),
+              if(_meal.portionOverrides.containsKey(index))Text('Original estimate: ${_displayNutrient(original)} g${current==0?' · Excluded from served totals':''}'),
+              if(canCorrect)Tooltip(message:'Edit portion for ${c['name']}',child:TextButton(
+                onPressed:_busy||_dirty?null:()=>_portion(index),child:const Text('Edit portion'))),
+            ]));
           }),
           for(final ambiguity in (analysis['ambiguities'] as List? ?? []))Text('Unresolved: $ambiguity'),
-          if(question!=null&&question['answered']!=true&&_meal.source=='A1')...[
+          if(question!=null&&_meal.hasPendingPreparationQuestion)...[
             Text(question['text'] as String),
             for(final raw in question['options'] as List)TextButton(onPressed:_busy||_dirty?null:()=>_answer((raw as Map)['id'] as String),child:Text((raw as Map)['label'] as String)),
           ],
           if(question?['answered']==true)Text('Preparation: ${analysis['userPreparationAnswer']??question!['answer']}'),
-          if(_meal.source=='manual_correction')const Text('Totals were manually corrected. Original recognition is retained for comparison.'),
+          if(_meal.hasManualNutritionOverride)const Text('Totals were manually corrected. Original recognition is retained for comparison.'),
         ],
         if(_meal.served!=null)...[
           if(_dirty)const Text('Save changes before confirming consumption or repeating this meal.'),
