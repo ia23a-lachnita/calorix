@@ -6,7 +6,7 @@ Existing Flutter CameraX still capture, app theme, Firebase project and SDK were
 
 ## Unsupported
 
-No medical, numerical accuracy, interval, unseen-user/device or production-readiness claim. Database nutrient records do not verify visual food matching or portion mass. A1 uses a hosted model ID, not downloadable immutable weights; returned model drift fails closed. The small catalog has limited coverage. A0 shares A1 recognition/preparation and tests serving priors only. No old public-image outcome is a weighed Android reference.
+No medical, general accuracy qualification, per-meal interval, unseen-user/device or production-readiness claim. Database nutrient records do not verify visual food matching or portion mass. A1 uses a hosted model ID, not downloadable immutable weights; returned model drift fails closed. The small catalog has limited coverage. A0 shares A1 recognition/preparation and tests serving priors only. No public-image outcome is a weighed Android reference.
 
 ## Measured public evaluation
 

@@ -62,3 +62,5 @@ This is a **20-scan exploratory sample**, range4.6–530.39kcal;12 cases below20
 The measured engineering gap is **nutrient-record coverage and matching**: the current six-record catalog does not support a meaningful A0 comparison and leaves most A1 energy based on unverified model densities. Any expanded-catalog baseline should receive a new version and separate evaluation; this frozen run must remain unchanged. This result does not establish which portion architecture would improve accuracy.
 
 **Owner/Android physically weighed pilot remains0/30. Public evaluation is useful now and is not blocked on collecting those meals.** The public dataset's real labels provide the measurements above; the owner's two scans provide additional functional evidence.
+
+[Final build, test, review and Samsung number-display verification; updated APK](verification.md).
