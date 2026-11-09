@@ -45,7 +45,14 @@ def _prediction(row,version,reference_kcal,reference_mass):
             'original_kcal':None,'predicted_mass_g':None,'reference_mass_kcal':None,
             'reference_density_kcal':None,'oracle_status':'not_applicable',
             'oracle_undefined_reason':None}
-    if status!='ok':return result
+    if status!='ok':
+        # Failed attempts need no numeric prediction, but any supplied values
+        # still obey the input contract instead of hiding malformed data.
+        if row.get(version+'A1kcal') not in (None,''):
+            _number(row[version+'A1kcal'],'predicted energy')
+        if row.get(version+'A1MassG') not in (None,''):
+            _number(row[version+'A1MassG'],'predicted mass',maximum=100000,nonnegative=False)
+        return result
     energy=_number(row.get(version+'A1kcal'),'predicted energy')
     result['original_kcal']=energy
     raw_mass=row.get(version+'A1MassG')
@@ -132,7 +139,7 @@ def load_csv(path,expected_sha256=FROZEN_INPUT_SHA256):
     if not reader.fieldnames or len(reader.fieldnames)!=len(set(reader.fieldnames)) or not REQUIRED<=set(reader.fieldnames):
         raise ValueError('Missing or duplicate CSV columns')
     rows=list(reader)
-    if any(None in row or any(row[key] is None for key in REQUIRED) for row in rows):
+    if any(None in row or any(value is None for value in row.values()) for row in rows):
         raise ValueError('Malformed CSV row width')
     return rows
 

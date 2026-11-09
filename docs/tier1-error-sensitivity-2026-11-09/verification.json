@@ -1,0 +1,11 @@
+{
+  "input_sha256": "f08f254d11039682fb9ceee4c8bceffd153db7de05dc0a5405b46215fef55096",
+  "tool_sha256": "f1f207594f8f9b810a4359b55223bdf711c7b5c5e9c13cf885607a9aa10cc609",
+  "metrics_tool_sha256": "4cd84e751b2cd4b30ff7040b58184d55f42670ca7f8377e653e245233d5d7801",
+  "results_sha256": "7707809afe6e782b0037d7829ee724cd48ba0949f043c3e75e4d186ec4f9e792",
+  "independent_max_energy_difference": 1.059e-13,
+  "independent_max_metric_difference": 1.5e-13,
+  "comparison_tolerance": 1e-09,
+  "new_model_requests": 0,
+  "new_user_measurements": 0
+}

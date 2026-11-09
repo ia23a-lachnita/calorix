@@ -1,0 +1,1478 @@
+{
+  "schema_version": 1,
+  "scope": "aggregate_oracle_sensitivity",
+  "component_matching_performed": false,
+  "user_correction_measurement": false,
+  "causal_attribution": false,
+  "new_inference_requests": 0,
+  "normalized_denominator_floor_kcal": 200,
+  "p90_method": "linear interpolation, index (n-1)*0.9",
+  "formulas": {
+    "reference_mass": "predicted_kcal * reference_mass_g / predicted_mass_g",
+    "reference_density": "reference_kcal * predicted_mass_g / reference_mass_g"
+  },
+  "limitations": [
+    "Unavailable hidden-reference substitutions, not achievable edits.",
+    "Aggregate density includes identity, preparation, composition and missing-food errors.",
+    "Compensating errors can make either substitution worse; effects are not additive causes.",
+    "Original full endpoint and paired oracle-eligible endpoint have separate denominators.",
+    "Ingredient count does not establish a gold mixed-meal label; mixed breakdown unavailable.",
+    "No user-effort, Android transfer, independent completed-meal or general accuracy claim."
+  ],
+  "cases": [
+    {
+      "id": "dish_1559934477",
+      "cohort": "original20",
+      "reference_kcal": 25.08,
+      "reference_mass_g": 57.0,
+      "image_sha256": "911f3efd91b17fa9979f2bae7fe9e22c0866dd4e36c0abf9e53bc299e618e660",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "6a53390e38c5b7af2148c8ea5887938f1389b3ebc206e2f940b80630871f72f3",
+          "original_kcal": 131.05,
+          "predicted_mass_g": 65.0,
+          "reference_mass_kcal": 114.92076923076924,
+          "reference_density_kcal": 28.599999999999998,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "a7e9b0553b55d88dbf66ae3c0b4f2788d67cd4f4fec76e0d1900d12af914ab5e",
+          "original_kcal": 151.2,
+          "predicted_mass_g": 67.0,
+          "reference_mass_kcal": 128.6328358208955,
+          "reference_density_kcal": 29.48,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1558461607",
+      "cohort": "original20",
+      "reference_kcal": 87.629997,
+      "reference_mass_g": 127.0,
+      "image_sha256": "a5fbbcd0e8d884a8d3e29c65237c1f983ff332f0eda7950723ef06dbf7eca7e4",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "a8524a3b806593277947215ccd6680a890e7c1675bb6a23e40b22d7b59c1b048",
+          "original_kcal": 82.8,
+          "predicted_mass_g": 120.0,
+          "reference_mass_kcal": 87.63,
+          "reference_density_kcal": 82.79999716535433,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "568d7989ded2ed1d9deb2743db3937359a76436ce4541d09c982940470a84ba2",
+          "original_kcal": 89.7,
+          "predicted_mass_g": 130.0,
+          "reference_mass_kcal": 87.63,
+          "reference_density_kcal": 89.69999692913386,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1566416701",
+      "cohort": "original20",
+      "reference_kcal": 198.53717,
+      "reference_mass_g": 122.0,
+      "image_sha256": "65678e42ad5d6bda986fcc481d9c42b82c3dc7b9b01606502aaf54afaa6e9945",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "3b075abc7cb32a342b256470a957c92a3317156c19669aae30307a637a536e0a",
+          "original_kcal": 99.25,
+          "predicted_mass_g": 60.0,
+          "reference_mass_kcal": 201.8083333333333,
+          "reference_density_kcal": 97.64123114754098,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "6c77018b2bca7e7805ed932115d65f2cb2c7d9c4b0ce3ba1ddadcaea22602302",
+          "original_kcal": 81.75,
+          "predicted_mass_g": 50.0,
+          "reference_mass_kcal": 199.47,
+          "reference_density_kcal": 81.36769262295083,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1563389548",
+      "cohort": "original20",
+      "reference_kcal": 438.828003,
+      "reference_mass_g": 194.0,
+      "image_sha256": "aaff4bd962c51281a66db70e4bfa85892e30aaad384ff5ddbc083a9a1b0a66c5",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "7f272273a8dc369c59ac0bd0d1218793384d0fab97a3e41a463edef8254c3185",
+          "original_kcal": 198.0,
+          "predicted_mass_g": 120.0,
+          "reference_mass_kcal": 320.1,
+          "reference_density_kcal": 271.4400018556701,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "5af0f1b06b4b8b9a3a6224b37296e45afd16f1df1558ee281ab1d8f56975fb4d",
+          "original_kcal": 198.0,
+          "predicted_mass_g": 120.0,
+          "reference_mass_kcal": 320.1,
+          "reference_density_kcal": 271.4400018556701,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1567785622",
+      "cohort": "original20",
+      "reference_kcal": 30.779999,
+      "reference_mass_g": 54.0,
+      "image_sha256": "3dc31a657b3d5e59ab129e0f55f95ae6885a0ed440c8ad4c912d688d4b2cd374",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "a8851cc860f0cc4eece340b51e3fe2dadeee29fcb37802257ed81ed3925f04d0",
+          "original_kcal": 31.85,
+          "predicted_mass_g": 80.0,
+          "reference_mass_kcal": 21.49875,
+          "reference_density_kcal": 45.59999851851852,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "5145118e2d8d1febedad9ff1aeb5db12b9a76401e2f4f6c6fb8c4345eeac5489",
+          "original_kcal": 29.0,
+          "predicted_mass_g": 75.0,
+          "reference_mass_kcal": 20.88,
+          "reference_density_kcal": 42.74999861111111,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1566589933",
+      "cohort": "original20",
+      "reference_kcal": 89.060005,
+      "reference_mass_g": 122.0,
+      "image_sha256": "1cee9aca83ea11fd91231275e7eedde0e0bc1d720995e0eda14454bb2ede3cc6",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "60da51df724137899f63e9be9f82398ab34fc10b436e8b6d997f375eeba52bdf",
+          "original_kcal": 96.0,
+          "predicted_mass_g": 90.0,
+          "reference_mass_kcal": 130.13333333333333,
+          "reference_density_kcal": 65.7000036885246,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "78fdfed1b1b60a105da5d3e8cdba8f5a0500023f85d3297a19a50a26c8f65491",
+          "original_kcal": 149.25,
+          "predicted_mass_g": 105.0,
+          "reference_mass_kcal": 173.41428571428574,
+          "reference_density_kcal": 76.65000430327869,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1562963246",
+      "cohort": "original20",
+      "reference_kcal": 324.39798,
+      "reference_mass_g": 122.0,
+      "image_sha256": "8efa6ecc244aad3e65f242693d47e0e093ac7b318097036a66a0be1775546bf3",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "604089f77e764da2f5f8281c99950a3ac57b94f6803a3c92fd07019485096fc8",
+          "original_kcal": 292.6,
+          "predicted_mass_g": 110.0,
+          "reference_mass_kcal": 324.52000000000004,
+          "reference_density_kcal": 292.4899819672131,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "3f783729a3446796deecced0f0e40fcf858678f6ef8b544ce38bc3039f3daaa4",
+          "original_kcal": 280.5,
+          "predicted_mass_g": 110.0,
+          "reference_mass_kcal": 311.1,
+          "reference_density_kcal": 292.4899819672131,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1560975517",
+      "cohort": "original20",
+      "reference_kcal": 42.389999,
+      "reference_mass_g": 99.0,
+      "image_sha256": "db61d696a9c3fdc3f801feed93ad9c53089d3f157b200883ea0ca8f10bc043a0",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "c8a9be1d63bb1ef72a09dfa139197a36d6bcb3b6d219c507e451c1ffb0286d7a",
+          "original_kcal": 89.15,
+          "predicted_mass_g": 115.0,
+          "reference_mass_kcal": 76.74652173913044,
+          "reference_density_kcal": 49.24090792929293,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "808404364f947e257e0c2689fd63f9cd66906a3d9cf0533b07cf5b557419ef22",
+          "original_kcal": 127.85000000000001,
+          "predicted_mass_g": 115.0,
+          "reference_mass_kcal": 110.0621739130435,
+          "reference_density_kcal": 49.24090792929293,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1558030182",
+      "cohort": "original20",
+      "reference_kcal": 67.759995,
+      "reference_mass_g": 88.0,
+      "image_sha256": "2ca6fe0d6c1da896fed2af3bee93cca2fbd013270a57a903fff3cf92caddcefc",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "3392e319ba49e8bf88ff401d74c1f7aa4f5929160279717e814181d8bd5bb196",
+          "original_kcal": 143.0,
+          "predicted_mass_g": 110.0,
+          "reference_mass_kcal": 114.4,
+          "reference_density_kcal": 84.69999375,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "81d1f3520ab932d302bced7bd0170add23cef1a990f36e6e5bf69a51b5708d12",
+          "original_kcal": 136.5,
+          "predicted_mass_g": 105.0,
+          "reference_mass_kcal": 114.4,
+          "reference_density_kcal": 80.84999403409091,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1558376437",
+      "cohort": "original20",
+      "reference_kcal": 13.26,
+      "reference_mass_g": 39.0,
+      "image_sha256": "b16c40982d5daadb9385defa0a914ef9fb98e225a890ba43f9a5057a0d253b96",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "e54aabdb4826f1b4dc0e59c27cd0b2a4df68d207e821dbad71398014a9290d54",
+          "original_kcal": 27.200000000000003,
+          "predicted_mass_g": 80.0,
+          "reference_mass_kcal": 13.260000000000002,
+          "reference_density_kcal": 27.199999999999996,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "1b1e0531ddd63117469ad472e30840c549954bfd6eba413c8800be94fb9efaef",
+          "original_kcal": 28.9,
+          "predicted_mass_g": 85.0,
+          "reference_mass_kcal": 13.259999999999998,
+          "reference_density_kcal": 28.9,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1560203400",
+      "cohort": "original20",
+      "reference_kcal": 293.279999,
+      "reference_mass_g": 104.0,
+      "image_sha256": "c280672f43feef455445f4bfe20b0a2c267205d8b9cf0033e79830d88e05d873",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "956cc67ee06c4907c93092aa85200a3d80bdc112c678229c2d8464b45ecaa1ea",
+          "original_kcal": 343.75,
+          "predicted_mass_g": 125.0,
+          "reference_mass_kcal": 286.0,
+          "reference_density_kcal": 352.4999987980769,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "0dd6b7af877b3a8bb5b6679ffaf1c243e03c428740645148e8d461c85fa13dce",
+          "original_kcal": 343.75,
+          "predicted_mass_g": 125.0,
+          "reference_mass_kcal": 286.0,
+          "reference_density_kcal": 352.4999987980769,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1557862783",
+      "cohort": "original20",
+      "reference_kcal": 442.97998,
+      "reference_mass_g": 258.0,
+      "image_sha256": "bf99a8f9c0994d2d7368509a6e9427bfbbc1fdc78eac2b9fe95459740a6d77ba",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "fcd5136bdc63b07464670320d0beeb3f1b8b98e2b36eff4782eed2cc26027495",
+          "original_kcal": 404.5,
+          "predicted_mass_g": 300.0,
+          "reference_mass_kcal": 347.87,
+          "reference_density_kcal": 515.0930000000001,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "b83127a0edc71fcb2480d3f823b610ab68df1c7e272855e1baec24f5b9c78c23",
+          "original_kcal": 397.45,
+          "predicted_mass_g": 285.0,
+          "reference_mass_kcal": 359.7968421052632,
+          "reference_density_kcal": 489.33835,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1568401261",
+      "cohort": "original20",
+      "reference_kcal": 530.393372,
+      "reference_mass_g": 443.0,
+      "image_sha256": "ab7372719e73fdee584ec725ca06298720ae1f51b8518cb895d00b3dd6679e18",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "90bf194c99df159c5bcb3697d95a4cdfb76a6440cad9546758a713cca103fc7b",
+          "original_kcal": 415.7,
+          "predicted_mass_g": 370.0,
+          "reference_mass_kcal": 497.7164864864865,
+          "reference_density_kcal": 442.9922068623025,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "7d042414b12daabfd2f698e3d7153a74c989118d5ac1abbb0f9d50ecb837d2bf",
+          "original_kcal": 430.65,
+          "predicted_mass_g": 375.0,
+          "reference_mass_kcal": 508.7412,
+          "reference_density_kcal": 448.97858803611734,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1565810969",
+      "cohort": "original20",
+      "reference_kcal": 4.6,
+      "reference_mass_g": 20.0,
+      "image_sha256": "c9c7824ffb405aa86781d4d6c89a3a0047187e1f7d13895d084bac955c26ded5",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "0b04b91d33382eac9dcf3a5432067577c5b6c3a316549353bc148713f2307b81",
+          "original_kcal": 11.5,
+          "predicted_mass_g": 50.0,
+          "reference_mass_kcal": 4.6000000000000005,
+          "reference_density_kcal": 11.5,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "02101305fa2232988e4025e89dbe20e025ee4548e2ad196ede96ce1f802b6aae",
+          "original_kcal": 11.5,
+          "predicted_mass_g": 50.0,
+          "reference_mass_kcal": 4.6000000000000005,
+          "reference_density_kcal": 11.5,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1564675411",
+      "cohort": "original20",
+      "reference_kcal": 235.531006,
+      "reference_mass_g": 308.0,
+      "image_sha256": "8340ebf93d47529ff7b54190c04c6e94e81276cac9c70c2c6c7ec4c0e21b7a27",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "f3f85e1983faac777d6174966935efad454607ee1c7f16d9290f29c982653702",
+          "original_kcal": 381.5,
+          "predicted_mass_g": 275.0,
+          "reference_mass_kcal": 427.28000000000003,
+          "reference_density_kcal": 210.29554107142857,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "001353ea35ef60e23fd0849b9303542df4f80095dbad758dd8197ce019be7116",
+          "original_kcal": 361.88,
+          "predicted_mass_g": 268.0,
+          "reference_mass_kcal": 415.89194029850745,
+          "reference_density_kcal": 204.94256366233765,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1562009810",
+      "cohort": "original20",
+      "reference_kcal": 119.880005,
+      "reference_mass_g": 108.0,
+      "image_sha256": "0be63d4f01fc7ee7035865efbbca91fbf808c0318a2c40fe7b12149efd4521f4",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "29fb5051228217c18e4fc61e80c7dace6391598466eb085240d23ba5c263e446",
+          "original_kcal": 159.5,
+          "predicted_mass_g": 110.0,
+          "reference_mass_kcal": 156.6,
+          "reference_density_kcal": 122.1000050925926,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "5f6b90ee18ac3211eb315d52f8873e83395c2d16442e21fda77d6b3ff93974ab",
+          "original_kcal": 162.0,
+          "predicted_mass_g": 120.0,
+          "reference_mass_kcal": 145.8,
+          "reference_density_kcal": 133.20000555555555,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1566920339",
+      "cohort": "original20",
+      "reference_kcal": 449.531708,
+      "reference_mass_g": 730.0,
+      "image_sha256": "2420ac2875fb53c7558aac6f3ab00d04529bb3807887a40a51419a750efa735a",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "dde252d658ccdcc2cc369a572a2d50b7a427247599ae65f90a68c8551803609a",
+          "original_kcal": 186.4,
+          "predicted_mass_g": 300.0,
+          "reference_mass_kcal": 453.5733333333333,
+          "reference_density_kcal": 184.73905808219178,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "fa8ac6c8b6492b8571a52c986d6f770584e1e29b290c0d034d835cbb43c5d45d",
+          "original_kcal": 170.10000000000002,
+          "predicted_mass_g": 265.0,
+          "reference_mass_kcal": 468.5773584905661,
+          "reference_density_kcal": 163.18616797260273,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1559157454",
+      "cohort": "original20",
+      "reference_kcal": 34.564575,
+      "reference_mass_g": 28.0,
+      "image_sha256": "28a5394d5e29b499388ba0926d573d9ad5096576e7572cd206dfdd8e5803e405",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "27663a50754c62cbc09332b5e9edb4a1a483711c606cf7f8d0a399f202bde6a7",
+          "original_kcal": 66.01,
+          "predicted_mass_g": 43.0,
+          "reference_mass_kcal": 42.9832558139535,
+          "reference_density_kcal": 53.08131160714286,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "cd17a1d4390f3b29195ea4e09a2e5f855398dee15e6524df2706220627155bde",
+          "original_kcal": 65.78999999999999,
+          "predicted_mass_g": 40.0,
+          "reference_mass_kcal": 46.05299999999999,
+          "reference_density_kcal": 49.377964285714285,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1564160043",
+      "cohort": "original20",
+      "reference_kcal": 245.0,
+      "reference_mass_g": 98.0,
+      "image_sha256": "f6790ca9acf26e19fd658a5863e8529f20ac3936ffb22df362ad948ca8cea6a5",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "33a5b4a3c0217b76629e5b2c9cb03eec077bceb096889347b9039bc64901786e",
+          "original_kcal": 327.75,
+          "predicted_mass_g": 115.0,
+          "reference_mass_kcal": 279.3,
+          "reference_density_kcal": 287.5,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "d8d4b8eec4f5651dcb7a85160252a39e04fc78fb60afab466348f3ff8b3525ab",
+          "original_kcal": 333.5,
+          "predicted_mass_g": 115.0,
+          "reference_mass_kcal": 284.2,
+          "reference_density_kcal": 287.5,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1562876494",
+      "cohort": "original20",
+      "reference_kcal": 40.10693,
+      "reference_mass_g": 26.0,
+      "image_sha256": "3f1135ea6de056975804cba2b3ebc10329843c7e2b288c0e6a8604a18b22d81c",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "597b68e98f31cfdc278f129f9fb533d2802dd2dd5d61287798f9899592524c73",
+          "original_kcal": 70.75,
+          "predicted_mass_g": 55.0,
+          "reference_mass_kcal": 33.445454545454545,
+          "reference_density_kcal": 84.8415826923077,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "0fdf1479f4b8366d570ebd225b62c1b258e5aed3ab0772f48bcfdd74eaf3543a",
+          "original_kcal": 69.35,
+          "predicted_mass_g": 55.0,
+          "reference_mass_kcal": 32.78363636363636,
+          "reference_density_kcal": 84.8415826923077,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1566590007",
+      "cohort": "mealrange10",
+      "reference_kcal": 740.762024,
+      "reference_mass_g": 457.0,
+      "image_sha256": "9587868cba1515ceaf142652c5e9a885557e361550ddd205557eeee3dd986b38",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "c9cfb59d945638142f496c0fded5da4ec36a523f70c83dfb66f7cbe23b2f7355",
+          "original_kcal": 599.0,
+          "predicted_mass_g": 340.0,
+          "reference_mass_kcal": 805.1264705882354,
+          "reference_density_kcal": 551.1139784682713,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "b9cb8d2477d9191d398653ecb794086a7857daca130247c6da638852006cf6e3",
+          "original_kcal": 521.0,
+          "predicted_mass_g": 310.0,
+          "reference_mass_kcal": 768.0548387096774,
+          "reference_density_kcal": 502.4862744857768,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1566414412",
+      "cohort": "mealrange10",
+      "reference_kcal": 920.120422,
+      "reference_mass_g": 658.0,
+      "image_sha256": "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "0c86565d95012282188085d1d0654decf6001e8f7938a68baadd64068cd9aab8",
+          "original_kcal": 479.0,
+          "predicted_mass_g": 360.0,
+          "reference_mass_kcal": 875.5055555555555,
+          "reference_density_kcal": 503.40934942249237,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "f060b4aeae04cdb4fd0780d5818c0454161615b58ef84746d29dd26e8a34aff1",
+          "original_kcal": 628.75,
+          "predicted_mass_g": 420.0,
+          "reference_mass_kcal": 985.0416666666666,
+          "reference_density_kcal": 587.3109076595745,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1568305257",
+      "cohort": "mealrange10",
+      "reference_kcal": 837.147766,
+      "reference_mass_g": 420.0,
+      "image_sha256": "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "2e4121333a3c65da00bf54de435c244ff07edcfc97036e6a0e2439c269f1d834",
+          "original_kcal": 419.5,
+          "predicted_mass_g": 245.0,
+          "reference_mass_kcal": 719.1428571428571,
+          "reference_density_kcal": 488.3361968333334,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "69834f78f6f8b68ab75a7cf444d92806715ae8ec823cbc86b054fd3aad6837e0",
+          "original_kcal": 427.9,
+          "predicted_mass_g": 245.0,
+          "reference_mass_kcal": 733.5428571428571,
+          "reference_density_kcal": 488.3361968333334,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1558722247",
+      "cohort": "mealrange10",
+      "reference_kcal": 604.616028,
+      "reference_mass_g": 343.0,
+      "image_sha256": "52d149ea4b05b7a3d92a848db0c607698d0f45549fa817250ed9dd850c0f8db2",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "396c1ba4b62ef22b495028104e1fd465a3a3cfbbd0887b6cda1f4dd80715b289",
+          "original_kcal": 419.15000000000003,
+          "predicted_mass_g": 285.0,
+          "reference_mass_kcal": 504.450701754386,
+          "reference_density_kcal": 502.377749212828,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "3e673e91d337e4f370a17e8c6bcc716ce1d6021e4b831c2d136bab1bdf20beff",
+          "original_kcal": 493.15,
+          "predicted_mass_g": 310.0,
+          "reference_mass_kcal": 545.6466129032258,
+          "reference_density_kcal": 546.4459728279884,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1568401233",
+      "cohort": "mealrange10",
+      "reference_kcal": 490.393372,
+      "reference_mass_g": 418.0,
+      "image_sha256": "75927711eec8957eb5010ce05154bf02541d64cefaa0fa691e7cef944556adc5",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "16ba7138a8ce182acca07d1438828ca52a30a2543d1736e9bbbc533b65267b2f",
+          "original_kcal": 365.35,
+          "predicted_mass_g": 345.0,
+          "reference_mass_kcal": 442.6559420289855,
+          "reference_density_kcal": 404.75051038277513,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "86121ee81a7b6f7bfe9d03fd5b63a2acb359ac41a39ee662132366a9cce13d8f",
+          "original_kcal": 360.7,
+          "predicted_mass_g": 330.0,
+          "reference_mass_kcal": 456.88666666666666,
+          "reference_density_kcal": 387.1526621052632,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1563389600",
+      "cohort": "mealrange10",
+      "reference_kcal": 451.428009,
+      "reference_mass_g": 264.0,
+      "image_sha256": "5dd57e8063e5f941541faa009851cd0a47a80967942af81640ffe4e6afa6af01",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "451b049827d57d1d73eda4bb8468c99aca5ac23fc78eba1213f94d5c2819e509",
+          "original_kcal": 244.49999999999997,
+          "predicted_mass_g": 215.0,
+          "reference_mass_kcal": 300.2232558139535,
+          "reference_density_kcal": 367.64023460227276,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "5ce780f42d74bdf65fa49bfb386d81aa1ee930c33e1c388db0ec2de22d6106de",
+          "original_kcal": 213.3,
+          "predicted_mass_g": 205.0,
+          "reference_mass_kcal": 274.6887804878049,
+          "reference_density_kcal": 350.54068880681814,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1566920365",
+      "cohort": "mealrange10",
+      "reference_kcal": 490.421692,
+      "reference_mass_g": 871.0,
+      "image_sha256": "1de13ddeb3881509de837955cc605428ee354cc99de2e9c879aeaefbffb953cf",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "ca16ee412f97eae28d329e04aa8254035b8c6241bd323b470adc13320b5119de",
+          "original_kcal": 214.20000000000002,
+          "predicted_mass_g": 350.0,
+          "reference_mass_kcal": 533.052,
+          "reference_density_kcal": 197.0695662456946,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "d684103fffc6de6c108f316e5d174e32bd1ac6f48943bfa353574bd851bb1af9",
+          "original_kcal": 205.20000000000002,
+          "predicted_mass_g": 340.0,
+          "reference_mass_kcal": 525.6741176470588,
+          "reference_density_kcal": 191.43900721010334,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1564687046",
+      "cohort": "mealrange10",
+      "reference_kcal": 374.793854,
+      "reference_mass_g": 308.0,
+      "image_sha256": "85aba7aa1a5eac2bfa82d07357e717681aa289aee720ade11ec13aef30651033",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "82e640082cdcd8115328c0188024a18e7d59ab3436cf401b17d112c76c21204b",
+          "original_kcal": 375.0,
+          "predicted_mass_g": 305.0,
+          "reference_mass_kcal": 378.688524590164,
+          "reference_density_kcal": 371.14326451298706,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "8d69b57fd3071866c310deab0e9cbfe7cf5200daab641dd8aa31e2b0e0c64b83",
+          "original_kcal": 379.0,
+          "predicted_mass_g": 315.0,
+          "reference_mass_kcal": 370.5777777777778,
+          "reference_density_kcal": 383.31189613636366,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1558461792",
+      "cohort": "mealrange10",
+      "reference_kcal": 331.0,
+      "reference_mass_g": 233.0,
+      "image_sha256": "57d2955f7f2f35fabd6ecc80f99b5f437e86196906e9825ce58591e9a9bc3ffc",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "252ba06932121a52a17fa73e4c4527530320658bcdcc2101e8854b49bd4f5553",
+          "original_kcal": 275.79,
+          "predicted_mass_g": 234.0,
+          "reference_mass_kcal": 274.6114102564103,
+          "reference_density_kcal": 332.42060085836914,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "cf28bc7e5767fc37a2e98b15ac01abc3d94ea8babe5ff71311d75dc35660b2df",
+          "original_kcal": 283.09999999999997,
+          "predicted_mass_g": 200.0,
+          "reference_mass_kcal": 329.81149999999997,
+          "reference_density_kcal": 284.12017167381975,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    },
+    {
+      "id": "dish_1561739238",
+      "cohort": "mealrange10",
+      "reference_kcal": 274.190002,
+      "reference_mass_g": 257.0,
+      "image_sha256": "be322f0aa9da773937028ea67c110b631abe1a9151ca46fd49dadb6f3cb98a51",
+      "versions": {
+        "v1": {
+          "status": "ok",
+          "receipt_sha256": "a39c971a8e258bb53cee1ddb1c02b26cb5c946b8c9597074e6835314f313e97b",
+          "original_kcal": 193.9,
+          "predicted_mass_g": 235.0,
+          "reference_mass_kcal": 212.0523404255319,
+          "reference_density_kcal": 250.71848431906614,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        },
+        "v2": {
+          "status": "ok",
+          "receipt_sha256": "07a9a8472ea16347be338d80f7401c0a0478db2fac700ea28844f1a266825a6a",
+          "original_kcal": 214.39999999999998,
+          "predicted_mass_g": 265.0,
+          "reference_mass_kcal": 207.9275471698113,
+          "reference_density_kcal": 282.7250993385214,
+          "oracle_status": "eligible",
+          "oracle_undefined_reason": null
+        }
+      }
+    }
+  ],
+  "groups": {
+    "all": {
+      "v1": {
+        "eligible_attempts": 30,
+        "statuses": {
+          "ok": 30,
+          "failed": 0,
+          "abstained": 0,
+          "not_attempted": 0,
+          "pending": 0
+        },
+        "coverage": 1.0,
+        "oracle_eligible": 30,
+        "oracle_undefined": 0,
+        "oracle_coverage": 1.0,
+        "undefined_reasons": {},
+        "original": {
+          "scored_meals": 30,
+          "mae_kcal": 112.0220386,
+          "bias_kcal": -69.49379640000001,
+          "p90_absolute_error_kcal": 264.4407064,
+          "mean_normalized_absolute_error": 0.27304336887287034
+        },
+        "comparable_original": {
+          "scored_meals": 30,
+          "mae_kcal": 112.0220386,
+          "bias_kcal": -69.49379640000001,
+          "p90_absolute_error_kcal": 264.4407064,
+          "mean_normalized_absolute_error": 0.27304336887287034
+        },
+        "reference_mass": {
+          "scored_meals": 30,
+          "mae_kcal": 48.3804553317544,
+          "bias_kcal": -8.28561986760422,
+          "p90_absolute_error_kcal": 118.07721827142865,
+          "mean_normalized_absolute_error": 0.14283622815331515
+        },
+        "reference_density": {
+          "scored_meals": 30,
+          "mae_kcal": 85.22736571354514,
+          "bias_kcal": -64.98097123045842,
+          "p90_absolute_error_kcal": 267.64859750145797,
+          "mean_normalized_absolute_error": 0.18397703947101215
+        },
+        "delta_mae_kcal": {
+          "reference_mass": -63.641583268245604,
+          "reference_density": -26.794672886454862
+        }
+      },
+      "v2": {
+        "eligible_attempts": 30,
+        "statuses": {
+          "ok": 30,
+          "failed": 0,
+          "abstained": 0,
+          "not_attempted": 0,
+          "pending": 0
+        },
+        "coverage": 1.0,
+        "oracle_eligible": 30,
+        "oracle_undefined": 0,
+        "oracle_coverage": 1.0,
+        "undefined_reasons": {},
+        "original": {
+          "scored_meals": 30,
+          "mae_kcal": 111.92703873333333,
+          "bias_kcal": -62.77812973333334,
+          "p90_absolute_error_kcal": 280.01070639999995,
+          "mean_normalized_absolute_error": 0.2877266075979244
+        },
+        "comparable_original": {
+          "scored_meals": 30,
+          "mae_kcal": 111.92703873333333,
+          "bias_kcal": -62.77812973333334,
+          "p90_absolute_error_kcal": 280.01070639999995,
+          "mean_normalized_absolute_error": 0.2877266075979244
+        },
+        "reference_mass": {
+          "scored_meals": 30,
+          "mae_kcal": 47.082849754788604,
+          "bias_kcal": 0.02605819592480237,
+          "p90_absolute_error_kcal": 105.11721827142868,
+          "mean_normalized_absolute_error": 0.14796481746051054
+        },
+        "reference_density": {
+          "scored_meals": 30,
+          "mae_kcal": 85.14007114291068,
+          "bias_kcal": -65.2120405222328,
+          "p90_absolute_error_kcal": 287.6092545036472,
+          "mean_normalized_absolute_error": 0.1877476194024378
+        },
+        "delta_mae_kcal": {
+          "reference_mass": -64.84418897854474,
+          "reference_density": -26.78696759042265
+        }
+      }
+    },
+    "cohorts": {
+      "mealrange10": {
+        "v1": {
+          "eligible_attempts": 10,
+          "statuses": {
+            "ok": 10,
+            "failed": 0,
+            "abstained": 0,
+            "not_attempted": 0,
+            "pending": 0
+          },
+          "coverage": 1.0,
+          "oracle_eligible": 10,
+          "oracle_undefined": 0,
+          "oracle_coverage": 1.0,
+          "undefined_reasons": {},
+          "original": {
+            "scored_meals": 10,
+            "mae_kcal": 192.98954609999998,
+            "bias_kcal": -192.94831689999998,
+            "p90_absolute_error_kcal": 419.9950316,
+            "mean_normalized_absolute_error": 0.3213211057958618
+          },
+          "comparable_original": {
+            "scored_meals": 10,
+            "mae_kcal": 192.98954609999998,
+            "bias_kcal": -192.94831689999998,
+            "p90_absolute_error_kcal": 419.9950316,
+            "mean_normalized_absolute_error": 0.3213211057958618
+          },
+          "reference_mass": {
+            "scored_meals": 10,
+            "mae_kcal": 69.11429612007196,
+            "bias_kcal": -46.936411084392084,
+            "p90_absolute_error_kcal": 121.32489329003329,
+            "mean_normalized_absolute_error": 0.1368596983968475
+          },
+          "reference_density": {
+            "scored_meals": 10,
+            "mae_kcal": 154.87344358586483,
+            "bias_kcal": -154.58932341419103,
+            "p90_absolute_error_kcal": 355.6015195077507,
+            "mean_normalized_absolute_error": 0.2352713378048144
+          },
+          "delta_mae_kcal": {
+            "reference_mass": -123.87524997992803,
+            "reference_density": -38.11610251413515
+          }
+        },
+        "v2": {
+          "eligible_attempts": 10,
+          "statuses": {
+            "ok": 10,
+            "failed": 0,
+            "abstained": 0,
+            "not_attempted": 0,
+            "pending": 0
+          },
+          "coverage": 1.0,
+          "oracle_eligible": 10,
+          "oracle_undefined": 0,
+          "oracle_coverage": 1.0,
+          "undefined_reasons": {},
+          "original": {
+            "scored_meals": 10,
+            "mae_kcal": 179.6785461,
+            "bias_kcal": -178.8373169,
+            "p90_absolute_error_kcal": 303.15815639999994,
+            "mean_normalized_absolute_error": 0.3034101814251911
+          },
+          "comparable_original": {
+            "scored_meals": 10,
+            "mae_kcal": 179.6785461,
+            "bias_kcal": -178.8373169,
+            "p90_absolute_error_kcal": 303.15815639999994,
+            "mean_normalized_absolute_error": 0.3034101814251911
+          },
+          "reference_mass": {
+            "scored_meals": 10,
+            "mae_kcal": 57.195377387525944,
+            "bias_kcal": -31.702080382845377,
+            "p90_absolute_error_kcal": 110.91834082264815,
+            "mean_normalized_absolute_error": 0.1116918353145415
+          },
+          "reference_density": {
+            "scored_meals": 10,
+            "mae_kcal": 154.51105708722076,
+            "bias_kcal": -151.10042919224375,
+            "p90_absolute_error_kcal": 334.4097198230496,
+            "mean_normalized_absolute_error": 0.24353835567707752
+          },
+          "delta_mae_kcal": {
+            "reference_mass": -122.48316871247405,
+            "reference_density": -25.167489012779242
+          }
+        }
+      },
+      "original20": {
+        "v1": {
+          "eligible_attempts": 20,
+          "statuses": {
+            "ok": 20,
+            "failed": 0,
+            "abstained": 0,
+            "not_attempted": 0,
+            "pending": 0
+          },
+          "coverage": 1.0,
+          "oracle_eligible": 20,
+          "oracle_undefined": 0,
+          "oracle_coverage": 1.0,
+          "undefined_reasons": {},
+          "original": {
+            "scored_meals": 20,
+            "mae_kcal": 71.53828485,
+            "bias_kcal": -7.76653615,
+            "p90_absolute_error_kcal": 155.45489490000014,
+            "mean_normalized_absolute_error": 0.24890450041137457
+          },
+          "comparable_original": {
+            "scored_meals": 20,
+            "mae_kcal": 71.53828485,
+            "bias_kcal": -7.76653615,
+            "p90_absolute_error_kcal": 155.45489490000014,
+            "mean_normalized_absolute_error": 0.24890450041137457
+          },
+          "reference_mass": {
+            "scored_meals": 20,
+            "mae_kcal": 38.01353493759561,
+            "bias_kcal": 11.039775740789713,
+            "p90_absolute_error_kcal": 97.47178230000004,
+            "mean_normalized_absolute_error": 0.14582449303154893
+          },
+          "reference_density": {
+            "scored_meals": 20,
+            "mae_kcal": 50.40432677738528,
+            "bias_kcal": -20.176795138592123,
+            "p90_absolute_error_kcal": 107.54514508164621,
+            "mean_normalized_absolute_error": 0.15832989030411102
+          },
+          "delta_mae_kcal": {
+            "reference_mass": -33.52474991240439,
+            "reference_density": -21.133958072614718
+          }
+        },
+        "v2": {
+          "eligible_attempts": 20,
+          "statuses": {
+            "ok": 20,
+            "failed": 0,
+            "abstained": 0,
+            "not_attempted": 0,
+            "pending": 0
+          },
+          "coverage": 1.0,
+          "oracle_eligible": 20,
+          "oracle_undefined": 0,
+          "oracle_coverage": 1.0,
+          "undefined_reasons": {},
+          "original": {
+            "scored_meals": 20,
+            "mae_kcal": 78.05128505,
+            "bias_kcal": -4.748536150000001,
+            "p90_absolute_error_kcal": 137.79689490000015,
+            "mean_normalized_absolute_error": 0.2798848206842911
+          },
+          "comparable_original": {
+            "scored_meals": 20,
+            "mae_kcal": 78.05128505,
+            "bias_kcal": -4.748536150000001,
+            "p90_absolute_error_kcal": 137.79689490000015,
+            "mean_normalized_absolute_error": 0.2798848206842911
+          },
+          "reference_mass": {
+            "scored_meals": 20,
+            "mae_kcal": 42.026585938419935,
+            "bias_kcal": 15.890127485309893,
+            "p90_absolute_error_kcal": 105.07035253880598,
+            "mean_normalized_absolute_error": 0.16610130853349508
+          },
+          "reference_density": {
+            "scored_meals": 20,
+            "mae_kcal": 50.45457817075564,
+            "bias_kcal": -22.267846187227313,
+            "p90_absolute_error_kcal": 122.19132975377732,
+            "mean_normalized_absolute_error": 0.15985225126511796
+          },
+          "delta_mae_kcal": {
+            "reference_mass": -36.02469911158007,
+            "reference_density": -27.596706879244365
+          }
+        }
+      }
+    },
+    "energy_size_bins": {
+      "under_200": {
+        "v1": {
+          "eligible_attempts": 12,
+          "statuses": {
+            "ok": 12,
+            "failed": 0,
+            "abstained": 0,
+            "not_attempted": 0,
+            "pending": 0
+          },
+          "coverage": 1.0,
+          "oracle_eligible": 12,
+          "oracle_undefined": 0,
+          "oracle_coverage": 1.0,
+          "undefined_reasons": {},
+          "original": {
+            "scored_meals": 12,
+            "mae_kcal": 38.55380491666667,
+            "bias_kcal": 21.20094375,
+            "p90_absolute_error_kcal": 96.88245350000001,
+            "mean_normalized_absolute_error": 0.19276902458333334
+          },
+          "comparable_original": {
+            "scored_meals": 12,
+            "mae_kcal": 38.55380491666667,
+            "bias_kcal": 21.20094375,
+            "p90_absolute_error_kcal": 96.88245350000001,
+            "mean_normalized_absolute_error": 0.19276902458333334
+          },
+          "reference_mass": {
+            "scored_meals": 12,
+            "mae_kcal": 23.021932658755436,
+            "bias_kcal": 20.364811916331195,
+            "p90_absolute_error_kcal": 46.08333733333333,
+            "mean_normalized_absolute_error": 0.11510966329377718
+          },
+          "reference_density": {
+            "scored_meals": 12,
+            "mae_kcal": 21.46068638236956,
+            "bias_kcal": -0.05363695072712519,
+            "p90_absolute_error_kcal": 42.597187554224476,
+            "mean_normalized_absolute_error": 0.10730343191184778
+          },
+          "delta_mae_kcal": {
+            "reference_mass": -15.531872257911235,
+            "reference_density": -17.093118534297112
+          }
+        },
+        "v2": {
+          "eligible_attempts": 12,
+          "statuses": {
+            "ok": 12,
+            "failed": 0,
+            "abstained": 0,
+            "not_attempted": 0,
+            "pending": 0
+          },
+          "coverage": 1.0,
+          "oracle_eligible": 12,
+          "oracle_undefined": 0,
+          "oracle_coverage": 1.0,
+          "undefined_reasons": {},
+          "original": {
+            "scored_meals": 12,
+            "mae_kcal": 48.85630525,
+            "bias_kcal": 29.095110416666667,
+            "p90_absolute_error_kcal": 113.65445310000001,
+            "mean_normalized_absolute_error": 0.24428152625
+          },
+          "comparable_original": {
+            "scored_meals": 12,
+            "mae_kcal": 48.85630525,
+            "bias_kcal": 29.095110416666667,
+            "p90_absolute_error_kcal": 113.65445310000001,
+            "mean_normalized_absolute_error": 0.24428152625
+          },
+          "reference_mass": {
+            "scored_meals": 12,
+            "mae_kcal": 29.8153201737157,
+            "bias_kcal": 26.944771400988426,
+            "p90_absolute_error_kcal": 82.68607013416151,
+            "mean_normalized_absolute_error": 0.1490766008685785
+          },
+          "reference_density": {
+            "scored_meals": 12,
+            "mae_kcal": 21.947369009248067,
+            "bias_kcal": 0.35078933028632103,
+            "p90_absolute_error_kcal": 41.82518742307694,
+            "mean_normalized_absolute_error": 0.10973684504624033
+          },
+          "delta_mae_kcal": {
+            "reference_mass": -19.040985076284297,
+            "reference_density": -26.90893624075193
+          }
+        }
+      },
+      "200_to_600": {
+        "v1": {
+          "eligible_attempts": 14,
+          "statuses": {
+            "ok": 14,
+            "failed": 0,
+            "abstained": 0,
+            "not_attempted": 0,
+            "pending": 0
+          },
+          "coverage": 1.0,
+          "oracle_eligible": 14,
+          "oracle_undefined": 0,
+          "oracle_coverage": 1.0,
+          "undefined_reasons": {},
+          "original": {
+            "scored_meals": 14,
+            "mae_kcal": 122.28708992857142,
+            "bias_kcal": -82.37349835714285,
+            "p90_absolute_error_kcal": 256.4405965,
+            "mean_normalized_absolute_error": 0.31440283895037224
+          },
+          "comparable_original": {
+            "scored_meals": 14,
+            "mae_kcal": 122.28708992857142,
+            "bias_kcal": -82.37349835714285,
+            "p90_absolute_error_kcal": 256.4405965,
+            "mean_normalized_absolute_error": 0.31440283895037224
+          },
+          "reference_mass": {
+            "scored_meals": 14,
+            "mae_kcal": 60.571494279437836,
+            "bias_kcal": -21.03754886179535,
+            "p90_absolute_error_kcal": 141.4617281302326,
+            "mean_normalized_absolute_error": 0.1758403550496061
+          },
+          "reference_density": {
+            "scored_meals": 14,
+            "mae_kcal": 88.70598348248889,
+            "bias_kcal": -63.669751960139436,
+            "p90_absolute_error_kcal": 235.57125528576483,
+            "mean_normalized_absolute_error": 0.2097858629389005
+          },
+          "delta_mae_kcal": {
+            "reference_mass": -61.71559564913358,
+            "reference_density": -33.58110644608253
+          }
+        },
+        "v2": {
+          "eligible_attempts": 14,
+          "statuses": {
+            "ok": 14,
+            "failed": 0,
+            "abstained": 0,
+            "not_attempted": 0,
+            "pending": 0
+          },
+          "coverage": 1.0,
+          "oracle_eligible": 14,
+          "oracle_undefined": 0,
+          "oracle_coverage": 1.0,
+          "undefined_reasons": {},
+          "original": {
+            "scored_meals": 14,
+            "mae_kcal": 124.2635185,
+            "bias_kcal": -85.75992692857143,
+            "p90_absolute_error_kcal": 267.8505965,
+            "mean_normalized_absolute_error": 0.31527615334091585
+          },
+          "comparable_original": {
+            "scored_meals": 14,
+            "mae_kcal": 124.2635185,
+            "bias_kcal": -85.75992692857143,
+            "p90_absolute_error_kcal": 267.8505965,
+            "mean_normalized_absolute_error": 0.31527615334091585
+          },
+          "reference_mass": {
+            "scored_meals": 14,
+            "mae_kcal": 57.1366619449149,
+            "bias_kcal": -18.013946168324562,
+            "p90_absolute_error_kcal": 159.33586085853665,
+            "mean_normalized_absolute_error": 0.16580945180962195
+          },
+          "reference_density": {
+            "scored_meals": 14,
+            "mae_kcal": 93.76905842735833,
+            "bias_kcal": -70.1788428169352,
+            "p90_absolute_error_kcal": 250.65827836247718,
+            "mean_normalized_absolute_error": 0.2228103367829937
+          },
+          "delta_mae_kcal": {
+            "reference_mass": -67.12685655508511,
+            "reference_density": -30.494460072641672
+          }
+        }
+      },
+      "over_600": {
+        "v1": {
+          "eligible_attempts": 4,
+          "statuses": {
+            "ok": 4,
+            "failed": 0,
+            "abstained": 0,
+            "not_attempted": 0,
+            "pending": 0
+          },
+          "coverage": 1.0,
+          "oracle_eligible": 4,
+          "oracle_undefined": 0,
+          "oracle_coverage": 1.0,
+          "undefined_reasons": {},
+          "original": {
+            "scored_meals": 4,
+            "mae_kcal": 296.49906,
+            "bias_kcal": -296.49906,
+            "p90_absolute_error_kcal": 434.0786252,
+            "mean_normalized_absolute_error": 0.36910825647022444
+          },
+          "comparable_original": {
+            "scored_meals": 4,
+            "mae_kcal": 296.49906,
+            "bias_kcal": -296.49906,
+            "p90_absolute_error_kcal": 434.0786252,
+            "mean_normalized_absolute_error": 0.36910825647022444
+          },
+          "reference_mass": {
+            "scored_meals": 4,
+            "mae_kcal": 81.78738703385922,
+            "bias_kcal": -49.60516373974151,
+            "p90_absolute_error_kcal": 112.65303407368427,
+            "mean_normalized_absolute_error": 0.11050147859491058
+          },
+          "reference_density": {
+            "scored_meals": 4,
+            "mae_kcal": 264.35224151576875,
+            "bias_kcal": -264.35224151576875,
+            "p90_absolute_error_kcal": 396.3412215542553,
+            "mean_normalized_absolute_error": 0.3236669800108959
+          },
+          "delta_mae_kcal": {
+            "reference_mass": -214.71167296614078,
+            "reference_density": -32.14681848423123
+          }
+        },
+        "v2": {
+          "eligible_attempts": 4,
+          "statuses": {
+            "ok": 4,
+            "failed": 0,
+            "abstained": 0,
+            "not_attempted": 0,
+            "pending": 0
+          },
+          "coverage": 1.0,
+          "oracle_eligible": 4,
+          "oracle_undefined": 0,
+          "oracle_coverage": 1.0,
+          "undefined_reasons": {},
+          "original": {
+            "scored_meals": 4,
+            "mae_kcal": 257.96156,
+            "bias_kcal": -257.96156,
+            "p90_absolute_error_kcal": 373.8845628,
+            "mean_normalized_absolute_error": 0.3216384415412279
+          },
+          "comparable_original": {
+            "scored_meals": 4,
+            "mae_kcal": 257.96156,
+            "bias_kcal": -257.96156,
+            "p90_absolute_error_kcal": 373.8845628,
+            "mean_normalized_absolute_error": 0.3216384415412279
+          },
+          "reference_mass": {
+            "scored_meals": 4,
+            "mae_kcal": 63.69709583256531,
+            "bias_kcal": -17.59006614439329,
+            "p90_absolute_error_kcal": 91.99980960000008,
+            "mean_normalized_absolute_error": 0.08217324701441685
+          },
+          "reference_density": {
+            "scored_meals": 4,
+            "mae_kcal": 244.51672204833176,
+            "bias_kcal": -244.51672204833176,
+            "p90_absolute_error_kcal": 344.0109527187943,
+            "mean_normalized_absolute_error": 0.2990604316390846
+          },
+          "delta_mae_kcal": {
+            "reference_mass": -194.2644641674347,
+            "reference_density": -13.444837951668262
+          }
+        }
+      }
+    }
+  },
+  "input_sha256": "f08f254d11039682fb9ceee4c8bceffd153db7de05dc0a5405b46215fef55096",
+  "input_is_frozen_public30": true
+}

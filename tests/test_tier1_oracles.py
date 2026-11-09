@@ -134,5 +134,27 @@ class OracleTests(unittest.TestCase):
             self.assertAlmostEqual(stats['original']['mae_kcal'],mae,places=5)
             self.assertAlmostEqual(stats['original']['p90_absolute_error_kcal'],p90,places=5)
 
+    def test_nonfinite_supplied_values_are_rejected_even_for_failed_predictions(self):
+        for status in ('failed','abstained','pending','not_attempted'):
+            for key,value in [('v1A1kcal','NaN'),('v2A1MassG','Infinity')]:
+                with self.subTest(status=status,key=key):
+                    broken=row(status=status,predicted=None,predicted_mass=None);broken[key]=value
+                    with self.assertRaises(ValueError):analyze_rows([broken])
+        stats=analyze_rows([row(status='failed',predicted='',predicted_mass='')])['groups']['all']['v1']
+        self.assertEqual(stats['statuses']['failed'],1)
+        self.assertEqual(stats['original']['scored_meals'],0)
+
+    def test_truncated_optional_csv_cell_is_rejected_but_explicit_blank_is_valid(self):
+        with tempfile.TemporaryDirectory(prefix='calorix-oracle-width-') as root:
+            source=Path(root)/'cases.csv'
+            with source.open('w',newline='') as handle:
+                writer=csv.DictWriter(handle,fieldnames=[*row(),'optionalTail'],lineterminator='\n')
+                writer.writeheader();writer.writerow({**row(),'optionalTail':''})
+            raw=source.read_bytes();digest=hashlib.sha256(raw).hexdigest()
+            self.assertEqual(load_csv(source,digest)[0]['optionalTail'],'')
+            lines=raw.splitlines();self.assertTrue(lines[-1].endswith(b','))
+            lines[-1]=lines[-1][:-1];truncated=b'\n'.join(lines)+b'\n';source.write_bytes(truncated)
+            with self.assertRaises(ValueError):load_csv(source,hashlib.sha256(truncated).hexdigest())
+
 
 if __name__=='__main__':unittest.main()
