@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:calorix/core/time/clock.dart';
@@ -67,6 +68,31 @@ Future<void> apply(WidgetTester tester,String value) async {
 }
 
 void main(){
+  testWidgets('invalid portion explains the full range on a narrow screen', (tester) async {
+    tester.view.physicalSize=const Size(1080,2400);tester.view.devicePixelRatio=3;
+    addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+    final store=await _openMeal(tester);final before=store.records.single.toJson();
+    await dialog(tester);await apply(tester,'100001');
+    final error=find.text('Enter a finite weight from 0 to 100000 g');
+    expect(error,findsOneWidget);
+    expect(tester.renderObject<RenderParagraph>(error).didExceedMaxLines,isFalse,
+      reason:'The allowed range must be readable, not ellipsized on a phone.');
+    expect(store.records.single.toJson(),before);
+  });
+  testWidgets('invalid portion releases the keyboard and retains input for correction', (tester) async {
+    final store=await _openMeal(tester);final before=store.records.single.toJson();
+    await dialog(tester);await tester.enterText(grams(),'100001');
+    expect(tester.testTextInput.isVisible,isTrue);
+    await tester.tap(find.text('Apply portion'));await tester.pumpAndSettle();
+    expect(tester.testTextInput.isVisible,isFalse);
+    expect(find.text('Enter a finite weight from 0 to 100000 g'),findsOneWidget);
+    final input=find.descendant(of:grams(),matching:find.byType(EditableText));
+    expect(tester.widget<EditableText>(input).controller.text,'100001');
+    expect(store.records.single.toJson(),before);
+    await apply(tester,'86');expect(find.byType(AlertDialog),findsNothing);
+    expect(store.records.single.served!.kcal,closeTo(613.5,1e-9));
+    expect(tester.takeException(),isNull);
+  });
   testWidgets('edit grams recalculates totals locally and retains original analysis', (tester) async {
     final cloud=_Cloud(),store=await _openMeal(tester,cloud:cloud);final original=store.records.single;
     await dialog(tester);expect(tester.widget<TextFormField>(grams()).controller?.text??tester.widget<TextFormField>(grams()).initialValue,'55');
