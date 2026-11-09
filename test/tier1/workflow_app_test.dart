@@ -135,7 +135,7 @@ void main(){
     final store=_Store(),sink=_Sink(),cloud=_Cloud();await open(t,store,sink,()=>0,cloud:cloud);
     await t.tap(find.text('Estimate photo'));await t.pumpAndSettle();await t.tap(find.text('Send photo'));await t.pump();
     await t.tap(find.byTooltip('Back'));await t.pumpAndSettle();
-    cloud.response.complete(portionAnalysis());await t.pumpAndSettle();
+    cloud.response.complete({...portionAnalysis(),'mealName':'Changed prediction'});await t.pumpAndSettle();
     expect(sink.events.where((e)=>e['kind']=='analysis_saved').single['afterNavigation'],true);
     expect(sink.events.where((e)=>e['kind']=='analysis_failed'||e['kind']=='analysis_refresh_failed'||e['kind']=='result_frame'),isEmpty);
     expect(t.takeException(),isNull);
