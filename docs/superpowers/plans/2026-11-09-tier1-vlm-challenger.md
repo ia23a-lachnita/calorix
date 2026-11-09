@@ -15,9 +15,9 @@ Execute inline with superpowers:executing-plans; user approved continuing this c
 ## Task1 — One compatibility probe
 
 Files: task-owned disk receipts only; this plan and status tracking.
-- [ ] Save corrected MCP pre-review and model GET evidence. Verify old frozen engine prompt/schema/catalog/dependency pins without changing source.
-- [ ] Exclusively claim the one-probe receipt before SDK entry; use owned64x64 gray JPEG, fixed production prompt/schema/settings but exact challenger model. Verify returnedModel before strict decoder. Record no_food as expected success, raw usage/latency/model and no food accuracy. Never retry a used claim.
-- [ ] If incompatible, retain exact bounded failure and complete independent implementation work where useful, without dispatching food requests or claiming a benchmark result.
+- [x] Save corrected MCP pre-review and model GET evidence. Verify old frozen engine prompt/schema/catalog/dependency pins without changing source.
+- [x] Exclusively claim the one-probe receipt before SDK entry; use owned64x64 gray JPEG, fixed production prompt/schema/settings but exact challenger model. Verify returnedModel before strict decoder. Record no_food as expected success, raw usage/latency/model and no food accuracy. Never retry a used claim.
+- [x] Compatibility passed:exact4argon/explicitno_food,1SDKentry/0foodrequests/9,895ms. Incompatible branch not taken; no food accuracy claim.
 
 ## Task2 — Explicit research model profile and provenance
 
@@ -38,3 +38,5 @@ Interfaces: named `TIER1_CHALLENGER_MODEL` and `inferTier1Challenger(imageBase64
 - https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/4-argon — model ID, image/structured-output support, US and LOW.
 - https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/guides/gemini-4-argon — newer SDK requirements concern long continuations; older SDK short-request compatibility remains unverified until probe.
 - MCP `calorix-tier1-vlm-challenger-20261109`, primarygemini-3.8-flash/yolo: corrected preplan AGREEMENT_STATUS agree/MUST_FIX none. Initialresponse added pureweights isolation, promptfutility, globalpolicyviolation and present-tenseprobe claims; all retracted/not adopted. No temperature parameter is set despite a generic reference in corrected response. Preplan approval only, not future source/outcome/readiness approval.
+
+ActualTask2RED:twofocusedbackendfiles14PASS/6expectedFAIL20 (one new isolationtestalreadyPASS), missingchallengerexports/modelmetadata/guard. Nodeinitial14PASS/3expectedFAIL17; extra originalprofilemodelmetadataassertionRED next. No network in tests. Probe result is committed factual diagnostic metadata; ownedblankJPEG/privateprobe/rawproviderresponse remain task-owned disk. One probe consumed;20food-call cap stillunused.

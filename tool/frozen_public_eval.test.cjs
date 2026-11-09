@@ -46,13 +46,14 @@ test('dirty or outside manifests cannot bypass committed-input gate',t=>{
 test('research profiles are explicit and bind the exact prompt and function',()=>{
   const select=require('./run_frozen_public_eval.cjs').resolveInferenceProfile;
   assert.equal(typeof select,'function');
-  const engine={TIER1_PROMPT:'baseline',TIER1_PORTION_AUDIT_PROMPT:'baseline\naudit',
+  const engine={TIER1_MODEL:'gemini-3.8-flash',TIER1_PROMPT:'baseline',TIER1_PORTION_AUDIT_PROMPT:'baseline\naudit',
     inferTier1:async()=>{},inferTier1PortionAudit:async()=>{}};
   const original=select(engine,'original'),candidate=select(engine,'portion-audit-v1');
   assert.equal(original.infer,engine.inferTier1);assert.equal(candidate.infer,engine.inferTier1PortionAudit);
   assert.equal(original.promptSha256,require('node:crypto').createHash('sha256').update(engine.TIER1_PROMPT).digest('hex'));
   assert.equal(candidate.promptSha256,require('node:crypto').createHash('sha256').update(engine.TIER1_PORTION_AUDIT_PROMPT).digest('hex'));
   assert.equal(candidate.id,'portion-audit-v1');
+  assert.equal(original.model,engine.TIER1_MODEL);assert.equal(candidate.model,engine.TIER1_MODEL);
 });
 test('unknown profiles and unavailable frozen candidate exports fail without dispatch',()=>{
   const select=require('./run_frozen_public_eval.cjs').resolveInferenceProfile;
@@ -133,4 +134,31 @@ test('paired immutable source profile pins reject drift before dispatch',()=>{
   const bundle={lockSha256:profile.dependencyLockSha256,files:{'tier1-analysis':{sourceSha256:profile.analysisSourceSha256},'tier1-catalog':{sourceSha256:profile.catalogSourceSha256}}};
   assert.doesNotThrow(()=>paired.validatePins(profile,manifest,engine,bundle));
   for(const changed of [{...profile,promptSha256:'0'.repeat(64)},{...profile,manifestSha256:'0'.repeat(64)},{...profile,dependencyLockSha256:'0'.repeat(64)}])assert.throws(()=>paired.validatePins(changed,manifest,engine,bundle),/pin|drift/i);
+});
+test('model challenger profile selects a fixed function/model and reuses the production prompt',()=>{
+  const select=require('./run_frozen_public_eval.cjs').resolveInferenceProfile;
+  const engine={TIER1_MODEL:'gemini-3.8-flash',TIER1_CHALLENGER_MODEL:'gemini-4-argon',TIER1_PROMPT:'fixed',inferTier1:async()=>{},inferTier1Challenger:async()=>{}};
+  const selected=select(engine,'vlm-challenger-v1');assert.equal(selected.model,'gemini-4-argon');assert.equal(selected.infer,engine.inferTier1Challenger);
+  assert.equal(selected.promptSha256,require('node:crypto').createHash('sha256').update('fixed').digest('hex'));
+  assert.equal(require('./run_frozen_public_eval.cjs').parseProfileArgument(['--profile','vlm-challenger-v1']),'vlm-challenger-v1');
+  assert.throws(()=>select({...engine,TIER1_CHALLENGER_MODEL:engine.TIER1_MODEL},'vlm-challenger-v1'),/model|profile/i);
+});
+test('shared pair supports only the explicit research challenger while preserving its twenty-call cap',async t=>{
+  const f=pairFixture(t);const result=await paired.executePair({...f.options,candidateProfile:'vlm-challenger-v1'},f.arm);
+  assert.deepEqual(f.calls,['original','vlm-challenger-v1']);assert.equal(result.sdkInvocations,20);
+  const bad=pairFixture(t);await assert.rejects(()=>paired.executePair({...bad.options,candidateProfile:'arbitrary'},bad.arm));
+  assert.equal(bad.calls.length,0);assert.equal(fs.existsSync(bad.options.registryPath),false);
+});
+test('challenger source pins require the exact frozen manifest, model, schema and successful one-call probe',t=>{
+  const directory=path.join(temporary(t),'bundle'),bundle=buildFrozenBundle(sourceRepo,engine,directory);
+  const sourceEngine={...require(path.join(directory,'tier1-analysis.js')),TIER1_CHALLENGER_MODEL:'gemini-4-argon'};
+  const manifest=fs.readFileSync(path.join(sourceRepo,'functions/eval/tier1-public/manifest-mealrange-v1.json'));
+  const probeRaw=fs.readFileSync(path.join(sourceRepo,'functions/eval/tier1-public/vlm-challenger-probe-v1.json'));
+  const hash=x=>require('node:crypto').createHash('sha256').update(x).digest('hex');
+  const profile={baselineModel:'gemini-3.8-flash',challengerModel:'gemini-4-argon',manifestSha256:hash(manifest),promptSha256:hash(sourceEngine.TIER1_PROMPT),responseSchemaSha256:hash(JSON.stringify(sourceEngine.TIER1_RESPONSE_SCHEMA)),analysisSourceSha256:bundle.files['tier1-analysis'].sourceSha256,catalogSourceSha256:bundle.files['tier1-catalog'].sourceSha256,dependencyLockSha256:bundle.lockSha256,probeReceiptSha256:hash(probeRaw)};
+  const validate=require('./run_bounded_vlm_experiment.cjs').validateModelPins;
+  assert.doesNotThrow(()=>validate(profile,manifest,sourceEngine,bundle,probeRaw));
+  for(const key of ['challengerModel','manifestSha256','promptSha256','responseSchemaSha256','analysisSourceSha256','catalogSourceSha256','dependencyLockSha256','probeReceiptSha256'])assert.throws(()=>validate({...profile,[key]:'wrong'},manifest,sourceEngine,bundle,probeRaw),/pin|drift|probe/i);
+  const badProbe=Buffer.from(JSON.stringify({...JSON.parse(probeRaw),successfulCompatibility:false}));
+  assert.throws(()=>validate({...profile,probeReceiptSha256:hash(badProbe)},manifest,sourceEngine,bundle,badProbe),/probe/i);
 });

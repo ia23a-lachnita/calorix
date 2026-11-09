@@ -14,6 +14,8 @@ import * as original from '../src/tier1-analysis';
 const engine=original as typeof original & {
   TIER1_PORTION_AUDIT_ADDENDUM:string;TIER1_PORTION_AUDIT_PROMPT:string;
   inferTier1PortionAudit:(image:string)=>Promise<original.Tier1Estimate>;
+  TIER1_CHALLENGER_MODEL:string;
+  inferTier1Challenger:(image:string)=>Promise<original.Tier1Estimate>;
 };
 const addendum='Before returning JSON, audit the portion estimates: include all visible pieces and piles in each component’s combined cooked edible mass. Do not default to a generic serving or a small sample. Check for both overestimation and underestimation of the entire visible serving; do not systematically increase amounts, infer unseen food, or double count composites.';
 const digest=(text:string)=>createHash('sha256').update(text).digest('hex');
@@ -53,4 +55,32 @@ it('keeps empty-food candidate output an explicit failure',async()=>{
   mocked.request.mockResolvedValue({modelVersion:engine.TIER1_MODEL,text:JSON.stringify({...inventory,components:[]})});
   await expect(engine.inferTier1PortionAudit('AQID')).rejects.toThrow('no_food');
   expect(mocked.request).toHaveBeenCalledTimes(1);
+});
+it('uses the fixed research challenger with the original prompt and exact model provenance',async()=>{
+  expect(engine.TIER1_CHALLENGER_MODEL).toBe('gemini-4-argon');
+  expect(typeof engine.inferTier1Challenger).toBe('function');
+  mocked.request.mockResolvedValue({modelVersion:'gemini-4-argon',text:JSON.stringify(inventory)});
+  const result=await engine.inferTier1Challenger('AQID');
+  expect(mocked.request).toHaveBeenCalledTimes(1);
+  expect(mocked.request.mock.calls[0]![0]).toEqual({model:'gemini-4-argon',contents:[{role:'user',parts:[{text:engine.TIER1_PROMPT},{inlineData:{mimeType:'image/jpeg',data:'AQID'}}]}],config:{responseMimeType:'application/json',responseJsonSchema:engine.TIER1_RESPONSE_SCHEMA,thinkingConfig:{thinkingLevel:ThinkingLevel.LOW},maxOutputTokens:8192}});
+  expect(mocked.construct).toHaveBeenCalledTimes(1);
+  expect(mocked.construct).toHaveBeenCalledWith({vertexai:true,project:'calorix-xurschnell',location:'us',apiVersion:'v1',httpOptions:{baseUrl:'https://aiplatform.us.rep.googleapis.com/',timeout:30000,retryOptions:{attempts:1}}});
+  expect(result.provenance.model).toBe('gemini-4-argon');expect(result.provenance.returnedModel).toBe('gemini-4-argon');
+  expect(result.provenance.promptSha256).toBe('7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566');
+  expect(result.totals.kcal).toBe(130);expect(result.rawInventory).toEqual(inventory);
+});
+it('halts challenger model drift after a single SDK attempt',async()=>{
+  expect(typeof engine.inferTier1Challenger).toBe('function');
+  await expect(engine.inferTier1Challenger('AQID')).rejects.toThrow('Unexpected returned model version');
+  expect(mocked.request).toHaveBeenCalledTimes(1);
+});
+it('retains explicit no-food failure for a pinned challenger response',async()=>{
+  expect(typeof engine.inferTier1Challenger).toBe('function');
+  mocked.request.mockResolvedValue({modelVersion:'gemini-4-argon',text:JSON.stringify({...inventory,components:[]})});
+  await expect(engine.inferTier1Challenger('AQID')).rejects.toThrow('no_food');
+  expect(mocked.request).toHaveBeenCalledTimes(1);
+});
+it('keeps both original and portion-audit routes on the production model',async()=>{
+  await engine.inferTier1('AQID');await engine.inferTier1PortionAudit('AQID');
+  expect(mocked.request.mock.calls.map(c=>(c[0] as {model:string}).model)).toEqual(['gemini-3.8-flash','gemini-3.8-flash']);
 });

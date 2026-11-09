@@ -75,3 +75,27 @@ it('rejects malformed expected prompt hashes before creating a run or dispatchin
   const options={manifest:f.manifest,assetsRoot:f.root,runDir,consent:true,sourceCommit:'hermetic',expectedPromptSha256:'invalid',infer:async()=>{calls++;return rice();}};
   await expect(runPublicEvaluation(options)).rejects.toThrow();expect(calls).toBe(0);expect(existsSync(runDir)).toBe(false);
 });
+it('pins research model metadata to the actual returned model',async()=>{
+  const f=setup(),runDir=join(f.root,'run'),expectedModel='gemini-4-argon';
+  const options={manifest:f.manifest,assetsRoot:f.root,runDir,consent:true,sourceCommit:'hermetic',expectedModel,
+    infer:async()=>{const e=rice();return {...e,provenance:{...e.provenance,model:expectedModel,returnedModel:expectedModel}};}};
+  const result=await runPublicEvaluation(options);
+  expect(result.routes.A1.scoredCases).toBe(2);expect(JSON.parse(readFileSync(join(runDir,'run.json'),'utf8')).model).toBe(expectedModel);
+});
+it('halts either declared or returned model mismatch before scoring the next image',async()=>{
+  for(const field of ['model','returnedModel'] as const){
+    const f=setup();let calls=0;const runDir=join(f.root,'run'),expectedModel='gemini-4-argon';
+    const options={manifest:f.manifest,assetsRoot:f.root,runDir,consent:true,sourceCommit:'hermetic',expectedModel,
+      infer:async()=>{calls++;const e=rice();return {...e,provenance:{...e.provenance,model:expectedModel,returnedModel:expectedModel,[field]:'gemini-3.8-flash'}};}};
+    const result=await runPublicEvaluation(options);expect(calls).toBe(1);expect(result.routes.A1.failed).toBe(1);expect(result.routes.A1.notAttempted).toBe(1);
+    const receipt=JSON.parse(readFileSync(join(runDir,f.manifest.cases[0]!.id+'.json'),'utf8'));
+    expect(receipt.A1.failure).toBe('model_drift');expect(receipt.estimate).toBeUndefined();
+  }
+});
+it('refuses malformed model pins and a nondefault model without injected inference before creating a run',async()=>{
+  const f=setup(),runDir=join(f.root,'run');let calls=0;
+  const base={manifest:f.manifest,assetsRoot:f.root,runDir,consent:true,sourceCommit:'hermetic'};
+  for(const expectedModel of ['', 'gemini invalid','../model'])await expect(runPublicEvaluation({...base,expectedModel,infer:async()=>{calls++;return rice();}})).rejects.toThrow();
+  await expect(runPublicEvaluation({...base,expectedModel:'gemini-4-argon'})).rejects.toThrow();
+  expect(calls).toBe(0);expect(existsSync(runDir)).toBe(false);
+});

@@ -1,0 +1,33 @@
+{
+  "requestedModel": "gemini-4-argon",
+  "maxSdkInvocations": 1,
+  "sdkInvocations": 1,
+  "foodRequests": 0,
+  "successfulCompatibility": true,
+  "inputSha256": "79e2851fd873d5115880b84cc5b82a45f32666055b6d3727e330de2d50ba267a",
+  "latencyMs": 9895,
+  "returnedModel": "gemini-4-argon",
+  "usage": {
+    "promptTokenCount": 2165,
+    "candidatesTokenCount": 54,
+    "totalTokenCount": 2219,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1089
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 1076
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 54
+      }
+    ]
+  },
+  "outcome": "expected_no_food"
+}
