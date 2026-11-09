@@ -70,3 +70,67 @@ test('explicit missing, duplicate or unknown profile flags cannot silently selec
     assert.throws(()=>parse(args),/profile/);
   }
 });
+
+const paired=require('./run_bounded_portion_experiment.cjs');
+function pairFixture(t){
+  const root=temporary(t),outputDir=path.join(root,'experiment'),registryPath=path.join(root,'registry.json');
+  const manifest={sampleCount:10,cases:Array.from({length:10},(_,i)=>({id:'dish_'+String(1500000000+i)}))};
+  const options={outputDir,registryPath,manifest,consent:true,pins:{manifestSha256:'a'.repeat(64)}};
+  const calls=[];
+  const arm=async args=>{
+    calls.push(args.profile);fs.mkdirSync(args.runDir);
+    for(const c of manifest.cases)fs.writeFileSync(path.join(args.runDir,c.id+'.json'),JSON.stringify({id:c.id,sdkInvoked:true,A1:{status:'ok',failure:null}}));
+    return {selectedCases:10,sdkInvocations:10,routes:{A1:{scoredCases:10,failed:0,pending:0,notAttempted:0}}};
+  };
+  return {root,options,calls,arm};
+}
+test('paired experiment reserves both arms once and cannot reset with another output directory',async t=>{
+  const f=pairFixture(t);const result=await paired.executePair(f.options,f.arm);
+  assert.equal(result.status,'completed');assert.deepEqual(f.calls,['original','portion-audit-v1']);
+  assert.equal(result.sdkInvocations,20);assert.equal(result.maxSdkInvocations,20);
+  assert.equal(result.arms[0].runDir,path.join(f.options.outputDir,'original'));
+  await assert.rejects(()=>paired.executePair({...f.options,outputDir:path.join(f.root,'other')},f.arm));
+  assert.equal(f.calls.length,2);assert.equal(fs.existsSync(path.join(f.root,'other')),false);
+});
+test('paired experiment refuses missing consent and excess or duplicate cases before claiming',async t=>{
+  const f=pairFixture(t);
+  for(const options of [{...f.options,consent:false},{...f.options,manifest:{...f.options.manifest,sampleCount:11}},
+    {...f.options,manifest:{sampleCount:10,cases:Array(10).fill({id:'dish_1500000000'})}}])await assert.rejects(()=>paired.executePair(options,f.arm));
+  assert.equal(f.calls.length,0);assert.equal(fs.existsSync(f.options.registryPath),false);
+});
+test('paired systemic or incomplete baseline halts candidate and retains claimed receipt',async t=>{
+  for(const mode of ['http_429','model_drift','prompt_drift','inference_system_failure','unknown','missing','pending','inconsistent']){
+    const f=pairFixture(t);
+    const result=await paired.executePair(f.options,async args=>{
+      const report=await f.arm(args),file=path.join(args.runDir,f.options.manifest.cases[0].id+'.json');
+      if(mode==='missing')fs.unlinkSync(file);
+      else if(mode==='inconsistent')report.sdkInvocations=9;
+      else {const row=JSON.parse(fs.readFileSync(file));row.A1={status:mode==='pending'?'pending':'failed',failure:mode};fs.writeFileSync(file,JSON.stringify(row));}
+      return report;
+    });
+    assert.equal(result.status,'halted',mode);assert.equal(f.calls.length,1,mode);
+    assert.equal(result.arms[1].status,'not_attempted',mode);assert.ok(fs.existsSync(f.options.registryPath));
+  }
+});
+test('paired per-image failures remain counted and allow candidate without retry',async t=>{
+  const f=pairFixture(t);const result=await paired.executePair(f.options,async args=>{
+    const report=await f.arm(args),file=path.join(args.runDir,f.options.manifest.cases[0].id+'.json');
+    const row=JSON.parse(fs.readFileSync(file));row.A1={status:'failed',failure:'invalid_model_output'};fs.writeFileSync(file,JSON.stringify(row));
+    report.routes.A1.scoredCases=9;report.routes.A1.failed=1;return report;
+  });
+  assert.equal(result.status,'completed');assert.equal(result.sdkInvocations,20);assert.equal(f.calls.length,2);
+});
+test('paired thrown arm closes experiment and never permits resumption',async t=>{
+  const f=pairFixture(t);const result=await paired.executePair(f.options,async()=>{f.calls.push('throw');throw new Error('private provider detail');});
+  assert.equal(result.status,'halted');assert.equal(f.calls.length,1);assert.equal(result.sdkInvocations,null);
+  assert.equal(JSON.stringify(result).includes('private provider detail'),false);
+  await assert.rejects(()=>paired.executePair(f.options,f.arm));assert.equal(f.calls.length,1);
+});
+test('paired immutable source profile pins reject drift before dispatch',()=>{
+  const profile=JSON.parse(fs.readFileSync(path.join(sourceRepo,'functions/eval/tier1-public/portion-audit-profile-v1.json')));
+  const manifest=fs.readFileSync(path.join(sourceRepo,profile.manifestPath));
+  const engine={TIER1_PROMPT:profile.prompt.slice(0,-profile.addendum.length-1),TIER1_PORTION_AUDIT_PROMPT:profile.prompt};
+  const bundle={lockSha256:profile.dependencyLockSha256,files:{'tier1-analysis':{sourceSha256:profile.analysisSourceSha256},'tier1-catalog':{sourceSha256:profile.catalogSourceSha256}}};
+  assert.doesNotThrow(()=>paired.validatePins(profile,manifest,engine,bundle));
+  for(const changed of [{...profile,promptSha256:'0'.repeat(64)},{...profile,manifestSha256:'0'.repeat(64)},{...profile,dependencyLockSha256:'0'.repeat(64)}])assert.throws(()=>paired.validatePins(changed,manifest,engine,bundle),/pin|drift/i);
+});
