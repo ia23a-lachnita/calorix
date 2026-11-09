@@ -1,0 +1,551 @@
+{
+  "manifestSha256": "d150ef3c0503487116a65337817f0eccff8a8ab48124d3ff47a4ca09cca88e63",
+  "experiment": {
+    "engineCommit": "2b26b7ea46cfaa488e2c358036a25214aa104720",
+    "manifestCommit": "2b26b7ea46cfaa488e2c358036a25214aa104720",
+    "manifestSha256": "d150ef3c0503487116a65337817f0eccff8a8ab48124d3ff47a4ca09cca88e63",
+    "candidatePromptSha256": "1d2406db986503a127eb04367f692e1c87d1a9e58311d343de49e5ebb6a25e77",
+    "baselinePromptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+    "profileSha256": "57e3acf31399ff620153f28425974172abdc412e7383cfaa7e78ee1f4a15f77e",
+    "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+    "bundleSha256": "58bd8c2d1d9ac680f918da7f22316e6920d687cb1aed29bd436950f83a4b4f2b",
+    "consentVersion": "tier1-v1",
+    "status": "completed",
+    "maxSdkInvocations": 20,
+    "sdkInvocations": 20,
+    "startedAt": "2026-11-09T09:43:42.904Z",
+    "arms": [
+      {
+        "profile": "original",
+        "runDir": "original",
+        "status": "completed"
+      },
+      {
+        "profile": "portion-audit-v1",
+        "runDir": "portion-audit-v1",
+        "status": "completed"
+      }
+    ]
+  },
+  "arms": {
+    "original": {
+      "summary": {
+        "scope": "public_dataset",
+        "dataset": "nutrition5k",
+        "selectedCases": 10,
+        "androidWeighedMeals": 0,
+        "sdkInvocations": 10,
+        "datasetFailures": 0,
+        "routes": {
+          "A0": {
+            "scoredCases": 0,
+            "coverage": 0,
+            "failed": 10,
+            "notAttempted": 0,
+            "pending": 0,
+            "kcal": {
+              "scoredCases": 0,
+              "mae": null,
+              "bias": null,
+              "p90AbsoluteError": null,
+              "meanNormalizedAbsoluteError": null
+            },
+            "macros": {
+              "proteinG": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              },
+              "carbsG": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              },
+              "fatG": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              }
+            },
+            "massG": {
+              "scoredCases": 0,
+              "mae": null,
+              "bias": null,
+              "p90AbsoluteError": null,
+              "meanNormalizedAbsoluteError": null
+            },
+            "referenceComponentSlices": {
+              "single": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              },
+              "multiple": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              }
+            },
+            "energyBins": {
+              "under200": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              },
+              "from200to600": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              },
+              "over600": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              }
+            }
+          },
+          "A1": {
+            "scoredCases": 10,
+            "coverage": 1,
+            "failed": 0,
+            "notAttempted": 0,
+            "pending": 0,
+            "kcal": {
+              "scoredCases": 10,
+              "mae": 166.3556053,
+              "bias": -161.80400790000002,
+              "p90AbsoluteError": 376.9580245999999,
+              "meanNormalizedAbsoluteError": 0.23579982295877783
+            },
+            "macros": {
+              "proteinG": {
+                "scoredCases": 10,
+                "mae": 17.1256554,
+                "bias": -17.0388554,
+                "p90AbsoluteError": 41.4305472,
+                "meanNormalizedAbsoluteError": null
+              },
+              "carbsG": {
+                "scoredCases": 10,
+                "mae": 3.607563400000001,
+                "bias": -1.049339799999999,
+                "p90AbsoluteError": 8.317453099999998,
+                "meanNormalizedAbsoluteError": null
+              },
+              "fatG": {
+                "scoredCases": 10,
+                "mae": 10.986819899999999,
+                "bias": -10.056420099999999,
+                "p90AbsoluteError": 25.32384949999999,
+                "meanNormalizedAbsoluteError": null
+              }
+            },
+            "massG": {
+              "scoredCases": 10,
+              "mae": 67.8,
+              "bias": -52.8,
+              "p90AbsoluteError": 192.1,
+              "meanNormalizedAbsoluteError": null
+            },
+            "referenceComponentSlices": {
+              "single": {
+                "scoredCases": 5,
+                "mae": 59.93220680000002,
+                "bias": -50.82901200000002,
+                "p90AbsoluteError": 173.42102300000005,
+                "meanNormalizedAbsoluteError": 0.0881020166572704
+              },
+              "multiple": {
+                "scoredCases": 5,
+                "mae": 272.7790038,
+                "bias": -272.7790038,
+                "p90AbsoluteError": 480.6480176,
+                "meanNormalizedAbsoluteError": 0.38349762926028524
+              }
+            },
+            "energyBins": {
+              "under200": {
+                "scoredCases": 3,
+                "mae": 1.4900000000000009,
+                "bias": 1.3699999999999999,
+                "p90AbsoluteError": 2.79,
+                "meanNormalizedAbsoluteError": 0.007450000000000003
+              },
+              "from200to600": {
+                "scoredCases": 3,
+                "mae": 129.4011413333333,
+                "bias": -117.08914999999998,
+                "p90AbsoluteError": 288.6696182,
+                "meanNormalizedAbsoluteError": 0.2700080475121756
+              },
+              "over600": {
+                "scoredCases": 4,
+                "mae": 317.72065725,
+                "bias": -317.72065725,
+                "p90AbsoluteError": 479.6143016000001,
+                "meanNormalizedAbsoluteError": 0.3814060217628129
+              }
+            }
+          }
+        },
+        "paired": {
+          "scoredCases": 0,
+          "scope": "catalog-covered paired subset",
+          "A0": {
+            "scoredCases": 0,
+            "mae": null,
+            "bias": null,
+            "p90AbsoluteError": null,
+            "meanNormalizedAbsoluteError": null
+          },
+          "A1": {
+            "scoredCases": 0,
+            "mae": null,
+            "bias": null,
+            "p90AbsoluteError": null,
+            "meanNormalizedAbsoluteError": null
+          }
+        },
+        "preparationQuestions": {
+          "unanswered": 1,
+          "answered": 0,
+          "policy": "No owner knowledge; no reference-derived answers"
+        },
+        "nutrientProvenance": {
+          "components": 26,
+          "databaseMatchedComponents": 4,
+          "unverifiedComponents": 22,
+          "unverifiedPredictedKcalFraction": 0.8676725510312377
+        },
+        "inferenceLatencyMs": {
+          "measured": 10,
+          "p50": 10169,
+          "p90": 12187.599999999999
+        },
+        "runnerWallMs": {
+          "measured": 10,
+          "p50": 10174
+        },
+        "phoneShutterToEstimateMs": null,
+        "costUsd": null,
+        "billingStatus": "Unmeasured; failed and thought-token usage incomplete",
+        "tokenUsage": {
+          "knownPromptTokens": 20180,
+          "knownCandidateTokens": 3904,
+          "recordsWithUsage": 10
+        },
+        "missingFoodsAudit": "not_assessed",
+        "manualCorrections": 0,
+        "interpretation": "Conditional accuracy on successful answers; failures/unattempted cases remain in fixed coverage denominator. Capture-date thinning does not establish independence; closed-model pretraining exposure unknown."
+      },
+      "recomputedKcal": {
+        "scored_meals": 10,
+        "mae_kcal": 166.3556053,
+        "bias_kcal": -161.80400790000002,
+        "p90_absolute_error_kcal": 376.9580245999999,
+        "mean_normalized_absolute_error": 0.23579982295877783
+      },
+      "summarySha256": "f44d324e1a2eb9dba598282efc9e16af247e3024827dec462bb965084d5c5362"
+    },
+    "candidate": {
+      "summary": {
+        "scope": "public_dataset",
+        "dataset": "nutrition5k",
+        "selectedCases": 10,
+        "androidWeighedMeals": 0,
+        "sdkInvocations": 10,
+        "datasetFailures": 0,
+        "routes": {
+          "A0": {
+            "scoredCases": 0,
+            "coverage": 0,
+            "failed": 10,
+            "notAttempted": 0,
+            "pending": 0,
+            "kcal": {
+              "scoredCases": 0,
+              "mae": null,
+              "bias": null,
+              "p90AbsoluteError": null,
+              "meanNormalizedAbsoluteError": null
+            },
+            "macros": {
+              "proteinG": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              },
+              "carbsG": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              },
+              "fatG": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              }
+            },
+            "massG": {
+              "scoredCases": 0,
+              "mae": null,
+              "bias": null,
+              "p90AbsoluteError": null,
+              "meanNormalizedAbsoluteError": null
+            },
+            "referenceComponentSlices": {
+              "single": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              },
+              "multiple": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              }
+            },
+            "energyBins": {
+              "under200": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              },
+              "from200to600": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              },
+              "over600": {
+                "scoredCases": 0,
+                "mae": null,
+                "bias": null,
+                "p90AbsoluteError": null,
+                "meanNormalizedAbsoluteError": null
+              }
+            }
+          },
+          "A1": {
+            "scoredCases": 10,
+            "coverage": 1,
+            "failed": 0,
+            "notAttempted": 0,
+            "pending": 0,
+            "kcal": {
+              "scoredCases": 10,
+              "mae": 171.3705231,
+              "bias": -139.49200790000003,
+              "p90AbsoluteError": 404.6797435,
+              "meanNormalizedAbsoluteError": 0.26235370477300124
+            },
+            "macros": {
+              "proteinG": {
+                "scoredCases": 10,
+                "mae": 14.911929,
+                "bias": -14.3953554,
+                "p90AbsoluteError": 34.3549472,
+                "meanNormalizedAbsoluteError": null
+              },
+              "carbsG": {
+                "scoredCases": 10,
+                "mae": 6.9852516000000024,
+                "bias": 2.8927602000000023,
+                "p90AbsoluteError": 17.414743899999994,
+                "meanNormalizedAbsoluteError": null
+              },
+              "fatG": {
+                "scoredCases": 10,
+                "mae": 11.901410499999999,
+                "bias": -10.505570099999998,
+                "p90AbsoluteError": 33.865799499999994,
+                "meanNormalizedAbsoluteError": null
+              }
+            },
+            "massG": {
+              "scoredCases": 10,
+              "mae": 69.8,
+              "bias": -40.6,
+              "p90AbsoluteError": 167.1,
+              "meanNormalizedAbsoluteError": null
+            },
+            "referenceComponentSlices": {
+              "single": {
+                "scoredCases": 5,
+                "mae": 83.22020680000001,
+                "bias": -74.257012,
+                "p90AbsoluteError": 242.90102300000004,
+                "meanNormalizedAbsoluteError": 0.11886402456269252
+              },
+              "multiple": {
+                "scoredCases": 5,
+                "mae": 259.5208394,
+                "bias": -204.7270038,
+                "p90AbsoluteError": 452.9220176000001,
+                "meanNormalizedAbsoluteError": 0.4058433849833098
+              }
+            },
+            "energyBins": {
+              "under200": {
+                "scoredCases": 3,
+                "mae": 1.7033333333333338,
+                "bias": 0.9233333333333337,
+                "p90AbsoluteError": 2.8100000000000005,
+                "meanNormalizedAbsoluteError": 0.008516666666666667
+              },
+              "from200to600": {
+                "scoredCases": 3,
+                "mae": 172.207534,
+                "bias": -68.57248333333332,
+                "p90AbsoluteError": 316.33293860000003,
+                "meanNormalizedAbsoluteError": 0.3870825970720395
+              },
+              "over600": {
+                "scoredCases": 4,
+                "mae": 297.99315725,
+                "bias": -297.99315725,
+                "p90AbsoluteError": 477.61992250000014,
+                "meanNormalizedAbsoluteError": 0.35918481412847336
+              }
+            }
+          }
+        },
+        "paired": {
+          "scoredCases": 0,
+          "scope": "catalog-covered paired subset",
+          "A0": {
+            "scoredCases": 0,
+            "mae": null,
+            "bias": null,
+            "p90AbsoluteError": null,
+            "meanNormalizedAbsoluteError": null
+          },
+          "A1": {
+            "scoredCases": 0,
+            "mae": null,
+            "bias": null,
+            "p90AbsoluteError": null,
+            "meanNormalizedAbsoluteError": null
+          }
+        },
+        "preparationQuestions": {
+          "unanswered": 2,
+          "answered": 0,
+          "policy": "No owner knowledge; no reference-derived answers"
+        },
+        "nutrientProvenance": {
+          "components": 26,
+          "databaseMatchedComponents": 4,
+          "unverifiedComponents": 22,
+          "unverifiedPredictedKcalFraction": 0.8422005233095724
+        },
+        "inferenceLatencyMs": {
+          "measured": 10,
+          "p50": 11733,
+          "p90": 24396.6
+        },
+        "runnerWallMs": {
+          "measured": 10,
+          "p50": 11739
+        },
+        "phoneShutterToEstimateMs": null,
+        "costUsd": null,
+        "billingStatus": "Unmeasured; failed and thought-token usage incomplete",
+        "tokenUsage": {
+          "knownPromptTokens": 20850,
+          "knownCandidateTokens": 3962,
+          "recordsWithUsage": 10
+        },
+        "missingFoodsAudit": "not_assessed",
+        "manualCorrections": 0,
+        "interpretation": "Conditional accuracy on successful answers; failures/unattempted cases remain in fixed coverage denominator. Capture-date thinning does not establish independence; closed-model pretraining exposure unknown."
+      },
+      "recomputedKcal": {
+        "scored_meals": 10,
+        "mae_kcal": 171.3705231,
+        "bias_kcal": -139.4920079,
+        "p90_absolute_error_kcal": 404.6797435,
+        "mean_normalized_absolute_error": 0.2623537047730012
+      },
+      "summarySha256": "ddefbbdcbd29116eb276324b3f962d2129ed72c706468a8d3db6841a58a7e0a9"
+    }
+  },
+  "pairedCaseChanges": [
+    {
+      "id": "dish_1565811139",
+      "candidateMinusOriginalAbsoluteKcalError": -49.50999999999988
+    },
+    {
+      "id": "dish_1558719994",
+      "candidateMinusOriginalAbsoluteKcalError": 115.79999999999995
+    },
+    {
+      "id": "dish_1566590056",
+      "candidateMinusOriginalAbsoluteKcalError": -71.45000000000005
+    },
+    {
+      "id": "dish_1562963325",
+      "candidateMinusOriginalAbsoluteKcalError": -73.75
+    },
+    {
+      "id": "dish_1558375833",
+      "candidateMinusOriginalAbsoluteKcalError": 0.0
+    },
+    {
+      "id": "dish_1561148021",
+      "candidateMinusOriginalAbsoluteKcalError": 123.46917800000006
+    },
+    {
+      "id": "dish_1563389626",
+      "candidateMinusOriginalAbsoluteKcalError": 4.9500000000000455
+    },
+    {
+      "id": "dish_1557937615",
+      "candidateMinusOriginalAbsoluteKcalError": 0.09999999999999964
+    },
+    {
+      "id": "dish_1559157777",
+      "candidateMinusOriginalAbsoluteKcalError": 0.0
+    },
+    {
+      "id": "dish_1558461760",
+      "candidateMinusOriginalAbsoluteKcalError": 0.5399999999999991
+    }
+  ],
+  "considerationGuardPassed": false,
+  "automaticPromotion": false,
+  "scope": "Descriptive development scans;8dateoverlaps, independentplates not established; no user corrections/reference-derived answers",
+  "newSdkInvocations": 20,
+  "ownerAndroidWeighedMeals": 0,
+  "costUsd": null,
+  "userEffort": null
+}

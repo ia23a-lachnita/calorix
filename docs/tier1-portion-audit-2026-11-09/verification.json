@@ -1,0 +1,59 @@
+{
+  "sourceCommit": "2b26b7ea46cfaa488e2c358036a25214aa104720",
+  "workflowRunId": 42593998502,
+  "verification": "full canonical verification jobs passed before experiment; complete APK workflow also success",
+  "backendTests": {
+    "files": 98,
+    "passed": 5347,
+    "historicalSkipped": 1
+  },
+  "flutterTests": {
+    "passed": 990,
+    "historicalSkipped": 1,
+    "analyzer": "No issues found"
+  },
+  "pythonTests": 44,
+  "nodeGuardTests": 14,
+  "manifestSha256": "d150ef3c0503487116a65337817f0eccff8a8ab48124d3ff47a4ca09cca88e63",
+  "newSdkInvocations": 20,
+  "rawResultsComplete": true,
+  "automaticPromotion": false,
+  "independentReview": "Source/input:0Critical/1Important/0Minor; aggregate-control finding fixed actualRED\u2192GREEN14Nodeguards. Result audit:0Critical/0Important/0Minor,702Decimalcomparisons,max1e-12,tol1e-9;20receiptcopies/CSVrows,52componentvectors/frozencompilation/registry/old30unchanged verified.",
+  "reviewProvider": "Antigravity MCP",
+  "reviewModel": "gemini-3.8-flash",
+  "reviewConversation": "calorix-tier1-portion-audit-20261109",
+  "reviewFallbacks": [],
+  "sourceReview": "AGREEMENT_STATUS agree; MUST_FIX none",
+  "providerFailures": [],
+  "modelFallbacks": [],
+  "visualAudit": "Numeric/source/image-byte audit; no exhaustive visual recognition or UI diff claim",
+  "sampleLimitations": [
+    "10freshIDs,8dates overlap earlier30; progressiveplate/pretraining overlap unknown",
+    "Three lowenergy singleingredient scans are2.53\u201310.98kcal; not representative complete meals",
+    "VLM density/identity may change with prompt; effect is whole output, not isolated portion cause",
+    "Sequential arm order/caching confounds latency; billing and actualuser effort unknown"
+  ],
+  "preDispatchLocalRefusal": "One abbreviated sourceSHA bundle request refused before bundle creation or SDK use; corrected to full40hex. No inference retry.",
+  "files": {
+    "cases.csv": "ffa90104e223c533bef3f2c4391e2e66e07c9ec49119bfba67da66f5d4ab49dc",
+    "summary.json": "0a38c82d81f1fae0ce894c851b92c2210566c8f94d3bb10acda011188fcbeaed",
+    "receipts.json": "6d9981d94a2b9b08c67173811086e5c7c5951f52c12dc47a2107d797b62d3cd5"
+  },
+  "independentReviewReceiptSha256": "fbda7d04e862c2c69e0d9c0d2eb27c351a94490a988fa8212f3325bb145bf35b",
+  "apk": {
+    "artifactId": 13663746111,
+    "sourceCommit": "2b26b7ea46cfaa488e2c358036a25214aa104720",
+    "sha256": "df05f2f055fa631958e2b8f236858abb490be43dbdecb46da3164aaf9cd2534c",
+    "signerSha256": "38815fd37711f170e534cf3c8767de7f0f7ca5f958e755d8a47b03fe2b764b7c",
+    "verification": "Source/metadata/checksum/nativeV2identity matched; CIcryptographicapksigner; byteidenticalpreviouslyverifiedinstalledAPK",
+    "expiresAt": "2026-12-09T09:47:46Z"
+  },
+  "resultReview": "Corrected Antigravity MCP gemini-3.8-flash: AGREEMENT_STATUS agree; MUST_FIX none. Source/input/numeric review only; no production-readiness or causal model-mechanism approval.",
+  "uiDiff": {
+    "auditLimited": null,
+    "visualClassificationStatus": "not_applicable",
+    "statusSourceCounts": null,
+    "scope": "No UI diff run; numeric/source audit only"
+  },
+  "reviewResponseNoise": "Initial final response added unsupported primary spatial-grounding cause, P90-as-dispersion, permanent archival and pure model-capability isolation. All explicitly retracted in same conversation; none adopted in report."
+}

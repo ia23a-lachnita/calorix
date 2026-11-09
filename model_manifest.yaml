@@ -51,9 +51,10 @@ privacy_scope: personal opt-in prototype; public distribution review remains sep
 accuracy_claims: none; no numeric uncertainty intervals
 real_weighed_meal_count: 0
 real_weighed_meal_count_scope: owner Android pilot only; public references counted separately
-public_evaluation_cases: 30
-public_evaluation_report: docs/tier1-mealrange-2026-11-08/report.md
-public_evaluation_engine_commits: [0bf1369b7e1d14e8f5316d505d7007c671119a57, 0bf1f9674e09408fc825e1e1fa815d2854f0203c]
+public_evaluation_cases: 40
+public_evaluation_report: pilot_report.md
+public_evaluation_prior30_report: docs/tier1-mealrange-2026-11-08/report.md
+public_evaluation_engine_commits: [0bf1369b7e1d14e8f5316d505d7007c671119a57, 0bf1f9674e09408fc825e1e1fa815d2854f0203c, 2b26b7ea46cfaa488e2c358036a25214aa104720]
 pilot_target_different_meals: 30
 
 wire_constraint_policy: structural grammar only; numeric/string/array limits enforced by strict Zod client validator, not wire decoding
@@ -78,7 +79,7 @@ candidate_evaluation_cases: 30
 public_evaluation_scope: descriptive public scans; independent completed plates and owner Android accuracy not established
 candidate_catalog_sha256: 8f317a52c7097972f525ce7ddb180a32d289bdfdbea095357dcf2382bed43d33
 
-portion_audit_status: research-only; fixed comparison pending; not default or deployed
+portion_audit_status: archived negative result; consideration guard failed; not default or deployed
 portion_audit_profile: functions/eval/tier1-public/portion-audit-profile-v1.json
 portion_audit_manifest: functions/eval/tier1-public/manifest-portion-audit-v1.json
 portion_audit_manifest_sha256: d150ef3c0503487116a65337817f0eccff8a8ab48124d3ff47a4ca09cca88e63
@@ -87,3 +88,8 @@ portion_audit_max_new_sdk_calls: 20
 portion_audit_sample_count: 10
 portion_audit_overlap: fresh scan IDs; eight dates overlap previous public sample; independent plates not established
 portion_audit_promotion: no automatic promotion
+portion_audit_executed_sdk_calls: 20
+portion_audit_valid_outputs: 20
+portion_audit_report: docs/tier1-portion-audit-2026-11-09/report.md
+public_evaluation_sdk_invocations: 80
+public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog predictions plus20 new10 two-prompt predictions; nonfood/text diagnostics excluded
