@@ -113,17 +113,17 @@ void main(){
     expect(store.records,isEmpty);expect(sink.events,isEmpty);
   });
   testWidgets('export does not copy until the explicit copy action',(t)async{
-    var copied=0;t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform,(call)async{if(call.method=='Clipboard.setData')copied++;return null;});
+    var copied=0;t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform,(call)async{if(call.method=='Clipboard.setData'){copied++;}return null;});
     addTearDown(()=>t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform,null));
-    await t.pumpWidget(MaterialApp(home:Builder(builder:(context)=>TextButton(onPressed:()=>showWorkflowExport(context,load:()async=>workflowExportData(at:DateTime.utc(2026),meals:[])),child:const Text('Export')))));
+    await t.pumpWidget(MaterialApp(home:Scaffold(body:Builder(builder:(context)=>TextButton(onPressed:()=>showWorkflowExport(context,load:()async=>workflowExportData(at:DateTime.utc(2026),meals:[])),child:const Text('Export'))))));
     await t.tap(find.text('Export'));await t.pumpAndSettle();expect(copied,0);
     await t.tap(find.text('Copy JSON'));await t.pumpAndSettle();expect(copied,1);
   });
   testWidgets('dismissal while export is loading prevents a late clipboard write',(t)async{
     var copied=0;final pending=Completer<Map<String,dynamic>>();
-    t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform,(call)async{if(call.method=='Clipboard.setData')copied++;return null;});
+    t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform,(call)async{if(call.method=='Clipboard.setData'){copied++;}return null;});
     addTearDown(()=>t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform,null));
-    await t.pumpWidget(MaterialApp(home:Builder(builder:(context)=>TextButton(onPressed:()=>showWorkflowExport(context,load:()=>pending.future),child:const Text('Export')))));
+    await t.pumpWidget(MaterialApp(home:Scaffold(body:Builder(builder:(context)=>TextButton(onPressed:()=>showWorkflowExport(context,load:()=>pending.future),child:const Text('Export'))))));
     await t.tap(find.text('Export'));await t.pumpAndSettle();await t.tap(find.text('Copy JSON'));await t.pump();
     await t.tap(find.text('Cancel'));await t.pumpAndSettle();pending.complete(workflowExportData(at:DateTime.utc(2026),meals:[]));await t.pumpAndSettle();
     expect(copied,0);expect(t.takeException(),isNull);

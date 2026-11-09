@@ -125,8 +125,10 @@ class StoreWorkflowSink implements WorkflowSink {
   final Tier1MealStore store;
   int _writeFailures=0;
   @override
+  void recordFailure(){_writeFailures++;}
+  @override
   Future<void> append(String mealId,List<Map<String,dynamic>> events) async {
-    try{await store.appendWorkflow(mealId,events);}catch(_){_writeFailures++;}
+    try{await store.appendWorkflow(mealId,events);}catch(_){recordFailure();}
   }
   @override
   Future<Map<String,dynamic>> export({required DateTime at,String? mealId}) async =>

@@ -12,6 +12,8 @@ import '../../shared/services/camera_service.dart';
 import 'local_meal.dart';
 import 'local_meal_store.dart';
 import 'tier1_cloud.dart';
+import 'workflow_measurements.dart';
+import 'workflow_export.dart';
 
 // Presentation only: the original model doubles remain the saved values.
 String _displayNutrient(double? value) {
@@ -28,31 +30,38 @@ double? _numberFromField(TextEditingController controller,double? original) {
 
 /// Focused local-first workflow. Legacy Firebase services are never mounted here.
 class Tier1App extends StatelessWidget {
-  const Tier1App({super.key,this.store,this.camera,this.cloud,this.initializeCloud,this.clock});
+  const Tier1App({super.key,this.store,this.camera,this.cloud,this.initializeCloud,this.clock,this.workflow,this.elapsedMilliseconds});
   final Tier1MealStore? store;
   final Clock? clock;
   final CameraService? camera;
   final Tier1Cloud? cloud;
   final Future<void> Function()? initializeCloud;
+  final WorkflowSink? workflow;
+  final int Function()? elapsedMilliseconds;
   @override
   Widget build(BuildContext context) => MaterialApp(
     title:AppConstants.appDisplayName,debugShowCheckedModeBanner:false,
     theme:AppTheme.light(),darkTheme:AppTheme.dark(),
-    home:_Tier1Home(store:store,camera:camera,clock:clock??RealClock(),cloud:cloud??(initializeCloud==null?null:FirebaseTier1Cloud(initializeCloud!))));
+    home:_Tier1Home(store:store,camera:camera,clock:clock??RealClock(),workflow:workflow,elapsedMilliseconds:elapsedMilliseconds,cloud:cloud??(initializeCloud==null?null:FirebaseTier1Cloud(initializeCloud!))));
 }
 
 class _Tier1Home extends StatefulWidget {
-  const _Tier1Home({this.store,this.camera,this.cloud,required this.clock});
+  const _Tier1Home({this.store,this.camera,this.cloud,this.workflow,this.elapsedMilliseconds,required this.clock});
   final Tier1MealStore? store;
   final Clock clock;
   final CameraService? camera;
   final Tier1Cloud? cloud;
+  final WorkflowSink? workflow;
+  final int Function()? elapsedMilliseconds;
   @override
   State<_Tier1Home> createState()=>_Tier1HomeState();
 }
 class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   late final CameraService _camera=widget.camera??DeviceCameraService();
   Tier1MealStore? _store;
+  WorkflowSink? _workflow;
+  late final _elapsed=Stopwatch()..start();
+  int _ticks()=>widget.elapsedMilliseconds?.call()??_elapsed.elapsedMilliseconds;
   List<Tier1Meal> _meals=[];
   String? _error,_cameraWarning;
   bool _history=false,_busy=false;
@@ -61,6 +70,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   Future<void> _initialize() async {
     try {
       _store=widget.store??Tier1MealStore(Directory('${(await getApplicationDocumentsDirectory()).path}/tier1'));
+      // Injected stores opt into a sink; do not write into a fake test root.
+      _workflow=widget.workflow??(widget.store==null?StoreWorkflowSink(_store!):const NoopWorkflowSink());
       await _refresh();
     } catch (_) {if(mounted)setState(()=>_error='Could not open local history. Existing files were preserved.');return;}
     try {
@@ -82,9 +93,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   }
   @override
   void dispose(){WidgetsBinding.instance.removeObserver(this);if(_camera is CameraLifecycleService)unawaited((_camera as CameraLifecycleService).dispose());super.dispose();}
-  Future<void> _open(Tier1Meal meal) async {
+  Future<void> _open(Tier1Meal meal,{int? captureTick}) async {
     if(_store==null||_error!=null)return;
-    await Navigator.of(context).push(MaterialPageRoute<void>(builder:(_)=>_MealEditor(meal:meal,store:_store!,cloud:widget.cloud,clock:widget.clock)));
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder:(_)=>_MealEditor(meal:meal,store:_store!,cloud:widget.cloud,clock:widget.clock,workflow:_workflow!,elapsedMilliseconds:_ticks,captureTick:captureTick)));
     if(!mounted)return;
     try{
       await _refresh();
@@ -101,6 +112,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         if(permission!=CameraPermissionRequestResult.granted)throw StateError('Camera permission needed');
       }
       final shutter=widget.clock.now();
+      final shutterTick=_ticks();
       final file=await _camera.captureStill();
       if(file==null)return;
       ownedCapture=file.path;
@@ -123,7 +135,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       });
       try {await _store!.save(meal);}catch(_){await File(path).delete();rethrow;}
       final saved=(await _store!.load()).firstWhere((m)=>m.id==id);
-      if(mounted)await _open(saved);
+      if(mounted)await _open(saved,captureTick:shutterTick);
     } catch (_) {if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Photo could not be saved. Retake or use manual entry.')));}
     finally {
       if(ownedCapture!=null){try{final temporary=File(ownedCapture);if(await temporary.exists())await temporary.delete();}catch(_){/* No unrelated cache cleanup. */}}
@@ -145,7 +157,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   }
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar:AppBar(title:const Text(AppConstants.appDisplayName),actions:[TextButton(onPressed:()=>setState(()=>_history=!_history),child:Text(_history?'Camera':'History'))]),
+    appBar:AppBar(title:const Text(AppConstants.appDisplayName),actions:[
+      if(_history)IconButton(tooltip:'Export measurements',onPressed:_store==null||_error!=null?null:()=>showWorkflowExport(context,load:()=>_workflow!.export(at:widget.clock.now())),icon:const Icon(Icons.download_outlined)),
+      TextButton(onPressed:()=>setState(()=>_history=!_history),child:Text(_history?'Camera':'History'))]),
     body:Column(children:[
       if(_error!=null)Padding(padding:const EdgeInsets.all(16),child:Text(_error!)),
       if(_cameraWarning!=null)Padding(padding:const EdgeInsets.all(16),child:Text(_cameraWarning!)),
@@ -162,15 +176,18 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
 }
 
 class _MealEditor extends StatefulWidget {
-  const _MealEditor({required this.meal,required this.store,this.cloud,required this.clock});
+  const _MealEditor({required this.meal,required this.store,this.cloud,required this.clock,required this.workflow,required this.elapsedMilliseconds,this.captureTick});
   final Tier1Meal meal;
   final Clock clock;
   final Tier1MealStore store;
   final Tier1Cloud? cloud;
+  final WorkflowSink workflow;
+  final int Function() elapsedMilliseconds;
+  final int? captureTick;
   @override
   State<_MealEditor> createState()=>_MealEditorState();
 }
-class _MealEditorState extends State<_MealEditor> {
+class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
   late Tier1Meal _meal=widget.meal;
   final _form=GlobalKey<FormState>();
   late final _name=TextEditingController(text:_meal.name=='New meal'?'':_meal.name);
@@ -180,17 +197,70 @@ class _MealEditorState extends State<_MealEditor> {
   late final _fat=TextEditingController(text:_displayNutrient(_meal.served?.fatG));
   bool _busy=false,_dirty=false;
   String? _message;
+  late final _meter=WorkflowMeter(sessionId:const Uuid().v4(),elapsedMilliseconds:widget.elapsedMilliseconds);
+  late bool _hasSaved=_meal.revision>0;
+  final _pendingEvents=<Map<String,dynamic>>[];
+  bool _closed=false,_deleted=false,_exporting=false,_foreground=true,_frameWanted=false,_frameRecorded=false;
   @override
-  void dispose(){for(final c in [_name,_kcal,_protein,_carbs,_fat]){c.dispose();}super.dispose();}
+  void initState(){
+    super.initState();WidgetsBinding.instance.addObserver(this);
+    _foreground=WidgetsBinding.instance.lifecycleState==null||WidgetsBinding.instance.lifecycleState==AppLifecycleState.resumed;
+    _meter.setForeground(_foreground);_trace('editor_opened');
+    if(_meal.hasPendingPreparationQuestion)_trace('preparation_available');
+  }
+  void _send(List<Map<String,dynamic>> events){unawaited(widget.workflow.append(_meal.id,events).catchError((_)=>widget.workflow.recordFailure()));}
+  void _trace(String kind,[Map<String,dynamic> fields=const {}]){
+    if(_deleted)return;
+    try{
+      final event=_meter.event(kind,at:widget.clock.now(),fields:{if(_closed)'afterNavigation':true,...fields});
+      if(_hasSaved){_send([event]);}else{_pendingEvents.add(event);}
+    }catch(_){widget.workflow.recordFailure();}
+  }
+  int? _duration(int? start){
+    if(start==null||!_meter.timingValid)return null;
+    final value=widget.elapsedMilliseconds()-start;return value<0||value>365*24*60*60*1000?null:value;
+  }
+  int? _dialogDuration(int? start){final end=_meter.foregroundExcludingWaitMs;return start==null||end==null||end<start?null:end-start;}
+  Map<String,dynamic> _modelFields(Map<String,dynamic>? analysis){
+    final p=analysis?['provenance'];if(p is! Map)return {};
+    return {
+      if(p['model'] is String&&RegExp(r'^gemini-[a-z0-9][a-z0-9.-]{0,79}$').hasMatch(p['model'] as String))'model':p['model'],
+      if(p['promptSha256'] is String&&RegExp(r'^[0-9a-f]{64}$').hasMatch(p['promptSha256'] as String))'promptSha256':p['promptSha256'],
+    };
+  }
+  void _scheduleResultFrame(){
+    if(!_frameWanted||_frameRecorded||!mounted)return;
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      if(!mounted||!_foreground||_exporting||_frameRecorded)return;
+      _frameRecorded=true;_frameWanted=false;_trace('result_frame',{'shutterToFrameMs':_duration(widget.captureTick)});
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state){
+    _foreground=state==AppLifecycleState.resumed;_meter.setForeground(_foreground&&!_exporting);
+    if(_foreground)_scheduleResultFrame();
+  }
+  Future<void> _export() async {
+    _trace('export_opened');_exporting=true;_meter.setForeground(false);
+    try{await showWorkflowExport(context,load:()=>widget.workflow.export(at:widget.clock.now(),mealId:_meal.id));}
+    finally{_exporting=false;_meter.setForeground(_foreground);_trace('export_closed');}
+  }
+  @override
+  void dispose(){WidgetsBinding.instance.removeObserver(this);_meter.setForeground(false);_closed=true;_trace('editor_closed');_pendingEvents.clear();for(final c in [_name,_kcal,_protein,_carbs,_fat]){c.dispose();}super.dispose();}
   void _fill(){_name.text=_meal.name;_kcal.text=_displayNutrient(_meal.served?.kcal);_protein.text=_displayNutrient(_meal.served?.proteinG);_carbs.text=_displayNutrient(_meal.served?.carbsG);_fat.text=_displayNutrient(_meal.served?.fatG);}
   Future<void> _persist(Tier1Meal meal) async {
     await widget.store.save(meal);
     _meal=(await widget.store.load()).firstWhere((m)=>m.id==meal.id);
+    _hasSaved=true;
+    if(_pendingEvents.isNotEmpty){final events=List<Map<String,dynamic>>.of(_pendingEvents);_pendingEvents.clear();_send(events);}
   }
   Future<void> _save() async {
     if(!_form.currentState!.validate()||_busy)return;
     try {
+      final before=_meal.served?.kcal;
       await _persist(_meal.edit(_name.text,Tier1Nutrients(kcal:_numberFromField(_kcal,_meal.served?.kcal)!,proteinG:_numberFromField(_protein,_meal.served?.proteinG),carbsG:_numberFromField(_carbs,_meal.served?.carbsG),fatG:_numberFromField(_fat,_meal.served?.fatG)),at:widget.clock.now()));
+      _trace('manual_saved',{'beforeKcal':before,'afterKcal':_meal.served?.kcal});
       if(mounted)Navigator.pop(context);
     }catch(_){if(mounted)setState(()=>_message='Could not save. Existing history was preserved.');}
   }
@@ -202,6 +272,7 @@ class _MealEditorState extends State<_MealEditor> {
       actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Keep local')),
         FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Send photo'))]));
     if(approved!=true||!mounted)return;
+    final started=widget.elapsedMilliseconds();_meter.setWaiting(true);_trace('analysis_started');
     setState((){_busy=true;_message=null;});
     try {
       await _persist(_meal.withConsent());
@@ -209,11 +280,16 @@ class _MealEditorState extends State<_MealEditor> {
       final cloud=widget.cloud;
       if(cloud==null)throw StateError('Cloud unavailable');
       final result=await cloud.analyze(_meal.photoPath!,consent:true);
+      _trace('analysis_returned',{'clientAnalysisMs':_duration(started),'shutterToResponseMs':_duration(widget.captureTick)});
       final applied=await widget.store.replaceIfRevision(_meal.withAnalysis(result,at:widget.clock.now()),revision);
+      _trace(applied?'analysis_saved':'analysis_discarded',{'clientAnalysisMs':_duration(started),'shutterToSavedMs':applied?_duration(widget.captureTick):null,
+        if(applied)'afterKcal':(result['totals'] as Map)['kcal'],
+        if(applied)'questionProposed':result['question'] is Map&&(result['question'] as Map)['answered']!=true,..._modelFields(result)});
       if(applied){_meal=(await widget.store.load()).firstWhere((m)=>m.id==_meal.id);_fill();}
+      if(applied){_frameWanted=true;if(_meal.hasPendingPreparationQuestion)_trace('preparation_available');}
       if(mounted)setState(()=>_message=applied?'Approximate estimate saved. Check the foods and portions.':'Your newer changes were kept; this result was discarded.');
-    }catch(_){if(mounted)setState(()=>_message='Photo analysis is unavailable. Your photo is saved on this phone. Enter or correct the meal below.');}
-    finally{if(mounted)setState(()=>_busy=false);}
+    }catch(_){_trace('analysis_failed',{'clientAnalysisMs':_duration(started)});if(mounted)setState(()=>_message='Photo analysis is unavailable. Your photo is saved on this phone. Enter or correct the meal below.');}
+    finally{_meter.setWaiting(false);if(mounted){setState(()=>_busy=false);_scheduleResultFrame();}}
   }
   Future<void> _consume(double? fraction) async {
     try{await _persist(fraction==null?_meal.clearConsumption():_meal.confirmConsumption(fraction));if(mounted)setState((){});}
@@ -221,7 +297,7 @@ class _MealEditorState extends State<_MealEditor> {
   }
   Future<void> _answer(String answer) async {
     if(_busy||_dirty)return;
-    try{await _persist(_meal.answerPreparation(answer,at:widget.clock.now()));_fill();if(mounted)setState((){});}
+    try{final before=_meal.served?.kcal;await _persist(_meal.answerPreparation(answer,at:widget.clock.now()));_trace('preparation_answered',{'answerCode':answer,'beforeKcal':before,'afterKcal':_meal.served?.kcal});_fill();if(mounted)setState((){});}
     catch(_){if(mounted)setState(()=>_message='Could not save the preparation answer.');}
   }
   Future<void> _portion(int index) async {
@@ -229,6 +305,7 @@ class _MealEditorState extends State<_MealEditor> {
     final opening=_meal,current=opening.componentMassG(index);
     final component=(opening.analysis!['components'] as List)[index] as Map;
     final original=(component['massG'] as num).toDouble();
+    final dialogStarted=_meter.foregroundExcludingWaitMs;_trace('portion_opened',{'portionIndex':index,'fromG':current});
     var gramsText=_displayNutrient(current),closed=false;
     var committed=false;
     final form=GlobalKey<FormState>();
@@ -250,6 +327,7 @@ class _MealEditorState extends State<_MealEditor> {
           FilledButton(onPressed:(){
             if(closed)return;
             if(!form.currentState!.validate()){
+              _trace('portion_rejected',{'portionIndex':index});
               FocusScope.of(dialogContext).unfocus();
               return;
             }
@@ -260,10 +338,17 @@ class _MealEditorState extends State<_MealEditor> {
       final grams=await Navigator.of(context).push(route);
       // Wait for the form/keyboard overlay to leave before saving or popping.
       await route.completed;
-      if(grams==null||!mounted)return;
+      if(grams==null){_trace('portion_cancelled',{'portionIndex':index,'dialogForegroundMs':_dialogDuration(dialogStarted)});return;}
+      if(!mounted)return;
       final updated=opening.correctPortion(index,grams,at:widget.clock.now());
-      if(identical(updated,opening))return;
+      if(identical(updated,opening)){_trace('portion_unchanged',{'portionIndex':index,'fromG':current,'toG':grams,'dialogForegroundMs':_dialogDuration(dialogStarted)});return;}
       final applied=await widget.store.replaceIfRevision(updated,opening.revision);
+      if(applied){
+        committed=true;_trace('portion_saved',{'portionIndex':index,'fromG':current,'toG':grams,'beforeKcal':opening.served?.kcal,'afterKcal':updated.served?.kcal,
+          'dialogForegroundMs':_dialogDuration(dialogStarted),
+          'beforeFromOriginalAnalysis':opening.portionOverrides.isEmpty&&!opening.hasManualNutritionOverride&&opening.served?.kcal==(opening.analysis!['totals'] as Map)['kcal'],
+          'priorPortionAdjustmentCount':opening.adjustmentHistory.where((e)=>e['kind']=='portion').length,..._modelFields(opening.analysis)});
+      }else{_trace('portion_conflict',{'portionIndex':index,'dialogForegroundMs':_dialogDuration(dialogStarted)});}
       if(!mounted)return;
       if(!applied){
         final messenger=ScaffoldMessenger.of(context);
@@ -277,6 +362,7 @@ class _MealEditorState extends State<_MealEditor> {
       _fill();setState((){_dirty=false;_message='Portion saved. Check the approximate totals; consumption is unconfirmed.';});
     }catch(_){
       if(!mounted)return;
+      if(!committed)_trace('portion_failed',{'portionIndex':index,'dialogForegroundMs':_dialogDuration(dialogStarted)});
       if(committed){
         final messenger=ScaffoldMessenger.of(context);
         Navigator.pop(context);
@@ -309,6 +395,7 @@ class _MealEditorState extends State<_MealEditor> {
         return;
       }
       await widget.store.save(_meal.repeat(const Uuid().v4(),widget.clock.now(),amount));
+      _trace('repeat_saved');
       if(mounted)Navigator.pop(context);
     }catch(_){if(mounted)setState(()=>_message='Could not save the repeated meal. Try again.');}
     finally{if(mounted)setState(()=>_busy=false);}
@@ -316,8 +403,8 @@ class _MealEditorState extends State<_MealEditor> {
   Future<void> _delete() async {
     final confirmed=await showDialog<bool>(context:context,builder:(context)=>AlertDialog(title:const Text('Delete this meal and photo?'),content:const Text('This removes the saved local record and its photo. It cannot remove provider logs from a past analysis request.'),actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Cancel')),FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Delete'))]));
     if(confirmed!=true)return;
-    try{await widget.store.delete(_meal.id);if(mounted)Navigator.pop(context);}
-    catch(_){if(mounted)setState(()=>_message='Deletion could not finish. Check local storage and try again.');}
+    try{_deleted=true;_pendingEvents.clear();await widget.store.delete(_meal.id);if(mounted)Navigator.pop(context);}
+    catch(_){_deleted=false;if(mounted)setState(()=>_message='Deletion could not finish. Check local storage and try again.');}
   }
   Widget _number(String label,TextEditingController controller,{bool isRequired=false}) => TextFormField(
     controller:controller,enabled:!_busy,onChanged:(_)=>setState(()=>_dirty=true),keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:label),
@@ -327,7 +414,7 @@ class _MealEditorState extends State<_MealEditor> {
     final analysis=_meal.analysis;
     final question=analysis?['question'] is Map?Map<String,dynamic>.from(analysis!['question'] as Map):null;
     final canCorrect=_meal.canCorrectPortions;
-    return Scaffold(appBar:AppBar(title:const Text('Meal estimate'),actions:[IconButton(tooltip:'Delete meal',onPressed:_busy?null:_delete,icon:const Icon(Icons.delete_outline))]),
+    return Scaffold(appBar:AppBar(title:const Text('Meal estimate'),actions:[IconButton(tooltip:'Export measurements',onPressed:_busy||!_hasSaved?null:_export,icon:const Icon(Icons.download_outlined)),IconButton(tooltip:'Delete meal',onPressed:_busy?null:_delete,icon:const Icon(Icons.delete_outline))]),
       body:Form(key:_form,child:ListView(padding:const EdgeInsets.all(20),children:[
         if(_meal.photoPath!=null)ClipRRect(borderRadius:BorderRadius.circular(24),child:Image.file(File(_meal.photoPath!),height:220,fit:BoxFit.cover,errorBuilder:(_,__,___)=>const Text('Saved photo is unavailable'))),
         const SizedBox(height:16),Text('Approximate served calories',style:Theme.of(context).textTheme.headlineSmall),

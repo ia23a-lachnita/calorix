@@ -32,7 +32,7 @@ void main(){
     var tick=100;final meter=WorkflowMeter(sessionId:'session',elapsedMilliseconds:()=>tick);
     tick=50;final broken=meter.event('editor_closed',at:at);
     expect(broken['timingValid'],false);
-    for(final key in ['elapsedMs','foregroundMs','waitingMs'])expect(broken[key],isNull);
+    for(final key in ['elapsedMs','foregroundMs','waitingMs']){expect(broken[key],isNull);}
     tick=1000;expect(meter.event('editor_opened',at:at)['timingValid'],false);
   });
   test('event validation rejects free text, unknown fields and nonfinite measurements',(){
@@ -91,7 +91,7 @@ void main(){
   test('exports contain only retained IDs, estimates and whitelisted events',()async{
     await save();await store.appendWorkflow('meal',[event()]);
     final exported=await store.exportWorkflows(at:at),text=encodeWorkflowExport(exported);
-    for(final secret in ['Private meal','/private/photo.jpg','private metadata','photoPath','analysis'])expect(text,isNot(contains('"$secret"')));
+    for(final secret in ['Private meal','/private/photo.jpg','private metadata','photoPath','analysis']){expect(text,isNot(contains('"$secret"')));}
     expect(exported['referenceIsWeighed'],false);expect(exported['scope'],'currently_retained_meals');
     expect((exported['meals'] as List).single['currentServedKcal'],420);
     expect((exported['meals'] as List).single['missingMeasurements'],false);

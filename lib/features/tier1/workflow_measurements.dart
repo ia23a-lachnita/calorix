@@ -122,11 +122,14 @@ String encodeWorkflowExport(Map<String,dynamic> value){
 }
 
 abstract class WorkflowSink {
+  void recordFailure(){}
   Future<void> append(String mealId,List<Map<String,dynamic>> events);
   Future<Map<String,dynamic>> export({required DateTime at,String? mealId});
 }
 class NoopWorkflowSink implements WorkflowSink {
   const NoopWorkflowSink();
+  @override
+  void recordFailure(){}
   @override
   Future<void> append(String mealId,List<Map<String,dynamic>> events) async {}
   @override
