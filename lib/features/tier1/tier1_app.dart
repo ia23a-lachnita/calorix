@@ -242,13 +242,17 @@ class _MealEditorState extends State<_MealEditor> {
             child:Text('Changing this portion replaces manual totals with a calculation from the listed foods.')),
           TextFormField(initialValue:gramsText,onChanged:(text)=>gramsText=text,
             keyboardType:const TextInputType.numberWithOptions(decimal:true),
-            decoration:const InputDecoration(labelText:'Served grams'),
+            decoration:const InputDecoration(labelText:'Served grams',errorMaxLines:3),
             validator:(text){final n=double.tryParse(text?.trim()??'');return n==null||!n.isFinite||n<0||n>100000?'Enter a finite weight from 0 to 100000 g':null;}),
         ])),actions:[
           TextButton(onPressed:(){if(closed)return;closed=true;Navigator.pop(dialogContext);},child:const Text('Cancel')),
           TextButton(onPressed:(){if(closed)return;closed=true;Navigator.pop(dialogContext,original);},child:const Text('Use original')),
           FilledButton(onPressed:(){
-            if(closed||!form.currentState!.validate())return;
+            if(closed)return;
+            if(!form.currentState!.validate()){
+              FocusScope.of(dialogContext).unfocus();
+              return;
+            }
             final grams=gramsText.trim()==_displayNutrient(current)?current:double.parse(gramsText.trim());
             closed=true;Navigator.pop(dialogContext,grams);
           },child:const Text('Apply portion')),
