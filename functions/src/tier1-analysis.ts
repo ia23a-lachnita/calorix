@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { CATALOG, CATALOG_VERSION } from './tier1-catalog';
 
 export const TIER1_MODEL = 'gemini-3.8-flash';
+/** Research-only challenger. Production callers retain TIER1_MODEL. */
+export const TIER1_CHALLENGER_MODEL = 'gemini-4-argon';
 const nonnegative = z.number().finite().min(0).max(10000);
 const nutrientsSchema = z.object({kcal:nonnegative,proteinG:nonnegative.max(100),carbsG:nonnegative.max(100),fatG:nonnegative.max(100)}).strict();
 const componentSchema = z.object({name:z.string().min(1).max(160),massG:z.number().finite().positive().max(100000),catalogId:z.string().max(80).nullable(),preparation:z.string().min(1).max(200),assumptions:z.array(z.string().max(300)).max(8),estimatedPer100:nutrientsSchema.nullable()}).strict();
@@ -92,14 +94,14 @@ export function decodeTier1Output(text:string):Tier1Estimate {
 }
 
 /** Server/CLI only. ADC, fixed endpoint, one SDK attempt, no model fallback. */
-async function inferWithPrompt(imageBase64:string,prompt:string):Promise<Tier1Estimate> {
+async function inferWithPrompt(imageBase64:string,prompt:string,model:string=TIER1_MODEL):Promise<Tier1Estimate> {
   const client=new GoogleGenAI({vertexai:true,project:'calorix-xurschnell',location:'us',apiVersion:'v1',httpOptions:{baseUrl:'https://aiplatform.us.rep.googleapis.com/',timeout:30000,retryOptions:{attempts:1}}});
   const start=Date.now();
-  const response=await client.models.generateContent({model:TIER1_MODEL,contents:[{role:'user',parts:[{text:prompt},{inlineData:{mimeType:'image/jpeg',data:imageBase64}}]}],config:{responseMimeType:'application/json',responseJsonSchema:TIER1_RESPONSE_SCHEMA,thinkingConfig:{thinkingLevel:ThinkingLevel.LOW},maxOutputTokens:8192}});
-  if(response.modelVersion!==TIER1_MODEL)throw new Error('Unexpected returned model version');
+  const response=await client.models.generateContent({model,contents:[{role:'user',parts:[{text:prompt},{inlineData:{mimeType:'image/jpeg',data:imageBase64}}]}],config:{responseMimeType:'application/json',responseJsonSchema:TIER1_RESPONSE_SCHEMA,thinkingConfig:{thinkingLevel:ThinkingLevel.LOW},maxOutputTokens:8192}});
+  if(response.modelVersion!==model)throw new Error('Unexpected returned model version');
   if(!response.text)throw new Error('Empty model response');
   const result=decodeTier1Output(response.text);
-  return {...result,provenance:{...result.provenance,promptSha256:createHash('sha256').update(prompt).digest('hex'),returnedModel:response.modelVersion,latencyMs:Date.now()-start,inputTokens:response.usageMetadata?.promptTokenCount??null,outputTokens:response.usageMetadata?.candidatesTokenCount??null,costUsd:null}};
+  return {...result,provenance:{...result.provenance,model,promptSha256:createHash('sha256').update(prompt).digest('hex'),returnedModel:response.modelVersion,latencyMs:Date.now()-start,inputTokens:response.usageMetadata?.promptTokenCount??null,outputTokens:response.usageMetadata?.candidatesTokenCount??null,costUsd:null}};
 }
 /** Production default: no caller-selectable profile or prompt parameter. */
 export async function inferTier1(imageBase64:string):Promise<Tier1Estimate> {
@@ -108,4 +110,8 @@ export async function inferTier1(imageBase64:string):Promise<Tier1Estimate> {
 /** Explicit evaluator-only candidate; never selected by the callable. */
 export async function inferTier1PortionAudit(imageBase64:string):Promise<Tier1Estimate> {
   return inferWithPrompt(imageBase64,TIER1_PORTION_AUDIT_PROMPT);
+}
+/** Evaluator-only model comparison; no callable/client model option. */
+export async function inferTier1Challenger(imageBase64:string):Promise<Tier1Estimate> {
+  return inferWithPrompt(imageBase64,TIER1_PROMPT,TIER1_CHALLENGER_MODEL);
 }

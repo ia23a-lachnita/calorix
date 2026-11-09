@@ -32,11 +32,13 @@ function checkArm(manifest,runDir,summary){
 async function executePair(options,runArm){
   const {manifest,registryPath,outputDir}=options;
   if(!options.consent)throw new Error('Explicit cloud consent required');
+  const candidateProfile=options.candidateProfile??'portion-audit-v1';
+  if(!['portion-audit-v1','vlm-challenger-v1'].includes(candidateProfile))throw new Error('Unknown paired candidate profile');
   if(manifest.sampleCount!==10||manifest.cases.length!==10||new Set(manifest.cases.map(c=>c.id)).size!==10)throw new Error('Exactly ten unique fixed cases required');
   if(fs.existsSync(outputDir))throw new Error('Experiment output already exists');
   const receipt={...options.pins,status:'reserved',maxSdkInvocations:20,sdkInvocations:0,startedAt:new Date().toISOString(),
     arms:[{profile:'original',runDir:path.join(outputDir,'original'),status:'not_attempted'},
-      {profile:'portion-audit-v1',runDir:path.join(outputDir,'candidate'),status:'not_attempted'}]};
+      {profile:candidateProfile,runDir:path.join(outputDir,'candidate'),status:'not_attempted'}]};
   // This receipt is never removed or resumed, including after crashes or failures.
   fs.writeFileSync(registryPath,JSON.stringify(receipt,null,2)+'\n',{flag:'wx',mode:0o600});
   try{

@@ -93,3 +93,13 @@ portion_audit_valid_outputs: 20
 portion_audit_report: docs/tier1-portion-audit-2026-11-09/report.md
 public_evaluation_sdk_invocations: 80
 public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog predictions plus20 new10 two-prompt predictions; nonfood/text diagnostics excluded
+
+vlm_challenger_status: research-only; compatibility probe passed; food comparison pending; not default or deployed
+vlm_challenger_model: gemini-4-argon
+vlm_challenger_profile: functions/eval/tier1-public/vlm-challenger-profile-v1.json
+vlm_challenger_probe: functions/eval/tier1-public/vlm-challenger-probe-v1.json
+vlm_challenger_manifest_sha256: 9d7d8f2b3097d551df8ca93d35dcd800a594ce45fd97f3e7ac1d71c8653ff9e7
+vlm_challenger_max_new_sdk_calls: 21
+vlm_challenger_probe_sdk_calls: 1
+vlm_challenger_food_sdk_calls: 0
+vlm_challenger_promotion: no automatic promotion

@@ -2,6 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {execFileSync}=require('node:child_process');
 const FILES=['tier1-analysis','tier1-catalog','tier1-callable','tier1-cli','tier1-public-eval'];
+const PROFILES=['original','portion-audit-v1','vlm-challenger-v1'];
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const git=(repo,...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8',stdio:'pipe'});
 function source(repo,commit,file){
@@ -72,31 +73,33 @@ function assertInputs(repo,manifestPath,runDir,consent){
   return {manifest,manifestCommit,manifestSha256:hash(raw)};
 }
 function resolveInferenceProfile(engine,profile='original'){
-  if(!['original','portion-audit-v1'].includes(profile))throw new Error('Unknown inference profile');
-  const prompt=profile==='original'?engine.TIER1_PROMPT:engine.TIER1_PORTION_AUDIT_PROMPT;
-  const infer=profile==='original'?engine.inferTier1:engine.inferTier1PortionAudit;
-  if(typeof prompt!=='string'||typeof infer!=='function')throw new Error('Frozen inference profile is unavailable');
-  if(profile!=='original'&&prompt===engine.TIER1_PROMPT)throw new Error('Candidate inference profile duplicates the default');
-  return {id:profile,promptSha256:hash(prompt),infer};
+  if(!PROFILES.includes(profile))throw new Error('Unknown inference profile');
+  const prompt=profile==='portion-audit-v1'?engine.TIER1_PORTION_AUDIT_PROMPT:engine.TIER1_PROMPT;
+  const infer=profile==='original'?engine.inferTier1:profile==='portion-audit-v1'?engine.inferTier1PortionAudit:engine.inferTier1Challenger;
+  const model=profile==='vlm-challenger-v1'?engine.TIER1_CHALLENGER_MODEL:engine.TIER1_MODEL;
+  if(typeof prompt!=='string'||typeof infer!=='function'||typeof model!=='string'||!model)throw new Error('Frozen inference profile is unavailable');
+  if(profile==='portion-audit-v1'&&prompt===engine.TIER1_PROMPT)throw new Error('Candidate inference profile duplicates the default');
+  if(profile==='vlm-challenger-v1'&&model===engine.TIER1_MODEL)throw new Error('Challenger model duplicates the default');
+  return {id:profile,model,promptSha256:hash(prompt),infer};
 }
 function parseProfileArgument(args){
   if(args.some(value=>value.startsWith('--profile=')))throw new Error('Use separate --profile and value arguments');
   const positions=args.flatMap((value,index)=>value==='--profile'?[index]:[]);
   if(!positions.length)return 'original';
-  if(positions.length!==1||!['original','portion-audit-v1'].includes(args[positions[0]+1]))throw new Error('Specify exactly one valid inference profile');
+  if(positions.length!==1||!PROFILES.includes(args[positions[0]+1]))throw new Error('Specify exactly one valid inference profile');
   return args[positions[0]+1];
 }
 async function runFrozenEvaluation({repo,engineCommit,bundleDir,manifestPath,assetsRoot,runDir,consent,profile='original'}){
-  if(!['original','portion-audit-v1'].includes(profile))throw new Error('Unknown inference profile');
+  if(!PROFILES.includes(profile))throw new Error('Unknown inference profile');
   const inputs=assertInputs(repo,manifestPath,runDir,consent);
   const bundle=verifyFrozenBundle(repo,engineCommit,bundleDir);
   const selected=resolveInferenceProfile(require(path.resolve(bundleDir,'tier1-analysis.js')),profile);
-  if(profile==='portion-audit-v1'&&inputs.manifest.sampleCount>10)throw new Error('Candidate profile is limited to ten cases');
+  if(profile!=='original'&&inputs.manifest.sampleCount>10)throw new Error('Candidate profile is limited to ten cases');
   fs.writeFileSync(runDir+'.control.json',JSON.stringify({engineCommit,manifestCommit:inputs.manifestCommit,
     manifestSha256:inputs.manifestSha256,bundleSha256:hash(fs.readFileSync(path.join(bundleDir,'bundle.json'))),
-    profile:selected.id,promptSha256:selected.promptSha256,maxSdkInvocations:inputs.manifest.sampleCount,consentVersion:'tier1-v1',bundle},null,2)+'\n',{flag:'wx',mode:0o600});
+    profile:selected.id,model:selected.model,promptSha256:selected.promptSha256,maxSdkInvocations:inputs.manifest.sampleCount,consentVersion:'tier1-v1',bundle},null,2)+'\n',{flag:'wx',mode:0o600});
   const {runPublicEvaluation}=require(path.resolve(bundleDir,'tier1-public-eval.js'));
-  return runPublicEvaluation({manifest:inputs.manifest,assetsRoot,runDir,consent:true,sourceCommit:engineCommit,infer:selected.infer,expectedPromptSha256:selected.promptSha256,
+  return runPublicEvaluation({manifest:inputs.manifest,assetsRoot,runDir,consent:true,sourceCommit:engineCommit,infer:selected.infer,expectedPromptSha256:selected.promptSha256,expectedModel:selected.model,
     onProgress:r=>console.log(JSON.stringify({id:r.id,A1:r.A1.status,A0:r.A0.status}))});
 }
 async function main(args){

@@ -1,0 +1,53 @@
+{
+  "id": "vlm-challenger-v1",
+  "status": "research-only; not default or deployed",
+  "baselineModel": "gemini-3.8-flash",
+  "challengerModel": "gemini-4-argon",
+  "modelSnapshot": "Hosted model IDs only; immutable weight snapshots unavailable",
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "responseSchemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "analysisSourceSha256": "7ad164e73a934c8822a711d678c1f572247403cb9de51aaffb96e6a4f4a5a453",
+  "catalogSourceSha256": "a8f9753328f71e689747e21e5000672f94f33fa519e9ac97f33c8622184dcb71",
+  "dependencyLockSha256": "98e0617641059a0ae1029df6f5a22a90c0885dbe61235808d9a322a8f340cc51",
+  "manifestPath": "functions/eval/tier1-public/manifest-mealrange-v1.json",
+  "manifestSha256": "9d7d8f2b3097d551df8ca93d35dcd800a594ce45fd97f3e7ac1d71c8653ff9e7",
+  "probeReceiptPath": "functions/eval/tier1-public/vlm-challenger-probe-v1.json",
+  "probeReceiptSha256": "250cb28e2bc113602c7c9d718fbbd65e959a05d7b3c3505a4ed9ceae36b8936e",
+  "probeScriptSha256": "71f9a8dda3233586448bda4a872f0ec9371c4cacd6aef4993d953c7e5e63869f",
+  "probeSourceEngineCommit": "2b26b7ea46cfaa488e2c358036a25214aa104720",
+  "sdk": "@google/genai@2.19.0",
+  "node": "22.23.3",
+  "project": "calorix-xurschnell",
+  "endpoint": "https://aiplatform.us.rep.googleapis.com/",
+  "location": "us",
+  "apiVersion": "v1",
+  "thinkingLevel": "LOW",
+  "maxOutputTokens": 8192,
+  "httpTimeoutMs": 30000,
+  "sdkAttempts": 1,
+  "modelFallback": "none",
+  "automaticContinuation": false,
+  "maxNewSdkInvocationsIncludingProbe": 21,
+  "maxFoodSdkInvocations": 20,
+  "maxPerArm": 10,
+  "automaticPromotion": false,
+  "questionPolicy": "Unanswered; no reference-derived preparation answers",
+  "considerationGuard": "Both10valid; MAE and normfloor200 improve, P90 not worse, no failure increase; consideration only",
+  "sample": {
+    "cases": 10,
+    "referenceKcalRange": [
+      274.190002,
+      920.120422
+    ],
+    "distinctDates": 10,
+    "inclusion": "Entire existing mealrange10 manifest, metadata-defined before challenger outputs; no replacements",
+    "alreadyExposedDevelopmentCases": true,
+    "independentCompletedPlatesEstablished": false,
+    "newDownloads": 0
+  },
+  "limitations": [
+    "Hosted sampling/routing/pretraining/LOW semantics uncontrolled; not isolated weights or equal compute",
+    "Sequential arm order/cache confounds latency; cost and actual user effort unmeasured",
+    "No phone/generalization or consumed-accuracy claim; no post-result tuning"
+  ]
+}

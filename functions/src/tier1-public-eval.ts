@@ -22,7 +22,7 @@ type PublicCase=z.infer<typeof caseSchema>;
 type Status='ok'|'failed'|'not_attempted'|'pending';
 interface RouteResult {status:Status;predicted:Nutrients|null;massG:number|null;failure:string|null}
 interface Outcome {id:string;A0:RouteResult;A1:RouteResult;sdkInvoked:boolean;datasetFailure:boolean;runnerWallMs:number|null;comparisonContextId?:string;estimate?:Tier1Estimate}
-interface Options {manifest:unknown;assetsRoot:string;runDir:string;consent:boolean;sourceCommit:string;expectedPromptSha256?:string;infer?:(image:string)=>Promise<Tier1Estimate>;onProgress?:(result:Outcome)=>void}
+interface Options {manifest:unknown;assetsRoot:string;runDir:string;consent:boolean;sourceCommit:string;expectedPromptSha256?:string;expectedModel?:string;infer?:(image:string)=>Promise<Tier1Estimate>;onProgress?:(result:Outcome)=>void}
 const hash=(value:string|Uint8Array)=>createHash('sha256').update(value).digest('hex');
 const empty=(status:Status='not_attempted',failure:string|null=null):RouteResult=>({status,predicted:null,massG:null,failure});
 const answer=(estimate:Tier1Estimate):RouteResult=>({status:'ok',predicted:estimate.totals,massG:estimate.components.reduce((sum,c)=>sum+c.massG,0),failure:null});
@@ -76,11 +76,13 @@ function failure(error:unknown):{category:string;halt:boolean} {
 function save(path:string,value:unknown) {writeFileSync(path+'.pending',JSON.stringify(value,null,2)+'\n',{mode:0o600});renameSync(path+'.pending',path);}
 export async function runPublicEvaluation(options:Options) {
   if(!options.consent)throw new Error('Explicit public-photo cloud consent required');
+  if(options.expectedModel!==undefined && (typeof options.expectedModel!=='string'||!/^gemini-[a-z0-9][a-z0-9.-]{0,79}$/.test(options.expectedModel)))throw new Error('Invalid expected model profile');
+  if(options.expectedModel!==undefined && options.expectedModel!==TIER1_MODEL && !options.infer)throw new Error('Custom model requires an explicit inference function');
   if(options.expectedPromptSha256!==undefined && (typeof options.expectedPromptSha256!=='string'||!/^[0-9a-f]{64}$/.test(options.expectedPromptSha256)))throw new Error('Invalid expected prompt profile');
   if(options.expectedPromptSha256!==undefined && options.expectedPromptSha256!==hash(TIER1_PROMPT) && !options.infer)throw new Error('Custom prompt requires an explicit inference function');
   const manifest=manifestSchema.parse(options.manifest),root=realpathSync(options.assetsRoot);
   mkdirSync(options.runDir); // Exclusive claim, before any inference. No implicit resume/retry.
-  writeFileSync(join(options.runDir,'run.json'),JSON.stringify({sourceCommit:options.sourceCommit,manifestSha256:hash(JSON.stringify(manifest)),model:TIER1_MODEL,catalogVersion:CATALOG_VERSION,baselineScope:'A0 shares A1 identities/preparation/catalog; only serving priors differ',portionPriorSha256:hash(JSON.stringify(CATALOG.map(r=>[r.id,r.priorG]))),promptSha256:options.expectedPromptSha256??hash(TIER1_PROMPT),schemaSha256:hash(JSON.stringify(TIER1_RESPONSE_SCHEMA)),maxSdkInvocations:manifest.sampleCount,startedAt:new Date().toISOString()},null,2)+'\n',{flag:'wx',mode:0o600});
+  writeFileSync(join(options.runDir,'run.json'),JSON.stringify({sourceCommit:options.sourceCommit,manifestSha256:hash(JSON.stringify(manifest)),model:options.expectedModel??TIER1_MODEL,catalogVersion:CATALOG_VERSION,baselineScope:'A0 shares A1 identities/preparation/catalog; only serving priors differ',portionPriorSha256:hash(JSON.stringify(CATALOG.map(r=>[r.id,r.priorG]))),promptSha256:options.expectedPromptSha256??hash(TIER1_PROMPT),schemaSha256:hash(JSON.stringify(TIER1_RESPONSE_SCHEMA)),maxSdkInvocations:manifest.sampleCount,startedAt:new Date().toISOString()},null,2)+'\n',{flag:'wx',mode:0o600});
   save(join(options.runDir,'manifest.json'),manifest);
   const rows:Outcome[]=manifest.cases.map(c=>({id:c.id,A0:empty(),A1:empty(),sdkInvoked:false,datasetFailure:false,runnerWallMs:null}));
   const checkpoint=()=>save(join(options.runDir,'summary.json'),summarizePublicEvaluation(manifest.cases,rows));
@@ -102,6 +104,7 @@ export async function runPublicEvaluation(options:Options) {
     r.sdkInvoked=true;r.A1=empty('pending');r.A0=empty('pending');save(join(options.runDir,c.id+'.json'),r);checkpoint();
     try {
       const estimate=await (options.infer??inferTier1)(image);
+      if(options.expectedModel!==undefined&&(estimate.provenance.model!==options.expectedModel||estimate.provenance.returnedModel!==options.expectedModel))throw new Error('Unexpected returned model version');
       if(options.expectedPromptSha256!==undefined&&estimate.provenance.promptSha256!==options.expectedPromptSha256)throw new Error('Unexpected inference prompt profile');
       r.estimate=estimate;r.A1=answer(estimate);
       const pilot=createPilotPredictions(estimate,c.id);r.comparisonContextId=pilot.predictions[0]!.preparation_context_id;
