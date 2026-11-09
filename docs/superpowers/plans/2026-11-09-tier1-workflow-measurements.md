@@ -19,7 +19,7 @@
 ## Task1 — Pure meter and serialized private journal
 
 Files: new lib/features/tier1/workflow_measurements.dart; extend local_meal_store.dart; new test/tier1/workflow_measurements_test.dart.
-- [ ] Test-first RED: monotonic pause/wait/resume and wall-clock independence; regression invalidates timing; schema rejects unknown keys/nonfinite fields; bounded log/explicit drops; no file before saved meal; atomic append leaves meal bytes/revision unchanged; corrupt preserved; delete final/pending and reject late append; export omits names/photos/paths and includes unreadable/missing status.
+- [x] Test-first RED: monotonic pause/wait/resume and wall-clock independence; regression invalidates timing; schema rejects unknown keys/nonfinite fields; bounded log/explicit drops; no file before saved meal; atomic append leaves meal bytes/revision unchanged; corrupt preserved; delete final/pending and reject late append; export omits names/photos/paths and includes unreadable/missing status.
 - [ ] Minimal implementation, GREEN under canonical Flutter CI (host FVM absent); preserve existing tests. No changes to local_meal serialization or nutrient arithmetic. Commit/push with tracking.
 
 ## Task2 — Existing UI hooks and optional export
@@ -40,3 +40,5 @@ Files: new evaluate_workflows.py, tests/test_evaluate_workflows.py, concise meas
 Pre-review: MCP calorix-tier1-workflow-20261109, gemini-3.8-flash/yolo, final literal AGREEMENT_STATUS agree/MUST_FIX none after resolving required persistence/clock/deletion/export/paired-subset guards. Retracted guarantee that minimization prevents re-identification; no such claim adopted. First correction remains primary even when later corrections follow; no easy-meal survivor exclusion.
 
 Exploration: ARTEMIS autonomous trace98aaad91-65f7-4ada-8aa9-990210105acc hit429RESOURCE_EXHAUSTED on gemini-3.6-flash free daily20/retry~60596s and was cancelled, not completed. Diagnose before stop found busy probe; after stop5/5requiredPASS/deviceprobePASS, optional scrcpy missing. Direct ARTEMIS hierarchy plus grounded pinned-ADB navigation verified Camera/emptyHistory/Manual form without saving; no successful autonomous completion or nutritional measurement claim. Optional video remains unavailable; no software installed.
+
+ActualTask1FlutterRED run42644661242/job129254564753:990existingPASS/1historicalskip/1newtestfileloadFAIL atmissingworkflowmodule+storeAPIs. CancelledsupersededremainingFunctionsjob; notfullpass. MinimalDartmeter/journal sourceimplementedafterRED; GREENpending. Pythonworkflowevaluator9testsactualNotImplementedRED→GREEN, all53PythonPASS. No realworkflowmeasurement/referenceclaim. Task1sourcecommit beforeUIintegration; canonicalCIfeedbacknext.
