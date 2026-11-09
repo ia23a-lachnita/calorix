@@ -56,7 +56,7 @@ class _Cloud extends Tier1Cloud {
   Future<Map<String,dynamic>> analyze(String path,{required bool consent})=>response.future;
 }
 Future<void> visible(WidgetTester t,Finder f)async{await t.scrollUntilVisible(f,150,scrollable:find.byType(Scrollable).first);await t.pumpAndSettle();}
-Future<void> open(WidgetTester t,_Store store,_Sink sink,int Function() tick,{_Cloud? cloud})async{
+Future<void> _open(WidgetTester t,_Store store,_Sink sink,int Function() tick,{_Cloud? cloud})async{
   await store.save(portionMeal(photo:cloud!=null).confirmConsumption(.5));
   await t.pumpWidget(Tier1App(store:store,camera:FakeCameraService(),cloud:cloud,workflow:sink,elapsedMilliseconds:tick));
   await t.pumpAndSettle();await t.tap(find.text('History'));await t.pumpAndSettle();
@@ -65,7 +65,7 @@ Future<void> open(WidgetTester t,_Store store,_Sink sink,int Function() tick,{_C
 
 void main(){
   testWidgets('portion save logs before/after and a foreground proxy without changing original analysis',(t)async{
-    var tick=0;final store=_Store(),sink=_Sink();await open(t,store,sink,()=>tick);
+    var tick=0;final store=_Store(),sink=_Sink();await _open(t,store,sink,()=>tick);
     final original=store.records.single;
     await visible(t,find.byTooltip('Edit portion for Almonds'));tick=100;
     await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
@@ -77,7 +77,7 @@ void main(){
     expect(store.records.single.analysis,original.analysis);expect(store.records.single.consumedFraction,isNull);
   });
   testWidgets('cancel and no-change preserve meal bytes and do not record a saved correction',(t)async{
-    final store=_Store(),sink=_Sink();await open(t,store,sink,()=>0);final before=store.records.single.toJson();
+    final store=_Store(),sink=_Sink();await _open(t,store,sink,()=>0);final before=store.records.single.toJson();
     await visible(t,find.byTooltip('Edit portion for Almonds'));await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
     await t.tap(find.text('Cancel'));await t.pumpAndSettle();
     await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();await t.tap(find.text('Apply portion'));await t.pumpAndSettle();
@@ -85,19 +85,19 @@ void main(){
     expect(sink.events.any((e)=>e['kind']=='portion_cancelled'),true);expect(sink.events.any((e)=>e['kind']=='portion_unchanged'),true);
   });
   testWidgets('measurement write failure cannot prevent a portion save',(t)async{
-    final store=_Store(),sink=_Sink()..fail=true;await open(t,store,sink,()=>0);
+    final store=_Store(),sink=_Sink()..fail=true;await _open(t,store,sink,()=>0);
     await visible(t,find.byTooltip('Edit portion for Almonds'));await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
     await t.enterText(find.widgetWithText(TextFormField,'Served grams'),'86');await t.tap(find.text('Apply portion'));await t.pumpAndSettle();
     expect(store.records.single.portionOverrides,{1:86.0});expect(t.takeException(),isNull);
   });
   testWidgets('revision conflict never records a successful portion correction',(t)async{
-    final store=_Store(),sink=_Sink();await open(t,store,sink,()=>0);store.conflict=true;
+    final store=_Store(),sink=_Sink();await _open(t,store,sink,()=>0);store.conflict=true;
     await visible(t,find.byTooltip('Edit portion for Almonds'));await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
     await t.enterText(find.widgetWithText(TextFormField,'Served grams'),'86');await t.tap(find.text('Apply portion'));await t.pumpAndSettle();
     expect(sink.events.where((e)=>e['kind']=='portion_saved'),isEmpty);expect(sink.events.any((e)=>e['kind']=='portion_conflict'),true);
   });
   testWidgets('analysis wait is excluded and a reopened meal has unknown shutter timing',(t)async{
-    var tick=0;final store=_Store(),sink=_Sink(),cloud=_Cloud();await open(t,store,sink,()=>tick,cloud:cloud);
+    var tick=0;final store=_Store(),sink=_Sink(),cloud=_Cloud();await _open(t,store,sink,()=>tick,cloud:cloud);
     tick=1000;await t.tap(find.text('Estimate photo'));await t.pumpAndSettle();
     tick=2000;await t.tap(find.text('Send photo'));await t.pump();
     tick=12000;cloud.response.complete(portionAnalysis());await t.pumpAndSettle();
@@ -107,7 +107,7 @@ void main(){
     final frame=sink.events.where((e)=>e['kind']=='result_frame').single;expect(frame['shutterToFrameMs'],isNull);
   });
   testWidgets('background time is excluded from a portion-dialog foreground proxy',(t)async{
-    var tick=0;final store=_Store(),sink=_Sink();await open(t,store,sink,()=>tick);
+    var tick=0;final store=_Store(),sink=_Sink();await _open(t,store,sink,()=>tick);
     await visible(t,find.byTooltip('Edit portion for Almonds'));await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
     tick=100;
     for(final state in [AppLifecycleState.inactive,AppLifecycleState.hidden,AppLifecycleState.paused]){t.binding.handleAppLifecycleStateChanged(state);}
@@ -122,7 +122,7 @@ void main(){
     expect(store.records,isEmpty);expect(sink.events,isEmpty);
   });
   testWidgets('committed analysis with failed refresh stays saved rather than failed',(t)async{
-    final store=_Store(),sink=_Sink(),cloud=_Cloud();await open(t,store,sink,()=>0,cloud:cloud);
+    final store=_Store(),sink=_Sink(),cloud=_Cloud();await _open(t,store,sink,()=>0,cloud:cloud);
     store.failLoadAfterReplace=true;
     await t.tap(find.text('Estimate photo'));await t.pumpAndSettle();await t.tap(find.text('Send photo'));await t.pump();
     cloud.response.complete(portionAnalysis());await t.pumpAndSettle();
@@ -132,7 +132,7 @@ void main(){
     expect(store.records.single.source,'A1');expect(t.takeException(),isNull);
   });
   testWidgets('analysis completing after navigation records success without disposed refresh',(t)async{
-    final store=_Store(),sink=_Sink(),cloud=_Cloud();await open(t,store,sink,()=>0,cloud:cloud);
+    final store=_Store(),sink=_Sink(),cloud=_Cloud();await _open(t,store,sink,()=>0,cloud:cloud);
     await t.tap(find.text('Estimate photo'));await t.pumpAndSettle();await t.tap(find.text('Send photo'));await t.pump();
     await t.tap(find.byTooltip('Back'));await t.pumpAndSettle();
     cloud.response.complete({...portionAnalysis(),'mealName':'Changed prediction'});await t.pumpAndSettle();
@@ -141,7 +141,7 @@ void main(){
     expect(t.takeException(),isNull);
   });
   testWidgets('portion failure after navigation retains a terminal failure event',(t)async{
-    final store=_Store(),sink=_Sink();await open(t,store,sink,()=>0);
+    final store=_Store(),sink=_Sink();await _open(t,store,sink,()=>0);
     final before=store.records.single.toJson();store.pendingReplace=Completer<bool>();
     await visible(t,find.byTooltip('Edit portion for Almonds'));await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
     await t.enterText(find.widgetWithText(TextFormField,'Served grams'),'86');await t.tap(find.text('Apply portion'));await t.pumpAndSettle();
@@ -151,7 +151,7 @@ void main(){
     expect(sink.events.where((e)=>e['kind']=='portion_saved'),isEmpty);expect(store.records.single.toJson(),before);expect(t.takeException(),isNull);
   });
   testWidgets('portion dialog timing ends before delayed persistence',(t)async{
-    var tick=0;final store=_Store(),sink=_Sink();await open(t,store,sink,()=>tick);
+    var tick=0;final store=_Store(),sink=_Sink();await _open(t,store,sink,()=>tick);
     store.pendingReplace=Completer<bool>();await visible(t,find.byTooltip('Edit portion for Almonds'));
     tick=100;await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
     tick=1100;await t.enterText(find.widgetWithText(TextFormField,'Served grams'),'86');await t.tap(find.text('Apply portion'));await t.pumpAndSettle();
