@@ -23,6 +23,9 @@ export interface Tier1Estimate {
 
 export const TIER1_PROMPT = `Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\n${CATALOG.map(r => `${r.id}: ${r.description}; preparation=${r.preparation}`).join('\n')}`;
 const promptSha256 = createHash('sha256').update(TIER1_PROMPT).digest('hex');
+/** Research-only addition. The callable and Android route retain TIER1_PROMPT. */
+export const TIER1_PORTION_AUDIT_ADDENDUM = 'Before returning JSON, audit the portion estimates: include all visible pieces and piles in each component’s combined cooked edible mass. Do not default to a generic serving or a small sample. Check for both overestimation and underestimation of the entire visible serving; do not systematically increase amounts, infer unseen food, or double count composites.';
+export const TIER1_PORTION_AUDIT_PROMPT = TIER1_PROMPT+'\n'+TIER1_PORTION_AUDIT_ADDENDUM;
 
 export function parseInventory(value:unknown):Inventory { return inventorySchema.parse(value); }
 export function scaleNutrients(n:Nutrients, factor:number):Nutrients {
@@ -89,12 +92,20 @@ export function decodeTier1Output(text:string):Tier1Estimate {
 }
 
 /** Server/CLI only. ADC, fixed endpoint, one SDK attempt, no model fallback. */
-export async function inferTier1(imageBase64:string):Promise<Tier1Estimate> {
+async function inferWithPrompt(imageBase64:string,prompt:string):Promise<Tier1Estimate> {
   const client=new GoogleGenAI({vertexai:true,project:'calorix-xurschnell',location:'us',apiVersion:'v1',httpOptions:{baseUrl:'https://aiplatform.us.rep.googleapis.com/',timeout:30000,retryOptions:{attempts:1}}});
   const start=Date.now();
-  const response=await client.models.generateContent({model:TIER1_MODEL,contents:[{role:'user',parts:[{text:TIER1_PROMPT},{inlineData:{mimeType:'image/jpeg',data:imageBase64}}]}],config:{responseMimeType:'application/json',responseJsonSchema:TIER1_RESPONSE_SCHEMA,thinkingConfig:{thinkingLevel:ThinkingLevel.LOW},maxOutputTokens:8192}});
+  const response=await client.models.generateContent({model:TIER1_MODEL,contents:[{role:'user',parts:[{text:prompt},{inlineData:{mimeType:'image/jpeg',data:imageBase64}}]}],config:{responseMimeType:'application/json',responseJsonSchema:TIER1_RESPONSE_SCHEMA,thinkingConfig:{thinkingLevel:ThinkingLevel.LOW},maxOutputTokens:8192}});
   if(response.modelVersion!==TIER1_MODEL)throw new Error('Unexpected returned model version');
   if(!response.text)throw new Error('Empty model response');
   const result=decodeTier1Output(response.text);
-  return {...result,provenance:{...result.provenance,returnedModel:response.modelVersion,latencyMs:Date.now()-start,inputTokens:response.usageMetadata?.promptTokenCount??null,outputTokens:response.usageMetadata?.candidatesTokenCount??null,costUsd:null}};
+  return {...result,provenance:{...result.provenance,promptSha256:createHash('sha256').update(prompt).digest('hex'),returnedModel:response.modelVersion,latencyMs:Date.now()-start,inputTokens:response.usageMetadata?.promptTokenCount??null,outputTokens:response.usageMetadata?.candidatesTokenCount??null,costUsd:null}};
+}
+/** Production default: no caller-selectable profile or prompt parameter. */
+export async function inferTier1(imageBase64:string):Promise<Tier1Estimate> {
+  return inferWithPrompt(imageBase64,TIER1_PROMPT);
+}
+/** Explicit evaluator-only candidate; never selected by the callable. */
+export async function inferTier1PortionAudit(imageBase64:string):Promise<Tier1Estimate> {
+  return inferWithPrompt(imageBase64,TIER1_PORTION_AUDIT_PROMPT);
 }

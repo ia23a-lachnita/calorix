@@ -26,15 +26,15 @@
 
 Files: functions/src/tier1-analysis.ts; functions/src/tier1-public-eval.ts; tool/run_frozen_public_eval.cjs; new functions/test/tier1-portion-audit.test.ts, additions to tier1-public-eval.test.ts and tool/frozen_public_eval.test.cjs.
 Interfaces: export TIER1_PORTION_AUDIT_ADDENDUM, TIER1_PORTION_AUDIT_PROMPT and inferTier1PortionAudit(imageBase64:string):Promise<Tier1Estimate>; default inferTier1 remains unchanged externally. Options.expectedPromptSha256?:string validates hex, stamps run.json and checks result; mismatch typed category prompt_drift/halts. Runner profile enum original|portion-audit-v1, selected only after byte/source verification; no arbitrary prompt override.
-- [ ] Write/run focused RED: defaulthash/settings invariant; candidate exactprompt/hash/oneattempt; drift/nofood shared; explicit metadata/mismatchhalt/invalidhash beforemkdir; runner unknown/missingprofile exports rejected before execution.
+- [x] Write/run focused RED: defaulthash/settings invariant; candidate exactprompt/hash/oneattempt; drift/nofood shared; explicit metadata/mismatchhalt/invalidhash beforemkdir; runner unknown/missingprofile exports rejected before execution.
 - [ ] Minimal implementation, focused GREEN, TypeScript build/lint and Nodeguards. Commit/push tracking. Mandatory MCP source review and independent review before live requests.
 
 ## Task2: Fresh deterministic10 and immutable manifest
 
 Files: new tool/prepare_tier1_portion_audit.py and tests/test_prepare_tier1_portion_audit.py; committed functions/eval/tier1-public/manifest-portion-audit-v1.json and candidate profile metadata under eval.
 Interface: select_portion_audit(dishes,test_ids,legacy_ids,recent_ids,recent_dates,vocabulary) returns cases/selection; CLI mirrors existing verified source/preparation pipeline and refuses existing output.
-- [ ] Tests first RED for quotas4[600,1000)kcal/3[200,600)/3(0,200), deterministicdate/ID ranks, uniqueness/exclusions/legacydates, no quota fallback and overlap disclosure.
-- [ ] Implement using existing source checks/parsers/converter/exclusive writer; fixed seed calorix-tier1-portion-audit-20261109-v1. Freeze selection before image results; up to10downloads, no retry/replacement. Record ready/failed assets and all source/image/JPEG hashes/Pillow versions. Allnewbatch dates unique; overlaps withold30 explicit.
+- [x] Tests first RED for quotas4[600,1000)kcal/3[200,600)/3(0,200), deterministicdate/ID ranks, uniqueness/exclusions/legacydates, no quota fallback and overlap disclosure.
+- [x] Implement using existing source checks/parsers/converter/exclusive writer; fixed seed calorix-tier1-portion-audit-20261109-v1. Freeze selection before image results; up to10downloads, no retry/replacement. Record ready/failed assets and all source/image/JPEG hashes/Pillow versions. Allnewbatch dates unique; overlaps withold30 explicit.
 - [ ] Commit manifest/profile/source and verify clean checkout before inference. Exact candidateprompt/hash and baseline/node/SDK/catalog/schema/source commits pinned. Build and independently verify frozen bundle; no productiondefault/catalog changes.
 
 ## Task3: Execute and report actual paired results
@@ -48,3 +48,5 @@ Interface: select_portion_audit(dishes,test_ids,legacy_ids,recent_ids,recent_dat
 Pre-review primary3.8 explicitly agrees/MUSTnone after correction: thresholds/floor are kcal, LOW is reasoning, no invented suffix wordcount, no guaranteed zero accidental exposure or prior ADC check. The actual call paths/guards must be tested. Existing older inference budgets stay closed; this is a separate explicitly bounded development comparison under the continued Tier1 execution instruction.
 
 Actual tests-first: SDK/public13tests 7pass/6expectedfails (3missingcandidateexports,3profilemetadata/guard), originalrequest test alreadyGREEN; Node original5pass/new2fail; selector5tests errors with explicitNotImplemented contract afterinitialimportRED. All no-network. Next implement minimally thenGREEN/build/lint/independentMCPbeforelive; no image downloads or inference yet.
+
+Implementation checkpoint: actual focused GREEN32Functions/5files, all44Python,8Nodeguards; TypeScript build/lint exit0. Extra explicit-equals profile regression RED7pass/1fail thenGREEN8. Ten selected before downloads;10ready JPEGs/406478bytes,10unique within-batchdates/eightold-dateoverlaps, no oldIDs/JPEGhashes reused. ManifestSHA d150ef3c0503487116a65337817f0eccff8a8ab48124d3ff47a4ca09cca88e63; candidateSHA1d2406db986503a127eb04367f692e1c87d1a9e58311d343de49e5ebb6a25e77. No SDK calls yet. Independent source/input review running; mandatory MCP source review/fullCI/frozen bundle/ADC preflight remain before calls. Default callable/request/schema/catalog unchanged.

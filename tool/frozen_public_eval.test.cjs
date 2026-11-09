@@ -62,3 +62,11 @@ test('unknown profiles and unavailable frozen candidate exports fail without dis
   assert.throws(()=>select(engine,'portion-audit-v1'),/profile/);
   assert.equal(calls,0);
 });
+test('explicit missing, duplicate or unknown profile flags cannot silently select the baseline',()=>{
+  const parse=require('./run_frozen_public_eval.cjs').parseProfileArgument;
+  assert.equal(typeof parse,'function');
+  assert.equal(parse([]),'original');assert.equal(parse(['--profile','portion-audit-v1']),'portion-audit-v1');
+  for(const args of [['--profile'],['--profile=portion-audit-v1'],['--profile','unknown'],['--profile','original','--profile','portion-audit-v1']]){
+    assert.throws(()=>parse(args),/profile/);
+  }
+});

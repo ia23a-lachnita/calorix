@@ -71,25 +71,44 @@ function assertInputs(repo,manifestPath,runDir,consent){
   if(manifest.scope!=='public_dataset'||!Number.isInteger(manifest.sampleCount)||manifest.sampleCount<1||manifest.sampleCount>20||manifest.cases.length!==manifest.sampleCount)throw new Error('Invalid bounded public manifest');
   return {manifest,manifestCommit,manifestSha256:hash(raw)};
 }
-async function runFrozenEvaluation({repo,engineCommit,bundleDir,manifestPath,assetsRoot,runDir,consent}){
+function resolveInferenceProfile(engine,profile='original'){
+  if(!['original','portion-audit-v1'].includes(profile))throw new Error('Unknown inference profile');
+  const prompt=profile==='original'?engine.TIER1_PROMPT:engine.TIER1_PORTION_AUDIT_PROMPT;
+  const infer=profile==='original'?engine.inferTier1:engine.inferTier1PortionAudit;
+  if(typeof prompt!=='string'||typeof infer!=='function')throw new Error('Frozen inference profile is unavailable');
+  if(profile!=='original'&&prompt===engine.TIER1_PROMPT)throw new Error('Candidate inference profile duplicates the default');
+  return {id:profile,promptSha256:hash(prompt),infer};
+}
+function parseProfileArgument(args){
+  if(args.some(value=>value.startsWith('--profile=')))throw new Error('Use separate --profile and value arguments');
+  const positions=args.flatMap((value,index)=>value==='--profile'?[index]:[]);
+  if(!positions.length)return 'original';
+  if(positions.length!==1||!['original','portion-audit-v1'].includes(args[positions[0]+1]))throw new Error('Specify exactly one valid inference profile');
+  return args[positions[0]+1];
+}
+async function runFrozenEvaluation({repo,engineCommit,bundleDir,manifestPath,assetsRoot,runDir,consent,profile='original'}){
+  if(!['original','portion-audit-v1'].includes(profile))throw new Error('Unknown inference profile');
   const inputs=assertInputs(repo,manifestPath,runDir,consent);
   const bundle=verifyFrozenBundle(repo,engineCommit,bundleDir);
+  const selected=resolveInferenceProfile(require(path.resolve(bundleDir,'tier1-analysis.js')),profile);
+  if(profile==='portion-audit-v1'&&inputs.manifest.sampleCount>10)throw new Error('Candidate profile is limited to ten cases');
   fs.writeFileSync(runDir+'.control.json',JSON.stringify({engineCommit,manifestCommit:inputs.manifestCommit,
     manifestSha256:inputs.manifestSha256,bundleSha256:hash(fs.readFileSync(path.join(bundleDir,'bundle.json'))),
-    maxSdkInvocations:inputs.manifest.sampleCount,consentVersion:'tier1-v1',bundle},null,2)+'\n',{flag:'wx',mode:0o600});
+    profile:selected.id,promptSha256:selected.promptSha256,maxSdkInvocations:inputs.manifest.sampleCount,consentVersion:'tier1-v1',bundle},null,2)+'\n',{flag:'wx',mode:0o600});
   const {runPublicEvaluation}=require(path.resolve(bundleDir,'tier1-public-eval.js'));
-  return runPublicEvaluation({manifest:inputs.manifest,assetsRoot,runDir,consent:true,sourceCommit:engineCommit,
+  return runPublicEvaluation({manifest:inputs.manifest,assetsRoot,runDir,consent:true,sourceCommit:engineCommit,infer:selected.infer,expectedPromptSha256:selected.promptSha256,
     onProgress:r=>console.log(JSON.stringify({id:r.id,A1:r.A1.status,A0:r.A0.status}))});
 }
 async function main(args){
   const value=key=>{const i=args.indexOf(key);return i<0?undefined:args[i+1];};
   const repo=path.resolve(value('--repo')??path.join(__dirname,'..')),engineCommit=value('--engine'),bundleDir=value('--bundle');
+  const profile=parseProfileArgument(args);
   if(!engineCommit||!bundleDir)throw new Error('Specify frozen --engine and new/existing --bundle');
   if(args.includes('--build-only')){const receipt=buildFrozenBundle(repo,engineCommit,path.resolve(bundleDir));console.log(JSON.stringify({engineCommit:receipt.engineCommit,files:FILES.length}));return;}
   const manifestPath=value('--manifest'),assetsRoot=value('--assets-root'),runDir=value('--run-dir');
   if(!manifestPath||!assetsRoot||!runDir)throw new Error('Specify manifest, assets and fresh run directory');
-  const result=await runFrozenEvaluation({repo,engineCommit,bundleDir:path.resolve(bundleDir),manifestPath:path.resolve(manifestPath),assetsRoot:path.resolve(assetsRoot),runDir:path.resolve(runDir),consent:value('--cloud-consent')==='tier1-v1'});
+  const result=await runFrozenEvaluation({repo,engineCommit,bundleDir:path.resolve(bundleDir),manifestPath:path.resolve(manifestPath),assetsRoot:path.resolve(assetsRoot),runDir:path.resolve(runDir),consent:value('--cloud-consent')==='tier1-v1',profile});
   console.log(JSON.stringify(result));if(result.routes.A1.failed||result.routes.A1.notAttempted)process.exitCode=1;
 }
-module.exports={buildFrozenBundle,verifyFrozenBundle,assertInputs,runFrozenEvaluation};
+module.exports={buildFrozenBundle,verifyFrozenBundle,assertInputs,runFrozenEvaluation,resolveInferenceProfile,parseProfileArgument};
 if(require.main===module)void main(process.argv.slice(2)).catch(()=>{console.error('Frozen evaluation refused or failed; inspect retained local receipts. No retry performed.');process.exitCode=1;});

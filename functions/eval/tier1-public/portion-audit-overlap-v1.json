@@ -1,0 +1,59 @@
+{
+  "manifestSha256": "d150ef3c0503487116a65337817f0eccff8a8ab48124d3ff47a4ca09cca88e63",
+  "scanIdsFresh": true,
+  "exactJPEGReuseFromPrevious30": false,
+  "crossBatchDateOverlap": 8,
+  "independentCompletedMealsEstablished": false,
+  "proximity": [
+    {
+      "id": "dish_1565811139",
+      "nearestPreviousId": "dish_1565810969",
+      "seconds": 170
+    },
+    {
+      "id": "dish_1558719994",
+      "nearestPreviousId": "dish_1558722247",
+      "seconds": 2253
+    },
+    {
+      "id": "dish_1566590056",
+      "nearestPreviousId": "dish_1566590007",
+      "seconds": 49
+    },
+    {
+      "id": "dish_1562963325",
+      "nearestPreviousId": "dish_1562963246",
+      "seconds": 79
+    },
+    {
+      "id": "dish_1558375833",
+      "nearestPreviousId": "dish_1558376437",
+      "seconds": 604
+    },
+    {
+      "id": "dish_1561148021",
+      "nearestPreviousId": "dish_1560975517",
+      "seconds": 172504
+    },
+    {
+      "id": "dish_1563389626",
+      "nearestPreviousId": "dish_1563389600",
+      "seconds": 26
+    },
+    {
+      "id": "dish_1557937615",
+      "nearestPreviousId": "dish_1557862783",
+      "seconds": 74832
+    },
+    {
+      "id": "dish_1559157777",
+      "nearestPreviousId": "dish_1559157454",
+      "seconds": 323
+    },
+    {
+      "id": "dish_1558461760",
+      "nearestPreviousId": "dish_1558461792",
+      "seconds": 32
+    }
+  ]
+}

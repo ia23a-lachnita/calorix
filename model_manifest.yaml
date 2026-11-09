@@ -1,4 +1,4 @@
-manifest_version: 3
+manifest_version: 4
 baseline: A1
 requested_model: gemini-3.8-flash
 returned_model_policy: exact equality or explicit failure
@@ -77,3 +77,13 @@ candidate_schema_sha256: 852f13b529f679dd219b645e2cb66cc7cbb298ddaa633e5ef8ab742
 candidate_evaluation_cases: 30
 public_evaluation_scope: descriptive public scans; independent completed plates and owner Android accuracy not established
 candidate_catalog_sha256: 8f317a52c7097972f525ce7ddb180a32d289bdfdbea095357dcf2382bed43d33
+
+portion_audit_status: research-only; fixed comparison pending; not default or deployed
+portion_audit_profile: functions/eval/tier1-public/portion-audit-profile-v1.json
+portion_audit_manifest: functions/eval/tier1-public/manifest-portion-audit-v1.json
+portion_audit_manifest_sha256: d150ef3c0503487116a65337817f0eccff8a8ab48124d3ff47a4ca09cca88e63
+portion_audit_prompt_sha256: 1d2406db986503a127eb04367f692e1c87d1a9e58311d343de49e5ebb6a25e77
+portion_audit_max_new_sdk_calls: 20
+portion_audit_sample_count: 10
+portion_audit_overlap: fresh scan IDs; eight dates overlap previous public sample; independent plates not established
+portion_audit_promotion: no automatic promotion

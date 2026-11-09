@@ -1,0 +1,30 @@
+{
+  "id": "portion-audit-v1",
+  "status": "research-only; not default or deployed",
+  "model": "gemini-3.8-flash",
+  "baselinePromptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "promptSha256": "1d2406db986503a127eb04367f692e1c87d1a9e58311d343de49e5ebb6a25e77",
+  "prompt": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nBefore returning JSON, audit the portion estimates: include all visible pieces and piles in each component’s combined cooked edible mass. Do not default to a generic serving or a small sample. Check for both overestimation and underestimation of the entire visible serving; do not systematically increase amounts, infer unseen food, or double count composites.",
+  "addendum": "Before returning JSON, audit the portion estimates: include all visible pieces and piles in each component’s combined cooked edible mass. Do not default to a generic serving or a small sample. Check for both overestimation and underestimation of the entire visible serving; do not systematically increase amounts, infer unseen food, or double count composites.",
+  "responseSchemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "analysisSourceSha256": "2ed8b184cbc063680e6e4076ae0f0aa5914492bb7c779b8c695adb634bf6f14a",
+  "catalogSourceSha256": "a8f9753328f71e689747e21e5000672f94f33fa519e9ac97f33c8622184dcb71",
+  "dependencyLockSha256": "98e0617641059a0ae1029df6f5a22a90c0885dbe61235808d9a322a8f340cc51",
+  "modelFallback": "none",
+  "thinkingLevel": "LOW",
+  "maxOutputTokens": 8192,
+  "httpTimeoutMs": 30000,
+  "sdkAttempts": 1,
+  "manifestPath": "functions/eval/tier1-public/manifest-portion-audit-v1.json",
+  "manifestSha256": "d150ef3c0503487116a65337817f0eccff8a8ab48124d3ff47a4ca09cca88e63",
+  "maxSdkInvocationsTotal": 20,
+  "maxPerArm": 10,
+  "questionPolicy": "Unanswered; no reference-derived answers",
+  "automaticPromotion": false,
+  "considerationGuard": "Both10valid; MAE and normalizederror improve, P90 not worse, no failure increase. No automatic promotion.",
+  "limitations": [
+    "Descriptive development comparison; only scan IDs are fresh.",
+    "8dates overlap current30; progressive plate overlap and pretraining exposure unknown.",
+    "Sequential arm order/cache confounds latency; cost and actual user effort unmeasured."
+  ]
+}
