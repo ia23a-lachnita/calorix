@@ -1,0 +1,89 @@
+{
+  "sourceCommit": "a2787fbbd616e57b0f4baad20499a9477313498f",
+  "workflowRunId": 42600067460,
+  "verification": "Full canonical workflow SUCCESS; bothverificationjobs passed before foodinference, signedAPK completed afterward",
+  "backendTests": {
+    "files": 98,
+    "passed": 5354,
+    "historicalSkipped": 1
+  },
+  "flutterTests": {
+    "passed": 990,
+    "historicalSkipped": 1,
+    "tier1Analyzer": "No issues found"
+  },
+  "pythonTests": 44,
+  "nodeGuardTests": 17,
+  "manifestSha256": "9d7d8f2b3097d551df8ca93d35dcd800a594ce45fd97f3e7ac1d71c8653ff9e7",
+  "newFoodSdkInvocations": 20,
+  "newNonfoodProbeSdkInvocations": 1,
+  "maxNewSdkInvocations": 21,
+  "rawResultsComplete": true,
+  "automaticPromotion": false,
+  "guardPassed": false,
+  "independentSourceInputReview": "0Critical/0Important/0Minor; all10source/reference/image/probe/profilepins reproduced",
+  "independentResultReview": {
+    "findingCounts": {
+      "Critical": 0,
+      "Important": 0,
+      "Minor": 0
+    },
+    "numericComparisons": 3932,
+    "maximumAbsoluteDifference": "4E-12",
+    "absoluteTolerance": "1e-9",
+    "cases": 20,
+    "componentVectors": 68,
+    "receiptCopies": 20,
+    "csvRows": 20,
+    "receiptSha256": "ecfcacaf9d5fc8fc6bed8cb290ff66ad95f55685eaae24af5b7f00f37a9cfc7e"
+  },
+  "reviewProvider": "Antigravity MCP",
+  "reviewModel": "gemini-3.8-flash",
+  "reviewConversation": "calorix-tier1-vlm-challenger-20261109",
+  "reviewFallbacks": [],
+  "sourceReview": "AGREEMENT_STATUS agree; MUST_FIX none",
+  "resultReview": "Antigravity MCP gemini-3.8-flash: AGREEMENT_STATUS agree; MUST_FIX none. Source/numeric/report/decision scope; no readiness or causal architecture approval.",
+  "providerInferenceFailures": [],
+  "modelFallbacks": [],
+  "readOnlyMetadataProbeResults": {
+    "usFlash": 200,
+    "usArgon": 200,
+    "usProPreview": 404,
+    "globalProPreview": 200,
+    "usCatalogList": 404
+  },
+  "uiDiff": {
+    "auditLimited": null,
+    "visualClassificationStatus": "not_applicable",
+    "statusSourceCounts": null,
+    "scope": "No UI diff; source/input/numeric audit only"
+  },
+  "sampleLimitations": [
+    "Entire alreadyexposedmealrange10; notheldout independentplates",
+    "No isolatedweights/equalcompute claim; hostedmodelIDs notimmutableweights",
+    "Sequentialorder/cache confounds latency; billedcost/userinteractiontime/consumedaccuracy unmeasured",
+    "A0coverage0/10each, calorie metricsnull; questionproposals unanswered1vs7, notobserveduserburden"
+  ],
+  "pathNormalization": "Only absolute task-root prefixes removed from summary experiment runDirs; original/candidate folder names preserved",
+  "files": {
+    "cases.csv": "a331245af6904e1da440f106dbe38532b578571535438ddcea3e97d7ac3aa7a1",
+    "summary.json": "c4ae8d5653c6a80d8788a4d6bd047f6f7cc23a3f2f7ba36ff645a1ada80e2490",
+    "receipts.json": "cb84c7d72462e0ac6f8236d32f95ce857ddb138493d4dac3b6a7a0e9de5fca8b"
+  },
+  "reviewAgentFinalMessageFailure": {
+    "category": "USAGE_LIMIT_AFTER_SAVED_AUDIT",
+    "recordedAt": "2026-11-09T14:57:19.408729+00:00",
+    "message": "Agent errored: You\u2019ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 1:53 PM.",
+    "scope": "Final narrative failed; completed numeric audit receipt saved beforehand and recovered. No whole-account/quota inference and no failed final-message success claim."
+  },
+  "apk": {
+    "artifactId": 13666052569,
+    "sourceCommit": "a2787fbbd616e57b0f4baad20499a9477313498f",
+    "sha256": "df05f2f055fa631958e2b8f236858abb490be43dbdecb46da3164aaf9cd2534c",
+    "signerSha256": "38815fd37711f170e534cf3c8767de7f0f7ca5f958e755d8a47b03fe2b764b7c",
+    "verification": "Downloadedsource/metadata/checksum/nativeV2signer matched; CIapksignercryptographicverification; bytes equal previouslyverifiedAndroidAPK",
+    "expiresAt": "2026-12-09T10:36:24Z"
+  },
+  "predictionArchiveScope": "Normalized raw inventories and reconciled prediction records retained; no verbatim raw provider-response archive or packet-capture claim.",
+  "reviewPrecisionNote": "Review summary used4e-12 as tolerance shorthand; actual independent tolerance is1e-9 and maximum observed difference4e-12. Only verification jobs passed before inference; complete APK workflow passed afterward."
+}

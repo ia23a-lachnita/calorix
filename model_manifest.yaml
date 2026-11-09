@@ -54,7 +54,7 @@ real_weighed_meal_count_scope: owner Android pilot only; public references count
 public_evaluation_cases: 40
 public_evaluation_report: pilot_report.md
 public_evaluation_prior30_report: docs/tier1-mealrange-2026-11-08/report.md
-public_evaluation_engine_commits: [0bf1369b7e1d14e8f5316d505d7007c671119a57, 0bf1f9674e09408fc825e1e1fa815d2854f0203c, 2b26b7ea46cfaa488e2c358036a25214aa104720]
+public_evaluation_engine_commits: [0bf1369b7e1d14e8f5316d505d7007c671119a57, 0bf1f9674e09408fc825e1e1fa815d2854f0203c, 2b26b7ea46cfaa488e2c358036a25214aa104720, a2787fbbd616e57b0f4baad20499a9477313498f]
 pilot_target_different_meals: 30
 
 wire_constraint_policy: structural grammar only; numeric/string/array limits enforced by strict Zod client validator, not wire decoding
@@ -91,15 +91,16 @@ portion_audit_promotion: no automatic promotion
 portion_audit_executed_sdk_calls: 20
 portion_audit_valid_outputs: 20
 portion_audit_report: docs/tier1-portion-audit-2026-11-09/report.md
-public_evaluation_sdk_invocations: 80
-public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog predictions plus20 new10 two-prompt predictions; nonfood/text diagnostics excluded
+public_evaluation_sdk_invocations: 100
+public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog predictions plus20 new10 two-prompt predictions plus20 reusedmealrange two-model predictions; nonfood/text diagnostics excluded
 
-vlm_challenger_status: research-only; compatibility probe passed; food comparison pending; not default or deployed
+vlm_challenger_status: archived for failed P90 guard; not default or deployed
 vlm_challenger_model: gemini-4-argon
 vlm_challenger_profile: functions/eval/tier1-public/vlm-challenger-profile-v1.json
 vlm_challenger_probe: functions/eval/tier1-public/vlm-challenger-probe-v1.json
 vlm_challenger_manifest_sha256: 9d7d8f2b3097d551df8ca93d35dcd800a594ce45fd97f3e7ac1d71c8653ff9e7
 vlm_challenger_max_new_sdk_calls: 21
 vlm_challenger_probe_sdk_calls: 1
-vlm_challenger_food_sdk_calls: 0
+vlm_challenger_food_sdk_calls: 20
 vlm_challenger_promotion: no automatic promotion
+vlm_challenger_report: docs/tier1-vlm-challenger-2026-11-09/report.md
