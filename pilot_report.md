@@ -24,7 +24,9 @@ A secondary-assistant reference-blind inventory audit of the additional10 is now
 
 Optional per-component portion correction is now implemented, retaining original predictions and an adjustment history. Full CI42527604689 passed988Flutter/5340Functions/28Python/5Node checks with the2historical skips unchanged; focused Samsung runtime verified editing, exact restore/no-op, restart, corrected intake/repeat and deletion on the source-matched signed APK. [Detailed verification and known viewport limitation](docs/tier1-portion-verification-2026-11-08.md). The native replay used an existing public prediction and scripted grams; no new accuracy or user-effort measurement is claimed.
 
-The next highest-value experiment is whether one actual user's optional correction reduces reference-backed served error and interaction time without another photo/model call. Public reference-weight scaling is an unavailable-oracle diagnostic; it cannot establish real correction behavior or general accuracy.
+The invalid-weight message has since been repaired and verified on the signed Samsung APK: full text wraps and invalid Apply dismisses the keyboard automatically. [Updated verification](docs/tier1-validation-verification-2026-11-09.md). Offline [aggregate error sensitivity](docs/tier1-error-sensitivity-2026-11-09/report.md) preserves all original predictions and demonstrates unavailable-reference sensitivities, not a shipped accuracy improvement. A separately reviewed actual prompt candidate comparison is the next independent accuracy investigation.
+
+An additional user-effort experiment is whether one actual user's optional correction reduces reference-backed served error and interaction time without another photo/model call. Public reference-weight scaling is an unavailable-oracle diagnostic; it cannot establish real correction behavior or general accuracy.
 
 ## Actual verification
 
