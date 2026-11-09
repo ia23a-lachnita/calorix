@@ -31,4 +31,37 @@ The output path must be new. The evaluator selects the first genuine portion cor
 
 Automated synthetic tests check timing arithmetic, first-correction selection, reference joining, privacy fields, deletion/serialization, explicit copying, failures and navigation. They do not measure actual correction benefit, real user effort or calorie accuracy. The previous40 public scan IDs/100 food prediction receipts remain unchanged; owner weighed Android references remain0/30.
 
-Current-source CI, independent/external review, artifact verification and native-runtime limitations are recorded in the final verification section once available. No new runtime or release-readiness claim is made by this draft.
+## Verified result
+
+Tested source: `b08919221eb3b085fabbe8bd21fb9e61cb258c04`, branch `feat/tier1-photo-pilot`. [Canonical CI42653648480](https://github.com/ia23a-lachnita/calorix/actions/runs/42653648480) completed successfully:98 backend files/5354 tests passed with1 historical skip;1016 Flutter tests passed with1 historical skip;54 Python tests and17 Node guards passed. TypeScript build, ESLint and `fvm flutter analyze lib/features/tier1 test/tier1` passed. Host FVM is unavailable; Flutter verification ran in the canonical workflow, without modifying its gates.
+
+Actual test-first evidence: the13 pure meter/store tests failed on missing APIs before implementation, then passed. The9 initial UI tests failed on missing hooks/export APIs after correcting an `await void` harness error. Fresh whole-feature review found0 Critical,2 Important and1 Minor issue. Four regression cases then reproduced committed-success double classification, disposed-controller refresh after navigation, omitted late portion failure and persistence-inflated dialog timing; the strengthened final RED run42651960744 had1012 passes/1 skip/4 expected failures. All4 pass in the final run. Malformed Python kind/source/answer-code dict/list values produced6 actual TypeErrors before type guards; all54 Python tests now pass. Intermediate full runs were cancelled or failed as recorded in Git history; they were never counted as successful full gates. The final lint repair only renamed a test helper, without suppressions or weakened assertions.
+
+The independent reviewer also recomputed25 synthetic paired arithmetic cases and the first-correction selection. These are fixtures, not observed meals. Required Antigravity MCP pre-plan, source/privacy and result review used `gemini-3.8-flash`, `approvalMode:yolo`, conversation `calorix-tier1-workflow-20261109`, ending with explicit `AGREEMENT_STATUS: agree` / `MUST_FIX: none`; no fallback route was needed for this workstream. Overbroad review statements about memory exhaustion, synchronous/universal deletion, exposure timing and all-Firebase-disabled were corrected and not adopted. Explicit client Firebase initialization for consented cloud inference remains functional. Review was source/numeric evidence review, not exhaustive visual inspection or general security/readiness approval.
+
+### APK and running it
+
+[Download signed test APK artifact13691887699](https://github.com/ia23a-lachnita/calorix/actions/runs/42653648480/artifacts/13691887699), expiring2026-12-09T16:40:17Z. Extract the ZIP and install `calorix-1.0.0+1-android-test.apk` as an update. Open Calorix, take a photo, choose Estimate photo and explicitly consent to cloud processing, then check/edit/save the approximate result. Manual entry remains available. History or a meal's export action opens the optional measurement disclosure.
+
+- APK SHA256: `d911b12e8e6af325738e39892656f66ea748e34b3a97d41a0fd9fe278e768dd9`.
+- Trusted signer SHA256: `38815fd37711f170e534cf3c8767de7f0f7ca5f958e755d8a47b03fe2b764b7c`.
+- CI performed cryptographic signature verification; downloaded metadata/source/checksum and native V2 certificate identity matched. Compiled manifest inspection confirmed absent FirebaseInitProvider, backup/fullBackup disabled, messaging auto-init and analytics collection disabled. The bound extraction XML excludes root/file/database/sharedpref/external from both cloud backup and device transfer. This is a compiled-controls check, not a blanket security approval.
+- The authorized SM-G780G/Android13/serialR58R61161NA received `install -r` successfully. Its installed base APK SHA256 equals the artifact. Every existing Tier1 file hash and meal JSON byte remained identical:1 file,0 saved meals. No app launch or UI interaction was performed during this update; no cloud photos/model calls were sent.
+
+### Remaining runtime blocker
+
+Fresh ARTEMIS diagnosis reports4/5 required checks, **Device Locked**, hierarchy0, no active/queued task and no fixes applied. The exact required guidance is: **“Unlock the phone and keep the screen on (UIAutomator cannot dump a locked or sleeping screen).”** Optional scrcpy recording is unavailable; no software was installed. Further UIAutomator recovery commands were not attempted ahead of the required unlock.
+
+Before test authoring, direct ARTEMIS hierarchy plus grounded, serial-pinned ADB verified Camera, empty History and Manual entry on the preceding signed baseline. Existing exact-binary portion traces supplied the remaining interaction grounding. Autonomous ARTEMIS trace98aaad91-65f7-4ada-8aa9-990210105acc hit429 RESOURCE_EXHAUSTED on the3.6 Flash free route and was cancelled; it is not a successful autonomous run. An unrelated historical failed-task entry returned by diagnosis is not evidence about this feature.
+
+**Current-source native UI, journal creation/deletion and clipboard interaction remain unverified.** Installation/hash/data preservation and automated tests do not replace those checks. No current UI-diff run exists: final diff counts, `auditLimited` and `visualClassificationStatus` are not applicable. Neither exhaustive nor sampled current-source visual parity is claimed. The owned diagnostic fixture was removed, preserving all other records(0); its source was an existing offline prediction, not a new inference or weighed reference.
+
+An empty fixture smoke run can be reproduced without private data:
+
+```sh
+python3 evaluate_workflows.py docs/tier1-workflow-empty.json docs/tier1-pilot-empty.json
+```
+
+It returns0 pairs and null accuracy/effort/cost; exclusive output creation was verified to preserve an existing report byte for byte. Actual reference-backed correction pairs and measured active user effort remain0/unknown. Production inference, prompt/schema, nutrient catalog, dependencies and all frozen prediction receipts are unchanged.
+
+**Next single experiment:** one actual reference-blind optional portion correction per meal, comparing before/after served error against separate weighed references and recording the clearly labeled foreground proxy. Compatible existing public references can be reused; no oracle-weight substitution or simulated human timing can establish real correction benefit. This remains within V7.1's one-photo baseline. The deferred30-meal Android pilot and broader accuracy qualification are unfinished.
