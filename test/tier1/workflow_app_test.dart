@@ -102,8 +102,8 @@ void main(){
   testWidgets('background time is excluded from a portion-dialog foreground proxy',(t)async{
     var tick=0;final store=_Store(),sink=_Sink();await open(t,store,sink,()=>tick);
     await visible(t,find.byTooltip('Edit portion for Almonds'));await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
-    tick=100;await t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    tick=5100;await t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    tick=100;t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tick=5100;t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     tick=5300;await t.enterText(find.widgetWithText(TextFormField,'Served grams'),'86');await t.tap(find.text('Apply portion'));await t.pumpAndSettle();
     expect(sink.events.where((e)=>e['kind']=='portion_saved').single['dialogForegroundMs'],300);
   });
