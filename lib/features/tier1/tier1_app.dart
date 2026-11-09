@@ -274,6 +274,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     if(approved!=true||!mounted)return;
     final started=widget.elapsedMilliseconds();_meter.setWaiting(true);_trace('analysis_started');
     setState((){_busy=true;_message=null;});
+    var committed=false;
     try {
       await _persist(_meal.withConsent());
       final revision=_meal.revision;
@@ -282,13 +283,22 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       final result=await cloud.analyze(_meal.photoPath!,consent:true);
       _trace('analysis_returned',{'clientAnalysisMs':_duration(started),'shutterToResponseMs':_duration(widget.captureTick)});
       final applied=await widget.store.replaceIfRevision(_meal.withAnalysis(result,at:widget.clock.now()),revision);
+      committed=applied;
       _trace(applied?'analysis_saved':'analysis_discarded',{'clientAnalysisMs':_duration(started),'shutterToSavedMs':applied?_duration(widget.captureTick):null,
         if(applied)'afterKcal':(result['totals'] as Map)['kcal'],
         if(applied)'questionProposed':result['question'] is Map&&(result['question'] as Map)['answered']!=true,..._modelFields(result)});
-      if(applied){_meal=(await widget.store.load()).firstWhere((m)=>m.id==_meal.id);_fill();}
+      if(!mounted)return;
+      if(applied){
+        _meal=(await widget.store.load()).firstWhere((m)=>m.id==_meal.id);
+        if(!mounted)return;
+        _fill();
+      }
       if(applied){_frameWanted=true;if(_meal.hasPendingPreparationQuestion)_trace('preparation_available');}
       if(mounted)setState(()=>_message=applied?'Approximate estimate saved. Check the foods and portions.':'Your newer changes were kept; this result was discarded.');
-    }catch(_){_trace('analysis_failed',{'clientAnalysisMs':_duration(started)});if(mounted)setState(()=>_message='Photo analysis is unavailable. Your photo is saved on this phone. Enter or correct the meal below.');}
+    }catch(_){
+      _trace(committed?'analysis_refresh_failed':'analysis_failed',{'clientAnalysisMs':_duration(started)});
+      if(mounted)setState(()=>_message=committed?'Estimate saved, but could not refresh. Reopen the meal to check saved values.':'Photo analysis is unavailable. Your photo is saved on this phone. Enter or correct the meal below.');
+    }
     finally{_meter.setWaiting(false);if(mounted){setState(()=>_busy=false);_scheduleResultFrame();}}
   }
   Future<void> _consume(double? fraction) async {
@@ -308,6 +318,8 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     final dialogStarted=_meter.foregroundExcludingWaitMs;_trace('portion_opened',{'portionIndex':index,'fromG':current});
     var gramsText=_displayNutrient(current),closed=false;
     var committed=false;
+    int? dialogElapsed;
+    int? measuredDialog()=>_meter.timingValid?dialogElapsed:null;
     final form=GlobalKey<FormState>();
     setState(()=>_busy=true);
     try {
@@ -338,17 +350,18 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       final grams=await Navigator.of(context).push(route);
       // Wait for the form/keyboard overlay to leave before saving or popping.
       await route.completed;
-      if(grams==null){_trace('portion_cancelled',{'portionIndex':index,'dialogForegroundMs':_dialogDuration(dialogStarted)});return;}
+      dialogElapsed=_dialogDuration(dialogStarted);
+      if(grams==null){_trace('portion_cancelled',{'portionIndex':index,'dialogForegroundMs':measuredDialog()});return;}
       if(!mounted)return;
       final updated=opening.correctPortion(index,grams,at:widget.clock.now());
-      if(identical(updated,opening)){_trace('portion_unchanged',{'portionIndex':index,'fromG':current,'toG':grams,'dialogForegroundMs':_dialogDuration(dialogStarted)});return;}
+      if(identical(updated,opening)){_trace('portion_unchanged',{'portionIndex':index,'fromG':current,'toG':grams,'dialogForegroundMs':measuredDialog()});return;}
       final applied=await widget.store.replaceIfRevision(updated,opening.revision);
       if(applied){
         committed=true;_trace('portion_saved',{'portionIndex':index,'fromG':current,'toG':grams,'beforeKcal':opening.served?.kcal,'afterKcal':updated.served?.kcal,
-          'dialogForegroundMs':_dialogDuration(dialogStarted),
+          'dialogForegroundMs':measuredDialog(),
           'beforeFromOriginalAnalysis':opening.portionOverrides.isEmpty&&!opening.hasManualNutritionOverride&&opening.served?.kcal==(opening.analysis!['totals'] as Map)['kcal'],
           'priorPortionAdjustmentCount':opening.adjustmentHistory.where((e)=>e['kind']=='portion').length,..._modelFields(opening.analysis)});
-      }else{_trace('portion_conflict',{'portionIndex':index,'dialogForegroundMs':_dialogDuration(dialogStarted)});}
+      }else{_trace('portion_conflict',{'portionIndex':index,'dialogForegroundMs':measuredDialog()});}
       if(!mounted)return;
       if(!applied){
         final messenger=ScaffoldMessenger.of(context);
@@ -356,13 +369,12 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
         messenger.showSnackBar(const SnackBar(content:Text('Meal changed; reopen it to edit.')));
         return;
       }
-      committed=true;
       _meal=(await widget.store.load()).firstWhere((m)=>m.id==opening.id);
       if(!mounted)return;
       _fill();setState((){_dirty=false;_message='Portion saved. Check the approximate totals; consumption is unconfirmed.';});
     }catch(_){
+      if(!committed)_trace('portion_failed',{'portionIndex':index,'dialogForegroundMs':measuredDialog()});
       if(!mounted)return;
-      if(!committed)_trace('portion_failed',{'portionIndex':index,'dialogForegroundMs':_dialogDuration(dialogStarted)});
       if(committed){
         final messenger=ScaffoldMessenger.of(context);
         Navigator.pop(context);

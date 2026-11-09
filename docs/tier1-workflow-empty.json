@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "scope": "currently_retained_meals",
+  "exportedAtUtc": "2026-11-09T00:00:00.000Z",
+  "referenceIsWeighed": false,
+  "timingDefinition": "editor_foreground_minus_analysis_wait_proxy_v1",
+  "measurementEnabled": true,
+  "currentProcessWriteFailures": 0,
+  "meals": []
+}

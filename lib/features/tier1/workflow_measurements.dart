@@ -3,7 +3,7 @@ import 'dart:convert';
 const workflowEventLimit=256;
 const workflowExportByteLimit=500000;
 const _maximumMs=365*24*60*60*1000;
-const workflowKinds={'editor_opened','editor_closed','analysis_started','analysis_returned','analysis_saved','analysis_failed','analysis_discarded','result_frame','preparation_available','preparation_answered','portion_opened','portion_rejected','portion_cancelled','portion_unchanged','portion_saved','portion_conflict','portion_failed','manual_saved','repeat_saved','export_opened','export_closed'};
+const workflowKinds={'editor_opened','editor_closed','analysis_started','analysis_returned','analysis_saved','analysis_refresh_failed','analysis_failed','analysis_discarded','result_frame','preparation_available','preparation_answered','portion_opened','portion_rejected','portion_cancelled','portion_unchanged','portion_saved','portion_conflict','portion_failed','manual_saved','repeat_saved','export_opened','export_closed'};
 const _base={'kind','sessionId','sequence','atUtc','timingValid','elapsedMs','foregroundMs','waitingMs'};
 const _times={'dialogForegroundMs','clientAnalysisMs','shutterToResponseMs','shutterToSavedMs','shutterToFrameMs'};
 const _numbers={'beforeKcal','afterKcal','fromG','toG'};

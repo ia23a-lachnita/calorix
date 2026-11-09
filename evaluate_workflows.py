@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 from evaluate_meals import keyed, metrics, number, quantile, reference_energy
 
-KINDS=set('editor_opened editor_closed analysis_started analysis_returned analysis_saved analysis_failed analysis_discarded result_frame preparation_available preparation_answered portion_opened portion_rejected portion_cancelled portion_unchanged portion_saved portion_conflict portion_failed manual_saved repeat_saved export_opened export_closed'.split())
+KINDS=set('editor_opened editor_closed analysis_started analysis_returned analysis_saved analysis_refresh_failed analysis_failed analysis_discarded result_frame preparation_available preparation_answered portion_opened portion_rejected portion_cancelled portion_unchanged portion_saved portion_conflict portion_failed manual_saved repeat_saved export_opened export_closed'.split())
 BASE={'kind','sessionId','sequence','atUtc','timingValid','elapsedMs','foregroundMs','waitingMs'}
 TIMES={'dialogForegroundMs','clientAnalysisMs','shutterToResponseMs','shutterToSavedMs','shutterToFrameMs'}
 NUMBERS={'beforeKcal','afterKcal','fromG','toG'}
@@ -35,7 +35,7 @@ def utc(value):
 
 def event_valid(event):
     shape(event,BASE|EXTRA,BASE)
-    if event['kind'] not in KINDS or not isinstance(event['sessionId'],str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',event['sessionId']):raise ValueError('Invalid event identity')
+    if not isinstance(event['kind'],str) or event['kind'] not in KINDS or not isinstance(event['sessionId'],str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',event['sessionId']):raise ValueError('Invalid event identity')
     integer(event['sequence'],'sequence',2**53-1);utc(event['atUtc'])
     if type(event['timingValid']) is not bool:raise ValueError('Timing-valid flag required')
     for key in ['elapsedMs','foregroundMs','waitingMs']:
@@ -53,7 +53,7 @@ def event_valid(event):
         if type(event[key]) is not bool:raise ValueError('Boolean event field required')
     if 'model' in event and (not isinstance(event['model'],str) or not re.fullmatch(r'gemini-[a-z0-9][a-z0-9.-]{0,79}',event['model'])):raise ValueError('Invalid model ID')
     if 'promptSha256' in event and (not isinstance(event['promptSha256'],str) or not re.fullmatch('[0-9a-f]{64}',event['promptSha256'])):raise ValueError('Invalid prompt hash')
-    if 'answerCode' in event and event['answerCode'] not in {'none','oil_5g','oil_10g','oil_15g'}:raise ValueError('Invalid answer code')
+    if 'answerCode' in event and (not isinstance(event['answerCode'],str) or event['answerCode'] not in {'none','oil_5g','oil_10g','oil_15g'}):raise ValueError('Invalid answer code')
 
 
 def validate_export(data):
@@ -66,7 +66,7 @@ def validate_export(data):
     row_keys={'mealId','source','currentServedKcal','events','missingMeasurements','readFailure','droppedEvents','truncated'}
     for identity,row in rows.items():
         shape(row,row_keys,row_keys)
-        if not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',identity) or row['source'] not in {'manual','photo','A1','manual_correction','portion_correction','confirmed_repeat','unknown'}:raise ValueError('Invalid meal identity/source')
+        if not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',identity) or not isinstance(row['source'],str) or row['source'] not in {'manual','photo','A1','manual_correction','portion_correction','confirmed_repeat','unknown'}:raise ValueError('Invalid meal identity/source')
         if row['currentServedKcal'] is not None:number(row['currentServedKcal'],'current kcal',maximum=1000000)
         if type(row['missingMeasurements']) is not bool or type(row['readFailure']) is not bool:raise ValueError('Unknown log status')
         if row['droppedEvents'] is not None:integer(row['droppedEvents'],'dropped events',2**53-1)
@@ -123,7 +123,7 @@ def evaluate_workflows(workflow,references):
         'coverage':coverage,'exclusion_reasons':dict(reasons),'action_counts':dict(action_counts),
         'paired_served_A':paired(primary),'paired_served_A_B':paired(sensitivity),'pairs':selected,
         'timing':{'portion_dialog_foreground_proxy_ms':{'measured':len(durations),'p50':quantile(durations,.5),'p90':quantile(durations,.9)},
-            'definition':'Foreground dialog duration includes reading/idle/animations; excludes background; not validated touch-active time. Timing can be measured without reference availability.',
+            'definition':'Foreground dialog duration through route removal includes reading/idle/animations; excludes background and post-dialog persistence; not validated touch-active time. Timing can be measured without reference availability.',
             'actual_active_user_ms':None},'consumed_accuracy':None,'cost_usd':None,
         'interpretation':'Separate weighed references required. A repeated/unverified estimate is not reference truth. Synthetic fixtures validate arithmetic only.'}
 
