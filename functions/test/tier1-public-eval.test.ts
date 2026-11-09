@@ -1,6 +1,6 @@
 import { afterEach, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runPublicEvaluation } from '../src/tier1-public-eval';
@@ -53,4 +53,25 @@ it('requires consent and rejects reused run directories before new calls',async(
   await expect(runPublicEvaluation({manifest:f.manifest,assetsRoot:f.root,runDir,consent:false,sourceCommit:'hermetic',infer})).rejects.toThrow();expect(n).toBe(0);expect(existsSync(runDir)).toBe(false);
   await runPublicEvaluation({manifest:f.manifest,assetsRoot:f.root,runDir,consent:true,sourceCommit:'hermetic',infer});
   await expect(runPublicEvaluation({manifest:f.manifest,assetsRoot:f.root,runDir,consent:true,sourceCommit:'hermetic',infer})).rejects.toThrow();expect(n).toBe(2);
+});
+it('records and verifies the explicit research prompt hash',async()=>{
+  const f=setup(),expected='a'.repeat(64),runDir=join(f.root,'run');
+  const options={manifest:f.manifest,assetsRoot:f.root,runDir,consent:true,sourceCommit:'hermetic',expectedPromptSha256:expected,
+    infer:async()=>{const e=rice();return {...e,provenance:{...e.provenance,promptSha256:expected}};}};
+  const result=await runPublicEvaluation(options);
+  expect(result.routes.A1.scoredCases).toBe(2);
+  expect(JSON.parse(readFileSync(join(runDir,'run.json'),'utf8')).promptSha256).toBe(expected);
+});
+it('halts a prompt-profile mismatch without scoring it or dispatching the next case',async()=>{
+  const f=setup();let calls=0;
+  const options={manifest:f.manifest,assetsRoot:f.root,runDir:join(f.root,'run'),consent:true,sourceCommit:'hermetic',expectedPromptSha256:'a'.repeat(64),infer:async()=>{calls++;return rice();}};
+  const result=await runPublicEvaluation(options);
+  expect(calls).toBe(1);expect(result.routes.A1.failed).toBe(1);expect(result.routes.A1.notAttempted).toBe(1);
+  const stored=JSON.parse(readFileSync(join(f.root,'run',f.manifest.cases[0]!.id+'.json'),'utf8'));
+  expect(stored.A1.failure).toBe('prompt_drift');expect(stored.estimate).toBeUndefined();
+});
+it('rejects malformed expected prompt hashes before creating a run or dispatching',async()=>{
+  const f=setup(),runDir=join(f.root,'run');let calls=0;
+  const options={manifest:f.manifest,assetsRoot:f.root,runDir,consent:true,sourceCommit:'hermetic',expectedPromptSha256:'invalid',infer:async()=>{calls++;return rice();}};
+  await expect(runPublicEvaluation(options)).rejects.toThrow();expect(calls).toBe(0);expect(existsSync(runDir)).toBe(false);
 });

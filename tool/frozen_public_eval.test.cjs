@@ -43,3 +43,22 @@ test('dirty or outside manifests cannot bypass committed-input gate',t=>{
   const outside=path.join(temporary(t),'outside.json');fs.copyFileSync(f.manifest,outside);
   assert.throws(()=>assertInputs(f.repo,outside,f.runDir,true),/inside/);
 });
+test('research profiles are explicit and bind the exact prompt and function',()=>{
+  const select=require('./run_frozen_public_eval.cjs').resolveInferenceProfile;
+  assert.equal(typeof select,'function');
+  const engine={TIER1_PROMPT:'baseline',TIER1_PORTION_AUDIT_PROMPT:'baseline\naudit',
+    inferTier1:async()=>{},inferTier1PortionAudit:async()=>{}};
+  const original=select(engine,'original'),candidate=select(engine,'portion-audit-v1');
+  assert.equal(original.infer,engine.inferTier1);assert.equal(candidate.infer,engine.inferTier1PortionAudit);
+  assert.equal(original.promptSha256,require('node:crypto').createHash('sha256').update(engine.TIER1_PROMPT).digest('hex'));
+  assert.equal(candidate.promptSha256,require('node:crypto').createHash('sha256').update(engine.TIER1_PORTION_AUDIT_PROMPT).digest('hex'));
+  assert.equal(candidate.id,'portion-audit-v1');
+});
+test('unknown profiles and unavailable frozen candidate exports fail without dispatch',()=>{
+  const select=require('./run_frozen_public_eval.cjs').resolveInferenceProfile;
+  assert.equal(typeof select,'function');let calls=0;
+  const engine={TIER1_PROMPT:'baseline',inferTier1:async()=>{calls++;}};
+  assert.throws(()=>select(engine,'arbitrary'),/profile/);
+  assert.throws(()=>select(engine,'portion-audit-v1'),/profile/);
+  assert.equal(calls,0);
+});

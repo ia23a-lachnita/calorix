@@ -46,3 +46,5 @@ Interface: select_portion_audit(dishes,test_ids,legacy_ids,recent_ids,recent_dat
 - [ ] Independent source/input/result review + corrected MCP agreement, relevant fullCI/build/lint. Retain public numeric/provenance reports, never photos/raw private artifacts/secrets. Commit/push accurate status; proceed only within the closed experiment budget.
 
 Pre-review primary3.8 explicitly agrees/MUSTnone after correction: thresholds/floor are kcal, LOW is reasoning, no invented suffix wordcount, no guaranteed zero accidental exposure or prior ADC check. The actual call paths/guards must be tested. Existing older inference budgets stay closed; this is a separate explicitly bounded development comparison under the continued Tier1 execution instruction.
+
+Actual tests-first: SDK/public13tests 7pass/6expectedfails (3missingcandidateexports,3profilemetadata/guard), originalrequest test alreadyGREEN; Node original5pass/new2fail; selector5tests errors with explicitNotImplemented contract afterinitialimportRED. All no-network. Next implement minimally thenGREEN/build/lint/independentMCPbeforelive; no image downloads or inference yet.

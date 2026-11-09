@@ -5028,3 +5028,8 @@ Task3guardpaidimplementation0/50.013s soleapprovedfunction appended; oldsourceex
 ### 2026-11-09 continuation evidence
 
 Independent Decimal60 precision review verified60original/120hypothetical energies/264group metric-count-delta fields, maxdifferences1.059e-13/1.5e-13,tol1e-9; frozeninput unchanged. No Critical;2Important custom-input gaps (failed-status suppliedNaN/Inf bypassedvalidation; shortoptionalCSVcellaccepted) reproduced in new2testmethods11tests/9subtestfailures, then fixed. All39PythonGREEN. Hypotheticalresults unchanged before/after fixes. CorrectedMCP postsource exactagree/MUSTnone after earlier review overgeneralized validation. Derived results docs/tier1-error-sensitivity-2026-11-09 include formulas/inputhash/generatorhash/completecoverage and clear sensitivity-only boundaries. No newmodel/user measurements. Deployed A1/model/prompt/catalog remain unchanged. Next actual source/hash/signer/compiledprivacy/newAPK Samsung validation and cleanup; continue concrete accuracy investigation separately, not checkpoint stop.
+
+
+### Portion-audit comparison tests-first
+
+SDK/profile focused actualRED13tests/7PASS/6expectedFAIL: default originalSDKprompt/settings test alreadypassed,3missingcandidateexports and3missingprofilemetadata/guard cases failed. Earlier Vitest2 matcher compatibility corrected before accepting this behavioralRED. Nodefrozen runner original5PASS/new2expectedFAIL missingprofilehelper. Selector initialimportRED then explicitNotImplemented contract actual5testsERROR (including insufficientquota expectation), exit1. No SDKrequests/images yet. Source/TDDcommit follows, implement only reviewedfixedprofile and source-verified selector. PreMCP correctedexactagree/MUSTnone; no caseoutcomes or speculativeimprovement claims.
