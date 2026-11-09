@@ -16,8 +16,14 @@ class _Store extends Tier1MealStore {
   _Store():super(Directory('.'));
   final records=<Tier1Meal>[];
   bool conflict=false;
+  bool failLoadAfterReplace=false;
+  Completer<bool>? pendingReplace;
+  bool _failLoad=false;
   @override
-  Future<List<Tier1Meal>> load() async=>List.of(records);
+  Future<List<Tier1Meal>> load() async {
+    if(_failLoad)throw const FileSystemException('synthetic refresh failure');
+    return List.of(records);
+  }
   @override
   Future<void> save(Tier1Meal value) async {
     final index=records.indexWhere((m)=>m.id==value.id);
@@ -26,10 +32,11 @@ class _Store extends Tier1MealStore {
   }
   @override
   Future<bool> replaceIfRevision(Tier1Meal value,int expected) async {
+    if(pendingReplace!=null)await pendingReplace!.future;
     if(conflict)return false;
     final old=records.where((m)=>m.id==value.id).firstOrNull;
     if(old==null||old.revision!=expected)return false;
-    await save(value);return true;
+    await save(value);_failLoad=failLoadAfterReplace;return true;
   }
 }
 class _Sink extends WorkflowSink {
@@ -102,8 +109,10 @@ void main(){
   testWidgets('background time is excluded from a portion-dialog foreground proxy',(t)async{
     var tick=0;final store=_Store(),sink=_Sink();await open(t,store,sink,()=>tick);
     await visible(t,find.byTooltip('Edit portion for Almonds'));await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
-    tick=100;t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    tick=5100;t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    tick=100;
+    for(final state in [AppLifecycleState.inactive,AppLifecycleState.hidden,AppLifecycleState.paused]){t.binding.handleAppLifecycleStateChanged(state);}
+    tick=5100;
+    for(final state in [AppLifecycleState.hidden,AppLifecycleState.inactive,AppLifecycleState.resumed]){t.binding.handleAppLifecycleStateChanged(state);}
     tick=5300;await t.enterText(find.widgetWithText(TextFormField,'Served grams'),'86');await t.tap(find.text('Apply portion'));await t.pumpAndSettle();
     expect(sink.events.where((e)=>e['kind']=='portion_saved').single['dialogForegroundMs'],300);
   });
@@ -111,6 +120,43 @@ void main(){
     final store=_Store(),sink=_Sink();await t.pumpWidget(Tier1App(store:store,camera:FakeCameraService(),workflow:sink));await t.pumpAndSettle();
     await t.tap(find.text('Manual entry'));await t.pumpAndSettle();await t.tap(find.byTooltip('Back'));await t.pumpAndSettle();
     expect(store.records,isEmpty);expect(sink.events,isEmpty);
+  });
+  testWidgets('committed analysis with failed refresh stays saved rather than failed',(t)async{
+    final store=_Store(),sink=_Sink(),cloud=_Cloud();await open(t,store,sink,()=>0,cloud:cloud);
+    store.failLoadAfterReplace=true;
+    await t.tap(find.text('Estimate photo'));await t.pumpAndSettle();await t.tap(find.text('Send photo'));await t.pump();
+    cloud.response.complete(portionAnalysis());await t.pumpAndSettle();
+    expect(sink.events.where((e)=>e['kind']=='analysis_saved'),hasLength(1));
+    expect(sink.events.where((e)=>e['kind']=='analysis_failed'),isEmpty);
+    expect(sink.events.where((e)=>e['kind']=='analysis_refresh_failed'),hasLength(1));
+    expect(store.records.single.source,'A1');expect(t.takeException(),isNull);
+  });
+  testWidgets('analysis completing after navigation records success without disposed refresh',(t)async{
+    final store=_Store(),sink=_Sink(),cloud=_Cloud();await open(t,store,sink,()=>0,cloud:cloud);
+    await t.tap(find.text('Estimate photo'));await t.pumpAndSettle();await t.tap(find.text('Send photo'));await t.pump();
+    await t.tap(find.byTooltip('Back'));await t.pumpAndSettle();
+    cloud.response.complete(portionAnalysis());await t.pumpAndSettle();
+    expect(sink.events.where((e)=>e['kind']=='analysis_saved').single['afterNavigation'],true);
+    expect(sink.events.where((e)=>e['kind']=='analysis_failed'||e['kind']=='analysis_refresh_failed'||e['kind']=='result_frame'),isEmpty);
+    expect(t.takeException(),isNull);
+  });
+  testWidgets('portion failure after navigation retains a terminal failure event',(t)async{
+    final store=_Store(),sink=_Sink();await open(t,store,sink,()=>0);
+    final before=store.records.single.toJson();store.pendingReplace=Completer<bool>();
+    await visible(t,find.byTooltip('Edit portion for Almonds'));await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
+    await t.enterText(find.widgetWithText(TextFormField,'Served grams'),'86');await t.tap(find.text('Apply portion'));await t.pumpAndSettle();
+    await t.tap(find.byTooltip('Back'));await t.pumpAndSettle();
+    store.pendingReplace!.completeError(const FileSystemException('synthetic save failure'));await t.pumpAndSettle();
+    expect(sink.events.where((e)=>e['kind']=='portion_failed').single['afterNavigation'],true);
+    expect(sink.events.where((e)=>e['kind']=='portion_saved'),isEmpty);expect(store.records.single.toJson(),before);expect(t.takeException(),isNull);
+  });
+  testWidgets('portion dialog timing ends before delayed persistence',(t)async{
+    var tick=0;final store=_Store(),sink=_Sink();await open(t,store,sink,()=>tick);
+    store.pendingReplace=Completer<bool>();await visible(t,find.byTooltip('Edit portion for Almonds'));
+    tick=100;await t.tap(find.byTooltip('Edit portion for Almonds'));await t.pumpAndSettle();
+    tick=1100;await t.enterText(find.widgetWithText(TextFormField,'Served grams'),'86');await t.tap(find.text('Apply portion'));await t.pumpAndSettle();
+    tick=11100;store.pendingReplace!.complete(true);await t.pumpAndSettle();
+    expect(sink.events.where((e)=>e['kind']=='portion_saved').single['dialogForegroundMs'],1000);
   });
   testWidgets('export does not copy until the explicit copy action',(t)async{
     var copied=0;t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform,(call)async{if(call.method=='Clipboard.setData'){copied++;}return null;});

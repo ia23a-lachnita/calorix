@@ -28,6 +28,15 @@ def references(*rows):return {'schema_version':'1.0','meals':list(rows)}
 
 
 class WorkflowEvaluatorTest(unittest.TestCase):
+    def test_unhashable_identity_fields_are_schema_errors(self):
+        for field in ['kind','answerCode','source']:
+            for value in [{},[]]:
+                with self.subTest(field=field,value=value):
+                    data=export()
+                    target=data['meals'][0] if field=='source' else data['meals'][0]['events'][0]
+                    target[field]=value
+                    with self.assertRaises(ValueError):evaluate_workflows(data,references(meal()))
+
     def test_yield_adjusted_before_after_pair_uses_the_same_served_reference(self):
         r=evaluate_workflows(export(),references(meal()))
         self.assertEqual(r['paired_served_A']['before']['mae_kcal'],80)
