@@ -19,8 +19,8 @@
 ## Task1 — Tests and minimal route change
 
 Files: newtest/tier1/fast_capture_test.dart; lib/features/tier1/tier1_app.dart.
-- [ ] Write a valid JPEG camera fixture and memory store, with positive capture/editor control before testing consent. Use pinned cross_file0.3.5+2 `XFile.fromData`; exact archive SHA matcheslock. Async decoding uses `tester.runAsync` with interleaved fake-frame pumps/real-I/O yields and an explicit parent-save completion condition, not a readiness delay guess. Assert source/model-call-free controls.
-- [ ] Actual canonical Flutter RED before source edits: fresh capture automatically offers consent, explicit approval saves mock estimate, decline/back leave local fallback and no retry; history/reopen/background/navigation remain controls. Repair harness failures before crediting behavioralRED.
+- [x] Write a valid JPEG camera fixture and memory store, with positive capture/editor control before testing consent. Use pinned cross_file0.3.5+2 `XFile.fromData`; exact archive SHA matcheslock. Async decoding uses `tester.runAsync` with interleaved fake-frame pumps/real-I/O yields and an explicit parent-save completion condition, not a readiness delay guess. Assert source/model-call-free controls.
+- [x] Actual canonical Flutter RED before source edits: fresh capture automatically offers consent, explicit approval saves mock estimate, decline/back leave local fallback and no retry; history/reopen/background/navigation remain controls. Repair harness failures before crediting behavioralRED.
 - [ ] Minimal fresh-route flag, guarded one-shot callback and synchronous dirty guard; no other route/default changes. Run focused/full canonical tests and Tier1 analyzer; commit/push bounded source.
 
 ## Task2 — Review, artifact and real device
@@ -33,3 +33,5 @@ Files: newtest/tier1/fast_capture_test.dart; lib/features/tier1/tier1_app.dart.
 Pre-review: Antigravitygemini-3.8-flash/yolo conversationcalorix-tier1-fast-capture-20261110 explicitagree/MUSTnone, guard feedback adopted. Actual route is Tier1Home, not the review's shorthand ScanScreen; actual method is `_estimate()` without a context argument. No general readiness or zero-global-network guarantee is adopted.
 
 Native grounding before test authoring: exactinstalledb089/d911 source capture/consent/Keep local/manual/edit/history/clipboard/deletion observed with ARTEMIS and pinned groundedADB, reportdocs/tier1-native-workflow-verification-2026-11-10.md. Only the new offer timing is unimplemented; existing dialog/actions are verified.
+
+ActualcleanRED42785708933/Flutter129726261755 at1eefdb7:1021PASS1skip4missingofferFAIL, no timeouts;9newtests include5controls. MinimalappchangeafterRED; GREENpending. Earlier42784392573harnesstimeoutsnotbehavioralRED.

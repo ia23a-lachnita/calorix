@@ -93,9 +93,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   }
   @override
   void dispose(){WidgetsBinding.instance.removeObserver(this);if(_camera is CameraLifecycleService)unawaited((_camera as CameraLifecycleService).dispose());super.dispose();}
-  Future<void> _open(Tier1Meal meal,{int? captureTick}) async {
+  Future<void> _open(Tier1Meal meal,{int? captureTick,bool startEstimate=false}) async {
     if(_store==null||_error!=null)return;
-    await Navigator.of(context).push(MaterialPageRoute<void>(builder:(_)=>_MealEditor(meal:meal,store:_store!,cloud:widget.cloud,clock:widget.clock,workflow:_workflow!,elapsedMilliseconds:_ticks,captureTick:captureTick)));
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder:(_)=>_MealEditor(meal:meal,store:_store!,cloud:widget.cloud,clock:widget.clock,workflow:_workflow!,elapsedMilliseconds:_ticks,captureTick:captureTick,startEstimate:startEstimate)));
     if(!mounted)return;
     try{
       await _refresh();
@@ -135,7 +135,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       });
       try {await _store!.save(meal);}catch(_){await File(path).delete();rethrow;}
       final saved=(await _store!.load()).firstWhere((m)=>m.id==id);
-      if(mounted)await _open(saved,captureTick:shutterTick);
+      if(mounted)await _open(saved,captureTick:shutterTick,startEstimate:true);
     } catch (_) {if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Photo could not be saved. Retake or use manual entry.')));}
     finally {
       if(ownedCapture!=null){try{final temporary=File(ownedCapture);if(await temporary.exists())await temporary.delete();}catch(_){/* No unrelated cache cleanup. */}}
@@ -176,7 +176,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
 }
 
 class _MealEditor extends StatefulWidget {
-  const _MealEditor({required this.meal,required this.store,this.cloud,required this.clock,required this.workflow,required this.elapsedMilliseconds,this.captureTick});
+  const _MealEditor({required this.meal,required this.store,this.cloud,required this.clock,required this.workflow,required this.elapsedMilliseconds,this.captureTick,this.startEstimate=false});
   final Tier1Meal meal;
   final Clock clock;
   final Tier1MealStore store;
@@ -184,6 +184,7 @@ class _MealEditor extends StatefulWidget {
   final WorkflowSink workflow;
   final int Function() elapsedMilliseconds;
   final int? captureTick;
+  final bool startEstimate;
   @override
   State<_MealEditor> createState()=>_MealEditorState();
 }
@@ -201,12 +202,21 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
   late bool _hasSaved=_meal.revision>0;
   final _pendingEvents=<Map<String,dynamic>>[];
   bool _closed=false,_deleted=false,_exporting=false,_foreground=true,_frameWanted=false,_frameRecorded=false;
+  bool _initialOfferConsumed=false;
   @override
   void initState(){
     super.initState();WidgetsBinding.instance.addObserver(this);
     _foreground=WidgetsBinding.instance.lifecycleState==null||WidgetsBinding.instance.lifecycleState==AppLifecycleState.resumed;
     _meter.setForeground(_foreground);_trace('editor_opened');
     if(_meal.hasPendingPreparationQuestion)_trace('preparation_available');
+    if(widget.startEstimate)WidgetsBinding.instance.addPostFrameCallback((_){
+      if(_initialOfferConsumed)return;
+      _initialOfferConsumed=true;
+      final state=WidgetsBinding.instance.lifecycleState;
+      if(!mounted||!_foreground||(state!=null&&state!=AppLifecycleState.resumed)||
+          ModalRoute.of(context)?.isCurrent!=true||_busy||_dirty)return;
+      unawaited(_estimate());
+    });
   }
   void _send(List<Map<String,dynamic>> events){unawaited(widget.workflow.append(_meal.id,events).catchError((_)=>widget.workflow.recordFailure()));}
   void _trace(String kind,[Map<String,dynamic> fields=const {}]){
@@ -265,7 +275,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     }catch(_){if(mounted)setState(()=>_message='Could not save. Existing history was preserved.');}
   }
   Future<void> _estimate() async {
-    if(_busy||_meal.photoPath==null)return;
+    if(!mounted||_busy||_dirty||_meal.photoPath==null)return;
     final approved=await showDialog<bool>(context:context,builder:(context)=>AlertDialog(
       title:const Text('Send this photo for analysis?'),
       content:const Text('This photo will be sent to Google Cloud in the United States for an approximate food estimate. Photo metadata is removed before sending. Google may cache or retain requests under its service terms. The app keeps your meal and photo on this phone. You can continue with manual entry instead.'),
