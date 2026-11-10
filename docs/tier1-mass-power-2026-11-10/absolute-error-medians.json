@@ -1,0 +1,54 @@
+{
+  "cohorts": {
+    "development40": {
+      "calibrated": {
+        "bias_kcal": -73.32441650046238,
+        "mae_kcal": 113.90547547983093,
+        "median_absolute_error_kcal": 67.84723370728238,
+        "p90_absolute_error_kcal": 272.97977670113767,
+        "scored_scans": 40
+      },
+      "raw": {
+        "bias_kcal": -92.571349275,
+        "mae_kcal": 125.605430275,
+        "median_absolute_error_kcal": 77.76500349999999,
+        "p90_absolute_error_kcal": 290.9048822000001,
+        "scored_scans": 40
+      }
+    },
+    "firstConfirmation10_nowDevelopment": {
+      "calibrated": {
+        "bias_kcal": -129.25868768085633,
+        "mae_kcal": 202.4239941734526,
+        "median_absolute_error_kcal": 172.48559795941975,
+        "p90_absolute_error_kcal": 310.23808382989046,
+        "scored_scans": 10
+      },
+      "raw": {
+        "bias_kcal": -163.54307980000002,
+        "mae_kcal": 220.3830226,
+        "median_absolute_error_kcal": 179.55353700000003,
+        "p90_absolute_error_kcal": 348.5033266,
+        "scored_scans": 10
+      }
+    },
+    "newConfirmation10": {
+      "calibrated": {
+        "bias_kcal": -134.45990812919158,
+        "mae_kcal": 147.47864550875417,
+        "median_absolute_error_kcal": 149.790190731791,
+        "p90_absolute_error_kcal": 268.7895442925044,
+        "scored_scans": 10
+      },
+      "raw": {
+        "bias_kcal": -170.4095448,
+        "mae_kcal": 176.2468494,
+        "median_absolute_error_kcal": 191.16975399999998,
+        "p90_absolute_error_kcal": 305.9638121,
+        "scored_scans": 10
+      }
+    }
+  },
+  "schema_version": "absolute-error-medians-1",
+  "scope": "Supplemental descriptions of existing immutable results; no inference, refitting, threshold change or new reference meals"
+}

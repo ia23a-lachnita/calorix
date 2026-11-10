@@ -12,6 +12,22 @@ All other fixed guards pass in allthree cohorts: absolute MAE reduction>=10kcal,
 
 The prior single global factor experiment also remains unpromoted: old40/fresh10 gains8.17%/8.10%. It was not tuned after testing. This second profile was reviewed separately, fitted once using only TRAIN mass pairs, and evaluated with a new canonical budget and ten unqueried scan IDs/dates.
 
+## Absolute error and readiness clarification
+
+The comparative10% improvement rule is not an acceptable-absolute-error target. This work has not established adequate calorie accuracy. Supplemental [median absolute errors](absolute-error-medians.json), computed from unchanged per-case predictions, are:
+
+| Cohort | Raw median absolute error kcal | Corrected median absolute error kcal | Corrected P90 absolute error kcal |
+|---|---:|---:|---:|
+| Existing40 development | 77.77 | 67.85 | 272.98 |
+| Earlier10, now development | 179.55 | 172.49 | 310.24 |
+| New10 confirmation | 191.17 | 149.79 | 268.79 |
+
+These are median **absolute prediction errors**, not median meal calories or inference latency. P90 is a tail percentile, not a worst-case bound. The current A1 route accepts oneJPEG. No reference-object, known-vessel-scale or multi-view accuracy gain has been established in this Tier1 pipeline; the two calibration experiments used aggregate arithmetic and did not test metric reference objects or geometric reconstruction.
+
+The30-meal Android pilot remains useful for workflow, capture transfer and exploratory accuracy measurements. It does not require a good benchmark score to reveal bugs, and it does not repair poor benchmark estimates. Missing Android references **do not block further accuracy engineering on public weighed data**. The earlier recommendation to treat collection as the next mandatory blocker was too strong.
+
+Next accuracy work is a failure audit on the available weighed benchmark, with explicit visibility/matching uncertainty: omitted/spurious visible foods, portion estimates, nutrient/preparation assumptions, and unresolved cases. A diagnostic reference substitution is not a unique causal decomposition. Nutrition5k's [official README](https://github.com/google-research-datasets/Nutrition5k) documents four rotating side-angle videos, overheadRGB-D where available, and weighed references; this enables investigation of paired views on small matched subsets. It does not itself establish usable camera calibration, metric reference dimensions, best-method accuracy or transfer to Android. Any scale/reference/multi-view candidate needs a separately frozen paired comparison before claiming benefit. One-photo remains the product default; no mandatory object, extra capture, depth or new runtime has been authorized by this clarification.
+
 ## Data and estimator
 
 References: [Nutrition5k official dataset](https://github.com/google-research-datasets/Nutrition5k) and [paper sections3.4–3.5](https://arxiv.org/html/2103.03375v1): measured plated component masses with recipe/USDA-derived nutrient labels. They are served references; consumed intake is unknown. Now80 unique public reference scans are available:20TRAIN and60benchmark/development rows. This is not80 held-out meals or80 independent physical plates. Independent plate identity and model pretraining exposure are unknown; Android weighed meals remain0.
@@ -52,4 +68,4 @@ python3 -m unittest discover -s tests -p "test_*.py"
 TMPDIR=/absolute/disk-backed/task-tmp node --test tool/frozen_public_eval.test.cjs
 ```
 
-Output file must not exist. Never rerun the closed inference registry. Keep both fitted profiles frozen; retain zero-shot A1 as the production baseline. The highest-value next validation is the original30-meal weighed Android pilot using the same frozen candidate and served references. No such physical Android reference meals exist in this environment yet; that is the remaining evidence blocker, not missing implementation or a reason to fabricate validation. Do not refit/tune against these now-exposed public test outcomes.
+Output file must not exist. Never rerun the closed inference registry. Keep both fitted profiles frozen; retain zero-shot A1 as the production baseline. The next accuracy task is the public weighed-meal failure audit described above. Keep the tested fits frozen and use separate development/confirmation data for future interventions. The original30-meal Android pilot remains a subsequent or parallel workflow/transfer study; its missing physical references are not a blocker to offline accuracy work. Do not fabricate validation or retune against these now-exposed test outcomes.

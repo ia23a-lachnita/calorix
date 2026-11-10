@@ -1,4 +1,4 @@
-manifest_version: 8
+manifest_version: 9
 baseline: A1
 requested_model: gemini-3.8-flash
 returned_model_policy: exact equality or explicit failure
@@ -162,4 +162,9 @@ tier1_public_reference_scans_now_available: 80
 tier1_public_training_reference_scans: 20
 tier1_public_benchmark_including_development_scans: 60
 tier1_public_independent_physical_plates: null
-next_validation: keepfitfrozen; planned30physicallyweighedAndroidmeals; actualreferencecollectionmissing
+next_validation: keepfitsfrozen; publicweighedfailureaudit and controlledpairedcandidateevaluation; Android30pilot parallel_or_subsequent, not_offline_accuracy_blocker
+
+accuracy_readiness: inadequate_absolute_errors; relative_comparison_gain_is_not_product_accuracy_acceptance
+supplemental_absolute_error_medians: docs/tier1-mass-power-2026-11-10/absolute-error-medians.json
+reference_object_accuracy_validated: false
+multi_view_accuracy_validated: false
