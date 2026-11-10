@@ -1,0 +1,236 @@
+{
+  "id": "dish_1566414412",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 479,
+      "proteinG": 26.47,
+      "carbsG": 46.300000000000004,
+      "fatG": 21.75
+    },
+    "massG": 360,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10111,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Roast chicken pasta/grain salad plate with roast potatoes and mixed greens",
+    "components": [
+      {
+        "name": "Roast chicken with creamy sauce/dressing",
+        "massG": 130,
+        "catalogId": null,
+        "preparation": "cooked roasted with sauce",
+        "assumptions": [
+          "Chicken breast or pasta salad with poultry and creamy dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 185,
+          "proteinG": 16,
+          "carbsG": 6,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 240.5,
+          "proteinG": 20.8,
+          "carbsG": 7.800000000000001,
+          "fatG": 14.3
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted potato chunks",
+        "massG": 100,
+        "catalogId": null,
+        "preparation": "roasted",
+        "assumptions": [
+          "Potatoes roasted with skin on, seasoned"
+        ],
+        "estimatedPer100": {
+          "kcal": 130,
+          "proteinG": 2.5,
+          "carbsG": 21,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 130,
+          "proteinG": 2.5,
+          "carbsG": 21,
+          "fatG": 4.5
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Couscous or quinoa grain salad with peppers",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "cooked mixed",
+        "assumptions": [
+          "Grain salad with chopped red pepper, cucumber/herbs"
+        ],
+        "estimatedPer100": {
+          "kcal": 125,
+          "proteinG": 3.5,
+          "carbsG": 22,
+          "fatG": 2.5
+        },
+        "nutrients": {
+          "kcal": 87.5,
+          "proteinG": 2.4499999999999997,
+          "carbsG": 15.399999999999999,
+          "fatG": 1.75
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed green side salad with cherry tomato",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Mixed lettuce leaves, red onion slivers, cherry tomato, light vinaigrette dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 35,
+          "proteinG": 1.2,
+          "carbsG": 3.5,
+          "fatG": 2
+        },
+        "nutrients": {
+          "kcal": 21,
+          "proteinG": 0.72,
+          "carbsG": 2.1,
+          "fatG": 1.2
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 479,
+      "proteinG": 26.47,
+      "carbsG": 46.300000000000004,
+      "fatG": 21.75
+    },
+    "ambiguities": [
+      "Exact meat or grain composition under the white sauce in the top section",
+      "Presence of heavy dressing vs lighter sauce"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10102,
+      "inputTokens": 2018,
+      "outputTokens": 367,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Roast chicken pasta/grain salad plate with roast potatoes and mixed greens",
+      "components": [
+        {
+          "name": "Roast chicken with creamy sauce/dressing",
+          "massG": 130,
+          "catalogId": null,
+          "preparation": "cooked roasted with sauce",
+          "assumptions": [
+            "Chicken breast or pasta salad with poultry and creamy dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 185,
+            "proteinG": 16,
+            "carbsG": 6,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Roasted potato chunks",
+          "massG": 100,
+          "catalogId": null,
+          "preparation": "roasted",
+          "assumptions": [
+            "Potatoes roasted with skin on, seasoned"
+          ],
+          "estimatedPer100": {
+            "kcal": 130,
+            "proteinG": 2.5,
+            "carbsG": 21,
+            "fatG": 4.5
+          }
+        },
+        {
+          "name": "Couscous or quinoa grain salad with peppers",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "cooked mixed",
+          "assumptions": [
+            "Grain salad with chopped red pepper, cucumber/herbs"
+          ],
+          "estimatedPer100": {
+            "kcal": 125,
+            "proteinG": 3.5,
+            "carbsG": 22,
+            "fatG": 2.5
+          }
+        },
+        {
+          "name": "Mixed green side salad with cherry tomato",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Mixed lettuce leaves, red onion slivers, cherry tomato, light vinaigrette dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 35,
+            "proteinG": 1.2,
+            "carbsG": 3.5,
+            "fatG": 2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact meat or grain composition under the white sauce in the top section",
+        "Presence of heavy dressing vs lighter sauce"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "dd8e1ac0d84b0cf4b9a15bbf6d63e062f41a020692c886a5cd8fd197bc9b792a"
+}

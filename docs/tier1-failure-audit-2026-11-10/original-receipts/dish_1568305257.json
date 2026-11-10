@@ -1,0 +1,193 @@
+{
+  "id": "dish_1568305257",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 419.5,
+      "proteinG": 29,
+      "carbsG": 6.289999999999999,
+      "fatG": 30.7
+    },
+    "massG": 245,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10879,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Scrambled Eggs with Turkey Bacon and Sautéed Spinach",
+    "components": [
+      {
+        "name": "Scrambled eggs",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "scrambled with butter or oil",
+        "assumptions": [
+          "Prepared from approximately 2.5 to 3 large eggs with added cooking fat"
+        ],
+        "estimatedPer100": {
+          "kcal": 149,
+          "proteinG": 10,
+          "carbsG": 1.6,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 208.6,
+          "proteinG": 14,
+          "carbsG": 2.2399999999999998,
+          "fatG": 15.399999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Turkey bacon",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "pan-fried or baked",
+        "assumptions": [
+          "3 cooked strips of turkey bacon"
+        ],
+        "estimatedPer100": {
+          "kcal": 382,
+          "proteinG": 30,
+          "carbsG": 3,
+          "fatG": 28
+        },
+        "nutrients": {
+          "kcal": 171.9,
+          "proteinG": 13.5,
+          "carbsG": 1.35,
+          "fatG": 12.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Sautéed spinach and shredded carrots",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "sautéed with oil",
+        "assumptions": [
+          "Cooked leafy greens with shredded carrots and light cooking oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 65,
+          "proteinG": 2.5,
+          "carbsG": 4.5,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 39,
+          "proteinG": 1.5,
+          "carbsG": 2.6999999999999997,
+          "fatG": 2.6999999999999997
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 419.5,
+      "proteinG": 29,
+      "carbsG": 6.289999999999999,
+      "fatG": 30.7
+    },
+    "ambiguities": [
+      "Meat strips appear to be turkey bacon or vegetarian bacon rather than standard pork bacon",
+      "Exact quantity of cooking oil or butter used for eggs and vegetables"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10870,
+      "inputTokens": 2018,
+      "outputTokens": 474,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Scrambled Eggs with Turkey Bacon and Sautéed Spinach",
+      "components": [
+        {
+          "name": "Scrambled eggs",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "scrambled with butter or oil",
+          "assumptions": [
+            "Prepared from approximately 2.5 to 3 large eggs with added cooking fat"
+          ],
+          "estimatedPer100": {
+            "kcal": 149,
+            "proteinG": 10,
+            "carbsG": 1.6,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Turkey bacon",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "pan-fried or baked",
+          "assumptions": [
+            "3 cooked strips of turkey bacon"
+          ],
+          "estimatedPer100": {
+            "kcal": 382,
+            "proteinG": 30,
+            "carbsG": 3,
+            "fatG": 28
+          }
+        },
+        {
+          "name": "Sautéed spinach and shredded carrots",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "sautéed with oil",
+          "assumptions": [
+            "Cooked leafy greens with shredded carrots and light cooking oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 2.5,
+            "carbsG": 4.5,
+            "fatG": 4.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Meat strips appear to be turkey bacon or vegetarian bacon rather than standard pork bacon",
+        "Exact quantity of cooking oil or butter used for eggs and vegetables"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "8c546e2b4a95310ca3b6272314c468d8359675b0c93440933d61638dd7279202"
+}

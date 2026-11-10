@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "visual-audit-notes-1",
+  "observer": "Primary assistant; one unblinded visual pass, no independent human adjudication",
+  "overheadImagesInspected": 10,
+  "sideImagesInspected": 6,
+  "all60ImagesInspected": false,
+  "referenceBlind": false,
+  "causalAttribution": false,
+  "notes": [
+    {
+      "id": "dish_1565811139",
+      "auditRole": "large_error",
+      "overheadImageSha256": "edc401391991065ac3bdec453cfb15181b77969447f9f3ee1c21194e074a268c",
+      "observation": "Greens, broccoli, carrot, white cheese and partly covered white meat. Major predicted groups visible. Exact cheese identity and oil mass unverified. Source chicken205g/model65g and oil45g/model10g are reference discrepancies, not image measurements.",
+      "sideObservation": "Matching bowl/groups; more white meat visible near edge, partial crop.",
+      "sideImageSha256": "808aaba697d780d93a75df4db0656dd8ba0888ea13ab1a99ea63b7363188e9f0",
+      "pairedInputUsable": true,
+      "pairTemporalSynchronyVerified": false,
+      "metricScaleVerified": false,
+      "foodPrecisionRecallVerified": false
+    },
+    {
+      "id": "dish_1563478751",
+      "auditRole": "large_error",
+      "overheadImageSha256": "1fecec504b79e2187a9135ef685f62765ee7358b62b457f9050d26c985807490",
+      "observation": "Penne, brown meat, wilted greens and sauce; broad predicted groups plausible. Source545g/model250g, beef238.9g/model85g. Cream/oil quantities unobservable.",
+      "sideObservation": "Matching square plate/groups; more texture/pile depth, partial crop.",
+      "sideImageSha256": "dab9ba8fee1d3f91c51632635128e49966ee4cfe41ee4e935714fd57873d3725",
+      "pairedInputUsable": true,
+      "pairTemporalSynchronyVerified": false,
+      "metricScaleVerified": false,
+      "foodPrecisionRecallVerified": false
+    },
+    {
+      "id": "dish_1566414412",
+      "auditRole": "large_error",
+      "overheadImageSha256": "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+      "observation": "Potatoes, grain/vegetable mix, leafy salad and white protein with creamy coating; broad groups predicted. Source658g/model360g. Protein/grain identity and sauce composition uncertain.",
+      "sideObservation": "Matching square plate/groups; top protein partly cropped.",
+      "sideImageSha256": "58c6d2b28699fc53487574c3a8aea68c9a76124e4ad7bea3ed68868f2f42a6b2",
+      "pairedInputUsable": true,
+      "pairTemporalSynchronyVerified": false,
+      "metricScaleVerified": false,
+      "foodPrecisionRecallVerified": false
+    },
+    {
+      "id": "dish_1568305257",
+      "auditRole": "large_error",
+      "overheadImageSha256": "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c",
+      "observation": "Yellow curds, bacon-like slices, greens and shredded orange vegetables. Source eggs276g/model140g,bacon82g/model45g. Reference vegetable names do not unambiguously match visible greens; source composition remains unadjudicated, not automatically invalid.",
+      "sideObservation": "Matching square plate/groups; more curd/slice texture.",
+      "sideImageSha256": "95523316101ce311d55d3c0c9bfd95fd6db24f1c5a4f06b0a642335c07bed77e",
+      "pairedInputUsable": true,
+      "pairTemporalSynchronyVerified": false,
+      "metricScaleVerified": false,
+      "foodPrecisionRecallVerified": false
+    },
+    {
+      "id": "dish_1563389626",
+      "auditRole": "large_error",
+      "overheadImageSha256": "65db6574b92c782c499261ebee4b16d33fb6b38e79850b50e0afc61b5ddf5aba",
+      "observation": "Carrot pile hides white and red pieces. Model calls white pieces feta; source lists194g grilled chicken and no cheese. Potential identity/omission discrepancy, not verified false-negative count. Source360g/model140g.",
+      "sideObservation": "Not in fixed probe.",
+      "sideImageSha256": null,
+      "pairedInputUsable": null,
+      "pairTemporalSynchronyVerified": false,
+      "metricScaleVerified": false,
+      "foodPrecisionRecallVerified": false
+    },
+    {
+      "id": "dish_1566502573",
+      "auditRole": "large_error",
+      "overheadImageSha256": "7132851a6558c5b3bf41d0b13b9116e88a2ba8ee4d361ff87f0378e6693d84be",
+      "observation": "Greens, chickpea mixture, white cooked protein and corn. Source includes pork/chicken; model calls all protein chicken, identity uncertain. Oil/sugar amounts in mixed dishes unverified from RGB.",
+      "sideObservation": "Not in fixed probe.",
+      "sideImageSha256": null,
+      "pairedInputUsable": null,
+      "pairTemporalSynchronyVerified": false,
+      "metricScaleVerified": false,
+      "foodPrecisionRecallVerified": false
+    },
+    {
+      "id": "dish_1562790855",
+      "auditRole": "large_error",
+      "overheadImageSha256": "aafed21a29090a1a07e304f7f6cf2b6213b9159664d994d7097d99aa2bb648f4",
+      "observation": "White fillet-shaped food with grains and crumbled food/greens. Model calls chicken; source fish/pork, visually ambiguous. Source4/4/9 residual about\u2212280kcal needs source review, not automatic energy rewriting.",
+      "sideObservation": "Not in fixed probe.",
+      "sideImageSha256": null,
+      "pairedInputUsable": null,
+      "pairTemporalSynchronyVerified": false,
+      "metricScaleVerified": false,
+      "foodPrecisionRecallVerified": false
+    },
+    {
+      "id": "dish_1562172643",
+      "auditRole": "large_error",
+      "overheadImageSha256": "0caeace89beecddfc38e33981d85a025cf09d7b108caa9a37b465510792fd831",
+      "observation": "White curds,bacon,potatoes: broad groups match. Source whites290g/model120g,bacon87g/model45g. Reference-mass substitution overshoots energy, illustrating composition/cancellation.",
+      "sideObservation": "Not in fixed probe.",
+      "sideImageSha256": null,
+      "pairedInputUsable": null,
+      "pairTemporalSynchronyVerified": false,
+      "metricScaleVerified": false,
+      "foodPrecisionRecallVerified": false
+    },
+    {
+      "id": "dish_1558461760",
+      "auditRole": "small_error_control",
+      "overheadImageSha256": "bec9733dd686efa669a5156124ea2f6a94fcebceba538e06a19515efcd02875c",
+      "observation": "Five red tomatoes, simple low-energy control. Pred60g/ref61g; near-zero error not representative of mixed meals.",
+      "sideObservation": "Matching five tomatoes and bowl.",
+      "sideImageSha256": "bf5ad7fb878713e9514c0c9b81f7e49f8ca552781a5add95c882156c3c7450df",
+      "pairedInputUsable": true,
+      "pairTemporalSynchronyVerified": false,
+      "metricScaleVerified": false,
+      "foodPrecisionRecallVerified": false
+    },
+    {
+      "id": "dish_1557862783",
+      "auditRole": "small_error_control",
+      "overheadImageSha256": "bf99a8f9c0994d2d7368509a6e9427bfbbc1fdc78eac2b9fe95459740a6d77ba",
+      "observation": "Red meat, cauliflower and pale cooked meat: all broad groups predicted. Predmass300g/ref258g; historical correction cancels energy error while increasing mass error. Good calories alone do not establish correct mass/density.",
+      "sideObservation": "Matching three groups and round plate, rotated.",
+      "sideImageSha256": "e397e9cb55d00b834f713186440475a3142810b7fa87f5b4668516ada0f0aaf5",
+      "pairedInputUsable": true,
+      "pairTemporalSynchronyVerified": false,
+      "metricScaleVerified": false,
+      "foodPrecisionRecallVerified": false
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+[
+  {
+    "id": "dish_1565811139",
+    "listingUrl": "https://storage.googleapis.com/storage/v1/b/nutrition5k_dataset/o?prefix=nutrition5k_dataset%2Fimagery%2Fside_angles%2Fdish_1565811139%2F&fields=items%28name%2Csize%2Cmd5Hash%29%2CnextPageToken",
+    "cameraA": {
+      "name": "nutrition5k_dataset/imagery/side_angles/dish_1565811139/camera_A.h264",
+      "size": "6857513",
+      "md5Hash": "RkYcq6woWgWT5g5HxXdMQg=="
+    },
+    "allNames": [
+      "nutrition5k_dataset/imagery/side_angles/dish_1565811139/camera_A.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1565811139/camera_B.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1565811139/camera_D.h264"
+    ]
+  },
+  {
+    "id": "dish_1563478751",
+    "listingUrl": "https://storage.googleapis.com/storage/v1/b/nutrition5k_dataset/o?prefix=nutrition5k_dataset%2Fimagery%2Fside_angles%2Fdish_1563478751%2F&fields=items%28name%2Csize%2Cmd5Hash%29%2CnextPageToken",
+    "cameraA": {
+      "name": "nutrition5k_dataset/imagery/side_angles/dish_1563478751/camera_A.h264",
+      "size": "5221953",
+      "md5Hash": "vb70vORoCYJWO3kRl5y2Cg=="
+    },
+    "allNames": [
+      "nutrition5k_dataset/imagery/side_angles/dish_1563478751/camera_A.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1563478751/camera_B.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1563478751/camera_C.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1563478751/camera_D.h264"
+    ]
+  },
+  {
+    "id": "dish_1566414412",
+    "listingUrl": "https://storage.googleapis.com/storage/v1/b/nutrition5k_dataset/o?prefix=nutrition5k_dataset%2Fimagery%2Fside_angles%2Fdish_1566414412%2F&fields=items%28name%2Csize%2Cmd5Hash%29%2CnextPageToken",
+    "cameraA": {
+      "name": "nutrition5k_dataset/imagery/side_angles/dish_1566414412/camera_A.h264",
+      "size": "7812518",
+      "md5Hash": "uIxR5n3FbXCmmoMYgLWc8w=="
+    },
+    "allNames": [
+      "nutrition5k_dataset/imagery/side_angles/dish_1566414412/camera_A.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1566414412/camera_B.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1566414412/camera_C.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1566414412/camera_D.h264"
+    ]
+  },
+  {
+    "id": "dish_1568305257",
+    "listingUrl": "https://storage.googleapis.com/storage/v1/b/nutrition5k_dataset/o?prefix=nutrition5k_dataset%2Fimagery%2Fside_angles%2Fdish_1568305257%2F&fields=items%28name%2Csize%2Cmd5Hash%29%2CnextPageToken",
+    "cameraA": {
+      "name": "nutrition5k_dataset/imagery/side_angles/dish_1568305257/camera_A.h264",
+      "size": "7292915",
+      "md5Hash": "OPhIF3+d1N2JWHSUAPHR3w=="
+    },
+    "allNames": [
+      "nutrition5k_dataset/imagery/side_angles/dish_1568305257/camera_A.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1568305257/camera_B.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1568305257/camera_C.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1568305257/camera_D.h264"
+    ]
+  },
+  {
+    "id": "dish_1558461760",
+    "listingUrl": "https://storage.googleapis.com/storage/v1/b/nutrition5k_dataset/o?prefix=nutrition5k_dataset%2Fimagery%2Fside_angles%2Fdish_1558461760%2F&fields=items%28name%2Csize%2Cmd5Hash%29%2CnextPageToken",
+    "cameraA": {
+      "name": "nutrition5k_dataset/imagery/side_angles/dish_1558461760/camera_A.h264",
+      "size": "7072021",
+      "md5Hash": "N5QYufyBTtZ0sI75aCiegA=="
+    },
+    "allNames": [
+      "nutrition5k_dataset/imagery/side_angles/dish_1558461760/camera_A.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1558461760/camera_B.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1558461760/camera_C.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1558461760/camera_D.h264"
+    ]
+  },
+  {
+    "id": "dish_1557862783",
+    "listingUrl": "https://storage.googleapis.com/storage/v1/b/nutrition5k_dataset/o?prefix=nutrition5k_dataset%2Fimagery%2Fside_angles%2Fdish_1557862783%2F&fields=items%28name%2Csize%2Cmd5Hash%29%2CnextPageToken",
+    "cameraA": {
+      "name": "nutrition5k_dataset/imagery/side_angles/dish_1557862783/camera_A.h264",
+      "size": "18450248",
+      "md5Hash": "D3E5Zsbti8sJ7WI9KU1BbQ=="
+    },
+    "allNames": [
+      "nutrition5k_dataset/imagery/side_angles/dish_1557862783/camera_A.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1557862783/camera_B.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1557862783/camera_C.h264",
+      "nutrition5k_dataset/imagery/side_angles/dish_1557862783/camera_D.h264"
+    ]
+  }
+]

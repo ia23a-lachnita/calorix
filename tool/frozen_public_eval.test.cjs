@@ -205,3 +205,23 @@ test('mass-power never continues after probe failure and rejects modified profil
  if(phase==='probe')assert.equal(r.failureHttpStatus,403);assert.equal(JSON.stringify(r).includes('private content'),false);
  }
 });
+
+test('paired-view prompt retains catalog/semantics for both image counts',()=>{
+ const {makeViewPrompt}=require('./run_paired_view_experiment.cjs');const p='Estimate the complete food SERVED in this single photograph. Keep exact catalog:\nrecord';
+ const out=makeViewPrompt(p);assert.ok(out.includes('in the provided photograph(s).'));assert.ok(out.includes('Keep exact catalog:\nrecord'));assert.ok(out.includes('SAME served meal'));assert.throws(()=>makeViewPrompt('wrong source'));
+});
+test('paired-view13 budget claims once and counterbalanced case order stays fixed',async t=>{
+ const {executePairedViews}=require('./run_paired_view_experiment.cjs');const root=temporary(t),outputDir=path.join(root,'out'),registryPath=path.join(root,'claim');const cases=Array.from({length:6},(_,i)=>({id:'dish_'+String(1000000000+i),armOrder:i<3?['single','paired']:['paired','single']}));let count=0;const seen=[];
+ const steps={probe:async()=>{assert.ok(fs.existsSync(registryPath));count++;return {sdkInvocations:1,successfulCompatibility:true,returnedModel:'gemini-3.8-flash'};},run:async(c,arm)=>{count++;seen.push(c.id+'|'+arm);return {sdkInvocations:1,status:'ok'};}};
+ const opts={registryPath,outputDir,cases,consent:true,pins:{}};const result=await executePairedViews(opts,steps);
+ assert.equal(result.status,'completed');assert.equal(result.completedSdkEntries,13);assert.equal(result.maxSdkEntries,13);assert.deepEqual(seen,cases.flatMap(c=>c.armOrder.map(a=>c.id+'|'+a)));
+ await assert.rejects(executePairedViews({...opts,outputDir:path.join(root,'alternate')},steps));assert.equal(count,13);
+});
+test('paired-view refuses invalid plan before calls and halts uncertain systemic dispatch',async t=>{
+ const {executePairedViews}=require('./run_paired_view_experiment.cjs');const root=temporary(t);let count=0;
+ const cases=Array.from({length:6},(_,i)=>({id:'dish_'+String(1000000000+i),armOrder:i<3?['single','paired']:['paired','single']}));
+ const opts={registryPath:path.join(root,'claim'),outputDir:path.join(root,'out'),cases,consent:true,pins:{}};
+ const steps={probe:async()=>{count++;return {sdkInvocations:1,successfulCompatibility:true,returnedModel:'gemini-3.8-flash'};},run:async()=>{count++;throw Object.assign(Error('secret request'),{status:503});}};
+ await assert.rejects(executePairedViews({...opts,cases:cases.slice(1)},steps));assert.equal(count,0);
+ const result=await executePairedViews(opts,steps);assert.equal(count,2);assert.equal(result.status,'halted');assert.equal(result.unknownInFlight,true);assert.equal(result.completedSdkEntries,1);assert.equal(result.failureHttpStatus,503);assert.equal(JSON.stringify(result).includes('secret request'),false);
+});

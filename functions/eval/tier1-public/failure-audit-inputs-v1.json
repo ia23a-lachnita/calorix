@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "failure-audit-inputs-1",
+  "sourceCommit": "815e8c2",
+  "files": {
+    "docs/tier1-public-weighed-2026-11-10/bundle.json": "0b78b33438d7b3c66647a0a2403b7f4686909be5a47e50b936a590bf84b2bea6",
+    "docs/tier1-portion-calibration-2026-11-10/result.json": "6f61b63bde1a2ae68c543cd98824b573525f0e1f2348b61612bfacbc81ebbacb",
+    "docs/tier1-mass-power-2026-11-10/result.json": "639c088ed73a61ba9f06fde239a1560dc4770859477c97e51fd9aa65241a3852",
+    "functions/eval/tier1-public/portion-scale-test-v1.json": "62d843a6b93d7294bbaaa894250b6e4cfa4969fdc860cd070d98ae365fc9f07d",
+    "functions/eval/tier1-public/mass-power-test-v1.json": "11b88843735215ba12c779532155e08c759a2e36edc09a7519f9f3b44eaa5f8d"
+  }
+}

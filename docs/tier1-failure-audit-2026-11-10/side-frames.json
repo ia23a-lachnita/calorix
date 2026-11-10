@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "frameRule": "First decoded output frame camera_A, no timestamp/camera replacement",
+  "ffmpegVersion": "ffmpeg version 7.1.5-0+deb13u1+rpt2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "cases": [
+    {
+      "id": "dish_1565811139",
+      "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1565811139/camera_A.h264",
+      "sourceBytes": 6857513,
+      "sourceMd5Base64": "RkYcq6woWgWT5g5HxXdMQg==",
+      "sourceSha256": "3b1002708cd04632ae3f9c995d66e4c724aeb524a49ab5d95e9d5587fd148e11",
+      "firstFramePngSha256": "08752d0822d2b4cc68c11eebd2accf978a037144f2e484e324b86b0ddbc380f8",
+      "inputPath": "inputs/dish_1565811139-side.jpg",
+      "inputSha256": "808aaba697d780d93a75df4db0656dd8ba0888ea13ab1a99ea63b7363188e9f0",
+      "inputBytes": 275734,
+      "stream": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "1200000/1"
+      }
+    },
+    {
+      "id": "dish_1563478751",
+      "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1563478751/camera_A.h264",
+      "sourceBytes": 5221953,
+      "sourceMd5Base64": "vb70vORoCYJWO3kRl5y2Cg==",
+      "sourceSha256": "f64e924e1328f5e7c3df9566e9e02bf527a94aaa0444d4b79d32c0a964369e2e",
+      "firstFramePngSha256": "89c1733b314895f3e8dab6d5002e83405d5b4ffebb209c5d6965d5082fac84a0",
+      "inputPath": "inputs/dish_1563478751-side.jpg",
+      "inputSha256": "dab9ba8fee1d3f91c51632635128e49966ee4cfe41ee4e935714fd57873d3725",
+      "inputBytes": 223963,
+      "stream": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "1200000/1"
+      }
+    },
+    {
+      "id": "dish_1566414412",
+      "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1566414412/camera_A.h264",
+      "sourceBytes": 7812518,
+      "sourceMd5Base64": "uIxR5n3FbXCmmoMYgLWc8w==",
+      "sourceSha256": "25bc22a5d07f703848472c2d91128dcf7879531d91a9c64c2373b8ab106dc6ff",
+      "firstFramePngSha256": "fee262ba7218e60457b2320975ac41aba059e1815194bc94c10f2d3c7b58f6bb",
+      "inputPath": "inputs/dish_1566414412-side.jpg",
+      "inputSha256": "58c6d2b28699fc53487574c3a8aea68c9a76124e4ad7bea3ed68868f2f42a6b2",
+      "inputBytes": 281986,
+      "stream": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "1200000/1"
+      }
+    },
+    {
+      "id": "dish_1568305257",
+      "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1568305257/camera_A.h264",
+      "sourceBytes": 7292915,
+      "sourceMd5Base64": "OPhIF3+d1N2JWHSUAPHR3w==",
+      "sourceSha256": "83af08de34a69ea04e41c66d7bd7399893e822890bb2403ca4f6a98ae6fffc91",
+      "firstFramePngSha256": "c71a9733cfe1adaab5b719d88dbb86cea57442beb84785dcdfec3f5d10937f78",
+      "inputPath": "inputs/dish_1568305257-side.jpg",
+      "inputSha256": "95523316101ce311d55d3c0c9bfd95fd6db24f1c5a4f06b0a642335c07bed77e",
+      "inputBytes": 277285,
+      "stream": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "1200000/1"
+      }
+    },
+    {
+      "id": "dish_1558461760",
+      "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1558461760/camera_A.h264",
+      "sourceBytes": 7072021,
+      "sourceMd5Base64": "N5QYufyBTtZ0sI75aCiegA==",
+      "sourceSha256": "d773dcd5dc8b5477a5bf549fbc4e6d23353464aa76aa131c5815b68b72109fe6",
+      "firstFramePngSha256": "86c6e56107177a70a460be5b859b2060edb12731b475df20a9c3676ff4075d47",
+      "inputPath": "inputs/dish_1558461760-side.jpg",
+      "inputSha256": "bf5ad7fb878713e9514c0c9b81f7e49f8ca552781a5add95c882156c3c7450df",
+      "inputBytes": 248963,
+      "stream": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "1200000/1"
+      }
+    },
+    {
+      "id": "dish_1557862783",
+      "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1557862783/camera_A.h264",
+      "sourceBytes": 18450248,
+      "sourceMd5Base64": "D3E5Zsbti8sJ7WI9KU1BbQ==",
+      "sourceSha256": "cc4a5f950469369ad04adea4eb77e1b80f443c4c033711161294bbeeee4e9348",
+      "firstFramePngSha256": "dcf46996f62a70f28badaa2d53758fe1a3df80d47c2aa65e9bf44b647371e410",
+      "inputPath": "inputs/dish_1557862783-side.jpg",
+      "inputSha256": "e397e9cb55d00b834f713186440475a3142810b7fa87f5b4668516ada0f0aaf5",
+      "inputBytes": 174798,
+      "stream": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "1200000/1"
+      }
+    }
+  ]
+}

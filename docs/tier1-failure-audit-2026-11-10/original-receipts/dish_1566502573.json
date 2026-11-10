@@ -1,0 +1,236 @@
+{
+  "id": "dish_1566502573",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 452.79999999999995,
+      "proteinG": 48.489999999999995,
+      "carbsG": 37.75,
+      "fatG": 12.525
+    },
+    "massG": 335,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12421,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chicken with Chickpea Salad, Spinach, and Corn on the Cob",
+    "components": [
+      {
+        "name": "Roasted chicken breast pieces",
+        "massG": 120,
+        "catalogId": null,
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Seasoned sliced chicken breast with herb/spice crust"
+        ],
+        "estimatedPer100": {
+          "kcal": 165,
+          "proteinG": 31,
+          "carbsG": 1,
+          "fatG": 4
+        },
+        "nutrients": {
+          "kcal": 198,
+          "proteinG": 37.199999999999996,
+          "carbsG": 1.2,
+          "fatG": 4.8
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Chickpea and vegetable salad",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "mixed prepared",
+        "assumptions": [
+          "Chickpeas, diced peppers, red onion, and light oil dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 150,
+          "proteinG": 6.5,
+          "carbsG": 20,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 210,
+          "proteinG": 9.1,
+          "carbsG": 28,
+          "fatG": 7
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Baby spinach salad",
+        "massG": 40,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh baby spinach leaves, possibly lightly dressed"
+        ],
+        "estimatedPer100": {
+          "kcal": 28,
+          "proteinG": 2.5,
+          "carbsG": 3,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 11.200000000000001,
+          "proteinG": 1,
+          "carbsG": 1.2000000000000002,
+          "fatG": 0.2
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Corn on the cob slice",
+        "massG": 35,
+        "catalogId": null,
+        "preparation": "cooked boiled",
+        "assumptions": [
+          "Edible portion of a round slice of corn cob"
+        ],
+        "estimatedPer100": {
+          "kcal": 96,
+          "proteinG": 3.4,
+          "carbsG": 21,
+          "fatG": 1.5
+        },
+        "nutrients": {
+          "kcal": 33.599999999999994,
+          "proteinG": 1.19,
+          "carbsG": 7.35,
+          "fatG": 0.5249999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 452.79999999999995,
+      "proteinG": 48.489999999999995,
+      "carbsG": 37.75,
+      "fatG": 12.525
+    },
+    "ambiguities": [
+      "Dressing on spinach salad is unclear",
+      "Presence of grain or rice underneath chickpea mix"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12416,
+      "inputTokens": 2018,
+      "outputTokens": 561,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chicken with Chickpea Salad, Spinach, and Corn on the Cob",
+      "components": [
+        {
+          "name": "Roasted chicken breast pieces",
+          "massG": 120,
+          "catalogId": null,
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Seasoned sliced chicken breast with herb/spice crust"
+          ],
+          "estimatedPer100": {
+            "kcal": 165,
+            "proteinG": 31,
+            "carbsG": 1,
+            "fatG": 4
+          }
+        },
+        {
+          "name": "Chickpea and vegetable salad",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "mixed prepared",
+          "assumptions": [
+            "Chickpeas, diced peppers, red onion, and light oil dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 6.5,
+            "carbsG": 20,
+            "fatG": 5
+          }
+        },
+        {
+          "name": "Baby spinach salad",
+          "massG": 40,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh baby spinach leaves, possibly lightly dressed"
+          ],
+          "estimatedPer100": {
+            "kcal": 28,
+            "proteinG": 2.5,
+            "carbsG": 3,
+            "fatG": 0.5
+          }
+        },
+        {
+          "name": "Corn on the cob slice",
+          "massG": 35,
+          "catalogId": null,
+          "preparation": "cooked boiled",
+          "assumptions": [
+            "Edible portion of a round slice of corn cob"
+          ],
+          "estimatedPer100": {
+            "kcal": 96,
+            "proteinG": 3.4,
+            "carbsG": 21,
+            "fatG": 1.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Dressing on spinach salad is unclear",
+        "Presence of grain or rice underneath chickpea mix"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "f481a069b480e1deb1f14e84e481138966f20981944224cf1424dfb12d38a38b"
+}

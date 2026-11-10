@@ -1,0 +1,191 @@
+{
+  "id": "dish_1563389626",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 142.4,
+      "proteinG": 6.579999999999999,
+      "carbsG": 10.02,
+      "fatG": 8.799999999999999
+    },
+    "massG": 140,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 11788,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Salad ingredients in a bowl",
+    "components": [
+      {
+        "name": "Shredded carrots",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "raw shredded",
+        "assumptions": [
+          "Raw, grated carrot"
+        ],
+        "estimatedPer100": {
+          "kcal": 41,
+          "proteinG": 0.9,
+          "carbsG": 9.6,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 32.800000000000004,
+          "proteinG": 0.7200000000000001,
+          "carbsG": 7.68,
+          "fatG": 0.16000000000000003
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Feta cheese",
+        "massG": 40,
+        "catalogId": null,
+        "preparation": "cubed",
+        "assumptions": [
+          "White cubes visible underneath carrots assumed to be feta cheese"
+        ],
+        "estimatedPer100": {
+          "kcal": 265,
+          "proteinG": 14.2,
+          "carbsG": 3.9,
+          "fatG": 21.5
+        },
+        "nutrients": {
+          "kcal": 106,
+          "proteinG": 5.68,
+          "carbsG": 1.56,
+          "fatG": 8.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cherry tomatoes",
+        "massG": 20,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Visible red pieces underneath assumed to be cherry tomatoes"
+        ],
+        "estimatedPer100": {
+          "kcal": 18,
+          "proteinG": 0.9,
+          "carbsG": 3.9,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 3.6,
+          "proteinG": 0.18000000000000002,
+          "carbsG": 0.78,
+          "fatG": 0.04000000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 142.4,
+      "proteinG": 6.579999999999999,
+      "carbsG": 10.02,
+      "fatG": 8.799999999999999
+    },
+    "ambiguities": [
+      "White cubes underneath shredded carrots may be tofu, diced chicken, or another cheese variety instead of feta."
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 11785,
+      "inputTokens": 2018,
+      "outputTokens": 420,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Salad ingredients in a bowl",
+      "components": [
+        {
+          "name": "Shredded carrots",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "raw shredded",
+          "assumptions": [
+            "Raw, grated carrot"
+          ],
+          "estimatedPer100": {
+            "kcal": 41,
+            "proteinG": 0.9,
+            "carbsG": 9.6,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Feta cheese",
+          "massG": 40,
+          "catalogId": null,
+          "preparation": "cubed",
+          "assumptions": [
+            "White cubes visible underneath carrots assumed to be feta cheese"
+          ],
+          "estimatedPer100": {
+            "kcal": 265,
+            "proteinG": 14.2,
+            "carbsG": 3.9,
+            "fatG": 21.5
+          }
+        },
+        {
+          "name": "Cherry tomatoes",
+          "massG": 20,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Visible red pieces underneath assumed to be cherry tomatoes"
+          ],
+          "estimatedPer100": {
+            "kcal": 18,
+            "proteinG": 0.9,
+            "carbsG": 3.9,
+            "fatG": 0.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "White cubes underneath shredded carrots may be tofu, diced chicken, or another cheese variety instead of feta."
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "9cef94e7a76474a8f3c859f93b334865d9509fdb8d469feb402917e269dacacd"
+}
