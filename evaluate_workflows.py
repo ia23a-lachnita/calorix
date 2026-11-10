@@ -8,6 +8,7 @@ from pathlib import Path
 from evaluate_meals import keyed, metrics, number, quantile, reference_energy
 
 KINDS=set('editor_opened editor_closed analysis_started analysis_returned analysis_saved analysis_refresh_failed analysis_failed analysis_discarded result_frame preparation_available preparation_answered portion_opened portion_rejected portion_cancelled portion_unchanged portion_saved portion_conflict portion_failed manual_saved repeat_saved export_opened export_closed'.split())
+FOOD_KINDS=set('food_opened food_cancelled food_unchanged food_saved food_conflict food_failed'.split())
 BASE={'kind','sessionId','sequence','atUtc','timingValid','elapsedMs','foregroundMs','waitingMs'}
 TIMES={'dialogForegroundMs','clientAnalysisMs','shutterToResponseMs','shutterToSavedMs','shutterToFrameMs'}
 NUMBERS={'beforeKcal','afterKcal','fromG','toG'}
@@ -33,9 +34,9 @@ def utc(value):
     except (TypeError,ValueError):raise ValueError('UTC timestamp required') from None
 
 
-def event_valid(event):
+def event_valid(event,version=2):
     shape(event,BASE|EXTRA,BASE)
-    if not isinstance(event['kind'],str) or event['kind'] not in KINDS or not isinstance(event['sessionId'],str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',event['sessionId']):raise ValueError('Invalid event identity')
+    if not isinstance(event['kind'],str) or event['kind'] not in (KINDS|FOOD_KINDS if version==2 else KINDS) or not isinstance(event['sessionId'],str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',event['sessionId']):raise ValueError('Invalid event identity')
     integer(event['sequence'],'sequence',2**53-1);utc(event['atUtc'])
     if type(event['timingValid']) is not bool:raise ValueError('Timing-valid flag required')
     for key in ['elapsedMs','foregroundMs','waitingMs']:
@@ -59,14 +60,14 @@ def event_valid(event):
 def validate_export(data):
     keys={'schemaVersion','scope','exportedAtUtc','referenceIsWeighed','timingDefinition','measurementEnabled','currentProcessWriteFailures','meals'}
     shape(data,keys,keys)
-    if type(data['schemaVersion']) is not int or data['schemaVersion']!=1 or data['scope']!='currently_retained_meals' or data['referenceIsWeighed'] is not False or data['timingDefinition']!='editor_foreground_minus_analysis_wait_proxy_v1' or type(data['measurementEnabled']) is not bool:raise ValueError('Unsupported workflow export')
+    if type(data['schemaVersion']) is not int or data['schemaVersion'] not in {1,2} or data['scope']!='currently_retained_meals' or data['referenceIsWeighed'] is not False or data['timingDefinition']!='editor_foreground_minus_analysis_wait_proxy_v1' or type(data['measurementEnabled']) is not bool:raise ValueError('Unsupported workflow export')
     utc(data['exportedAtUtc']);integer(data['currentProcessWriteFailures'],'write failures',2**53-1)
     if not isinstance(data['meals'],list):raise ValueError('Expected meal list')
     rows=keyed(data['meals'],'mealId')
     row_keys={'mealId','source','currentServedKcal','events','missingMeasurements','readFailure','droppedEvents','truncated'}
     for identity,row in rows.items():
         shape(row,row_keys,row_keys)
-        if not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',identity) or not isinstance(row['source'],str) or row['source'] not in {'manual','photo','A1','manual_correction','portion_correction','confirmed_repeat','unknown'}:raise ValueError('Invalid meal identity/source')
+        if not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',identity) or not isinstance(row['source'],str) or row['source'] not in ({'manual','photo','A1','manual_correction','portion_correction','confirmed_repeat','unknown'}|({'food_correction'} if data['schemaVersion']==2 else set())):raise ValueError('Invalid meal identity/source')
         if row['currentServedKcal'] is not None:number(row['currentServedKcal'],'current kcal',maximum=1000000)
         if type(row['missingMeasurements']) is not bool or type(row['readFailure']) is not bool:raise ValueError('Unknown log status')
         if row['droppedEvents'] is not None:integer(row['droppedEvents'],'dropped events',2**53-1)
@@ -76,7 +77,7 @@ def validate_export(data):
         if not isinstance(row['events'],list) or len(row['events'])>256:raise ValueError('Invalid bounded event list')
         sequences={}
         for event in row['events']:
-            event_valid(event)
+            event_valid(event,data['schemaVersion'])
             if event['sequence']<=sequences.get(event['sessionId'],-1):raise ValueError('Duplicate/out-of-order session sequence')
             sequences[event['sessionId']]=event['sequence']
     return rows
