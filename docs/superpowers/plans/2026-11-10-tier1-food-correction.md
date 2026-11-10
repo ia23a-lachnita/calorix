@@ -16,9 +16,11 @@ Goal: correct one recognized component's nutrient record locally, retaining its 
 
 ## Tasks
 
-- [ ] Tests/stubs first; genuine Dart/model/UI and Python schema/data RED, no product algorithms beforeRED. Canonical android-test-apk.yml dispatch oncommittedsource, inspect exactfailures.
-- [ ] Minimal cataloggenerator/data/domain/UI/versionedjournal/evaluator implementation; focused/fullGREEN andanalyzer. Commit/push boundedsource.
-- [ ] One fresh whole-feature readonlyreview; fixactualCritical/Important withRED→GREEN inonepass, deferoptionalMinors. MandatoryMCPsource/results correctedliteralagreeMUSTnone. Fullcanonical exactsource signedAPK/sourcehash/trustedsigner/compiledprivacy.
-- [ ] Samsung groundednativeownedfixture search/select/portion/restore/cancel/error andcleanup, no newmodelcalls. Reportlimitations, actual0humanpairs/0Androidreferences unchanged; tracking/guide/pilotcommitpushclean. Continueindependentoriginalspec work unlessgenuineblocker/bigstep.
+- [x] Tests/stubs first; genuine Dart/model/UI and Python schema/data RED, no product algorithms beforeRED. Canonical android-test-apk.yml dispatch oncommittedsource, inspect exactfailures.
+- [x] Minimal cataloggenerator/data/domain/UI/versionedjournal/evaluator implementation; focused/fullGREEN andanalyzer. Commit/push boundedsource.
+- [x] One fresh whole-feature readonlyreview; fixactualCritical/Important withRED→GREEN inonepass, deferoptionalMinors. MandatoryMCPsource/results correctedliteralagreeMUSTnone. Fullcanonical exactsource signedAPK/sourcehash/trustedsigner/compiledprivacy.
+- [x] Samsung groundednativeownedfixture search/select/portion/restore/cancel/error andcleanup, no newmodelcalls. Reportlimitations, actual0humanpairs/0Androidreferences unchanged; tracking/guide/pilotcommitpushclean. Continueindependentoriginalspec work unlessgenuineblocker/bigstep.
 
 Pre-reviewAntigravitygemini-3.8-flash/yolo conversationcalorix-tier1-food-correction-20261110 correctedliteralagree/MUSTnone afterclarifyingstrictcorruptionandoilretention. Initialreview's archivehash/zerooverhead/6classes/automaticarchivecausality/multiplier/silentdrop/externalanalytics claims retractedandnotadopted. Extra clarification: mealversion2 preventsolderappsilentlyignoringnewfields. No oldclinicaltargets/architecture redesign.
+
+Completedsourcec04798c/fullCI42798006153/artifact13756120978;1054FlutterPASS1skip/analyzerNoissues,5354backendPASS1skip,61Python,17Node,build/lint/signedAPK. Nativefood/cancel/search/portion/restore/oil/conflict/export/ownedcleanup verified. CorrectedMCPsource/results agreeMUSTnone; onefreshsource/testreceipt recoveredbeforeagentfinalusage-limiterror, no successfulfinalturnclaim. Reportdocs/tier1-food-correction-verification-2026-11-10.md. Actualhuman/referencepairs0, Androidweighed0/30 unchanged. This completes the bounded implementation stage.

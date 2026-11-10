@@ -1,5 +1,7 @@
 # Tier1 pilot report
 
+November10 food correction: optional local selection from the existing73USDA records now preserves estimated grams/original recognition and composes with portion/oil corrections. [Full build/native receipt](docs/tier1-food-correction-verification-2026-11-10.md), [latest APK/guide](docs/tier1-food-correction-guide-2026-11-10.md). Scripted native edits/export verified workflow and arithmetic; they add no accuracy or human-effort measurements. Automatic A1 remains unchanged.
+
 November10 capture update: automatic consent offer after a fresh local capture is implemented and tested on the authorized Samsung. [Build/native receipt](docs/tier1-fast-capture-verification-2026-11-10.md). This removes one interaction on eligible captures; it adds no accuracy or user-time measurements.
 
 ## Supported

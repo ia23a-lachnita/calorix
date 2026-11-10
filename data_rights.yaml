@@ -1,4 +1,4 @@
-manifest_version: 1
+manifest_version: 2
 assets:
   - source_id: usda-sr-2019-tier1-20261108-v1
     source_url: https://fdc.nal.usda.gov/data-documentation/
@@ -60,7 +60,10 @@ assets:
     redistribution_allowed: true
     commercial_training_allowed: not used for training
     privacy_basis: public nutrient composition records; no user photographs
-    approval_state: archived evaluated candidate; source default and active deployment remain six-record v1
+    approval_state: archived automatic candidate; optional local manual selection reuses attributed records; automatic source default and deployment remain six-record v1
+    client_usage: explicit optional user nutrient selection with estimated grams; no training or automatic promotion
+    client_data_source: functions/eval/tier1-public/catalog-v2.json
+    client_raw_json_sha256: bad3d924253513d093728351436cdcc6e099caba25eead2cae24778ea35ff178
     evidence_link: https://fdc.nal.usda.gov/data-documentation/
 
   - source_id: nutrition5k-tier1-mealrange-20261108-v1

@@ -1,5 +1,7 @@
 # Local workflow measurements
 
+Latest food-correction build: [run guide/APK](tier1-food-correction-guide-2026-11-10.md), [full native/build receipt](tier1-food-correction-verification-2026-11-10.md). Optional food substitutions now compose with portions; workflow exports write2 and readers retain legacy1 support. The first-portion endpoint excludes active food substitutions.
+
 Latest capture update: fresh photos now offer the existing explicit cloud consent directly. [Current signed APK, verification and scope](tier1-fast-capture-verification-2026-11-10.md). History photos retain the Estimate photo button.
 
 The existing photo, estimate, correction and save routes now have optional local measurement journals. They do not change the original prediction, nutrient calculation, meal revision or consumption confirmation. No new model calls, permissions, dependencies or cloud telemetry were added.
