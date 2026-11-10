@@ -2,6 +2,10 @@
 
 The existing photo, estimate, correction and save routes now have optional local measurement journals. They do not change the original prediction, nutrient calculation, meal revision or consumption confirmation. No new model calls, permissions, dependencies or cloud telemetry were added.
 
+## Native verification update — 2026-11-10
+
+The pending device blocker is resolved. Ordinary wake/nonsecure dismissal opened Calorix; no authentication change was needed. Native correction/cancel/no-op/restore/stale-edit protection, preparation answer, export Cancel/actual clipboard JSON, journal cleanup and local CameraX capture/deletion passed on the exact installed APK. Final ARTEMIS readiness is5/5 required checks with a working hierarchy, optional recording unavailable. [Full sampled native verification and limits](tier1-native-workflow-verification-2026-11-10.md). No new real accuracy or human-effort measurements were obtained. The November9 blocked notes below are historical, not the current state.
+
 ## Using the measurements
 
 Use Calorix normally. An optional portion correction records its original and corrected whole-meal served kcal, changed grams and a monotonic foreground timing proxy. Cancel, unchanged Apply, invalid input, revision conflict and failures have separate event kinds. A preparation answer remains optional; logging does not require a post-meal action.
@@ -48,13 +52,13 @@ The independent reviewer also recomputed25 synthetic paired arithmetic cases and
 - CI performed cryptographic signature verification; downloaded metadata/source/checksum and native V2 certificate identity matched. Compiled manifest inspection confirmed absent FirebaseInitProvider, backup/fullBackup disabled, messaging auto-init and analytics collection disabled. The bound extraction XML excludes root/file/database/sharedpref/external from both cloud backup and device transfer. This is a compiled-controls check, not a blanket security approval.
 - The authorized SM-G780G/Android13/serialR58R61161NA received `install -r` successfully. Its installed base APK SHA256 equals the artifact. Every existing Tier1 file hash and meal JSON byte remained identical:1 file,0 saved meals. No app launch or UI interaction was performed during this update; no cloud photos/model calls were sent.
 
-### Remaining runtime blocker
+### Historical runtime blocker — resolved November10
 
 Fresh ARTEMIS diagnosis reports4/5 required checks, **Device Locked**, hierarchy0, no active/queued task and no fixes applied. The exact required guidance is: **“Unlock the phone and keep the screen on (UIAutomator cannot dump a locked or sleeping screen).”** Optional scrcpy recording is unavailable; no software was installed. Further UIAutomator recovery commands were not attempted ahead of the required unlock.
 
 Before test authoring, direct ARTEMIS hierarchy plus grounded, serial-pinned ADB verified Camera, empty History and Manual entry on the preceding signed baseline. Existing exact-binary portion traces supplied the remaining interaction grounding. Autonomous ARTEMIS trace98aaad91-65f7-4ada-8aa9-990210105acc hit429 RESOURCE_EXHAUSTED on the3.6 Flash free route and was cancelled; it is not a successful autonomous run. An unrelated historical failed-task entry returned by diagnosis is not evidence about this feature.
 
-**Current-source native UI, journal creation/deletion and clipboard interaction remain unverified.** Installation/hash/data preservation and automated tests do not replace those checks. No current UI-diff run exists: final diff counts, `auditLimited` and `visualClassificationStatus` are not applicable. Neither exhaustive nor sampled current-source visual parity is claimed. The owned diagnostic fixture was removed, preserving all other records(0); its source was an existing offline prediction, not a new inference or weighed reference.
+**At the November9 handoff, native UI, journal creation/deletion and clipboard interaction were unverified; the November10 update above resolves those sampled checks.** Installation/hash/data preservation and automated tests do not replace those checks. No current UI-diff run exists: final diff counts, `auditLimited` and `visualClassificationStatus` are not applicable. Neither exhaustive nor sampled current-source visual parity is claimed. The owned diagnostic fixture was removed, preserving all other records(0); its source was an existing offline prediction, not a new inference or weighed reference.
 
 An empty fixture smoke run can be reproduced without private data:
 
