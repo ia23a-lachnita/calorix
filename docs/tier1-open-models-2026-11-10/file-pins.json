@@ -138,8 +138,8 @@
     },
     {
       "path": "independent_replay.py",
-      "bytes": 7440,
-      "sha256": "275aed3a00339ac37774158bbec0cbd8da6feff08ed65e16851c56aeeef634ab"
+      "bytes": 7460,
+      "sha256": "f092d0a52272fc82075cf4c247f2e5a5a40146ff255fef5cd28666ad82bb6beb"
     },
     {
       "path": "onnxruntime-wheel-pin.json",
@@ -148,8 +148,8 @@
     },
     {
       "path": "per-case.csv",
-      "bytes": 5068,
-      "sha256": "f25100e70a719af31babcde4b2da97ec973398a9fb77cabf88d9725efc0a8729"
+      "bytes": 5023,
+      "sha256": "65e67244a05a2e0986fdedb279c77fb82cac135026b8a489dee10402aa3ad029"
     },
     {
       "path": "plan-review.json",

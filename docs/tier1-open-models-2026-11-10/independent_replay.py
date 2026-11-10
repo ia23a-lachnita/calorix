@@ -91,7 +91,7 @@ for model,score in result['models'].items():
  assert score['descriptiveScreen']['passesAll'] is False
 assert result['newVlmSdkInvocations']==0 and not result['newTraining'] and result['productionPromotable'] is False
 with (audit_out/'per-case.csv').open('x',newline='') as f:
- w=csv.DictWriter(f,fieldnames=list(csvrows[0]));w.writeheader();w.writerows(csvrows)
+ w=csv.DictWriter(f,fieldnames=list(csvrows[0]),lineterminator="\n");w.writeheader();w.writerows(csvrows)
 summary={'status':'PASS','sourceCommit':result['sourceCommit'],'checks':counts,'tolerances':{'metrics':'1e-9','plateDecimalInverse':'1e-8','dishFloat32EquivalentMacros':'0.0001'},'newInferenceCalls':0,'scope':'All 44 raw records and input tensors, all head outputs, 20 fusions, full fixed-cohort Decimal metrics. No Android or legal/medical validation.'}
 (audit_out/'independent-verification.json').write_text(json.dumps(summary,indent=2)+'\n')
 print(json.dumps(summary))
