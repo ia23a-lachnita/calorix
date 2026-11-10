@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "scope": "public_dataset",
+  "datasetId": "nutrition5k",
+  "sampleCount": 1,
+  "cases": [
+    {
+      "id": "dish_1563478751",
+      "captureDate": "2019-07-18",
+      "reference": {
+        "kcal": 950.395081,
+        "proteinG": 74.772202,
+        "carbsG": 54.133282,
+        "fatG": 45.303986,
+        "massG": 545
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000341",
+          "name": "cream",
+          "carbsG": 0.258016455,
+          "fatG": 3.49755639,
+          "kcal": 32.137382895,
+          "massG": 9.556165,
+          "proteinG": 0.26757262
+        },
+        {
+          "id": "ingr_0000000046",
+          "name": "mushroom",
+          "carbsG": 1.182575361,
+          "fatG": 0.107506851,
+          "kcal": 7.88383574,
+          "massG": 35.835617,
+          "proteinG": 1.110904127
+        },
+        {
+          "id": "ingr_0000000036",
+          "name": "spinach (raw)",
+          "carbsG": 0.860054796,
+          "fatG": 0.095561644,
+          "kcal": 5.49479453,
+          "massG": 23.890411,
+          "proteinG": 0.692821919
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "carbsG": 0,
+          "fatG": 1.791781,
+          "kcal": 15.83934404,
+          "massG": 1.791781,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000074",
+          "name": "pasta",
+          "carbsG": 47.398576168,
+          "fatG": 2.102356201,
+          "kcal": 251.518250956,
+          "massG": 191.123291,
+          "proteinG": 9.747287841
+        },
+        {
+          "id": "ingr_0000000025",
+          "name": "beef",
+          "carbsG": 0,
+          "fatG": 35.8356171,
+          "kcal": 597.260285,
+          "massG": 238.904114,
+          "proteinG": 62.11506964
+        },
+        {
+          "id": "ingr_0000000092",
+          "name": "wine",
+          "carbsG": 0.124230132,
+          "fatG": 0,
+          "kcal": 4.0613697,
+          "massG": 4.778082,
+          "proteinG": 0.004778082
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "carbsG": 1.57676706,
+          "fatG": 0.02389041,
+          "kcal": 7.11934218,
+          "massG": 4.778082,
+          "proteinG": 0.305797248
+        },
+        {
+          "id": "ingr_0000000434",
+          "name": "sour cream",
+          "carbsG": 0.43958359,
+          "fatG": 1.81567135,
+          "kcal": 18.9212067,
+          "massG": 9.556165,
+          "proteinG": 0.22934796
+        },
+        {
+          "id": "ingr_0000000094",
+          "name": "onions",
+          "carbsG": 2.15013699,
+          "fatG": 0.023890411,
+          "kcal": 9.5561644,
+          "massG": 23.890411,
+          "proteinG": 0.262794521
+        },
+        {
+          "id": "ingr_0000000518",
+          "name": "thyme",
+          "carbsG": 0.1433424,
+          "fatG": 0.01015342,
+          "kcal": 0.6032326,
+          "massG": 0.59726,
+          "proteinG": 0.0358356
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "carbsG": 0,
+          "fatG": 0,
+          "kcal": 0,
+          "massG": 0.29863,
+          "proteinG": 0
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1563478751.jpg",
+      "inputSha256": "1fecec504b79e2187a9135ef685f62765ee7358b62b457f9050d26c985807490",
+      "inputFailure": null,
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563478751/rgb.png",
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "ed8fd13702c8331e96f94af5cfd59355cc250ca4502e82b71fbc4875e29eedea",
+      "auditRole": "large_error",
+      "sideInputPath": "inputs/dish_1563478751-side.jpg",
+      "sideInputSha256": "dab9ba8fee1d3f91c51632635128e49966ee4cfe41ee4e935714fd57873d3725",
+      "sideSource": {
+        "id": "dish_1563478751",
+        "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1563478751/camera_A.h264",
+        "sourceBytes": 5221953,
+        "sourceMd5Base64": "vb70vORoCYJWO3kRl5y2Cg==",
+        "sourceSha256": "f64e924e1328f5e7c3df9566e9e02bf527a94aaa0444d4b79d32c0a964369e2e",
+        "firstFramePngSha256": "89c1733b314895f3e8dab6d5002e83405d5b4ffebb209c5d6965d5082fac84a0",
+        "inputPath": "inputs/dish_1563478751-side.jpg",
+        "inputSha256": "dab9ba8fee1d3f91c51632635128e49966ee4cfe41ee4e935714fd57873d3725",
+        "inputBytes": 223963,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1920,
+          "height": 1080,
+          "r_frame_rate": "1200000/1"
+        }
+      },
+      "sidePairPreflightUsable": true,
+      "pairPreflightBasis": "Primary assistant inspected both images; matching vessel/broad groups, no unequivocal state change; exact temporal synchrony not verified",
+      "inputSourceRelativePath": "calorix-portion-calibration-20261110/inputs-frozen/inputs/dish_1563478751.jpg",
+      "armOrder": [
+        "paired",
+        "single"
+      ]
+    }
+  ],
+  "license": {
+    "id": "CC-BY-4.0",
+    "attribution": "Thames et al., Nutrition5k, CVPR2021"
+  },
+  "scopeLimit": "Outcome-selected development probe; no population accuracy or promotion claim",
+  "preparation": {
+    "frameRule": "First decoded output frame camera_A.h264, no replacement",
+    "ffmpegVersion": "ffmpeg version 7.1.5-0+deb13u1+rpt2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "pillowVersion": "11.1.0",
+    "jpegLibrary": "6.2",
+    "quality": 85,
+    "subsampling": 2,
+    "resize": false,
+    "exif": "removed",
+    "maxClipBytes": 25165824,
+    "maxTotalClipBytes": 75497472,
+    "overheadResolution": [
+      640,
+      480
+    ],
+    "sideResolution": [
+      1920,
+      1080
+    ],
+    "limitation": "Supplementary camera/context/resolution package, not isolated view count or calibrated geometry. Rawstream r_frame_rate is not a verified recording framerate; no timing claim."
+  }
+}

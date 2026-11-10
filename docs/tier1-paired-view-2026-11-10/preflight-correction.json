@@ -1,0 +1,8 @@
+{
+  "at": "2026-11-10T17:29:24.219219+00:00",
+  "category": "owned_probe_asset_layout",
+  "observed": "Runner requires assets-root/owned-blank.jpg; auxiliary file was under inputs/owned-blank.jpg. Initial preflight refused before output or canonical claim existed.",
+  "sdkEntries": 0,
+  "registryExisted": false,
+  "correction": "Copied exact hash-pinned owned nonfood fixture to required root path; source code/model/prompt/cases/budget unchanged. No inference retry or registry reset."
+}

@@ -1,0 +1,300 @@
+{
+  "id": "dish_1557862783",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 369.8,
+      "proteinG": 53.04699999999999,
+      "carbsG": 4.51,
+      "fatG": 14.984499999999999
+    },
+    "massG": 290,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10420,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Diced Chicken, Sliced Beef Steak, and Steamed Cauliflower",
+    "components": [
+      {
+        "name": "Diced roasted chicken breast",
+        "massG": 85,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Skinless roasted chicken breast, diced into bite-sized pieces"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 140.25,
+          "proteinG": 26.366999999999997,
+          "carbsG": 0,
+          "fatG": 3.0345
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Beef steak strips",
+        "massG": 95,
+        "catalogId": null,
+        "preparation": "cooked grilled/seared",
+        "assumptions": [
+          "Medium-rare to medium seared beef steak slices",
+          "Lean with minimal visible trim fat"
+        ],
+        "estimatedPer100": {
+          "kcal": 215,
+          "proteinG": 26,
+          "carbsG": 0,
+          "fatG": 12
+        },
+        "nutrients": {
+          "kcal": 204.25,
+          "proteinG": 24.7,
+          "carbsG": 0,
+          "fatG": 11.399999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Steamed cauliflower florets",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "cooked boiled/steamed",
+        "assumptions": [
+          "Steamed or boiled cauliflower florets, unseasoned or lightly salted"
+        ],
+        "estimatedPer100": {
+          "kcal": 23,
+          "proteinG": 1.8,
+          "carbsG": 4.1,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 25.3,
+          "proteinG": 1.9800000000000002,
+          "carbsG": 4.51,
+          "fatG": 0.55
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 369.8,
+      "proteinG": 53.04699999999999,
+      "carbsG": 4.51,
+      "fatG": 14.984499999999999
+    },
+    "ambiguities": [
+      "Presence of added oil or butter used during cooking or tossed with the cauliflower/meat"
+    ],
+    "question": {
+      "id": "added-fat",
+      "text": "Was there extra oil in this serving, beyond the foods and sauces listed?",
+      "answered": false,
+      "answer": null,
+      "options": [
+        {
+          "id": "none",
+          "label": "No extra oil",
+          "add": {
+            "kcal": 0,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 0
+          },
+          "component": null
+        },
+        {
+          "id": "oil_5g",
+          "label": "About 1 tsp oil (5 g)",
+          "add": {
+            "kcal": 44.2,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 5
+          },
+          "component": {
+            "name": "Additional oil (olive-oil nutrient proxy)",
+            "massG": 5,
+            "catalogId": "usda:171413",
+            "preparation": "oil",
+            "assumptions": [
+              "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+            ],
+            "estimatedPer100": null,
+            "nutrients": {
+              "kcal": 44.2,
+              "proteinG": 0,
+              "carbsG": 0,
+              "fatG": 5
+            },
+            "source": {
+              "kind": "database_match",
+              "recordId": "usda:171413",
+              "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+              "version": "usda-sr-2019-tier1-20261108-v1",
+              "description": "Oil, olive, salad or cooking"
+            }
+          }
+        },
+        {
+          "id": "oil_10g",
+          "label": "About 2 tsp oil (10 g)",
+          "add": {
+            "kcal": 88.4,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 10
+          },
+          "component": {
+            "name": "Additional oil (olive-oil nutrient proxy)",
+            "massG": 10,
+            "catalogId": "usda:171413",
+            "preparation": "oil",
+            "assumptions": [
+              "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+            ],
+            "estimatedPer100": null,
+            "nutrients": {
+              "kcal": 88.4,
+              "proteinG": 0,
+              "carbsG": 0,
+              "fatG": 10
+            },
+            "source": {
+              "kind": "database_match",
+              "recordId": "usda:171413",
+              "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+              "version": "usda-sr-2019-tier1-20261108-v1",
+              "description": "Oil, olive, salad or cooking"
+            }
+          }
+        },
+        {
+          "id": "oil_15g",
+          "label": "About 1 tbsp oil (15 g)",
+          "add": {
+            "kcal": 132.6,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 15
+          },
+          "component": {
+            "name": "Additional oil (olive-oil nutrient proxy)",
+            "massG": 15,
+            "catalogId": "usda:171413",
+            "preparation": "oil",
+            "assumptions": [
+              "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+            ],
+            "estimatedPer100": null,
+            "nutrients": {
+              "kcal": 132.6,
+              "proteinG": 0,
+              "carbsG": 0,
+              "fatG": 15
+            },
+            "source": {
+              "kind": "database_match",
+              "recordId": "usda:171413",
+              "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+              "version": "usda-sr-2019-tier1-20261108-v1",
+              "description": "Oil, olive, salad or cooking"
+            }
+          }
+        }
+      ]
+    },
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10413,
+      "inputTokens": 3158,
+      "outputTokens": 442,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Diced Chicken, Sliced Beef Steak, and Steamed Cauliflower",
+      "components": [
+        {
+          "name": "Diced roasted chicken breast",
+          "massG": 85,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Skinless roasted chicken breast, diced into bite-sized pieces"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Beef steak strips",
+          "massG": 95,
+          "catalogId": null,
+          "preparation": "cooked grilled/seared",
+          "assumptions": [
+            "Medium-rare to medium seared beef steak slices",
+            "Lean with minimal visible trim fat"
+          ],
+          "estimatedPer100": {
+            "kcal": 215,
+            "proteinG": 26,
+            "carbsG": 0,
+            "fatG": 12
+          }
+        },
+        {
+          "name": "Steamed cauliflower florets",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "cooked boiled/steamed",
+          "assumptions": [
+            "Steamed or boiled cauliflower florets, unseasoned or lightly salted"
+          ],
+          "estimatedPer100": {
+            "kcal": 23,
+            "proteinG": 1.8,
+            "carbsG": 4.1,
+            "fatG": 0.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Presence of added oil or butter used during cooking or tossed with the cauliflower/meat"
+      ],
+      "askAddedFat": true
+    }
+  },
+  "comparisonContextId": "d68ccc589208ca9cdb6dd279d4bf4852f982502b0830838d3e9efe68c4bc9034"
+}

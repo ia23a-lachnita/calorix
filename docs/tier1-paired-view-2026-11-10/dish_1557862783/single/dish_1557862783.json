@@ -1,0 +1,183 @@
+{
+  "id": "dish_1557862783",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 420.5,
+      "proteinG": 60.638,
+      "carbsG": 4,
+      "fatG": 17.252999999999997
+    },
+    "massG": 290,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 9347,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Steak, chicken breast, and cauliflower",
+    "components": [
+      {
+        "name": "Steak slices",
+        "massG": 120,
+        "catalogId": null,
+        "preparation": "cooked grilled or seared",
+        "assumptions": [
+          "Cooked medium to medium-rare beef steak"
+        ],
+        "estimatedPer100": {
+          "kcal": 210,
+          "proteinG": 26,
+          "carbsG": 0,
+          "fatG": 11.5
+        },
+        "nutrients": {
+          "kcal": 252,
+          "proteinG": 31.2,
+          "carbsG": 0,
+          "fatG": 13.799999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Diced chicken breast",
+        "massG": 90,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Boneless, skinless, diced cooked chicken breast"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 148.5,
+          "proteinG": 27.918,
+          "carbsG": 0,
+          "fatG": 3.213
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Steamed cauliflower florets",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "steamed/boiled",
+        "assumptions": [
+          "Boiled or steamed plain cauliflower florets"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 1.9,
+          "carbsG": 5,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 20,
+          "proteinG": 1.52,
+          "carbsG": 4,
+          "fatG": 0.24
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 420.5,
+      "proteinG": 60.638,
+      "carbsG": 4,
+      "fatG": 17.252999999999997
+    },
+    "ambiguities": [
+      "Specific cut of beef used for steak",
+      "Presence of cooking oil or butter on meats"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9342,
+      "inputTokens": 2058,
+      "outputTokens": 402,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Steak, chicken breast, and cauliflower",
+      "components": [
+        {
+          "name": "Steak slices",
+          "massG": 120,
+          "catalogId": null,
+          "preparation": "cooked grilled or seared",
+          "assumptions": [
+            "Cooked medium to medium-rare beef steak"
+          ],
+          "estimatedPer100": {
+            "kcal": 210,
+            "proteinG": 26,
+            "carbsG": 0,
+            "fatG": 11.5
+          }
+        },
+        {
+          "name": "Diced chicken breast",
+          "massG": 90,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Boneless, skinless, diced cooked chicken breast"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Steamed cauliflower florets",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "steamed/boiled",
+          "assumptions": [
+            "Boiled or steamed plain cauliflower florets"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 1.9,
+            "carbsG": 5,
+            "fatG": 0.3
+          }
+        }
+      ],
+      "ambiguities": [
+        "Specific cut of beef used for steak",
+        "Presence of cooking oil or butter on meats"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "6aa9ab5e704ae01e98c72af74a19b7fcf2a0ffd06b9bc5b2ca9366f4d52c8d5e"
+}

@@ -1,0 +1,302 @@
+{
+  "id": "dish_1565811139",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 420.9,
+      "proteinG": 38.808,
+      "carbsG": 15.045,
+      "fatG": 23.518
+    },
+    "massG": 345,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10606,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Spinach Salad with Chicken, Broccoli, and Crumbled Cheese",
+    "components": [
+      {
+        "name": "Baby spinach",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh baby spinach base"
+        ],
+        "estimatedPer100": {
+          "kcal": 23,
+          "proteinG": 2.9,
+          "carbsG": 3.6,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 13.799999999999999,
+          "proteinG": 1.74,
+          "carbsG": 2.16,
+          "fatG": 0.24
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Steamed broccoli florets",
+        "massG": 100,
+        "catalogId": null,
+        "preparation": "steamed or boiled",
+        "assumptions": [
+          "Fresh broccoli florets cooked until tender-crisp"
+        ],
+        "estimatedPer100": {
+          "kcal": 35,
+          "proteinG": 2.4,
+          "carbsG": 7.2,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 35,
+          "proteinG": 2.4,
+          "carbsG": 7.2,
+          "fatG": 0.4
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted chicken breast pieces",
+        "massG": 90,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Skinless chicken breast, diced/chopped"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 148.5,
+          "proteinG": 27.918,
+          "carbsG": 0,
+          "fatG": 3.213
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Shredded carrots",
+        "massG": 40,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Raw matchstick carrots"
+        ],
+        "estimatedPer100": {
+          "kcal": 41,
+          "proteinG": 0.9,
+          "carbsG": 9.6,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 16.400000000000002,
+          "proteinG": 0.36000000000000004,
+          "carbsG": 3.84,
+          "fatG": 0.08000000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Crumbled feta cheese",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "crumbled",
+        "assumptions": [
+          "Crumbled feta or goat cheese topping"
+        ],
+        "estimatedPer100": {
+          "kcal": 264,
+          "proteinG": 14.2,
+          "carbsG": 4.1,
+          "fatG": 21.3
+        },
+        "nutrients": {
+          "kcal": 118.8,
+          "proteinG": 6.39,
+          "carbsG": 1.845,
+          "fatG": 9.585
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Olive oil dressing",
+        "massG": 10,
+        "catalogId": "usda:171413",
+        "preparation": "oil",
+        "assumptions": [
+          "Light sheen of oil or dressing visible on greens"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 88.4,
+          "proteinG": 0,
+          "carbsG": 0,
+          "fatG": 10
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171413",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Oil, olive, salad or cooking"
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 420.9,
+      "proteinG": 38.808,
+      "carbsG": 15.045,
+      "fatG": 23.518
+    },
+    "ambiguities": [
+      "Type of white cheese (feta vs. cotija vs. goat cheese vs. hard-boiled egg whites)",
+      "Presence and exact amount of dressing or oil"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10587,
+      "inputTokens": 3158,
+      "outputTokens": 712,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Spinach Salad with Chicken, Broccoli, and Crumbled Cheese",
+      "components": [
+        {
+          "name": "Baby spinach",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh baby spinach base"
+          ],
+          "estimatedPer100": {
+            "kcal": 23,
+            "proteinG": 2.9,
+            "carbsG": 3.6,
+            "fatG": 0.4
+          }
+        },
+        {
+          "name": "Steamed broccoli florets",
+          "massG": 100,
+          "catalogId": null,
+          "preparation": "steamed or boiled",
+          "assumptions": [
+            "Fresh broccoli florets cooked until tender-crisp"
+          ],
+          "estimatedPer100": {
+            "kcal": 35,
+            "proteinG": 2.4,
+            "carbsG": 7.2,
+            "fatG": 0.4
+          }
+        },
+        {
+          "name": "Roasted chicken breast pieces",
+          "massG": 90,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Skinless chicken breast, diced/chopped"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Shredded carrots",
+          "massG": 40,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Raw matchstick carrots"
+          ],
+          "estimatedPer100": {
+            "kcal": 41,
+            "proteinG": 0.9,
+            "carbsG": 9.6,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Crumbled feta cheese",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "crumbled",
+          "assumptions": [
+            "Crumbled feta or goat cheese topping"
+          ],
+          "estimatedPer100": {
+            "kcal": 264,
+            "proteinG": 14.2,
+            "carbsG": 4.1,
+            "fatG": 21.3
+          }
+        },
+        {
+          "name": "Olive oil dressing",
+          "massG": 10,
+          "catalogId": "usda:171413",
+          "preparation": "oil",
+          "assumptions": [
+            "Light sheen of oil or dressing visible on greens"
+          ],
+          "estimatedPer100": null
+        }
+      ],
+      "ambiguities": [
+        "Type of white cheese (feta vs. cotija vs. goat cheese vs. hard-boiled egg whites)",
+        "Presence and exact amount of dressing or oil"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "76ed42b683a0f6cfb434fed0b5f8bc8adaa8d9ddad193395bd3689331a10c458"
+}

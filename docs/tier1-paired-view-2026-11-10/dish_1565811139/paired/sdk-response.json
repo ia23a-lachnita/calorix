@@ -1,0 +1,34 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Spinach Salad with Chicken, Broccoli, and Crumbled Cheese\",\n  \"components\": [\n    {\n      \"name\": \"Baby spinach\",\n      \"massG\": 60,\n      \"catalogId\": null,\n      \"preparation\": \"raw\",\n      \"assumptions\": [\"Fresh baby spinach base\"],\n      \"estimatedPer100\": {\n        \"kcal\": 23,\n        \"proteinG\": 2.9,\n        \"carbsG\": 3.6,\n        \"fatG\": 0.4\n      }\n    },\n    {\n      \"name\": \"Steamed broccoli florets\",\n      \"massG\": 100,\n      \"catalogId\": null,\n      \"preparation\": \"steamed or boiled\",\n      \"assumptions\": [\"Fresh broccoli florets cooked until tender-crisp\"],\n      \"estimatedPer100\": {\n        \"kcal\": 35,\n        \"proteinG\": 2.4,\n        \"carbsG\": 7.2,\n        \"fatG\": 0.4\n      }\n    },\n    {\n      \"name\": \"Roasted chicken breast pieces\",\n      \"massG\": 90,\n      \"catalogId\": \"usda:171477\",\n      \"preparation\": \"cooked roasted\",\n      \"assumptions\": [\"Skinless chicken breast, diced/chopped\"],\n      \"estimatedPer100\": null\n    },\n    {\n      \"name\": \"Shredded carrots\",\n      \"massG\": 40,\n      \"catalogId\": null,\n      \"preparation\": \"raw\",\n      \"assumptions\": [\"Raw matchstick carrots\"],\n      \"estimatedPer100\": {\n        \"kcal\": 41,\n        \"proteinG\": 0.9,\n        \"carbsG\": 9.6,\n        \"fatG\": 0.2\n      }\n    },\n    {\n      \"name\": \"Crumbled feta cheese\",\n      \"massG\": 45,\n      \"catalogId\": null,\n      \"preparation\": \"crumbled\",\n      \"assumptions\": [\"Crumbled feta or goat cheese topping\"],\n      \"estimatedPer100\": {\n        \"kcal\": 264,\n        \"proteinG\": 14.2,\n        \"carbsG\": 4.1,\n        \"fatG\": 21.3\n      }\n    },\n    {\n      \"name\": \"Olive oil dressing\",\n      \"massG\": 10,\n      \"catalogId\": \"usda:171413\",\n      \"preparation\": \"oil\",\n      \"assumptions\": [\"Light sheen of oil or dressing visible on greens\"],\n      \"estimatedPer100\": null\n    }\n  ],\n  \"ambiguities\": [\n    \"Type of white cheese (feta vs. cotija vs. goat cheese vs. hard-boiled egg whites)\",\n    \"Presence and exact amount of dressing or oil\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 3158,
+    "candidatesTokenCount": 712,
+    "totalTokenCount": 3870,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 2164
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 994
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 712
+      }
+    ]
+  },
+  "latencyMs": 10587,
+  "inputSha256": [
+    "edc401391991065ac3bdec453cfb15181b77969447f9f3ee1c21194e074a268c",
+    "808aaba697d780d93a75df4db0656dd8ba0888ea13ab1a99ea63b7363188e9f0"
+  ],
+  "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+  "costUsd": null
+}

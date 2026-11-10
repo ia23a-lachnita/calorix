@@ -1,0 +1,33 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Grape Tomatoes\",\n  \"components\": [\n    {\n      \"name\": \"Grape tomatoes\",\n      \"massG\": 75,\n      \"catalogId\": null,\n      \"preparation\": \"raw\",\n      \"assumptions\": [\n        \"5 whole grape/cherry tomatoes\",\n        \"Average mass approximately 15g per tomato\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 18,\n        \"proteinG\": 0.9,\n        \"carbsG\": 3.9,\n        \"fatG\": 0.2\n      }\n    }\n  ],\n  \"ambiguities\": [],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2058,
+    "candidatesTokenCount": 178,
+    "totalTokenCount": 2236,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 994
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 178
+      }
+    ]
+  },
+  "latencyMs": 7860,
+  "inputSha256": [
+    "bec9733dd686efa669a5156124ea2f6a94fcebceba538e06a19515efcd02875c"
+  ],
+  "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+  "costUsd": null
+}

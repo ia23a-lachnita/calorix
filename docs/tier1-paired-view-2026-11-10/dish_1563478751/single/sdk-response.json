@@ -1,0 +1,34 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Penne pasta with beef and spinach\",\n  \"components\": [\n    {\n      \"name\": \"Penne pasta in light sauce\",\n      \"massG\": 140,\n      \"catalogId\": null,\n      \"preparation\": \"cooked in sauce\",\n      \"assumptions\": [\"standard wheat penne\", \"coated in pan sauce/gravy\"],\n      \"estimatedPer100\": {\n        \"kcal\": 160.0,\n        \"proteinG\": 4.5,\n        \"carbsG\": 24.0,\n        \"fatG\": 5.0\n      }\n    },\n    {\n      \"name\": \"Beef pieces\",\n      \"massG\": 85,\n      \"catalogId\": null,\n      \"preparation\": \"sauteed/braised\",\n      \"assumptions\": [\"lean to medium-fat beef tips/cubes\"],\n      \"estimatedPer100\": {\n        \"kcal\": 220.0,\n        \"proteinG\": 26.0,\n        \"carbsG\": 0.0,\n        \"fatG\": 12.5\n      }\n    },\n    {\n      \"name\": \"Wilted spinach leaves\",\n      \"massG\": 20,\n      \"catalogId\": null,\n      \"preparation\": \"wilted/cooked\",\n      \"assumptions\": [\"fresh spinach leaves cooked into pasta\"],\n      \"estimatedPer100\": {\n        \"kcal\": 25.0,\n        \"proteinG\": 2.5,\n        \"carbsG\": 3.5,\n        \"fatG\": 0.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Meat could be beef, pork, or plant-based meat alternative\",\n    \"Amount of oil or butter in the sauce\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2058,
+    "candidatesTokenCount": 453,
+    "totalTokenCount": 2910,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 994
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 453
+      }
+    ],
+    "thoughtsTokenCount": 399
+  },
+  "latencyMs": 12043,
+  "inputSha256": [
+    "1fecec504b79e2187a9135ef685f62765ee7358b62b457f9050d26c985807490"
+  ],
+  "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+  "costUsd": null
+}

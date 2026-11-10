@@ -1,0 +1,34 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Diced Chicken, Sliced Beef Steak, and Steamed Cauliflower\",\n  \"components\": [\n    {\n      \"name\": \"Diced roasted chicken breast\",\n      \"massG\": 85,\n      \"catalogId\": \"usda:171477\",\n      \"preparation\": \"cooked roasted\",\n      \"assumptions\": [\n        \"Skinless roasted chicken breast, diced into bite-sized pieces\"\n      ],\n      \"estimatedPer100\": null\n    },\n    {\n      \"name\": \"Beef steak strips\",\n      \"massG\": 95,\n      \"catalogId\": null,\n      \"preparation\": \"cooked grilled/seared\",\n      \"assumptions\": [\n        \"Medium-rare to medium seared beef steak slices\",\n        \"Lean with minimal visible trim fat\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 215,\n        \"proteinG\": 26.0,\n        \"carbsG\": 0.0,\n        \"fatG\": 12.0\n      }\n    },\n    {\n      \"name\": \"Steamed cauliflower florets\",\n      \"massG\": 110,\n      \"catalogId\": null,\n      \"preparation\": \"cooked boiled/steamed\",\n      \"assumptions\": [\n        \"Steamed or boiled cauliflower florets, unseasoned or lightly salted\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 23,\n        \"proteinG\": 1.8,\n        \"carbsG\": 4.1,\n        \"fatG\": 0.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Presence of added oil or butter used during cooking or tossed with the cauliflower/meat\"\n  ],\n  \"askAddedFat\": true\n}",
+  "usageMetadata": {
+    "promptTokenCount": 3158,
+    "candidatesTokenCount": 442,
+    "totalTokenCount": 3600,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 994
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 2164
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 442
+      }
+    ]
+  },
+  "latencyMs": 10413,
+  "inputSha256": [
+    "bf99a8f9c0994d2d7368509a6e9427bfbbc1fdc78eac2b9fe95459740a6d77ba",
+    "e397e9cb55d00b834f713186440475a3142810b7fa87f5b4668516ada0f0aaf5"
+  ],
+  "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+  "costUsd": null
+}

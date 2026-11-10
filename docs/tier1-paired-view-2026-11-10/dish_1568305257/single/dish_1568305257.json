@@ -1,0 +1,191 @@
+{
+  "id": "dish_1568305257",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 452.55,
+      "proteinG": 31.125,
+      "carbsG": 7.16,
+      "fatG": 33.125
+    },
+    "massG": 270,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 13190,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Scrambled Eggs with Turkey Bacon and Sautéed Greens",
+    "components": [
+      {
+        "name": "Scrambled eggs",
+        "massG": 160,
+        "catalogId": null,
+        "preparation": "cooked scrambled",
+        "assumptions": [
+          "Prepared with a small amount of butter or oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 149,
+          "proteinG": 10,
+          "carbsG": 1.6,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 238.4,
+          "proteinG": 16,
+          "carbsG": 2.5600000000000005,
+          "fatG": 17.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Turkey bacon",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Appears to be cured turkey bacon strips, cooked"
+        ],
+        "estimatedPer100": {
+          "kcal": 382,
+          "proteinG": 30,
+          "carbsG": 3,
+          "fatG": 28
+        },
+        "nutrients": {
+          "kcal": 171.9,
+          "proteinG": 13.5,
+          "carbsG": 1.35,
+          "fatG": 12.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Sautéed spinach and shredded carrots",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "cooked sautéed",
+        "assumptions": [
+          "Mixed greens/spinach with shredded carrots lightly cooked in oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 65,
+          "proteinG": 2.5,
+          "carbsG": 5,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 42.25,
+          "proteinG": 1.625,
+          "carbsG": 3.25,
+          "fatG": 2.9250000000000003
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 452.55,
+      "proteinG": 31.125,
+      "carbsG": 7.16,
+      "fatG": 33.125
+    },
+    "ambiguities": [
+      "Exact meat type for bacon strips (e.g., turkey bacon vs. pork bacon or vegetarian alternative)"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 13183,
+      "inputTokens": 2058,
+      "outputTokens": 439,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Scrambled Eggs with Turkey Bacon and Sautéed Greens",
+      "components": [
+        {
+          "name": "Scrambled eggs",
+          "massG": 160,
+          "catalogId": null,
+          "preparation": "cooked scrambled",
+          "assumptions": [
+            "Prepared with a small amount of butter or oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 149,
+            "proteinG": 10,
+            "carbsG": 1.6,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Turkey bacon",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Appears to be cured turkey bacon strips, cooked"
+          ],
+          "estimatedPer100": {
+            "kcal": 382,
+            "proteinG": 30,
+            "carbsG": 3,
+            "fatG": 28
+          }
+        },
+        {
+          "name": "Sautéed spinach and shredded carrots",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "cooked sautéed",
+          "assumptions": [
+            "Mixed greens/spinach with shredded carrots lightly cooked in oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 2.5,
+            "carbsG": 5,
+            "fatG": 4.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact meat type for bacon strips (e.g., turkey bacon vs. pork bacon or vegetarian alternative)"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "4111e673694e40df510fed27b7d414ccabebccc770160064c3732b221e562fff"
+}

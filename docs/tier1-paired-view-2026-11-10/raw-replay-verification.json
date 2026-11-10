@@ -1,0 +1,79 @@
+{
+  "decodedNutrientAndMassFieldsVerified": 60,
+  "all12ComponentListsByteEquivalent": true,
+  "rawSdkResponsesReplayed": 12,
+  "receipts": [
+    {
+      "id": "dish_1565811139",
+      "arm": "single",
+      "sdkResponseSha256": "c507a659be062cb8fc49d883a0eb0c86236cc80b35342c223b016f74a4e160d4",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1565811139",
+      "arm": "paired",
+      "sdkResponseSha256": "389f4f3fe40e6cf253a948a1e5bc9951e51e394ca4bf5b2c71ee24534a7ebcd8",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1563478751",
+      "arm": "single",
+      "sdkResponseSha256": "ed2e895cfb781ed62a0ebc9922ac6d30f23ff1f50e34af8ec40c87df6b26ad34",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1563478751",
+      "arm": "paired",
+      "sdkResponseSha256": "2c1717d4c810f150f7b93f4ff2adb21aba18ccefc013bc7a02544384bce5e15b",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1566414412",
+      "arm": "single",
+      "sdkResponseSha256": "a32c3ce74773ff233d7bdbc80e646a8881ac1102cbda544dbf46b9c9a5856c83",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1566414412",
+      "arm": "paired",
+      "sdkResponseSha256": "05007d8dd562d6eb4f05cd2c86a9599233ecfe0254722bf970da33b8055bd549",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1568305257",
+      "arm": "single",
+      "sdkResponseSha256": "cd7c2634c90fa2523ef83356d21486069425dc041f419ea192aa9c7ef6bb77ff",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1568305257",
+      "arm": "paired",
+      "sdkResponseSha256": "098ee148cc75da4d8754d0a38a513ec9ca4af3d080141f404462d78de0513253",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1558461760",
+      "arm": "single",
+      "sdkResponseSha256": "3fbb93c7ff52096f2c086ba0ec551fee107c575189b58a165e53969d2df2f1a3",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1558461760",
+      "arm": "paired",
+      "sdkResponseSha256": "c713738cfc00c4c07ab9acc8d034d16db223a4834fc1d6de471ad6deaab24656",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1557862783",
+      "arm": "single",
+      "sdkResponseSha256": "3242d032a34e1f2bf950a89c0b7ba9534faaef2ab252238197526528a3400680",
+      "decodedComponentsReproduced": true
+    },
+    {
+      "id": "dish_1557862783",
+      "arm": "paired",
+      "sdkResponseSha256": "a0a14d49661c72fe7d835a2ef0afbd626eb9a9ebf0fd5fe9afb2b7947618e56c",
+      "decodedComponentsReproduced": true
+    }
+  ]
+}

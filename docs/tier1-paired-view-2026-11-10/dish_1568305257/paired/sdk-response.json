@@ -1,0 +1,34 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Scrambled Eggs with Turkey Bacon and Side Salad\",\n  \"components\": [\n    {\n      \"name\": \"Scrambled eggs\",\n      \"massG\": 160.0,\n      \"catalogId\": null,\n      \"preparation\": \"cooked scrambled\",\n      \"assumptions\": [\n        \"Prepared with a small amount of cooking fat or non-stick spray\",\n        \"Approximately 3 large eggs\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 149.0,\n        \"proteinG\": 10.0,\n        \"carbsG\": 1.6,\n        \"fatG\": 11.0\n      }\n    },\n    {\n      \"name\": \"Turkey bacon strips\",\n      \"massG\": 45.0,\n      \"catalogId\": null,\n      \"preparation\": \"cooked pan-fried/baked\",\n      \"assumptions\": [\n        \"3 strips of cooked turkey bacon\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 382.0,\n        \"proteinG\": 30.0,\n        \"carbsG\": 3.4,\n        \"fatG\": 28.0\n      }\n    },\n    {\n      \"name\": \"Side salad with spinach, shredded carrots, and dressing\",\n      \"massG\": 45.0,\n      \"catalogId\": null,\n      \"preparation\": \"raw with light dressing\",\n      \"assumptions\": [\n        \"Spinach and carrot blend tossed with a light vinaigrette or oil coating\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 65.0,\n        \"proteinG\": 1.8,\n        \"carbsG\": 3.5,\n        \"fatG\": 5.0\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Specific type/brand of bacon (assumed turkey bacon based on uniform color and texture)\",\n    \"Exact amount and type of dressing on greens\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 3158,
+    "candidatesTokenCount": 502,
+    "totalTokenCount": 3660,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 994
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 2164
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 502
+      }
+    ]
+  },
+  "latencyMs": 10630,
+  "inputSha256": [
+    "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c",
+    "95523316101ce311d55d3c0c9bfd95fd6db24f1c5a4f06b0a642335c07bed77e"
+  ],
+  "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+  "costUsd": null
+}

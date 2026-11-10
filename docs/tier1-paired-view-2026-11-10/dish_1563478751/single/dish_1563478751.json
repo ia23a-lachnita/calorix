@@ -1,0 +1,195 @@
+{
+  "id": "dish_1563478751",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 416,
+      "proteinG": 28.9,
+      "carbsG": 34.3,
+      "fatG": 17.725
+    },
+    "massG": 245,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12048,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Penne pasta with beef and spinach",
+    "components": [
+      {
+        "name": "Penne pasta in light sauce",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "cooked in sauce",
+        "assumptions": [
+          "standard wheat penne",
+          "coated in pan sauce/gravy"
+        ],
+        "estimatedPer100": {
+          "kcal": 160,
+          "proteinG": 4.5,
+          "carbsG": 24,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 224,
+          "proteinG": 6.3,
+          "carbsG": 33.599999999999994,
+          "fatG": 7
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Beef pieces",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "sauteed/braised",
+        "assumptions": [
+          "lean to medium-fat beef tips/cubes"
+        ],
+        "estimatedPer100": {
+          "kcal": 220,
+          "proteinG": 26,
+          "carbsG": 0,
+          "fatG": 12.5
+        },
+        "nutrients": {
+          "kcal": 187,
+          "proteinG": 22.099999999999998,
+          "carbsG": 0,
+          "fatG": 10.625
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Wilted spinach leaves",
+        "massG": 20,
+        "catalogId": null,
+        "preparation": "wilted/cooked",
+        "assumptions": [
+          "fresh spinach leaves cooked into pasta"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 2.5,
+          "carbsG": 3.5,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 5,
+          "proteinG": 0.5,
+          "carbsG": 0.7000000000000001,
+          "fatG": 0.1
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 416,
+      "proteinG": 28.9,
+      "carbsG": 34.3,
+      "fatG": 17.725
+    },
+    "ambiguities": [
+      "Meat could be beef, pork, or plant-based meat alternative",
+      "Amount of oil or butter in the sauce"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12043,
+      "inputTokens": 2058,
+      "outputTokens": 453,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Penne pasta with beef and spinach",
+      "components": [
+        {
+          "name": "Penne pasta in light sauce",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "cooked in sauce",
+          "assumptions": [
+            "standard wheat penne",
+            "coated in pan sauce/gravy"
+          ],
+          "estimatedPer100": {
+            "kcal": 160,
+            "proteinG": 4.5,
+            "carbsG": 24,
+            "fatG": 5
+          }
+        },
+        {
+          "name": "Beef pieces",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "sauteed/braised",
+          "assumptions": [
+            "lean to medium-fat beef tips/cubes"
+          ],
+          "estimatedPer100": {
+            "kcal": 220,
+            "proteinG": 26,
+            "carbsG": 0,
+            "fatG": 12.5
+          }
+        },
+        {
+          "name": "Wilted spinach leaves",
+          "massG": 20,
+          "catalogId": null,
+          "preparation": "wilted/cooked",
+          "assumptions": [
+            "fresh spinach leaves cooked into pasta"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 2.5,
+            "carbsG": 3.5,
+            "fatG": 0.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Meat could be beef, pork, or plant-based meat alternative",
+        "Amount of oil or butter in the sauce"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "b45b10a93b5231835114a19538e095ed649c663d99879f84595b888b066e0bce"
+}

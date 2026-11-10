@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "scope": "public_dataset",
+  "datasetId": "nutrition5k",
+  "sampleCount": 1,
+  "cases": [
+    {
+      "id": "dish_1566414412",
+      "captureDate": "2019-08-21",
+      "reference": {
+        "kcal": 920.120422,
+        "proteinG": 85.334846,
+        "carbsG": 57.062336,
+        "fatG": 37.812386,
+        "massG": 658
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000133",
+          "name": "shallots",
+          "carbsG": 0.039567891,
+          "fatG": 0.002398054,
+          "kcal": 0.2398054,
+          "massG": 1.199027,
+          "proteinG": 0.017985405
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "carbsG": 0,
+          "fatG": 4.96116,
+          "kcal": 43.8566544,
+          "massG": 4.96116,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "carbsG": 0.79135749,
+          "fatG": 0.011990265,
+          "kcal": 3.57309897,
+          "massG": 2.398053,
+          "proteinG": 0.153475392
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "carbsG": 0.033572728,
+          "fatG": 0,
+          "kcal": 0.10191721,
+          "massG": 0.599513,
+          "proteinG": 0.002398052
+        },
+        {
+          "id": "ingr_0000000521",
+          "name": "basil",
+          "carbsG": 0.02398054,
+          "fatG": 0,
+          "kcal": 0.28776648,
+          "massG": 1.199027,
+          "proteinG": 0.04796108
+        },
+        {
+          "id": "ingr_0000000341",
+          "name": "cream",
+          "carbsG": 0.258989778,
+          "fatG": 3.510750324,
+          "kcal": 32.258615682,
+          "massG": 9.592214,
+          "proteinG": 0.268581992
+        },
+        {
+          "id": "ingr_0000000514",
+          "name": "wheat berry",
+          "carbsG": 4.580282376,
+          "fatG": 0.11990268,
+          "kcal": 21.82228776,
+          "massG": 23.980536,
+          "proteinG": 1.007182512
+        },
+        {
+          "id": "ingr_0000000046",
+          "name": "mushroom",
+          "carbsG": 0.395678844,
+          "fatG": 0.035970804,
+          "kcal": 2.63785896,
+          "massG": 11.990268,
+          "proteinG": 0.371698308
+        },
+        {
+          "id": "ingr_0000000515",
+          "name": "arugula",
+          "carbsG": 0.221819958,
+          "fatG": 0.041965938,
+          "kcal": 1.4987835,
+          "massG": 5.995134,
+          "proteinG": 0.155873484
+        },
+        {
+          "id": "ingr_0000000471",
+          "name": "cherry tomatoes",
+          "carbsG": 0.439787244,
+          "fatG": 0.022553192,
+          "kcal": 2.02978728,
+          "massG": 11.276596,
+          "proteinG": 0.101489364
+        },
+        {
+          "id": "ingr_0000000377",
+          "name": "quinoa",
+          "carbsG": 17.9417469,
+          "fatG": 1.62330091,
+          "kcal": 102.524268,
+          "massG": 85.43689,
+          "proteinG": 3.75922316
+        },
+        {
+          "id": "ingr_0000000028",
+          "name": "chicken",
+          "carbsG": 0,
+          "fatG": 8.632992924,
+          "kcal": 395.67884235,
+          "massG": 239.805359,
+          "proteinG": 74.33966129
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "carbsG": 0.111509511,
+          "fatG": 0.002398054,
+          "kcal": 0.4796108,
+          "massG": 1.199027,
+          "proteinG": 0.02398054
+        },
+        {
+          "id": "ingr_0000000033",
+          "name": "bell peppers",
+          "carbsG": 0.40595742,
+          "fatG": 0.009021276,
+          "kcal": 1.8042552,
+          "massG": 4.510638,
+          "proteinG": 0.09021276
+        },
+        {
+          "id": "ingr_0000000428",
+          "name": "white wine",
+          "carbsG": 0.015587338,
+          "fatG": 0,
+          "kcal": 0.49160066,
+          "massG": 0.599513,
+          "proteinG": 0.000599513
+        },
+        {
+          "id": "ingr_0000000030",
+          "name": "lettuce",
+          "carbsG": 1.308085136,
+          "fatG": 0.090212768,
+          "kcal": 6.7659576,
+          "massG": 45.106384,
+          "proteinG": 0.631489376
+        },
+        {
+          "id": "ingr_0000000319",
+          "name": "feta cheese",
+          "carbsG": 0.189446796,
+          "fatG": 0.951744618,
+          "kcal": 11.912594958,
+          "massG": 4.510638,
+          "proteinG": 0.622468044
+        },
+        {
+          "id": "ingr_0000000433",
+          "name": "roasted potatoes",
+          "carbsG": 28.08,
+          "fatG": 10.608,
+          "kcal": 219.96,
+          "massG": 156,
+          "proteinG": 3.276
+        },
+        {
+          "id": "ingr_0000000094",
+          "name": "onions",
+          "carbsG": 0.40595742,
+          "fatG": 0.004510638,
+          "kcal": 1.8042552,
+          "massG": 4.510638,
+          "proteinG": 0.049617018
+        },
+        {
+          "id": "ingr_0000000441",
+          "name": "butter",
+          "carbsG": 0.002398053,
+          "fatG": 1.94242293,
+          "kcal": 17.19404001,
+          "massG": 2.398053,
+          "proteinG": 0.019184424
+        },
+        {
+          "id": "ingr_0000000518",
+          "name": "thyme",
+          "carbsG": 0.17985408,
+          "fatG": 0.012739664,
+          "kcal": 0.75688592,
+          "massG": 0.749392,
+          "proteinG": 0.04496352
+        },
+        {
+          "id": "ingr_0000000516",
+          "name": "rosemary",
+          "carbsG": 0.1498784,
+          "fatG": 0.042715344,
+          "kcal": 0.98170352,
+          "massG": 0.749392,
+          "proteinG": 0.021732368
+        },
+        {
+          "id": "ingr_0000000031",
+          "name": "cucumbers",
+          "carbsG": 0.45106384,
+          "fatG": 0,
+          "kcal": 2.2553192,
+          "massG": 22.553192,
+          "proteinG": 0.22553192
+        },
+        {
+          "id": "ingr_0000000012",
+          "name": "olives",
+          "carbsG": 0.284170194,
+          "fatG": 0.482638266,
+          "kcal": 5.1872337,
+          "massG": 4.510638,
+          "proteinG": 0.036085104
+        },
+        {
+          "id": "ingr_0000000519",
+          "name": "oregano",
+          "carbsG": 0.51708048,
+          "fatG": 0.02997568,
+          "kcal": 2.0233584,
+          "massG": 0.749392,
+          "proteinG": 0.06744528
+        },
+        {
+          "id": "ingr_0000000338",
+          "name": "vinaigrette",
+          "carbsG": 0.234553176,
+          "fatG": 4.673020968,
+          "kcal": 41.99403978,
+          "massG": 9.021276,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "carbsG": 0,
+          "fatG": 0,
+          "kcal": 0,
+          "massG": 2.398053,
+          "proteinG": 0
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1566414412.jpg",
+      "inputSha256": "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+      "inputFailure": null,
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566414412/rgb.png",
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "f3a8c1a54052aa681e515e17cf33548aac959cd773a1b07c35d8ce5b4720dcaf",
+      "auditRole": "large_error",
+      "sideInputPath": "inputs/dish_1566414412-side.jpg",
+      "sideInputSha256": "58c6d2b28699fc53487574c3a8aea68c9a76124e4ad7bea3ed68868f2f42a6b2",
+      "sideSource": {
+        "id": "dish_1566414412",
+        "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1566414412/camera_A.h264",
+        "sourceBytes": 7812518,
+        "sourceMd5Base64": "uIxR5n3FbXCmmoMYgLWc8w==",
+        "sourceSha256": "25bc22a5d07f703848472c2d91128dcf7879531d91a9c64c2373b8ab106dc6ff",
+        "firstFramePngSha256": "fee262ba7218e60457b2320975ac41aba059e1815194bc94c10f2d3c7b58f6bb",
+        "inputPath": "inputs/dish_1566414412-side.jpg",
+        "inputSha256": "58c6d2b28699fc53487574c3a8aea68c9a76124e4ad7bea3ed68868f2f42a6b2",
+        "inputBytes": 281986,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1920,
+          "height": 1080,
+          "r_frame_rate": "1200000/1"
+        }
+      },
+      "sidePairPreflightUsable": true,
+      "pairPreflightBasis": "Primary assistant inspected both images; matching vessel/broad groups, no unequivocal state change; exact temporal synchrony not verified",
+      "inputSourceRelativePath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1566414412.jpg",
+      "armOrder": [
+        "paired",
+        "single"
+      ]
+    }
+  ],
+  "license": {
+    "id": "CC-BY-4.0",
+    "attribution": "Thames et al., Nutrition5k, CVPR2021"
+  },
+  "scopeLimit": "Outcome-selected development probe; no population accuracy or promotion claim",
+  "preparation": {
+    "frameRule": "First decoded output frame camera_A.h264, no replacement",
+    "ffmpegVersion": "ffmpeg version 7.1.5-0+deb13u1+rpt2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "pillowVersion": "11.1.0",
+    "jpegLibrary": "6.2",
+    "quality": 85,
+    "subsampling": 2,
+    "resize": false,
+    "exif": "removed",
+    "maxClipBytes": 25165824,
+    "maxTotalClipBytes": 75497472,
+    "overheadResolution": [
+      640,
+      480
+    ],
+    "sideResolution": [
+      1920,
+      1080
+    ],
+    "limitation": "Supplementary camera/context/resolution package, not isolated view count or calibrated geometry. Rawstream r_frame_rate is not a verified recording framerate; no timing claim."
+  }
+}

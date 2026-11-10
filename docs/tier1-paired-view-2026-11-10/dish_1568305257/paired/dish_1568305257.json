@@ -1,0 +1,195 @@
+{
+  "id": "dish_1568305257",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 439.55,
+      "proteinG": 30.31,
+      "carbsG": 5.665000000000001,
+      "fatG": 32.45
+    },
+    "massG": 250,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10639,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Scrambled Eggs with Turkey Bacon and Side Salad",
+    "components": [
+      {
+        "name": "Scrambled eggs",
+        "massG": 160,
+        "catalogId": null,
+        "preparation": "cooked scrambled",
+        "assumptions": [
+          "Prepared with a small amount of cooking fat or non-stick spray",
+          "Approximately 3 large eggs"
+        ],
+        "estimatedPer100": {
+          "kcal": 149,
+          "proteinG": 10,
+          "carbsG": 1.6,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 238.4,
+          "proteinG": 16,
+          "carbsG": 2.5600000000000005,
+          "fatG": 17.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Turkey bacon strips",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "cooked pan-fried/baked",
+        "assumptions": [
+          "3 strips of cooked turkey bacon"
+        ],
+        "estimatedPer100": {
+          "kcal": 382,
+          "proteinG": 30,
+          "carbsG": 3.4,
+          "fatG": 28
+        },
+        "nutrients": {
+          "kcal": 171.9,
+          "proteinG": 13.5,
+          "carbsG": 1.53,
+          "fatG": 12.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Side salad with spinach, shredded carrots, and dressing",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "raw with light dressing",
+        "assumptions": [
+          "Spinach and carrot blend tossed with a light vinaigrette or oil coating"
+        ],
+        "estimatedPer100": {
+          "kcal": 65,
+          "proteinG": 1.8,
+          "carbsG": 3.5,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 29.25,
+          "proteinG": 0.81,
+          "carbsG": 1.575,
+          "fatG": 2.25
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 439.55,
+      "proteinG": 30.31,
+      "carbsG": 5.665000000000001,
+      "fatG": 32.45
+    },
+    "ambiguities": [
+      "Specific type/brand of bacon (assumed turkey bacon based on uniform color and texture)",
+      "Exact amount and type of dressing on greens"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10630,
+      "inputTokens": 3158,
+      "outputTokens": 502,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Scrambled Eggs with Turkey Bacon and Side Salad",
+      "components": [
+        {
+          "name": "Scrambled eggs",
+          "massG": 160,
+          "catalogId": null,
+          "preparation": "cooked scrambled",
+          "assumptions": [
+            "Prepared with a small amount of cooking fat or non-stick spray",
+            "Approximately 3 large eggs"
+          ],
+          "estimatedPer100": {
+            "kcal": 149,
+            "proteinG": 10,
+            "carbsG": 1.6,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Turkey bacon strips",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "cooked pan-fried/baked",
+          "assumptions": [
+            "3 strips of cooked turkey bacon"
+          ],
+          "estimatedPer100": {
+            "kcal": 382,
+            "proteinG": 30,
+            "carbsG": 3.4,
+            "fatG": 28
+          }
+        },
+        {
+          "name": "Side salad with spinach, shredded carrots, and dressing",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "raw with light dressing",
+          "assumptions": [
+            "Spinach and carrot blend tossed with a light vinaigrette or oil coating"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 1.8,
+            "carbsG": 3.5,
+            "fatG": 5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Specific type/brand of bacon (assumed turkey bacon based on uniform color and texture)",
+        "Exact amount and type of dressing on greens"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "1151d87da033431ae626281781f1213b18b7f09e506fee4fab29c72968f09a58"
+}

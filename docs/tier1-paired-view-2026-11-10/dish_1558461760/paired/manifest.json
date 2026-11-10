@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "scope": "public_dataset",
+  "datasetId": "nutrition5k",
+  "sampleCount": 1,
+  "cases": [
+    {
+      "id": "dish_1558461760",
+      "captureDate": "2019-05-21",
+      "reference": {
+        "kcal": 10.98,
+        "proteinG": 0.549,
+        "carbsG": 2.379,
+        "fatG": 0.122,
+        "massG": 61
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000471",
+          "name": "cherry tomatoes",
+          "carbsG": 2.379,
+          "fatG": 0.122,
+          "kcal": 10.98,
+          "massG": 61,
+          "proteinG": 0.549
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1558461760.jpg",
+      "inputSha256": "bec9733dd686efa669a5156124ea2f6a94fcebceba538e06a19515efcd02875c",
+      "inputFailure": null,
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558461760/rgb.png",
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "dcac5cde295fb089d004a4e59357ac93a47bf92f33786626d95e339cdadcb8f6",
+      "auditRole": "small_error_control",
+      "sideInputPath": "inputs/dish_1558461760-side.jpg",
+      "sideInputSha256": "bf5ad7fb878713e9514c0c9b81f7e49f8ca552781a5add95c882156c3c7450df",
+      "sideSource": {
+        "id": "dish_1558461760",
+        "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1558461760/camera_A.h264",
+        "sourceBytes": 7072021,
+        "sourceMd5Base64": "N5QYufyBTtZ0sI75aCiegA==",
+        "sourceSha256": "d773dcd5dc8b5477a5bf549fbc4e6d23353464aa76aa131c5815b68b72109fe6",
+        "firstFramePngSha256": "86c6e56107177a70a460be5b859b2060edb12731b475df20a9c3676ff4075d47",
+        "inputPath": "inputs/dish_1558461760-side.jpg",
+        "inputSha256": "bf5ad7fb878713e9514c0c9b81f7e49f8ca552781a5add95c882156c3c7450df",
+        "inputBytes": 248963,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1920,
+          "height": 1080,
+          "r_frame_rate": "1200000/1"
+        }
+      },
+      "sidePairPreflightUsable": true,
+      "pairPreflightBasis": "Primary assistant inspected both images; matching vessel/broad groups, no unequivocal state change; exact temporal synchrony not verified",
+      "inputSourceRelativePath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1558461760.jpg",
+      "armOrder": [
+        "single",
+        "paired"
+      ]
+    }
+  ],
+  "license": {
+    "id": "CC-BY-4.0",
+    "attribution": "Thames et al., Nutrition5k, CVPR2021"
+  },
+  "scopeLimit": "Outcome-selected development probe; no population accuracy or promotion claim",
+  "preparation": {
+    "frameRule": "First decoded output frame camera_A.h264, no replacement",
+    "ffmpegVersion": "ffmpeg version 7.1.5-0+deb13u1+rpt2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "pillowVersion": "11.1.0",
+    "jpegLibrary": "6.2",
+    "quality": 85,
+    "subsampling": 2,
+    "resize": false,
+    "exif": "removed",
+    "maxClipBytes": 25165824,
+    "maxTotalClipBytes": 75497472,
+    "overheadResolution": [
+      640,
+      480
+    ],
+    "sideResolution": [
+      1920,
+      1080
+    ],
+    "limitation": "Supplementary camera/context/resolution package, not isolated view count or calibrated geometry. Rawstream r_frame_rate is not a verified recording framerate; no timing claim."
+  }
+}

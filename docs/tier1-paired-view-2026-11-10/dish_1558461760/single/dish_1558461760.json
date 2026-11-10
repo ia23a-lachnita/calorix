@@ -1,0 +1,103 @@
+{
+  "id": "dish_1558461760",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 13.5,
+      "proteinG": 0.675,
+      "carbsG": 2.925,
+      "fatG": 0.15000000000000002
+    },
+    "massG": 75,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 7867,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Grape Tomatoes",
+    "components": [
+      {
+        "name": "Grape tomatoes",
+        "massG": 75,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "5 whole grape/cherry tomatoes",
+          "Average mass approximately 15g per tomato"
+        ],
+        "estimatedPer100": {
+          "kcal": 18,
+          "proteinG": 0.9,
+          "carbsG": 3.9,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 13.5,
+          "proteinG": 0.675,
+          "carbsG": 2.925,
+          "fatG": 0.15000000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 13.5,
+      "proteinG": 0.675,
+      "carbsG": 2.925,
+      "fatG": 0.15000000000000002
+    },
+    "ambiguities": [],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 7860,
+      "inputTokens": 2058,
+      "outputTokens": 178,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Grape Tomatoes",
+      "components": [
+        {
+          "name": "Grape tomatoes",
+          "massG": 75,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "5 whole grape/cherry tomatoes",
+            "Average mass approximately 15g per tomato"
+          ],
+          "estimatedPer100": {
+            "kcal": 18,
+            "proteinG": 0.9,
+            "carbsG": 3.9,
+            "fatG": 0.2
+          }
+        }
+      ],
+      "ambiguities": [],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "585c9ddd559ee51583c27390fc4d493f0db75f6531baf0bf8eb7c5985dd029d2"
+}

@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-10T17:20:22.035394+00:00",
+  "inferenceRequests": 0,
+  "project": {
+    "http": 200,
+    "name": "Calorix",
+    "projectId": "calorix-xurschnell",
+    "lifecycleState": "ACTIVE"
+  },
+  "model": {
+    "http": 200,
+    "name": "publishers/google/models/gemini-3.8-flash",
+    "projectId": null,
+    "lifecycleState": null
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Mixed Salad Plate with Roast Potatoes, Quinoa Salad, and Chicken/Fish Salad\",\n  \"components\": [\n    {\n      \"name\": \"Mixed green salad with vinaigrette\",\n      \"massG\": 85,\n      \"catalogId\": null,\n      \"preparation\": \"raw with dressing\",\n      \"assumptions\": [\"Mixed greens, cherry tomato, red onion, lightly dressed with oil and vinegar\"],\n      \"estimatedPer100\": {\n        \"kcal\": 65,\n        \"proteinG\": 1.5,\n        \"carbsG\": 4.5,\n        \"fatG\": 4.8\n      }\n    },\n    {\n      \"name\": \"Roasted potato wedges\",\n      \"massG\": 110,\n      \"catalogId\": null,\n      \"preparation\": \"roasted with oil and herbs\",\n      \"assumptions\": [\"Roasted red-skinned or yellow potatoes with cooking oil\"],\n      \"estimatedPer100\": {\n        \"kcal\": 140,\n        \"proteinG\": 2.5,\n        \"carbsG\": 22.0,\n        \"fatG\": 5.0\n      }\n    },\n    {\n      \"name\": \"Quinoa and vegetable salad\",\n      \"massG\": 70,\n      \"catalogId\": null,\n      \"preparation\": \"cooked and chilled\",\n      \"assumptions\": [\"Quinoa or couscous grain salad mixed with peppers, red onion, zucchini, and vinaigrette\"],\n      \"estimatedPer100\": {\n        \"kcal\": 125,\n        \"proteinG\": 3.5,\n        \"carbsG\": 18.0,\n        \"fatG\": 4.5\n      }\n    },\n    {\n      \"name\": \"Creamy chicken or tuna salad with breadcrumbs/seeds\",\n      \"massG\": 90,\n      \"catalogId\": null,\n      \"preparation\": \"mixed with creamy dressing\",\n      \"assumptions\": [\"Shredded poultry or flaked fish in a mayonnaise or yogurt-based dressing topped with nuts/crumbs\"],\n      \"estimatedPer100\": {\n        \"kcal\": 210,\n        \"proteinG\": 15.0,\n        \"carbsG\": 6.0,\n        \"fatG\": 14.0\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Exact protein in creamy salad (chicken vs fish vs tofu)\",\n    \"Grain base in grain salad (quinoa vs couscous)\",\n    \"Amount of dressing/oil on greens\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 3158,
+    "candidatesTokenCount": 622,
+    "totalTokenCount": 3780,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 994
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 2164
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 622
+      }
+    ]
+  },
+  "latencyMs": 10869,
+  "inputSha256": [
+    "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+    "58c6d2b28699fc53487574c3a8aea68c9a76124e4ad7bea3ed68868f2f42a6b2"
+  ],
+  "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+  "costUsd": null
+}

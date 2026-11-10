@@ -1,4 +1,4 @@
-manifest_version: 9
+manifest_version: 10
 baseline: A1
 requested_model: gemini-3.8-flash
 returned_model_policy: exact equality or explicit failure
@@ -91,8 +91,8 @@ portion_audit_promotion: no automatic promotion
 portion_audit_executed_sdk_calls: 20
 portion_audit_valid_outputs: 20
 portion_audit_report: docs/tier1-portion-audit-2026-11-09/report.md
-public_evaluation_sdk_invocations: 140
-public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog plus20 portion-audit plus20 mealrange two-model plus30 scalar-calibration TRAIN20/TEST10 plus10 mass-power newTEST; nonfood/text diagnostics excluded
+public_evaluation_sdk_invocations: 152
+public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog plus20 portion-audit plus20 mealrange two-model plus30 scalar-calibration TRAIN20/TEST10 plus10 mass-power newTEST plus12 paired-view controlled predictions on6existingdevelopmentmeals; nonfood/text diagnostics excluded
 
 vlm_challenger_status: archived for failed P90 guard; not default or deployed
 vlm_challenger_model: gemini-4-argon
@@ -168,3 +168,18 @@ accuracy_readiness: inadequate_absolute_errors; relative_comparison_gain_is_not_
 supplemental_absolute_error_medians: docs/tier1-mass-power-2026-11-10/absolute-error-medians.json
 reference_object_accuracy_validated: false
 multi_view_accuracy_validated: false
+
+paired_view_status: completed_negative_development_comparison; notpromoted/appunchanged
+paired_view_report: docs/tier1-paired-view-2026-11-10/report.md
+paired_view_audit: docs/tier1-failure-audit-2026-11-10/report.md
+paired_view_source_commit: c2f7e0c661f1ed89b84501c5289ddfb12aee4344
+paired_view_prompt_sha256: 45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945
+paired_view_manifest_sha256: 1f16707fd12101157ed2f39f5e8c263a67f37ab378bff12b9151353880e9d96c
+paired_view_food_sdk_entries: 12
+paired_view_owned_nonfood_probe_entries: 1
+paired_view_total_sdk_entries: 13
+paired_view_registry_status: closed; neverresume/reset
+paired_view_sample: selected4largesthistoricalerrors plus2smallestcontrols; developmentonly/notrepresentative
+paired_view_gain_validated: false
+paired_view_physics_calibration_validated: false
+next_reference_scale_feasibility: originalECUSTFD25mmcoin/weight_g; verifyunits/portionmapping/ediblecompatibility/rights beforeseparatereviewedbudget; no calorie_gold_invention

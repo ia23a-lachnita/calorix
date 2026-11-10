@@ -1,0 +1,236 @@
+{
+  "id": "dish_1563478751",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 419.05,
+      "proteinG": 27.795,
+      "carbsG": 39.93999999999999,
+      "fatG": 15.940000000000001
+    },
+    "massG": 255,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 14075,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Penne Pasta with Beef and Spinach in Cream Sauce",
+    "components": [
+      {
+        "name": "Penne pasta",
+        "massG": 120,
+        "catalogId": null,
+        "preparation": "cooked boiled",
+        "assumptions": [
+          "Standard refined wheat penne pasta, weighed cooked"
+        ],
+        "estimatedPer100": {
+          "kcal": 158,
+          "proteinG": 5.8,
+          "carbsG": 31,
+          "fatG": 0.9
+        },
+        "nutrients": {
+          "kcal": 189.6,
+          "proteinG": 6.96,
+          "carbsG": 37.199999999999996,
+          "fatG": 1.08
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Beef chunks",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "cooked sauteed",
+        "assumptions": [
+          "Diced beef steak tips or braised beef chunks"
+        ],
+        "estimatedPer100": {
+          "kcal": 215,
+          "proteinG": 24.5,
+          "carbsG": 0.5,
+          "fatG": 12.5
+        },
+        "nutrients": {
+          "kcal": 172,
+          "proteinG": 19.6,
+          "carbsG": 0.4,
+          "fatG": 10
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cream sauce",
+        "massG": 40,
+        "catalogId": null,
+        "preparation": "cooked simmered",
+        "assumptions": [
+          "Light tomato-cream or pan reduction sauce coating the pasta and meat"
+        ],
+        "estimatedPer100": {
+          "kcal": 135,
+          "proteinG": 2,
+          "carbsG": 4.5,
+          "fatG": 12
+        },
+        "nutrients": {
+          "kcal": 54,
+          "proteinG": 0.8,
+          "carbsG": 1.8,
+          "fatG": 4.800000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Spinach",
+        "massG": 15,
+        "catalogId": null,
+        "preparation": "cooked wilted",
+        "assumptions": [
+          "Fresh baby spinach wilted into the warm pasta"
+        ],
+        "estimatedPer100": {
+          "kcal": 23,
+          "proteinG": 2.9,
+          "carbsG": 3.6,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 3.4499999999999997,
+          "proteinG": 0.435,
+          "carbsG": 0.54,
+          "fatG": 0.06
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 419.05,
+      "proteinG": 27.795,
+      "carbsG": 39.93999999999999,
+      "fatG": 15.940000000000001
+    },
+    "ambiguities": [
+      "Meat type is visually estimated as beef chunks, but could be pork, turkey, or plant-based meat alternative",
+      "Sauce composition estimated as a light cream-based pan sauce"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 14067,
+      "inputTokens": 3158,
+      "outputTokens": 581,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Penne Pasta with Beef and Spinach in Cream Sauce",
+      "components": [
+        {
+          "name": "Penne pasta",
+          "massG": 120,
+          "catalogId": null,
+          "preparation": "cooked boiled",
+          "assumptions": [
+            "Standard refined wheat penne pasta, weighed cooked"
+          ],
+          "estimatedPer100": {
+            "kcal": 158,
+            "proteinG": 5.8,
+            "carbsG": 31,
+            "fatG": 0.9
+          }
+        },
+        {
+          "name": "Beef chunks",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "cooked sauteed",
+          "assumptions": [
+            "Diced beef steak tips or braised beef chunks"
+          ],
+          "estimatedPer100": {
+            "kcal": 215,
+            "proteinG": 24.5,
+            "carbsG": 0.5,
+            "fatG": 12.5
+          }
+        },
+        {
+          "name": "Cream sauce",
+          "massG": 40,
+          "catalogId": null,
+          "preparation": "cooked simmered",
+          "assumptions": [
+            "Light tomato-cream or pan reduction sauce coating the pasta and meat"
+          ],
+          "estimatedPer100": {
+            "kcal": 135,
+            "proteinG": 2,
+            "carbsG": 4.5,
+            "fatG": 12
+          }
+        },
+        {
+          "name": "Spinach",
+          "massG": 15,
+          "catalogId": null,
+          "preparation": "cooked wilted",
+          "assumptions": [
+            "Fresh baby spinach wilted into the warm pasta"
+          ],
+          "estimatedPer100": {
+            "kcal": 23,
+            "proteinG": 2.9,
+            "carbsG": 3.6,
+            "fatG": 0.4
+          }
+        }
+      ],
+      "ambiguities": [
+        "Meat type is visually estimated as beef chunks, but could be pork, turkey, or plant-based meat alternative",
+        "Sauce composition estimated as a light cream-based pan sauce"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "d05320f9d60b3a0f5d851b9d4e94a6f2fd7c18b0c71340dbe780cce7d5bd7a4f"
+}

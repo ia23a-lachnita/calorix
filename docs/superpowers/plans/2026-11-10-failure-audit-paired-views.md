@@ -14,9 +14,11 @@ Reporteverycasepairedabsolute-error delta (two minusone), aggregate mass/macros,
 
 - [x] Tests-first audit selection/diagnostic/summary +frozen data/hostnotes; reproduce all60 and10selectedimages.
 - [x] Fixed6 sideframes/sourcepins/visualpairpreflight; tests-first13budget/newprompt/requestcontrols/scorer; source review/fresh-contextexternal wholefeature audit; commit/pushbeforelive.
-- [ ] Readonlycredentials/modelavailability; one13entryexperiment; actualpairedcomparison/source/resultreviews, no productionchange.
-- [ ] Publishactualevidence/limits/nextengineeringdecision/status/manifest; commit/push/cleanupownscratchtmp.
+- [x] Readonlycredentials/modelavailability; one13entryexperiment; actualpairedcomparison/source/resultreviews, no productionchange.
+- [x] Publishactualevidence/limits/nextengineeringdecision/status/manifest; commit/push/cleanupownscratchtmp.
 
 Reviewer noise rejected: Nutrition5k references are recipe/USDA-derived, NOT bomb calorimetry; no perfect-confound-isolation or unique causal attribution; P90 is interpolated descriptive percentile, not max/bound; aggregate mass only unless platedmatchingverified. Keep predeterminedprompt-firstpayloadorder. Prior nativechildreview route failed with usage limit beforefinalreceipt; do not claim new nativeaudit. Use one fresh-context read-only externalMCP wholefeature source audit in separateconversation, in addition to main pre/source/result workstream; document exact scope.
 
 Source stagecomplete:99Python/24NodePASS;8newPython/3NodeactualRED→GREEN, all60/selection10replay, all12JPEGcached-sourceconversionbyteexact. MainMCP3.8sourcegreen. Freshsourcecall3.8clienttimeout300s;3.7/3.6canonicalfallbacktoolrejectedHigh-effort; exacterrorsrecorded. Recoveredpersisted3.8fullfreshresponse2026-11-10T17:24:02.187ZexplicitagreeMUSTnone; timeout/errorsnotsuccess. Inventedfilenames/genericabsoluteclaimsrejected, constraintsretained. No newnativeclaim/no sourcealgorithmfix. Newbudget0untilsourcecommitpushclean. Additionalcameraresolution/contextconfoundandrawstreamunverifiedfpsrecorded; no puregeometry/scale/timingclaim.
+
+Actualcomparisoncomplete13/all12valid/rejected: mean313.72→319.75/median367.53→415.98worse,3better3worse; worst4nearlyflat/controlsharm, no promotion. No generalmultiviewconclusion.102Decimalfields/60redecodedmassnutrientfields/all12componentlists/source/manifests verified; byteexactpublishedreplay. Initialmissingauxblankrefusedbeforeclaim/SDK0 thenexactfixturepathcorrected; noAPIretry. MainactualresultMCP3.8green. Continuegenuineknownscale-datafeasibility(primaryECUSTFD25mmcoin/weights), no newSDKuntilseparatefrozenreviewedprotocol andnewbudget; no runtime/UIchange.

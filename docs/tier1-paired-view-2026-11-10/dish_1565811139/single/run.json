@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "manifestSha256": "0888b86bc1936ef9103698d5d213865b1d54ca79fc44719c7789e97cd66c08a9",
+  "model": "gemini-3.8-flash",
+  "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+  "baselineScope": "A0 shares A1 identities/preparation/catalog; only serving priors differ",
+  "portionPriorSha256": "7168c8d90f2d64ca70d9fc703432fb44f637dae7ff70bad81cdaab782728477b",
+  "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "maxSdkInvocations": 1,
+  "startedAt": "2026-11-10T17:29:46.140Z"
+}

@@ -1,0 +1,33 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Steak, chicken breast, and cauliflower\",\n  \"components\": [\n    {\n      \"name\": \"Steak slices\",\n      \"massG\": 120.0,\n      \"catalogId\": null,\n      \"preparation\": \"cooked grilled or seared\",\n      \"assumptions\": [\"Cooked medium to medium-rare beef steak\"],\n      \"estimatedPer100\": {\n        \"kcal\": 210.0,\n        \"proteinG\": 26.0,\n        \"carbsG\": 0.0,\n        \"fatG\": 11.5\n      }\n    },\n    {\n      \"name\": \"Diced chicken breast\",\n      \"massG\": 90.0,\n      \"catalogId\": \"usda:171477\",\n      \"preparation\": \"cooked roasted\",\n      \"assumptions\": [\"Boneless, skinless, diced cooked chicken breast\"],\n      \"estimatedPer100\": null\n    },\n    {\n      \"name\": \"Steamed cauliflower florets\",\n      \"massG\": 80.0,\n      \"catalogId\": null,\n      \"preparation\": \"steamed/boiled\",\n      \"assumptions\": [\"Boiled or steamed plain cauliflower florets\"],\n      \"estimatedPer100\": {\n        \"kcal\": 25.0,\n        \"proteinG\": 1.9,\n        \"carbsG\": 5.0,\n        \"fatG\": 0.3\n      }\n    }\n  ],\n  \"ambiguities\": [\"Specific cut of beef used for steak\", \"Presence of cooking oil or butter on meats\"],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2058,
+    "candidatesTokenCount": 402,
+    "totalTokenCount": 2460,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 994
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 402
+      }
+    ]
+  },
+  "latencyMs": 9342,
+  "inputSha256": [
+    "bf99a8f9c0994d2d7368509a6e9427bfbbc1fdc78eac2b9fe95459740a6d77ba"
+  ],
+  "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+  "costUsd": null
+}

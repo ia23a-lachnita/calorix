@@ -1,0 +1,236 @@
+{
+  "id": "dish_1566414412",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 569.65,
+      "proteinG": 31.415,
+      "carbsG": 48.45,
+      "fatG": 27.939999999999998
+    },
+    "massG": 395,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 11085,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chicken and Vegetable Plate with Roast Potatoes and Salad",
+    "components": [
+      {
+        "name": "Shredded chicken in creamy sauce",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "cooked in creamy sauce/dressing",
+        "assumptions": [
+          "Chicken breast or mixed poultry with mayo/yogurt based dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 185,
+          "proteinG": 18,
+          "carbsG": 3,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 259,
+          "proteinG": 25.2,
+          "carbsG": 4.199999999999999,
+          "fatG": 15.399999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted potato wedges",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "roasted with oil",
+        "assumptions": [
+          "Potatoes roasted with skin on in cooking oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 149,
+          "proteinG": 2.5,
+          "carbsG": 23,
+          "fatG": 5.5
+        },
+        "nutrients": {
+          "kcal": 163.9,
+          "proteinG": 2.75,
+          "carbsG": 25.3,
+          "fatG": 6.050000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Couscous or grain salad with vegetables",
+        "massG": 75,
+        "catalogId": null,
+        "preparation": "cooked mixed salad",
+        "assumptions": [
+          "Couscous or quinoa tossed with peppers and onion"
+        ],
+        "estimatedPer100": {
+          "kcal": 135,
+          "proteinG": 3.5,
+          "carbsG": 22,
+          "fatG": 3.8
+        },
+        "nutrients": {
+          "kcal": 101.25,
+          "proteinG": 2.625,
+          "carbsG": 16.5,
+          "fatG": 2.8499999999999996
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed green salad with dressing",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "raw tossed with vinaigrette",
+        "assumptions": [
+          "Mixed greens, cherry tomato, red onion, and light oil dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 65,
+          "proteinG": 1.2,
+          "carbsG": 3.5,
+          "fatG": 5.2
+        },
+        "nutrients": {
+          "kcal": 45.5,
+          "proteinG": 0.84,
+          "carbsG": 2.4499999999999997,
+          "fatG": 3.6399999999999997
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 569.65,
+      "proteinG": 31.415,
+      "carbsG": 48.45,
+      "fatG": 27.939999999999998
+    },
+    "ambiguities": [
+      "Couscous vs quinoa or bulgur grain base",
+      "Type and oil content of dressing on the salad and creamy chicken"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 11078,
+      "inputTokens": 2058,
+      "outputTokens": 584,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chicken and Vegetable Plate with Roast Potatoes and Salad",
+      "components": [
+        {
+          "name": "Shredded chicken in creamy sauce",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "cooked in creamy sauce/dressing",
+          "assumptions": [
+            "Chicken breast or mixed poultry with mayo/yogurt based dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 185,
+            "proteinG": 18,
+            "carbsG": 3,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Roasted potato wedges",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "roasted with oil",
+          "assumptions": [
+            "Potatoes roasted with skin on in cooking oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 149,
+            "proteinG": 2.5,
+            "carbsG": 23,
+            "fatG": 5.5
+          }
+        },
+        {
+          "name": "Couscous or grain salad with vegetables",
+          "massG": 75,
+          "catalogId": null,
+          "preparation": "cooked mixed salad",
+          "assumptions": [
+            "Couscous or quinoa tossed with peppers and onion"
+          ],
+          "estimatedPer100": {
+            "kcal": 135,
+            "proteinG": 3.5,
+            "carbsG": 22,
+            "fatG": 3.8
+          }
+        },
+        {
+          "name": "Mixed green salad with dressing",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "raw tossed with vinaigrette",
+          "assumptions": [
+            "Mixed greens, cherry tomato, red onion, and light oil dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 1.2,
+            "carbsG": 3.5,
+            "fatG": 5.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Couscous vs quinoa or bulgur grain base",
+        "Type and oil content of dressing on the salad and creamy chicken"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "a8db4d510c970cc76c48f70abd15292fc59a01a71d2050f4f173d07d4afa24d9"
+}

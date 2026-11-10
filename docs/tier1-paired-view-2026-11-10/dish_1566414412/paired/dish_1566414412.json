@@ -1,0 +1,238 @@
+{
+  "id": "dish_1566414412",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 485.75,
+      "proteinG": 19.975,
+      "carbsG": 46.025,
+      "fatG": 25.33
+    },
+    "massG": 355,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10878,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Mixed Salad Plate with Roast Potatoes, Quinoa Salad, and Chicken/Fish Salad",
+    "components": [
+      {
+        "name": "Mixed green salad with vinaigrette",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "raw with dressing",
+        "assumptions": [
+          "Mixed greens, cherry tomato, red onion, lightly dressed with oil and vinegar"
+        ],
+        "estimatedPer100": {
+          "kcal": 65,
+          "proteinG": 1.5,
+          "carbsG": 4.5,
+          "fatG": 4.8
+        },
+        "nutrients": {
+          "kcal": 55.25,
+          "proteinG": 1.275,
+          "carbsG": 3.8249999999999997,
+          "fatG": 4.08
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted potato wedges",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "roasted with oil and herbs",
+        "assumptions": [
+          "Roasted red-skinned or yellow potatoes with cooking oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 140,
+          "proteinG": 2.5,
+          "carbsG": 22,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 154,
+          "proteinG": 2.75,
+          "carbsG": 24.200000000000003,
+          "fatG": 5.5
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Quinoa and vegetable salad",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "cooked and chilled",
+        "assumptions": [
+          "Quinoa or couscous grain salad mixed with peppers, red onion, zucchini, and vinaigrette"
+        ],
+        "estimatedPer100": {
+          "kcal": 125,
+          "proteinG": 3.5,
+          "carbsG": 18,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 87.5,
+          "proteinG": 2.4499999999999997,
+          "carbsG": 12.6,
+          "fatG": 3.15
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Creamy chicken or tuna salad with breadcrumbs/seeds",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "mixed with creamy dressing",
+        "assumptions": [
+          "Shredded poultry or flaked fish in a mayonnaise or yogurt-based dressing topped with nuts/crumbs"
+        ],
+        "estimatedPer100": {
+          "kcal": 210,
+          "proteinG": 15,
+          "carbsG": 6,
+          "fatG": 14
+        },
+        "nutrients": {
+          "kcal": 189,
+          "proteinG": 13.5,
+          "carbsG": 5.4,
+          "fatG": 12.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 485.75,
+      "proteinG": 19.975,
+      "carbsG": 46.025,
+      "fatG": 25.33
+    },
+    "ambiguities": [
+      "Exact protein in creamy salad (chicken vs fish vs tofu)",
+      "Grain base in grain salad (quinoa vs couscous)",
+      "Amount of dressing/oil on greens"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10869,
+      "inputTokens": 3158,
+      "outputTokens": 622,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Mixed Salad Plate with Roast Potatoes, Quinoa Salad, and Chicken/Fish Salad",
+      "components": [
+        {
+          "name": "Mixed green salad with vinaigrette",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "raw with dressing",
+          "assumptions": [
+            "Mixed greens, cherry tomato, red onion, lightly dressed with oil and vinegar"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 1.5,
+            "carbsG": 4.5,
+            "fatG": 4.8
+          }
+        },
+        {
+          "name": "Roasted potato wedges",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "roasted with oil and herbs",
+          "assumptions": [
+            "Roasted red-skinned or yellow potatoes with cooking oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 2.5,
+            "carbsG": 22,
+            "fatG": 5
+          }
+        },
+        {
+          "name": "Quinoa and vegetable salad",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "cooked and chilled",
+          "assumptions": [
+            "Quinoa or couscous grain salad mixed with peppers, red onion, zucchini, and vinaigrette"
+          ],
+          "estimatedPer100": {
+            "kcal": 125,
+            "proteinG": 3.5,
+            "carbsG": 18,
+            "fatG": 4.5
+          }
+        },
+        {
+          "name": "Creamy chicken or tuna salad with breadcrumbs/seeds",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "mixed with creamy dressing",
+          "assumptions": [
+            "Shredded poultry or flaked fish in a mayonnaise or yogurt-based dressing topped with nuts/crumbs"
+          ],
+          "estimatedPer100": {
+            "kcal": 210,
+            "proteinG": 15,
+            "carbsG": 6,
+            "fatG": 14
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact protein in creamy salad (chicken vs fish vs tofu)",
+        "Grain base in grain salad (quinoa vs couscous)",
+        "Amount of dressing/oil on greens"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "3eab1e16592effdcd1b44f58c4f81bc44fbdda957fbf5b81ce8d0797d3bb8b7f"
+}

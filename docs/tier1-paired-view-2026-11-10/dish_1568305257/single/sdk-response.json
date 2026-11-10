@@ -1,0 +1,33 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Scrambled Eggs with Turkey Bacon and Sautéed Greens\",\n  \"components\": [\n    {\n      \"name\": \"Scrambled eggs\",\n      \"massG\": 160,\n      \"catalogId\": null,\n      \"preparation\": \"cooked scrambled\",\n      \"assumptions\": [\"Prepared with a small amount of butter or oil\"],\n      \"estimatedPer100\": {\n        \"kcal\": 149,\n        \"proteinG\": 10.0,\n        \"carbsG\": 1.6,\n        \"fatG\": 11.0\n      }\n    },\n    {\n      \"name\": \"Turkey bacon\",\n      \"massG\": 45,\n      \"catalogId\": null,\n      \"preparation\": \"cooked\",\n      \"assumptions\": [\"Appears to be cured turkey bacon strips, cooked\"],\n      \"estimatedPer100\": {\n        \"kcal\": 382,\n        \"proteinG\": 30.0,\n        \"carbsG\": 3.0,\n        \"fatG\": 28.0\n      }\n    },\n    {\n      \"name\": \"Sautéed spinach and shredded carrots\",\n      \"massG\": 65,\n      \"catalogId\": null,\n      \"preparation\": \"cooked sautéed\",\n      \"assumptions\": [\"Mixed greens/spinach with shredded carrots lightly cooked in oil\"],\n      \"estimatedPer100\": {\n        \"kcal\": 65,\n        \"proteinG\": 2.5,\n        \"carbsG\": 5.0,\n        \"fatG\": 4.5\n      }\n    }\n  ],\n  \"ambiguities\": [\"Exact meat type for bacon strips (e.g., turkey bacon vs. pork bacon or vegetarian alternative)\"],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2058,
+    "candidatesTokenCount": 439,
+    "totalTokenCount": 2497,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 994
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 439
+      }
+    ]
+  },
+  "latencyMs": 13183,
+  "inputSha256": [
+    "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c"
+  ],
+  "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+  "costUsd": null
+}

@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "scope": "public_dataset",
+  "datasetId": "nutrition5k",
+  "sampleCount": 1,
+  "cases": [
+    {
+      "id": "dish_1565811139",
+      "captureDate": "2019-08-14",
+      "reference": {
+        "kcal": 902.200012,
+        "proteinG": 74.731003,
+        "carbsG": 9.06,
+        "fatG": 62.632004,
+        "massG": 416
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000045",
+          "name": "carrot",
+          "carbsG": 4.7,
+          "fatG": 0.094,
+          "kcal": 19.27,
+          "massG": 47,
+          "proteinG": 0.423
+        },
+        {
+          "id": "ingr_0000000425",
+          "name": "goat cheese",
+          "carbsG": 0,
+          "fatG": 9.87,
+          "kcal": 124.08,
+          "massG": 47,
+          "proteinG": 8.93
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "carbsG": 0,
+          "fatG": 45,
+          "kcal": 397.8,
+          "massG": 45,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000027",
+          "name": "broccoli",
+          "carbsG": 3.64,
+          "fatG": 0.208,
+          "kcal": 18.2,
+          "massG": 52,
+          "proteinG": 1.248
+        },
+        {
+          "id": "ingr_0000000036",
+          "name": "spinach (raw)",
+          "carbsG": 0.72,
+          "fatG": 0.08,
+          "kcal": 4.6,
+          "massG": 20,
+          "proteinG": 0.58
+        },
+        {
+          "id": "ingr_0000000028",
+          "name": "chicken",
+          "carbsG": 0,
+          "fatG": 7.38,
+          "kcal": 338.25,
+          "massG": 205,
+          "proteinG": 63.55
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1565811139.jpg",
+      "inputSha256": "edc401391991065ac3bdec453cfb15181b77969447f9f3ee1c21194e074a268c",
+      "inputFailure": null,
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565811139/rgb.png",
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "af5df4c75585cba84898c4cfa06420973f6f88b90285bf9d9510ebf7f6fee565",
+      "auditRole": "large_error",
+      "sideInputPath": "inputs/dish_1565811139-side.jpg",
+      "sideInputSha256": "808aaba697d780d93a75df4db0656dd8ba0888ea13ab1a99ea63b7363188e9f0",
+      "sideSource": {
+        "id": "dish_1565811139",
+        "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1565811139/camera_A.h264",
+        "sourceBytes": 6857513,
+        "sourceMd5Base64": "RkYcq6woWgWT5g5HxXdMQg==",
+        "sourceSha256": "3b1002708cd04632ae3f9c995d66e4c724aeb524a49ab5d95e9d5587fd148e11",
+        "firstFramePngSha256": "08752d0822d2b4cc68c11eebd2accf978a037144f2e484e324b86b0ddbc380f8",
+        "inputPath": "inputs/dish_1565811139-side.jpg",
+        "inputSha256": "808aaba697d780d93a75df4db0656dd8ba0888ea13ab1a99ea63b7363188e9f0",
+        "inputBytes": 275734,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1920,
+          "height": 1080,
+          "r_frame_rate": "1200000/1"
+        }
+      },
+      "sidePairPreflightUsable": true,
+      "pairPreflightBasis": "Primary assistant inspected both images; matching vessel/broad groups, no unequivocal state change; exact temporal synchrony not verified",
+      "inputSourceRelativePath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1565811139.jpg",
+      "armOrder": [
+        "paired",
+        "single"
+      ]
+    }
+  ],
+  "license": {
+    "id": "CC-BY-4.0",
+    "attribution": "Thames et al., Nutrition5k, CVPR2021"
+  },
+  "scopeLimit": "Outcome-selected development probe; no population accuracy or promotion claim",
+  "preparation": {
+    "frameRule": "First decoded output frame camera_A.h264, no replacement",
+    "ffmpegVersion": "ffmpeg version 7.1.5-0+deb13u1+rpt2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "pillowVersion": "11.1.0",
+    "jpegLibrary": "6.2",
+    "quality": 85,
+    "subsampling": 2,
+    "resize": false,
+    "exif": "removed",
+    "maxClipBytes": 25165824,
+    "maxTotalClipBytes": 75497472,
+    "overheadResolution": [
+      640,
+      480
+    ],
+    "sideResolution": [
+      1920,
+      1080
+    ],
+    "limitation": "Supplementary camera/context/resolution package, not isolated view count or calibrated geometry. Rawstream r_frame_rate is not a verified recording framerate; no timing claim."
+  }
+}

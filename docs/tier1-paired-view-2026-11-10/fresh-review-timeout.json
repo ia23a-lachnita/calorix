@@ -1,0 +1,7 @@
+{
+  "at": "2026-11-10 17:26:26 UTC",
+  "model": "gemini-3.8-flash",
+  "category": "MCP_TIMEOUT",
+  "message": "tool call error: tool call failed for `antigravity-mcp/ask-ai`\n\nCaused by:\n    timed out awaiting tools/call after 300s",
+  "resultIsGreen": false
+}

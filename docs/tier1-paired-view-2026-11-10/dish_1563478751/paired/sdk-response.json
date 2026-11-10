@@ -1,0 +1,35 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Penne Pasta with Beef and Spinach in Cream Sauce\",\n  \"components\": [\n    {\n      \"name\": \"Penne pasta\",\n      \"massG\": 120,\n      \"catalogId\": null,\n      \"preparation\": \"cooked boiled\",\n      \"assumptions\": [\"Standard refined wheat penne pasta, weighed cooked\"],\n      \"estimatedPer100\": {\n        \"kcal\": 158.0,\n        \"proteinG\": 5.8,\n        \"carbsG\": 31.0,\n        \"fatG\": 0.9\n      }\n    },\n    {\n      \"name\": \"Beef chunks\",\n      \"massG\": 80,\n      \"catalogId\": null,\n      \"preparation\": \"cooked sauteed\",\n      \"assumptions\": [\"Diced beef steak tips or braised beef chunks\"],\n      \"estimatedPer100\": {\n        \"kcal\": 215.0,\n        \"proteinG\": 24.5,\n        \"carbsG\": 0.5,\n        \"fatG\": 12.5\n      }\n    },\n    {\n      \"name\": \"Cream sauce\",\n      \"massG\": 40,\n      \"catalogId\": null,\n      \"preparation\": \"cooked simmered\",\n      \"assumptions\": [\"Light tomato-cream or pan reduction sauce coating the pasta and meat\"],\n      \"estimatedPer100\": {\n        \"kcal\": 135.0,\n        \"proteinG\": 2.0,\n        \"carbsG\": 4.5,\n        \"fatG\": 12.0\n      }\n    },\n    {\n      \"name\": \"Spinach\",\n      \"massG\": 15,\n      \"catalogId\": null,\n      \"preparation\": \"cooked wilted\",\n      \"assumptions\": [\"Fresh baby spinach wilted into the warm pasta\"],\n      \"estimatedPer100\": {\n        \"kcal\": 23.0,\n        \"proteinG\": 2.9,\n        \"carbsG\": 3.6,\n        \"fatG\": 0.4\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Meat type is visually estimated as beef chunks, but could be pork, turkey, or plant-based meat alternative\",\n    \"Sauce composition estimated as a light cream-based pan sauce\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 3158,
+    "candidatesTokenCount": 581,
+    "totalTokenCount": 4362,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 994
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 2164
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 581
+      }
+    ],
+    "thoughtsTokenCount": 623
+  },
+  "latencyMs": 14067,
+  "inputSha256": [
+    "1fecec504b79e2187a9135ef685f62765ee7358b62b457f9050d26c985807490",
+    "dab9ba8fee1d3f91c51632635128e49966ee4cfe41ee4e935714fd57873d3725"
+  ],
+  "promptSha256": "45bb12550f3fff55506e4f5b381e6882d184cd57c256de3c0488b18dec232945",
+  "costUsd": null
+}

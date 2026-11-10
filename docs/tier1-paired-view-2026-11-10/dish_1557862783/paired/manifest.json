@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "scope": "public_dataset",
+  "datasetId": "nutrition5k",
+  "sampleCount": 1,
+  "cases": [
+    {
+      "id": "dish_1557862783",
+      "captureDate": "2019-05-14",
+      "reference": {
+        "kcal": 442.97998,
+        "proteinG": 50.416,
+        "carbsG": 3.85,
+        "fatG": 24.919001,
+        "massG": 258
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000007",
+          "name": "cauliflower",
+          "carbsG": 3.85,
+          "fatG": 0.231,
+          "kcal": 19.25,
+          "massG": 77,
+          "proteinG": 1.386
+        },
+        {
+          "id": "ingr_0000000010",
+          "name": "steak",
+          "carbsG": 0,
+          "fatG": 22.42,
+          "kcal": 319.78,
+          "massG": 118,
+          "proteinG": 29.5
+        },
+        {
+          "id": "ingr_0000000028",
+          "name": "chicken",
+          "carbsG": 0,
+          "fatG": 2.268,
+          "kcal": 103.95,
+          "massG": 63,
+          "proteinG": 19.53
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1557862783.jpg",
+      "inputSha256": "bf99a8f9c0994d2d7368509a6e9427bfbbc1fdc78eac2b9fe95459740a6d77ba",
+      "inputFailure": null,
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1557862783/rgb.png",
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "ba64dde72d51cbf73ff8fa9bbbd0362f6e19a43f5f5807fbb9b0a62d362aa3b1",
+      "auditRole": "small_error_control",
+      "sideInputPath": "inputs/dish_1557862783-side.jpg",
+      "sideInputSha256": "e397e9cb55d00b834f713186440475a3142810b7fa87f5b4668516ada0f0aaf5",
+      "sideSource": {
+        "id": "dish_1557862783",
+        "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1557862783/camera_A.h264",
+        "sourceBytes": 18450248,
+        "sourceMd5Base64": "D3E5Zsbti8sJ7WI9KU1BbQ==",
+        "sourceSha256": "cc4a5f950469369ad04adea4eb77e1b80f443c4c033711161294bbeeee4e9348",
+        "firstFramePngSha256": "dcf46996f62a70f28badaa2d53758fe1a3df80d47c2aa65e9bf44b647371e410",
+        "inputPath": "inputs/dish_1557862783-side.jpg",
+        "inputSha256": "e397e9cb55d00b834f713186440475a3142810b7fa87f5b4668516ada0f0aaf5",
+        "inputBytes": 174798,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1920,
+          "height": 1080,
+          "r_frame_rate": "1200000/1"
+        }
+      },
+      "sidePairPreflightUsable": true,
+      "pairPreflightBasis": "Primary assistant inspected both images; matching vessel/broad groups, no unequivocal state change; exact temporal synchrony not verified",
+      "inputSourceRelativePath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1557862783.jpg",
+      "armOrder": [
+        "single",
+        "paired"
+      ]
+    }
+  ],
+  "license": {
+    "id": "CC-BY-4.0",
+    "attribution": "Thames et al., Nutrition5k, CVPR2021"
+  },
+  "scopeLimit": "Outcome-selected development probe; no population accuracy or promotion claim",
+  "preparation": {
+    "frameRule": "First decoded output frame camera_A.h264, no replacement",
+    "ffmpegVersion": "ffmpeg version 7.1.5-0+deb13u1+rpt2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "pillowVersion": "11.1.0",
+    "jpegLibrary": "6.2",
+    "quality": 85,
+    "subsampling": 2,
+    "resize": false,
+    "exif": "removed",
+    "maxClipBytes": 25165824,
+    "maxTotalClipBytes": 75497472,
+    "overheadResolution": [
+      640,
+      480
+    ],
+    "sideResolution": [
+      1920,
+      1080
+    ],
+    "limitation": "Supplementary camera/context/resolution package, not isolated view count or calibrated geometry. Rawstream r_frame_rate is not a verified recording framerate; no timing claim."
+  }
+}

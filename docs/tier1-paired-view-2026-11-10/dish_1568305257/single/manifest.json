@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "scope": "public_dataset",
+  "datasetId": "nutrition5k",
+  "sampleCount": 1,
+  "cases": [
+    {
+      "id": "dish_1568305257",
+      "captureDate": "2019-09-12",
+      "reference": {
+        "kcal": 837.147766,
+        "proteinG": 52.072983,
+        "carbsG": 9.31325,
+        "fatG": 65.496887,
+        "massG": 420
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000080",
+          "name": "turkey bacon",
+          "carbsG": 2.542,
+          "fatG": 23.042,
+          "kcal": 311.354,
+          "massG": 82,
+          "proteinG": 23.862
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "carbsG": 0,
+          "fatG": 0,
+          "kcal": 0,
+          "massG": 0.375758,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000033",
+          "name": "bell peppers",
+          "carbsG": 1.35272736,
+          "fatG": 0.030060608,
+          "kcal": 6.0121216,
+          "massG": 15.030304,
+          "proteinG": 0.30060608
+        },
+        {
+          "id": "ingr_0000000126",
+          "name": "mustard",
+          "carbsG": 0.0450909,
+          "fatG": 0.024799995,
+          "kcal": 0.460678695,
+          "massG": 0.751515,
+          "proteinG": 0.027806055
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "carbsG": 0,
+          "fatG": 12.024242,
+          "kcal": 106.29429928,
+          "massG": 12.024242,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000031",
+          "name": "cucumbers",
+          "carbsG": 0.30060608,
+          "fatG": 0,
+          "kcal": 1.5030304,
+          "massG": 15.030304,
+          "proteinG": 0.15030304
+        },
+        {
+          "id": "ingr_0000000189",
+          "name": "vinegar",
+          "carbsG": 0,
+          "fatG": 0,
+          "kcal": 0,
+          "massG": 6.012121,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000008",
+          "name": "scrambled eggs",
+          "carbsG": 4.416,
+          "fatG": 30.36,
+          "kcal": 408.48,
+          "massG": 276,
+          "proteinG": 27.6
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "carbsG": 0.24799995,
+          "fatG": 0.003757575,
+          "kcal": 1.11975735,
+          "massG": 0.751515,
+          "proteinG": 0.04809696
+        },
+        {
+          "id": "ingr_0000000073",
+          "name": "radishes",
+          "carbsG": 0.408824228,
+          "fatG": 0.012024242,
+          "kcal": 1.92387872,
+          "massG": 12.024242,
+          "proteinG": 0.084169694
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1568305257.jpg",
+      "inputSha256": "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c",
+      "inputFailure": null,
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1568305257/rgb.png",
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "32137f0e6427284934e2f96571c51e294aef0c97a43c6ad10de071063d7bfb7a",
+      "auditRole": "large_error",
+      "sideInputPath": "inputs/dish_1568305257-side.jpg",
+      "sideInputSha256": "95523316101ce311d55d3c0c9bfd95fd6db24f1c5a4f06b0a642335c07bed77e",
+      "sideSource": {
+        "id": "dish_1568305257",
+        "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/side_angles/dish_1568305257/camera_A.h264",
+        "sourceBytes": 7292915,
+        "sourceMd5Base64": "OPhIF3+d1N2JWHSUAPHR3w==",
+        "sourceSha256": "83af08de34a69ea04e41c66d7bd7399893e822890bb2403ca4f6a98ae6fffc91",
+        "firstFramePngSha256": "c71a9733cfe1adaab5b719d88dbb86cea57442beb84785dcdfec3f5d10937f78",
+        "inputPath": "inputs/dish_1568305257-side.jpg",
+        "inputSha256": "95523316101ce311d55d3c0c9bfd95fd6db24f1c5a4f06b0a642335c07bed77e",
+        "inputBytes": 277285,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1920,
+          "height": 1080,
+          "r_frame_rate": "1200000/1"
+        }
+      },
+      "sidePairPreflightUsable": true,
+      "pairPreflightBasis": "Primary assistant inspected both images; matching vessel/broad groups, no unequivocal state change; exact temporal synchrony not verified",
+      "inputSourceRelativePath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1568305257.jpg",
+      "armOrder": [
+        "single",
+        "paired"
+      ]
+    }
+  ],
+  "license": {
+    "id": "CC-BY-4.0",
+    "attribution": "Thames et al., Nutrition5k, CVPR2021"
+  },
+  "scopeLimit": "Outcome-selected development probe; no population accuracy or promotion claim",
+  "preparation": {
+    "frameRule": "First decoded output frame camera_A.h264, no replacement",
+    "ffmpegVersion": "ffmpeg version 7.1.5-0+deb13u1+rpt2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "pillowVersion": "11.1.0",
+    "jpegLibrary": "6.2",
+    "quality": 85,
+    "subsampling": 2,
+    "resize": false,
+    "exif": "removed",
+    "maxClipBytes": 25165824,
+    "maxTotalClipBytes": 75497472,
+    "overheadResolution": [
+      640,
+      480
+    ],
+    "sideResolution": [
+      1920,
+      1080
+    ],
+    "limitation": "Supplementary camera/context/resolution package, not isolated view count or calibrated geometry. Rawstream r_frame_rate is not a verified recording framerate; no timing claim."
+  }
+}

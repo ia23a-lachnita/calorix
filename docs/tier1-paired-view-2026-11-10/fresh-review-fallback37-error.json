@@ -1,0 +1,7 @@
+{
+  "at": "2026-11-10 17:27:07 UTC",
+  "model": "gemini-3.7-flash",
+  "category": "MCP_MODEL_EFFORT_UNSUPPORTED",
+  "message": "Error executing ask-ai: agy exited with code 1.\nerror: invalid model selection (--model \"gemini-3.7-flash\" --effort \"high\"): --effort is not supported for model \"gemini-3.7-flash\"",
+  "resultIsGreen": false
+}
