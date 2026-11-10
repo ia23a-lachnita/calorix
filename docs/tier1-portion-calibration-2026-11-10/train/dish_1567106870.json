@@ -1,0 +1,193 @@
+{
+  "id": "dish_1567106870",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 548.25,
+      "proteinG": 30.775,
+      "carbsG": 48.6,
+      "fatG": 25.36
+    },
+    "massG": 285,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12349,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Pizza slice with mixed salad and cooked meat with sauce",
+    "components": [
+      {
+        "name": "Pizza slice with cheese, vegetables, and toppings",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Rectangular/flatbread style pizza slice topped with cheese, tomato sauce, and diced peppers/vegetables"
+        ],
+        "estimatedPer100": {
+          "kcal": 260,
+          "proteinG": 11,
+          "carbsG": 30,
+          "fatG": 10.5
+        },
+        "nutrients": {
+          "kcal": 364,
+          "proteinG": 15.399999999999999,
+          "carbsG": 42,
+          "fatG": 14.7
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed green salad with bean sprouts and cherry tomato",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Mixed lettuce leaves, sprouts, single cherry tomato, minimal or light dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 1.5,
+          "carbsG": 4,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 16.25,
+          "proteinG": 0.9750000000000001,
+          "carbsG": 2.6,
+          "fatG": 0.26
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cooked meat with savory seed/grain sauce",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "cooked in sauce",
+        "assumptions": [
+          "Portion of braised or roasted beef or pork covered with relish or mustard seed/quinoa-style sauce"
+        ],
+        "estimatedPer100": {
+          "kcal": 210,
+          "proteinG": 18,
+          "carbsG": 5,
+          "fatG": 13
+        },
+        "nutrients": {
+          "kcal": 168,
+          "proteinG": 14.4,
+          "carbsG": 4,
+          "fatG": 10.4
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 548.25,
+      "proteinG": 30.775,
+      "carbsG": 48.6,
+      "fatG": 25.36
+    },
+    "ambiguities": [
+      "Exact meat type and sauce ingredients under the salad edge",
+      "Presence and type of dressing on the mixed green salad"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12339,
+      "inputTokens": 2018,
+      "outputTokens": 486,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Pizza slice with mixed salad and cooked meat with sauce",
+      "components": [
+        {
+          "name": "Pizza slice with cheese, vegetables, and toppings",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Rectangular/flatbread style pizza slice topped with cheese, tomato sauce, and diced peppers/vegetables"
+          ],
+          "estimatedPer100": {
+            "kcal": 260,
+            "proteinG": 11,
+            "carbsG": 30,
+            "fatG": 10.5
+          }
+        },
+        {
+          "name": "Mixed green salad with bean sprouts and cherry tomato",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Mixed lettuce leaves, sprouts, single cherry tomato, minimal or light dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 1.5,
+            "carbsG": 4,
+            "fatG": 0.4
+          }
+        },
+        {
+          "name": "Cooked meat with savory seed/grain sauce",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "cooked in sauce",
+          "assumptions": [
+            "Portion of braised or roasted beef or pork covered with relish or mustard seed/quinoa-style sauce"
+          ],
+          "estimatedPer100": {
+            "kcal": 210,
+            "proteinG": 18,
+            "carbsG": 5,
+            "fatG": 13
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact meat type and sauce ingredients under the salad edge",
+        "Presence and type of dressing on the mixed green salad"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "73fb89210880c409b0bcd88658ae65c152a53b728c42b0306a8f2e9905f3f846"
+}

@@ -1,4 +1,4 @@
-manifest_version: 6
+manifest_version: 7
 baseline: A1
 requested_model: gemini-3.8-flash
 returned_model_policy: exact equality or explicit failure
@@ -130,3 +130,17 @@ public_weighed_original_prediction_receipts_reused: 40
 public_weighed_new_sdk_calls: 0
 public_weighed_independent_physical_plate_count: null
 public_weighed_actual_reference_blind_correction_pairs: 0
+
+portion_calibration_status: archived; descriptive gains8.17percent development and8.10percent fresh; fixed10percent guard failed; not deployed
+portion_calibration_report: docs/tier1-portion-calibration-2026-11-10/report.md
+portion_calibration_source_commit: f5af422eeaf753440349f20065a1e937e6084a17
+portion_calibration_factor: 1.096492793911007
+portion_calibration_training_scans: 20
+portion_calibration_fresh_test_scans: 10
+portion_calibration_food_sdk_entries: 30
+portion_calibration_nonfood_probe_entries: 1
+portion_calibration_total_sdk_entries: 31
+portion_calibration_registry_status: closed; never resume or reset
+portion_calibration_extra_transform_sdk_entries: 0
+portion_calibration_reference_mass_diagnostic: oracle only; not photo-only accuracy, accuracy bound or causal attribution
+portion_calibration_android_weighed_meals: 0

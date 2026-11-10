@@ -1,0 +1,225 @@
+{
+  "scope": "public_dataset",
+  "dataset": "nutrition5k",
+  "selectedCases": 20,
+  "androidWeighedMeals": 0,
+  "sdkInvocations": 20,
+  "datasetFailures": 0,
+  "routes": {
+    "A0": {
+      "scoredCases": 0,
+      "coverage": 0,
+      "failed": 20,
+      "notAttempted": 0,
+      "pending": 0,
+      "kcal": {
+        "scoredCases": 0,
+        "mae": null,
+        "bias": null,
+        "p90AbsoluteError": null,
+        "meanNormalizedAbsoluteError": null
+      },
+      "macros": {
+        "proteinG": {
+          "scoredCases": 0,
+          "mae": null,
+          "bias": null,
+          "p90AbsoluteError": null,
+          "meanNormalizedAbsoluteError": null
+        },
+        "carbsG": {
+          "scoredCases": 0,
+          "mae": null,
+          "bias": null,
+          "p90AbsoluteError": null,
+          "meanNormalizedAbsoluteError": null
+        },
+        "fatG": {
+          "scoredCases": 0,
+          "mae": null,
+          "bias": null,
+          "p90AbsoluteError": null,
+          "meanNormalizedAbsoluteError": null
+        }
+      },
+      "massG": {
+        "scoredCases": 0,
+        "mae": null,
+        "bias": null,
+        "p90AbsoluteError": null,
+        "meanNormalizedAbsoluteError": null
+      },
+      "referenceComponentSlices": {
+        "single": {
+          "scoredCases": 0,
+          "mae": null,
+          "bias": null,
+          "p90AbsoluteError": null,
+          "meanNormalizedAbsoluteError": null
+        },
+        "multiple": {
+          "scoredCases": 0,
+          "mae": null,
+          "bias": null,
+          "p90AbsoluteError": null,
+          "meanNormalizedAbsoluteError": null
+        }
+      },
+      "energyBins": {
+        "under200": {
+          "scoredCases": 0,
+          "mae": null,
+          "bias": null,
+          "p90AbsoluteError": null,
+          "meanNormalizedAbsoluteError": null
+        },
+        "from200to600": {
+          "scoredCases": 0,
+          "mae": null,
+          "bias": null,
+          "p90AbsoluteError": null,
+          "meanNormalizedAbsoluteError": null
+        },
+        "over600": {
+          "scoredCases": 0,
+          "mae": null,
+          "bias": null,
+          "p90AbsoluteError": null,
+          "meanNormalizedAbsoluteError": null
+        }
+      }
+    },
+    "A1": {
+      "scoredCases": 20,
+      "coverage": 1,
+      "failed": 0,
+      "notAttempted": 0,
+      "pending": 0,
+      "kcal": {
+        "scoredCases": 20,
+        "mae": 90.61099499999999,
+        "bias": -35.81035549999998,
+        "p90AbsoluteError": 209.49139760000008,
+        "meanNormalizedAbsoluteError": 0.23012487672088228
+      },
+      "macros": {
+        "proteinG": {
+          "scoredCases": 20,
+          "mae": 10.796275699999999,
+          "bias": -7.113742999999998,
+          "p90AbsoluteError": 29.5221152,
+          "meanNormalizedAbsoluteError": null
+        },
+        "carbsG": {
+          "scoredCases": 20,
+          "mae": 7.533737050000002,
+          "bias": 3.2268132500000015,
+          "p90AbsoluteError": 15.727699500000009,
+          "meanNormalizedAbsoluteError": null
+        },
+        "fatG": {
+          "scoredCases": 20,
+          "mae": 7.829995550000002,
+          "bias": -2.987531650000001,
+          "p90AbsoluteError": 20.3263262,
+          "meanNormalizedAbsoluteError": null
+        }
+      },
+      "massG": {
+        "scoredCases": 20,
+        "mae": 53.7,
+        "bias": -25.6,
+        "p90AbsoluteError": 84.50000000000011,
+        "meanNormalizedAbsoluteError": null
+      },
+      "referenceComponentSlices": {
+        "single": {
+          "scoredCases": 4,
+          "mae": 28.93274775,
+          "bias": 24.397747750000004,
+          "p90AbsoluteError": 39.97289730000001,
+          "meanNormalizedAbsoluteError": 0.14466373875
+        },
+        "multiple": {
+          "scoredCases": 16,
+          "mae": 106.0305568125,
+          "bias": -50.862381312499984,
+          "p90AbsoluteError": 224.02818000000002,
+          "meanNormalizedAbsoluteError": 0.2514901612136028
+        }
+      },
+      "energyBins": {
+        "under200": {
+          "scoredCases": 6,
+          "mae": 26.354332499999998,
+          "bias": 9.199331166666669,
+          "p90AbsoluteError": 38.2154955,
+          "meanNormalizedAbsoluteError": 0.1317716625
+        },
+        "from200to600": {
+          "scoredCases": 10,
+          "mae": 66.7847198,
+          "bias": 21.484361000000014,
+          "p90AbsoluteError": 166.1423531,
+          "meanNormalizedAbsoluteError": 0.23028329098300732
+        },
+        "over600": {
+          "scoredCases": 4,
+          "mae": 246.56167675,
+          "bias": -246.56167675,
+          "p90AbsoluteError": 404.63417690000006,
+          "meanNormalizedAbsoluteError": 0.37725866239689293
+        }
+      }
+    }
+  },
+  "paired": {
+    "scoredCases": 0,
+    "scope": "catalog-covered paired subset",
+    "A0": {
+      "scoredCases": 0,
+      "mae": null,
+      "bias": null,
+      "p90AbsoluteError": null,
+      "meanNormalizedAbsoluteError": null
+    },
+    "A1": {
+      "scoredCases": 0,
+      "mae": null,
+      "bias": null,
+      "p90AbsoluteError": null,
+      "meanNormalizedAbsoluteError": null
+    }
+  },
+  "preparationQuestions": {
+    "unanswered": 1,
+    "answered": 0,
+    "policy": "No owner knowledge; no reference-derived answers"
+  },
+  "nutrientProvenance": {
+    "components": 60,
+    "databaseMatchedComponents": 9,
+    "unverifiedComponents": 51,
+    "unverifiedPredictedKcalFraction": 0.839523665562595
+  },
+  "inferenceLatencyMs": {
+    "measured": 20,
+    "p50": 13387.5,
+    "p90": 17131.400000000005
+  },
+  "runnerWallMs": {
+    "measured": 20,
+    "p50": 13396
+  },
+  "phoneShutterToEstimateMs": null,
+  "costUsd": null,
+  "billingStatus": "Unmeasured; failed and thought-token usage incomplete",
+  "tokenUsage": {
+    "knownPromptTokens": 40360,
+    "knownCandidateTokens": 8424,
+    "recordsWithUsage": 20
+  },
+  "missingFoodsAudit": "not_assessed",
+  "manualCorrections": 0,
+  "interpretation": "Conditional accuracy on successful answers; failures/unattempted cases remain in fixed coverage denominator. Capture-date thinning does not establish independence; closed-model pretraining exposure unknown."
+}

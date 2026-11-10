@@ -1,0 +1,7 @@
+{
+  "http": 200,
+  "name": "publishers/google/models/gemini-3.8-flash",
+  "inferenceRequests": 0,
+  "checkedAt": "2026-11-10T11:55:48.165705+00:00",
+  "endpoint": "aiplatform.us.rep.googleapis.com"
+}

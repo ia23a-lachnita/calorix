@@ -1,0 +1,236 @@
+{
+  "id": "dish_1562615153",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 427.00000000000006,
+      "proteinG": 30.400000000000002,
+      "carbsG": 27.75,
+      "fatG": 22.15
+    },
+    "massG": 285,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 15099,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Roast meat with side salad, bread/stuffing, and roasted squash",
+    "components": [
+      {
+        "name": "Roast beef or pork slices",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "roasted with glaze/pan sauce",
+        "assumptions": [
+          "Cooked tender meat slices with slight glaze or pan gravy"
+        ],
+        "estimatedPer100": {
+          "kcal": 210,
+          "proteinG": 24,
+          "carbsG": 2,
+          "fatG": 12
+        },
+        "nutrients": {
+          "kcal": 231.00000000000003,
+          "proteinG": 26.400000000000002,
+          "carbsG": 2.2,
+          "fatG": 13.200000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Bread stuffing / dressing",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Bready seasoned stuffing chunks"
+        ],
+        "estimatedPer100": {
+          "kcal": 180,
+          "proteinG": 4,
+          "carbsG": 25,
+          "fatG": 7
+        },
+        "nutrients": {
+          "kcal": 99.00000000000001,
+          "proteinG": 2.2,
+          "carbsG": 13.750000000000002,
+          "fatG": 3.8500000000000005
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted squash and root vegetables",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "roasted",
+        "assumptions": [
+          "Roasted acorn or butternut squash slices and beets/potatoes"
+        ],
+        "estimatedPer100": {
+          "kcal": 85,
+          "proteinG": 1.5,
+          "carbsG": 14,
+          "fatG": 3
+        },
+        "nutrients": {
+          "kcal": 59.49999999999999,
+          "proteinG": 1.0499999999999998,
+          "carbsG": 9.799999999999999,
+          "fatG": 2.0999999999999996
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed greens salad with cherry tomatoes and vinaigrette",
+        "massG": 50,
+        "catalogId": null,
+        "preparation": "dressed raw",
+        "assumptions": [
+          "Arugula, spinach, cherry tomatoes, light oil dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 75,
+          "proteinG": 1.5,
+          "carbsG": 4,
+          "fatG": 6
+        },
+        "nutrients": {
+          "kcal": 37.5,
+          "proteinG": 0.75,
+          "carbsG": 2,
+          "fatG": 3
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 427.00000000000006,
+      "proteinG": 30.400000000000002,
+      "carbsG": 27.75,
+      "fatG": 22.15
+    },
+    "ambiguities": [
+      "Exact cut and species of roasted meat (beef vs pork)",
+      "Presence and composition of dressing on greens"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 15067,
+      "inputTokens": 2018,
+      "outputTokens": 572,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Roast meat with side salad, bread/stuffing, and roasted squash",
+      "components": [
+        {
+          "name": "Roast beef or pork slices",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "roasted with glaze/pan sauce",
+          "assumptions": [
+            "Cooked tender meat slices with slight glaze or pan gravy"
+          ],
+          "estimatedPer100": {
+            "kcal": 210,
+            "proteinG": 24,
+            "carbsG": 2,
+            "fatG": 12
+          }
+        },
+        {
+          "name": "Bread stuffing / dressing",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Bready seasoned stuffing chunks"
+          ],
+          "estimatedPer100": {
+            "kcal": 180,
+            "proteinG": 4,
+            "carbsG": 25,
+            "fatG": 7
+          }
+        },
+        {
+          "name": "Roasted squash and root vegetables",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "roasted",
+          "assumptions": [
+            "Roasted acorn or butternut squash slices and beets/potatoes"
+          ],
+          "estimatedPer100": {
+            "kcal": 85,
+            "proteinG": 1.5,
+            "carbsG": 14,
+            "fatG": 3
+          }
+        },
+        {
+          "name": "Mixed greens salad with cherry tomatoes and vinaigrette",
+          "massG": 50,
+          "catalogId": null,
+          "preparation": "dressed raw",
+          "assumptions": [
+            "Arugula, spinach, cherry tomatoes, light oil dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 75,
+            "proteinG": 1.5,
+            "carbsG": 4,
+            "fatG": 6
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact cut and species of roasted meat (beef vs pork)",
+        "Presence and composition of dressing on greens"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "4cb0df6311d6965806e171a8e96c969593e0ae3493ae8744aacd8270c42240dc"
+}

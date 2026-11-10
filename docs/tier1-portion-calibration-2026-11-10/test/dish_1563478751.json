@@ -1,0 +1,195 @@
+{
+  "id": "dish_1563478751",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 396,
+      "proteinG": 27.325,
+      "carbsG": 36.6,
+      "fatG": 15.349999999999998
+    },
+    "massG": 250,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 21362,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Penne pasta with beef or pork chunks and spinach in sauce",
+    "components": [
+      {
+        "name": "Penne pasta in light sauce",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "cooked with sauce",
+        "assumptions": [
+          "Boiled penne tossed with light cream/pan sauce",
+          "Moderate sauce coating"
+        ],
+        "estimatedPer100": {
+          "kcal": 150,
+          "proteinG": 4.5,
+          "carbsG": 25,
+          "fatG": 3.5
+        },
+        "nutrients": {
+          "kcal": 210,
+          "proteinG": 6.3,
+          "carbsG": 35,
+          "fatG": 4.8999999999999995
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Braised meat chunks (beef or pork)",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "braised or sauteed",
+        "assumptions": [
+          "Cubed beef or pork tenderloin cooked in sauce"
+        ],
+        "estimatedPer100": {
+          "kcal": 210,
+          "proteinG": 24,
+          "carbsG": 1,
+          "fatG": 12
+        },
+        "nutrients": {
+          "kcal": 178.5,
+          "proteinG": 20.4,
+          "carbsG": 0.85,
+          "fatG": 10.2
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Wilted spinach leaves",
+        "massG": 25,
+        "catalogId": null,
+        "preparation": "wilted / sauteed",
+        "assumptions": [
+          "Fresh baby spinach stirred into hot pasta"
+        ],
+        "estimatedPer100": {
+          "kcal": 30,
+          "proteinG": 2.5,
+          "carbsG": 3,
+          "fatG": 1
+        },
+        "nutrients": {
+          "kcal": 7.5,
+          "proteinG": 0.625,
+          "carbsG": 0.75,
+          "fatG": 0.25
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 396,
+      "proteinG": 27.325,
+      "carbsG": 36.6,
+      "fatG": 15.349999999999998
+    },
+    "ambiguities": [
+      "Specific type of meat (beef, pork, or plant-based alternative)",
+      "Exact base and fat content of the sauce"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 21353,
+      "inputTokens": 2018,
+      "outputTokens": 463,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Penne pasta with beef or pork chunks and spinach in sauce",
+      "components": [
+        {
+          "name": "Penne pasta in light sauce",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "cooked with sauce",
+          "assumptions": [
+            "Boiled penne tossed with light cream/pan sauce",
+            "Moderate sauce coating"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 4.5,
+            "carbsG": 25,
+            "fatG": 3.5
+          }
+        },
+        {
+          "name": "Braised meat chunks (beef or pork)",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "braised or sauteed",
+          "assumptions": [
+            "Cubed beef or pork tenderloin cooked in sauce"
+          ],
+          "estimatedPer100": {
+            "kcal": 210,
+            "proteinG": 24,
+            "carbsG": 1,
+            "fatG": 12
+          }
+        },
+        {
+          "name": "Wilted spinach leaves",
+          "massG": 25,
+          "catalogId": null,
+          "preparation": "wilted / sauteed",
+          "assumptions": [
+            "Fresh baby spinach stirred into hot pasta"
+          ],
+          "estimatedPer100": {
+            "kcal": 30,
+            "proteinG": 2.5,
+            "carbsG": 3,
+            "fatG": 1
+          }
+        }
+      ],
+      "ambiguities": [
+        "Specific type of meat (beef, pork, or plant-based alternative)",
+        "Exact base and fat content of the sauce"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "a0af1f149e958606a9ec649767afe0003c7ef73bf74898ad5de13d4bfcb0a4f4"
+}

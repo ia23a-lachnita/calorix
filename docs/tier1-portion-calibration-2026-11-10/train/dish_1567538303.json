@@ -1,0 +1,150 @@
+{
+  "id": "dish_1567538303",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 375.25,
+      "proteinG": 27.075000000000003,
+      "carbsG": 31.400000000000002,
+      "fatG": 15.85
+    },
+    "massG": 245,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 14044,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Braised meat with rice and green salad",
+    "components": [
+      {
+        "name": "Braised meat with rice",
+        "massG": 180,
+        "catalogId": null,
+        "preparation": "cooked braised",
+        "assumptions": [
+          "dish contains pieces of cooked meat/pork/beef mixed with seasoned rice"
+        ],
+        "estimatedPer100": {
+          "kcal": 185,
+          "proteinG": 14.5,
+          "carbsG": 16,
+          "fatG": 7
+        },
+        "nutrients": {
+          "kcal": 333,
+          "proteinG": 26.1,
+          "carbsG": 28.8,
+          "fatG": 12.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed green salad with dressing",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "raw with light dressing",
+        "assumptions": [
+          "mixed leafy greens (arugula/salad mix) with a trace of vinaigrette or oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 65,
+          "proteinG": 1.5,
+          "carbsG": 4,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 42.25,
+          "proteinG": 0.9750000000000001,
+          "carbsG": 2.6,
+          "fatG": 3.25
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 375.25,
+      "proteinG": 27.075000000000003,
+      "carbsG": 31.400000000000002,
+      "fatG": 15.85
+    },
+    "ambiguities": [
+      "Specific type and cut of meat in the rice mixture",
+      "Presence and amount of added oil or vinaigrette on the greens"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 14035,
+      "inputTokens": 2018,
+      "outputTokens": 343,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Braised meat with rice and green salad",
+      "components": [
+        {
+          "name": "Braised meat with rice",
+          "massG": 180,
+          "catalogId": null,
+          "preparation": "cooked braised",
+          "assumptions": [
+            "dish contains pieces of cooked meat/pork/beef mixed with seasoned rice"
+          ],
+          "estimatedPer100": {
+            "kcal": 185,
+            "proteinG": 14.5,
+            "carbsG": 16,
+            "fatG": 7
+          }
+        },
+        {
+          "name": "Mixed green salad with dressing",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "raw with light dressing",
+          "assumptions": [
+            "mixed leafy greens (arugula/salad mix) with a trace of vinaigrette or oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 1.5,
+            "carbsG": 4,
+            "fatG": 5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Specific type and cut of meat in the rice mixture",
+        "Presence and amount of added oil or vinaigrette on the greens"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "1caa28b30c26a4c9f5053dd030ff2aea928b5a53e31906738d35497c7a1a7947"
+}

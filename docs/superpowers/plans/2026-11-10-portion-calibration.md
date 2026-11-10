@@ -11,10 +11,12 @@ Pinned official metadata/RGB+overhead splits; exclude116 prior IDs and25 dates o
 Practical guards BOTH exposeddevelopment40 andfreshTEST10: MAE>=10% AND>=10kcal lower; floor200norm/P90/absbias notworse; no additionalfailure/coverage loss; eachmacroMAE<=1.10raw. >=8validfresh and>=16usableTRAIN. These are engineering choices, not clinical significance/statistical intervals. Raw baseline outputs retained; no test tuning. Costs unknown null; actual SDK/tokens/latency/failures recorded. Candidate not promoted if guards fail.
 
 - [x] Tests-first deterministic selection/fit/scoring and non-resumable ordered budget orchestration; focused RED/GREEN/full checks.
-- [ ] Freeze exact selections/images/manifests/source/runtime; source review and full available checks/CI; commit/push before live.
-- [ ] Read-only preflight, single31-entry experiment, lock fit beforeTEST, score unchanged old40 andfresh10.
-- [ ] One fresh read-only whole-feature review, MCP source/result; combined important-fix pass; publish actual evidence/next action, commit/push. Continue reviewed app integration if dual gate passes.
+- [x] Freeze exact selections/images/manifests/source/runtime; source review and full available checks/CI; commit/push before live.
+- [x] Read-only preflight, single31-entry experiment, lock fit beforeTEST, score unchanged old40 andfresh10.
+- [x] One fresh read-only whole-feature review, MCP source/result; combined important-fix pass; publish actual evidence/next action, commit/push. Continue reviewed app integration if dual gate passes.
 
 Do not adopt reviewer overclaims of scientific rigor, absolute leak freedom, determinism across all float runtimes, or general security/readiness.
 
 Source-stage: full83Python/19NodePASS, build/lintPASS. Python8testmethods had actualRED→GREEN; Node2phase tests were authored afterimplementation (contract deviation), deliberate lockedhashfault fails/restored19PASS; do not claim test-firstNode. Firstwrong-cwdmutation/test commands failed beforetargetexecution; correctedcommands actual. Independentreview0Critical0Important, exhaustive30selection/imagehash/JPEGbytechecks,500syntheticfitobjectives,40Decimalmetrics. PrimaryMCPsourceagree/MUSTnone, inventedtwofilenames rejected. Actualexperimentnotyetstarted.
+
+Completed: f5af422 source/currentcode allCI42811800401SUCCESS, actual31entrybudgetclosed; all20TRAIN+10freshTESTvalid. Factor1.096492793911007/64independentreviewmetricfields/everyguard verified; old40MAE125.6054→115.3466, fresh10 220.3830→202.5256, both<10%relativegain, allotherguardsPASS. No promotion/default/appdeploychange. Extra no-callknownmassORACLEdiagnostic new3testsactualRED→GREEN/full86PASS; old40oracle56.02/fresh10oracle72.55, notachievablephoto-onlyaccuracy/bound/causalclaim. CorrectedMCPprimary3.8/yolo finalsource/resultagreeMUSTnone; broadindependence/upperbound/causalphrases rejected. Duplicatehostbackendteststoppedafter30minwhileactive; sourceCI5354PASS+1skip isactualfullverification, nolocalfull-passclaim. Continueindependentmass-dependentcandidate undernewreviewedworkstream/new11budget, neverresume31registry.

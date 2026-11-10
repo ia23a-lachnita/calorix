@@ -1,0 +1,107 @@
+{
+  "id": "dish_1564086602",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 172.9,
+      "proteinG": 7.41,
+      "carbsG": 21.840000000000003,
+      "fatG": 6.370000000000001
+    },
+    "massG": 65,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 13388,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Cheese Pizza Slice",
+    "components": [
+      {
+        "name": "Cheese pizza slice",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Small rectangular cut piece of cheese pizza",
+          "Standard thin-to-medium crust with tomato sauce and mozzarella"
+        ],
+        "estimatedPer100": {
+          "kcal": 266,
+          "proteinG": 11.4,
+          "carbsG": 33.6,
+          "fatG": 9.8
+        },
+        "nutrients": {
+          "kcal": 172.9,
+          "proteinG": 7.41,
+          "carbsG": 21.840000000000003,
+          "fatG": 6.370000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 172.9,
+      "proteinG": 7.41,
+      "carbsG": 21.840000000000003,
+      "fatG": 6.370000000000001
+    },
+    "ambiguities": [
+      "Exact dough thickness and cheese composition cannot be verified from a single top view"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 13377,
+      "inputTokens": 2018,
+      "outputTokens": 206,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Cheese Pizza Slice",
+      "components": [
+        {
+          "name": "Cheese pizza slice",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Small rectangular cut piece of cheese pizza",
+            "Standard thin-to-medium crust with tomato sauce and mozzarella"
+          ],
+          "estimatedPer100": {
+            "kcal": 266,
+            "proteinG": 11.4,
+            "carbsG": 33.6,
+            "fatG": 9.8
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact dough thickness and cheese composition cannot be verified from a single top view"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "02b23dedf7cc4c43589c19ee3420519ff0060b75b7b66f19cdb4dd2e8673d3b6"
+}

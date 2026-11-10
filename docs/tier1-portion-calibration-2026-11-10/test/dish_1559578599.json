@@ -1,0 +1,191 @@
+{
+  "id": "dish_1559578599",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 361.35,
+      "proteinG": 16.3,
+      "carbsG": 30.74,
+      "fatG": 19.409999999999997
+    },
+    "massG": 205,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 15529,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Roasted Potatoes, Bacon, and Fresh Strawberries",
+    "components": [
+      {
+        "name": "Roasted breakfast potatoes",
+        "massG": 120,
+        "catalogId": null,
+        "preparation": "roasted/baked",
+        "assumptions": [
+          "Cut potato chunks, roasted with minimal oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 130,
+          "proteinG": 2.5,
+          "carbsG": 22,
+          "fatG": 3.8
+        },
+        "nutrients": {
+          "kcal": 156,
+          "proteinG": 3,
+          "carbsG": 26.4,
+          "fatG": 4.56
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Bacon strips",
+        "massG": 35,
+        "catalogId": null,
+        "preparation": "pan-fried or baked",
+        "assumptions": [
+          "Approximately 2 strips of pork bacon, pan-cooked"
+        ],
+        "estimatedPer100": {
+          "kcal": 541,
+          "proteinG": 37,
+          "carbsG": 1.4,
+          "fatG": 42
+        },
+        "nutrients": {
+          "kcal": 189.35,
+          "proteinG": 12.95,
+          "carbsG": 0.48999999999999994,
+          "fatG": 14.7
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Fresh strawberries",
+        "massG": 50,
+        "catalogId": null,
+        "preparation": "raw sliced",
+        "assumptions": [
+          "Cut raw fresh strawberries"
+        ],
+        "estimatedPer100": {
+          "kcal": 32,
+          "proteinG": 0.7,
+          "carbsG": 7.7,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 16,
+          "proteinG": 0.35,
+          "carbsG": 3.85,
+          "fatG": 0.15
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 361.35,
+      "proteinG": 16.3,
+      "carbsG": 30.74,
+      "fatG": 19.409999999999997
+    },
+    "ambiguities": [
+      "Exact quantity of cooking oil or butter used during potato preparation"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 15519,
+      "inputTokens": 2018,
+      "outputTokens": 422,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Roasted Potatoes, Bacon, and Fresh Strawberries",
+      "components": [
+        {
+          "name": "Roasted breakfast potatoes",
+          "massG": 120,
+          "catalogId": null,
+          "preparation": "roasted/baked",
+          "assumptions": [
+            "Cut potato chunks, roasted with minimal oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 130,
+            "proteinG": 2.5,
+            "carbsG": 22,
+            "fatG": 3.8
+          }
+        },
+        {
+          "name": "Bacon strips",
+          "massG": 35,
+          "catalogId": null,
+          "preparation": "pan-fried or baked",
+          "assumptions": [
+            "Approximately 2 strips of pork bacon, pan-cooked"
+          ],
+          "estimatedPer100": {
+            "kcal": 541,
+            "proteinG": 37,
+            "carbsG": 1.4,
+            "fatG": 42
+          }
+        },
+        {
+          "name": "Fresh strawberries",
+          "massG": 50,
+          "catalogId": null,
+          "preparation": "raw sliced",
+          "assumptions": [
+            "Cut raw fresh strawberries"
+          ],
+          "estimatedPer100": {
+            "kcal": 32,
+            "proteinG": 0.7,
+            "carbsG": 7.7,
+            "fatG": 0.3
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact quantity of cooking oil or butter used during potato preparation"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "8a3e4fb76ad8ee8010d706977582f4b89dfb852eace2ffe885426968fca7c498"
+}

@@ -1,0 +1,394 @@
+{
+  "id": "dish_1562700593",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 316.75,
+      "proteinG": 36.394999999999996,
+      "carbsG": 16.910000000000004,
+      "fatG": 11.665000000000001
+    },
+    "massG": 290,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 14014,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Sliced Beef, Fish Fillet, Wild Rice, Steamed Cauliflower, and Arugula Salad",
+    "components": [
+      {
+        "name": "Cooked beef steak slices",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "roasted/grilled",
+        "assumptions": [
+          "Lean red meat slices, well done to medium-well"
+        ],
+        "estimatedPer100": {
+          "kcal": 210,
+          "proteinG": 28,
+          "carbsG": 0,
+          "fatG": 10.5
+        },
+        "nutrients": {
+          "kcal": 147,
+          "proteinG": 19.599999999999998,
+          "carbsG": 0,
+          "fatG": 7.35
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Baked fish fillet piece",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "White fish fillet topped with herbs/crumbs"
+        ],
+        "estimatedPer100": {
+          "kcal": 140,
+          "proteinG": 20,
+          "carbsG": 3,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 91,
+          "proteinG": 13,
+          "carbsG": 1.9500000000000002,
+          "fatG": 3.25
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Steamed or boiled cauliflower",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "steamed",
+        "assumptions": [
+          "Plain cooked cauliflower florets"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 1.9,
+          "carbsG": 5,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 21.25,
+          "proteinG": 1.615,
+          "carbsG": 4.25,
+          "fatG": 0.255
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Arugula salad greens",
+        "massG": 30,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh baby arugula leaves"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 2.6,
+          "carbsG": 3.7,
+          "fatG": 0.7
+        },
+        "nutrients": {
+          "kcal": 7.5,
+          "proteinG": 0.78,
+          "carbsG": 1.11,
+          "fatG": 0.21
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Wild and brown rice blend with corn/onions",
+        "massG": 40,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Mixed grains and small bits of corn/onion"
+        ],
+        "estimatedPer100": {
+          "kcal": 125,
+          "proteinG": 3.5,
+          "carbsG": 24,
+          "fatG": 1.5
+        },
+        "nutrients": {
+          "kcal": 50,
+          "proteinG": 1.4000000000000001,
+          "carbsG": 9.600000000000001,
+          "fatG": 0.6000000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 316.75,
+      "proteinG": 36.394999999999996,
+      "carbsG": 16.910000000000004,
+      "fatG": 11.665000000000001
+    },
+    "ambiguities": [
+      "Presence of dressing or cooking oil on the salad greens and cauliflower"
+    ],
+    "question": {
+      "id": "added-fat",
+      "text": "Was there extra oil in this serving, beyond the foods and sauces listed?",
+      "answered": false,
+      "answer": null,
+      "options": [
+        {
+          "id": "none",
+          "label": "No extra oil",
+          "add": {
+            "kcal": 0,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 0
+          },
+          "component": null
+        },
+        {
+          "id": "oil_5g",
+          "label": "About 1 tsp oil (5 g)",
+          "add": {
+            "kcal": 44.2,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 5
+          },
+          "component": {
+            "name": "Additional oil (olive-oil nutrient proxy)",
+            "massG": 5,
+            "catalogId": "usda:171413",
+            "preparation": "oil",
+            "assumptions": [
+              "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+            ],
+            "estimatedPer100": null,
+            "nutrients": {
+              "kcal": 44.2,
+              "proteinG": 0,
+              "carbsG": 0,
+              "fatG": 5
+            },
+            "source": {
+              "kind": "database_match",
+              "recordId": "usda:171413",
+              "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+              "version": "usda-sr-2019-tier1-20261108-v1",
+              "description": "Oil, olive, salad or cooking"
+            }
+          }
+        },
+        {
+          "id": "oil_10g",
+          "label": "About 2 tsp oil (10 g)",
+          "add": {
+            "kcal": 88.4,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 10
+          },
+          "component": {
+            "name": "Additional oil (olive-oil nutrient proxy)",
+            "massG": 10,
+            "catalogId": "usda:171413",
+            "preparation": "oil",
+            "assumptions": [
+              "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+            ],
+            "estimatedPer100": null,
+            "nutrients": {
+              "kcal": 88.4,
+              "proteinG": 0,
+              "carbsG": 0,
+              "fatG": 10
+            },
+            "source": {
+              "kind": "database_match",
+              "recordId": "usda:171413",
+              "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+              "version": "usda-sr-2019-tier1-20261108-v1",
+              "description": "Oil, olive, salad or cooking"
+            }
+          }
+        },
+        {
+          "id": "oil_15g",
+          "label": "About 1 tbsp oil (15 g)",
+          "add": {
+            "kcal": 132.6,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 15
+          },
+          "component": {
+            "name": "Additional oil (olive-oil nutrient proxy)",
+            "massG": 15,
+            "catalogId": "usda:171413",
+            "preparation": "oil",
+            "assumptions": [
+              "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+            ],
+            "estimatedPer100": null,
+            "nutrients": {
+              "kcal": 132.6,
+              "proteinG": 0,
+              "carbsG": 0,
+              "fatG": 15
+            },
+            "source": {
+              "kind": "database_match",
+              "recordId": "usda:171413",
+              "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+              "version": "usda-sr-2019-tier1-20261108-v1",
+              "description": "Oil, olive, salad or cooking"
+            }
+          }
+        }
+      ]
+    },
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 14003,
+      "inputTokens": 2018,
+      "outputTokens": 668,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Sliced Beef, Fish Fillet, Wild Rice, Steamed Cauliflower, and Arugula Salad",
+      "components": [
+        {
+          "name": "Cooked beef steak slices",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "roasted/grilled",
+          "assumptions": [
+            "Lean red meat slices, well done to medium-well"
+          ],
+          "estimatedPer100": {
+            "kcal": 210,
+            "proteinG": 28,
+            "carbsG": 0,
+            "fatG": 10.5
+          }
+        },
+        {
+          "name": "Baked fish fillet piece",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "White fish fillet topped with herbs/crumbs"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 20,
+            "carbsG": 3,
+            "fatG": 5
+          }
+        },
+        {
+          "name": "Steamed or boiled cauliflower",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "steamed",
+          "assumptions": [
+            "Plain cooked cauliflower florets"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 1.9,
+            "carbsG": 5,
+            "fatG": 0.3
+          }
+        },
+        {
+          "name": "Arugula salad greens",
+          "massG": 30,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh baby arugula leaves"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 2.6,
+            "carbsG": 3.7,
+            "fatG": 0.7
+          }
+        },
+        {
+          "name": "Wild and brown rice blend with corn/onions",
+          "massG": 40,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Mixed grains and small bits of corn/onion"
+          ],
+          "estimatedPer100": {
+            "kcal": 125,
+            "proteinG": 3.5,
+            "carbsG": 24,
+            "fatG": 1.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Presence of dressing or cooking oil on the salad greens and cauliflower"
+      ],
+      "askAddedFat": true
+    }
+  },
+  "comparisonContextId": "942c573587c48e8f7e86f4141665688c0de1cef7488af0993b603ec089151e6e"
+}

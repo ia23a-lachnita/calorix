@@ -1,0 +1,302 @@
+{
+  "id": "dish_1565640894",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 422.4,
+      "proteinG": 25.84,
+      "carbsG": 8.860000000000001,
+      "fatG": 32.065
+    },
+    "massG": 270,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12809,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Mediterranean Salad with Olives, Cucumber, Chicken, and Shaved Cheese",
+    "components": [
+      {
+        "name": "Mixed salad greens",
+        "massG": 50,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Baby spinach or mixed salad leaves at the base"
+        ],
+        "estimatedPer100": {
+          "kcal": 23,
+          "proteinG": 2.9,
+          "carbsG": 3.6,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 11.5,
+          "proteinG": 1.45,
+          "carbsG": 1.8,
+          "fatG": 0.2
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Sliced cucumber",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh sliced cucumber with skin"
+        ],
+        "estimatedPer100": {
+          "kcal": 15,
+          "proteinG": 0.7,
+          "carbsG": 3.6,
+          "fatG": 0.1
+        },
+        "nutrients": {
+          "kcal": 12,
+          "proteinG": 0.5599999999999999,
+          "carbsG": 2.8800000000000003,
+          "fatG": 0.08000000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Kalamata olives",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "cured/pitted",
+        "assumptions": [
+          "Approximately 12-15 pitted dark purple/black olives"
+        ],
+        "estimatedPer100": {
+          "kcal": 240,
+          "proteinG": 1.2,
+          "carbsG": 5.6,
+          "fatG": 24
+        },
+        "nutrients": {
+          "kcal": 144,
+          "proteinG": 0.72,
+          "carbsG": 3.36,
+          "fatG": 14.399999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted chicken breast pieces",
+        "massG": 50,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Visible diced/cubed cooked poultry pieces"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 82.5,
+          "proteinG": 15.51,
+          "carbsG": 0,
+          "fatG": 1.785
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Shaved Parmesan cheese",
+        "massG": 20,
+        "catalogId": null,
+        "preparation": "shaved",
+        "assumptions": [
+          "Hard cheese shavings on top"
+        ],
+        "estimatedPer100": {
+          "kcal": 420,
+          "proteinG": 38,
+          "carbsG": 4.1,
+          "fatG": 28
+        },
+        "nutrients": {
+          "kcal": 84,
+          "proteinG": 7.6000000000000005,
+          "carbsG": 0.82,
+          "fatG": 5.6000000000000005
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Olive oil dressing",
+        "massG": 10,
+        "catalogId": "usda:171413",
+        "preparation": "oil",
+        "assumptions": [
+          "Light sheen of oil dressing applied to the salad"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 88.4,
+          "proteinG": 0,
+          "carbsG": 0,
+          "fatG": 10
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171413",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Oil, olive, salad or cooking"
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 422.4,
+      "proteinG": 25.84,
+      "carbsG": 8.860000000000001,
+      "fatG": 32.065
+    },
+    "ambiguities": [
+      "Dressing quantity and composition (vinegar/oil mixture)",
+      "Exact quantity of chicken underneath the greens and cucumber"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12778,
+      "inputTokens": 2018,
+      "outputTokens": 710,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Mediterranean Salad with Olives, Cucumber, Chicken, and Shaved Cheese",
+      "components": [
+        {
+          "name": "Mixed salad greens",
+          "massG": 50,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Baby spinach or mixed salad leaves at the base"
+          ],
+          "estimatedPer100": {
+            "kcal": 23,
+            "proteinG": 2.9,
+            "carbsG": 3.6,
+            "fatG": 0.4
+          }
+        },
+        {
+          "name": "Sliced cucumber",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh sliced cucumber with skin"
+          ],
+          "estimatedPer100": {
+            "kcal": 15,
+            "proteinG": 0.7,
+            "carbsG": 3.6,
+            "fatG": 0.1
+          }
+        },
+        {
+          "name": "Kalamata olives",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "cured/pitted",
+          "assumptions": [
+            "Approximately 12-15 pitted dark purple/black olives"
+          ],
+          "estimatedPer100": {
+            "kcal": 240,
+            "proteinG": 1.2,
+            "carbsG": 5.6,
+            "fatG": 24
+          }
+        },
+        {
+          "name": "Roasted chicken breast pieces",
+          "massG": 50,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Visible diced/cubed cooked poultry pieces"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Shaved Parmesan cheese",
+          "massG": 20,
+          "catalogId": null,
+          "preparation": "shaved",
+          "assumptions": [
+            "Hard cheese shavings on top"
+          ],
+          "estimatedPer100": {
+            "kcal": 420,
+            "proteinG": 38,
+            "carbsG": 4.1,
+            "fatG": 28
+          }
+        },
+        {
+          "name": "Olive oil dressing",
+          "massG": 10,
+          "catalogId": "usda:171413",
+          "preparation": "oil",
+          "assumptions": [
+            "Light sheen of oil dressing applied to the salad"
+          ],
+          "estimatedPer100": null
+        }
+      ],
+      "ambiguities": [
+        "Dressing quantity and composition (vinegar/oil mixture)",
+        "Exact quantity of chicken underneath the greens and cucumber"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "5560b1343ca5a4677f261a937e4d4a8210f9b70f9ce66cd92cb39f49f6a8a475"
+}

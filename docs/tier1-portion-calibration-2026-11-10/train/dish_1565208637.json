@@ -1,0 +1,230 @@
+{
+  "id": "dish_1565208637",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 413.3,
+      "proteinG": 35.667,
+      "carbsG": 20.064999999999998,
+      "fatG": 20.8345
+    },
+    "massG": 255,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 13404,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chicken Caesar Salad with Roasted Brussels Sprouts",
+    "components": [
+      {
+        "name": "Roasted chicken breast chunks",
+        "massG": 85,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Cooked chicken pieces mixed into salad",
+          "Boneless, skinless lean poultry"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 140.25,
+          "proteinG": 26.366999999999997,
+          "carbsG": 0,
+          "fatG": 3.0345
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Caesar salad with dressing and parmesan cheese",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "tossed with dressing and cheese flakes",
+        "assumptions": [
+          "Romaine or greens dressed with creamy Caesar dressing",
+          "Topped with shaved Parmesan"
+        ],
+        "estimatedPer100": {
+          "kcal": 185,
+          "proteinG": 6.2,
+          "carbsG": 4.5,
+          "fatG": 16
+        },
+        "nutrients": {
+          "kcal": 166.5,
+          "proteinG": 5.58,
+          "carbsG": 4.05,
+          "fatG": 14.4
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Croutons",
+        "massG": 15,
+        "catalogId": null,
+        "preparation": "toasted",
+        "assumptions": [
+          "Plain or seasoned toasted bread cubes"
+        ],
+        "estimatedPer100": {
+          "kcal": 407,
+          "proteinG": 11.8,
+          "carbsG": 72.1,
+          "fatG": 7.5
+        },
+        "nutrients": {
+          "kcal": 61.05,
+          "proteinG": 1.77,
+          "carbsG": 10.815,
+          "fatG": 1.125
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted Brussels sprouts",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "roasted with oil",
+        "assumptions": [
+          "Halved Brussels sprouts roasted until browned"
+        ],
+        "estimatedPer100": {
+          "kcal": 70,
+          "proteinG": 3,
+          "carbsG": 8,
+          "fatG": 3.5
+        },
+        "nutrients": {
+          "kcal": 45.5,
+          "proteinG": 1.9500000000000002,
+          "carbsG": 5.2,
+          "fatG": 2.275
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 413.3,
+      "proteinG": 35.667,
+      "carbsG": 20.064999999999998,
+      "fatG": 20.8345
+    },
+    "ambiguities": [
+      "Exact cut of poultry (breast vs thigh)",
+      "Amount of oil and dressing mixed into salad and sprouts"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 13398,
+      "inputTokens": 2018,
+      "outputTokens": 333,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chicken Caesar Salad with Roasted Brussels Sprouts",
+      "components": [
+        {
+          "name": "Roasted chicken breast chunks",
+          "massG": 85,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Cooked chicken pieces mixed into salad",
+            "Boneless, skinless lean poultry"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Caesar salad with dressing and parmesan cheese",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "tossed with dressing and cheese flakes",
+          "assumptions": [
+            "Romaine or greens dressed with creamy Caesar dressing",
+            "Topped with shaved Parmesan"
+          ],
+          "estimatedPer100": {
+            "kcal": 185,
+            "proteinG": 6.2,
+            "carbsG": 4.5,
+            "fatG": 16
+          }
+        },
+        {
+          "name": "Croutons",
+          "massG": 15,
+          "catalogId": null,
+          "preparation": "toasted",
+          "assumptions": [
+            "Plain or seasoned toasted bread cubes"
+          ],
+          "estimatedPer100": {
+            "kcal": 407,
+            "proteinG": 11.8,
+            "carbsG": 72.1,
+            "fatG": 7.5
+          }
+        },
+        {
+          "name": "Roasted Brussels sprouts",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "roasted with oil",
+          "assumptions": [
+            "Halved Brussels sprouts roasted until browned"
+          ],
+          "estimatedPer100": {
+            "kcal": 70,
+            "proteinG": 3,
+            "carbsG": 8,
+            "fatG": 3.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact cut of poultry (breast vs thigh)",
+        "Amount of oil and dressing mixed into salad and sprouts"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "7342c725cafd083491612df1ff7b42aa35652a3e3f0acace89af22b6522a6b12"
+}

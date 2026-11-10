@@ -1,0 +1,20 @@
+{
+  "engineCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "trainManifestSha256": "69c1849c7705af6af554405d3dd7a9db98e310e6b417d09508efb7be34e72275",
+  "testManifestSha256": "62d843a6b93d7294bbaaa894250b6e4cfa4969fdc860cd070d98ae365fc9f07d",
+  "protocolSha256": "5ea93be04815d3096c1b3adc752411e2af5b0cfbfcc37d79377451e936bf4dfd",
+  "bundleSha256": "c15276ba8395dfcacefaeb583cebe9680942056233395b9f489a85fa36684db7",
+  "model": "gemini-3.8-flash",
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "outputDir": "/home/agent-runner/.local/share/calorix-portion-calibration-20261110/experiment",
+  "assetsRoot": "/home/agent-runner/.local/share/calorix-portion-calibration-20261110/inputs-frozen",
+  "consentVersion": "tier1-v1",
+  "maxSdkEntries": 31,
+  "completedSdkEntries": 31,
+  "unknownInFlight": false,
+  "status": "completed",
+  "phase": "complete",
+  "startedAt": "2026-11-10T12:07:49.513Z",
+  "profileSha256": "7574661dd8febc3a7ff8952f41ec0d8a17a1a6588e498631df21bd4fa33e6832"
+}

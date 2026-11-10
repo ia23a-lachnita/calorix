@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-11-10T11:55:05.686212+00:00",
+  "inferenceRequests": 0,
+  "project": {
+    "http": 200,
+    "name": "Calorix",
+    "projectId": "calorix-xurschnell",
+    "lifecycleState": "ACTIVE"
+  },
+  "model": {
+    "http": 403
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "id": "dish_1562790855",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 413.75,
+      "proteinG": 44.248999999999995,
+      "carbsG": 31.699999999999996,
+      "fatG": 11.383999999999999
+    },
+    "massG": 285,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 21373,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Sliced Chicken Breast with Grain Pilaf and Spinach",
+    "components": [
+      {
+        "name": "Roasted chicken breast",
+        "massG": 120,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Skinless roasted chicken breast slices"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 198,
+          "proteinG": 37.224,
+          "carbsG": 0,
+          "fatG": 4.284
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Grain and spinach pilaf",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Mixed cooked grain/rice casserole with chopped spinach and light seasoning"
+        ],
+        "estimatedPer100": {
+          "kcal": 150,
+          "proteinG": 4.5,
+          "carbsG": 22,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 210,
+          "proteinG": 6.3,
+          "carbsG": 30.799999999999997,
+          "fatG": 7
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Fresh baby spinach",
+        "massG": 25,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Raw baby spinach leaves served as a base"
+        ],
+        "estimatedPer100": {
+          "kcal": 23,
+          "proteinG": 2.9,
+          "carbsG": 3.6,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 5.75,
+          "proteinG": 0.725,
+          "carbsG": 0.9,
+          "fatG": 0.1
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 413.75,
+      "proteinG": 44.248999999999995,
+      "carbsG": 31.699999999999996,
+      "fatG": 11.383999999999999
+    },
+    "ambiguities": [
+      "Exact grain or vegetable components in the mixed pilaf dish on the right side of the plate"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 21365,
+      "inputTokens": 2018,
+      "outputTokens": 413,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Sliced Chicken Breast with Grain Pilaf and Spinach",
+      "components": [
+        {
+          "name": "Roasted chicken breast",
+          "massG": 120,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Skinless roasted chicken breast slices"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Grain and spinach pilaf",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Mixed cooked grain/rice casserole with chopped spinach and light seasoning"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 4.5,
+            "carbsG": 22,
+            "fatG": 5
+          }
+        },
+        {
+          "name": "Fresh baby spinach",
+          "massG": 25,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Raw baby spinach leaves served as a base"
+          ],
+          "estimatedPer100": {
+            "kcal": 23,
+            "proteinG": 2.9,
+            "carbsG": 3.6,
+            "fatG": 0.4
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact grain or vegetable components in the mixed pilaf dish on the right side of the plate"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "e0b329dc4992811741fa52fdfd27d965d60c9771acaf431fe427f1af953c535f"
+}

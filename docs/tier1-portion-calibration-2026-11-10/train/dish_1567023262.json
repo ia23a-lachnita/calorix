@@ -1,0 +1,109 @@
+{
+  "id": "dish_1567023262",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 63.25000000000001,
+      "proteinG": 1.375,
+      "carbsG": 2.09,
+      "fatG": 5.61
+    },
+    "massG": 55,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10795,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Side Greek-style Mixed Green Salad",
+    "components": [
+      {
+        "name": "Mixed greens and cucumber salad with feta and dressing",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "raw, dressed",
+        "assumptions": [
+          "Consists of mixed leafy greens, cucumber slices, small olive or tomato bits, crumbled feta cheese, and an oil-based vinaigrette",
+          "Small appetizer or leftover portion"
+        ],
+        "estimatedPer100": {
+          "kcal": 115,
+          "proteinG": 2.5,
+          "carbsG": 3.8,
+          "fatG": 10.2
+        },
+        "nutrients": {
+          "kcal": 63.25000000000001,
+          "proteinG": 1.375,
+          "carbsG": 2.09,
+          "fatG": 5.61
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 63.25000000000001,
+      "proteinG": 1.375,
+      "carbsG": 2.09,
+      "fatG": 5.61
+    },
+    "ambiguities": [
+      "Exact dressing type and oil quantity",
+      "Presence of hidden olives or other salad toppings under the greens"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10785,
+      "inputTokens": 2018,
+      "outputTokens": 238,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Side Greek-style Mixed Green Salad",
+      "components": [
+        {
+          "name": "Mixed greens and cucumber salad with feta and dressing",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "raw, dressed",
+          "assumptions": [
+            "Consists of mixed leafy greens, cucumber slices, small olive or tomato bits, crumbled feta cheese, and an oil-based vinaigrette",
+            "Small appetizer or leftover portion"
+          ],
+          "estimatedPer100": {
+            "kcal": 115,
+            "proteinG": 2.5,
+            "carbsG": 3.8,
+            "fatG": 10.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact dressing type and oil quantity",
+        "Presence of hidden olives or other salad toppings under the greens"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "60c5596e8d6cc803745799d095dbc75173e823793c304f68d8d2132a8e12d057"
+}

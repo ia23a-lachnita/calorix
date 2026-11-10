@@ -1,0 +1,193 @@
+{
+  "id": "dish_1562172643",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 414.45000000000005,
+      "proteinG": 31.6,
+      "carbsG": 16.99,
+      "fatG": 23.49
+    },
+    "massG": 235,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 14732,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Scrambled Egg Whites with Bacon and Home Fries",
+    "components": [
+      {
+        "name": "Egg whites, scrambled",
+        "massG": 120,
+        "catalogId": null,
+        "preparation": "scrambled",
+        "assumptions": [
+          "Prepared egg whites without yolk, cooked with minimal or no oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 55,
+          "proteinG": 11,
+          "carbsG": 0.8,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 66,
+          "proteinG": 13.2,
+          "carbsG": 0.96,
+          "fatG": 0.48
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Crispy bacon strips",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "pan-fried or baked crispy",
+        "assumptions": [
+          "Cured pork bacon, cooked until crisp, approximately 3 strips"
+        ],
+        "estimatedPer100": {
+          "kcal": 541,
+          "proteinG": 37,
+          "carbsG": 1.4,
+          "fatG": 41.8
+        },
+        "nutrients": {
+          "kcal": 243.45000000000002,
+          "proteinG": 16.650000000000002,
+          "carbsG": 0.63,
+          "fatG": 18.81
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Breakfast potatoes (home fries)",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "roasted or pan-fried",
+        "assumptions": [
+          "Diced seasoned potatoes cooked with oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 150,
+          "proteinG": 2.5,
+          "carbsG": 22,
+          "fatG": 6
+        },
+        "nutrients": {
+          "kcal": 105,
+          "proteinG": 1.75,
+          "carbsG": 15.399999999999999,
+          "fatG": 4.199999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 414.45000000000005,
+      "proteinG": 31.6,
+      "carbsG": 16.99,
+      "fatG": 23.49
+    },
+    "ambiguities": [
+      "Exact amount of cooking oil/butter used for egg whites and potatoes",
+      "Whether bacon is standard pork bacon or turkey bacon"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 14722,
+      "inputTokens": 2018,
+      "outputTokens": 457,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Scrambled Egg Whites with Bacon and Home Fries",
+      "components": [
+        {
+          "name": "Egg whites, scrambled",
+          "massG": 120,
+          "catalogId": null,
+          "preparation": "scrambled",
+          "assumptions": [
+            "Prepared egg whites without yolk, cooked with minimal or no oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 55,
+            "proteinG": 11,
+            "carbsG": 0.8,
+            "fatG": 0.4
+          }
+        },
+        {
+          "name": "Crispy bacon strips",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "pan-fried or baked crispy",
+          "assumptions": [
+            "Cured pork bacon, cooked until crisp, approximately 3 strips"
+          ],
+          "estimatedPer100": {
+            "kcal": 541,
+            "proteinG": 37,
+            "carbsG": 1.4,
+            "fatG": 41.8
+          }
+        },
+        {
+          "name": "Breakfast potatoes (home fries)",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "roasted or pan-fried",
+          "assumptions": [
+            "Diced seasoned potatoes cooked with oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 2.5,
+            "carbsG": 22,
+            "fatG": 6
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact amount of cooking oil/butter used for egg whites and potatoes",
+        "Whether bacon is standard pork bacon or turkey bacon"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "f9500c8bdc33c2137e001031ba8ff553f8c7834285cd9599bec3d613010e46ea"
+}

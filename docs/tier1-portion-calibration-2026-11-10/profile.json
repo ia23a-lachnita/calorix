@@ -1,0 +1,118 @@
+{
+  "schema_version": "portion-scale-1",
+  "scale": 1.096492793911007,
+  "bounds": [
+    0.5,
+    2
+  ],
+  "fit": "TRAIN weighted median(ref/pred), weights=pred; median interval nearest1; then clamp",
+  "training_ids": [
+    "dish_1556575083",
+    "dish_1559751744",
+    "dish_1560367733",
+    "dish_1560799407",
+    "dish_1562615153",
+    "dish_1563302447",
+    "dish_1563910639",
+    "dish_1564086602",
+    "dish_1564429270",
+    "dish_1564514997",
+    "dish_1564588688",
+    "dish_1565208637",
+    "dish_1565382803",
+    "dish_1565640894",
+    "dish_1565721800",
+    "dish_1566849233",
+    "dish_1567023262",
+    "dish_1567106870",
+    "dish_1567538303",
+    "dish_1568666000"
+  ],
+  "selected_training_scans": 20,
+  "usable_training_scans": 20,
+  "excluded_training_scans": 0,
+  "minimum_usable": 16,
+  "trainManifestSha256": "69c1849c7705af6af554405d3dd7a9db98e310e6b417d09508efb7be34e72275",
+  "trainingReceipts": [
+    {
+      "id": "dish_1560367733",
+      "sha256": "66af056efac4a8ea3ea5f5cd58525c7ca8b5dfcd6ae0659163297710a0604b22"
+    },
+    {
+      "id": "dish_1564429270",
+      "sha256": "ac814d1cb847736a8c5bcb5b2c9706c5915c489a92486ce526af61c7f4c36f93"
+    },
+    {
+      "id": "dish_1567538303",
+      "sha256": "eddf4141eca60ea2169967068e6b4b10507aa9cc4f66ede5d6e7bfa9a0693df8"
+    },
+    {
+      "id": "dish_1563910639",
+      "sha256": "ed2379f18d7b6d0b8e2d98054f3299516d956a4cdf7db7d90a33d65b6748b22c"
+    },
+    {
+      "id": "dish_1564514997",
+      "sha256": "50b5168b62d70f1db19a4f0721ee7a04681579ffebd80fa93ca4696be7d393f9"
+    },
+    {
+      "id": "dish_1565208637",
+      "sha256": "e3412909f9033fe658cb7a686bb082a3cfc946645076a20f075c87b8ab0b9132"
+    },
+    {
+      "id": "dish_1568666000",
+      "sha256": "19f5ebb076e707c837936e978dab279f11589a0467c1d8e853ace70225784907"
+    },
+    {
+      "id": "dish_1565382803",
+      "sha256": "91c9a9f64c215fa40b9de63e8ba85b0ff5bc98b2865f525c07b42300da47304e"
+    },
+    {
+      "id": "dish_1567106870",
+      "sha256": "b5bab61dcda2b09665725f30730b32e110cebb878d91378f414544fa2dacd351"
+    },
+    {
+      "id": "dish_1560799407",
+      "sha256": "aa1e7143603b3569471ea6f259b98e61360a25e33d4a3c6dfb6b723b76ea498f"
+    },
+    {
+      "id": "dish_1559751744",
+      "sha256": "058a069af9b51390ade7e979a48b11e46931aaa9bc79e8c484da4d5d2284209f"
+    },
+    {
+      "id": "dish_1565640894",
+      "sha256": "3fd3ef0eb20ef7288b9b725d25d134762077c25be4e781d6390d42a89cee0600"
+    },
+    {
+      "id": "dish_1563302447",
+      "sha256": "384f15c28f15fa21bb747be2543eb71fc007d27e80d860ac44866752e53f8729"
+    },
+    {
+      "id": "dish_1562615153",
+      "sha256": "86db2f9675dea3fced15b89ee53862ec32c7fc4fd13e935adda77eb49c7bb383"
+    },
+    {
+      "id": "dish_1567023262",
+      "sha256": "488181767db8a974219a669afa07eb66f9177818b445c0eae055cfda4181273f"
+    },
+    {
+      "id": "dish_1564588688",
+      "sha256": "97a52641c3db54c2bfb7ac39ebb9a7f08575558413cb99bb3fbac348b4f889cf"
+    },
+    {
+      "id": "dish_1564086602",
+      "sha256": "083137b0a73821ebb2980e8b20e30babb6e616030b39f0c744719c9ea054e63b"
+    },
+    {
+      "id": "dish_1556575083",
+      "sha256": "c3f8695dac262e44c4f36bb739add264e99e29ebe2f151bc6d1131459e1647ea"
+    },
+    {
+      "id": "dish_1565721800",
+      "sha256": "58b4b111b5da1b823d5f3e789f3194caf3bc079d63fe79079a7f9bd4bd1f3197"
+    },
+    {
+      "id": "dish_1566849233",
+      "sha256": "e748085da853ec62a631510e11bbc028c5e00a4de08aa5e68f597e0f54b3c583"
+    }
+  ]
+}

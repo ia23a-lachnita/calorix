@@ -1,0 +1,228 @@
+{
+  "id": "dish_1564429270",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 399.65,
+      "proteinG": 12.02,
+      "carbsG": 46.50000000000001,
+      "fatG": 18.88
+    },
+    "massG": 300,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12857,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Tofu Rice Stir-Fry with Mixed Green Salad",
+    "components": [
+      {
+        "name": "Tofu and rice stir-fry with greens",
+        "massG": 180,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Cooked rice mixed with firm tofu cubes, herbs/spinach, and light savory sauce",
+          "Estimated density includes moderate cooking oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 145,
+          "proteinG": 5.5,
+          "carbsG": 21,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 261,
+          "proteinG": 9.9,
+          "carbsG": 37.800000000000004,
+          "fatG": 8.1
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed green salad with chickpeas and red peppers",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Arugula, mixed salad greens, chickpeas, and sliced red peppers"
+        ],
+        "estimatedPer100": {
+          "kcal": 45,
+          "proteinG": 2.2,
+          "carbsG": 7,
+          "fatG": 0.8
+        },
+        "nutrients": {
+          "kcal": 38.25,
+          "proteinG": 1.87,
+          "carbsG": 5.95,
+          "fatG": 0.68
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Blackberries and blueberries",
+        "massG": 25,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh berries used as salad garnish"
+        ],
+        "estimatedPer100": {
+          "kcal": 48,
+          "proteinG": 1,
+          "carbsG": 11,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 12,
+          "proteinG": 0.25,
+          "carbsG": 2.75,
+          "fatG": 0.1
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Salad dressing/oil",
+        "massG": 10,
+        "catalogId": "usda:171413",
+        "preparation": "oil",
+        "assumptions": [
+          "Light olive oil or vinaigrette coating visible on greens"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 88.4,
+          "proteinG": 0,
+          "carbsG": 0,
+          "fatG": 10
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171413",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Oil, olive, salad or cooking"
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 399.65,
+      "proteinG": 12.02,
+      "carbsG": 46.50000000000001,
+      "fatG": 18.88
+    },
+    "ambiguities": [
+      "Presence and composition of dressing on the salad greens",
+      "Exact sauce or seasoning on the tofu and rice dish"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12836,
+      "inputTokens": 2018,
+      "outputTokens": 568,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Tofu Rice Stir-Fry with Mixed Green Salad",
+      "components": [
+        {
+          "name": "Tofu and rice stir-fry with greens",
+          "massG": 180,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Cooked rice mixed with firm tofu cubes, herbs/spinach, and light savory sauce",
+            "Estimated density includes moderate cooking oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 145,
+            "proteinG": 5.5,
+            "carbsG": 21,
+            "fatG": 4.5
+          }
+        },
+        {
+          "name": "Mixed green salad with chickpeas and red peppers",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Arugula, mixed salad greens, chickpeas, and sliced red peppers"
+          ],
+          "estimatedPer100": {
+            "kcal": 45,
+            "proteinG": 2.2,
+            "carbsG": 7,
+            "fatG": 0.8
+          }
+        },
+        {
+          "name": "Blackberries and blueberries",
+          "massG": 25,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh berries used as salad garnish"
+          ],
+          "estimatedPer100": {
+            "kcal": 48,
+            "proteinG": 1,
+            "carbsG": 11,
+            "fatG": 0.4
+          }
+        },
+        {
+          "name": "Salad dressing/oil",
+          "massG": 10,
+          "catalogId": "usda:171413",
+          "preparation": "oil",
+          "assumptions": [
+            "Light olive oil or vinaigrette coating visible on greens"
+          ],
+          "estimatedPer100": null
+        }
+      ],
+      "ambiguities": [
+        "Presence and composition of dressing on the salad greens",
+        "Exact sauce or seasoning on the tofu and rice dish"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "1f6f39b23c17e4bb7befdb61a87ceaee3cd6ef4f0d52fc14ae278867e7945e80"
+}

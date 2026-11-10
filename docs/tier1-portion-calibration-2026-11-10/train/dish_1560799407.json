@@ -1,0 +1,193 @@
+{
+  "id": "dish_1560799407",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 215.75,
+      "proteinG": 16.405,
+      "carbsG": 9.200000000000001,
+      "fatG": 12.724999999999998
+    },
+    "massG": 130,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 14913,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Spinach Salad with Chicken and Cranberries",
+    "components": [
+      {
+        "name": "Grilled chicken pieces",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "cooked grilled",
+        "assumptions": [
+          "Chicken thigh or breast pieces mixed under the salad greens"
+        ],
+        "estimatedPer100": {
+          "kcal": 185,
+          "proteinG": 25,
+          "carbsG": 0.5,
+          "fatG": 9
+        },
+        "nutrients": {
+          "kcal": 111,
+          "proteinG": 15,
+          "carbsG": 0.3,
+          "fatG": 5.3999999999999995
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed spinach salad with shredded carrots, seeds, and dried cranberries",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "raw mixed",
+        "assumptions": [
+          "Includes baby spinach, matchstick carrots, dried cranberries, and sunflower or pumpkin seeds"
+        ],
+        "estimatedPer100": {
+          "kcal": 95,
+          "proteinG": 2.5,
+          "carbsG": 14,
+          "fatG": 3.5
+        },
+        "nutrients": {
+          "kcal": 52.25000000000001,
+          "proteinG": 1.375,
+          "carbsG": 7.700000000000001,
+          "fatG": 1.9250000000000003
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Vinaigrette salad dressing",
+        "massG": 15,
+        "catalogId": null,
+        "preparation": "prepared dressing",
+        "assumptions": [
+          "Light coating of oil and vinegar based dressing on the salad leaves"
+        ],
+        "estimatedPer100": {
+          "kcal": 350,
+          "proteinG": 0.2,
+          "carbsG": 8,
+          "fatG": 36
+        },
+        "nutrients": {
+          "kcal": 52.5,
+          "proteinG": 0.03,
+          "carbsG": 1.2,
+          "fatG": 5.3999999999999995
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 215.75,
+      "proteinG": 16.405,
+      "carbsG": 9.200000000000001,
+      "fatG": 12.724999999999998
+    },
+    "ambiguities": [
+      "Exact cut and preparation of the meat under the salad greens",
+      "Type of seeds/nuts and dressing oil composition"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 14899,
+      "inputTokens": 2018,
+      "outputTokens": 457,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Spinach Salad with Chicken and Cranberries",
+      "components": [
+        {
+          "name": "Grilled chicken pieces",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "cooked grilled",
+          "assumptions": [
+            "Chicken thigh or breast pieces mixed under the salad greens"
+          ],
+          "estimatedPer100": {
+            "kcal": 185,
+            "proteinG": 25,
+            "carbsG": 0.5,
+            "fatG": 9
+          }
+        },
+        {
+          "name": "Mixed spinach salad with shredded carrots, seeds, and dried cranberries",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "raw mixed",
+          "assumptions": [
+            "Includes baby spinach, matchstick carrots, dried cranberries, and sunflower or pumpkin seeds"
+          ],
+          "estimatedPer100": {
+            "kcal": 95,
+            "proteinG": 2.5,
+            "carbsG": 14,
+            "fatG": 3.5
+          }
+        },
+        {
+          "name": "Vinaigrette salad dressing",
+          "massG": 15,
+          "catalogId": null,
+          "preparation": "prepared dressing",
+          "assumptions": [
+            "Light coating of oil and vinegar based dressing on the salad leaves"
+          ],
+          "estimatedPer100": {
+            "kcal": 350,
+            "proteinG": 0.2,
+            "carbsG": 8,
+            "fatG": 36
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact cut and preparation of the meat under the salad greens",
+        "Type of seeds/nuts and dressing oil composition"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "fdb5705c5ff1243e025b4580691105f1627c99f17846f1b31ae913c581295cab"
+}

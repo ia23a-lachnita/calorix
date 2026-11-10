@@ -1,0 +1,214 @@
+{
+  "id": "dish_1563910639",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 223.04,
+      "proteinG": 17.7485,
+      "carbsG": 19.070500000000003,
+      "fatG": 8.032
+    },
+    "massG": 161,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 16003,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Flaked Fish and Rice with Spinach",
+    "components": [
+      {
+        "name": "White rice",
+        "massG": 65,
+        "catalogId": "usda:168878",
+        "preparation": "cooked",
+        "assumptions": [
+          "Steamed white long-grain rice mixed into dish"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 84.5,
+          "proteinG": 1.7485,
+          "carbsG": 18.3105,
+          "fatG": 0.18200000000000002
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:168878",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/168878/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Rice, white, long-grain, regular, enriched, cooked"
+        }
+      },
+      {
+        "name": "Flaked white fish",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "cooked baked/pan-seared",
+        "assumptions": [
+          "Flaked white fish such as cod, haddock, or tilapia, or possibly shredded poultry"
+        ],
+        "estimatedPer100": {
+          "kcal": 115,
+          "proteinG": 22,
+          "carbsG": 0,
+          "fatG": 2.5
+        },
+        "nutrients": {
+          "kcal": 80.5,
+          "proteinG": 15.399999999999999,
+          "carbsG": 0,
+          "fatG": 1.75
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Wilted spinach and herbs",
+        "massG": 20,
+        "catalogId": null,
+        "preparation": "cooked sautéed",
+        "assumptions": [
+          "Dark leafy greens cooked into the dish"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 3,
+          "carbsG": 3.8,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 5,
+          "proteinG": 0.6000000000000001,
+          "carbsG": 0.76,
+          "fatG": 0.1
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cooking oil / pan fat",
+        "massG": 6,
+        "catalogId": "usda:171413",
+        "preparation": "oil",
+        "assumptions": [
+          "Residual oil from cooking and mixing ingredients"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 53.04,
+          "proteinG": 0,
+          "carbsG": 0,
+          "fatG": 6
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171413",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Oil, olive, salad or cooking"
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 223.04,
+      "proteinG": 17.7485,
+      "carbsG": 19.070500000000003,
+      "fatG": 8.032
+    },
+    "ambiguities": [
+      "Protein source cannot be definitively identified; appears to be flaked white fish or shredded chicken breast"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 15991,
+      "inputTokens": 2018,
+      "outputTokens": 505,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Flaked Fish and Rice with Spinach",
+      "components": [
+        {
+          "name": "White rice",
+          "massG": 65,
+          "catalogId": "usda:168878",
+          "preparation": "cooked",
+          "assumptions": [
+            "Steamed white long-grain rice mixed into dish"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Flaked white fish",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "cooked baked/pan-seared",
+          "assumptions": [
+            "Flaked white fish such as cod, haddock, or tilapia, or possibly shredded poultry"
+          ],
+          "estimatedPer100": {
+            "kcal": 115,
+            "proteinG": 22,
+            "carbsG": 0,
+            "fatG": 2.5
+          }
+        },
+        {
+          "name": "Wilted spinach and herbs",
+          "massG": 20,
+          "catalogId": null,
+          "preparation": "cooked sautéed",
+          "assumptions": [
+            "Dark leafy greens cooked into the dish"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 3,
+            "carbsG": 3.8,
+            "fatG": 0.5
+          }
+        },
+        {
+          "name": "Cooking oil / pan fat",
+          "massG": 6,
+          "catalogId": "usda:171413",
+          "preparation": "oil",
+          "assumptions": [
+            "Residual oil from cooking and mixing ingredients"
+          ],
+          "estimatedPer100": null
+        }
+      ],
+      "ambiguities": [
+        "Protein source cannot be definitively identified; appears to be flaked white fish or shredded chicken breast"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "90bda5b6c012a30985583cca275eb27f67231613909a3bda50cc2a910da5551c"
+}

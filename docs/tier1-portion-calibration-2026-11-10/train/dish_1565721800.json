@@ -1,0 +1,152 @@
+{
+  "id": "dish_1565721800",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 19.55,
+      "proteinG": 1.015,
+      "carbsG": 3.8649999999999998,
+      "fatG": 0.315
+    },
+    "massG": 100,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 19473,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Steamed Yellow Squash and Zucchini",
+    "components": [
+      {
+        "name": "Yellow squash, cooked",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "cooked steamed or boiled",
+        "assumptions": [
+          "Yellow summer squash cut into pieces",
+          "Cooked with little or no added fat"
+        ],
+        "estimatedPer100": {
+          "kcal": 20,
+          "proteinG": 1,
+          "carbsG": 4,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 17,
+          "proteinG": 0.85,
+          "carbsG": 3.4,
+          "fatG": 0.255
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Zucchini, cooked",
+        "massG": 15,
+        "catalogId": null,
+        "preparation": "cooked steamed or boiled",
+        "assumptions": [
+          "Single wedge of dark green zucchini",
+          "Cooked with little or no added fat"
+        ],
+        "estimatedPer100": {
+          "kcal": 17,
+          "proteinG": 1.1,
+          "carbsG": 3.1,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 2.55,
+          "proteinG": 0.165,
+          "carbsG": 0.46499999999999997,
+          "fatG": 0.06
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 19.55,
+      "proteinG": 1.015,
+      "carbsG": 3.8649999999999998,
+      "fatG": 0.315
+    },
+    "ambiguities": [
+      "Presence of butter or oil used during cooking"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 19466,
+      "inputTokens": 2018,
+      "outputTokens": 333,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Steamed Yellow Squash and Zucchini",
+      "components": [
+        {
+          "name": "Yellow squash, cooked",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "cooked steamed or boiled",
+          "assumptions": [
+            "Yellow summer squash cut into pieces",
+            "Cooked with little or no added fat"
+          ],
+          "estimatedPer100": {
+            "kcal": 20,
+            "proteinG": 1,
+            "carbsG": 4,
+            "fatG": 0.3
+          }
+        },
+        {
+          "name": "Zucchini, cooked",
+          "massG": 15,
+          "catalogId": null,
+          "preparation": "cooked steamed or boiled",
+          "assumptions": [
+            "Single wedge of dark green zucchini",
+            "Cooked with little or no added fat"
+          ],
+          "estimatedPer100": {
+            "kcal": 17,
+            "proteinG": 1.1,
+            "carbsG": 3.1,
+            "fatG": 0.4
+          }
+        }
+      ],
+      "ambiguities": [
+        "Presence of butter or oil used during cooking"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "85c0d55c93a36cd02130a352888754eac9e02ee53029adcf0fe109b827dd2e91"
+}

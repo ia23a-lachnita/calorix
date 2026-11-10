@@ -1,0 +1,107 @@
+{
+  "id": "dish_1564588688",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 182,
+      "proteinG": 7.800000000000001,
+      "carbsG": 6.5,
+      "fatG": 14.3
+    },
+    "massG": 65,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 11519,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Fried Plantain or Sausage Bites",
+    "components": [
+      {
+        "name": "Fried sausage or plantain pieces",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "fried or pan-seared",
+        "assumptions": [
+          "Four bite-sized cylindrical/round pieces",
+          "Could be fried smoked sausage/kielbasa chunks or fried sweet plantain (maduros)"
+        ],
+        "estimatedPer100": {
+          "kcal": 280,
+          "proteinG": 12,
+          "carbsG": 10,
+          "fatG": 22
+        },
+        "nutrients": {
+          "kcal": 182,
+          "proteinG": 7.800000000000001,
+          "carbsG": 6.5,
+          "fatG": 14.3
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 182,
+      "proteinG": 7.800000000000001,
+      "carbsG": 6.5,
+      "fatG": 14.3
+    },
+    "ambiguities": [
+      "Exact identity is ambiguous: appears to be browned sausage slices/chunks, plantains, or small meatballs"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 11515,
+      "inputTokens": 2018,
+      "outputTokens": 236,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Fried Plantain or Sausage Bites",
+      "components": [
+        {
+          "name": "Fried sausage or plantain pieces",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "fried or pan-seared",
+          "assumptions": [
+            "Four bite-sized cylindrical/round pieces",
+            "Could be fried smoked sausage/kielbasa chunks or fried sweet plantain (maduros)"
+          ],
+          "estimatedPer100": {
+            "kcal": 280,
+            "proteinG": 12,
+            "carbsG": 10,
+            "fatG": 22
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact identity is ambiguous: appears to be browned sausage slices/chunks, plantains, or small meatballs"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "f5833213041685ba56b5f6e3e3dc2d3f66c5f5bee01e214d5a2434d3158be1b7"
+}

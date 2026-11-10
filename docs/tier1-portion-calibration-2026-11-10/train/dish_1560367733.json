@@ -1,0 +1,259 @@
+{
+  "id": "dish_1560367733",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 597.5,
+      "proteinG": 43.284,
+      "carbsG": 73.62200000000001,
+      "fatG": 13.717999999999998
+    },
+    "massG": 465,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12449,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chicken and Broccoli Stir-Fry with White Rice and Roasted Potato Wedges",
+    "components": [
+      {
+        "name": "White rice",
+        "massG": 160,
+        "catalogId": "usda:168878",
+        "preparation": "cooked",
+        "assumptions": [
+          "Boiled or steamed long-grain white rice"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 208,
+          "proteinG": 4.304,
+          "carbsG": 45.072,
+          "fatG": 0.44800000000000006
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:168878",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/168878/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Rice, white, long-grain, regular, enriched, cooked"
+        }
+      },
+      {
+        "name": "Roast chicken breast slices",
+        "massG": 100,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Skinless chicken breast slices, roasted/baked"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 165,
+          "proteinG": 31.02,
+          "carbsG": 0,
+          "fatG": 3.57
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Broccoli florets",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "sautéed or stir-fried",
+        "assumptions": [
+          "Stir-fried or cooked with light oil and soy/seasoning"
+        ],
+        "estimatedPer100": {
+          "kcal": 55,
+          "proteinG": 3,
+          "carbsG": 6.5,
+          "fatG": 2.5
+        },
+        "nutrients": {
+          "kcal": 49.5,
+          "proteinG": 2.7,
+          "carbsG": 5.8500000000000005,
+          "fatG": 2.25
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Tofu or crouton cubes",
+        "massG": 35,
+        "catalogId": null,
+        "preparation": "fried or baked",
+        "assumptions": [
+          "Cubed firm tofu or seasoned bread croutons"
+        ],
+        "estimatedPer100": {
+          "kcal": 180,
+          "proteinG": 10,
+          "carbsG": 10,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 62.99999999999999,
+          "proteinG": 3.5,
+          "carbsG": 3.5,
+          "fatG": 3.8499999999999996
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted potato or sweet potato wedges",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "roasted with oil",
+        "assumptions": [
+          "Oven-baked or roasted potato/sweet potato wedges with skin on"
+        ],
+        "estimatedPer100": {
+          "kcal": 140,
+          "proteinG": 2.2,
+          "carbsG": 24,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 112,
+          "proteinG": 1.7600000000000002,
+          "carbsG": 19.200000000000003,
+          "fatG": 3.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 597.5,
+      "proteinG": 43.284,
+      "carbsG": 73.62200000000001,
+      "fatG": 13.717999999999998
+    },
+    "ambiguities": [
+      "Cubed items could be baked tofu puffs, tempeh, or croutons.",
+      "Dark roasted wedges could be russet potatoes or sweet potatoes."
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12383,
+      "inputTokens": 2018,
+      "outputTokens": 631,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chicken and Broccoli Stir-Fry with White Rice and Roasted Potato Wedges",
+      "components": [
+        {
+          "name": "White rice",
+          "massG": 160,
+          "catalogId": "usda:168878",
+          "preparation": "cooked",
+          "assumptions": [
+            "Boiled or steamed long-grain white rice"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Roast chicken breast slices",
+          "massG": 100,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Skinless chicken breast slices, roasted/baked"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Broccoli florets",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "sautéed or stir-fried",
+          "assumptions": [
+            "Stir-fried or cooked with light oil and soy/seasoning"
+          ],
+          "estimatedPer100": {
+            "kcal": 55,
+            "proteinG": 3,
+            "carbsG": 6.5,
+            "fatG": 2.5
+          }
+        },
+        {
+          "name": "Tofu or crouton cubes",
+          "massG": 35,
+          "catalogId": null,
+          "preparation": "fried or baked",
+          "assumptions": [
+            "Cubed firm tofu or seasoned bread croutons"
+          ],
+          "estimatedPer100": {
+            "kcal": 180,
+            "proteinG": 10,
+            "carbsG": 10,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Roasted potato or sweet potato wedges",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "roasted with oil",
+          "assumptions": [
+            "Oven-baked or roasted potato/sweet potato wedges with skin on"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 2.2,
+            "carbsG": 24,
+            "fatG": 4.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Cubed items could be baked tofu puffs, tempeh, or croutons.",
+        "Dark roasted wedges could be russet potatoes or sweet potatoes."
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "d9375d95098d8f5e25cb67efebe59b03d0e9336da60e1ea647d71780e73f5bd8"
+}

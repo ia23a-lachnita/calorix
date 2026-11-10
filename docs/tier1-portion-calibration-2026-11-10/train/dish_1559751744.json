@@ -1,0 +1,195 @@
+{
+  "id": "dish_1559751744",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 217.00000000000003,
+      "proteinG": 13.66,
+      "carbsG": 7.34,
+      "fatG": 14.590000000000002
+    },
+    "massG": 180,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 16781,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Scrambled Eggs with Blackberries and Raspberries",
+    "components": [
+      {
+        "name": "Scrambled eggs",
+        "massG": 130,
+        "catalogId": null,
+        "preparation": "cooked scrambled",
+        "assumptions": [
+          "Prepared with a standard amount of cooking fat or butter",
+          "Reddish tint may indicate hot sauce, seasoning, or cheddar"
+        ],
+        "estimatedPer100": {
+          "kcal": 149,
+          "proteinG": 10,
+          "carbsG": 1.6,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 193.70000000000002,
+          "proteinG": 13,
+          "carbsG": 2.08,
+          "fatG": 14.3
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Blackberries",
+        "massG": 30,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh whole berries"
+        ],
+        "estimatedPer100": {
+          "kcal": 43,
+          "proteinG": 1.4,
+          "carbsG": 9.6,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 12.9,
+          "proteinG": 0.42,
+          "carbsG": 2.88,
+          "fatG": 0.15
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Raspberries",
+        "massG": 20,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh whole berries"
+        ],
+        "estimatedPer100": {
+          "kcal": 52,
+          "proteinG": 1.2,
+          "carbsG": 11.9,
+          "fatG": 0.7
+        },
+        "nutrients": {
+          "kcal": 10.4,
+          "proteinG": 0.24,
+          "carbsG": 2.3800000000000003,
+          "fatG": 0.13999999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 217.00000000000003,
+      "proteinG": 13.66,
+      "carbsG": 7.34,
+      "fatG": 14.590000000000002
+    },
+    "ambiguities": [
+      "Whether cooking fat, milk, or cheese was added to the scrambled eggs",
+      "Whether the red coloring on the eggs is hot sauce, ketchup, or paprika"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 16769,
+      "inputTokens": 2018,
+      "outputTokens": 457,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Scrambled Eggs with Blackberries and Raspberries",
+      "components": [
+        {
+          "name": "Scrambled eggs",
+          "massG": 130,
+          "catalogId": null,
+          "preparation": "cooked scrambled",
+          "assumptions": [
+            "Prepared with a standard amount of cooking fat or butter",
+            "Reddish tint may indicate hot sauce, seasoning, or cheddar"
+          ],
+          "estimatedPer100": {
+            "kcal": 149,
+            "proteinG": 10,
+            "carbsG": 1.6,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Blackberries",
+          "massG": 30,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh whole berries"
+          ],
+          "estimatedPer100": {
+            "kcal": 43,
+            "proteinG": 1.4,
+            "carbsG": 9.6,
+            "fatG": 0.5
+          }
+        },
+        {
+          "name": "Raspberries",
+          "massG": 20,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh whole berries"
+          ],
+          "estimatedPer100": {
+            "kcal": 52,
+            "proteinG": 1.2,
+            "carbsG": 11.9,
+            "fatG": 0.7
+          }
+        }
+      ],
+      "ambiguities": [
+        "Whether cooking fat, milk, or cheese was added to the scrambled eggs",
+        "Whether the red coloring on the eggs is hot sauce, ketchup, or paprika"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "267d49237812d8db323233302ce6f0f4b3b861d40a3bfb40541c997c454f3ffe"
+}

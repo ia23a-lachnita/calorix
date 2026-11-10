@@ -1,0 +1,2491 @@
+{
+  "schemaVersion": 1,
+  "scope": "public_dataset",
+  "datasetId": "nutrition5k",
+  "sampleCount": 20,
+  "cases": [
+    {
+      "id": "dish_1560367733",
+      "captureDate": "2019-06-12",
+      "reference": {
+        "kcal": 661.441162,
+        "proteinG": 46.178318,
+        "carbsG": 54.923664,
+        "fatG": 26.763107,
+        "massG": 388
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000189",
+          "name": "vinegar",
+          "kcal": 0,
+          "massG": 1.019305,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000471",
+          "name": "cherry tomatoes",
+          "kcal": 0.9173745,
+          "massG": 5.096525,
+          "fatG": 0.01019305,
+          "carbsG": 0.198764475,
+          "proteinG": 0.045868725
+        },
+        {
+          "id": "ingr_0000000026",
+          "name": "white rice",
+          "kcal": 126.1,
+          "massG": 97,
+          "fatG": 0.291,
+          "carbsG": 27.16,
+          "proteinG": 2.619
+        },
+        {
+          "id": "ingr_0000000306",
+          "name": "croutons",
+          "kcal": 40.81,
+          "massG": 10,
+          "fatG": 0.67,
+          "carbsG": 7.23,
+          "proteinG": 1.2
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 3.0375289,
+          "massG": 2.03861,
+          "fatG": 0.01019305,
+          "carbsG": 0.6727413,
+          "proteinG": 0.13047104
+        },
+        {
+          "id": "ingr_0000000027",
+          "name": "broccoli",
+          "kcal": 1.78378375,
+          "massG": 5.096525,
+          "fatG": 0.0203861,
+          "carbsG": 0.35675675,
+          "proteinG": 0.1223166
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "kcal": 0.17328185,
+          "massG": 1.019305,
+          "fatG": 0,
+          "carbsG": 0.05708108,
+          "proteinG": 0.00407722
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 36.0426248,
+          "massG": 4.07722,
+          "fatG": 4.07722,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000462",
+          "name": "pork",
+          "kcal": 363.89188976,
+          "massG": 152.895752,
+          "fatG": 21.40540528,
+          "carbsG": 0,
+          "proteinG": 39.75289552
+        },
+        {
+          "id": "ingr_0000000023",
+          "name": "brown rice",
+          "kcal": 22.62857211,
+          "massG": 20.386101,
+          "fatG": 0.183474909,
+          "carbsG": 4.68880323,
+          "proteinG": 0.530038626
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 0.815444,
+          "massG": 2.03861,
+          "fatG": 0.00407722,
+          "carbsG": 0.18959073,
+          "proteinG": 0.0407722
+        },
+        {
+          "id": "ingr_0000000005",
+          "name": "potatoes",
+          "kcal": 63.91,
+          "massG": 83,
+          "fatG": 0.083,
+          "carbsG": 14.11,
+          "proteinG": 1.66
+        },
+        {
+          "id": "ingr_0000000133",
+          "name": "shallots",
+          "kcal": 0.203861,
+          "massG": 1.019305,
+          "fatG": 0.00203861,
+          "carbsG": 0.033637065,
+          "proteinG": 0.015289575
+        },
+        {
+          "id": "ingr_0000000094",
+          "name": "onions",
+          "kcal": 0.815444,
+          "massG": 2.03861,
+          "fatG": 0.00203861,
+          "carbsG": 0.1834749,
+          "proteinG": 0.02242471
+        },
+        {
+          "id": "ingr_0000000521",
+          "name": "basil",
+          "kcal": 0.12231648,
+          "massG": 0.509652,
+          "fatG": 0,
+          "carbsG": 0.01019304,
+          "proteinG": 0.02038608
+        },
+        {
+          "id": "ingr_0000000524",
+          "name": "parsley",
+          "kcal": 0.189080892,
+          "massG": 0.509652,
+          "fatG": 0.004077216,
+          "carbsG": 0.032617728,
+          "proteinG": 0.014779908
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.254826,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1560367733.jpg",
+      "inputSha256": "d21ab6d9e0066fd322a53959cc0d20c0037b563b423baccc4c556e8b6262b003",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "7794e9583556816e73696ebe0d23b95d7dc2e5957e2cbeddaf2216bab9c7b371",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560367733/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "7542f1791986f355c55183f039c32f147acb0619b826f3b1c6b03973c8d11633"
+    },
+    {
+      "id": "dish_1564429270",
+      "captureDate": "2019-07-29",
+      "reference": {
+        "kcal": 605.507202,
+        "proteinG": 43.046116,
+        "carbsG": 30.81835,
+        "fatG": 39.626583,
+        "massG": 354
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.614629,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000126",
+          "name": "mustard",
+          "kcal": 0.464812154,
+          "massG": 0.758258,
+          "fatG": 0.025022514,
+          "carbsG": 0.04549548,
+          "proteinG": 0.028055546
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 0.67788295,
+          "massG": 0.454955,
+          "fatG": 0.002274775,
+          "carbsG": 0.15013515,
+          "proteinG": 0.02911712
+        },
+        {
+          "id": "ingr_0000000187",
+          "name": "chickpeas",
+          "kcal": 41.89855764,
+          "massG": 25.547901,
+          "fatG": 0.664245426,
+          "carbsG": 6.89793327,
+          "proteinG": 2.29931109
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 128.70869388,
+          "massG": 14.559807,
+          "fatG": 14.559807,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000526",
+          "name": "mustard greens",
+          "kcal": 1.72448325,
+          "massG": 6.386975,
+          "fatG": 0.0255479,
+          "carbsG": 0.300187825,
+          "proteinG": 0.185222275
+        },
+        {
+          "id": "ingr_0000000524",
+          "name": "parsley",
+          "kcal": 0.94782709,
+          "massG": 2.55479,
+          "fatG": 0.02043832,
+          "carbsG": 0.16350656,
+          "proteinG": 0.07408891
+        },
+        {
+          "id": "ingr_0000000189",
+          "name": "vinegar",
+          "kcal": 0,
+          "massG": 4.829565,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000515",
+          "name": "arugula",
+          "kcal": 18.58173,
+          "massG": 74.32692,
+          "fatG": 0.52028844,
+          "carbsG": 2.75009604,
+          "proteinG": 1.93249992
+        },
+        {
+          "id": "ingr_0000000177",
+          "name": "tempeh",
+          "kcal": 389.658,
+          "massG": 202,
+          "fatG": 22.018,
+          "carbsG": 18.786,
+          "proteinG": 37.976
+        },
+        {
+          "id": "ingr_0000000517",
+          "name": "chard",
+          "kcal": 2.30510527,
+          "massG": 12.132133,
+          "fatG": 0.024264266,
+          "carbsG": 0.448888921,
+          "proteinG": 0.218378394
+        },
+        {
+          "id": "ingr_0000000082",
+          "name": "pecans",
+          "kcal": 16.7423394,
+          "massG": 2.426426,
+          "fatG": 1.74702672,
+          "carbsG": 0.33969964,
+          "proteinG": 0.21837834
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 1.021916,
+          "massG": 2.55479,
+          "fatG": 0.00510958,
+          "carbsG": 0.23759547,
+          "proteinG": 0.0510958
+        },
+        {
+          "id": "ingr_0000000201",
+          "name": "blueberries",
+          "kcal": 2.775831916,
+          "massG": 4.852853,
+          "fatG": 0.014558559,
+          "carbsG": 0.698810832,
+          "proteinG": 0.033969971
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1564429270.jpg",
+      "inputSha256": "933a96beb90a45c0d51b12efc44507a1fa7b7905813d876482f25c1e685ad850",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "8b2c4ba9366add813c44297d40836459dcb4657cd678a7e747ea7347df8f303a",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564429270/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "1284c011365fa8e72f4308052c338cb5bf80a6a0faef5dda1cdab2f6fab5cdd7"
+    },
+    {
+      "id": "dish_1567538303",
+      "captureDate": "2019-09-03",
+      "reference": {
+        "kcal": 617.449158,
+        "proteinG": 53.626446,
+        "carbsG": 15.257855,
+        "fatG": 36.129631,
+        "massG": 307
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000535",
+          "name": "green onions",
+          "kcal": 0.41242624,
+          "massG": 1.288832,
+          "fatG": 0.002577664,
+          "carbsG": 0.09021824,
+          "proteinG": 0.023198976
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 1.3473684,
+          "massG": 3.368421,
+          "fatG": 0.006736842,
+          "carbsG": 0.313263153,
+          "proteinG": 0.06736842
+        },
+        {
+          "id": "ingr_0000000203",
+          "name": "chili",
+          "kcal": 0.5155328,
+          "massG": 1.288832,
+          "fatG": 0.005155328,
+          "carbsG": 0.114706048,
+          "proteinG": 0.023198976
+        },
+        {
+          "id": "ingr_0000000026",
+          "name": "white rice",
+          "kcal": 33.5096268,
+          "massG": 25.776636,
+          "fatG": 0.077329908,
+          "carbsG": 7.21745808,
+          "proteinG": 0.695969172
+        },
+        {
+          "id": "ingr_0000000189",
+          "name": "vinegar",
+          "kcal": 0,
+          "massG": 1.288832,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "kcal": 0.38175438,
+          "massG": 2.245614,
+          "fatG": 0,
+          "carbsG": 0.125754384,
+          "proteinG": 0.008982456
+        },
+        {
+          "id": "ingr_0000000508",
+          "name": "soy sauce",
+          "kcal": 0.68308096,
+          "massG": 1.288832,
+          "fatG": 0.007732992,
+          "carbsG": 0.063152768,
+          "proteinG": 0.104395392
+        },
+        {
+          "id": "ingr_0000000498",
+          "name": "orange juice",
+          "kcal": 0.60575104,
+          "massG": 1.288832,
+          "fatG": 0.001288832,
+          "carbsG": 0.14177152,
+          "proteinG": 0.009021824
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 2.33860566,
+          "massG": 1.569534,
+          "fatG": 0.00784767,
+          "carbsG": 0.51794622,
+          "proteinG": 0.100450176
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.462559,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000025",
+          "name": "beef",
+          "kcal": 483.3119575,
+          "massG": 193.324783,
+          "fatG": 28.99871745,
+          "carbsG": 0,
+          "proteinG": 50.26444358
+        },
+        {
+          "id": "ingr_0000000072",
+          "name": "kale",
+          "kcal": 3.15763791,
+          "massG": 6.444159,
+          "fatG": 0.045109113,
+          "carbsG": 0.57997431,
+          "proteinG": 0.212657247
+        },
+        {
+          "id": "ingr_0000000524",
+          "name": "parsley",
+          "kcal": 0.208280884,
+          "massG": 0.561404,
+          "fatG": 0.004491232,
+          "carbsG": 0.035929856,
+          "proteinG": 0.016280716
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 56.79236784,
+          "massG": 6.424476,
+          "fatG": 6.424476,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000515",
+          "name": "arugula",
+          "kcal": 7.01754375,
+          "massG": 28.070175,
+          "fatG": 0.196491225,
+          "carbsG": 1.038596475,
+          "proteinG": 0.72982455
+        },
+        {
+          "id": "ingr_0000000094",
+          "name": "onions",
+          "kcal": 1.0310656,
+          "massG": 2.577664,
+          "fatG": 0.002577664,
+          "carbsG": 0.23198976,
+          "proteinG": 0.028354304
+        },
+        {
+          "id": "ingr_0000000187",
+          "name": "chickpeas",
+          "kcal": 18.4140348,
+          "massG": 11.22807,
+          "fatG": 0.29192982,
+          "carbsG": 3.0315789,
+          "proteinG": 1.0105263
+        },
+        {
+          "id": "ingr_0000000027",
+          "name": "broccoli",
+          "kcal": 4.5109113,
+          "massG": 12.888318,
+          "fatG": 0.051553272,
+          "carbsG": 0.90218226,
+          "proteinG": 0.309319632
+        },
+        {
+          "id": "ingr_0000000213",
+          "name": "pears",
+          "kcal": 3.21122802,
+          "massG": 5.614035,
+          "fatG": 0.005614035,
+          "carbsG": 0.85333332,
+          "proteinG": 0.02245614
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1567538303.jpg",
+      "inputSha256": "bb1f80d4ce2e0c53175164bd5964a0a44e0ca429bb61324be15d987195b10b1c",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "0d77788bf82a8e262c8481b1a030c9b44e1e90b36285c2e77de29bbb6ba91e8d",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1567538303/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "5ea95f93762c30ea8d6925f7fbf94134394bd968e1068036e559f85aef9bf584"
+    },
+    {
+      "id": "dish_1563910639",
+      "captureDate": "2019-07-23",
+      "reference": {
+        "kcal": 697.289185,
+        "proteinG": 80.965355,
+        "carbsG": 20.529985,
+        "fatG": 29.137266,
+        "massG": 447
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 14.49203949,
+          "massG": 9.726201,
+          "fatG": 0.048631005,
+          "carbsG": 3.20964633,
+          "proteinG": 0.622476864
+        },
+        {
+          "id": "ingr_0000000367",
+          "name": "lime",
+          "kcal": 0.1215774,
+          "massG": 0.405258,
+          "fatG": 0.000810516,
+          "carbsG": 0.04255209,
+          "proteinG": 0.002836806
+        },
+        {
+          "id": "ingr_0000000203",
+          "name": "chili",
+          "kcal": 0.3242068,
+          "massG": 0.810517,
+          "fatG": 0.003242068,
+          "carbsG": 0.072136013,
+          "proteinG": 0.014589306
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.810517,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000094",
+          "name": "onions",
+          "kcal": 2.5936536,
+          "massG": 6.484134,
+          "fatG": 0.006484134,
+          "carbsG": 0.58357206,
+          "proteinG": 0.071325474
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "kcal": 0.55115139,
+          "massG": 3.242067,
+          "fatG": 0,
+          "carbsG": 0.181555752,
+          "proteinG": 0.012968268
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 21.494902,
+          "massG": 2.43155,
+          "fatG": 2.43155,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000523",
+          "name": "cilantro",
+          "kcal": 0.739191276,
+          "massG": 3.242067,
+          "fatG": 0.016210335,
+          "carbsG": 0.119956479,
+          "proteinG": 0.071325474
+        },
+        {
+          "id": "ingr_0000000023",
+          "name": "brown rice",
+          "kcal": 71.97388629,
+          "massG": 64.841339,
+          "fatG": 0.583572051,
+          "carbsG": 14.91350797,
+          "proteinG": 1.685874814
+        },
+        {
+          "id": "ingr_0000000036",
+          "name": "spinach (raw)",
+          "kcal": 3.72837705,
+          "massG": 16.210335,
+          "fatG": 0.06484134,
+          "carbsG": 0.58357206,
+          "proteinG": 0.470099715
+        },
+        {
+          "id": "ingr_0000000448",
+          "name": "jalapenos",
+          "kcal": 0.94019943,
+          "massG": 3.242067,
+          "fatG": 0.012968268,
+          "carbsG": 0.210734355,
+          "proteinG": 0.029178603
+        },
+        {
+          "id": "ingr_0000000540",
+          "name": "ginger",
+          "kcal": 1.2968272,
+          "massG": 1.621034,
+          "fatG": 0.012968272,
+          "carbsG": 0.29178612,
+          "proteinG": 0.029178612
+        },
+        {
+          "id": "ingr_0000000332",
+          "name": "salmon",
+          "kcal": 577.08791888,
+          "massG": 324.206696,
+          "fatG": 25.93653568,
+          "carbsG": 0,
+          "proteinG": 77.80960704
+        },
+        {
+          "id": "ingr_0000000133",
+          "name": "shallots",
+          "kcal": 1.9452402,
+          "massG": 9.726201,
+          "fatG": 0.019452402,
+          "carbsG": 0.320964633,
+          "proteinG": 0.145893015
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1563910639.jpg",
+      "inputSha256": "cf170c11a14d548741b9f2a851063568723ae36c9633d16d4b5bd4d5adbdb774",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "4a465e5b721568e488c9837cb70e099bf92d393a8bbc5609a8d2f1cb5a3e8134",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563910639/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "cf5de2226fa2efe5b0dd18cec58256273c33a0bf697a558e6042f708d52b8a3a"
+    },
+    {
+      "id": "dish_1564514997",
+      "captureDate": "2019-07-30",
+      "reference": {
+        "kcal": 381.110779,
+        "proteinG": 31.071066,
+        "carbsG": 40.343685,
+        "fatG": 25.977457,
+        "massG": 396
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000094",
+          "name": "onions",
+          "kcal": 2.4321092,
+          "massG": 6.080273,
+          "fatG": 0.006080273,
+          "carbsG": 0.54722457,
+          "proteinG": 0.066883003
+        },
+        {
+          "id": "ingr_0000000367",
+          "name": "lime",
+          "kcal": 0.7296327,
+          "massG": 2.432109,
+          "fatG": 0.004864218,
+          "carbsG": 0.255371445,
+          "proteinG": 0.017024763
+        },
+        {
+          "id": "ingr_0000000033",
+          "name": "bell peppers",
+          "kcal": 0.9728436,
+          "massG": 2.432109,
+          "fatG": 0.004864218,
+          "carbsG": 0.21888981,
+          "proteinG": 0.04864218
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.68479,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000515",
+          "name": "arugula",
+          "kcal": 0.912041,
+          "massG": 3.648164,
+          "fatG": 0.025537148,
+          "carbsG": 0.134982068,
+          "proteinG": 0.094852264
+        },
+        {
+          "id": "ingr_0000000514",
+          "name": "wheat berry",
+          "kcal": 101.60193862,
+          "massG": 111.650482,
+          "fatG": 0.55825241,
+          "carbsG": 21.325242062,
+          "proteinG": 4.689320244
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 81.58556224,
+          "massG": 9.229136,
+          "fatG": 9.229136,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000524",
+          "name": "parsley",
+          "kcal": 0.112789194,
+          "massG": 0.304014,
+          "fatG": 0.002432112,
+          "carbsG": 0.019456896,
+          "proteinG": 0.008816406
+        },
+        {
+          "id": "ingr_0000000102",
+          "name": "snow peas",
+          "kcal": 3.94001658,
+          "massG": 4.864218,
+          "fatG": 0.019456872,
+          "carbsG": 0.68099052,
+          "proteinG": 0.2432109
+        },
+        {
+          "id": "ingr_0000000045",
+          "name": "carrot",
+          "kcal": 41.63154719,
+          "massG": 101.540359,
+          "fatG": 0.203080718,
+          "carbsG": 10.1540359,
+          "proteinG": 0.913863231
+        },
+        {
+          "id": "ingr_0000000095",
+          "name": "artichokes",
+          "kcal": 2.85772831,
+          "massG": 6.080273,
+          "fatG": 0.012160546,
+          "carbsG": 0.66883003,
+          "proteinG": 0.200649009
+        },
+        {
+          "id": "ingr_0000000527",
+          "name": "chive",
+          "kcal": 0.0912042,
+          "massG": 0.304014,
+          "fatG": 0.002128098,
+          "carbsG": 0.013376616,
+          "proteinG": 0.010032462
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 0.90596023,
+          "massG": 0.608027,
+          "fatG": 0.003040135,
+          "carbsG": 0.20064891,
+          "proteinG": 0.038913728
+        },
+        {
+          "id": "ingr_0000000049",
+          "name": "fish",
+          "kcal": 109.4449149,
+          "massG": 121.605461,
+          "fatG": 15.80870993,
+          "carbsG": 0,
+          "proteinG": 22.375404824
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 0.086188,
+          "massG": 0.21547,
+          "fatG": 0.00043094,
+          "carbsG": 0.02003871,
+          "proteinG": 0.0043094
+        },
+        {
+          "id": "ingr_0000000542",
+          "name": "white beans",
+          "kcal": 33.80631927,
+          "massG": 24.321093,
+          "fatG": 0.097284372,
+          "carbsG": 6.104594343,
+          "proteinG": 2.359146021
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1564514997.jpg",
+      "inputSha256": "51f679111e88dd359dd10061c88c827076a4109042ede361ffb17e8185c06251",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "57c20af7552997a1fe6921d04cdbbf6eb5413b943e3f74a89cfbc05d01558203",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564514997/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "072ec17a4e1683de7fbdaccff0741579461649815b5d0182916a261475f77452"
+    },
+    {
+      "id": "dish_1565208637",
+      "captureDate": "2019-08-07",
+      "reference": {
+        "kcal": 250.187943,
+        "proteinG": 14.171419,
+        "carbsG": 32.110229,
+        "fatG": 8.242543,
+        "massG": 305
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000189",
+          "name": "vinegar",
+          "kcal": 0,
+          "massG": 2.894866,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000155",
+          "name": "chicken thighs",
+          "kcal": 48.090953008,
+          "massG": 27.139364,
+          "fatG": 2.252567212,
+          "carbsG": 0,
+          "proteinG": 6.486307996
+        },
+        {
+          "id": "ingr_0000000072",
+          "name": "kale",
+          "kcal": 7.09242023,
+          "massG": 14.474327,
+          "fatG": 0.101320289,
+          "carbsG": 1.30268943,
+          "proteinG": 0.477652791
+        },
+        {
+          "id": "ingr_0000000038",
+          "name": "pineapple",
+          "kcal": 7.2371635,
+          "massG": 14.474327,
+          "fatG": 0.014474327,
+          "carbsG": 1.88166251,
+          "proteinG": 0.072371635
+        },
+        {
+          "id": "ingr_0000000026",
+          "name": "white rice",
+          "kcal": 75.2665004,
+          "massG": 57.897308,
+          "fatG": 0.173691924,
+          "carbsG": 16.21124624,
+          "proteinG": 1.563227316
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 0.0319804,
+          "massG": 0.079951,
+          "fatG": 0.000159902,
+          "carbsG": 0.007435443,
+          "proteinG": 0.00159902
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 1.04352,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 4.31335034,
+          "massG": 2.894866,
+          "fatG": 0.01447433,
+          "carbsG": 0.95530578,
+          "proteinG": 0.185271424
+        },
+        {
+          "id": "ingr_0000000006",
+          "name": "caesar salad",
+          "kcal": 40.48,
+          "massG": 92,
+          "fatG": 1.932,
+          "carbsG": 3.956,
+          "proteinG": 2.944
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "kcal": 0.49212722,
+          "massG": 2.894866,
+          "fatG": 0,
+          "carbsG": 0.162112496,
+          "proteinG": 0.011579464
+        },
+        {
+          "id": "ingr_0000000016",
+          "name": "brussels sprouts",
+          "kcal": 27.5030752,
+          "massG": 63.96064,
+          "fatG": 0.19188192,
+          "carbsG": 5.7564576,
+          "proteinG": 2.17466176
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 31.24473248,
+          "massG": 3.534472,
+          "fatG": 3.534472,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000523",
+          "name": "cilantro",
+          "kcal": 0.330014724,
+          "massG": 1.447433,
+          "fatG": 0.007237165,
+          "carbsG": 0.053555021,
+          "proteinG": 0.031843526
+        },
+        {
+          "id": "ingr_0000000094",
+          "name": "onions",
+          "kcal": 8.1056236,
+          "massG": 20.264059,
+          "fatG": 0.020264059,
+          "carbsG": 1.82376531,
+          "proteinG": 0.222904649
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1565208637.jpg",
+      "inputSha256": "45e9a227146a37231c1ed0c3fe2321c7e4a9b0d6eed6fa7b566113768a7247ab",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "986ffec1cd384720eda279693ba6f7b9318850715ee1a898eabab70e5176ca21",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565208637/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "6b6ae2fb6a30ccf7f0201ac239dc4ccf23dc4ee569eb6fae82614bc87780fc87"
+    },
+    {
+      "id": "dish_1568666000",
+      "captureDate": "2019-09-16",
+      "reference": {
+        "kcal": 209.934982,
+        "proteinG": 10.612808,
+        "carbsG": 25.612118,
+        "fatG": 7.829318,
+        "massG": 197
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000031",
+          "name": "cucumbers",
+          "kcal": 0.4339964,
+          "massG": 4.339964,
+          "fatG": 0,
+          "carbsG": 0.08679928,
+          "proteinG": 0.04339964
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "kcal": 0.29511762,
+          "massG": 1.735986,
+          "fatG": 0,
+          "carbsG": 0.097215216,
+          "proteinG": 0.006943944
+        },
+        {
+          "id": "ingr_0000000524",
+          "name": "parsley",
+          "kcal": 0.060379879,
+          "massG": 0.162749,
+          "fatG": 0.001301992,
+          "carbsG": 0.010415936,
+          "proteinG": 0.004719721
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 0.6943944,
+          "massG": 1.735986,
+          "fatG": 0.003471972,
+          "carbsG": 0.161446698,
+          "proteinG": 0.03471972
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.108499,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000011",
+          "name": "cheese pizza",
+          "kcal": 154.222,
+          "massG": 58,
+          "fatG": 5.452,
+          "carbsG": 19.43,
+          "proteinG": 6.496
+        },
+        {
+          "id": "ingr_0000000006",
+          "name": "caesar salad",
+          "kcal": 47.96,
+          "massG": 109,
+          "fatG": 2.289,
+          "carbsG": 4.687,
+          "proteinG": 3.488
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 0.32332702,
+          "massG": 0.216998,
+          "fatG": 0.00108499,
+          "carbsG": 0.07160934,
+          "proteinG": 0.013887872
+        },
+        {
+          "id": "ingr_0000000522",
+          "name": "tatsoi",
+          "kcal": 3.81916832,
+          "massG": 17.359856,
+          "fatG": 0.052079568,
+          "carbsG": 0.677034384,
+          "proteinG": 0.381916832
+        },
+        {
+          "id": "ingr_0000000072",
+          "name": "kale",
+          "kcal": 2.12658236,
+          "massG": 4.339964,
+          "fatG": 0.030379748,
+          "carbsG": 0.39059676,
+          "proteinG": 0.143218812
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1568666000.jpg",
+      "inputSha256": "18c2cc835b50d2f4167482bdd808ebf2b6ae6d310e46fa23296d71a5ad5a76c0",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "78825da1586a3e2cd123db2f77c7dcc675a8452c7aab70447ccf88721acd8581",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1568666000/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "b664d6ff28038ab7156c5379c97190857037b8e32d6be29668237a4731a1fb13"
+    },
+    {
+      "id": "dish_1565382803",
+      "captureDate": "2019-08-09",
+      "reference": {
+        "kcal": 359.408569,
+        "proteinG": 13.366736,
+        "carbsG": 43.129684,
+        "fatG": 15.261753,
+        "massG": 177
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.136784,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 0.0091188,
+          "massG": 0.022797,
+          "fatG": 0.000045594,
+          "carbsG": 0.002120121,
+          "proteinG": 0.00045594
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 3.22445188,
+          "massG": 0.364757,
+          "fatG": 0.364757,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000045",
+          "name": "carrot",
+          "kcal": 14.95502142,
+          "massG": 36.475662,
+          "fatG": 0.072951324,
+          "carbsG": 3.6475662,
+          "proteinG": 0.328280958
+        },
+        {
+          "id": "ingr_0000000433",
+          "name": "roasted potatoes",
+          "kcal": 53.58,
+          "massG": 38,
+          "fatG": 2.584,
+          "carbsG": 6.84,
+          "proteinG": 0.798
+        },
+        {
+          "id": "ingr_0000000392",
+          "name": "pepperoni pizza",
+          "kcal": 287.64,
+          "massG": 102,
+          "fatG": 12.24,
+          "carbsG": 32.64,
+          "proteinG": 12.24
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1565382803.jpg",
+      "inputSha256": "229bc6ca5721071de74a7709701e942095239c4ad42ea6718303a1533e9f7c16",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "18b5fb01f3ef811e6976d3eeb3008aa22a739871a1cf37d36655df057408abdd",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565382803/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "ed04523ae243579b317699c24351247fefbfa8afd0e5e088ba98dd2d4c53a07b"
+    },
+    {
+      "id": "dish_1567106870",
+      "captureDate": "2019-08-29",
+      "reference": {
+        "kcal": 504.820892,
+        "proteinG": 25.230873,
+        "carbsG": 38.667736,
+        "fatG": 27.284149,
+        "massG": 211
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000035",
+          "name": "blue cheese",
+          "kcal": 17.30450831,
+          "massG": 4.902127,
+          "fatG": 1.42161683,
+          "carbsG": 0.112748921,
+          "proteinG": 1.02944667
+        },
+        {
+          "id": "ingr_0000000094",
+          "name": "onions",
+          "kcal": 0.570156,
+          "massG": 1.42539,
+          "fatG": 0.00142539,
+          "carbsG": 0.1282851,
+          "proteinG": 0.01567929
+        },
+        {
+          "id": "ingr_0000000380",
+          "name": "pizza",
+          "kcal": 284.62,
+          "massG": 107,
+          "fatG": 10.379,
+          "carbsG": 35.31,
+          "proteinG": 11.77
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 60.29983232,
+          "massG": 6.821248,
+          "fatG": 6.821248,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 0.30433995,
+          "massG": 0.204255,
+          "fatG": 0.001021275,
+          "carbsG": 0.06740415,
+          "proteinG": 0.01307232
+        },
+        {
+          "id": "ingr_0000000124",
+          "name": "walnuts",
+          "kcal": 21.350399305,
+          "massG": 3.268085,
+          "fatG": 2.09811057,
+          "carbsG": 0.454263815,
+          "proteinG": 0.493480835
+        },
+        {
+          "id": "ingr_0000000029",
+          "name": "mixed greens",
+          "kcal": 2.28765964,
+          "massG": 8.170213,
+          "fatG": 0.032680852,
+          "carbsG": 0.433021289,
+          "proteinG": 0.179744686
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.257707,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000511",
+          "name": "spinach (cooked)",
+          "kcal": 0.3278397,
+          "massG": 1.42539,
+          "fatG": 0,
+          "carbsG": 0.0570156,
+          "proteinG": 0.0427617
+        },
+        {
+          "id": "ingr_0000000030",
+          "name": "lettuce",
+          "kcal": 3.1863831,
+          "massG": 21.242554,
+          "fatG": 0.042485108,
+          "carbsG": 0.616034066,
+          "proteinG": 0.297395756
+        },
+        {
+          "id": "ingr_0000000525",
+          "name": "bok choy",
+          "kcal": 0.1853007,
+          "massG": 1.42539,
+          "fatG": 0.00285078,
+          "carbsG": 0.03135858,
+          "proteinG": 0.02138085
+        },
+        {
+          "id": "ingr_0000000513",
+          "name": "millet",
+          "kcal": 6.78485521,
+          "massG": 5.701559,
+          "fatG": 0.05701559,
+          "carbsG": 1.351269483,
+          "proteinG": 0.199554565
+        },
+        {
+          "id": "ingr_0000000189",
+          "name": "vinegar",
+          "kcal": 0,
+          "massG": 3.339355,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000126",
+          "name": "mustard",
+          "kcal": 0.125208315,
+          "massG": 0.204255,
+          "fatG": 0.006740415,
+          "carbsG": 0.0122553,
+          "proteinG": 0.007557435
+        },
+        {
+          "id": "ingr_0000000133",
+          "name": "shallots",
+          "kcal": 0.570156,
+          "massG": 2.85078,
+          "fatG": 0.00570156,
+          "carbsG": 0.09407574,
+          "proteinG": 0.0427617
+        },
+        {
+          "id": "ingr_0000000025",
+          "name": "beef",
+          "kcal": 106.90423,
+          "massG": 42.761692,
+          "fatG": 6.4142538,
+          "carbsG": 0,
+          "proteinG": 11.11803992
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1567106870.jpg",
+      "inputSha256": "b1278ed91d31317c2f9ee1e2f5999169097879c9058556501608b96f60ed23b2",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "f7c941da289240f5ed67782c7ac0f47284a97d9abab4bc0632121800c3603794",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1567106870/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "3360e4cf9798e896718b6290e4c8391d4e24e5e371e1d5d2ca497c986ac19320"
+    },
+    {
+      "id": "dish_1560799407",
+      "captureDate": "2019-06-17",
+      "reference": {
+        "kcal": 220.901733,
+        "proteinG": 12.222573,
+        "carbsG": 10.166318,
+        "fatG": 14.96129,
+        "massG": 122
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000462",
+          "name": "pork",
+          "kcal": 96.65900188,
+          "massG": 40.613026,
+          "fatG": 5.68582364,
+          "carbsG": 0,
+          "proteinG": 10.55938676
+        },
+        {
+          "id": "ingr_0000000036",
+          "name": "spinach (raw)",
+          "kcal": 2.02811516,
+          "massG": 8.817892,
+          "fatG": 0.035271568,
+          "carbsG": 0.317444112,
+          "proteinG": 0.255718868
+        },
+        {
+          "id": "ingr_0000000364",
+          "name": "sunflower seeds",
+          "kcal": 19.25827722,
+          "massG": 3.527157,
+          "fatG": 1.7635785,
+          "carbsG": 0.52907355,
+          "proteinG": 0.67015983
+        },
+        {
+          "id": "ingr_0000000026",
+          "name": "white rice",
+          "kcal": 7.0395923,
+          "massG": 5.415071,
+          "fatG": 0.016245213,
+          "carbsG": 1.51621988,
+          "proteinG": 0.146206917
+        },
+        {
+          "id": "ingr_0000000524",
+          "name": "parsley",
+          "kcal": 0.050224867,
+          "massG": 0.135377,
+          "fatG": 0.001083016,
+          "carbsG": 0.008664128,
+          "proteinG": 0.003925933
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "kcal": 0.59961669,
+          "massG": 3.527157,
+          "fatG": 0,
+          "carbsG": 0.197520792,
+          "proteinG": 0.014108628
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 64.75359228,
+          "massG": 7.325067,
+          "fatG": 7.325067,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000473",
+          "name": "cranberries",
+          "kcal": 3.24498398,
+          "massG": 7.054313,
+          "fatG": 0.007054313,
+          "carbsG": 0.84651756,
+          "proteinG": 0.035271565
+        },
+        {
+          "id": "ingr_0000000515",
+          "name": "arugula",
+          "kcal": 0.338442,
+          "massG": 1.353768,
+          "fatG": 0.009476376,
+          "carbsG": 0.050089416,
+          "proteinG": 0.035197968
+        },
+        {
+          "id": "ingr_0000000129",
+          "name": "raisins",
+          "kcal": 10.54619943,
+          "massG": 3.527157,
+          "fatG": 0.017635785,
+          "carbsG": 2.78645403,
+          "proteinG": 0.109341867
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 0.40342346,
+          "massG": 0.270754,
+          "fatG": 0.00135377,
+          "carbsG": 0.08934882,
+          "proteinG": 0.017328256
+        },
+        {
+          "id": "ingr_0000000045",
+          "name": "carrot",
+          "kcal": 14.46134288,
+          "massG": 35.271568,
+          "fatG": 0.070543136,
+          "carbsG": 3.5271568,
+          "proteinG": 0.317444112
+        },
+        {
+          "id": "ingr_0000000094",
+          "name": "onions",
+          "kcal": 0.75811,
+          "massG": 1.895275,
+          "fatG": 0.001895275,
+          "carbsG": 0.17057475,
+          "proteinG": 0.020848025
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.288136,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000516",
+          "name": "rosemary",
+          "kcal": 0.35468774,
+          "massG": 0.270754,
+          "fatG": 0.015432978,
+          "carbsG": 0.0541508,
+          "proteinG": 0.007851866
+        },
+        {
+          "id": "ingr_0000000485",
+          "name": "zucchini",
+          "kcal": 0.40613025,
+          "massG": 2.707535,
+          "fatG": 0.01083014,
+          "carbsG": 0.073103445,
+          "proteinG": 0.029782885
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1560799407.jpg",
+      "inputSha256": "7f6c9f5bdd51fda4be07c6e1bc36c91ca5c300fe4068a9ad40438b4c34aba816",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "b8444ad421793ab3f91d05f8ca5692cc79bb71beb215ae1ffcc745455ed7133b",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560799407/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "1959ce38aa41a17600b53cd91012a4df1011355306e74f5761ec3d75913d319a"
+    },
+    {
+      "id": "dish_1559751744",
+      "captureDate": "2019-06-05",
+      "reference": {
+        "kcal": 227.329987,
+        "proteinG": 15.712,
+        "carbsG": 10.704,
+        "fatG": 13.007999,
+        "massG": 188
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000179",
+          "name": "eggs",
+          "kcal": 189.71,
+          "massG": 122,
+          "fatG": 12.81,
+          "carbsG": 1.464,
+          "proteinG": 15.25
+        },
+        {
+          "id": "ingr_0000000013",
+          "name": "berries",
+          "kcal": 37.62,
+          "massG": 66,
+          "fatG": 0.198,
+          "carbsG": 9.24,
+          "proteinG": 0.462
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1559751744.jpg",
+      "inputSha256": "aaa506efd166b948b5da894facb45b7923f4243eadeb25912b2181eb2beda522",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "e1c90a115397e05e057925d1a99b540b5e1ad87c255f101f2e19430e24cece19",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559751744/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "6f3947e4a3248c72542bfd693e4aae14826bdc6d96b12043dc036418d6e2ad63"
+    },
+    {
+      "id": "dish_1565640894",
+      "captureDate": "2019-08-12",
+      "reference": {
+        "kcal": 464.892029,
+        "proteinG": 55.195004,
+        "carbsG": 20.476002,
+        "fatG": 18.178001,
+        "massG": 422
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000029",
+          "name": "mixed greens",
+          "kcal": 15.12,
+          "massG": 54,
+          "fatG": 0.216,
+          "carbsG": 2.862,
+          "proteinG": 1.188
+        },
+        {
+          "id": "ingr_0000000028",
+          "name": "chicken",
+          "kcal": 226.05,
+          "massG": 137,
+          "fatG": 4.932,
+          "carbsG": 0,
+          "proteinG": 42.47
+        },
+        {
+          "id": "ingr_0000000031",
+          "name": "cucumbers",
+          "kcal": 9.5,
+          "massG": 95,
+          "fatG": 0,
+          "carbsG": 1.9,
+          "proteinG": 0.95
+        },
+        {
+          "id": "ingr_0000000012",
+          "name": "olives",
+          "kcal": 88.55,
+          "massG": 77,
+          "fatG": 8.239,
+          "carbsG": 4.851,
+          "proteinG": 0.616
+        },
+        {
+          "id": "ingr_0000000320",
+          "name": "black beans",
+          "kcal": 56.76,
+          "massG": 43,
+          "fatG": 0.215,
+          "carbsG": 10.191,
+          "proteinG": 3.827
+        },
+        {
+          "id": "ingr_0000000148",
+          "name": "parmesan cheese",
+          "kcal": 68.912,
+          "massG": 16,
+          "fatG": 4.576,
+          "carbsG": 0.672,
+          "proteinG": 6.144
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1565640894.jpg",
+      "inputSha256": "32d1275444dc294e175bf7427705c95395424e6c5a44dd4da2d099f968f38040",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "501ccf49ca691bd7f4041a0a94b45bf30595319304d9e3abaa71cc469cfe07a1",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565640894/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "489dc918e1611657565115ffb0402796c3a5a056905f905819255ff3b0d8ea2c"
+    },
+    {
+      "id": "dish_1563302447",
+      "captureDate": "2019-07-16",
+      "reference": {
+        "kcal": 561.417053,
+        "proteinG": 48.122875,
+        "carbsG": 31.36202,
+        "fatG": 27.385805,
+        "massG": 440
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000030",
+          "name": "lettuce",
+          "kcal": 3.9165957,
+          "massG": 26.110638,
+          "fatG": 0.052221276,
+          "carbsG": 0.757208502,
+          "proteinG": 0.365548932
+        },
+        {
+          "id": "ingr_0000000133",
+          "name": "shallots",
+          "kcal": 0.0081262,
+          "massG": 0.040631,
+          "fatG": 0.000081262,
+          "carbsG": 0.001340823,
+          "proteinG": 0.000609465
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.672367,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000035",
+          "name": "blue cheese",
+          "kcal": 21.27012796,
+          "massG": 6.025532,
+          "fatG": 1.74740428,
+          "carbsG": 0.138587236,
+          "proteinG": 1.26536172
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "kcal": 0.11051598,
+          "massG": 0.650094,
+          "fatG": 0,
+          "carbsG": 0.036405264,
+          "proteinG": 0.002600376
+        },
+        {
+          "id": "ingr_0000000518",
+          "name": "thyme",
+          "kcal": 0.32829747,
+          "massG": 0.325047,
+          "fatG": 0.005525799,
+          "carbsG": 0.07801128,
+          "proteinG": 0.01950282
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 100.10855348,
+          "massG": 11.324497,
+          "fatG": 11.324497,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000514",
+          "name": "wheat berry",
+          "kcal": 11.83170261,
+          "massG": 13.001871,
+          "fatG": 0.065009355,
+          "carbsG": 2.483357361,
+          "proteinG": 0.546078582
+        },
+        {
+          "id": "ingr_0000000028",
+          "name": "chicken",
+          "kcal": 214.53086655,
+          "massG": 130.018707,
+          "fatG": 4.680673452,
+          "carbsG": 0,
+          "proteinG": 40.30579917
+        },
+        {
+          "id": "ingr_0000000124",
+          "name": "walnuts",
+          "kcal": 26.243198193,
+          "massG": 4.017021,
+          "fatG": 2.578927482,
+          "carbsG": 0.558365919,
+          "proteinG": 0.606570171
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 1.34272393,
+          "massG": 0.901157,
+          "fatG": 0.004505785,
+          "carbsG": 0.29738181,
+          "proteinG": 0.057674048
+        },
+        {
+          "id": "ingr_0000000045",
+          "name": "carrot",
+          "kcal": 28.29328451,
+          "massG": 69.008011,
+          "fatG": 0.138016022,
+          "carbsG": 6.9008011,
+          "proteinG": 0.621072099
+        },
+        {
+          "id": "ingr_0000000433",
+          "name": "roasted potatoes",
+          "kcal": 135.36,
+          "massG": 96,
+          "fatG": 6.528,
+          "carbsG": 17.28,
+          "proteinG": 2.016
+        },
+        {
+          "id": "ingr_0000000524",
+          "name": "parsley",
+          "kcal": 0.482369377,
+          "massG": 1.300187,
+          "fatG": 0.010401496,
+          "carbsG": 0.083211968,
+          "proteinG": 0.037705423
+        },
+        {
+          "id": "ingr_0000000126",
+          "name": "mustard",
+          "kcal": 0.153902232,
+          "massG": 0.251064,
+          "fatG": 0.008285112,
+          "carbsG": 0.01506384,
+          "proteinG": 0.009289368
+        },
+        {
+          "id": "ingr_0000000046",
+          "name": "mushroom",
+          "kcal": 13.86,
+          "massG": 63,
+          "fatG": 0.189,
+          "carbsG": 2.079,
+          "proteinG": 1.953
+        },
+        {
+          "id": "ingr_0000000189",
+          "name": "vinegar",
+          "kcal": 0,
+          "massG": 4.017021,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000036",
+          "name": "spinach (raw)",
+          "kcal": 0.74760764,
+          "massG": 3.250468,
+          "fatG": 0.013001872,
+          "carbsG": 0.117016848,
+          "proteinG": 0.094263572
+        },
+        {
+          "id": "ingr_0000000312",
+          "name": "pepper",
+          "kcal": 0.017252,
+          "massG": 0.04313,
+          "fatG": 0.00008626,
+          "carbsG": 0.00401109,
+          "proteinG": 0.0008626
+        },
+        {
+          "id": "ingr_0000000029",
+          "name": "mixed greens",
+          "kcal": 2.81191484,
+          "massG": 10.042553,
+          "fatG": 0.040170212,
+          "carbsG": 0.532255309,
+          "proteinG": 0.220936166
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1563302447.jpg",
+      "inputSha256": "e5dcabf32e13319984d3098964f535487b8e3538405ff3bcb41089dfd0bf0f75",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "bef1abfdd2ddf0f7465be8c48341b443849ef5c93887db91f416615fcc803f31",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563302447/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "f3a45a538d09e8400f49894efbc7a5e1fb834ef08e6d610f68da967e6ce15125"
+    },
+    {
+      "id": "dish_1562615153",
+      "captureDate": "2019-07-08",
+      "reference": {
+        "kcal": 468.202423,
+        "proteinG": 36.833271,
+        "carbsG": 15.152088,
+        "fatG": 29.068731,
+        "massG": 286
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000425",
+          "name": "goat cheese",
+          "kcal": 3.3612744,
+          "massG": 1.27321,
+          "fatG": 0.2673741,
+          "carbsG": 0,
+          "proteinG": 0.2419099
+        },
+        {
+          "id": "ingr_0000000518",
+          "name": "thyme",
+          "kcal": 0.17898715,
+          "massG": 0.177215,
+          "fatG": 0.003012655,
+          "carbsG": 0.0425316,
+          "proteinG": 0.0106329
+        },
+        {
+          "id": "ingr_0000000122",
+          "name": "garlic",
+          "kcal": 1.1494009,
+          "massG": 0.77141,
+          "fatG": 0.00385705,
+          "carbsG": 0.2545653,
+          "proteinG": 0.04937024
+        },
+        {
+          "id": "ingr_0000000524",
+          "name": "parsley",
+          "kcal": 0.065746765,
+          "massG": 0.177215,
+          "fatG": 0.00141772,
+          "carbsG": 0.01134176,
+          "proteinG": 0.005139235
+        },
+        {
+          "id": "ingr_0000000520",
+          "name": "lemon juice",
+          "kcal": 0.55649942,
+          "massG": 3.273526,
+          "fatG": 0,
+          "carbsG": 0.183317456,
+          "proteinG": 0.013094104
+        },
+        {
+          "id": "ingr_0000000448",
+          "name": "jalapenos",
+          "kcal": 0.09900629,
+          "massG": 0.341401,
+          "fatG": 0.001365604,
+          "carbsG": 0.022191065,
+          "proteinG": 0.003072609
+        },
+        {
+          "id": "ingr_0000000189",
+          "name": "vinegar",
+          "kcal": 0,
+          "massG": 1.037233,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000026",
+          "name": "white rice",
+          "kcal": 17.7528676,
+          "massG": 13.656052,
+          "fatG": 0.040968156,
+          "carbsG": 3.82369456,
+          "proteinG": 0.368713404
+        },
+        {
+          "id": "ingr_0000000054",
+          "name": "apple",
+          "kcal": 3.31034496,
+          "massG": 6.366048,
+          "fatG": 0.012732096,
+          "carbsG": 0.89124672,
+          "proteinG": 0.019098144
+        },
+        {
+          "id": "ingr_0000000073",
+          "name": "radishes",
+          "kcal": 0.11341776,
+          "massG": 0.708861,
+          "fatG": 0.000708861,
+          "carbsG": 0.024101274,
+          "proteinG": 0.004962027
+        },
+        {
+          "id": "ingr_0000000291",
+          "name": "salt",
+          "kcal": 0,
+          "massG": 0.559112,
+          "fatG": 0,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000523",
+          "name": "cilantro",
+          "kcal": 0.077839428,
+          "massG": 0.341401,
+          "fatG": 0.001707005,
+          "carbsG": 0.012631837,
+          "proteinG": 0.007510822
+        },
+        {
+          "id": "ingr_0000000155",
+          "name": "chicken thighs",
+          "kcal": 62.805065108,
+          "massG": 35.443039,
+          "fatG": 2.941772237,
+          "carbsG": 0,
+          "proteinG": 8.470886321
+        },
+        {
+          "id": "ingr_0000000515",
+          "name": "arugula",
+          "kcal": 1.813031,
+          "massG": 7.252124,
+          "fatG": 0.050764868,
+          "carbsG": 0.268328588,
+          "proteinG": 0.188555224
+        },
+        {
+          "id": "ingr_0000000094",
+          "name": "onions",
+          "kcal": 3.277452,
+          "massG": 8.19363,
+          "fatG": 0.00819363,
+          "carbsG": 0.7374267,
+          "proteinG": 0.09012993
+        },
+        {
+          "id": "ingr_0000000161",
+          "name": "olive oil",
+          "kcal": 52.51390508,
+          "massG": 5.940487,
+          "fatG": 5.940487,
+          "carbsG": 0,
+          "proteinG": 0
+        },
+        {
+          "id": "ingr_0000000526",
+          "name": "mustard greens",
+          "kcal": 8.59416426,
+          "massG": 31.830238,
+          "fatG": 0.127320952,
+          "carbsG": 1.496021186,
+          "proteinG": 0.923076902
+        },
+        {
+          "id": "ingr_0000000010",
+          "name": "steak",
+          "kcal": 277.55924877,
+          "massG": 102.420387,
+          "fatG": 19.45987353,
+          "carbsG": 0,
+          "proteinG": 25.60509675
+        },
+        {
+          "id": "ingr_0000000072",
+          "name": "kale",
+          "kcal": 1.67286637,
+          "massG": 3.414013,
+          "fatG": 0.023898091,
+          "carbsG": 0.30726117,
+          "proteinG": 0.112662429
+        },
+        {
+          "id": "ingr_0000000021",
+          "name": "squash",
+          "kcal": 10.110973715,
+          "massG": 49.321823,
+          "fatG": 0.147965469,
+          "carbsG": 1.676941982,
+          "proteinG": 0.443896407
+        },
+        {
+          "id": "ingr_0000000023",
+          "name": "brown rice",
+          "kcal": 3.93417744,
+          "massG": 3.544304,
+          "fatG": 0.031898736,
+          "carbsG": 0.81518992,
+          "proteinG": 0.092151904
+        },
+        {
+          "id": "ingr_0000000521",
+          "name": "basil",
+          "kcal": 0.0425316,
+          "massG": 0.177215,
+          "fatG": 0,
+          "carbsG": 0.0035443,
+          "proteinG": 0.0070886
+        },
+        {
+          "id": "ingr_0000000038",
+          "name": "pineapple",
+          "kcal": 1.7070065,
+          "massG": 3.414013,
+          "fatG": 0.003414013,
+          "carbsG": 0.44382169,
+          "proteinG": 0.017070065
+        },
+        {
+          "id": "ingr_0000000070",
+          "name": "figs",
+          "kcal": 17.506632,
+          "massG": 6.366048,
+          "fatG": 0,
+          "carbsG": 4.1379312,
+          "proteinG": 0.1591512
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1562615153.jpg",
+      "inputSha256": "ae0f04ba3d40e8c26bdc27e9e3c42882227f30c74a6fbe222b8dbb61a3e80cbb",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "05d9764cf28fcbf2e2a2fcca94db0cc5c8c75d4358953cc0d25ae25ceb5861e3",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562615153/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "2fd36f9d86be046b1d485afb1c88f3892dac3a3262cff8e7c5c4d4de72dac027"
+    },
+    {
+      "id": "dish_1567023262",
+      "captureDate": "2019-08-28",
+      "reference": {
+        "kcal": 72.32,
+        "proteinG": 2.048,
+        "carbsG": 3.008,
+        "fatG": 6.016,
+        "massG": 64
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000409",
+          "name": "greek salad",
+          "kcal": 72.32,
+          "massG": 64,
+          "fatG": 6.016,
+          "carbsG": 3.008,
+          "proteinG": 2.048
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1567023262.jpg",
+      "inputSha256": "e93f497630b71759e299aa7adb88d924cc112377fc5ade6510e62dadca394862",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "61fafab6034935b4c5a787206d7174461d4702e7748c29094c8857285b839ff2",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1567023262/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "bcc421b6cf9f2d130fdf709422375a1fe5f93f971b62fc98d03c1b04e793f842"
+    },
+    {
+      "id": "dish_1564588688",
+      "captureDate": "2019-07-31",
+      "reference": {
+        "kcal": 148.178009,
+        "proteinG": 8.299,
+        "carbsG": 1.806,
+        "fatG": 11.739,
+        "massG": 43
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000039",
+          "name": "sausage",
+          "kcal": 148.178,
+          "massG": 43,
+          "fatG": 11.739,
+          "carbsG": 1.806,
+          "proteinG": 8.299
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1564588688.jpg",
+      "inputSha256": "27a346de006af79bb4e5535b98accb233dba6fe49c4a19f68d22077d469a90f9",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "ab03a24cd598b126401d6408aaee3de0bd5787a22c28cb0d2633e59782c6f732",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564588688/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "0959071f1dc35465419b8b7406390bfc16b713e1835b91391f41a640ccd2f7cd"
+    },
+    {
+      "id": "dish_1564086602",
+      "captureDate": "2019-07-25",
+      "reference": {
+        "kcal": 130.291,
+        "proteinG": 5.488,
+        "carbsG": 16.415001,
+        "fatG": 4.606,
+        "massG": 49
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000011",
+          "name": "cheese pizza",
+          "kcal": 130.291,
+          "massG": 49,
+          "fatG": 4.606,
+          "carbsG": 16.415,
+          "proteinG": 5.488
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1564086602.jpg",
+      "inputSha256": "3dfef1cdba188e4a8dc2c4cbab686d604a10cd14b9d0f4a9d16346fff20d3be1",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "59da77adf63e55a886374847a07b8a6c11c810e2dedb79e856d8d431e174d43f",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564086602/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "68d88d4fb14bf96f79c0c0b29e3d2b494e7794929b27f35ebf60397d5f96aba4"
+    },
+    {
+      "id": "dish_1556575083",
+      "captureDate": "2019-04-29",
+      "reference": {
+        "kcal": 27.52,
+        "proteinG": 2.176,
+        "carbsG": 5.76,
+        "fatG": 0.192,
+        "massG": 64
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000016",
+          "name": "brussels sprouts",
+          "kcal": 27.52,
+          "massG": 64,
+          "fatG": 0.192,
+          "carbsG": 5.76,
+          "proteinG": 2.176
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1556575083.jpg",
+      "inputSha256": "99ea5ebdfd7463925580732dd81e33ebd6c448e5ca01d0077973a3b3b2b486a1",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "bbec403a848d90a56e0ac86d266d8afe8629e783867265c949dba75cd0e50d8d",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1556575083/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "d8c83343a95e099d3da71b76ec0bfe95ba2ddbb72d8be7ecf2dd6fd294f36495"
+    },
+    {
+      "id": "dish_1565721800",
+      "captureDate": "2019-08-13",
+      "reference": {
+        "kcal": 33.345001,
+        "proteinG": 1.4535,
+        "carbsG": 6.669,
+        "fatG": 0.7695,
+        "massG": 171
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000485",
+          "name": "zucchini",
+          "kcal": 12.825,
+          "massG": 85.5,
+          "fatG": 0.342,
+          "carbsG": 2.3085,
+          "proteinG": 0.9405
+        },
+        {
+          "id": "ingr_0000000529",
+          "name": "chayote squash",
+          "kcal": 20.52,
+          "massG": 85.5,
+          "fatG": 0.4275,
+          "carbsG": 4.3605,
+          "proteinG": 0.513
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1565721800.jpg",
+      "inputSha256": "11b65a4a8b4f5be16116480a2a89e07b6fdf2ce73c25d7d075a668600ebac0c1",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "5508b2cf22befc9e59222378288c45b21e684cd674f799972399504c45439063",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565721800/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "b8e24daa8cc8f5eae22b92cde9266b02982bebb89591a2330d56e0ace49d071b"
+    },
+    {
+      "id": "dish_1566849233",
+      "captureDate": "2019-08-26",
+      "reference": {
+        "kcal": 94.800003,
+        "proteinG": 2.48,
+        "carbsG": 7.94,
+        "fatG": 7.33,
+        "massG": 117
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000042",
+          "name": "avocado",
+          "kcal": 75.2,
+          "massG": 47,
+          "fatG": 7.05,
+          "carbsG": 4.23,
+          "proteinG": 0.94
+        },
+        {
+          "id": "ingr_0000000029",
+          "name": "mixed greens",
+          "kcal": 19.6,
+          "massG": 70,
+          "fatG": 0.28,
+          "carbsG": 3.71,
+          "proteinG": 1.54
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1566849233.jpg",
+      "inputSha256": "d45892acc791095fb5aac08bbcb84697a7077b6a4483021295f4271f89ca05a8",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "97bf192fe195450273314abfdce8e11af11f18d35e4994f1271c818609e9881e",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566849233/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "dec815a7198507c53614e6c10fb5448e8e91f56f639a34a8034c4b5f540d65c6"
+    }
+  ],
+  "seed": "calorix-portion-scale-v1-20261110",
+  "sources": [
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/dish_metadata_cafe1.csv",
+      "sha256": "881df31f27c2343d0ce219964527e0796f6ddadd60701ce6840fa801e8c2a960",
+      "bytes": 2206282
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/dish_metadata_cafe2.csv",
+      "sha256": "ef9f800d7b9c2e7e9a9e7cda5cbb4cfe51c760a8c1af4c05786ccf051bf5d77d",
+      "bytes": 101817
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+      "sha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+      "bytes": 21540
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/dish_ids/splits/rgb_train_ids.txt",
+      "sha256": "efd34a682b5483b01e6bd0a7c1267efec28440a8194985f9d3817d8ebc8169bd",
+      "bytes": 64944
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/dish_ids/splits/rgb_test_ids.txt",
+      "sha256": "560ff0eedb1a2027c21f5da3a4c38a53fa201c87d108e76b11cceaa1d956ac8e",
+      "bytes": 11344
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/dish_ids/splits/depth_train_ids.txt",
+      "sha256": "d9702b71ade32b012fcb272f1f58b1d19178acd4536eccc651857760eab4bc30",
+      "bytes": 44128
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/dish_ids/splits/depth_test_ids.txt",
+      "sha256": "6e43a5334a72bd06fa9c0d4b3bc86e2f57e5342b0b260d3fa003a76f7e39eca2",
+      "bytes": 8112
+    }
+  ],
+  "oldBundleSha256": "0b78b33438d7b3c66647a0a2403b7f4686909be5a47e50b936a590bf84b2bea6",
+  "priorManifestSha256": "bb18edfae2c9f58e42c7342f53d4dd7419ca7a27d4ccc4f1d083908d6608e481",
+  "excludedIds": [
+    "dish_1557862783",
+    "dish_1557937615",
+    "dish_1558030182",
+    "dish_1558115011",
+    "dish_1558115764",
+    "dish_1558116547",
+    "dish_1558375833",
+    "dish_1558376437",
+    "dish_1558461607",
+    "dish_1558461760",
+    "dish_1558461792",
+    "dish_1558549605",
+    "dish_1558630006",
+    "dish_1558632198",
+    "dish_1558636544",
+    "dish_1558637698",
+    "dish_1558639787",
+    "dish_1558639818",
+    "dish_1558719994",
+    "dish_1558722247",
+    "dish_1559157454",
+    "dish_1559157777",
+    "dish_1559241099",
+    "dish_1559590130",
+    "dish_1559846311",
+    "dish_1559846504",
+    "dish_1559934477",
+    "dish_1560203400",
+    "dish_1560356523",
+    "dish_1560442303",
+    "dish_1560442450",
+    "dish_1560443474",
+    "dish_1560456326",
+    "dish_1560543605",
+    "dish_1560798707",
+    "dish_1560800836",
+    "dish_1560874667",
+    "dish_1560975517",
+    "dish_1561148021",
+    "dish_1561393550",
+    "dish_1561492204",
+    "dish_1561575410",
+    "dish_1561661850",
+    "dish_1561663580",
+    "dish_1561665747",
+    "dish_1561739238",
+    "dish_1562009810",
+    "dish_1562096372",
+    "dish_1562173267",
+    "dish_1562183065",
+    "dish_1562184705",
+    "dish_1562602627",
+    "dish_1562688382",
+    "dish_1562689601",
+    "dish_1562691409",
+    "dish_1562788601",
+    "dish_1562876494",
+    "dish_1562963246",
+    "dish_1562963325",
+    "dish_1563220087",
+    "dish_1563294441",
+    "dish_1563303350",
+    "dish_1563389548",
+    "dish_1563389600",
+    "dish_1563389626",
+    "dish_1563464389",
+    "dish_1563480534",
+    "dish_1563563467",
+    "dish_1563812535",
+    "dish_1563824279",
+    "dish_1563898722",
+    "dish_1563910708",
+    "dish_1563986093",
+    "dish_1564000490",
+    "dish_1564160043",
+    "dish_1564427430",
+    "dish_1564428515",
+    "dish_1564588719",
+    "dish_1564675411",
+    "dish_1564687046",
+    "dish_1564761388",
+    "dish_1564778057",
+    "dish_1565021675",
+    "dish_1565021965",
+    "dish_1565035746",
+    "dish_1565117892",
+    "dish_1565118096",
+    "dish_1565119642",
+    "dish_1565640772",
+    "dish_1565711115",
+    "dish_1565725188",
+    "dish_1565810969",
+    "dish_1565811139",
+    "dish_1565898402",
+    "dish_1565972363",
+    "dish_1566328724",
+    "dish_1566328894",
+    "dish_1566333228",
+    "dish_1566333291",
+    "dish_1566414412",
+    "dish_1566416701",
+    "dish_1566501473",
+    "dish_1566589933",
+    "dish_1566590007",
+    "dish_1566590056",
+    "dish_1566838351",
+    "dish_1566844803",
+    "dish_1566920339",
+    "dish_1566920365",
+    "dish_1567022383",
+    "dish_1567107839",
+    "dish_1567629081",
+    "dish_1567785622",
+    "dish_1568305257",
+    "dish_1568401233",
+    "dish_1568401261"
+  ],
+  "excludedOld40Dates": [
+    "2019-05-14",
+    "2019-05-15",
+    "2019-05-16",
+    "2019-05-20",
+    "2019-05-21",
+    "2019-05-24",
+    "2019-05-29",
+    "2019-06-07",
+    "2019-06-10",
+    "2019-06-19",
+    "2019-06-21",
+    "2019-06-28",
+    "2019-07-01",
+    "2019-07-11",
+    "2019-07-12",
+    "2019-07-17",
+    "2019-07-26",
+    "2019-08-01",
+    "2019-08-14",
+    "2019-08-21",
+    "2019-08-23",
+    "2019-08-27",
+    "2019-09-06",
+    "2019-09-12",
+    "2019-09-13"
+  ],
+  "invalidMetadataRows": 714,
+  "license": {
+    "id": "CC-BY-4.0",
+    "attribution": "Thames et al., Nutrition5k, CVPR2021",
+    "url": "https://creativecommons.org/licenses/by/4.0/"
+  },
+  "selectionRule": "TEST high5/mid5 first; TRAIN high4/mid10/low6 excludes newTESTdates; one SHA256-ranked date then ID per stratum. No replacements.",
+  "questionPolicy": "Unanswered; no reference-derived preparation answers",
+  "androidWeighedMeals": 0,
+  "pretrainingExposure": "unknown",
+  "preprocessing": {
+    "pillow": "11.1.0",
+    "jpegLibrary": "6.2",
+    "format": "RGB JPEG",
+    "quality": 85,
+    "subsampling": 2,
+    "exif": "removed",
+    "resize": false
+  },
+  "split": "official RGB and overhead TRAIN"
+}

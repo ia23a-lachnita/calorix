@@ -1,0 +1,187 @@
+{
+  "id": "dish_1558549806",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 490.3,
+      "proteinG": 16.501499999999997,
+      "carbsG": 38.5245,
+      "fatG": 32.733000000000004
+    },
+    "massG": 165,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 17271,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "White rice, raw almonds, and fresh spinach",
+    "components": [
+      {
+        "name": "White rice",
+        "massG": 85,
+        "catalogId": "usda:168878",
+        "preparation": "cooked",
+        "assumptions": [
+          "Steamed/boiled long-grain white rice",
+          "Plain, no sauce"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 110.5,
+          "proteinG": 2.2864999999999998,
+          "carbsG": 23.9445,
+          "fatG": 0.23800000000000002
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:168878",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/168878/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Rice, white, long-grain, regular, enriched, cooked"
+        }
+      },
+      {
+        "name": "Almonds",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "raw or dry roasted",
+        "assumptions": [
+          "Whole raw or dry-roasted almonds with skin",
+          "Approximately 50-60 whole kernels"
+        ],
+        "estimatedPer100": {
+          "kcal": 579,
+          "proteinG": 21.2,
+          "carbsG": 21.6,
+          "fatG": 49.9
+        },
+        "nutrients": {
+          "kcal": 376.35,
+          "proteinG": 13.78,
+          "carbsG": 14.040000000000001,
+          "fatG": 32.435
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Baby spinach",
+        "massG": 15,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh raw baby spinach leaves",
+          "Uncooked and unseasoned"
+        ],
+        "estimatedPer100": {
+          "kcal": 23,
+          "proteinG": 2.9,
+          "carbsG": 3.6,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 3.4499999999999997,
+          "proteinG": 0.435,
+          "carbsG": 0.54,
+          "fatG": 0.06
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 490.3,
+      "proteinG": 16.501499999999997,
+      "carbsG": 38.5245,
+      "fatG": 32.733000000000004
+    },
+    "ambiguities": [
+      "Whether almonds are raw or dry roasted, salted or unsalted"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 17258,
+      "inputTokens": 2018,
+      "outputTokens": 428,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "White rice, raw almonds, and fresh spinach",
+      "components": [
+        {
+          "name": "White rice",
+          "massG": 85,
+          "catalogId": "usda:168878",
+          "preparation": "cooked",
+          "assumptions": [
+            "Steamed/boiled long-grain white rice",
+            "Plain, no sauce"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Almonds",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "raw or dry roasted",
+          "assumptions": [
+            "Whole raw or dry-roasted almonds with skin",
+            "Approximately 50-60 whole kernels"
+          ],
+          "estimatedPer100": {
+            "kcal": 579,
+            "proteinG": 21.2,
+            "carbsG": 21.6,
+            "fatG": 49.9
+          }
+        },
+        {
+          "name": "Baby spinach",
+          "massG": 15,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh raw baby spinach leaves",
+            "Uncooked and unseasoned"
+          ],
+          "estimatedPer100": {
+            "kcal": 23,
+            "proteinG": 2.9,
+            "carbsG": 3.6,
+            "fatG": 0.4
+          }
+        }
+      ],
+      "ambiguities": [
+        "Whether almonds are raw or dry roasted, salted or unsalted"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "df0c0f0fe5d408c69a48b30a61bd9e569b1af7444da54e68870f217299114811"
+}

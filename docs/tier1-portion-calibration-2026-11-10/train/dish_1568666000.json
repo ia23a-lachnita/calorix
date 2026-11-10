@@ -1,0 +1,193 @@
+{
+  "id": "dish_1568666000",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 403.35,
+      "proteinG": 12.9,
+      "carbsG": 38.25,
+      "fatG": 22.800000000000004
+    },
+    "massG": 240,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 21205,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Cheese Pizza with Caesar Salad and Kale Salad",
+    "components": [
+      {
+        "name": "Cheese pizza slice",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Rectangular/sheet pan cheese pizza slice",
+          "Includes crust, tomato sauce, and mozzarella cheese"
+        ],
+        "estimatedPer100": {
+          "kcal": 266,
+          "proteinG": 11,
+          "carbsG": 33,
+          "fatG": 10
+        },
+        "nutrients": {
+          "kcal": 226.1,
+          "proteinG": 9.35,
+          "carbsG": 28.05,
+          "fatG": 8.5
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Caesar salad with dressing and croutons",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "tossed raw",
+        "assumptions": [
+          "Romaine lettuce dressed with creamy Caesar dressing and occasional croutons"
+        ],
+        "estimatedPer100": {
+          "kcal": 150,
+          "proteinG": 2.5,
+          "carbsG": 7,
+          "fatG": 13
+        },
+        "nutrients": {
+          "kcal": 135,
+          "proteinG": 2.25,
+          "carbsG": 6.3,
+          "fatG": 11.700000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Kale and diced vegetable salad",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "raw dressed",
+        "assumptions": [
+          "Chopped kale with diced cucumber or zucchini and light vinaigrette dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 65,
+          "proteinG": 2,
+          "carbsG": 6,
+          "fatG": 4
+        },
+        "nutrients": {
+          "kcal": 42.25,
+          "proteinG": 1.3,
+          "carbsG": 3.9000000000000004,
+          "fatG": 2.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 403.35,
+      "proteinG": 12.9,
+      "carbsG": 38.25,
+      "fatG": 22.800000000000004
+    },
+    "ambiguities": [
+      "Specific dressing type and oil content on both salads"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 21187,
+      "inputTokens": 2018,
+      "outputTokens": 477,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Cheese Pizza with Caesar Salad and Kale Salad",
+      "components": [
+        {
+          "name": "Cheese pizza slice",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Rectangular/sheet pan cheese pizza slice",
+            "Includes crust, tomato sauce, and mozzarella cheese"
+          ],
+          "estimatedPer100": {
+            "kcal": 266,
+            "proteinG": 11,
+            "carbsG": 33,
+            "fatG": 10
+          }
+        },
+        {
+          "name": "Caesar salad with dressing and croutons",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "tossed raw",
+          "assumptions": [
+            "Romaine lettuce dressed with creamy Caesar dressing and occasional croutons"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 2.5,
+            "carbsG": 7,
+            "fatG": 13
+          }
+        },
+        {
+          "name": "Kale and diced vegetable salad",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "raw dressed",
+          "assumptions": [
+            "Chopped kale with diced cucumber or zucchini and light vinaigrette dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 2,
+            "carbsG": 6,
+            "fatG": 4
+          }
+        }
+      ],
+      "ambiguities": [
+        "Specific dressing type and oil content on both salads"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "e10f71fa8e82cf5189416217e529b0701ef107f97ee84906c858df975a25725c"
+}

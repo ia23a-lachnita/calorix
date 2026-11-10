@@ -1,0 +1,193 @@
+{
+  "id": "dish_1564514997",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 422.5,
+      "proteinG": 28.9,
+      "carbsG": 48.45,
+      "fatG": 12.68
+    },
+    "massG": 370,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12829,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Grain pilaf with fish and roasted carrots",
+    "components": [
+      {
+        "name": "Grain pilaf or lentils with spices",
+        "massG": 120,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Brown grain, spelt, bulgur or brown rice seasoned with herbs/onions"
+        ],
+        "estimatedPer100": {
+          "kcal": 150,
+          "proteinG": 4.5,
+          "carbsG": 27,
+          "fatG": 2.5
+        },
+        "nutrients": {
+          "kcal": 180,
+          "proteinG": 5.3999999999999995,
+          "carbsG": 32.4,
+          "fatG": 3
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "White fish bake with vegetables and sauce",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "White fish fillet baked with white sauce, greens, and onions/white beans"
+        ],
+        "estimatedPer100": {
+          "kcal": 130,
+          "proteinG": 16,
+          "carbsG": 4,
+          "fatG": 5.5
+        },
+        "nutrients": {
+          "kcal": 182,
+          "proteinG": 22.4,
+          "carbsG": 5.6,
+          "fatG": 7.699999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted sliced carrots",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "roasted",
+        "assumptions": [
+          "Carrot rounds roasted with light oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 55,
+          "proteinG": 1,
+          "carbsG": 9.5,
+          "fatG": 1.8
+        },
+        "nutrients": {
+          "kcal": 60.50000000000001,
+          "proteinG": 1.1,
+          "carbsG": 10.450000000000001,
+          "fatG": 1.9800000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 422.5,
+      "proteinG": 28.9,
+      "carbsG": 48.45,
+      "fatG": 12.68
+    },
+    "ambiguities": [
+      "Exact grain or pulse mixture in the brown pilaf dish",
+      "Precise ingredients and fish type in the baked fish casserole/casserole-like topping"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12818,
+      "inputTokens": 2018,
+      "outputTokens": 461,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Grain pilaf with fish and roasted carrots",
+      "components": [
+        {
+          "name": "Grain pilaf or lentils with spices",
+          "massG": 120,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Brown grain, spelt, bulgur or brown rice seasoned with herbs/onions"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 4.5,
+            "carbsG": 27,
+            "fatG": 2.5
+          }
+        },
+        {
+          "name": "White fish bake with vegetables and sauce",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "White fish fillet baked with white sauce, greens, and onions/white beans"
+          ],
+          "estimatedPer100": {
+            "kcal": 130,
+            "proteinG": 16,
+            "carbsG": 4,
+            "fatG": 5.5
+          }
+        },
+        {
+          "name": "Roasted sliced carrots",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "roasted",
+          "assumptions": [
+            "Carrot rounds roasted with light oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 55,
+            "proteinG": 1,
+            "carbsG": 9.5,
+            "fatG": 1.8
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact grain or pulse mixture in the brown pilaf dish",
+        "Precise ingredients and fish type in the baked fish casserole/casserole-like topping"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "8764726ed8b5f9a1a8238cf9fcf2639c3211b761ac3c6cbf5da0876ccb505aff"
+}

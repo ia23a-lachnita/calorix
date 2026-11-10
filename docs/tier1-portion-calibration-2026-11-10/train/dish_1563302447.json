@@ -1,0 +1,279 @@
+{
+  "id": "dish_1563302447",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 494,
+      "proteinG": 37.675000000000004,
+      "carbsG": 30.019999999999996,
+      "fatG": 24.905
+    },
+    "massG": 400,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 13837,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Roasted Chicken with Potatoes, Sautéed Mushrooms, Glazed Carrots, and Mixed Green Salad",
+    "components": [
+      {
+        "name": "Roast chicken pieces",
+        "massG": 130,
+        "catalogId": null,
+        "preparation": "roasted with skin/seasoning",
+        "assumptions": [
+          "Chicken pieces with skin or light glaze on the bone/breast"
+        ],
+        "estimatedPer100": {
+          "kcal": 215,
+          "proteinG": 25,
+          "carbsG": 1,
+          "fatG": 12
+        },
+        "nutrients": {
+          "kcal": 279.5,
+          "proteinG": 32.5,
+          "carbsG": 1.3,
+          "fatG": 15.600000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted potatoes",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "roasted",
+        "assumptions": [
+          "Potato wedges or chunks roasted with oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 135,
+          "proteinG": 2.5,
+          "carbsG": 21,
+          "fatG": 4.8
+        },
+        "nutrients": {
+          "kcal": 114.75,
+          "proteinG": 2.125,
+          "carbsG": 17.849999999999998,
+          "fatG": 4.08
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Steamed or glazed carrots",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "steamed/glazed",
+        "assumptions": [
+          "Sliced carrots with slight fat or glaze"
+        ],
+        "estimatedPer100": {
+          "kcal": 45,
+          "proteinG": 0.9,
+          "carbsG": 9.5,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 31.499999999999996,
+          "proteinG": 0.63,
+          "carbsG": 6.6499999999999995,
+          "fatG": 0.35
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Sautéed button mushrooms",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "sautéed",
+        "assumptions": [
+          "Whole small button mushrooms cooked in oil or butter"
+        ],
+        "estimatedPer100": {
+          "kcal": 55,
+          "proteinG": 2.8,
+          "carbsG": 3.8,
+          "fatG": 3.5
+        },
+        "nutrients": {
+          "kcal": 35.75,
+          "proteinG": 1.8199999999999998,
+          "carbsG": 2.4699999999999998,
+          "fatG": 2.275
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed green salad with light vinaigrette",
+        "massG": 50,
+        "catalogId": null,
+        "preparation": "raw tossed with dressing",
+        "assumptions": [
+          "Frisée and mixed salad greens with a light dressing coating"
+        ],
+        "estimatedPer100": {
+          "kcal": 65,
+          "proteinG": 1.2,
+          "carbsG": 3.5,
+          "fatG": 5.2
+        },
+        "nutrients": {
+          "kcal": 32.5,
+          "proteinG": 0.6,
+          "carbsG": 1.75,
+          "fatG": 2.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 494,
+      "proteinG": 37.675000000000004,
+      "carbsG": 30.019999999999996,
+      "fatG": 24.905
+    },
+    "ambiguities": [
+      "Presence of dressing on the salad",
+      "Precise cut and skin status of the chicken"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 13828,
+      "inputTokens": 2018,
+      "outputTokens": 708,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Roasted Chicken with Potatoes, Sautéed Mushrooms, Glazed Carrots, and Mixed Green Salad",
+      "components": [
+        {
+          "name": "Roast chicken pieces",
+          "massG": 130,
+          "catalogId": null,
+          "preparation": "roasted with skin/seasoning",
+          "assumptions": [
+            "Chicken pieces with skin or light glaze on the bone/breast"
+          ],
+          "estimatedPer100": {
+            "kcal": 215,
+            "proteinG": 25,
+            "carbsG": 1,
+            "fatG": 12
+          }
+        },
+        {
+          "name": "Roasted potatoes",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "roasted",
+          "assumptions": [
+            "Potato wedges or chunks roasted with oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 135,
+            "proteinG": 2.5,
+            "carbsG": 21,
+            "fatG": 4.8
+          }
+        },
+        {
+          "name": "Steamed or glazed carrots",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "steamed/glazed",
+          "assumptions": [
+            "Sliced carrots with slight fat or glaze"
+          ],
+          "estimatedPer100": {
+            "kcal": 45,
+            "proteinG": 0.9,
+            "carbsG": 9.5,
+            "fatG": 0.5
+          }
+        },
+        {
+          "name": "Sautéed button mushrooms",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "sautéed",
+          "assumptions": [
+            "Whole small button mushrooms cooked in oil or butter"
+          ],
+          "estimatedPer100": {
+            "kcal": 55,
+            "proteinG": 2.8,
+            "carbsG": 3.8,
+            "fatG": 3.5
+          }
+        },
+        {
+          "name": "Mixed green salad with light vinaigrette",
+          "massG": 50,
+          "catalogId": null,
+          "preparation": "raw tossed with dressing",
+          "assumptions": [
+            "Frisée and mixed salad greens with a light dressing coating"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 1.2,
+            "carbsG": 3.5,
+            "fatG": 5.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Presence of dressing on the salad",
+        "Precise cut and skin status of the chicken"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "59c33a00475f10b0c65d5e518765bbfaee07bd60cec6a6343f687f56d0c739b4"
+}

@@ -1,0 +1,234 @@
+{
+  "id": "dish_1558110478",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 357.05,
+      "proteinG": 19.635,
+      "carbsG": 25.119999999999997,
+      "fatG": 19.705000000000002
+    },
+    "massG": 240,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 11953,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Scrambled Eggs with Bacon, Sweet Potato, and Berries",
+    "components": [
+      {
+        "name": "Scrambled eggs",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "scrambled",
+        "assumptions": [
+          "Cooked with light cooking fat/oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 149,
+          "proteinG": 10,
+          "carbsG": 1.6,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 119.2,
+          "proteinG": 8,
+          "carbsG": 1.2800000000000002,
+          "fatG": 8.8
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Bacon strip",
+        "massG": 25,
+        "catalogId": null,
+        "preparation": "pan-fried or baked",
+        "assumptions": [
+          "Cured pork bacon, cooked crisp"
+        ],
+        "estimatedPer100": {
+          "kcal": 541,
+          "proteinG": 37,
+          "carbsG": 1.4,
+          "fatG": 42
+        },
+        "nutrients": {
+          "kcal": 135.25,
+          "proteinG": 9.25,
+          "carbsG": 0.35,
+          "fatG": 10.5
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted sweet potato chunks",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "roasted/baked",
+        "assumptions": [
+          "Skin-on sweet potato cubes"
+        ],
+        "estimatedPer100": {
+          "kcal": 90,
+          "proteinG": 2,
+          "carbsG": 20.7,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 81,
+          "proteinG": 1.8,
+          "carbsG": 18.63,
+          "fatG": 0.18000000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed raspberries and blackberries",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh mixed berries"
+        ],
+        "estimatedPer100": {
+          "kcal": 48,
+          "proteinG": 1.3,
+          "carbsG": 10.8,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 21.6,
+          "proteinG": 0.5850000000000001,
+          "carbsG": 4.86,
+          "fatG": 0.225
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 357.05,
+      "proteinG": 19.635,
+      "carbsG": 25.119999999999997,
+      "fatG": 19.705000000000002
+    },
+    "ambiguities": [
+      "Amount of butter or oil used during scrambling of eggs"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 11937,
+      "inputTokens": 2018,
+      "outputTokens": 538,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Scrambled Eggs with Bacon, Sweet Potato, and Berries",
+      "components": [
+        {
+          "name": "Scrambled eggs",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "scrambled",
+          "assumptions": [
+            "Cooked with light cooking fat/oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 149,
+            "proteinG": 10,
+            "carbsG": 1.6,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Bacon strip",
+          "massG": 25,
+          "catalogId": null,
+          "preparation": "pan-fried or baked",
+          "assumptions": [
+            "Cured pork bacon, cooked crisp"
+          ],
+          "estimatedPer100": {
+            "kcal": 541,
+            "proteinG": 37,
+            "carbsG": 1.4,
+            "fatG": 42
+          }
+        },
+        {
+          "name": "Roasted sweet potato chunks",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "roasted/baked",
+          "assumptions": [
+            "Skin-on sweet potato cubes"
+          ],
+          "estimatedPer100": {
+            "kcal": 90,
+            "proteinG": 2,
+            "carbsG": 20.7,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Mixed raspberries and blackberries",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh mixed berries"
+          ],
+          "estimatedPer100": {
+            "kcal": 48,
+            "proteinG": 1.3,
+            "carbsG": 10.8,
+            "fatG": 0.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Amount of butter or oil used during scrambling of eggs"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "1df56363cdd5a950fad4e6a6a81e6e3606025baca3c25569449e9a86a794555b"
+}

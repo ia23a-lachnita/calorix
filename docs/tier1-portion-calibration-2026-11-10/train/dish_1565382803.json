@@ -1,0 +1,191 @@
+{
+  "id": "dish_1565382803",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 299.5,
+      "proteinG": 10.905,
+      "carbsG": 37.550000000000004,
+      "fatG": 11.999999999999998
+    },
+    "massG": 165,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 16888,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Pepperoni Pizza with Cooked Carrots and Roasted Potatoes",
+    "components": [
+      {
+        "name": "Pepperoni pizza slice",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Small slice/portion with pepperoni slice and cheese"
+        ],
+        "estimatedPer100": {
+          "kcal": 275,
+          "proteinG": 11.5,
+          "carbsG": 30.5,
+          "fatG": 12
+        },
+        "nutrients": {
+          "kcal": 233.75,
+          "proteinG": 9.775,
+          "carbsG": 25.925,
+          "fatG": 10.2
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Carrots",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "cooked/glazed",
+        "assumptions": [
+          "Thick bias-cut cooked carrot pieces"
+        ],
+        "estimatedPer100": {
+          "kcal": 45,
+          "proteinG": 0.8,
+          "carbsG": 9.5,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 20.25,
+          "proteinG": 0.36000000000000004,
+          "carbsG": 4.275,
+          "fatG": 0.225
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted potatoes",
+        "massG": 35,
+        "catalogId": null,
+        "preparation": "roasted",
+        "assumptions": [
+          "Skin-on roasted potato chunks"
+        ],
+        "estimatedPer100": {
+          "kcal": 130,
+          "proteinG": 2.2,
+          "carbsG": 21,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 45.5,
+          "proteinG": 0.77,
+          "carbsG": 7.35,
+          "fatG": 1.575
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 299.5,
+      "proteinG": 10.905,
+      "carbsG": 37.550000000000004,
+      "fatG": 11.999999999999998
+    },
+    "ambiguities": [
+      "Exact amount of oil or glaze used on the carrots and roasted potatoes"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 16872,
+      "inputTokens": 2018,
+      "outputTokens": 427,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Pepperoni Pizza with Cooked Carrots and Roasted Potatoes",
+      "components": [
+        {
+          "name": "Pepperoni pizza slice",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Small slice/portion with pepperoni slice and cheese"
+          ],
+          "estimatedPer100": {
+            "kcal": 275,
+            "proteinG": 11.5,
+            "carbsG": 30.5,
+            "fatG": 12
+          }
+        },
+        {
+          "name": "Carrots",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "cooked/glazed",
+          "assumptions": [
+            "Thick bias-cut cooked carrot pieces"
+          ],
+          "estimatedPer100": {
+            "kcal": 45,
+            "proteinG": 0.8,
+            "carbsG": 9.5,
+            "fatG": 0.5
+          }
+        },
+        {
+          "name": "Roasted potatoes",
+          "massG": 35,
+          "catalogId": null,
+          "preparation": "roasted",
+          "assumptions": [
+            "Skin-on roasted potato chunks"
+          ],
+          "estimatedPer100": {
+            "kcal": 130,
+            "proteinG": 2.2,
+            "carbsG": 21,
+            "fatG": 4.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact amount of oil or glaze used on the carrots and roasted potatoes"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "046129e2c2d3de74331aeac701f945c803256ec88b7165a8d82c276ce444b281"
+}

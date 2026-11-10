@@ -1,0 +1,107 @@
+{
+  "id": "dish_1556575083",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 57.75,
+      "proteinG": 3.57,
+      "carbsG": 9.450000000000001,
+      "fatG": 1.26
+    },
+    "massG": 105,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10306,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Cooked Brussels Sprouts",
+    "components": [
+      {
+        "name": "Brussels sprouts",
+        "massG": 105,
+        "catalogId": null,
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "6 small-to-medium Brussels sprouts",
+          "prepared with minimal oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 55,
+          "proteinG": 3.4,
+          "carbsG": 9,
+          "fatG": 1.2
+        },
+        "nutrients": {
+          "kcal": 57.75,
+          "proteinG": 3.57,
+          "carbsG": 9.450000000000001,
+          "fatG": 1.26
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 57.75,
+      "proteinG": 3.57,
+      "carbsG": 9.450000000000001,
+      "fatG": 1.26
+    },
+    "ambiguities": [
+      "Exact amount of cooking oil or seasoning used is uncertain"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10300,
+      "inputTokens": 2018,
+      "outputTokens": 109,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Cooked Brussels Sprouts",
+      "components": [
+        {
+          "name": "Brussels sprouts",
+          "massG": 105,
+          "catalogId": null,
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "6 small-to-medium Brussels sprouts",
+            "prepared with minimal oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 55,
+            "proteinG": 3.4,
+            "carbsG": 9,
+            "fatG": 1.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact amount of cooking oil or seasoning used is uncertain"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "d8fdbcf7c159676e343ef6f3cf0d23b77748205aaed4d32da0ca6b86fc95fb3c"
+}

@@ -1,0 +1,269 @@
+{
+  "id": "dish_1563998513",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 583.5,
+      "proteinG": 61.389,
+      "carbsG": 37.949999999999996,
+      "fatG": 20.848999999999997
+    },
+    "massG": 475,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 14117,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Roast Beef and Chicken with Cauliflower, Potatoes, and a Fritter",
+    "components": [
+      {
+        "name": "Roast beef slices",
+        "massG": 120,
+        "catalogId": null,
+        "preparation": "roasted medium-rare",
+        "assumptions": [
+          "Lean beef steak/roast cooked medium rare with herbs and garlic"
+        ],
+        "estimatedPer100": {
+          "kcal": 175,
+          "proteinG": 26,
+          "carbsG": 0.5,
+          "fatG": 7.5
+        },
+        "nutrients": {
+          "kcal": 210,
+          "proteinG": 31.2,
+          "carbsG": 0.6,
+          "fatG": 9
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Chicken breast pieces",
+        "massG": 70,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Roasted chicken breast seasoned with herbs"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 115.49999999999999,
+          "proteinG": 21.714,
+          "carbsG": 0,
+          "fatG": 2.4989999999999997
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Steamed cauliflower",
+        "massG": 150,
+        "catalogId": null,
+        "preparation": "steamed/boiled",
+        "assumptions": [
+          "Plain cooked cauliflower florets"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 1.9,
+          "carbsG": 5,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 37.5,
+          "proteinG": 2.8499999999999996,
+          "carbsG": 7.5,
+          "fatG": 0.44999999999999996
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted potato cubes",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "roasted",
+        "assumptions": [
+          "Cubed potatoes roasted with a small amount of oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 130,
+          "proteinG": 2.5,
+          "carbsG": 21,
+          "fatG": 4
+        },
+        "nutrients": {
+          "kcal": 110.5,
+          "proteinG": 2.125,
+          "carbsG": 17.849999999999998,
+          "fatG": 3.4
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Fritter or patty",
+        "massG": 50,
+        "catalogId": null,
+        "preparation": "fried or baked",
+        "assumptions": [
+          "Small vegetable/grain/meat fritter or falafel patty"
+        ],
+        "estimatedPer100": {
+          "kcal": 220,
+          "proteinG": 7,
+          "carbsG": 24,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 110,
+          "proteinG": 3.5,
+          "carbsG": 12,
+          "fatG": 5.5
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 583.5,
+      "proteinG": 61.389,
+      "carbsG": 37.949999999999996,
+      "fatG": 20.848999999999997
+    },
+    "ambiguities": [
+      "Exact composition of the round patty/fritter at the bottom of the plate",
+      "Presence of butter or oil used during cooking of cauliflower"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 14102,
+      "inputTokens": 2018,
+      "outputTokens": 653,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Roast Beef and Chicken with Cauliflower, Potatoes, and a Fritter",
+      "components": [
+        {
+          "name": "Roast beef slices",
+          "massG": 120,
+          "catalogId": null,
+          "preparation": "roasted medium-rare",
+          "assumptions": [
+            "Lean beef steak/roast cooked medium rare with herbs and garlic"
+          ],
+          "estimatedPer100": {
+            "kcal": 175,
+            "proteinG": 26,
+            "carbsG": 0.5,
+            "fatG": 7.5
+          }
+        },
+        {
+          "name": "Chicken breast pieces",
+          "massG": 70,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Roasted chicken breast seasoned with herbs"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Steamed cauliflower",
+          "massG": 150,
+          "catalogId": null,
+          "preparation": "steamed/boiled",
+          "assumptions": [
+            "Plain cooked cauliflower florets"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 1.9,
+            "carbsG": 5,
+            "fatG": 0.3
+          }
+        },
+        {
+          "name": "Roasted potato cubes",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "roasted",
+          "assumptions": [
+            "Cubed potatoes roasted with a small amount of oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 130,
+            "proteinG": 2.5,
+            "carbsG": 21,
+            "fatG": 4
+          }
+        },
+        {
+          "name": "Fritter or patty",
+          "massG": 50,
+          "catalogId": null,
+          "preparation": "fried or baked",
+          "assumptions": [
+            "Small vegetable/grain/meat fritter or falafel patty"
+          ],
+          "estimatedPer100": {
+            "kcal": 220,
+            "proteinG": 7,
+            "carbsG": 24,
+            "fatG": 11
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact composition of the round patty/fritter at the bottom of the plate",
+        "Presence of butter or oil used during cooking of cauliflower"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "ecf1640f76682edf9e73a2a3c00ba5f3aaa1df50fffe7335552e41d6555d8bbc"
+}
