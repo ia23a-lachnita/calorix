@@ -209,14 +209,16 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     _foreground=WidgetsBinding.instance.lifecycleState==null||WidgetsBinding.instance.lifecycleState==AppLifecycleState.resumed;
     _meter.setForeground(_foreground);_trace('editor_opened');
     if(_meal.hasPendingPreparationQuestion)_trace('preparation_available');
-    if(widget.startEstimate)WidgetsBinding.instance.addPostFrameCallback((_){
-      if(_initialOfferConsumed)return;
-      _initialOfferConsumed=true;
-      final state=WidgetsBinding.instance.lifecycleState;
-      if(!mounted||!_foreground||(state!=null&&state!=AppLifecycleState.resumed)||
-          ModalRoute.of(context)?.isCurrent!=true||_busy||_dirty)return;
-      unawaited(_estimate());
-    });
+    if(widget.startEstimate){
+      WidgetsBinding.instance.addPostFrameCallback((_){
+        if(_initialOfferConsumed)return;
+        _initialOfferConsumed=true;
+        final state=WidgetsBinding.instance.lifecycleState;
+        if(!mounted||!_foreground||(state!=null&&state!=AppLifecycleState.resumed)||
+            ModalRoute.of(context)?.isCurrent!=true||_busy||_dirty)return;
+        unawaited(_estimate());
+      });
+    }
   }
   void _send(List<Map<String,dynamic>> events){unawaited(widget.workflow.append(_meal.id,events).catchError((_)=>widget.workflow.recordFailure()));}
   void _trace(String kind,[Map<String,dynamic> fields=const {}]){
