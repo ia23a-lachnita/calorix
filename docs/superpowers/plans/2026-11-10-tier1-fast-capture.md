@@ -19,7 +19,7 @@
 ## Task1 — Tests and minimal route change
 
 Files: newtest/tier1/fast_capture_test.dart; lib/features/tier1/tier1_app.dart.
-- [ ] Write a valid JPEG camera fixture and memory store, with positive capture/editor control before testing consent. Use pinned cross_file0.3.5+2 `XFile.fromData`; exact archive SHA matcheslock. Async decoding uses `tester.runAsync` and an explicit parent-save completer, not wall-clock sleep. Assert source/model-call-free controls.
+- [ ] Write a valid JPEG camera fixture and memory store, with positive capture/editor control before testing consent. Use pinned cross_file0.3.5+2 `XFile.fromData`; exact archive SHA matcheslock. Async decoding uses `tester.runAsync` with interleaved fake-frame pumps/real-I/O yields and an explicit parent-save completion condition, not a readiness delay guess. Assert source/model-call-free controls.
 - [ ] Actual canonical Flutter RED before source edits: fresh capture automatically offers consent, explicit approval saves mock estimate, decline/back leave local fallback and no retry; history/reopen/background/navigation remain controls. Repair harness failures before crediting behavioralRED.
 - [ ] Minimal fresh-route flag, guarded one-shot callback and synchronous dirty guard; no other route/default changes. Run focused/full canonical tests and Tier1 analyzer; commit/push bounded source.
 
