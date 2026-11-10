@@ -159,6 +159,17 @@ void main(){
     await t.pumpAndSettle();expect(find.text('Send this photo for analysis?'),findsNothing);expect(cloud.calls,0);expect(store.records.single.cloudConsent,false);
   });
 
+  testWidgets('background and resume before the editor frame permanently cancel its automatic offer',(t)async{
+    final store=_PhotoStore(),camera=_PhotoCamera(jpeg),cloud=_Cloud();
+    await _start(t,store,camera,cloud:cloud);
+    // No widget frame is pumped while paused: the editor can first build only
+    // after resume, as on a real device that defers rendering in background.
+    store.onFirstPhotoSaved=(){_lifecycle(t,false);_lifecycle(t,true);};
+    await _take(t,store);await t.pumpAndSettle();
+    expect(find.text('Meal estimate'),findsOneWidget);expect(find.text('Send this photo for analysis?'),findsNothing);
+    expect(find.text('Estimate photo'),findsOneWidget);expect(cloud.calls,0);expect(store.records.single.cloudConsent,false);
+  });
+
   testWidgets('failed parent save cannot offer consent or call the cloud',(t)async{
     final store=_PhotoStore()..rejectSave=true,camera=_PhotoCamera(jpeg),cloud=_Cloud();
     await _start(t,store,camera,cloud:cloud);
