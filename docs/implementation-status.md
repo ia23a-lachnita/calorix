@@ -1,5 +1,9 @@
 # Implementation Status — V7.1 Tier-1 Photo Pilot
 
+Current Task: ACCURACY CANDIDATE — bounded analytic portion calibration, not another baseline-only milestone. Base6b9de27 clean isolatedfeat/tier1-photo-pilot. Plan docs/superpowers/plans/2026-11-10-portion-calibration.md, correctedMCPpreprimary3.8/yolo agreeMUSTnone. Newmax31SDK registry(ownedprobe1/TRAIN20/freshTEST10), allpriorbudgetsclosed; none invoked yet. FitonlyTRAIN, lockbeforeTEST, old40development+fresh10dualguard. SamepreviouslyrecordedTier1nativeeditexception applies; no renewedworker/account-exhaustionclaim. Intended Python+NodeRED→GREEN/fullchecks/sourceCI/source-resultreviews beforepromotion. App/defaultmodel/deployment unchanged.
+Calibration source-stage evidence: Python7 actualRED→GREEN then resultprofileguard1actualRED→GREEN, full83PASS; Node19PASS plusdeliberatelywronglockedprofilehashfails/restored19PASS. Nodephase-tests originallywrittenaftercode, explicitlynotTDD. Initialmutationcommand wrongfunctions/cwd failedFileNotFound; correctedrootmutation exercisedtarget. InitialnpmtestrootENOENT invalidverification, correctedfunctionscwdrunning. ThirtyfixedPNG/JPEGinputsready; selectionfrozenfirst; independentreview0Critical0Important, all30pins/conversions,500objectives/all40Decimalmetrics. Primary3.8MCPSOURCEagreeMUSTnone; responseinventedtwofilenames recordedasnoise, notactualpaths. GlobalsmodelmetadataGET403→exactUSrependpoint200, projectACTIVE/0inferencecalls. Sameold31budgetnotlaunched. Build/lintPASS; fullCIandscorersourceaddendum/reviewstillrequired beforelive.
+
+
 Plan: docs/superpowers/plans/2026-11-08-tier1-photo-pilot.md
 Baseline commit: 5b70e88ad60ade812e35a14da8a06f5203ef732b
 Branch: feat/tier1-photo-pilot

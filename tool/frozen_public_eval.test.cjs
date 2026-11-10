@@ -162,3 +162,25 @@ test('challenger source pins require the exact frozen manifest, model, schema an
   const badProbe=Buffer.from(JSON.stringify({...JSON.parse(probeRaw),successfulCompatibility:false}));
   assert.throws(()=>validate({...profile,probeReceiptSha256:hash(badProbe)},manifest,sourceEngine,bundle,badProbe),/probe/i);
 });
+
+test('calibration reserves single canonical claim before calls and locks fit before TEST',async t=>{
+ const root=temporary(t),registryPath=path.join(root,'claim.json'),outputDir=path.join(root,'out');
+ const {execute}=require('./run_bounded_calibration.cjs');const seen=[];
+ const steps={probe:async()=>{assert.ok(fs.existsSync(registryPath));seen.push('probe');return {sdkInvocations:1,successfulCompatibility:true,returnedModel:'gemini-3.8-flash'};},
+ train:async()=>{seen.push('train');return 20;},fit:async()=>{seen.push('fit');return {scale:1.2,selected_training_scans:20,usable_training_scans:20};},
+ test:async sha=>{seen.push('test');assert.equal(require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(outputDir,'profile.json'))).digest('hex'),sha);return 10;}};
+ const result=await execute({registryPath,outputDir,consent:true,pins:{}},steps);
+ assert.deepEqual(seen,['probe','train','fit','test']);assert.equal(result.completedSdkEntries,31);assert.equal(result.status,'completed');
+ await assert.rejects(execute({registryPath,outputDir:path.join(root,'alternate'),consent:true,pins:{}},steps));assert.equal(seen.length,4);
+});
+test('calibration halts on invalid TRAIN or fit, never spends TEST budget, retains unknown call state',async t=>{
+ const {execute}=require('./run_bounded_calibration.cjs');
+ for(const failure of ['probe','train','fit','test']){
+ const root=temporary(t);let tests=0;
+ const result=await execute({registryPath:path.join(root,'claim'),outputDir:path.join(root,'out'),consent:true,pins:{}},{
+ probe:async()=>{if(failure==='probe')throw Error('network');return {sdkInvocations:1,successfulCompatibility:true,returnedModel:'gemini-3.8-flash'};},
+ train:async()=>failure==='train'?21:20,fit:async()=>({scale:failure==='fit'?Infinity:1.2,selected_training_scans:20,usable_training_scans:20}),
+ test:async()=>{tests++;throw Error('interrupted');}});
+ assert.equal(result.status,'halted');assert.equal(tests,failure==='test'?1:0);assert.equal(result.unknownInFlight,failure!=='fit');
+ }
+});
