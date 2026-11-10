@@ -1,5 +1,7 @@
 # Local workflow measurements
 
+Latest capture update: fresh photos now offer the existing explicit cloud consent directly. [Current signed APK, verification and scope](tier1-fast-capture-verification-2026-11-10.md). History photos retain the Estimate photo button.
+
 The existing photo, estimate, correction and save routes now have optional local measurement journals. They do not change the original prediction, nutrient calculation, meal revision or consumption confirmation. No new model calls, permissions, dependencies or cloud telemetry were added.
 
 ## Native verification update — 2026-11-10

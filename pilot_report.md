@@ -1,5 +1,7 @@
 # Tier1 pilot report
 
+November10 capture update: automatic consent offer after a fresh local capture is implemented and tested on the authorized Samsung. [Build/native receipt](docs/tier1-fast-capture-verification-2026-11-10.md). This removes one interaction on eligible captures; it adds no accuracy or user-time measurements.
+
 ## Supported
 
 Existing Flutter CameraX still capture, app theme, Firebase project and SDK were reused. The new local-first module implements retained JPEGs and available metadata, explicit per-photo cloud consent, manual estimates, editing/history/deletion, served-only defaults, optional confirmed intake and repeat confirmation. A stateless authenticated callable and CLI share pinned A1 inference and nutrient reconciliation. Six actual USDA SR Legacy records were retrieved; unsupported foods are explicitly unverified. Automated code tests exercise these behaviors; phone/build verification status is recorded below and in `docs/implementation-status.md`.

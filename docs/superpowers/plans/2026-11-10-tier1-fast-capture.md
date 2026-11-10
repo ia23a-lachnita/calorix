@@ -22,14 +22,14 @@
 Files: newtest/tier1/fast_capture_test.dart; lib/features/tier1/tier1_app.dart.
 - [x] Write a valid JPEG camera fixture and memory store, with positive capture/editor control before testing consent. Use pinned cross_file0.3.5+2 `XFile.fromData`; exact archive SHA matcheslock. Async decoding uses `tester.runAsync` with interleaved fake-frame pumps/real-I/O yields and an explicit parent-save completion condition, not a readiness delay guess. Assert source/model-call-free controls.
 - [x] Actual canonical Flutter RED before source edits: fresh capture automatically offers consent, explicit approval saves mock estimate, decline/back leave local fallback and no retry; history/reopen/background/navigation remain controls. Repair harness failures before crediting behavioralRED.
-- [ ] Minimal fresh-route flag, guarded one-shot callback and synchronous dirty guard; no other route/default changes. Run focused/full canonical tests and Tier1 analyzer; commit/push bounded source.
+- [x] Minimal fresh-route flag, guarded one-shot callback and synchronous dirty guard; no other route/default changes. Run focused/full canonical tests and Tier1 analyzer; commit/push bounded source.
 
 ## Task2 — Review, artifact and real device
 
-- [ ] One fresh read-only whole-feature review, fix Critical/Important findings in one RED→GREEN pass. Mandatory Antigravity source/privacy review and corrected literal agreement; no inferred approval from noisy statements.
-- [ ] Canonical android-test-apk.yml exact committed source must pass full Functions/Flutter/Python/Node/build/lint/analyzer/signing. Verify downloadedsource/checksum/trusted signer and compiled privacy before updating the authorized Samsung, preserve all unrelated records/files.
-- [ ] Native fresh capture auto-offers consent; decline/dismiss leaves local photo/edit route, history reopen does not auto-offer; explicit retry dialog available, no Send photo/model call. Delete only owned captures/journals, restore baseline and return Camera. Record sampled visual scope, actual failures and limitations; no new accuracy or human-effort measurement claim.
-- [ ] Corrected final MCP result review, status/guide/pilot tracking, commit/push/clean check. Continue the next original-spec implementation gap without ending the turn at this checkpoint.
+- [x] One fresh read-only whole-feature review, fix Critical/Important findings in one RED→GREEN pass. Mandatory Antigravity source/privacy review and corrected literal agreement; no inferred approval from noisy statements.
+- [x] Canonical android-test-apk.yml exact committed source must pass full Functions/Flutter/Python/Node/build/lint/analyzer/signing. Verify downloadedsource/checksum/trusted signer and compiled privacy before updating the authorized Samsung, preserve all unrelated records/files.
+- [x] Native fresh capture auto-offers consent; decline/dismiss leaves local photo/edit route, history reopen does not auto-offer; explicit retry dialog available, no Send photo/model call. Delete only owned captures/journals, restore baseline and return Camera. Record sampled visual scope, actual failures and limitations; no new accuracy or human-effort measurement claim.
+- [x] Corrected final MCP result review, status/guide/pilot tracking, commit/push/clean check. Continue the next original-spec implementation gap without ending the turn at this checkpoint.
 
 Pre-review: Antigravitygemini-3.8-flash/yolo conversationcalorix-tier1-fast-capture-20261110 explicitagree/MUSTnone, guard feedback adopted. Actual route is Tier1Home, not the review's shorthand ScanScreen; actual method is `_estimate()` without a context argument. No general readiness or zero-global-network guarantee is adopted.
 
@@ -38,3 +38,5 @@ Native grounding before test authoring: exactinstalledb089/d911 source capture/c
 ActualcleanRED42785708933/Flutter129726261755 at1eefdb7:1021PASS1skip4missingofferFAIL, no timeouts;9newtests include5controls. MinimalappchangeafterRED; GREENpending. Earlier42784392573harnesstimeoutsnotbehavioralRED.
 
 Freshindependentreview385dc28:1Importantbackgroundeventlostbeforeframe,1optionalMinorstrongerexactpayloadassertions(deferred). Source385actual1024PASS1skip1backgroundFAIL;10thtestaddedbeforefixandactual42788267931RED1024PASS1skip2backgroundFAIL. Combinedfixepoch+privateclosureafterRED, no change to consent or analysis/persistence path. Existingbackgroundtestalreadycaughtdefect; reviewclaimitnecessarilymaskedpausedframesnotadopted. FullGREENpending.
+
+Final fullCI42789249606/sourceabf42eae3e1286706d4f2e2978596d423428bc41 SUCCESS:1026FlutterPASS1historicalskip/analyzerNoissues,5354backendPASS1historicalskip,54Python,17Node,build/lint/signedAPK. Native capture/decline/history/manualretry/cleanup verified, reportdocs/tier1-fast-capture-verification-2026-11-10.md. Correctedsource/resultMCP literalagreeMUSTnone; optionalMinorfullmockpayload/exactpathassertionstrengtheningdeferred, no observedproductdefect. Nextfoodcorrectionstage, no checkpointturnend.
