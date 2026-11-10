@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "sourceCommit": "e753225e99ea194b94af7f302290eecbfbd547f6",
+  "checks": {
+    "rawHeadFields": 184,
+    "fusionFields": 100,
+    "decimalMetricFields": 134,
+    "inputTensorHashes": 44,
+    "rawRecordHashes": 44,
+    "workerCasesWithoutLabels": 44
+  },
+  "tolerances": {
+    "metrics": "1e-9",
+    "plateDecimalInverse": "1e-8",
+    "dishFloat32EquivalentMacros": "0.0001"
+  },
+  "newInferenceCalls": 0,
+  "scope": "All 44 raw records and input tensors, all head outputs, 20 fusions, full fixed-cohort Decimal metrics. No Android or legal/medical validation."
+}

@@ -1,3 +1,17 @@
+# Current status: open-source reuse benchmark complete
+
+**User request completed with source research and an actual comparison.** [Report and all raw receipts](tier1-open-models-2026-11-10/report.md); [seven-project source audit](open-source-food-model-audit-2026-11-10.md). Branch `feat/tier1-photo-pilot`; inference source `e753225e99ea194b94af7f302290eecbfbd547f6` was committed/pushed clean before the run. This result-publication commit includes tracking; verify its push with Git origin.
+
+Two released ONNX models ×22 frozen photos =44 local mass predictions, no training/new VLM calls. Plate-Vision direct kcal MAE119.20 vsA1177.57, median75.65 vs135.54, P90277.79 vs342.37 on ten existing Nutrition5k meals. Plate mass fusion MAE140.03/P90217.63 but median167.41 worse. Dish direct/fusion260.55/215.78 worse. Both fail the predeclared old-six ECUST mass transfer screen:33.13/27.54g vsA115.18g; no ECUST kcal references. All44 mass valid; Dish9/12ECUST direct-nutrition vocabulary failures,35/44 total valid direct nutrient outputs. No production/default/deploy change; Plate research-only weights; Dish frame-row split permits dish overlap/exact checkpoint membership unknown.
+
+Verification:122Python/40Node PASS, compile/diff-check PASS, clean preflight/hash pins PASS; independent184headfields/100fusionfields/134Decimalmetricfields/44rawhashes/44tensorhashes/44image-onlyworker-specs PASS; published replay receipt+CSV byte-exact. CPU workers both exit0/no resource stop; host ARM64 RaspberryPi4 Debian13, ORT1.31.1/NumPy2.2.4/Pillow11.1.0. Median image wall301.67/194.19ms, not Android. Production source unchanged; no new app/native/full-backend/device qualification claimed.
+
+Antigravity gemini-3.8-flash/yolo research-evidence/plan/source/separatefreshsource/result completed agree/MUST_FIX none. Broad web call300s timeout and canonical3.7/3.6unsupportedHigh errors retained; invalidzero-turn args corrected before fallbacks. Reviews supplied source/metrics only, no independent browsing or exhaustive external raw/pixel audit. Reject reviewer x86 host, causal/significance/legal/security/memory-multiplier assertions. Same bounded native-edit exception applies.
+
+Next engineering step: bounded runtime qualification and same-image evaluation of complete released Calorie Lens model, pinned in source audit; no new training. This is a separate larger model-load step, not yet executed. Geometry recovery remains ON HOLD/unexecuted; original HTTP504 study stays sealed. Cloud food SDK count187 unchanged. Public inventory80N5 scans+12ECUST portionIDs; physical independence unknown, Android weighed0. Do not require owner-phone collection before further public-data work.
+
+---
+
 # Current status: released food models benchmark
 
 Branch: `feat/tier1-photo-pilot`; source stage based on `2bbc23b`. User explicitly requested open-source research, Antigravity consultation and continuation into reuse. The annotation-geometry recovery remains on hold, with no new SDK entries or registry.

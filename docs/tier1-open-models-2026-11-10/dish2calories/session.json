@@ -1,0 +1,30 @@
+{
+  "providers": [
+    "CPUExecutionProvider"
+  ],
+  "loadMs": 217.23015408497304,
+  "inputs": [
+    {
+      "name": "image",
+      "type": "tensor(float)",
+      "shape": [
+        "batch",
+        3,
+        256,
+        256
+      ]
+    }
+  ],
+  "outputs": [
+    "classification",
+    "mass"
+  ],
+  "versions": {
+    "onnxruntime": "1.31.1",
+    "numpy": "2.2.4",
+    "Pillow": "11.1.0"
+  },
+  "intraOpThreads": 2,
+  "interOpThreads": 1,
+  "execution": "ORT_SEQUENTIAL"
+}

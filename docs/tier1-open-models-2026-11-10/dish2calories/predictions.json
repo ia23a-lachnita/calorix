@@ -1,0 +1,3828 @@
+{
+  "dish_1566590007": {
+    "id": "dish_1566590007",
+    "model": "dish2calories",
+    "inputSha256": "9587868cba1515ceaf142652c5e9a885557e361550ddd205557eeee3dd986b38",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 277.09808349609375,
+    "totals": {
+      "kcal": 480.47278594970703,
+      "proteinG": 26.340181350708008,
+      "fatG": 20.115524291992188,
+      "carbsG": 48.51808547973633
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -31.47467041015625,
+          -18.847700119018555,
+          -13.31967544555664,
+          -15.139850616455078,
+          -9.975478172302246,
+          -17.25593376159668,
+          -25.437082290649414,
+          -5.851688385009766,
+          -9.080819129943848,
+          -16.614898681640625,
+          -14.889666557312012,
+          -5.542641639709473,
+          -5.873785495758057,
+          -10.531023979187012,
+          -11.191072463989258,
+          -23.99439811706543,
+          -4.395266532897949,
+          -17.974430084228516,
+          -19.954547882080078,
+          -14.190820693969727,
+          -12.725327491760254,
+          -0.047074124217033386,
+          -22.612274169921875,
+          -16.65652084350586,
+          -11.521879196166992,
+          -17.162635803222656,
+          -17.506803512573242,
+          -22.439315795898438,
+          -16.10271644592285,
+          -31.606464385986328,
+          -1.5956083536148071,
+          -12.965235710144043,
+          -23.726215362548828,
+          -9.272296905517578,
+          -15.045655250549316,
+          -22.417129516601562,
+          -25.669811248779297,
+          -24.969919204711914,
+          -11.269041061401367,
+          -22.37566375732422,
+          -21.293851852416992,
+          -14.161453247070312,
+          -9.840916633605957,
+          -12.441997528076172,
+          -23.554431915283203,
+          -21.964019775390625,
+          -13.583622932434082,
+          -10.329339981079102,
+          -17.73750877380371,
+          -28.344148635864258,
+          -14.53596019744873,
+          -12.701078414916992,
+          2.7482151985168457,
+          -8.122984886169434,
+          -30.755197525024414,
+          -9.839603424072266,
+          -11.003735542297363,
+          -10.519634246826172,
+          -19.535072326660156,
+          -29.703746795654297,
+          -22.18243408203125,
+          -13.633105278015137,
+          -10.026918411254883,
+          -13.818924903869629,
+          -23.64198112487793,
+          -21.409839630126953,
+          2.6283698081970215,
+          -12.09743881225586,
+          -11.141589164733887,
+          -11.024153709411621,
+          -29.368982315063477,
+          -7.828030586242676,
+          -7.480049133300781,
+          -21.117069244384766,
+          -14.303886413574219
+        ]
+      ],
+      "mass": [
+        [
+          0.4029603600502014
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "f7d0f5bf3d23bce0fdcfb3cebf1bf0fda14b5eb5aa4f626e8dc75560f2581c72"
+    },
+    "publisherRawTotals": {
+      "kcal": 480.47278594970703,
+      "proteinG": 26.340181350708008,
+      "fatG": 20.115524291992188,
+      "carbsG": 48.51808547973633
+    },
+    "directFailure": null,
+    "selectedIngredients": 2,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 188.48490004893392,
+    "wallMs": 242.80258605722338,
+    "fusion": {
+      "massG": 277.09808349609375,
+      "totals": {
+        "kcal": 498.35670471191406,
+        "proteinG": 22.440746307373047,
+        "fatG": 22.46173858642578,
+        "carbsG": 51.68299102783203
+      },
+      "components": [
+        {
+          "name": "Flatbread or savory pastry with cheese and tomato",
+          "massG": 100.762939453125,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Crust topped with tomato sauce or puree, cheese, sliced tomatoes, red onions, and green dressing/crema",
+            "Includes crust and toppings"
+          ],
+          "estimatedPer100": {
+            "kcal": 240,
+            "proteinG": 8.5,
+            "carbsG": 28,
+            "fatG": 10.5
+          },
+          "nutrients": {
+            "kcal": 241.8310546875,
+            "proteinG": 8.564849853515625,
+            "fatG": 10.580108642578125,
+            "carbsG": 28.213623046875
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Avocado crema or green sauce drizzle",
+          "massG": 12.595367431640625,
+          "catalogId": null,
+          "preparation": "raw blended",
+          "assumptions": [
+            "Light drizzle of avocado/herb-based sauce on flatbread"
+          ],
+          "estimatedPer100": {
+            "kcal": 160,
+            "proteinG": 1.5,
+            "carbsG": 4,
+            "fatG": 16
+          },
+          "nutrients": {
+            "kcal": 20.152587890625,
+            "proteinG": 0.18893051147460935,
+            "fatG": 2.0152587890625,
+            "carbsG": 0.503814697265625
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Cooked seasoned quinoa with herbs and tomatoes",
+          "massG": 92.36602783203125,
+          "catalogId": null,
+          "preparation": "cooked mixed",
+          "assumptions": [
+            "Red or spiced quinoa mixed with tomato paste/sauce, leafy greens or herbs, and oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 4,
+            "carbsG": 21,
+            "fatG": 4.5
+          },
+          "nutrients": {
+            "kcal": 129.31243896484375,
+            "proteinG": 3.6946411132812504,
+            "fatG": 4.156471252441406,
+            "carbsG": 19.396865844726562
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Marinated baked tofu or seasoned chicken strips with onions",
+          "massG": 71.37374877929688,
+          "catalogId": null,
+          "preparation": "marinated and baked",
+          "assumptions": [
+            "Strips appear to be firm seasoned baked tofu or shredded/sliced chicken with herbs and red onion slaw"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 14,
+            "carbsG": 5,
+            "fatG": 8
+          },
+          "nutrients": {
+            "kcal": 107.06062316894531,
+            "proteinG": 9.992324829101562,
+            "fatG": 5.70989990234375,
+            "carbsG": 3.5686874389648438
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        }
+      ],
+      "massProvenance": {
+        "kind": "unverified_pretrained_model_estimate",
+        "model": {
+          "id": "dish2calories",
+          "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f"
+        },
+        "originalA1EstimatedMassG": 330.0,
+        "scaleFactor": 0.839691162109375
+      },
+      "foodAndNutrientSources": "retained_A1_component_identities_proportions_and_source_records",
+      "referenceMassUsed": false
+    }
+  },
+  "dish_1566414412": {
+    "id": "dish_1566414412",
+    "model": "dish2calories",
+    "inputSha256": "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 450.8548583984375,
+    "totals": {
+      "kcal": 365.0873577594757,
+      "proteinG": 17.327892303466797,
+      "fatG": 2.611609697341919,
+      "carbsG": 68.06782531738281
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -20.54205322265625,
+          -17.004737854003906,
+          -9.457758903503418,
+          -15.97044849395752,
+          -9.879697799682617,
+          -10.11634635925293,
+          -23.310861587524414,
+          -5.908614635467529,
+          -6.235466957092285,
+          -13.598566055297852,
+          -14.632640838623047,
+          -10.844095230102539,
+          -4.1468119621276855,
+          -2.3622446060180664,
+          -7.876199245452881,
+          -16.714004516601562,
+          -7.216046333312988,
+          -18.00229835510254,
+          -3.878751277923584,
+          -11.390663146972656,
+          -9.879037857055664,
+          -3.7169406414031982,
+          -22.61834144592285,
+          -19.966459274291992,
+          -7.488079071044922,
+          -10.911145210266113,
+          -4.0470428466796875,
+          -13.594968795776367,
+          -6.060142517089844,
+          -24.163808822631836,
+          -4.04274320602417,
+          -11.953533172607422,
+          -14.454655647277832,
+          -4.615758895874023,
+          -19.304540634155273,
+          -11.183978080749512,
+          -11.029476165771484,
+          -15.33411979675293,
+          0.36313939094543457,
+          -15.310049057006836,
+          -13.152100563049316,
+          -5.362524509429932,
+          -3.551359176635742,
+          -7.72756290435791,
+          -17.788721084594727,
+          -10.607398986816406,
+          -4.352970123291016,
+          -10.641251564025879,
+          -23.360652923583984,
+          -14.450124740600586,
+          -19.861412048339844,
+          -10.949979782104492,
+          -12.309881210327148,
+          -12.57168960571289,
+          -15.93787670135498,
+          -7.9629364013671875,
+          -2.33516788482666,
+          -1.5105299949645996,
+          -16.490690231323242,
+          -14.297844886779785,
+          -12.015412330627441,
+          -6.363464832305908,
+          -11.642512321472168,
+          -1.1657276153564453,
+          -10.495004653930664,
+          -12.37011432647705,
+          -2.567082166671753,
+          -14.099644660949707,
+          -16.484697341918945,
+          -15.486857414245605,
+          -16.109758377075195,
+          2.1808505058288574,
+          -9.082231521606445,
+          -21.372676849365234,
+          -8.077998161315918
+        ]
+      ],
+      "mass": [
+        [
+          1.0485987663269043
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "dafa14ecf2d1fde6ce35d2a15dde0795b2f708dbdafa81a0e644fc9375f2832c"
+    },
+    "publisherRawTotals": {
+      "kcal": 365.0873577594757,
+      "proteinG": 17.327892303466797,
+      "fatG": 2.611609697341919,
+      "carbsG": 68.06782531738281
+    },
+    "directFailure": null,
+    "selectedIngredients": 2,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 178.45661903265864,
+    "wallMs": 203.21390498429537,
+    "fusion": {
+      "massG": 450.8548583984375,
+      "totals": {
+        "kcal": 694.9690350181178,
+        "proteinG": 37.02348909558748,
+        "fatG": 35.97940416034899,
+        "carbsG": 54.36953654239053
+      },
+      "components": [
+        {
+          "name": "Chicken with creamy dressing / mayonnaise-based sauce",
+          "massG": 166.10442151521383,
+          "catalogId": null,
+          "preparation": "cooked with creamy dressing",
+          "assumptions": [
+            "Chopped chicken breast or poultry mixed with creamy dressing or mayonnaise sauce"
+          ],
+          "estimatedPer100": {
+            "kcal": 210,
+            "proteinG": 18,
+            "carbsG": 3,
+            "fatG": 14
+          },
+          "nutrients": {
+            "kcal": 348.819285181949,
+            "proteinG": 29.898795872738486,
+            "fatG": 23.254619012129933,
+            "carbsG": 4.983132645456414
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Couscous or grain salad with vegetables",
+          "massG": 100.84911306280839,
+          "catalogId": null,
+          "preparation": "cooked mixed salad",
+          "assumptions": [
+            "Couscous or quinoa mixed with sliced bell peppers and red onion"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 3.5,
+            "carbsG": 23,
+            "fatG": 3.5
+          },
+          "nutrients": {
+            "kcal": 141.18875828793173,
+            "proteinG": 3.529718957198294,
+            "fatG": 3.529718957198294,
+            "carbsG": 23.195296004445932
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Roasted potato wedges",
+          "massG": 106.78141383120888,
+          "catalogId": null,
+          "preparation": "roasted",
+          "assumptions": [
+            "Cut potatoes roasted with oil and seasonings"
+          ],
+          "estimatedPer100": {
+            "kcal": 145,
+            "proteinG": 2.5,
+            "carbsG": 22,
+            "fatG": 5
+          },
+          "nutrients": {
+            "kcal": 154.83305005525287,
+            "proteinG": 2.669535345780222,
+            "fatG": 5.339070691560444,
+            "carbsG": 23.491911042865954
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Mixed green salad with cherry tomato",
+          "massG": 77.11990998920642,
+          "catalogId": null,
+          "preparation": "raw dressed",
+          "assumptions": [
+            "Mixed lettuce leaves, red onion, and cherry tomato with light oil-based vinaigrette"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 1.2,
+            "carbsG": 3.5,
+            "fatG": 5
+          },
+          "nutrients": {
+            "kcal": 50.12794149298417,
+            "proteinG": 0.925438919870477,
+            "fatG": 3.8559954994603207,
+            "carbsG": 2.6991968496222243
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        }
+      ],
+      "massProvenance": {
+        "kind": "unverified_pretrained_model_estimate",
+        "model": {
+          "id": "dish2calories",
+          "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f"
+        },
+        "originalA1EstimatedMassG": 380.0,
+        "scaleFactor": 1.1864601536800987
+      },
+      "foodAndNutrientSources": "retained_A1_component_identities_proportions_and_source_records",
+      "referenceMassUsed": false
+    }
+  },
+  "dish_1568305257": {
+    "id": "dish_1568305257",
+    "model": "dish2calories",
+    "inputSha256": "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 243.5025634765625,
+    "totals": {
+      "kcal": 354.0527276992798,
+      "proteinG": 24.350255966186523,
+      "fatG": 26.785282135009766,
+      "carbsG": 3.89604115486145
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -13.520021438598633,
+          -20.14549446105957,
+          -24.460128784179688,
+          -25.344135284423828,
+          -14.475251197814941,
+          -5.361220836639404,
+          -19.881206512451172,
+          -19.240739822387695,
+          -2.0972859859466553,
+          -12.921104431152344,
+          -16.3741455078125,
+          -4.978425979614258,
+          -16.26167869567871,
+          -8.219221115112305,
+          -18.156538009643555,
+          -13.045228004455566,
+          -7.295516490936279,
+          -17.43132781982422,
+          -17.59389877319336,
+          -14.849539756774902,
+          -17.00681495666504,
+          -8.205241203308105,
+          -14.949292182922363,
+          -25.430747985839844,
+          -17.44361686706543,
+          -20.429113388061523,
+          -4.472555160522461,
+          -14.978134155273438,
+          -18.05004119873047,
+          -14.297792434692383,
+          -20.666072845458984,
+          -23.22965431213379,
+          -14.297667503356934,
+          -10.882598876953125,
+          -15.510340690612793,
+          -19.938486099243164,
+          -7.438348770141602,
+          -17.420469284057617,
+          -13.280756950378418,
+          -16.283660888671875,
+          -20.616811752319336,
+          -13.538463592529297,
+          -2.661522150039673,
+          -22.390722274780273,
+          -33.5914421081543,
+          -18.801973342895508,
+          -18.22848129272461,
+          -20.621383666992188,
+          -15.705062866210938,
+          -18.20281982421875,
+          -22.37514877319336,
+          -9.668357849121094,
+          -24.265605926513672,
+          -22.644269943237305,
+          -11.672616958618164,
+          -21.351470947265625,
+          -17.320871353149414,
+          -18.86876106262207,
+          -19.352840423583984,
+          -0.6512539386749268,
+          4.608683109283447,
+          -13.350722312927246,
+          -11.98167610168457,
+          -17.3264217376709,
+          -12.204049110412598,
+          -1.3361353874206543,
+          -18.484941482543945,
+          -19.515357971191406,
+          -11.803390502929688,
+          -22.681943893432617,
+          -14.70229721069336,
+          -17.75489616394043,
+          -18.332416534423828,
+          -11.114089965820312,
+          -15.425521850585938
+        ]
+      ],
+      "mass": [
+        [
+          0.2781274914741516
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "722e57a356dbf70f5e4f95c0ec5323fdb43b408dd7e4c5adfe2a8ef0dbe1ca18"
+    },
+    "publisherRawTotals": {
+      "kcal": 354.0527276992798,
+      "proteinG": 24.350255966186523,
+      "fatG": 26.785282135009766,
+      "carbsG": 3.89604115486145
+    },
+    "directFailure": null,
+    "selectedIngredients": 1,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 174.0090410457924,
+    "wallMs": 194.32678702287376,
+    "fusion": {
+      "massG": 243.5025634765625,
+      "totals": {
+        "kcal": 411.76283483886715,
+        "proteinG": 28.36804864501953,
+        "fatG": 29.712182795410154,
+        "carbsG": 6.652490034179688
+      },
+      "components": [
+        {
+          "name": "Scrambled eggs",
+          "massG": 136.361435546875,
+          "catalogId": null,
+          "preparation": "cooked scrambled",
+          "assumptions": [
+            "Prepared with a small amount of oil or butter",
+            "Equivalent to approximately 2.5-3 large eggs"
+          ],
+          "estimatedPer100": {
+            "kcal": 149,
+            "proteinG": 10,
+            "carbsG": 1.6,
+            "fatG": 11
+          },
+          "nutrients": {
+            "kcal": 203.17853896484374,
+            "proteinG": 13.6361435546875,
+            "fatG": 14.999757910156248,
+            "carbsG": 2.18178296875
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Turkey bacon strips",
+          "massG": 43.830461425781245,
+          "catalogId": null,
+          "preparation": "cooked pan-fried",
+          "assumptions": [
+            "3 strips of cooked turkey bacon"
+          ],
+          "estimatedPer100": {
+            "kcal": 382,
+            "proteinG": 30,
+            "carbsG": 3.7,
+            "fatG": 27.5
+          },
+          "nutrients": {
+            "kcal": 167.43236264648436,
+            "proteinG": 13.149138427734375,
+            "fatG": 12.053376892089844,
+            "carbsG": 1.6217270727539062
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Saut\u00e9ed spinach with shredded carrots",
+          "massG": 63.31066650390625,
+          "catalogId": null,
+          "preparation": "cooked saut\u00e9ed",
+          "assumptions": [
+            "Spinach and shredded carrots lightly cooked in oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 2.5,
+            "carbsG": 4.5,
+            "fatG": 4.2
+          },
+          "nutrients": {
+            "kcal": 41.15193322753906,
+            "proteinG": 1.5827666625976562,
+            "fatG": 2.6590479931640627,
+            "carbsG": 2.8489799926757815
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        }
+      ],
+      "massProvenance": {
+        "kind": "unverified_pretrained_model_estimate",
+        "model": {
+          "id": "dish2calories",
+          "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f"
+        },
+        "originalA1EstimatedMassG": 250.0,
+        "scaleFactor": 0.97401025390625
+      },
+      "foodAndNutrientSources": "retained_A1_component_identities_proportions_and_source_records",
+      "referenceMassUsed": false
+    }
+  },
+  "dish_1558722247": {
+    "id": "dish_1558722247",
+    "model": "dish2calories",
+    "inputSha256": "52d149ea4b05b7a3d92a848db0c607698d0f45549fa817250ed9dd850c0f8db2",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 193.99876403808594,
+    "totals": {
+      "kcal": 710.4454002380371,
+      "proteinG": 23.815887451171875,
+      "fatG": 52.21744918823242,
+      "carbsG": 36.30620193481445
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          4.092884540557861,
+          1.595813512802124,
+          -11.924814224243164,
+          -27.86646270751953,
+          -17.28567886352539,
+          -16.189868927001953,
+          -12.447171211242676,
+          -10.057801246643066,
+          -18.170568466186523,
+          -9.827390670776367,
+          -17.156387329101562,
+          -11.544673919677734,
+          -21.00809097290039,
+          -10.138141632080078,
+          -15.413448333740234,
+          -11.913566589355469,
+          -13.494078636169434,
+          -8.314834594726562,
+          -18.780916213989258,
+          -20.280073165893555,
+          -15.07483959197998,
+          -14.703519821166992,
+          -22.460264205932617,
+          -26.100847244262695,
+          -12.969902038574219,
+          -11.280282974243164,
+          -17.895708084106445,
+          -7.610481262207031,
+          -22.727558135986328,
+          -23.9552059173584,
+          -14.505635261535645,
+          -13.95871353149414,
+          -10.272603988647461,
+          -11.14084529876709,
+          -13.224653244018555,
+          -24.10901641845703,
+          -18.488807678222656,
+          -18.90288543701172,
+          -18.09128761291504,
+          -18.018157958984375,
+          -20.706947326660156,
+          -20.54581069946289,
+          -19.737728118896484,
+          -17.077348709106445,
+          -12.2899751663208,
+          -22.04204750061035,
+          -18.652738571166992,
+          -12.094265937805176,
+          -11.902093887329102,
+          -19.492698669433594,
+          -17.87908935546875,
+          -12.73723030090332,
+          -14.185585975646973,
+          -13.167167663574219,
+          -25.038990020751953,
+          -19.61893081665039,
+          -14.0316743850708,
+          -21.030900955200195,
+          -15.938776016235352,
+          -11.978748321533203,
+          -11.172333717346191,
+          -16.330862045288086,
+          -12.232290267944336,
+          -23.438270568847656,
+          -15.384515762329102,
+          -11.909817695617676,
+          -13.434229850769043,
+          -11.596540451049805,
+          -20.851848602294922,
+          -21.9442138671875,
+          -19.995494842529297,
+          -14.910325050354004,
+          -5.615565776824951,
+          -15.748722076416016,
+          -18.775833129882812
+        ]
+      ],
+      "mass": [
+        [
+          0.0941833108663559
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "4522298fa34ffe7f88b1864a897c0b6eae74de43c199c1fed2b5bec35843bda1"
+    },
+    "publisherRawTotals": {
+      "kcal": 710.4454002380371,
+      "proteinG": 23.815887451171875,
+      "fatG": 52.21744918823242,
+      "carbsG": 36.30620193481445
+    },
+    "directFailure": null,
+    "selectedIngredients": 2,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 168.74555894173682,
+    "wallMs": 189.41000802442431,
+    "fusion": {
+      "massG": 193.99876403808594,
+      "totals": {
+        "kcal": 300.88582499842494,
+        "proteinG": 9.934614126143916,
+        "fatG": 20.65773935773296,
+        "carbsG": 25.263645497475903
+      },
+      "components": [
+        {
+          "name": "Apple",
+          "massG": 100.12839434223791,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "One medium whole raw apple, core included in mass estimate"
+          ],
+          "estimatedPer100": {
+            "kcal": 52,
+            "proteinG": 0.3,
+            "carbsG": 13.8,
+            "fatG": 0.2
+          },
+          "nutrients": {
+            "kcal": 52.066765057963714,
+            "proteinG": 0.3003851830267137,
+            "fatG": 0.20025678868447586,
+            "carbsG": 13.817718419228832
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Whole almonds",
+          "massG": 40.67716020153415,
+          "catalogId": null,
+          "preparation": "raw or dry roasted",
+          "assumptions": [
+            "Whole unsalted almonds",
+            "Approximately 50-60 kernels"
+          ],
+          "estimatedPer100": {
+            "kcal": 579,
+            "proteinG": 21.2,
+            "carbsG": 21.6,
+            "fatG": 49.9
+          },
+          "nutrients": {
+            "kcal": 235.52075756688274,
+            "proteinG": 8.62355796272524,
+            "fatG": 20.297902940565542,
+            "carbsG": 8.786266603531377
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Cauliflower florets",
+          "massG": 53.19320949431389,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Raw cauliflower florets and stems"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 1.9,
+            "carbsG": 5,
+            "fatG": 0.3
+          },
+          "nutrients": {
+            "kcal": 13.298302373578473,
+            "proteinG": 1.0106709803919638,
+            "fatG": 0.15957962848294166,
+            "carbsG": 2.6596604747156944
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        }
+      ],
+      "massProvenance": {
+        "kind": "unverified_pretrained_model_estimate",
+        "model": {
+          "id": "dish2calories",
+          "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f"
+        },
+        "originalA1EstimatedMassG": 310.0,
+        "scaleFactor": 0.6258024646389869
+      },
+      "foodAndNutrientSources": "retained_A1_component_identities_proportions_and_source_records",
+      "referenceMassUsed": false
+    }
+  },
+  "dish_1568401233": {
+    "id": "dish_1568401233",
+    "model": "dish2calories",
+    "inputSha256": "75927711eec8957eb5010ce05154bf02541d64cefaa0fa691e7cef944556adc5",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 297.1234130859375,
+    "totals": {
+      "kcal": 100.56016486883163,
+      "proteinG": 2.6741104125976562,
+      "fatG": 0.7288894057273865,
+      "carbsG": 20.825929641723633
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -14.152029037475586,
+          -16.160831451416016,
+          -11.286395072937012,
+          -14.307137489318848,
+          -3.139695882797241,
+          -11.276346206665039,
+          -13.147464752197266,
+          -8.993550300598145,
+          -9.876882553100586,
+          -14.119521141052246,
+          -9.787422180175781,
+          -13.600354194641113,
+          -9.906782150268555,
+          -8.593954086303711,
+          -16.01171875,
+          -13.14596939086914,
+          2.5014824867248535,
+          -9.622200012207031,
+          -16.735044479370117,
+          -7.6786112785339355,
+          -8.674315452575684,
+          -7.185647964477539,
+          -9.485858917236328,
+          -8.767450332641602,
+          -11.340208053588867,
+          -15.718332290649414,
+          -18.8433895111084,
+          -8.722220420837402,
+          -16.609243392944336,
+          -19.32858657836914,
+          -12.043806076049805,
+          -2.2011337280273438,
+          -10.150161743164062,
+          -10.614043235778809,
+          -8.947624206542969,
+          -16.93703842163086,
+          -12.505451202392578,
+          -13.813314437866211,
+          -13.152515411376953,
+          -22.499462127685547,
+          -14.13312816619873,
+          -19.94924545288086,
+          -13.831701278686523,
+          -11.170722007751465,
+          -19.863739013671875,
+          -13.274896621704102,
+          -7.315424919128418,
+          -6.871678829193115,
+          -17.59323501586914,
+          -19.80251693725586,
+          -11.922785758972168,
+          -3.6601738929748535,
+          -15.855493545532227,
+          -12.542518615722656,
+          -14.599101066589355,
+          -12.671082496643066,
+          -17.68943214416504,
+          -6.062875747680664,
+          -13.124122619628906,
+          -13.221809387207031,
+          -6.608263969421387,
+          -11.074357032775879,
+          1.1852610111236572,
+          -18.296615600585938,
+          -4.033979892730713,
+          -7.250898838043213,
+          -11.085005760192871,
+          -9.04755973815918,
+          -11.243528366088867,
+          -8.237527847290039,
+          -10.132796287536621,
+          -6.51650857925415,
+          -13.963685989379883,
+          -10.093123435974121,
+          -11.376948356628418
+        ]
+      ],
+      "mass": [
+        [
+          0.47736960649490356
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "e23c6b4a0bfd1c60f68c938a688f58a290a0db2b775f5cdcc1e3972ed4af68d8"
+    },
+    "publisherRawTotals": {
+      "kcal": 100.56016486883163,
+      "proteinG": 2.6741104125976562,
+      "fatG": 0.7288894057273865,
+      "carbsG": 20.825929641723633
+    },
+    "directFailure": null,
+    "selectedIngredients": 2,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 170.27514602523297,
+    "wallMs": 190.4724120395258,
+    "fusion": {
+      "massG": 297.1234130859375,
+      "totals": {
+        "kcal": 354.96962757110595,
+        "proteinG": 23.66773687362671,
+        "fatG": 15.571123867034911,
+        "carbsG": 30.92869028091431
+      },
+      "components": [
+        {
+          "name": "Tuna salad",
+          "massG": 129.99149322509766,
+          "catalogId": null,
+          "preparation": "mixed with mayonnaise, celery, and red onion",
+          "assumptions": [
+            "Prepared with canned tuna, light mayonnaise or oil dressing, and diced vegetables"
+          ],
+          "estimatedPer100": {
+            "kcal": 185,
+            "proteinG": 16.5,
+            "carbsG": 3.2,
+            "fatG": 11.8
+          },
+          "nutrients": {
+            "kcal": 240.48426246643066,
+            "proteinG": 21.448596382141112,
+            "fatG": 15.338996200561523,
+            "carbsG": 4.159727783203125
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Mashed sweet potato",
+          "massG": 102.13617324829102,
+          "catalogId": null,
+          "preparation": "cooked, mashed or roasted chunks",
+          "assumptions": [
+            "Plain boiled or baked sweet potato with minimal added fat"
+          ],
+          "estimatedPer100": {
+            "kcal": 86,
+            "proteinG": 1.6,
+            "carbsG": 20.1,
+            "fatG": 0.1
+          },
+          "nutrients": {
+            "kcal": 87.83710899353028,
+            "proteinG": 1.6341787719726564,
+            "fatG": 0.10213617324829102,
+            "carbsG": 20.529370822906497
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Shredded carrots",
+          "massG": 64.99574661254883,
+          "catalogId": null,
+          "preparation": "raw shredded",
+          "assumptions": [
+            "Fresh raw shredded carrots without added dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 41,
+            "proteinG": 0.9,
+            "carbsG": 9.6,
+            "fatG": 0.2
+          },
+          "nutrients": {
+            "kcal": 26.64825611114502,
+            "proteinG": 0.5849617195129394,
+            "fatG": 0.12999149322509765,
+            "carbsG": 6.239591674804688
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        }
+      ],
+      "massProvenance": {
+        "kind": "unverified_pretrained_model_estimate",
+        "model": {
+          "id": "dish2calories",
+          "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f"
+        },
+        "originalA1EstimatedMassG": 320.0,
+        "scaleFactor": 0.9285106658935547
+      },
+      "foodAndNutrientSources": "retained_A1_component_identities_proportions_and_source_records",
+      "referenceMassUsed": false
+    }
+  },
+  "dish_1563389600": {
+    "id": "dish_1563389600",
+    "model": "dish2calories",
+    "inputSha256": "5dd57e8063e5f941541faa009851cd0a47a80967942af81640ffe4e6afa6af01",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 157.31092834472656,
+    "totals": {
+      "kcal": 353.7922819852829,
+      "proteinG": 35.552268981933594,
+      "fatG": 23.439329147338867,
+      "carbsG": 0.15731093287467957
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -14.771418571472168,
+          -12.702018737792969,
+          -11.71330451965332,
+          -27.24221420288086,
+          -17.447477340698242,
+          -12.123449325561523,
+          -20.239458084106445,
+          -16.908260345458984,
+          -10.40938663482666,
+          -25.537174224853516,
+          -21.044143676757812,
+          -17.353374481201172,
+          -19.28367805480957,
+          -13.600870132446289,
+          -10.924430847167969,
+          -21.349353790283203,
+          -10.456841468811035,
+          -10.404753684997559,
+          -19.78951072692871,
+          -23.80884552001953,
+          -5.438103199005127,
+          -18.790576934814453,
+          -26.06196403503418,
+          -33.604591369628906,
+          -21.374797821044922,
+          -13.078536033630371,
+          -15.055231094360352,
+          -20.10578727722168,
+          -22.60694122314453,
+          -28.774433135986328,
+          -13.232059478759766,
+          -27.6401309967041,
+          -13.046489715576172,
+          -21.17028045654297,
+          23.93612289428711,
+          -29.176057815551758,
+          -25.24308204650879,
+          -25.464460372924805,
+          -24.107797622680664,
+          -18.966243743896484,
+          -22.120145797729492,
+          -36.73257827758789,
+          -25.246076583862305,
+          -20.291351318359375,
+          -19.935165405273438,
+          -9.039101600646973,
+          -5.324324607849121,
+          -12.656177520751953,
+          -20.370454788208008,
+          -25.586605072021484,
+          -20.844287872314453,
+          -15.029526710510254,
+          -17.380151748657227,
+          -16.848262786865234,
+          -24.038320541381836,
+          -23.539363861083984,
+          -15.595026969909668,
+          -21.863576889038086,
+          -17.756071090698242,
+          -17.642230987548828,
+          -18.17525291442871,
+          -27.02187728881836,
+          -16.098005294799805,
+          -38.72060775756836,
+          -14.983874320983887,
+          -27.371578216552734,
+          -11.824433326721191,
+          -7.788476467132568,
+          -20.16461753845215,
+          -26.39708709716797,
+          -23.300392150878906,
+          -19.636743545532227,
+          -18.123781204223633,
+          -21.508535385131836,
+          -20.713891983032227
+        ]
+      ],
+      "mass": [
+        [
+          -0.042139895260334015
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "13a319de1fa1bc928a05ab1f374f295f265f7dcc7b34308f3b27514b1ca3c57f"
+    },
+    "publisherRawTotals": {
+      "kcal": 353.7922819852829,
+      "proteinG": 35.552268981933594,
+      "fatG": 23.439329147338867,
+      "carbsG": 0.15731093287467957
+    },
+    "directFailure": null,
+    "selectedIngredients": 1,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 171.51255009230226,
+    "wallMs": 191.32296403404325,
+    "fusion": {
+      "massG": 157.31092834472656,
+      "totals": {
+        "kcal": 169.07504994267998,
+        "proteinG": 30.2570471657131,
+        "fatG": 3.5415477694304087,
+        "carbsG": 2.400701558652131
+      },
+      "components": [
+        {
+          "name": "Roasted chicken breast, diced",
+          "massG": 95.75447812287703,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Skinless roasted chicken breast",
+            "Cooked and cut into bite-sized cubes"
+          ],
+          "estimatedPer100": null,
+          "nutrients": {
+            "kcal": 157.99488890274708,
+            "proteinG": 29.703039113716454,
+            "fatG": 3.4184348689867097,
+            "carbsG": 0.0
+          },
+          "source": {
+            "kind": "database_match",
+            "recordId": "usda:171477",
+            "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+            "version": "usda-sr-2019-tier1-20261108-v1",
+            "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+          }
+        },
+        {
+          "name": "Grape tomatoes",
+          "massG": 61.55645022184952,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Whole raw grape or cherry tomatoes, approximately 8-10 pieces"
+          ],
+          "estimatedPer100": {
+            "kcal": 18,
+            "proteinG": 0.9,
+            "carbsG": 3.9,
+            "fatG": 0.2
+          },
+          "nutrients": {
+            "kcal": 11.080161039932912,
+            "proteinG": 0.5540080519966457,
+            "fatG": 0.12311290044369906,
+            "carbsG": 2.400701558652131
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        }
+      ],
+      "massProvenance": {
+        "kind": "unverified_pretrained_model_estimate",
+        "model": {
+          "id": "dish2calories",
+          "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f"
+        },
+        "originalA1EstimatedMassG": 230.0,
+        "scaleFactor": 0.6839605580205502
+      },
+      "foodAndNutrientSources": "retained_A1_component_identities_proportions_and_source_records",
+      "referenceMassUsed": false
+    }
+  },
+  "dish_1566920365": {
+    "id": "dish_1566920365",
+    "model": "dish2calories",
+    "inputSha256": "1de13ddeb3881509de837955cc605428ee354cc99de2e9c879aeaefbffb953cf",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 1052.5745849609375,
+    "totals": {
+      "kcal": 543.1255178451538,
+      "proteinG": 43.85765838623047,
+      "fatG": 1.4034490585327148,
+      "carbsG": 88.76596069335938
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -38.84569549560547,
+          -46.20872116088867,
+          -45.01425552368164,
+          -33.80704879760742,
+          -36.66094970703125,
+          -17.87368392944336,
+          -47.923160552978516,
+          -37.85213088989258,
+          -41.8963508605957,
+          -11.154999732971191,
+          -47.95521545410156,
+          -20.604724884033203,
+          -34.44736099243164,
+          -3.8765039443969727,
+          -24.70412826538086,
+          -11.98227596282959,
+          -26.749135971069336,
+          -39.93257141113281,
+          -54.147186279296875,
+          -21.601009368896484,
+          -46.52421569824219,
+          -25.15251922607422,
+          -44.12818145751953,
+          -63.92406463623047,
+          -56.14646530151367,
+          -34.491294860839844,
+          -41.57744216918945,
+          32.156455993652344,
+          -79.93768310546875,
+          -58.99561309814453,
+          -33.93199157714844,
+          -32.8768196105957,
+          -35.58213806152344,
+          -68.39762115478516,
+          -36.99091720581055,
+          -49.19349670410156,
+          -44.09321975708008,
+          -51.83203887939453,
+          -35.99216079711914,
+          -51.47138977050781,
+          -21.452194213867188,
+          -31.69192886352539,
+          -34.90956497192383,
+          -42.08522415161133,
+          -26.937427520751953,
+          -22.64563751220703,
+          -40.13182830810547,
+          -41.1523551940918,
+          -41.37086486816406,
+          -63.37102127075195,
+          -77.94694519042969,
+          -30.018985748291016,
+          -56.087406158447266,
+          -30.04741668701172,
+          -31.385150909423828,
+          -57.2813720703125,
+          -54.989227294921875,
+          -40.952693939208984,
+          47.6641731262207,
+          -34.39242172241211,
+          -20.00008201599121,
+          -31.668622970581055,
+          -46.54228591918945,
+          -46.41791915893555,
+          -51.88146209716797,
+          10.269231796264648,
+          -43.781982421875,
+          -58.37569808959961,
+          -46.105003356933594,
+          -38.78523635864258,
+          -11.290521621704102,
+          -22.242469787597656,
+          -47.617637634277344,
+          -8.103778839111328,
+          -48.63957214355469
+        ]
+      ],
+      "mass": [
+        [
+          3.284444570541382
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "0799a69e752b32ce77af0e2a986ebd5175c2314e24bcb17d7ff097b2482620d6"
+    },
+    "publisherRawTotals": {
+      "kcal": 543.1255178451538,
+      "proteinG": 43.85765838623047,
+      "fatG": 1.4034490585327148,
+      "carbsG": 88.76596069335938
+    },
+    "directFailure": null,
+    "selectedIngredients": 3,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 169.3940389668569,
+    "wallMs": 189.7074329899624,
+    "fusion": {
+      "massG": 1052.5745849609375,
+      "totals": {
+        "kcal": 625.8034350585938,
+        "proteinG": 70.61818579101562,
+        "fatG": 2.535747863769531,
+        "carbsG": 76.83794470214843
+      },
+      "components": [
+        {
+          "name": "Hard-boiled egg whites",
+          "massG": 574.131591796875,
+          "catalogId": null,
+          "preparation": "cooked boiled",
+          "assumptions": [
+            "Chopped whites only, yolks removed"
+          ],
+          "estimatedPer100": {
+            "kcal": 52,
+            "proteinG": 10.9,
+            "carbsG": 0.7,
+            "fatG": 0.2
+          },
+          "nutrients": {
+            "kcal": 298.548427734375,
+            "proteinG": 62.580343505859375,
+            "fatG": 1.14826318359375,
+            "carbsG": 4.018921142578125
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Roasted sweet potato chunks",
+          "massG": 287.0657958984375,
+          "catalogId": null,
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Roasted with skin on, light oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 90,
+            "proteinG": 2,
+            "carbsG": 20.7,
+            "fatG": 0.15
+          },
+          "nutrients": {
+            "kcal": 258.3592163085937,
+            "proteinG": 5.74131591796875,
+            "fatG": 0.43059869384765626,
+            "carbsG": 59.42261975097656
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Salsa verde / green chili sauce",
+          "massG": 191.377197265625,
+          "catalogId": null,
+          "preparation": "cooked blended",
+          "assumptions": [
+            "Tomatillo or green chili based sauce spooned over the top"
+          ],
+          "estimatedPer100": {
+            "kcal": 36,
+            "proteinG": 1.2,
+            "carbsG": 7,
+            "fatG": 0.5
+          },
+          "nutrients": {
+            "kcal": 68.895791015625,
+            "proteinG": 2.2965263671874996,
+            "fatG": 0.9568859863281249,
+            "carbsG": 13.39640380859375
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        }
+      ],
+      "massProvenance": {
+        "kind": "unverified_pretrained_model_estimate",
+        "model": {
+          "id": "dish2calories",
+          "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f"
+        },
+        "originalA1EstimatedMassG": 330.0,
+        "scaleFactor": 3.189619954427083
+      },
+      "foodAndNutrientSources": "retained_A1_component_identities_proportions_and_source_records",
+      "referenceMassUsed": false
+    }
+  },
+  "dish_1564687046": {
+    "id": "dish_1564687046",
+    "model": "dish2calories",
+    "inputSha256": "85aba7aa1a5eac2bfa82d07357e717681aa289aee720ade11ec13aef30651033",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 206.4661407470703,
+    "totals": {
+      "kcal": 74.53427703678608,
+      "proteinG": 3.716390371322632,
+      "fatG": 0.20646615326404572,
+      "carbsG": 14.452630043029785
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -21.05595588684082,
+          -16.25197982788086,
+          -21.989219665527344,
+          -23.333805084228516,
+          -23.582284927368164,
+          -9.340804100036621,
+          -25.373422622680664,
+          -7.713676929473877,
+          -7.886889934539795,
+          -19.648645401000977,
+          -11.709701538085938,
+          -9.743386268615723,
+          -5.442623615264893,
+          -7.426888465881348,
+          -6.345381259918213,
+          -20.955080032348633,
+          -6.94182825088501,
+          -20.022714614868164,
+          -4.228115081787109,
+          -10.599609375,
+          -9.926527976989746,
+          -1.3203940391540527,
+          -18.513195037841797,
+          -9.859025001525879,
+          -11.783203125,
+          -16.556339263916016,
+          -7.216682434082031,
+          -20.970611572265625,
+          -15.312817573547363,
+          -28.069002151489258,
+          -4.208703994750977,
+          -13.790397644042969,
+          -18.842708587646484,
+          26.251754760742188,
+          -22.964231491088867,
+          -21.398845672607422,
+          -23.75368881225586,
+          -21.535058975219727,
+          -18.846256256103516,
+          -19.379667282104492,
+          -22.17475128173828,
+          -12.102762222290039,
+          -7.196203231811523,
+          -14.266995429992676,
+          -22.458356857299805,
+          -21.972469329833984,
+          -19.674428939819336,
+          -13.193439483642578,
+          -22.639266967773438,
+          -27.498315811157227,
+          -21.061296463012695,
+          -12.094128608703613,
+          -7.934014320373535,
+          -0.9986271858215332,
+          -18.50103187561035,
+          -7.467121124267578,
+          -18.25248146057129,
+          -10.967927932739258,
+          -20.661880493164062,
+          -26.165868759155273,
+          -21.767438888549805,
+          -6.602907180786133,
+          -19.318925857543945,
+          -9.896951675415039,
+          -29.271316528320312,
+          -15.124404907226562,
+          -16.354549407958984,
+          -13.331924438476562,
+          -18.005878448486328,
+          -18.740034103393555,
+          -24.152687072753906,
+          -3.0698935985565186,
+          -4.238446235656738,
+          -23.201610565185547,
+          -16.802322387695312
+        ]
+      ],
+      "mass": [
+        [
+          0.14050905406475067
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "0bdc86dca6b2d98ef67cc79155421281c6a1ddf570236d9e4c1ac54567328d70"
+    },
+    "publisherRawTotals": {
+      "kcal": 74.53427703678608,
+      "proteinG": 3.716390371322632,
+      "fatG": 0.20646615326404572,
+      "carbsG": 14.452630043029785
+    },
+    "directFailure": null,
+    "selectedIngredients": 1,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 168.74970705248415,
+    "wallMs": 189.1060268972069,
+    "fusion": {
+      "massG": 206.4661407470703,
+      "totals": {
+        "kcal": 262.2482208787349,
+        "proteinG": 29.6369467296935,
+        "fatG": 12.2249688600239,
+        "carbsG": 8.548422669527824
+      },
+      "components": [
+        {
+          "name": "Beef steak slices",
+          "massG": 61.577620924564826,
+          "catalogId": null,
+          "preparation": "cooked grilled or seared",
+          "assumptions": [
+            "Cooked medium, lean trimmed beef"
+          ],
+          "estimatedPer100": {
+            "kcal": 210,
+            "proteinG": 28,
+            "carbsG": 0,
+            "fatG": 10.5
+          },
+          "nutrients": {
+            "kcal": 129.31300394158615,
+            "proteinG": 17.241733858878153,
+            "fatG": 6.465650197079306,
+            "carbsG": 0.0
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Green beans",
+          "massG": 65.19983392012746,
+          "catalogId": null,
+          "preparation": "steamed or saut\u00e9ed",
+          "assumptions": [
+            "Cooked green beans with minimal added oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 45,
+            "proteinG": 1.9,
+            "carbsG": 7,
+            "fatG": 1.5
+          },
+          "nutrients": {
+            "kcal": 29.33992526405736,
+            "proteinG": 1.2387968444824218,
+            "fatG": 0.977997508801912,
+            "carbsG": 4.563988374408923
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Fish or eggplant roll with tomato sauce",
+          "massG": 79.68868590237801,
+          "catalogId": null,
+          "preparation": "baked or stewed",
+          "assumptions": [
+            "Appears to be fish fillets or eggplant cooked with tomato-based topping/sauce"
+          ],
+          "estimatedPer100": {
+            "kcal": 130,
+            "proteinG": 14,
+            "carbsG": 5,
+            "fatG": 6
+          },
+          "nutrients": {
+            "kcal": 103.59529167309142,
+            "proteinG": 11.156416026332924,
+            "fatG": 4.781321154142681,
+            "carbsG": 3.9844342951189007
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        }
+      ],
+      "massProvenance": {
+        "kind": "unverified_pretrained_model_estimate",
+        "model": {
+          "id": "dish2calories",
+          "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f"
+        },
+        "originalA1EstimatedMassG": 285.0,
+        "scaleFactor": 0.7244425991125274
+      },
+      "foodAndNutrientSources": "retained_A1_component_identities_proportions_and_source_records",
+      "referenceMassUsed": false
+    }
+  },
+  "dish_1558461792": {
+    "id": "dish_1558461792",
+    "model": "dish2calories",
+    "inputSha256": "57d2955f7f2f35fabd6ecc80f99b5f437e86196906e9825ce58591e9a9bc3ffc",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 137.99574279785156,
+    "totals": {
+      "kcal": 146.96428060531616,
+      "proteinG": 1.0517488718032837,
+      "fatG": 9.28275203704834,
+      "carbsG": 14.803129196166992
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -1.4969642162322998,
+          -20.004127502441406,
+          -16.898494720458984,
+          -15.340527534484863,
+          -19.67504119873047,
+          -19.410688400268555,
+          -21.130157470703125,
+          -14.224637985229492,
+          -14.361949920654297,
+          -19.767669677734375,
+          -23.743741989135742,
+          -9.172636032104492,
+          -16.34609031677246,
+          -8.613024711608887,
+          -21.951717376708984,
+          -13.820982933044434,
+          -15.517683982849121,
+          -23.179441452026367,
+          -16.991857528686523,
+          -16.669095993041992,
+          -3.6291871070861816,
+          -21.565881729125977,
+          -16.982913970947266,
+          -27.008068084716797,
+          -21.349876403808594,
+          -16.780025482177734,
+          -6.104372024536133,
+          -20.683517456054688,
+          -22.012632369995117,
+          -29.66290283203125,
+          -18.824092864990234,
+          -23.77136993408203,
+          0.11692285537719727,
+          -22.92515754699707,
+          -20.163251876831055,
+          -20.796287536621094,
+          -26.05615234375,
+          -20.422801971435547,
+          -18.061281204223633,
+          -24.017446517944336,
+          -15.939631462097168,
+          -11.746030807495117,
+          -10.563865661621094,
+          -15.74795150756836,
+          -4.256084442138672,
+          -23.785892486572266,
+          1.8950445652008057,
+          -17.731069564819336,
+          -8.1701021194458,
+          -25.348276138305664,
+          -19.364532470703125,
+          -19.256269454956055,
+          -16.813833236694336,
+          -14.855170249938965,
+          -24.219287872314453,
+          -22.467103958129883,
+          -18.173686981201172,
+          -15.310628890991211,
+          -22.757749557495117,
+          -7.875260829925537,
+          -22.814720153808594,
+          -7.344853401184082,
+          -12.37277889251709,
+          -31.797855377197266,
+          -17.744009017944336,
+          -22.444955825805664,
+          -8.571186065673828,
+          -3.2334184646606445,
+          -19.102439880371094,
+          -28.15826416015625,
+          -20.140058517456055,
+          -21.542613983154297,
+          -14.946232795715332,
+          -26.15826416015625,
+          -25.53389549255371
+        ]
+      ],
+      "mass": [
+        [
+          -0.11391047388315201
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "fe22deda8186232101acd002573ed83125278673cd39290ec61a985dfb7da209"
+    },
+    "publisherRawTotals": {
+      "kcal": 146.96428060531616,
+      "proteinG": 1.0517488718032837,
+      "fatG": 9.28275203704834,
+      "carbsG": 14.803129196166992
+    },
+    "directFailure": null,
+    "selectedIngredients": 2,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 173.01030503585935,
+    "wallMs": 193.35184595547616,
+    "fusion": {
+      "massG": 137.99574279785156,
+      "totals": {
+        "kcal": 176.75454707933508,
+        "proteinG": 5.552828693887461,
+        "fatG": 10.730668956259024,
+        "carbsG": 18.443431015678076
+      },
+      "components": [
+        {
+          "name": "Whole almonds",
+          "massG": 20.999352164890457,
+          "catalogId": null,
+          "preparation": "raw or dry roasted",
+          "assumptions": [
+            "Unsalted or lightly salted whole almonds"
+          ],
+          "estimatedPer100": {
+            "kcal": 579,
+            "proteinG": 21.2,
+            "carbsG": 21.6,
+            "fatG": 49.9
+          },
+          "nutrients": {
+            "kcal": 121.58624903471572,
+            "proteinG": 4.451862658956776,
+            "fatG": 10.478676730280338,
+            "carbsG": 4.535860067616338
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Red and green grapes",
+          "massG": 65.99796394679858,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh seedless grapes"
+          ],
+          "estimatedPer100": {
+            "kcal": 69,
+            "proteinG": 0.7,
+            "carbsG": 18.1,
+            "fatG": 0.2
+          },
+          "nutrients": {
+            "kcal": 45.53859512329102,
+            "proteinG": 0.46198574762759004,
+            "fatG": 0.13199592789359715,
+            "carbsG": 11.945631474370543
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Cherry or grape tomatoes",
+          "massG": 41.998704329780914,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "5 whole fresh cherry/grape tomatoes"
+          ],
+          "estimatedPer100": {
+            "kcal": 18,
+            "proteinG": 0.9,
+            "carbsG": 3.9,
+            "fatG": 0.2
+          },
+          "nutrients": {
+            "kcal": 7.559766779360563,
+            "proteinG": 0.3779883389680282,
+            "fatG": 0.08399740865956182,
+            "carbsG": 1.6379494688614555
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Baby spinach leaves",
+          "massG": 8.999722356381623,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh, unseasoned raw spinach leaves"
+          ],
+          "estimatedPer100": {
+            "kcal": 23,
+            "proteinG": 2.9,
+            "carbsG": 3.6,
+            "fatG": 0.4
+          },
+          "nutrients": {
+            "kcal": 2.0699361419677733,
+            "proteinG": 0.26099194833506706,
+            "fatG": 0.035998889425526495,
+            "carbsG": 0.3239900048297385
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        }
+      ],
+      "massProvenance": {
+        "kind": "unverified_pretrained_model_estimate",
+        "model": {
+          "id": "dish2calories",
+          "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f"
+        },
+        "originalA1EstimatedMassG": 230.0,
+        "scaleFactor": 0.5999814904254416
+      },
+      "foodAndNutrientSources": "retained_A1_component_identities_proportions_and_source_records",
+      "referenceMassUsed": false
+    }
+  },
+  "dish_1561739238": {
+    "id": "dish_1561739238",
+    "model": "dish2calories",
+    "inputSha256": "be322f0aa9da773937028ea67c110b631abe1a9151ca46fd49dadb6f3cb98a51",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 160.43939208984375,
+    "totals": {
+      "kcal": 97.385751247406,
+      "proteinG": 6.257725238800049,
+      "fatG": 0.26739072799682617,
+      "carbsG": 17.487083435058594
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -17.37115478515625,
+          -16.991933822631836,
+          -7.427863597869873,
+          -20.00485610961914,
+          -16.690271377563477,
+          -16.622182846069336,
+          -20.424989700317383,
+          -2.4407267570495605,
+          -12.018021583557129,
+          8.300816535949707,
+          -7.831336975097656,
+          -8.167257308959961,
+          -13.68761920928955,
+          -13.710851669311523,
+          -18.75318717956543,
+          -17.313640594482422,
+          -14.157997131347656,
+          -21.122047424316406,
+          -18.92584800720215,
+          -12.938713073730469,
+          -22.755367279052734,
+          -14.6165132522583,
+          -9.613471984863281,
+          -17.979894638061523,
+          -13.699399948120117,
+          -25.8040771484375,
+          -17.5604248046875,
+          15.243810653686523,
+          -15.06318187713623,
+          -23.366575241088867,
+          -16.525392532348633,
+          -28.621479034423828,
+          -8.370012283325195,
+          -19.23720359802246,
+          -17.601295471191406,
+          -27.330970764160156,
+          -2.9604523181915283,
+          -15.87269401550293,
+          -15.242277145385742,
+          -17.20318603515625,
+          -17.677888870239258,
+          -22.694721221923828,
+          -16.138099670410156,
+          -18.86004638671875,
+          -18.755788803100586,
+          -19.29730987548828,
+          -16.59295082092285,
+          -24.84469223022461,
+          -22.457700729370117,
+          -26.66762924194336,
+          -21.131784439086914,
+          -8.001432418823242,
+          -22.424638748168945,
+          -10.155691146850586,
+          -20.966449737548828,
+          -18.01399803161621,
+          -15.194456100463867,
+          -11.350570678710938,
+          -16.682403564453125,
+          -11.945911407470703,
+          -10.390871047973633,
+          -16.10761260986328,
+          -17.196775436401367,
+          -26.69736671447754,
+          -14.288421630859375,
+          9.152717590332031,
+          -7.047553062438965,
+          -9.800227165222168,
+          -18.667734146118164,
+          -17.964494705200195,
+          -14.801419258117676,
+          -8.95113754272461,
+          -13.363780975341797,
+          -3.379923105239868,
+          -19.48676300048828
+        ]
+      ],
+      "mass": [
+        [
+          -0.030515238642692566
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "c2d33e5217913cfdb6b141cb52ed455c9257831c30d6e97e79a9d208cbad1a7a"
+    },
+    "publisherRawTotals": {
+      "kcal": 97.385751247406,
+      "proteinG": 6.257725238800049,
+      "fatG": 0.26739072799682617,
+      "carbsG": 17.487083435058594
+    },
+    "directFailure": null,
+    "selectedIngredients": 3,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 169.55279803369194,
+    "wallMs": 189.4320819992572,
+    "fusion": {
+      "massG": 160.43939208984375,
+      "totals": {
+        "kcal": 133.01189601353238,
+        "proteinG": 7.4833516453334274,
+        "fatG": 2.586130201067244,
+        "carbsG": 20.356702867780417
+      },
+      "components": [
+        {
+          "name": "Hard-boiled egg whites",
+          "massG": 49.65981183733259,
+          "catalogId": null,
+          "preparation": "boiled",
+          "assumptions": [
+            "Chopped cooked egg whites without visible yolks"
+          ],
+          "estimatedPer100": {
+            "kcal": 52,
+            "proteinG": 10.9,
+            "carbsG": 0.7,
+            "fatG": 0.2
+          },
+          "nutrients": {
+            "kcal": 25.82310215541295,
+            "proteinG": 5.412919490269253,
+            "fatG": 0.09931962367466518,
+            "carbsG": 0.34761868286132813
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Shredded hash brown potatoes",
+          "massG": 34.37986973353795,
+          "catalogId": null,
+          "preparation": "pan-fried",
+          "assumptions": [
+            "Shredded potatoes cooked with minimal oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 2.2,
+            "carbsG": 21,
+            "fatG": 6.5
+          },
+          "nutrients": {
+            "kcal": 51.569804600306924,
+            "proteinG": 0.7563571341378349,
+            "fatG": 2.234691532679967,
+            "carbsG": 7.21977264404297
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Roasted sweet potato cubes",
+          "massG": 45.83982631138393,
+          "catalogId": null,
+          "preparation": "roasted",
+          "assumptions": [
+            "Skin-on sweet potato chunks roasted with light oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 90,
+            "proteinG": 2,
+            "carbsG": 20.7,
+            "fatG": 0.15
+          },
+          "nutrients": {
+            "kcal": 41.25584368024554,
+            "proteinG": 0.9167965262276786,
+            "fatG": 0.06875973946707589,
+            "carbsG": 9.488844046456475
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        },
+        {
+          "name": "Mixed fresh berries",
+          "massG": 30.55988420758929,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Combination of fresh raspberries, blackberries, and blueberry"
+          ],
+          "estimatedPer100": {
+            "kcal": 47,
+            "proteinG": 1.3,
+            "carbsG": 10.8,
+            "fatG": 0.6
+          },
+          "nutrients": {
+            "kcal": 14.363145577566966,
+            "proteinG": 0.3972784946986607,
+            "fatG": 0.18335930524553573,
+            "carbsG": 3.3004674944196433
+          },
+          "source": {
+            "kind": "unverified_vlm_estimate",
+            "recordId": null,
+            "sourceUrl": null,
+            "version": null,
+            "description": null
+          }
+        }
+      ],
+      "massProvenance": {
+        "kind": "unverified_pretrained_model_estimate",
+        "model": {
+          "id": "dish2calories",
+          "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f"
+        },
+        "originalA1EstimatedMassG": 210.0,
+        "scaleFactor": 0.7639971051897322
+      },
+      "foodAndNutrientSources": "retained_A1_component_identities_proportions_and_source_records",
+      "referenceMassUsed": false
+    }
+  },
+  "bread005": {
+    "id": "bread005",
+    "model": "dish2calories",
+    "inputSha256": "a3ae366bc3361d5442a77142702301872962ccb404d1ea875ce1d4f81b429662",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 59.14398193359375,
+    "totals": null,
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -15.564079284667969,
+          -12.232978820800781,
+          -12.913058280944824,
+          -15.663662910461426,
+          -16.49350929260254,
+          -5.684820175170898,
+          -8.899370193481445,
+          -9.864105224609375,
+          -7.57650089263916,
+          -7.733282089233398,
+          -11.424912452697754,
+          -11.933950424194336,
+          -14.050552368164062,
+          -11.613183975219727,
+          -2.0214431285858154,
+          -8.899029731750488,
+          -3.6939749717712402,
+          -14.257865905761719,
+          -8.17609977722168,
+          -5.523687839508057,
+          -10.790399551391602,
+          -8.608845710754395,
+          -18.40144920349121,
+          -21.81978988647461,
+          -11.356897354125977,
+          -10.635278701782227,
+          -7.748440265655518,
+          -5.639277935028076,
+          -14.22307014465332,
+          -17.227930068969727,
+          -13.767245292663574,
+          -13.93907356262207,
+          -8.424112319946289,
+          -5.030518054962158,
+          -19.552562713623047,
+          -10.885339736938477,
+          -16.01445198059082,
+          -10.735420227050781,
+          -15.749213218688965,
+          -13.768144607543945,
+          -16.60503578186035,
+          -8.222290992736816,
+          -2.803814649581909,
+          -14.412172317504883,
+          -22.70561408996582,
+          -6.229274749755859,
+          -9.576700210571289,
+          -18.3536319732666,
+          -11.909018516540527,
+          -10.682171821594238,
+          -13.686748504638672,
+          -12.542566299438477,
+          -20.410329818725586,
+          -12.973034858703613,
+          -12.343629837036133,
+          -15.71619987487793,
+          -5.210513591766357,
+          -11.050175666809082,
+          -18.172910690307617,
+          -9.003292083740234,
+          -9.385700225830078,
+          -12.475496292114258,
+          -9.622977256774902,
+          -16.58818244934082,
+          -14.517478942871094,
+          -13.09192180633545,
+          -21.47010040283203,
+          -10.093525886535645,
+          -7.532076835632324,
+          -22.868019104003906,
+          -11.681264877319336,
+          -14.245260238647461,
+          -14.495362281799316,
+          -18.520877838134766,
+          -13.316473007202148
+        ]
+      ],
+      "mass": [
+        [
+          -0.4069046378135681
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "73c687bfe489215642e2fdbfc3b6d73016906509d9ea72c0c0fd988f375b62fa"
+    },
+    "publisherRawTotals": {
+      "kcal": 0.0,
+      "proteinG": 0.0,
+      "fatG": 0.0,
+      "carbsG": 0.0
+    },
+    "directFailure": "vocabulary_failure",
+    "selectedIngredients": 0,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 171.65008606389165,
+    "wallMs": 197.15479598380625
+  },
+  "bun006": {
+    "id": "bun006",
+    "model": "dish2calories",
+    "inputSha256": "627768eb7ad1474fe489bd8ec4d4849e8c7dbb9a427fd8f1cee99b94bd124e2d",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 57.299095153808594,
+    "totals": null,
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -10.58047866821289,
+          -6.236129283905029,
+          -13.586407661437988,
+          -12.767292022705078,
+          -11.894410133361816,
+          -9.70212173461914,
+          -8.392343521118164,
+          -17.764318466186523,
+          -8.74921989440918,
+          -14.127180099487305,
+          -9.514152526855469,
+          -11.050760269165039,
+          -18.98992347717285,
+          -9.688064575195312,
+          -6.7629289627075195,
+          -5.103613376617432,
+          -8.648253440856934,
+          -16.786508560180664,
+          -17.69391632080078,
+          -8.260039329528809,
+          -4.720897674560547,
+          -13.234766006469727,
+          -11.99389934539795,
+          -19.989273071289062,
+          -8.474471092224121,
+          -7.774654865264893,
+          -8.552509307861328,
+          -7.062960147857666,
+          -13.099676132202148,
+          -16.12281036376953,
+          -13.99941635131836,
+          -15.15152359008789,
+          -5.267394542694092,
+          -11.629027366638184,
+          -15.382402420043945,
+          -15.315345764160156,
+          -13.780139923095703,
+          -8.803277015686035,
+          -15.227052688598633,
+          -11.294675827026367,
+          -12.493274688720703,
+          -12.381179809570312,
+          -5.022430419921875,
+          -18.25021743774414,
+          -19.894073486328125,
+          -9.729084968566895,
+          -8.7015380859375,
+          -8.462483406066895,
+          -9.744475364685059,
+          -10.644660949707031,
+          -14.501396179199219,
+          -9.693970680236816,
+          -19.66826629638672,
+          -11.531620979309082,
+          -13.394879341125488,
+          -14.575765609741211,
+          -11.019500732421875,
+          -14.546102523803711,
+          -13.508431434631348,
+          -9.48192024230957,
+          -11.058226585388184,
+          -12.803426742553711,
+          -8.907707214355469,
+          -18.362438201904297,
+          -9.669119834899902,
+          -13.426753044128418,
+          -20.48286247253418,
+          -11.316699028015137,
+          -9.987998962402344,
+          -13.569658279418945,
+          -9.933197975158691,
+          -15.047269821166992,
+          -7.505677223205566,
+          -12.070964813232422,
+          -9.35539436340332
+        ]
+      ],
+      "mass": [
+        [
+          -0.4137597680091858
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "da806fc499d1de6d427eda7b22da33d9e471f015f8985b151fcd6e30d247beae"
+    },
+    "publisherRawTotals": {
+      "kcal": 0.0,
+      "proteinG": 0.0,
+      "fatG": 0.0,
+      "carbsG": 0.0
+    },
+    "directFailure": "vocabulary_failure",
+    "selectedIngredients": 0,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 169.8776480043307,
+    "wallMs": 194.09669598098844
+  },
+  "doughnut006": {
+    "id": "doughnut006",
+    "model": "dish2calories",
+    "inputSha256": "73d0100394033a753e85dab41fc0b126e187798747884ffa13439796a6c2d73f",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 129.6461639404297,
+    "totals": null,
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -14.977273941040039,
+          -4.6986188888549805,
+          -17.25786781311035,
+          -19.87160873413086,
+          -13.204534530639648,
+          -10.097237586975098,
+          -4.671480178833008,
+          -19.590192794799805,
+          -14.483560562133789,
+          -12.269240379333496,
+          -18.813804626464844,
+          -11.58867073059082,
+          -23.860572814941406,
+          -13.428299903869629,
+          -18.51525115966797,
+          -9.680935859680176,
+          -7.842180252075195,
+          -14.24021053314209,
+          -20.294708251953125,
+          -14.606096267700195,
+          -13.451709747314453,
+          -18.382863998413086,
+          -20.045146942138672,
+          -24.382841110229492,
+          -22.877914428710938,
+          -11.375700950622559,
+          -17.182607650756836,
+          -12.418891906738281,
+          -21.136964797973633,
+          -12.312273025512695,
+          -16.51503562927246,
+          -18.42911720275879,
+          -4.372880935668945,
+          -18.055343627929688,
+          -21.35759735107422,
+          -19.17704200744629,
+          -12.759658813476562,
+          -6.271658897399902,
+          -19.828350067138672,
+          -20.247013092041016,
+          -15.80891227722168,
+          -21.81842803955078,
+          -15.250914573669434,
+          -19.681045532226562,
+          -23.654056549072266,
+          -18.003843307495117,
+          -13.5205659866333,
+          -5.9445905685424805,
+          -11.599528312683105,
+          -8.397639274597168,
+          -10.612451553344727,
+          -13.19839096069336,
+          -18.4460506439209,
+          -12.4949951171875,
+          -13.969987869262695,
+          -16.016752243041992,
+          -14.750782012939453,
+          -25.545490264892578,
+          -12.3580904006958,
+          -13.063932418823242,
+          -17.2603759765625,
+          -13.29572582244873,
+          -17.977458953857422,
+          -23.344270706176758,
+          -16.306190490722656,
+          -9.930606842041016,
+          -19.831228256225586,
+          -12.846147537231445,
+          -17.930728912353516,
+          -17.745498657226562,
+          -12.68259048461914,
+          -20.52560806274414,
+          -14.904912948608398,
+          -15.969077110290527,
+          -12.805143356323242
+        ]
+      ],
+      "mass": [
+        [
+          -0.1449354737997055
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "cae63b996d73725932e8e32fe81bce3c97aba042f827d4f0d918adbf214251c0"
+    },
+    "publisherRawTotals": {
+      "kcal": 0.0,
+      "proteinG": 0.0,
+      "fatG": 0.0,
+      "carbsG": 0.0
+    },
+    "directFailure": "vocabulary_failure",
+    "selectedIngredients": 0,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 169.23383600078523,
+    "wallMs": 194.29243600461632
+  },
+  "fired_dough_twist006": {
+    "id": "fired_dough_twist006",
+    "model": "dish2calories",
+    "inputSha256": "be4a14bff2908385f834770e29356ad559ca3c2c286b48859d30c8aaa82793da",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 22.113601684570312,
+    "totals": null,
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -19.85727310180664,
+          -11.140838623046875,
+          -11.798369407653809,
+          -16.290842056274414,
+          -16.506994247436523,
+          -11.521679878234863,
+          -26.124927520751953,
+          -6.180410385131836,
+          -17.175186157226562,
+          -18.785810470581055,
+          -17.655826568603516,
+          -8.266321182250977,
+          -21.17570686340332,
+          -19.91937828063965,
+          -9.238704681396484,
+          -16.053970336914062,
+          -15.181800842285156,
+          -19.911792755126953,
+          -25.420251846313477,
+          -13.575235366821289,
+          -13.693499565124512,
+          -1.138014793395996,
+          -12.748749732971191,
+          -25.57772445678711,
+          -17.545166015625,
+          -12.79426383972168,
+          -16.903369903564453,
+          -19.912952423095703,
+          -10.881180763244629,
+          -24.28602409362793,
+          -3.857328414916992,
+          -14.045633316040039,
+          -19.513044357299805,
+          -16.501264572143555,
+          -28.126163482666016,
+          -23.649555206298828,
+          -27.221899032592773,
+          -17.900739669799805,
+          -17.245073318481445,
+          -21.560516357421875,
+          -20.191144943237305,
+          -9.571221351623535,
+          -13.892732620239258,
+          -7.555374622344971,
+          -17.811870574951172,
+          -14.989569664001465,
+          -16.43048858642578,
+          -7.250463962554932,
+          -8.728751182556152,
+          -7.429320812225342,
+          -16.037498474121094,
+          -12.928186416625977,
+          -21.06466293334961,
+          -9.635906219482422,
+          -14.385709762573242,
+          -14.302204132080078,
+          -2.3369228839874268,
+          -23.372079849243164,
+          -15.169699668884277,
+          -9.514363288879395,
+          -14.683384895324707,
+          -17.04829978942871,
+          -14.087321281433105,
+          -13.714174270629883,
+          -19.856979370117188,
+          -19.07855796813965,
+          -22.326440811157227,
+          -21.46628761291504,
+          -22.949504852294922,
+          -23.21788215637207,
+          -18.052701950073242,
+          -2.3258283138275146,
+          -10.474835395812988,
+          -11.204236030578613,
+          -7.320749759674072
+        ]
+      ],
+      "mass": [
+        [
+          -0.5445005893707275
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "618be3d453586516b7a58203528b9d87ccedddff2c35c78e35a0670bb4f8539a"
+    },
+    "publisherRawTotals": {
+      "kcal": 0.0,
+      "proteinG": 0.0,
+      "fatG": 0.0,
+      "carbsG": 0.0
+    },
+    "directFailure": "vocabulary_failure",
+    "selectedIngredients": 0,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 168.98542898707092,
+    "wallMs": 186.51786993723363
+  },
+  "mooncake004": {
+    "id": "mooncake004",
+    "model": "dish2calories",
+    "inputSha256": "e084e6eff191aa294be2d437ff0f4101cfe1612b301f946d822c2576bcf2c52f",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 27.579971313476562,
+    "totals": {
+      "kcal": 93.68916320800781,
+      "proteinG": 5.322934627532959,
+      "fatG": 7.529332160949707,
+      "carbsG": 1.1583588123321533
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -22.65742301940918,
+          -11.796317100524902,
+          -18.560169219970703,
+          -24.92177963256836,
+          -20.758913040161133,
+          -16.04195213317871,
+          -23.87873077392578,
+          -9.367547035217285,
+          -11.99425220489502,
+          -18.042675018310547,
+          -16.562742233276367,
+          -10.7503080368042,
+          -24.261825561523438,
+          -17.504411697387695,
+          -8.279579162597656,
+          -12.692755699157715,
+          -16.585681915283203,
+          -27.343372344970703,
+          -21.290407180786133,
+          -17.19244384765625,
+          -8.227812767028809,
+          -12.324822425842285,
+          -16.202009201049805,
+          -33.72264862060547,
+          -22.232460021972656,
+          -12.371837615966797,
+          -4.763315200805664,
+          -7.914421081542969,
+          -20.531341552734375,
+          -30.239778518676758,
+          -16.979522705078125,
+          -16.410524368286133,
+          -16.73330307006836,
+          -16.938337326049805,
+          -35.26873779296875,
+          -18.760786056518555,
+          -18.525039672851562,
+          -18.749645233154297,
+          -18.95490074157715,
+          -13.512992858886719,
+          -23.106666564941406,
+          -9.851954460144043,
+          -5.518227577209473,
+          -17.542724609375,
+          -24.569747924804688,
+          -17.612354278564453,
+          -15.977828979492188,
+          -18.271188735961914,
+          -8.277275085449219,
+          -17.073497772216797,
+          -24.885412216186523,
+          -17.25705909729004,
+          -21.654010772705078,
+          -19.48709487915039,
+          -18.32056999206543,
+          -19.02451515197754,
+          -3.4957168102264404,
+          -22.5205020904541,
+          -22.21739959716797,
+          4.993222236633301,
+          -13.530670166015625,
+          -17.174833297729492,
+          -15.276473999023438,
+          -25.831275939941406,
+          -20.279193878173828,
+          -22.978317260742188,
+          -31.046188354492188,
+          -19.02925682067871,
+          -27.67792320251465,
+          -25.354557037353516,
+          -18.040145874023438,
+          -16.001815795898438,
+          -15.982488632202148,
+          -18.032470703125,
+          -14.612510681152344
+        ]
+      ],
+      "mass": [
+        [
+          -0.5241888761520386
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "d728ab3aa9c60fd52b0bf58434d62ad1fa709e67ea87743b899bf3bc0fbe8116"
+    },
+    "publisherRawTotals": {
+      "kcal": 93.68916320800781,
+      "proteinG": 5.322934627532959,
+      "fatG": 7.529332160949707,
+      "carbsG": 1.1583588123321533
+    },
+    "directFailure": null,
+    "selectedIngredients": 1,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 242.60938400402665,
+    "wallMs": 272.43343100417405
+  },
+  "sachima004": {
+    "id": "sachima004",
+    "model": "dish2calories",
+    "inputSha256": "c0d989ec836b7e1533e8e92378a4e96758a2afe2ad44b7f06da72d2266b9e928",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 49.14659118652344,
+    "totals": {
+      "kcal": 41.46777844429016,
+      "proteinG": 1.6355315446853638,
+      "fatG": 0.46004557609558105,
+      "carbsG": 7.696310520172119
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -22.791221618652344,
+          -16.808265686035156,
+          -8.068629264831543,
+          -20.38186264038086,
+          -16.317750930786133,
+          -17.62335968017578,
+          -13.496978759765625,
+          -13.52529525756836,
+          -10.521364212036133,
+          -23.266027450561523,
+          -14.887661933898926,
+          -11.793414115905762,
+          -8.212234497070312,
+          -14.022878646850586,
+          -7.522830009460449,
+          -18.763736724853516,
+          -13.332502365112305,
+          -11.48123550415039,
+          -12.88424015045166,
+          -9.042978286743164,
+          -14.533727645874023,
+          -1.3846956491470337,
+          -19.345298767089844,
+          -17.884044647216797,
+          -13.144779205322266,
+          -10.737319946289062,
+          -16.176076889038086,
+          -8.65315055847168,
+          -16.185100555419922,
+          -11.915552139282227,
+          -5.4096198081970215,
+          -17.605846405029297,
+          -17.407590866088867,
+          -14.859346389770508,
+          -8.271835327148438,
+          -17.34105682373047,
+          -12.688311576843262,
+          -14.051609992980957,
+          -13.43999195098877,
+          -19.290475845336914,
+          -17.290931701660156,
+          -13.083562850952148,
+          -15.382102012634277,
+          -16.73662757873535,
+          -19.24509620666504,
+          0.3318648934364319,
+          -8.56226634979248,
+          -16.650012969970703,
+          -13.22622299194336,
+          -11.179032325744629,
+          -14.06540584564209,
+          -14.38013744354248,
+          -17.58733558654785,
+          -9.353376388549805,
+          -18.993152618408203,
+          -11.797384262084961,
+          -3.3857171535491943,
+          -12.815824508666992,
+          -14.988978385925293,
+          -7.302316665649414,
+          -10.94257640838623,
+          -13.712158203125,
+          -11.725650787353516,
+          -13.702256202697754,
+          -15.250948905944824,
+          -18.50739860534668,
+          -12.481471061706543,
+          -10.776409149169922,
+          -15.893327713012695,
+          -16.26171112060547,
+          -16.798852920532227,
+          0.48706647753715515,
+          -9.469892501831055,
+          -17.859134674072266,
+          -14.253822326660156
+        ]
+      ],
+      "mass": [
+        [
+          -0.444052517414093
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "68723c983650fbeb881ec47fd43b8c0a2af9780940cab4bc59a21a0f3783c0d5"
+    },
+    "publisherRawTotals": {
+      "kcal": 41.46777844429016,
+      "proteinG": 1.6355315446853638,
+      "fatG": 0.46004557609558105,
+      "carbsG": 7.696310520172119
+    },
+    "directFailure": null,
+    "selectedIngredients": 2,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 328.5026310477406,
+    "wallMs": 370.5833579879254
+  },
+  "bread004": {
+    "id": "bread004",
+    "model": "dish2calories",
+    "inputSha256": "99d5a64a95ace261f3c5a07afb40b7f798b4458a5d16d2d19d2c0a2e94546179",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 57.494300842285156,
+    "totals": null,
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -16.88912582397461,
+          -13.925239562988281,
+          -15.338472366333008,
+          -15.16519832611084,
+          -14.961030960083008,
+          -10.798599243164062,
+          -10.247295379638672,
+          -17.433456420898438,
+          -7.108227729797363,
+          -14.974052429199219,
+          -13.4739351272583,
+          -15.186920166015625,
+          -17.987552642822266,
+          -14.011004447937012,
+          -7.064309120178223,
+          -8.677026748657227,
+          -9.030540466308594,
+          -17.495519638061523,
+          -15.601186752319336,
+          -9.31563663482666,
+          -13.377283096313477,
+          -14.550539016723633,
+          -18.24161148071289,
+          -23.38431167602539,
+          -10.442350387573242,
+          -15.733078956604004,
+          -6.919734477996826,
+          -5.666044235229492,
+          -15.556809425354004,
+          -17.110002517700195,
+          -18.347471237182617,
+          -20.43091583251953,
+          -11.593626976013184,
+          -9.975481033325195,
+          -21.886463165283203,
+          -15.706469535827637,
+          -16.676076889038086,
+          -13.620681762695312,
+          -15.557462692260742,
+          -16.67207145690918,
+          -15.449807167053223,
+          -11.269927024841309,
+          -4.391504764556885,
+          -21.084976196289062,
+          -27.03985023498535,
+          -11.608091354370117,
+          -15.402192115783691,
+          -17.184558868408203,
+          -14.88277530670166,
+          -14.760465621948242,
+          -17.01787567138672,
+          -12.443713188171387,
+          -25.681575775146484,
+          -16.916343688964844,
+          -8.894364356994629,
+          -12.705693244934082,
+          -6.440764427185059,
+          -14.58127212524414,
+          -18.956777572631836,
+          -6.763845443725586,
+          -11.790507316589355,
+          -16.355310440063477,
+          -8.27818775177002,
+          -20.636775970458984,
+          -11.008177757263184,
+          -12.707510948181152,
+          -28.497295379638672,
+          -12.38711166381836,
+          -7.702157020568848,
+          -21.321407318115234,
+          -10.529858589172363,
+          -19.042316436767578,
+          -18.62810707092285,
+          -17.653989791870117,
+          -18.901288986206055
+        ]
+      ],
+      "mass": [
+        [
+          -0.41303443908691406
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "e98616ed4ba452df2b82ef5308fc7460e3e26fd5d4550df381ee8f4eb97aa5e0"
+    },
+    "publisherRawTotals": {
+      "kcal": 0.0,
+      "proteinG": 0.0,
+      "fatG": 0.0,
+      "carbsG": 0.0
+    },
+    "directFailure": "vocabulary_failure",
+    "selectedIngredients": 0,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 201.09004306141287,
+    "wallMs": 226.90167801920325
+  },
+  "bun005": {
+    "id": "bun005",
+    "model": "dish2calories",
+    "inputSha256": "ccaba1347d791490dedb4e29faf3349bdcd3ff3e089140330a2052040708ccac",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 42.24615478515625,
+    "totals": null,
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -14.368902206420898,
+          -9.799346923828125,
+          -9.234654426574707,
+          -10.1947660446167,
+          -16.067094802856445,
+          -9.727089881896973,
+          -7.872716426849365,
+          -8.466941833496094,
+          -10.720663070678711,
+          -14.326065063476562,
+          -9.315003395080566,
+          -10.4298095703125,
+          -15.264074325561523,
+          -13.52657413482666,
+          -7.70051383972168,
+          -9.373348236083984,
+          -10.62585735321045,
+          -13.77294921875,
+          -14.134415626525879,
+          -6.279766082763672,
+          -8.906103134155273,
+          -2.6326794624328613,
+          -16.642879486083984,
+          -19.347299575805664,
+          -11.569948196411133,
+          -7.63445520401001,
+          -9.89937973022461,
+          -8.385083198547363,
+          -12.206339836120605,
+          -17.601102828979492,
+          -7.964206218719482,
+          -15.677824974060059,
+          -12.257978439331055,
+          -13.833202362060547,
+          -19.887435913085938,
+          -14.499974250793457,
+          -23.35674476623535,
+          -7.411367893218994,
+          -10.583542823791504,
+          -17.90161895751953,
+          -16.06466293334961,
+          -7.766611099243164,
+          -11.598042488098145,
+          -14.927751541137695,
+          -17.56188201904297,
+          -2.9731969833374023,
+          -8.585318565368652,
+          -13.4330472946167,
+          -8.174652099609375,
+          -10.10642147064209,
+          -15.457805633544922,
+          -11.420440673828125,
+          -15.39009952545166,
+          -11.553315162658691,
+          -12.197875022888184,
+          -13.916136741638184,
+          -5.1423516273498535,
+          -12.68847370147705,
+          -14.448220252990723,
+          -10.193753242492676,
+          -11.181204795837402,
+          -9.236320495605469,
+          -13.293027877807617,
+          -16.758705139160156,
+          -16.10987091064453,
+          -17.05544662475586,
+          -18.52927017211914,
+          -9.638129234313965,
+          -11.248659133911133,
+          -17.77578353881836,
+          -13.045702934265137,
+          -3.9909088611602783,
+          -8.325023651123047,
+          -14.494378089904785,
+          -10.427178382873535
+        ]
+      ],
+      "mass": [
+        [
+          -0.4696928858757019
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "eaf07825cf67e98159c0f5bd252e4e04a870df46c49aae9f10bc32634cb0f380"
+    },
+    "publisherRawTotals": {
+      "kcal": 0.0,
+      "proteinG": 0.0,
+      "fatG": 0.0,
+      "carbsG": 0.0
+    },
+    "directFailure": "vocabulary_failure",
+    "selectedIngredients": 0,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 217.85054192878306,
+    "wallMs": 245.18448603339493
+  },
+  "doughnut008": {
+    "id": "doughnut008",
+    "model": "dish2calories",
+    "inputSha256": "6a4e7e625d27620c2e5bb403d2cc882d07be53d35c7b905a9bb7972cfa236711",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 61.27698516845703,
+    "totals": null,
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -12.665841102600098,
+          -13.26661491394043,
+          -12.380987167358398,
+          -20.410568237304688,
+          -14.709983825683594,
+          -8.3326997756958,
+          -14.129192352294922,
+          -16.410587310791016,
+          -13.825098037719727,
+          -15.283159255981445,
+          -13.34536075592041,
+          -15.501399040222168,
+          -14.003662109375,
+          -8.807343482971191,
+          -9.177801132202148,
+          -9.026308059692383,
+          -9.291543960571289,
+          -12.107314109802246,
+          -17.279638290405273,
+          -8.159344673156738,
+          -16.16227912902832,
+          -8.973634719848633,
+          -19.535520553588867,
+          -15.483419418334961,
+          -11.761896133422852,
+          -10.312835693359375,
+          -12.248140335083008,
+          -11.10469913482666,
+          -19.036691665649414,
+          -16.827924728393555,
+          -10.003594398498535,
+          -20.841718673706055,
+          -14.51754379272461,
+          -11.751433372497559,
+          -16.970077514648438,
+          -12.966126441955566,
+          -22.398351669311523,
+          -11.916153907775879,
+          -8.73714828491211,
+          -11.960503578186035,
+          -12.635055541992188,
+          -16.260961532592773,
+          -11.15085220336914,
+          -17.736011505126953,
+          -19.599407196044922,
+          -8.036795616149902,
+          -9.88054084777832,
+          -12.820331573486328,
+          -9.065899848937988,
+          -9.910772323608398,
+          -8.440237998962402,
+          -13.203608512878418,
+          -15.31735610961914,
+          -11.336441040039062,
+          -15.310930252075195,
+          -17.240324020385742,
+          -11.22875690460205,
+          -11.687962532043457,
+          -19.03398323059082,
+          -0.5825074911117554,
+          -12.468631744384766,
+          -14.858962059020996,
+          -11.182140350341797,
+          -16.65662956237793,
+          -14.546195030212402,
+          -12.168190956115723,
+          -17.107900619506836,
+          -12.054798126220703,
+          -13.046996116638184,
+          -17.548755645751953,
+          -11.378165245056152,
+          -8.486217498779297,
+          -11.042394638061523,
+          -11.46550178527832,
+          -13.504694938659668
+        ]
+      ],
+      "mass": [
+        [
+          -0.3989788889884949
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "7607a2bf0ed1fa675fc3df89403f876b8f19cbe00e87d70d54fc1db829a838df"
+    },
+    "publisherRawTotals": {
+      "kcal": 0.0,
+      "proteinG": 0.0,
+      "fatG": 0.0,
+      "carbsG": 0.0
+    },
+    "directFailure": "vocabulary_failure",
+    "selectedIngredients": 0,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 186.73151801340282,
+    "wallMs": 214.48040509130806
+  },
+  "fired_dough_twist004": {
+    "id": "fired_dough_twist004",
+    "model": "dish2calories",
+    "inputSha256": "f567c34d44c9ea1cabbbc17566b83cb70c4814eec761d1c4f31406b149a0ac08",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 16.438217163085938,
+    "totals": null,
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -12.593521118164062,
+          -12.998851776123047,
+          -8.619159698486328,
+          -11.477274894714355,
+          -16.785472869873047,
+          -6.046467304229736,
+          -20.73527717590332,
+          -7.721887111663818,
+          -18.767433166503906,
+          -18.38047218322754,
+          -16.89392852783203,
+          -9.126972198486328,
+          -16.824539184570312,
+          -18.051361083984375,
+          -10.271759033203125,
+          -16.151609420776367,
+          -12.346463203430176,
+          -14.05237865447998,
+          -18.26622772216797,
+          -13.316572189331055,
+          -13.065035820007324,
+          -2.1504034996032715,
+          -16.73284912109375,
+          -22.0859317779541,
+          -16.686344146728516,
+          -7.937768936157227,
+          -18.18808364868164,
+          -17.227622985839844,
+          -11.59646224975586,
+          -18.017852783203125,
+          -7.458585262298584,
+          -13.992216110229492,
+          -15.154870986938477,
+          -16.80156707763672,
+          -20.23611068725586,
+          -20.564481735229492,
+          -21.860393524169922,
+          -13.838178634643555,
+          -11.621007919311523,
+          -20.003799438476562,
+          -15.839505195617676,
+          -12.863638877868652,
+          -12.353818893432617,
+          -9.048932075500488,
+          -14.260171890258789,
+          -13.775457382202148,
+          -12.130002975463867,
+          -6.780924320220947,
+          -9.88487434387207,
+          -7.282678127288818,
+          -12.844733238220215,
+          -10.72718334197998,
+          -14.769049644470215,
+          -9.854187965393066,
+          -10.04527473449707,
+          -12.90147876739502,
+          -6.6940412521362305,
+          -18.177061080932617,
+          -12.799466133117676,
+          -11.716255187988281,
+          -16.54208755493164,
+          -13.776123046875,
+          -15.268902778625488,
+          -12.28763484954834,
+          -19.110376358032227,
+          -15.006661415100098,
+          -19.170045852661133,
+          -15.221296310424805,
+          -19.246076583862305,
+          -19.31749153137207,
+          -19.23284339904785,
+          -3.618629217147827,
+          -9.345725059509277,
+          -11.2999906539917,
+          -10.095057487487793
+        ]
+      ],
+      "mass": [
+        [
+          -0.5655889511108398
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "ea9efcdd7d53093446ffc5227667e9192e18ab10ea54da92d3512f815d1d1c49"
+    },
+    "publisherRawTotals": {
+      "kcal": 0.0,
+      "proteinG": 0.0,
+      "fatG": 0.0,
+      "carbsG": 0.0
+    },
+    "directFailure": "vocabulary_failure",
+    "selectedIngredients": 0,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 169.81038893572986,
+    "wallMs": 194.7118970565498
+  },
+  "mooncake006": {
+    "id": "mooncake006",
+    "model": "dish2calories",
+    "inputSha256": "e48aa1d6bfe2cd17a6e650bb5c36b379a7c5754cecee41f7c850d551499b3e12",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 69.06352996826172,
+    "totals": null,
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -26.68096351623535,
+          -16.62832260131836,
+          -12.03441047668457,
+          -21.82635498046875,
+          -14.223998069763184,
+          -15.169727325439453,
+          -28.222686767578125,
+          -5.177299499511719,
+          -13.882776260375977,
+          -18.0427188873291,
+          -23.15839195251465,
+          -12.007148742675781,
+          -13.694122314453125,
+          -21.17148208618164,
+          -13.67912483215332,
+          -19.403926849365234,
+          -16.523895263671875,
+          -16.997211456298828,
+          -16.45131492614746,
+          -14.085225105285645,
+          -17.8532772064209,
+          -9.158522605895996,
+          -20.603364944458008,
+          -30.958946228027344,
+          -14.090258598327637,
+          -21.02387809753418,
+          -9.755950927734375,
+          -9.695274353027344,
+          -21.368234634399414,
+          -30.34162139892578,
+          -13.594478607177734,
+          -17.485244750976562,
+          -25.374374389648438,
+          -16.658462524414062,
+          -34.956886291503906,
+          -23.972524642944336,
+          -22.55265235900879,
+          -17.669038772583008,
+          -19.119375228881836,
+          -21.631507873535156,
+          -24.228681564331055,
+          -11.733108520507812,
+          -11.82575511932373,
+          -19.15117645263672,
+          -20.020851135253906,
+          -18.59859275817871,
+          -18.35014533996582,
+          -16.316944122314453,
+          -10.254477500915527,
+          -17.27655029296875,
+          -17.25873374938965,
+          -19.097848892211914,
+          -14.727629661560059,
+          -16.479093551635742,
+          -13.914817810058594,
+          -12.126382827758789,
+          -5.66171407699585,
+          -12.890813827514648,
+          -14.289938926696777,
+          -0.8007575869560242,
+          -13.67807674407959,
+          -14.7983980178833,
+          -13.830327033996582,
+          -10.317787170410156,
+          -23.585308074951172,
+          -21.356380462646484,
+          -23.08684539794922,
+          -15.011519432067871,
+          -22.977108001708984,
+          -25.338680267333984,
+          -15.953117370605469,
+          -8.280099868774414,
+          -14.125116348266602,
+          -17.76953125,
+          -21.140546798706055
+        ]
+      ],
+      "mass": [
+        [
+          -0.3700459599494934
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "e7140d8cf2e0a876cc4bcf86bdb1205c9c6a3dfdba06b0d8efb9e07987c084d1"
+    },
+    "publisherRawTotals": {
+      "kcal": 0.0,
+      "proteinG": 0.0,
+      "fatG": 0.0,
+      "carbsG": 0.0
+    },
+    "directFailure": "vocabulary_failure",
+    "selectedIngredients": 0,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 169.94001902639866,
+    "wallMs": 193.83690098766237
+  },
+  "sachima005": {
+    "id": "sachima005",
+    "model": "dish2calories",
+    "inputSha256": "e7ed4113b92337c0004c3e1f2b5c989e867736606a813b19b838c917a413ea4b",
+    "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+    "status": "ok",
+    "massG": 68.93023681640625,
+    "totals": {
+      "kcal": 67.34484046697617,
+      "proteinG": 2.8950698375701904,
+      "fatG": 0.34465116262435913,
+      "carbsG": 13.165675163269043
+    },
+    "failure": null,
+    "raw": {
+      "classification": [
+        [
+          -21.896339416503906,
+          -17.869426727294922,
+          -9.479334831237793,
+          -19.013690948486328,
+          -23.28575897216797,
+          -17.89969253540039,
+          -15.136414527893066,
+          -16.98739242553711,
+          -12.598955154418945,
+          -26.016815185546875,
+          -12.770014762878418,
+          -14.823654174804688,
+          -4.067759990692139,
+          -10.25076961517334,
+          -10.814396858215332,
+          -16.469951629638672,
+          -13.116765975952148,
+          -13.783262252807617,
+          -11.973549842834473,
+          -12.155574798583984,
+          -11.033202171325684,
+          -2.473782539367676,
+          -21.83321762084961,
+          -13.69528579711914,
+          -14.360836029052734,
+          -12.38581657409668,
+          -11.834702491760254,
+          -13.355277061462402,
+          -17.249828338623047,
+          -15.430325508117676,
+          -4.530706405639648,
+          -21.51607322692871,
+          -18.276519775390625,
+          -14.828485488891602,
+          -17.29604148864746,
+          -14.745081901550293,
+          -19.318279266357422,
+          -9.932497024536133,
+          -13.701236724853516,
+          -23.3425235748291,
+          -15.994760513305664,
+          -9.993343353271484,
+          -13.169259071350098,
+          -18.071388244628906,
+          -26.38846206665039,
+          -2.1114518642425537,
+          -7.211988925933838,
+          -18.095359802246094,
+          -16.627304077148438,
+          -9.556145668029785,
+          -15.699077606201172,
+          -12.742963790893555,
+          -13.079660415649414,
+          -10.114587783813477,
+          -14.75975513458252,
+          -8.109140396118164,
+          -9.142170906066895,
+          -8.709232330322266,
+          -18.43169403076172,
+          -8.120221138000488,
+          -10.509318351745605,
+          -9.820291519165039,
+          -15.280492782592773,
+          -15.72262191772461,
+          -16.600608825683594,
+          -14.275543212890625,
+          -15.575895309448242,
+          -9.550935745239258,
+          -15.459585189819336,
+          -15.766778945922852,
+          -15.116334915161133,
+          1.5619261264801025,
+          -9.78319263458252,
+          -15.541736602783203,
+          -16.657306671142578
+        ]
+      ],
+      "mass": [
+        [
+          -0.3705412447452545
+        ]
+      ]
+    },
+    "inferenceEntered": true,
+    "directNutrientSourceKind": "unverified_published_model_estimate",
+    "inputTensor": {
+      "dtype": "float32",
+      "shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "sha256": "dc59d0e54b45afd8676ddd6dbf7f775acb48ea88208f4580058d4618d02cf900"
+    },
+    "publisherRawTotals": {
+      "kcal": 67.34484046697617,
+      "proteinG": 2.8950698375701904,
+      "fatG": 0.34465116262435913,
+      "carbsG": 13.165675163269043
+    },
+    "directFailure": null,
+    "selectedIngredients": 1,
+    "pointDecoder": "published_probability_weighted_ingredient_density_times_unstandardized_mass",
+    "forwardAndDecodeMs": 167.54080401733518,
+    "wallMs": 191.1509099882096
+  }
+}

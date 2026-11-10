@@ -1,0 +1,310 @@
+{
+  "sourceCommit": "e753225e99ea194b94af7f302290eecbfbd547f6",
+  "files": [
+    {
+      "path": "dish2calories/bread004.json",
+      "bytes": 3215,
+      "sha256": "4bed4fcf14fa177ba3bfaf881b43765ff7513a014d120c8866f537d2ec9772d1"
+    },
+    {
+      "path": "dish2calories/bread005.json",
+      "bytes": 3205,
+      "sha256": "ee1d3a600883431ff9b133276861656da4512d7d772ad991ac41accf311ecbc4"
+    },
+    {
+      "path": "dish2calories/bun005.json",
+      "bytes": 3194,
+      "sha256": "5c7778d05d55b67afe0898992fcc288fb63bb6a43a9db56815a6a18b50826072"
+    },
+    {
+      "path": "dish2calories/bun006.json",
+      "bytes": 3196,
+      "sha256": "20c1becbb81a78205f365d6232976c7d30a763ea401b6f895f1e870171ab0814"
+    },
+    {
+      "path": "dish2calories/dish_1558461792.json",
+      "bytes": 3401,
+      "sha256": "57c0e82ebfea7c3f728fb6eff3a1b14d22548dcb2a6aa18741fe16ce9213f000"
+    },
+    {
+      "path": "dish2calories/dish_1558722247.json",
+      "bytes": 3392,
+      "sha256": "e424bf82c1f3bfc726ce8605dbbe22015b6212027ceb95dbe9cc5d23bf539d95"
+    },
+    {
+      "path": "dish2calories/dish_1561739238.json",
+      "bytes": 3384,
+      "sha256": "8f5ec56d673d4a7a80edfd4ac1a3833a8821d69637c02ac131b7440ae9bd8755"
+    },
+    {
+      "path": "dish2calories/dish_1563389600.json",
+      "bytes": 3406,
+      "sha256": "0bd22479e2cae6e994e2cf13ab8f650fdd02883e12b19fadd49f47c7ad857d30"
+    },
+    {
+      "path": "dish2calories/dish_1564687046.json",
+      "bytes": 3386,
+      "sha256": "1c2a724b3fbac9311432180172bea7fad6cb4a291db5b364826371d640cb437b"
+    },
+    {
+      "path": "dish2calories/dish_1566414412.json",
+      "bytes": 3387,
+      "sha256": "23263d8a909c8d939be050ce461f09af452ccd9a4793625821174c7a7e4710a0"
+    },
+    {
+      "path": "dish2calories/dish_1566590007.json",
+      "bytes": 3402,
+      "sha256": "a621a9d9d69ff51d9a0ec7f43a226b4d72a2b662d76bb6051bd110f4aed487b9"
+    },
+    {
+      "path": "dish2calories/dish_1566920365.json",
+      "bytes": 3356,
+      "sha256": "d8a4de5d4394af6dc7c68ecbe3da43639afa1bfc594842b3548caab642f0be25"
+    },
+    {
+      "path": "dish2calories/dish_1568305257.json",
+      "bytes": 3388,
+      "sha256": "331e07d8f4c47698212bb0d5e637fe882629dcdbd70d2dfa660be19b92ddcc0a"
+    },
+    {
+      "path": "dish2calories/dish_1568401233.json",
+      "bytes": 3384,
+      "sha256": "eea02a6d72dec2dd3511b57d7a7ddaf1bd6840715dbba63b8cddcb272d04a004"
+    },
+    {
+      "path": "dish2calories/doughnut006.json",
+      "bytes": 3214,
+      "sha256": "cf1eb05d978225fc00306c3c9516da0b5b75e8e5f791afe0be05351e2d6ed36e"
+    },
+    {
+      "path": "dish2calories/doughnut008.json",
+      "bytes": 3214,
+      "sha256": "59c02fbf44d00ff98a6be3e2d70e739b9fcd8f50b3609587c710016a22b86a83"
+    },
+    {
+      "path": "dish2calories/fired_dough_twist004.json",
+      "bytes": 3217,
+      "sha256": "415bca0268e0cbb30285259e506317b4fbb8989ada14599a95bb3c391c9d4afc"
+    },
+    {
+      "path": "dish2calories/fired_dough_twist006.json",
+      "bytes": 3228,
+      "sha256": "8cb1c71fc9e581ece5f3f45e21205f75bb15702dc9c407945a0b5b4164b484b6"
+    },
+    {
+      "path": "dish2calories/mooncake004.json",
+      "bytes": 3382,
+      "sha256": "f8928d097a8f3e2e83bcc2b9e71c3853cc75bf74a45f8a021355b368dce2cb21"
+    },
+    {
+      "path": "dish2calories/mooncake006.json",
+      "bytes": 3207,
+      "sha256": "a3e6605c862f492816cc2b12279701d8b8ba9dd55ba052600ef2c4aca04ef76f"
+    },
+    {
+      "path": "dish2calories/predictions.json",
+      "bytes": 113824,
+      "sha256": "d8057a4fcc2e3dda7d07b7a3823add2aff6615b1b3ddc79dbdeb90680d2df64d"
+    },
+    {
+      "path": "dish2calories/sachima004.json",
+      "bytes": 3386,
+      "sha256": "e07766a26f5080cfc6aabac53a89db13d3b3bcc5553dca32b35a9a3b17e14185"
+    },
+    {
+      "path": "dish2calories/sachima005.json",
+      "bytes": 3390,
+      "sha256": "b4cbc59c501405db032193b7a11c17a637ea0c93f771b7cd122dc00beefc2044"
+    },
+    {
+      "path": "dish2calories/session.json",
+      "bytes": 474,
+      "sha256": "0085c040c43c123f7ab9d852c0d342e3a996761fd9ccb5866e38da46d4bac4ea"
+    },
+    {
+      "path": "fresh-source-review.json",
+      "bytes": 8611,
+      "sha256": "712a52d0ce75c7a2cfb062c15b0e6c97f1966d60576beddb71610f1e8ac9b2ba"
+    },
+    {
+      "path": "host-runtime.json",
+      "bytes": 1000,
+      "sha256": "2924cf4bf209e4d2de0ac643f823f1274e66fa6cd51ded2880af5e4da7c09205"
+    },
+    {
+      "path": "independent-verification.json",
+      "bytes": 586,
+      "sha256": "3c0cd5e8423db622dfa42a5b40c11e561a961e18c72c56356dd0e81ee5f824f6"
+    },
+    {
+      "path": "independent_replay.py",
+      "bytes": 7440,
+      "sha256": "275aed3a00339ac37774158bbec0cbd8da6feff08ed65e16851c56aeeef634ab"
+    },
+    {
+      "path": "onnxruntime-wheel-pin.json",
+      "bytes": 382,
+      "sha256": "3d9a4dd1ccfa1e56f9bd4e98984cd2c1216be835a825364b065a89235e32383f"
+    },
+    {
+      "path": "per-case.csv",
+      "bytes": 5068,
+      "sha256": "f25100e70a719af31babcde4b2da97ec973398a9fb77cabf88d9725efc0a8729"
+    },
+    {
+      "path": "plan-review.json",
+      "bytes": 5260,
+      "sha256": "0f602557d335d1e7e2f4f00973d4ed70020bf6be0559a6279c0adeb27231785f"
+    },
+    {
+      "path": "plate-vision/bread004.json",
+      "bytes": 1557,
+      "sha256": "156215400e16c34daf568be3413eb5d0900dde96f44e4906079137639a56365c"
+    },
+    {
+      "path": "plate-vision/bread005.json",
+      "bytes": 1551,
+      "sha256": "f3f3cad53fb4d8019c5baecb98336fc2e8cd3ea2a1977a77cc022c203478dc8b"
+    },
+    {
+      "path": "plate-vision/bun005.json",
+      "bytes": 1551,
+      "sha256": "827089d73756678c444f59e8e5056e2512bdb8c55de95ae5499f0a9813188af4"
+    },
+    {
+      "path": "plate-vision/bun006.json",
+      "bytes": 1554,
+      "sha256": "b38b4c5457498655eae5cc95a0f5a6e3c9e26463a9ae78f03d2a31d7d1d2ac63"
+    },
+    {
+      "path": "plate-vision/dish_1558461792.json",
+      "bytes": 1557,
+      "sha256": "a9fb5df46a758765c4c43aa0e26c6d125498603a8c845b547813b0fb013da475"
+    },
+    {
+      "path": "plate-vision/dish_1558722247.json",
+      "bytes": 1546,
+      "sha256": "867eca919c2ce04debdc339c4ec7f5ab203c53cd2854ac6726a794824c6a4dfb"
+    },
+    {
+      "path": "plate-vision/dish_1561739238.json",
+      "bytes": 1554,
+      "sha256": "82a286912d6f1ad78ce1959b5fcfdae72cbb2aa4c8b7da88fd92c3c4de5d933a"
+    },
+    {
+      "path": "plate-vision/dish_1563389600.json",
+      "bytes": 1558,
+      "sha256": "e91b227d0b1b644b5c972d9fd29a06fb83051a91f820ed97a22a11874f3b7517"
+    },
+    {
+      "path": "plate-vision/dish_1564687046.json",
+      "bytes": 1543,
+      "sha256": "543ee8d50cc5cf462de35f05f6f083cf59741b56757b79541540d49638f0312e"
+    },
+    {
+      "path": "plate-vision/dish_1566414412.json",
+      "bytes": 1547,
+      "sha256": "720698d7ac02d37be5067426493e0ac1fd2d3c9d683fadf6460549a4913ec3e2"
+    },
+    {
+      "path": "plate-vision/dish_1566590007.json",
+      "bytes": 1543,
+      "sha256": "7c42bb7b0d70bf2cd4ed3d6d6e1bca52196c71dd54b403df77daa97ba8add439"
+    },
+    {
+      "path": "plate-vision/dish_1566920365.json",
+      "bytes": 1547,
+      "sha256": "764b3b280ade1e536796b7268fd1bfd98d4a200ea7aa70848ba30b7dcd5f6613"
+    },
+    {
+      "path": "plate-vision/dish_1568305257.json",
+      "bytes": 1549,
+      "sha256": "e28660220a6280e47a42292fe18728aa01284624567ddf581372b13741357640"
+    },
+    {
+      "path": "plate-vision/dish_1568401233.json",
+      "bytes": 1544,
+      "sha256": "d2e4e1d5d4463dfe0810e2b7104c316f9c06fe5306e85e4c88de9f7882898e0c"
+    },
+    {
+      "path": "plate-vision/doughnut006.json",
+      "bytes": 1560,
+      "sha256": "704e06772bddc8cc1c2c557aabf0fd7e5ee734e2566720b08ee64d780fa37a86"
+    },
+    {
+      "path": "plate-vision/doughnut008.json",
+      "bytes": 1557,
+      "sha256": "c3cc5f657d83b44a7757bb35dbc18cc541a7d3586719702aeff319f714ddd0a0"
+    },
+    {
+      "path": "plate-vision/fired_dough_twist004.json",
+      "bytes": 1564,
+      "sha256": "a37603b231922061c88b607e5fa7e6732de60236e10803cec7a99f33a6638902"
+    },
+    {
+      "path": "plate-vision/fired_dough_twist006.json",
+      "bytes": 1567,
+      "sha256": "0ba255aa736fe1f6d6280ffe44bc5026768137a7f896edf7f2c43d4f2d8c98d0"
+    },
+    {
+      "path": "plate-vision/mooncake004.json",
+      "bytes": 1560,
+      "sha256": "8e71f39f6a260dc74434699061cde8d5097617d837b65359ae6da29bef529595"
+    },
+    {
+      "path": "plate-vision/mooncake006.json",
+      "bytes": 1557,
+      "sha256": "5277ca9eb5924bdde65d5841b0dcd288387bb33c92a501de603cd7738d86759a"
+    },
+    {
+      "path": "plate-vision/predictions.json",
+      "bytes": 72474,
+      "sha256": "7953add144f410858c6222e85aadcb56a8e0e5e21d3c9b52f75f00e80f9bdaba"
+    },
+    {
+      "path": "plate-vision/sachima004.json",
+      "bytes": 1555,
+      "sha256": "fd5e2b2d5db04ee1dad1eda81f32f4827df94dd615fe29f2341c77ec6ca8c605"
+    },
+    {
+      "path": "plate-vision/sachima005.json",
+      "bytes": 1556,
+      "sha256": "dfa6d4f4434d4911ba47c266a8e45ebea3bb0e2626ce3a20ec62f916aecbadec"
+    },
+    {
+      "path": "plate-vision/session.json",
+      "bytes": 490,
+      "sha256": "43c8d9777391b136ede55797f81425d06986714d1cc63d369afe5894e853e8e3"
+    },
+    {
+      "path": "report.md",
+      "bytes": 10983,
+      "sha256": "14c096b8b0f7e83a999f73103c6d673eba6f87f98900f54b51ff91ca311ffd4b"
+    },
+    {
+      "path": "research-review.json",
+      "bytes": 6515,
+      "sha256": "b99fe665c31bde35a0b5968a314834d8e400db9a3fabcbbb893f9939161b4bdb"
+    },
+    {
+      "path": "research-route-errors.json",
+      "bytes": 2008,
+      "sha256": "6ee9c17fa9192e37cf8a2eea9c38ba3a153618f3f5f1885370b34ff6b161b2bd"
+    },
+    {
+      "path": "result-review.json",
+      "bytes": 6969,
+      "sha256": "0c2da81c130bb512d80260021ac2879122765261ebcd793360937aba45138322"
+    },
+    {
+      "path": "result.json",
+      "bytes": 29708,
+      "sha256": "f98528debbe7f769e9569bd8f2dfab98f5f3c2fdf806439bb927f690bc723e63"
+    },
+    {
+      "path": "source-review.json",
+      "bytes": 6540,
+      "sha256": "422cffabbd4e351e63ba59ded92834272f62414b4beb73519be90adc0a66be53"
+    }
+  ]
+}

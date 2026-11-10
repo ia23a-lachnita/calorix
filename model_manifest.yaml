@@ -1,4 +1,4 @@
-manifest_version: 10
+manifest_version: 11
 baseline: A1
 requested_model: gemini-3.8-flash
 returned_model_policy: exact equality or explicit failure
@@ -226,3 +226,28 @@ annotation_geometry_original_food_slots_unattempted: 9
 annotation_geometry_original_cohort_metrics: null
 annotation_geometry_original_gate: not_evaluable_incomplete
 annotation_geometry_original_resume_allowed: false
+
+# Released pretrained challengers; production A1 settings above are unchanged.
+open_models_status: completed_exploratory_screen_failed_no_promotion
+open_models_report: docs/tier1-open-models-2026-11-10/report.md
+open_models_source_commit: e753225e99ea194b94af7f302290eecbfbd547f6
+open_models_profile: functions/eval/tier1-public/open-model-profile-v1.json
+open_models_manifest: functions/eval/tier1-public/manifest-open-models-v1.json
+open_models_local_predictions: 44
+open_models_new_vlm_sdk_entries: 0
+open_models_training: false
+open_models_mass_valid_outputs: 44
+open_models_nutrition_valid_outputs: 35
+open_models_nutrition5k_existing_cases: 10
+open_models_ecust_mass_only_cases: 12
+open_models_plate_direct_n5_mae_kcal: 119.19853214776226
+open_models_plate_fusion_n5_mae_kcal: 140.03411592653524
+open_models_plate_old6_ecust_mass_mae_g: 33.12684880594776
+open_models_dish_direct_n5_mae_kcal: 260.55190199311056
+open_models_dish_fusion_n5_mae_kcal: 215.77994790058816
+open_models_dish_old6_ecust_mass_mae_g: 27.540678151448567
+open_models_plate_weight_use: publisher_research_use_only_no_app_redistribution
+open_models_dish_training_exposure: row_split_permits_dish_overlap_exact_checkpoint_membership_unknown
+open_models_android_latency_measured: false
+open_models_production_change: false
+annotation_geometry_recovery_status: on_hold_unexecuted_after_user_open_source_research_steering

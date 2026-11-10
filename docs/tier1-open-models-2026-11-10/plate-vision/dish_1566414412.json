@@ -1,0 +1,63 @@
+{
+  "id": "dish_1566414412",
+  "model": "plate-vision",
+  "inputSha256": "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+  "artifactSha256": "3f982c4aa8658a032cbc2a656040953a17744a3d35df11b49e722eed07f9f431",
+  "status": "ok",
+  "massG": 450.572175121304,
+  "totals": {
+    "kcal": 647.3616807304954,
+    "proteinG": 58.41884998923347,
+    "fatG": 33.199983175114326,
+    "carbsG": 24.024301075383352
+  },
+  "failure": null,
+  "raw": {
+    "nutrition_quantiles": [
+      [
+        [
+          0.7757372856140137,
+          1.2605721950531006,
+          1.6722720861434937
+        ],
+        [
+          0.7837471961975098,
+          1.439111351966858,
+          2.0081725120544434
+        ],
+        [
+          0.6136763095855713,
+          1.2479039430618286,
+          1.7769697904586792
+        ],
+        [
+          -0.08820737153291702,
+          0.6234573125839233,
+          1.2856812477111816
+        ],
+        [
+          0.7126529216766357,
+          1.2301678657531738,
+          1.6593964099884033
+        ]
+      ]
+    ]
+  },
+  "inferenceEntered": true,
+  "directNutrientSourceKind": "unverified_published_model_estimate",
+  "inputTensor": {
+    "dtype": "uint8",
+    "shape": [
+      1,
+      480,
+      640,
+      3
+    ],
+    "sha256": "95d07346039fdae814d1f0496abb2009350410b8dca09df4d3dca9636d258260"
+  },
+  "directFailure": null,
+  "pointDecoder": "inverse_standardized_log_then_sort_three_take_middle",
+  "intervalsUsed": false,
+  "forwardAndDecodeMs": 287.1377510018647,
+  "wallMs": 304.1666179196909
+}

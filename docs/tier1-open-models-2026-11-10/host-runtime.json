@@ -1,0 +1,36 @@
+{
+  "host": "Raspberry Pi ARM64 Debian; task-scoped Python3.13 CPU runtime",
+  "androidMeasurement": false,
+  "trainingCalls": 0,
+  "newVlmCalls": 0,
+  "modelResults": [
+    {
+      "model": "plate-vision",
+      "imageCount": 22,
+      "massSuccesses": 22,
+      "directNutritionFailures": 0,
+      "medianImageWallMs": 301.67488695587963,
+      "minImageWallMs": 283.31217099912465,
+      "maxImageWallMs": 353.2066560583189,
+      "modelLoadMs": 363.25556691735983,
+      "sampledPeakWorkerRssBytes": 178262016,
+      "providers": [
+        "CPUExecutionProvider"
+      ]
+    },
+    {
+      "model": "dish2calories",
+      "imageCount": 22,
+      "massSuccesses": 22,
+      "directNutritionFailures": 9,
+      "medianImageWallMs": 194.19456599280238,
+      "minImageWallMs": 186.51786993723363,
+      "maxImageWallMs": 370.5833579879254,
+      "modelLoadMs": 217.23015408497304,
+      "sampledPeakWorkerRssBytes": 126136320,
+      "providers": [
+        "CPUExecutionProvider"
+      ]
+    }
+  ]
+}
