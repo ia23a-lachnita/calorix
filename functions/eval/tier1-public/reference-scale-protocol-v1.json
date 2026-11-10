@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "experiment": "reference-scale-cue-v1",
+  "model": "gemini-3.8-flash",
+  "engineCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "qualifiedCoreCiRun": 42811800401,
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "originalPromptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "maxSdkEntries": 13,
+  "manifestSha256": "53b53169b606ff5c40dc9c3e575dd3651a3ecc340554b9455a9048bfc7bf7aca",
+  "prompts": {
+    "neutral": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.",
+    "metric": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation."
+  },
+  "promptSha256": {
+    "neutral": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+    "metric": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda"
+  },
+  "probeImageSha256": "79e2851fd873d5115880b84cc5b82a45f32666055b6d3727e330de2d50ba267a",
+  "order": [
+    {
+      "id": "bread005",
+      "arms": [
+        "neutral",
+        "metric"
+      ]
+    },
+    {
+      "id": "bun006",
+      "arms": [
+        "metric",
+        "neutral"
+      ]
+    },
+    {
+      "id": "doughnut006",
+      "arms": [
+        "neutral",
+        "metric"
+      ]
+    },
+    {
+      "id": "fired_dough_twist006",
+      "arms": [
+        "metric",
+        "neutral"
+      ]
+    },
+    {
+      "id": "mooncake004",
+      "arms": [
+        "neutral",
+        "metric"
+      ]
+    },
+    {
+      "id": "sachima004",
+      "arms": [
+        "metric",
+        "neutral"
+      ]
+    }
+  ],
+  "payload": [
+    "text_prompt",
+    "same_original_jpeg_bytes_both_arms"
+  ],
+  "questionPolicy": "No answers in either arm",
+  "apiAssumptions": {
+    "vertexProject": "calorix-xurschnell",
+    "location": "us",
+    "apiVersion": "v1",
+    "thinkingLevel": "LOW",
+    "maxOutputTokens": 8192,
+    "timeoutMs": 30000,
+    "attempts": 1,
+    "mediaResolution": "provider default, same configuration both arms",
+    "temperature": "provider default, same configuration both arms",
+    "stochasticity": "not eliminated"
+  },
+  "productionPromotable": false,
+  "calorieReference": null,
+  "volumeReferenceUsed": false,
+  "noRetry": true,
+  "noFallback": true,
+  "noResume": true,
+  "noReplacement": true,
+  "interpretation": "Explicit diameter/use-scale information cue; coin already visible BOTH arms. Mass only, six selected simple portions, no calorie/geometry/Android/population accuracy claim."
+}

@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "dataset": "ECUSTFD original-author resized",
+  "sourceRepo": "Liang-yc/ECUSTFD-resized-",
+  "sourceCommit": "59603e70c99807af46df9af3c2c507995fdd0029",
+  "coinDiameterMm": 25.0,
+  "primaryEndpoint": "complete visible edible-food mass g; no calorie reference",
+  "classes": [
+    "bread",
+    "bun",
+    "doughnut",
+    "fired_dough_twist",
+    "mooncake",
+    "sachima"
+  ],
+  "selectionRule": "One hash-ranked physical portion ID per fixed fully-edible class; then one hash-ranked officialTEST top image; no prediction/error selection",
+  "seed": "calorix-reference-scale-v1",
+  "excludedOriginalNoticeStems": [
+    "mix002T(2)",
+    "mix005S(4)"
+  ],
+  "referenceVolumePolicy": "Header volume(mm^3) ambiguous; ignore entirely, no unit reinterpretation",
+  "cases": [
+    {
+      "id": "bread005",
+      "sourceClass": "bread",
+      "sourceImageStem": "bread005T(2)",
+      "referenceMassG": 26.4,
+      "imageObject": "JPEGImages/bread005T(2).JPG",
+      "annotationObject": "Annotations/bread005T(2).xml",
+      "imageSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/bread005T%282%29.JPG",
+      "imageSha256": "a3ae366bc3361d5442a77142702301872962ccb404d1ea875ce1d4f81b429662",
+      "imageBytes": 45127,
+      "annotationSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/Annotations/bread005T%282%29.xml",
+      "annotationSha256": "243aa13fbc9023a05dbc2525d2eb494f70c59bf4bf3db2fc2bad4d88925deca9",
+      "annotationBytes": 863
+    },
+    {
+      "id": "bun006",
+      "sourceClass": "bun",
+      "sourceImageStem": "bun006T(1)",
+      "referenceMassG": 78.3,
+      "imageObject": "JPEGImages/bun006T(1).JPG",
+      "annotationObject": "Annotations/bun006T(1).xml",
+      "imageSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/bun006T%281%29.JPG",
+      "imageSha256": "627768eb7ad1474fe489bd8ec4d4849e8c7dbb9a427fd8f1cee99b94bd124e2d",
+      "imageBytes": 50647,
+      "annotationSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/Annotations/bun006T%281%29.xml",
+      "annotationSha256": "39088d9c8e26ebf477addde5a83e7da4c6f826236f6737285bb450737baa74cb",
+      "annotationBytes": 859
+    },
+    {
+      "id": "doughnut006",
+      "sourceClass": "doughnut",
+      "sourceImageStem": "doughnut006T(14)",
+      "referenceMassG": 66.2,
+      "imageObject": "JPEGImages/doughnut006T(14).JPG",
+      "annotationObject": "Annotations/doughnut006T(14).xml",
+      "imageSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/doughnut006T%2814%29.JPG",
+      "imageSha256": "73d0100394033a753e85dab41fc0b126e187798747884ffa13439796a6c2d73f",
+      "imageBytes": 53563,
+      "annotationSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/Annotations/doughnut006T%2814%29.xml",
+      "annotationSha256": "cafdfafeedd2be45a3f38a9ad85d3df325874798194e856ed5bb14c277a31e0e",
+      "annotationBytes": 870
+    },
+    {
+      "id": "fired_dough_twist006",
+      "sourceClass": "fired_dough_twist",
+      "sourceImageStem": "fired_dough_twist006T(4)",
+      "referenceMassG": 40.2,
+      "imageObject": "JPEGImages/fired_dough_twist006T(4).JPG",
+      "annotationObject": "Annotations/fired_dough_twist006T(4).xml",
+      "imageSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/fired_dough_twist006T%284%29.JPG",
+      "imageSha256": "be4a14bff2908385f834770e29356ad559ca3c2c286b48859d30c8aaa82793da",
+      "imageBytes": 17206,
+      "annotationSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/Annotations/fired_dough_twist006T%284%29.xml",
+      "annotationSha256": "98f167d6cd2fd7013d0e5e7a0ee038ac6bfd314868cef8c6f924660b5b17b77f",
+      "annotationBytes": 887
+    },
+    {
+      "id": "mooncake004",
+      "sourceClass": "mooncake",
+      "sourceImageStem": "mooncake004T(5)",
+      "referenceMassG": 41.8,
+      "imageObject": "JPEGImages/mooncake004T(5).JPG",
+      "annotationObject": "Annotations/mooncake004T(5).xml",
+      "imageSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/mooncake004T%285%29.JPG",
+      "imageSha256": "e084e6eff191aa294be2d437ff0f4101cfe1612b301f946d822c2576bcf2c52f",
+      "imageBytes": 41831,
+      "annotationSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/Annotations/mooncake004T%285%29.xml",
+      "annotationSha256": "b51d0e8498083f084884d23b458e9d3bac88f46a3136c570a334b0be18c9e0f7",
+      "annotationBytes": 869
+    },
+    {
+      "id": "sachima004",
+      "sourceClass": "sachima",
+      "sourceImageStem": "sachima004T(8)",
+      "referenceMassG": 33.4,
+      "imageObject": "JPEGImages/sachima004T(8).JPG",
+      "annotationObject": "Annotations/sachima004T(8).xml",
+      "imageSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/sachima004T%288%29.JPG",
+      "imageSha256": "c0d989ec836b7e1533e8e92378a4e96758a2afe2ad44b7f06da72d2266b9e928",
+      "imageBytes": 40900,
+      "annotationSourceUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/Annotations/sachima004T%288%29.xml",
+      "annotationSha256": "837d357332864d8653d54c8d5bc5489c2023dfd3b2cd0ec96f8b263b42fc581e",
+      "annotationBytes": 867
+    }
+  ],
+  "scope": "public_dataset",
+  "sampleCount": 6,
+  "calorieReference": null,
+  "volumeReferenceUsed": false,
+  "referenceGrade": "author spreadsheet weight(g); edible compatibility visually screened, weighing calibration/uncertainty unverified",
+  "sourceFileSha256": {
+    "README.md": "4faeca39f51a5e171eba08ab8daa8ca3fc0a100a80a743bb38ec40e34d397c14",
+    "density.xls": "594bd873c7046321c631084c781734814ecb94808979a619415ff9795cc3ac99",
+    "ImageSets_Main_test.txt": "a3485a321b1f9235219e3c944c5c756d287af40e37381b48d4362a3c88e08e1a",
+    "tree.json": "4383ed1337cfddcb10eb145aa767ec5815c23a52385ea122c61febd600d836ba"
+  },
+  "rights": "Original author research use and citation statement; no image/XML/XLS/third-party-code redistribution, no mirror license assumption",
+  "visualInspection": {
+    "photosActuallyViewed": 6,
+    "edibleCompatibility": "No apparent peel/core/wrapper in selected foods",
+    "coinVisibleBothArms": true,
+    "background": "Some scale/ruler context at frame edges, no legible actual weight display observed; no absolute leakage claim"
+  }
+}
