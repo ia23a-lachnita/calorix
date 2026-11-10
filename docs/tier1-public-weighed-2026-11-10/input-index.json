@@ -1,0 +1,320 @@
+{
+  "cohorts": [
+    {
+      "cases": [
+        {
+          "id": "dish_1559934477",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1559934477.jpg",
+          "inputSha256": "911f3efd91b17fa9979f2bae7fe9e22c0866dd4e36c0abf9e53bc299e618e660",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1559934477.json",
+          "receiptSha256": "6a53390e38c5b7af2148c8ea5887938f1389b3ebc206e2f940b80630871f72f3"
+        },
+        {
+          "id": "dish_1558461607",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1558461607.jpg",
+          "inputSha256": "a5fbbcd0e8d884a8d3e29c65237c1f983ff332f0eda7950723ef06dbf7eca7e4",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1558461607.json",
+          "receiptSha256": "a8524a3b806593277947215ccd6680a890e7c1675bb6a23e40b22d7b59c1b048"
+        },
+        {
+          "id": "dish_1566416701",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1566416701.jpg",
+          "inputSha256": "65678e42ad5d6bda986fcc481d9c42b82c3dc7b9b01606502aaf54afaa6e9945",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1566416701.json",
+          "receiptSha256": "3b075abc7cb32a342b256470a957c92a3317156c19669aae30307a637a536e0a"
+        },
+        {
+          "id": "dish_1563389548",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1563389548.jpg",
+          "inputSha256": "aaff4bd962c51281a66db70e4bfa85892e30aaad384ff5ddbc083a9a1b0a66c5",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1563389548.json",
+          "receiptSha256": "7f272273a8dc369c59ac0bd0d1218793384d0fab97a3e41a463edef8254c3185"
+        },
+        {
+          "id": "dish_1567785622",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1567785622.jpg",
+          "inputSha256": "3dc31a657b3d5e59ab129e0f55f95ae6885a0ed440c8ad4c912d688d4b2cd374",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1567785622.json",
+          "receiptSha256": "a8851cc860f0cc4eece340b51e3fe2dadeee29fcb37802257ed81ed3925f04d0"
+        },
+        {
+          "id": "dish_1566589933",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1566589933.jpg",
+          "inputSha256": "1cee9aca83ea11fd91231275e7eedde0e0bc1d720995e0eda14454bb2ede3cc6",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1566589933.json",
+          "receiptSha256": "60da51df724137899f63e9be9f82398ab34fc10b436e8b6d997f375eeba52bdf"
+        },
+        {
+          "id": "dish_1562963246",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1562963246.jpg",
+          "inputSha256": "8efa6ecc244aad3e65f242693d47e0e093ac7b318097036a66a0be1775546bf3",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1562963246.json",
+          "receiptSha256": "604089f77e764da2f5f8281c99950a3ac57b94f6803a3c92fd07019485096fc8"
+        },
+        {
+          "id": "dish_1560975517",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1560975517.jpg",
+          "inputSha256": "db61d696a9c3fdc3f801feed93ad9c53089d3f157b200883ea0ca8f10bc043a0",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1560975517.json",
+          "receiptSha256": "c8a9be1d63bb1ef72a09dfa139197a36d6bcb3b6d219c507e451c1ffb0286d7a"
+        },
+        {
+          "id": "dish_1558030182",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1558030182.jpg",
+          "inputSha256": "2ca6fe0d6c1da896fed2af3bee93cca2fbd013270a57a903fff3cf92caddcefc",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1558030182.json",
+          "receiptSha256": "3392e319ba49e8bf88ff401d74c1f7aa4f5929160279717e814181d8bd5bb196"
+        },
+        {
+          "id": "dish_1558376437",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1558376437.jpg",
+          "inputSha256": "b16c40982d5daadb9385defa0a914ef9fb98e225a890ba43f9a5057a0d253b96",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1558376437.json",
+          "receiptSha256": "e54aabdb4826f1b4dc0e59c27cd0b2a4df68d207e821dbad71398014a9290d54"
+        },
+        {
+          "id": "dish_1560203400",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1560203400.jpg",
+          "inputSha256": "c280672f43feef455445f4bfe20b0a2c267205d8b9cf0033e79830d88e05d873",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1560203400.json",
+          "receiptSha256": "956cc67ee06c4907c93092aa85200a3d80bdc112c678229c2d8464b45ecaa1ea"
+        },
+        {
+          "id": "dish_1557862783",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1557862783.jpg",
+          "inputSha256": "bf99a8f9c0994d2d7368509a6e9427bfbbc1fdc78eac2b9fe95459740a6d77ba",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1557862783.json",
+          "receiptSha256": "fcd5136bdc63b07464670320d0beeb3f1b8b98e2b36eff4782eed2cc26027495"
+        },
+        {
+          "id": "dish_1568401261",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1568401261.jpg",
+          "inputSha256": "ab7372719e73fdee584ec725ca06298720ae1f51b8518cb895d00b3dd6679e18",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1568401261.json",
+          "receiptSha256": "90bf194c99df159c5bcb3697d95a4cdfb76a6440cad9546758a713cca103fc7b"
+        },
+        {
+          "id": "dish_1565810969",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1565810969.jpg",
+          "inputSha256": "c9c7824ffb405aa86781d4d6c89a3a0047187e1f7d13895d084bac955c26ded5",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1565810969.json",
+          "receiptSha256": "0b04b91d33382eac9dcf3a5432067577c5b6c3a316549353bc148713f2307b81"
+        },
+        {
+          "id": "dish_1564675411",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1564675411.jpg",
+          "inputSha256": "8340ebf93d47529ff7b54190c04c6e94e81276cac9c70c2c6c7ec4c0e21b7a27",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1564675411.json",
+          "receiptSha256": "f3f85e1983faac777d6174966935efad454607ee1c7f16d9290f29c982653702"
+        },
+        {
+          "id": "dish_1562009810",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1562009810.jpg",
+          "inputSha256": "0be63d4f01fc7ee7035865efbbca91fbf808c0318a2c40fe7b12149efd4521f4",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1562009810.json",
+          "receiptSha256": "29fb5051228217c18e4fc61e80c7dace6391598466eb085240d23ba5c263e446"
+        },
+        {
+          "id": "dish_1566920339",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1566920339.jpg",
+          "inputSha256": "2420ac2875fb53c7558aac6f3ab00d04529bb3807887a40a51419a750efa735a",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1566920339.json",
+          "receiptSha256": "dde252d658ccdcc2cc369a572a2d50b7a427247599ae65f90a68c8551803609a"
+        },
+        {
+          "id": "dish_1559157454",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1559157454.jpg",
+          "inputSha256": "28a5394d5e29b499388ba0926d573d9ad5096576e7572cd206dfdd8e5803e405",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1559157454.json",
+          "receiptSha256": "27663a50754c62cbc09332b5e9edb4a1a483711c606cf7f8d0a399f202bde6a7"
+        },
+        {
+          "id": "dish_1564160043",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1564160043.jpg",
+          "inputSha256": "f6790ca9acf26e19fd658a5863e8529f20ac3936ffb22df362ad948ca8cea6a5",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1564160043.json",
+          "receiptSha256": "33a5b4a3c0217b76629e5b2c9cb03eec077bceb096889347b9039bc64901786e"
+        },
+        {
+          "id": "dish_1562876494",
+          "inputPath": "calorix-tier1-public-20261108/prepared-v1/inputs/dish_1562876494.jpg",
+          "inputSha256": "3f1135ea6de056975804cba2b3ebc10329843c7e2b288c0e6a8604a18b22d81c",
+          "receiptPath": "calorix-tier1-public-20261108/run-v1/dish_1562876494.json",
+          "receiptSha256": "597b68e98f31cfdc278f129f9fb533d2802dd2dd5d61287798f9899592524c73"
+        }
+      ],
+      "manifestPath": "calorix-tier1-public-20261108/prepared-v1/manifest.json",
+      "manifestSha256": "bb18edfae2c9f58e42c7342f53d4dd7419ca7a27d4ccc4f1d083908d6608e481",
+      "name": "original20",
+      "runManifestPath": "calorix-tier1-public-20261108/run-v1/manifest.json",
+      "runManifestSha256": "e1db60fde1ec59f82b08a520caaabbebaa8d836da24cdec4a4ae5da1d3c7aee0",
+      "runPath": "calorix-tier1-public-20261108/run-v1/run.json",
+      "runSha256": "ebcdb264f9f81c3614b4c4b2e25382b34b09d741941b72da725b1a688f8e5425"
+    },
+    {
+      "cases": [
+        {
+          "id": "dish_1566590007",
+          "inputPath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1566590007.jpg",
+          "inputSha256": "9587868cba1515ceaf142652c5e9a885557e361550ddd205557eeee3dd986b38",
+          "receiptPath": "calorix-tier1-mealrange-20261108/run-v1/dish_1566590007.json",
+          "receiptSha256": "c9cfb59d945638142f496c0fded5da4ec36a523f70c83dfb66f7cbe23b2f7355"
+        },
+        {
+          "id": "dish_1566414412",
+          "inputPath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1566414412.jpg",
+          "inputSha256": "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+          "receiptPath": "calorix-tier1-mealrange-20261108/run-v1/dish_1566414412.json",
+          "receiptSha256": "0c86565d95012282188085d1d0654decf6001e8f7938a68baadd64068cd9aab8"
+        },
+        {
+          "id": "dish_1568305257",
+          "inputPath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1568305257.jpg",
+          "inputSha256": "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c",
+          "receiptPath": "calorix-tier1-mealrange-20261108/run-v1/dish_1568305257.json",
+          "receiptSha256": "2e4121333a3c65da00bf54de435c244ff07edcfc97036e6a0e2439c269f1d834"
+        },
+        {
+          "id": "dish_1558722247",
+          "inputPath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1558722247.jpg",
+          "inputSha256": "52d149ea4b05b7a3d92a848db0c607698d0f45549fa817250ed9dd850c0f8db2",
+          "receiptPath": "calorix-tier1-mealrange-20261108/run-v1/dish_1558722247.json",
+          "receiptSha256": "396c1ba4b62ef22b495028104e1fd465a3a3cfbbd0887b6cda1f4dd80715b289"
+        },
+        {
+          "id": "dish_1568401233",
+          "inputPath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1568401233.jpg",
+          "inputSha256": "75927711eec8957eb5010ce05154bf02541d64cefaa0fa691e7cef944556adc5",
+          "receiptPath": "calorix-tier1-mealrange-20261108/run-v1/dish_1568401233.json",
+          "receiptSha256": "16ba7138a8ce182acca07d1438828ca52a30a2543d1736e9bbbc533b65267b2f"
+        },
+        {
+          "id": "dish_1563389600",
+          "inputPath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1563389600.jpg",
+          "inputSha256": "5dd57e8063e5f941541faa009851cd0a47a80967942af81640ffe4e6afa6af01",
+          "receiptPath": "calorix-tier1-mealrange-20261108/run-v1/dish_1563389600.json",
+          "receiptSha256": "451b049827d57d1d73eda4bb8468c99aca5ac23fc78eba1213f94d5c2819e509"
+        },
+        {
+          "id": "dish_1566920365",
+          "inputPath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1566920365.jpg",
+          "inputSha256": "1de13ddeb3881509de837955cc605428ee354cc99de2e9c879aeaefbffb953cf",
+          "receiptPath": "calorix-tier1-mealrange-20261108/run-v1/dish_1566920365.json",
+          "receiptSha256": "ca16ee412f97eae28d329e04aa8254035b8c6241bd323b470adc13320b5119de"
+        },
+        {
+          "id": "dish_1564687046",
+          "inputPath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1564687046.jpg",
+          "inputSha256": "85aba7aa1a5eac2bfa82d07357e717681aa289aee720ade11ec13aef30651033",
+          "receiptPath": "calorix-tier1-mealrange-20261108/run-v1/dish_1564687046.json",
+          "receiptSha256": "82e640082cdcd8115328c0188024a18e7d59ab3436cf401b17d112c76c21204b"
+        },
+        {
+          "id": "dish_1558461792",
+          "inputPath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1558461792.jpg",
+          "inputSha256": "57d2955f7f2f35fabd6ecc80f99b5f437e86196906e9825ce58591e9a9bc3ffc",
+          "receiptPath": "calorix-tier1-mealrange-20261108/run-v1/dish_1558461792.json",
+          "receiptSha256": "252ba06932121a52a17fa73e4c4527530320658bcdcc2101e8854b49bd4f5553"
+        },
+        {
+          "id": "dish_1561739238",
+          "inputPath": "calorix-tier1-mealrange-20261108/prepared/inputs/dish_1561739238.jpg",
+          "inputSha256": "be322f0aa9da773937028ea67c110b631abe1a9151ca46fd49dadb6f3cb98a51",
+          "receiptPath": "calorix-tier1-mealrange-20261108/run-v1/dish_1561739238.json",
+          "receiptSha256": "a39c971a8e258bb53cee1ddb1c02b26cb5c946b8c9597074e6835314f313e97b"
+        }
+      ],
+      "manifestPath": "calorix-tier1-mealrange-20261108/prepared/manifest.json",
+      "manifestSha256": "9d7d8f2b3097d551df8ca93d35dcd800a594ce45fd97f3e7ac1d71c8653ff9e7",
+      "name": "mealrange10",
+      "runManifestPath": "calorix-tier1-mealrange-20261108/run-v1/manifest.json",
+      "runManifestSha256": "0fc317a7d0355c704ae7a5e89bd770b660620be798c92be2c38d5705e53e43b9",
+      "runPath": "calorix-tier1-mealrange-20261108/run-v1/run.json",
+      "runSha256": "40dec487b06cc233f7bbce98ff74db68f8db0defd5f72266e30586f14d87b47b"
+    },
+    {
+      "cases": [
+        {
+          "id": "dish_1565811139",
+          "inputPath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1565811139.jpg",
+          "inputSha256": "edc401391991065ac3bdec453cfb15181b77969447f9f3ee1c21194e074a268c",
+          "receiptPath": "calorix-tier1-portion-audit-20261109/experiment/original/dish_1565811139.json",
+          "receiptSha256": "dde5e0836a21b280d4e3dc5e13187936b93254c792c01c97d413a32f763a18c7"
+        },
+        {
+          "id": "dish_1558719994",
+          "inputPath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1558719994.jpg",
+          "inputSha256": "f4337f7b62f8ceed1eee3e8b01284ab134b96fc3341be0f2d3c665edbeba8533",
+          "receiptPath": "calorix-tier1-portion-audit-20261109/experiment/original/dish_1558719994.json",
+          "receiptSha256": "2861f3e75222f2166ef541cad403cc43dd889fab4290c2fbfd61d2fcbf9d1455"
+        },
+        {
+          "id": "dish_1566590056",
+          "inputPath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1566590056.jpg",
+          "inputSha256": "028da6a87bffeae4ab28dd596174ee287f312f028fa968958051e29b4038cc4d",
+          "receiptPath": "calorix-tier1-portion-audit-20261109/experiment/original/dish_1566590056.json",
+          "receiptSha256": "0eb47e2c50146324a3cb1842541b5e6538b98c26848452adbf97ee18510051e0"
+        },
+        {
+          "id": "dish_1562963325",
+          "inputPath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1562963325.jpg",
+          "inputSha256": "c026626d1576740fb89f224283b3c6b7b8bd4132f3cb8fc76f90a1d2aae5ee53",
+          "receiptPath": "calorix-tier1-portion-audit-20261109/experiment/original/dish_1562963325.json",
+          "receiptSha256": "2c34602e513396b579c0d8fcb508dc3866273819a43efc8c22c6aead5539ac3a"
+        },
+        {
+          "id": "dish_1558375833",
+          "inputPath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1558375833.jpg",
+          "inputSha256": "abcc5a5ca6b5dc2c278b797a2c181a17559816110db79c149def8cd0d80eac60",
+          "receiptPath": "calorix-tier1-portion-audit-20261109/experiment/original/dish_1558375833.json",
+          "receiptSha256": "2a55897d0034ecebd138dd21ea60b674bdc502abefb8dcb547e2c15385bcbc19"
+        },
+        {
+          "id": "dish_1561148021",
+          "inputPath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1561148021.jpg",
+          "inputSha256": "8bfd40bc9c05abfe557f029e611f6a06e1e19891d397fb52d7f33fac12d8a9ff",
+          "receiptPath": "calorix-tier1-portion-audit-20261109/experiment/original/dish_1561148021.json",
+          "receiptSha256": "463cfc6fa7366b7fe9d61c276e0e79c4e9cc51531e575a3b62ce376ee10a82d5"
+        },
+        {
+          "id": "dish_1563389626",
+          "inputPath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1563389626.jpg",
+          "inputSha256": "65db6574b92c782c499261ebee4b16d33fb6b38e79850b50e0afc61b5ddf5aba",
+          "receiptPath": "calorix-tier1-portion-audit-20261109/experiment/original/dish_1563389626.json",
+          "receiptSha256": "54fb0f647856cff849a8531c5deb1672c154942802daf3472bc61b2d0d0f79d4"
+        },
+        {
+          "id": "dish_1557937615",
+          "inputPath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1557937615.jpg",
+          "inputSha256": "ee2f810d616679f64206e442ef63206222bddfef41ed3e10805a18ebaf875d11",
+          "receiptPath": "calorix-tier1-portion-audit-20261109/experiment/original/dish_1557937615.json",
+          "receiptSha256": "fbc3ac6a9dcab602f39fff654ca1b5dc1609bd3cd2617523bbfa877dd006c454"
+        },
+        {
+          "id": "dish_1559157777",
+          "inputPath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1559157777.jpg",
+          "inputSha256": "61eb42417b2696555d0d4c0304ba55dc2afc69c71ecc44b79a171fe641431a8c",
+          "receiptPath": "calorix-tier1-portion-audit-20261109/experiment/original/dish_1559157777.json",
+          "receiptSha256": "aa346d8259ea299e0b979279457deb0a9d37b39a76dcd83bc6bd44ff4c4aff7a"
+        },
+        {
+          "id": "dish_1558461760",
+          "inputPath": "calorix-tier1-portion-audit-20261109/prepared/inputs/dish_1558461760.jpg",
+          "inputSha256": "bec9733dd686efa669a5156124ea2f6a94fcebceba538e06a19515efcd02875c",
+          "receiptPath": "calorix-tier1-portion-audit-20261109/experiment/original/dish_1558461760.json",
+          "receiptSha256": "7ee66ab90a7d932024f381a354b57697f3226b668c0f21ff85299f8c7bcd5488"
+        }
+      ],
+      "manifestPath": "calorix-tier1-portion-audit-20261109/prepared/manifest.json",
+      "manifestSha256": "d150ef3c0503487116a65337817f0eccff8a8ab48124d3ff47a4ca09cca88e63",
+      "name": "portion_audit10_original",
+      "runManifestPath": "calorix-tier1-portion-audit-20261109/experiment/original/manifest.json",
+      "runManifestSha256": "20b355974b86a4fba7acac695fe20356bce69c0da98e13dff0704c7c618970b3",
+      "runPath": "calorix-tier1-portion-audit-20261109/experiment/original/run.json",
+      "runSha256": "68e3fe3f7bcb725539f44272e49e07acac4f8ac3fb705d02c97a12748384f872"
+    }
+  ],
+  "schema_version": "public-weighed-inputs-1",
+  "scope": "frozen_existing_40_public_scans",
+  "selection": "All original20 + mealrange10 + portion-audit10 original arms; no replacements or new inference"
+}
