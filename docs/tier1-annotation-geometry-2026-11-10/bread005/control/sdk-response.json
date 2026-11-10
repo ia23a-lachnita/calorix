@@ -1,0 +1,32 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Slice of Yellow/Brioche Bread\",\n  \"components\": [\n    {\n      \"name\": \"Brioche / enriched sandwich bread slice\",\n      \"massG\": 38.0,\n      \"catalogId\": null,\n      \"preparation\": \"baked\",\n      \"assumptions\": [\n        \"Single slice of sandwich bread with a yellowish crumb indicative of brioche, pumpkin, corn, or egg bread\",\n        \"Estimated dimensions approximately 10 cm x 10 cm x 1.2 cm based on the 25 mm reference coin\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 310.0,\n        \"proteinG\": 8.5,\n        \"carbsG\": 48.0,\n        \"fatG\": 9.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Specific bread variety (e.g., standard enriched white bread with yellow tint, brioche, egg bread, or corn bread) cannot be definitively determined from visual inspection alone\"\n  ],\n  \"askAddedFat\": false\n}",
+  "promptText": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation.",
+  "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+  "inputSha256": "a3ae366bc3361d5442a77142702301872962ccb404d1ea875ce1d4f81b429662",
+  "usageMetadata": {
+    "promptTokenCount": 2069,
+    "candidatesTokenCount": 266,
+    "totalTokenCount": 2335,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1005
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 266
+      }
+    ]
+  },
+  "latencyMs": 12227,
+  "costUsd": null
+}

@@ -1,0 +1,8 @@
+{
+  "cases": 6,
+  "independentFractionSourceFieldChecks": 36,
+  "allPassed": true,
+  "rounding": "integer rational half-up six places",
+  "sdkCalls": 0,
+  "physicalDimensionsVerified": false
+}

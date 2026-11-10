@@ -1,0 +1,32 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Slice of Yellow/Brioche Bread\",\n  \"components\": [\n    {\n      \"name\": \"Yellow sliced bread\",\n      \"massG\": 40.0,\n      \"catalogId\": null,\n      \"preparation\": \"baked\",\n      \"assumptions\": [\n        \"Single slice of bread, approximately 11 cm x 12 cm across and standard 1.2-1.5 cm thickness\",\n        \"Yellow tint suggests brioche, cornmeal bread, or enriched egg/milk bread\",\n        \"Estimated density is typical for standard sliced sandwich bread (~0.25 g/cm³)\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 285.0,\n        \"proteinG\": 8.5,\n        \"carbsG\": 48.0,\n        \"fatG\": 6.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Exact recipe type (e.g., brioche vs. potato/corn/plain enriched white bread)\"\n  ],\n  \"askAddedFat\": false\n}",
+  "promptText": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation.\nSupplementary annotation-derived image geometry (oracle localization, not automatic detection). Corner spans are coordinate differences, not inclusive pixel counts or segmentation areas. The projected millimeter spans use the 25 mm coin and assume the food and coin share the same planar image scale. They are not measured physical dimensions, height, volume, mass or density, and do not correct perspective or camera pose. Use this spatial information to inform edible mass while inferring missing factors from the photograph and stating assumptions. GEOMETRY_JSON={\"schemaVersion\":1,\"imageSizePx\":[816,612],\"coinBoxCornersPx\":[397,486,463,551],\"coinBoxCornerSpansPx\":[66,65],\"coinMeanCornerSpanPx\":\"65.500000\",\"foodBoxCornersPx\":[316,106,609,418],\"foodBoxCornerSpansPx\":[293,312],\"projectedFoodBoxSpansMm\":[\"111.832061\",\"119.083969\"],\"coinDiameterMm\":25}",
+  "promptSha256": "be5653c2016f210251468970741811e25899761d08ca3fbd090bc475b36538c1",
+  "inputSha256": "a3ae366bc3361d5442a77142702301872962ccb404d1ea875ce1d4f81b429662",
+  "usageMetadata": {
+    "promptTokenCount": 2312,
+    "candidatesTokenCount": 266,
+    "totalTokenCount": 2578,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1248
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 266
+      }
+    ]
+  },
+  "latencyMs": 13136,
+  "costUsd": null
+}

@@ -1,0 +1,81 @@
+{
+  "sourceCommit": "0844caf63e9e9a2d2db237a40c788751c83359a8",
+  "engineCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "manifestSha256": "53b53169b606ff5c40dc9c3e575dd3651a3ecc340554b9455a9048bfc7bf7aca",
+  "protocolSha256": "97b0b9be69a008b0fcb33e69178637920c6b45f3fe75ebab8764fa6384af21cd",
+  "bundleSha256": "c15276ba8395dfcacefaeb583cebe9680942056233395b9f489a85fa36684db7",
+  "model": "gemini-3.8-flash",
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "geometryPreparationSha256": "5feeb03e82a3a2fc5ded019f0dfe843b31d9522cb48cb6583be269bbe5c94287",
+  "outputDir": "/home/agent-runner/.local/share/calorix-annotation-geometry-20261110/experiment",
+  "sourceRoot": "/home/agent-runner/.local/share/calorix-reference-scale-20261110",
+  "consentVersion": "tier1-v1",
+  "status": "halted",
+  "phase": "bun006/geometry",
+  "maxSdkEntries": 13,
+  "completedSdkEntries": 3,
+  "unknownInFlight": true,
+  "startedAt": "2026-11-10T19:19:45.601Z",
+  "order": [
+    {
+      "id": "bread005",
+      "arms": [
+        "control",
+        "geometry"
+      ]
+    },
+    {
+      "id": "bun006",
+      "arms": [
+        "geometry",
+        "control"
+      ]
+    },
+    {
+      "id": "doughnut006",
+      "arms": [
+        "control",
+        "geometry"
+      ]
+    },
+    {
+      "id": "fired_dough_twist006",
+      "arms": [
+        "geometry",
+        "control"
+      ]
+    },
+    {
+      "id": "mooncake004",
+      "arms": [
+        "control",
+        "geometry"
+      ]
+    },
+    {
+      "id": "sachima004",
+      "arms": [
+        "geometry",
+        "control"
+      ]
+    }
+  ],
+  "outcomes": [
+    {
+      "id": "bread005",
+      "arm": "control",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "bread005",
+      "arm": "geometry",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    }
+  ],
+  "failureCategory": "bun006/geometry_failure",
+  "failureHttpStatus": 504
+}

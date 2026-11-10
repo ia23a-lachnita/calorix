@@ -91,8 +91,8 @@ portion_audit_promotion: no automatic promotion
 portion_audit_executed_sdk_calls: 20
 portion_audit_valid_outputs: 20
 portion_audit_report: docs/tier1-portion-audit-2026-11-09/report.md
-public_evaluation_sdk_invocations: 184
-public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog plus20 portion-audit plus20 mealrange two-model plus30 scalar-calibration TRAIN20/TEST10 plus10 mass-power newTEST plus12 paired-view controlled predictions on6existingdevelopmentmeals; plus12 reference-scale cue mass-only predictions on6newECUSTportions; plus20 thinking-level LOW_HIGH predictions on10existingdevelopmentmeals; nonfood/text diagnostics excluded
+public_evaluation_sdk_invocations: 187
+public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog plus20 portion-audit plus20 mealrange two-model plus30 scalar-calibration TRAIN20/TEST10 plus10 mass-power newTEST plus12 paired-view controlled predictions on6existingdevelopmentmeals; plus12 reference-scale cue mass-only predictions on6newECUSTportions; plus20 thinking-level LOW_HIGH predictions on10existingdevelopmentmeals; plus3 annotation-geometry foodSDKentries(2acknowledged1HTTP504processingunknown); nonfood/text diagnostics excluded
 
 vlm_challenger_status: archived for failed P90 guard; not default or deployed
 vlm_challenger_model: gemini-4-argon
@@ -214,3 +214,15 @@ thinking_level_passes_all: false
 thinking_level_new_reference_meals: 0
 thinking_level_product_change: false
 next_portion_measurement_candidate: bounded_oracle_pixel_localization_and_known_scale_diagnostic; not_weight_input_or_validated_geometry
+
+annotation_geometry_original_status: halted_http504_incomplete_sealed
+annotation_geometry_original_report: docs/tier1-annotation-geometry-2026-11-10/report.md
+annotation_geometry_original_runner_commit: 0844caf63e9e9a2d2db237a40c788751c83359a8
+annotation_geometry_original_food_entries_entered: 3
+annotation_geometry_original_food_responses_acknowledged: 2
+annotation_geometry_original_probe_responses_acknowledged: 1
+annotation_geometry_original_unknown_processing_entries: 1
+annotation_geometry_original_food_slots_unattempted: 9
+annotation_geometry_original_cohort_metrics: null
+annotation_geometry_original_gate: not_evaluable_incomplete
+annotation_geometry_original_resume_allowed: false

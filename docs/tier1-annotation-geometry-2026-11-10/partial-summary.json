@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "annotation-geometry-partial-1",
+  "status": "halted_sealed_incomplete",
+  "sourceCommit": "0844caf63e9e9a2d2db237a40c788751c83359a8",
+  "sdkEntriesEnteredIncludingProbe": 4,
+  "acknowledgedSdkResponses": 3,
+  "unknownProcessingOrBillingFoodEntries": 1,
+  "foodSlotsExpected": 12,
+  "foodSlotsConfirmedValid": 2,
+  "foodSlotsHttp504NoModelResponse": 1,
+  "foodSlotsNotAttempted": 9,
+  "fullyObservedPairs": 1,
+  "fixedPairsExpected": 6,
+  "completeCohortMassMetrics": null,
+  "considerationGate": "not_evaluable_incomplete",
+  "observedPair": {
+    "id": "bread005",
+    "referenceMassG": 26.4,
+    "controlMassG": 38.0,
+    "geometryMassG": 40.0,
+    "deltaAbsoluteErrorG": 2
+  },
+  "httpStatus": 504,
+  "failedCallLatencyMs": null,
+  "rootCause": "HTTP504;30sSDKconfigalsoXServerTimeout30/approx32.74shosttimingconsistentwithdeadline, notproofexclusivecause",
+  "sdkCallsFromAnalysis": 0,
+  "calorieReference": null,
+  "volumeReferenceUsed": false,
+  "slots": [
+    {
+      "id": "bread005",
+      "arm": "control",
+      "status": "confirmed_ok",
+      "sdkEntryEntered": true
+    },
+    {
+      "id": "bread005",
+      "arm": "geometry",
+      "status": "confirmed_ok",
+      "sdkEntryEntered": true
+    },
+    {
+      "id": "bun006",
+      "arm": "geometry",
+      "status": "http_504_no_model_response",
+      "sdkEntryEntered": true
+    },
+    {
+      "id": "bun006",
+      "arm": "control",
+      "status": "not_attempted",
+      "sdkEntryEntered": false
+    },
+    {
+      "id": "doughnut006",
+      "arm": "control",
+      "status": "not_attempted",
+      "sdkEntryEntered": false
+    },
+    {
+      "id": "doughnut006",
+      "arm": "geometry",
+      "status": "not_attempted",
+      "sdkEntryEntered": false
+    },
+    {
+      "id": "fired_dough_twist006",
+      "arm": "geometry",
+      "status": "not_attempted",
+      "sdkEntryEntered": false
+    },
+    {
+      "id": "fired_dough_twist006",
+      "arm": "control",
+      "status": "not_attempted",
+      "sdkEntryEntered": false
+    },
+    {
+      "id": "mooncake004",
+      "arm": "control",
+      "status": "not_attempted",
+      "sdkEntryEntered": false
+    },
+    {
+      "id": "mooncake004",
+      "arm": "geometry",
+      "status": "not_attempted",
+      "sdkEntryEntered": false
+    },
+    {
+      "id": "sachima004",
+      "arm": "geometry",
+      "status": "not_attempted",
+      "sdkEntryEntered": false
+    },
+    {
+      "id": "sachima004",
+      "arm": "control",
+      "status": "not_attempted",
+      "sdkEntryEntered": false
+    }
+  ]
+}

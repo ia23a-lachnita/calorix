@@ -1,0 +1,8 @@
+{
+  "acknowledgedFoodResponsesReplayed": 2,
+  "componentsReplayed": 2,
+  "probeNoFoodVerified": true,
+  "failedFoodResponseAbsent": true,
+  "fullCohortScoreNotClaimed": true,
+  "sdkCalls": 0
+}

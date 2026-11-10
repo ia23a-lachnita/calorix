@@ -8,7 +8,9 @@ PinnedLOW3.8Flash/SDK2.19/f5decoder/schema4306/catalog6/defaultmedia/temp/8192/3
 
 ## Tasks
 - [x] 1. RED→GREEN parser/canonicalgeometry/payload/gate/single-use13 tests. Implementsmallresearchrunner/offlinereplay reusingoldgrammetrics/decodeMass/frozenbundle. ExpectedfullheadlessPASS andoriginal6source/reference/image/XMLgeometryreproductionPASS. GatefrozenbeforeSDK:6validbotharms+>=10%massMAEgain+median/P90notworse, passqualifiesfreshoraclevalidationONLY.
-- [ ] 2. Primarysource+fresh-contextwholefeatureexternalMCPreview(no nativechildsuccessclaim after recordedquota failure), allheadlesschecks/cleansourcecommitpush. Old5TSbytequalifiedCI42811800401only; no newapp/buildclaim. ExistingCItoolglobincludesnewNodesuite.
+- [x] 2. Primarysource+fresh-contextwholefeatureexternalMCPreview(no nativechildsuccessclaim after recordedquota failure), allheadlesschecks/cleansourcecommitpush. Old5TSbytequalifiedCI42811800401only; no newapp/buildclaim. ExistingCItoolglobincludesnewNodesuite.
 - [ ] 3. Sole13entryrun; independentlyredecodeallrawresponses/verifyactualpromptfacts/hash/no labels/Decimalmetrics. Publishallpairs/coverage/errors/latency/tokensknownness/costnull andMCPactualresultreview. Commitpush. Failedcandidatearchivedwithouttuning; passingcandidatefreezeandvalidateonfreshportions beforeautomaticlocalizationinvestment.
 
 Interfacesparser→whitelistedfacts→prompt builder→SDKraw/records→offline mass evaluator. Sourceweightsusedonlyscoring; projectedspansnotgold physicaldimensions. Validateblankseparately/missingboxesneveracceptedforfood. Reviewfocus forbiddenmetadata/sampling/annotationquality/geometryassumptions/percasepromptpins/canonicalbudget/retry/fixeddenominators/gateversusproductreadiness. No newmodeltraining/depth/mandatoryobject/secondcapture/clinicalinterval/newproductionarchitecture.
+
+Task3 execution haltedHTTP504 after4SDKentries(3ack,1unknown);9foodslotsunattempted. Partialrawreplay/scorerrefusal/report+MCPresultreview complete; no full-cohort result/gate. Registry sealed. Separate disjoint recovery pre-reviewed before source/calls; original task not labeled complete accuracy study.

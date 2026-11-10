@@ -1,0 +1,93 @@
+{
+  "id": "bread005",
+  "arm": "geometry",
+  "sdkInvocations": 1,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Slice of Yellow/Brioche Bread",
+    "components": [
+      {
+        "name": "Yellow sliced bread",
+        "massG": 40,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Single slice of bread, approximately 11 cm x 12 cm across and standard 1.2-1.5 cm thickness",
+          "Yellow tint suggests brioche, cornmeal bread, or enriched egg/milk bread",
+          "Estimated density is typical for standard sliced sandwich bread (~0.25 g/cm³)"
+        ],
+        "estimatedPer100": {
+          "kcal": 285,
+          "proteinG": 8.5,
+          "carbsG": 48,
+          "fatG": 6.5
+        },
+        "nutrients": {
+          "kcal": 114,
+          "proteinG": 3.4000000000000004,
+          "carbsG": 19.200000000000003,
+          "fatG": 2.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 114,
+      "proteinG": 3.4000000000000004,
+      "carbsG": 19.200000000000003,
+      "fatG": 2.6
+    },
+    "ambiguities": [
+      "Exact recipe type (e.g., brioche vs. potato/corn/plain enriched white bread)"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "be5653c2016f210251468970741811e25899761d08ca3fbd090bc475b36538c1",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 13136
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Slice of Yellow/Brioche Bread",
+      "components": [
+        {
+          "name": "Yellow sliced bread",
+          "massG": 40,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Single slice of bread, approximately 11 cm x 12 cm across and standard 1.2-1.5 cm thickness",
+            "Yellow tint suggests brioche, cornmeal bread, or enriched egg/milk bread",
+            "Estimated density is typical for standard sliced sandwich bread (~0.25 g/cm³)"
+          ],
+          "estimatedPer100": {
+            "kcal": 285,
+            "proteinG": 8.5,
+            "carbsG": 48,
+            "fatG": 6.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact recipe type (e.g., brioche vs. potato/corn/plain enriched white bread)"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "massG": 40,
+  "status": "ok",
+  "failure": null,
+  "referenceMassG": 26.4,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

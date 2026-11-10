@@ -1,0 +1,91 @@
+{
+  "id": "bread005",
+  "arm": "control",
+  "sdkInvocations": 1,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Slice of Yellow/Brioche Bread",
+    "components": [
+      {
+        "name": "Brioche / enriched sandwich bread slice",
+        "massG": 38,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Single slice of sandwich bread with a yellowish crumb indicative of brioche, pumpkin, corn, or egg bread",
+          "Estimated dimensions approximately 10 cm x 10 cm x 1.2 cm based on the 25 mm reference coin"
+        ],
+        "estimatedPer100": {
+          "kcal": 310,
+          "proteinG": 8.5,
+          "carbsG": 48,
+          "fatG": 9.5
+        },
+        "nutrients": {
+          "kcal": 117.8,
+          "proteinG": 3.23,
+          "carbsG": 18.240000000000002,
+          "fatG": 3.61
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 117.8,
+      "proteinG": 3.23,
+      "carbsG": 18.240000000000002,
+      "fatG": 3.61
+    },
+    "ambiguities": [
+      "Specific bread variety (e.g., standard enriched white bread with yellow tint, brioche, egg bread, or corn bread) cannot be definitively determined from visual inspection alone"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12227
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Slice of Yellow/Brioche Bread",
+      "components": [
+        {
+          "name": "Brioche / enriched sandwich bread slice",
+          "massG": 38,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Single slice of sandwich bread with a yellowish crumb indicative of brioche, pumpkin, corn, or egg bread",
+            "Estimated dimensions approximately 10 cm x 10 cm x 1.2 cm based on the 25 mm reference coin"
+          ],
+          "estimatedPer100": {
+            "kcal": 310,
+            "proteinG": 8.5,
+            "carbsG": 48,
+            "fatG": 9.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Specific bread variety (e.g., standard enriched white bread with yellow tint, brioche, egg bread, or corn bread) cannot be definitively determined from visual inspection alone"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "massG": 38,
+  "status": "ok",
+  "failure": null,
+  "referenceMassG": 26.4,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}
