@@ -65,6 +65,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   List<Tier1Meal> _meals=[];
   String? _error,_cameraWarning;
   bool _history=false,_busy=false;
+  int _lifecycleEpoch=0;
   @override
   void initState(){super.initState();WidgetsBinding.instance.addObserver(this);unawaited(_initialize());}
   Future<void> _initialize() async {
@@ -86,6 +87,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   }
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if(state!=AppLifecycleState.resumed)_lifecycleEpoch++;
     if(_camera is! CameraLifecycleService)return;
     final lifecycle=_camera as CameraLifecycleService;
     if(state==AppLifecycleState.resumed){unawaited(lifecycle.resume().then((_){if(mounted)setState(()=>_cameraWarning=null);}).catchError((_){if(mounted)setState(()=>_cameraWarning='Camera unavailable. Manual entry still works.');}));}
@@ -93,9 +95,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   }
   @override
   void dispose(){WidgetsBinding.instance.removeObserver(this);if(_camera is CameraLifecycleService)unawaited((_camera as CameraLifecycleService).dispose());super.dispose();}
-  Future<void> _open(Tier1Meal meal,{int? captureTick,bool startEstimate=false}) async {
+  Future<void> _open(Tier1Meal meal,{int? captureTick,bool startEstimate=false,bool Function()? allowInitialEstimate}) async {
     if(_store==null||_error!=null)return;
-    await Navigator.of(context).push(MaterialPageRoute<void>(builder:(_)=>_MealEditor(meal:meal,store:_store!,cloud:widget.cloud,clock:widget.clock,workflow:_workflow!,elapsedMilliseconds:_ticks,captureTick:captureTick,startEstimate:startEstimate)));
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder:(_)=>_MealEditor(meal:meal,store:_store!,cloud:widget.cloud,clock:widget.clock,workflow:_workflow!,elapsedMilliseconds:_ticks,captureTick:captureTick,startEstimate:startEstimate,allowInitialEstimate:allowInitialEstimate)));
     if(!mounted)return;
     try{
       await _refresh();
@@ -113,6 +115,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       }
       final shutter=widget.clock.now();
       final shutterTick=_ticks();
+      final offerEpoch=_lifecycleEpoch;
+      final state=WidgetsBinding.instance.lifecycleState;
+      final startedForeground=state==null||state==AppLifecycleState.resumed;
       final file=await _camera.captureStill();
       if(file==null)return;
       ownedCapture=file.path;
@@ -135,7 +140,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       });
       try {await _store!.save(meal);}catch(_){await File(path).delete();rethrow;}
       final saved=(await _store!.load()).firstWhere((m)=>m.id==id);
-      if(mounted)await _open(saved,captureTick:shutterTick,startEstimate:true);
+      if(mounted)await _open(saved,captureTick:shutterTick,startEstimate:true,
+        allowInitialEstimate:()=>mounted&&startedForeground&&_lifecycleEpoch==offerEpoch);
     } catch (_) {if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Photo could not be saved. Retake or use manual entry.')));}
     finally {
       if(ownedCapture!=null){try{final temporary=File(ownedCapture);if(await temporary.exists())await temporary.delete();}catch(_){/* No unrelated cache cleanup. */}}
@@ -176,7 +182,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
 }
 
 class _MealEditor extends StatefulWidget {
-  const _MealEditor({required this.meal,required this.store,this.cloud,required this.clock,required this.workflow,required this.elapsedMilliseconds,this.captureTick,this.startEstimate=false});
+  const _MealEditor({required this.meal,required this.store,this.cloud,required this.clock,required this.workflow,required this.elapsedMilliseconds,this.captureTick,this.startEstimate=false,this.allowInitialEstimate});
   final Tier1Meal meal;
   final Clock clock;
   final Tier1MealStore store;
@@ -185,6 +191,7 @@ class _MealEditor extends StatefulWidget {
   final int Function() elapsedMilliseconds;
   final int? captureTick;
   final bool startEstimate;
+  final bool Function()? allowInitialEstimate;
   @override
   State<_MealEditor> createState()=>_MealEditorState();
 }
@@ -215,7 +222,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
         _initialOfferConsumed=true;
         final state=WidgetsBinding.instance.lifecycleState;
         if(!mounted||!_foreground||(state!=null&&state!=AppLifecycleState.resumed)||
-            ModalRoute.of(context)?.isCurrent!=true||_busy||_dirty)return;
+            ModalRoute.of(context)?.isCurrent!=true||_busy||_dirty||widget.allowInitialEstimate?.call()!=true)return;
         unawaited(_estimate());
       });
     }

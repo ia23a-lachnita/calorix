@@ -9,8 +9,9 @@
 
 ## Fixed contracts and review focus
 
-- `_open(Tier1Meal,{int? captureTick,bool startEstimate=false})`; only successful `_capture` passestrue, after JPEG retention and parent save. `_MealEditor.startEstimate` defaultsfalse.
+- `_open(Tier1Meal,{int? captureTick,bool startEstimate=false,bool Function()? allowInitialEstimate})`; only successful `_capture` passestrue, after JPEG retention and parent save. `_MealEditor.startEstimate` defaultsfalse.
 - `initState` registers at most one post-frame callback whenstartEstimate. A consumed one-shot flag is set before any async operation. Requiremounted, foreground/resumed lifecycle (null allowed by existing test convention), current route, notbusy/notdirty. Otherwise skip permanently; manual Estimate photo stays available. No resume/background retry queue.
+- Home observes all lifecycle events before camera-type early returns. Snapshot a lifecycle epoch and foreground eligibility after permission/before capture; pass a private revocable guard to the editor. Any non-resumed transition cancels this capture’s offer permanently, even when the editor first builds after resume. Existing per-frame foreground checks remain.
 - `_estimate()` mirrors the existing button's dirty/busy guard and requiresmounted/photo before opening the existing consent dialog. Reuse consent text and all storage/provenance/CAS/failure handling. Decline/barrier/back leaves the retained local photo and manual entry; no cloud consent write, initialization, analysis or automatic retry.
 - Success remains approximate served calories, editable and saved; consumption unknown. Two actions on the permission-granted fresh capture path: Take photo and Send photo, not silent one-tap upload or measured latency performance.
 - Provider/model/prompt/schema/catalog/backend/permissions/privacy settings and frozen experiments unchanged. No real model calls for implementation verification. Same-Tier1 native-edit exception continues from exact recorded November7 route failures; this is not a permanent worker/account-exhaustion claim.
@@ -35,3 +36,5 @@ Pre-review: Antigravitygemini-3.8-flash/yolo conversationcalorix-tier1-fast-capt
 Native grounding before test authoring: exactinstalledb089/d911 source capture/consent/Keep local/manual/edit/history/clipboard/deletion observed with ARTEMIS and pinned groundedADB, reportdocs/tier1-native-workflow-verification-2026-11-10.md. Only the new offer timing is unimplemented; existing dialog/actions are verified.
 
 ActualcleanRED42785708933/Flutter129726261755 at1eefdb7:1021PASS1skip4missingofferFAIL, no timeouts;9newtests include5controls. MinimalappchangeafterRED; GREENpending. Earlier42784392573harnesstimeoutsnotbehavioralRED.
+
+Freshindependentreview385dc28:1Importantbackgroundeventlostbeforeframe,1optionalMinorstrongerexactpayloadassertions(deferred). Source385actual1024PASS1skip1backgroundFAIL;10thtestaddedbeforefixandactual42788267931RED1024PASS1skip2backgroundFAIL. Combinedfixepoch+privateclosureafterRED, no change to consent or analysis/persistence path. Existingbackgroundtestalreadycaughtdefect; reviewclaimitnecessarilymaskedpausedframesnotadopted. FullGREENpending.
