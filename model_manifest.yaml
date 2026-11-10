@@ -1,4 +1,4 @@
-manifest_version: 4
+manifest_version: 5
 baseline: A1
 requested_model: gemini-3.8-flash
 returned_model_policy: exact equality or explicit failure
@@ -104,3 +104,19 @@ vlm_challenger_probe_sdk_calls: 1
 vlm_challenger_food_sdk_calls: 20
 vlm_challenger_promotion: no automatic promotion
 vlm_challenger_report: docs/tier1-vlm-challenger-2026-11-09/report.md
+
+manual_food_selection:
+  policy: explicit optional local user selection only; does not change automatic A1 matching
+  source: functions/eval/tier1-public/catalog-v2.json
+  raw_json_sha256: bad3d924253513d093728351436cdcc6e099caba25eead2cae24778ea35ff178
+  catalog_version: usda-sr-2018-tier1-20261108-v2
+  records: 73
+  generator: tool/generate_manual_food_catalog.py
+  record_provenance: USDA SR Legacy source URL and archive/row hashes retained
+  portion_policy: retain current estimated grams; selected per100 nutrients times grams divided by100
+  match_status: user-selected record; food match and portion remain approximate
+  original_analysis: retained; predicted-food restoration supported
+  extra_oil: separate answered preparation component retained and explicitly editable
+  local_meal_version: 2 only with active food overrides; legacy1 otherwise
+  workflow_export_version: 2; strict readers also accept legacy1
+  accuracy_evidence: no measured correction benefit or active user time yet

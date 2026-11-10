@@ -49,7 +49,7 @@ def event_valid(event,version=2):
             integer(event[key],key)
     for key in NUMBERS&event.keys():
         if event[key] is not None:number(event[key],key,maximum=100000 if key in {'fromG','toG'} else 1000000)
-    for key in COUNTS&event.keys():integer(event[key],key,19 if key=='portionIndex' else 2**53-1)
+    for key in COUNTS&event.keys():integer(event[key],key,(20 if version==2 else 19) if key=='portionIndex' else 2**53-1)
     for key in BOOLS&event.keys():
         if type(event[key]) is not bool:raise ValueError('Boolean event field required')
     if 'model' in event and (not isinstance(event['model'],str) or not re.fullmatch(r'gemini-[a-z0-9][a-z0-9.-]{0,79}',event['model'])):raise ValueError('Invalid model ID')

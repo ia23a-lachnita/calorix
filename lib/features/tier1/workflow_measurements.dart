@@ -41,7 +41,7 @@ Map<String,dynamic> validateWorkflowEvent(Map<String,dynamic> value,{int version
     final n=value[key],limit=key=='fromG'||key=='toG'?100000:1000000;
     if(n!=null&&(n is! num||!n.isFinite||n<0||n>limit))throw const FormatException('Invalid workflow measurement');
   }
-  for(final key in _counts.where(value.containsKey)){_integer(value[key],maximum:key=='portionIndex'?19:9007199254740991);}
+  for(final key in _counts.where(value.containsKey)){_integer(value[key],maximum:key=='portionIndex'?(version==2?20:19):9007199254740991);}
   for(final key in _booleans.where(value.containsKey)){if(value[key] is! bool)throw const FormatException('Invalid workflow flag');}
   if(value.containsKey('model')&&(value['model'] is! String||!RegExp(r'^gemini-[a-z0-9][a-z0-9.-]{0,79}$').hasMatch(value['model'] as String)))throw const FormatException('Invalid workflow model ID');
   if(value.containsKey('promptSha256')&&(value['promptSha256'] is! String||!RegExp(r'^[0-9a-f]{64}$').hasMatch(value['promptSha256'] as String)))throw const FormatException('Invalid workflow prompt hash');

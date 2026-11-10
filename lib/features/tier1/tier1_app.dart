@@ -349,9 +349,10 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     setState(()=>_busy=true);
     try {
       final route=DialogRoute<double>(context:context,builder:(dialogContext)=>AlertDialog(
-        scrollable:true,title:Text('Portion: ${component['name']}'),
+        scrollable:true,title:Text('Portion: ${opening.componentName(index)}'),
         content:Form(key:form,child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[
-          Text('Original estimate: ${_displayNutrient(original)} g. Calories remain approximate and use the existing nutrient estimate. Enter 0 to exclude this food; its original estimate is retained.'),
+          Text('Original portion estimate: ${_displayNutrient(original)} g. Calories remain approximate and use the current food nutrient estimate. Enter 0 to exclude this food; its original estimate is retained.'),
+          if(opening.foodOverrides.containsKey(index))Text('Original prediction: ${component['name']}. Current food uses your selected nutrient record.'),
           if(opening.hasManualNutritionOverride)const Padding(padding:EdgeInsets.symmetric(vertical:8),
             child:Text('Changing this portion replaces manual totals with a calculation from the listed foods.')),
           TextFormField(initialValue:gramsText,onChanged:(text)=>gramsText=text,
@@ -451,7 +452,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       if(committed){
         final messenger=ScaffoldMessenger.of(context);Navigator.pop(context);
         messenger.showSnackBar(const SnackBar(content:Text('Food saved, but could not refresh. Reopen the meal to check saved values.')));
-      }else{setState(()=>_message='Could not save this food. Reopen the meal to check saved values.');}
+      }else{
+        const message='Could not save this food. Reopen the meal to check saved values.';
+        setState(()=>_message=message);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text(message)));
+      }
     }finally{if(mounted)setState(()=>_busy=false);}
   }
   Future<void> _repeat() async {
