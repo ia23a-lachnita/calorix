@@ -14,3 +14,4 @@ test('decoder invalid JSON/schema/no-food become fixed failures, unknown errors 
  assert.equal(decodeMass(engine,z,JSON.stringify({components:[]})).failure,'no_food');
  assert.throws(()=>decodeMass({decodeTier1Output:()=>{throw Error('unexpected-code-failure');},Tier1InferenceFailure:engine.Tier1InferenceFailure},z,'{}'),/unexpected/);
 });
+test('Python entry preserves virtual-environment symlink instead of bypassing it',()=>{const {pythonEntry}=require('./run_reference_scale.cjs');const root=fs.mkdtempSync(path.join(process.env.TMPDIR||os.tmpdir(),'scale-python-'));try{const link=path.join(root,'python');fs.symlinkSync(process.execPath,link);assert.equal(pythonEntry(link),link);assert.notEqual(pythonEntry(link),fs.realpathSync(link));assert.throws(()=>pythonEntry(path.join(root,'missing')));}finally{fs.rmSync(root,{recursive:true,force:true});}});

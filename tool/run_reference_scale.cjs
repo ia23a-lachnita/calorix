@@ -39,10 +39,11 @@ function decodeMass(engine,z,text){
   throw e;
  }
 }
+function pythonEntry(file){const entry=path.resolve(file);fs.accessSync(entry,fs.constants.X_OK);return entry;}
 async function main(args){
  const value=k=>{const i=args.flatMap((v,n)=>v===k?[n]:[]);if(i.length!==1||!args[i[0]+1]||args[i[0]+1].startsWith('--'))throw Error('Missing/duplicate '+k);return args[i[0]+1];};
  if(value('--cloud-consent')!=='tier1-v1')throw Error('Consent required');
- const repo=fs.realpathSync(value('--repo')),bundleDir=fs.realpathSync(value('--bundle')),sourceRoot=fs.realpathSync(value('--source-root')),python=fs.realpathSync(value('--python'));
+ const repo=fs.realpathSync(value('--repo')),bundleDir=fs.realpathSync(value('--bundle')),sourceRoot=fs.realpathSync(value('--source-root')),python=pythonEntry(value('--python'));
  const out=path.resolve(value('--output')),outputDir=path.join(fs.realpathSync(path.dirname(out)),path.basename(out));
  if(outputDir===repo||outputDir.startsWith(repo+path.sep))throw Error('Output must be outside repository');
  const base=path.join(repo,'functions/eval/tier1-public'),manifestPath=path.join(base,'manifest-reference-scale-v1.json'),protocolPath=path.join(base,'reference-scale-protocol-v1.json');
@@ -81,5 +82,5 @@ async function main(args){
   }});
  console.log(JSON.stringify({status:result.status,completedSdkEntries:result.completedSdkEntries,unknownInFlight:result.unknownInFlight}));if(result.status!=='completed')process.exitCode=1;
 }
-module.exports={executeScale,makePrompts,decodeMass};
+module.exports={executeScale,makePrompts,decodeMass,pythonEntry};
 if(require.main===module)void main(process.argv.slice(2)).catch(()=>{console.error('Reference-scale study refused. Inspect retained receipts; no retry/resume.');process.exitCode=1;});
