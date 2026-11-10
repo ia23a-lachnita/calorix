@@ -6,6 +6,8 @@ Branch: feat/tier1-photo-pilot
 
 ## Fresh Session Handoff (Authoritative)
 
+PublicweighedTDD actual13methods/22expectedNotImplementederrors→13GREEN, includingpositivepinnedbuildercontrol beforehashdriftnegative. All74PythonPASS, generatorcheck0. Pureofflinebuilder/scorer/explicitattestedcorrectionbridge implemented; no Android/backend/dependency changes or SDKcalls. Intended nextsource/independentreview/actual40bundle+baseline+diagnosticexclusion/Decimalreproduction. Input-index fixed2a18ef... oldsourcefilesuntouched.
+
 Publicweighed actualfocusedRED12methods/21expectedNotImplementederrors(includingsubtests), no import/harnessfailure; addingpositive pinnedbuilderfixture beforealgorithm. FixedindexrawSHA2a18ef5677cf5a128f0034c3003c1dc9d56727792f4966c5988d6cd50b84dfe3 commitsall40inputpins; no oldreceiptsmodified/newSDK. Minimalofflineimplementation next.
 
 Current Task: PUBLIC WEIGHED BENCHMARK/WORKFLOW BRIDGE tests-first, base58c2ebf/cleanisolatedbranch. Userconfirmedpublicweigheddataavailable; officialNutrition5kprimarysourceschecked. Reuseall40existingreferencedscans/originalarms, freezeindexbeforealgorithms; no newSDK/data download/Androidchanges. Plan docs/superpowers/plans/2026-11-10-public-weighed-benchmark.md. CorrectedMCPpre3.8/yolo agreeMUSTnone. Separatepublicformat/publicscanunit, publishedaggregatesunchanged, nophysical/Android/gradeinventing. Explicitoperator-attestedlinkmap, diagnostics/oraclesexcluded; actualhumanpairsremain0untilrealdata. IntendedPythonRED→GREEN/fulltests/actual40baseline+realdiagnosticexport/Decimalaudit/source-resultreview/commitpush.
