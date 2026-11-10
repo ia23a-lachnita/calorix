@@ -1,0 +1,31 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Chinese Fried Dough Twist (Mahua)\",\n  \"components\": [\n    {\n      \"name\": \"Chinese fried dough twist (Mahua)\",\n      \"massG\": 55,\n      \"catalogId\": null,\n      \"preparation\": \"deep-fried pastry\",\n      \"assumptions\": [\n        \"Twisted fried dough snack / pastry, brown/whole-wheat or standard fried mahua\",\n        \"Length approx. 8-9 cm, width 2.5-3 cm based on reference coin (25 mm) and ruler\",\n        \"Typical dense fried flour and sugar composition\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 490,\n        \"proteinG\": 7.5,\n        \"carbsG\": 60.0,\n        \"fatG\": 24.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Specific flavor or sweetening (honey, sugar, savory, or whole grain) is uncertain\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2069,
+    "candidatesTokenCount": 259,
+    "totalTokenCount": 2328,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1005
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 259
+      }
+    ]
+  },
+  "latencyMs": 13431,
+  "inputSha256": "be4a14bff2908385f834770e29356ad559ca3c2c286b48859d30c8aaa82793da",
+  "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+  "costUsd": null
+}

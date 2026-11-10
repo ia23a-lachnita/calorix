@@ -1,0 +1,7 @@
+{
+  "independentDecimalChecks": 34,
+  "tolerance": "1e-9",
+  "allPassed": true,
+  "input": "published raw component masses, original reference grams and paired result",
+  "generateContentCalls": 0
+}

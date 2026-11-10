@@ -1,0 +1,31 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Chinese Fried Dough Twist (Mahua)\",\n  \"components\": [\n    {\n      \"name\": \"Chinese fried dough twist (Mahua)\",\n      \"massG\": 55.0,\n      \"catalogId\": null,\n      \"preparation\": \"deep-fried\",\n      \"assumptions\": [\"A single piece of traditional twisted fried pastry (mahua)\", \"Dense, fried flour dough with sugar\"],\n      \"estimatedPer100\": {\n        \"kcal\": 490.0,\n        \"proteinG\": 7.5,\n        \"carbsG\": 62.0,\n        \"fatG\": 24.0\n      }\n    }\n  ],\n  \"ambiguities\": [\"Exact recipe and whether it contains sweet filling or sesame seeds inside\"],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2038,
+    "candidatesTokenCount": 203,
+    "totalTokenCount": 2241,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 974
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 203
+      }
+    ]
+  },
+  "latencyMs": 8706,
+  "inputSha256": "be4a14bff2908385f834770e29356ad559ca3c2c286b48859d30c8aaa82793da",
+  "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+  "costUsd": null
+}

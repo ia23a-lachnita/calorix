@@ -1,0 +1,91 @@
+{
+  "id": "doughnut006",
+  "arm": "neutral",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 55,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Plain Ring Donut",
+    "components": [
+      {
+        "name": "Plain ring donut",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "fried yeast or cake donut",
+        "assumptions": [
+          "Standard single plain/lightly glazed ring donut",
+          "Estimated diameter approx 8-9 cm based on reference coin"
+        ],
+        "estimatedPer100": {
+          "kcal": 421,
+          "proteinG": 6.2,
+          "carbsG": 49,
+          "fatG": 22.5
+        },
+        "nutrients": {
+          "kcal": 231.55,
+          "proteinG": 3.4100000000000006,
+          "carbsG": 26.950000000000003,
+          "fatG": 12.375000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 231.55,
+      "proteinG": 3.4100000000000006,
+      "carbsG": 26.950000000000003,
+      "fatG": 12.375000000000002
+    },
+    "ambiguities": [
+      "Exact dough type (yeast-raised vs cake) and sugar glaze content cannot be fully determined from the photo"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9366
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Plain Ring Donut",
+      "components": [
+        {
+          "name": "Plain ring donut",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "fried yeast or cake donut",
+          "assumptions": [
+            "Standard single plain/lightly glazed ring donut",
+            "Estimated diameter approx 8-9 cm based on reference coin"
+          ],
+          "estimatedPer100": {
+            "kcal": 421,
+            "proteinG": 6.2,
+            "carbsG": 49,
+            "fatG": 22.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact dough type (yeast-raised vs cake) and sugar glaze content cannot be fully determined from the photo"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 66.2,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

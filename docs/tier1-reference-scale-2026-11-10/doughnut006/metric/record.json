@@ -1,0 +1,91 @@
+{
+  "id": "doughnut006",
+  "arm": "metric",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 55,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Plain Donut",
+    "components": [
+      {
+        "name": "Plain ring donut",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "deep-fried",
+        "assumptions": [
+          "Unfrosted yeast or cake ring donut",
+          "Estimated diameter approximately 9 cm based on the 25 mm coin reference"
+        ],
+        "estimatedPer100": {
+          "kcal": 426,
+          "proteinG": 6.2,
+          "carbsG": 51,
+          "fatG": 22
+        },
+        "nutrients": {
+          "kcal": 234.3,
+          "proteinG": 3.4100000000000006,
+          "carbsG": 28.05,
+          "fatG": 12.100000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 234.3,
+      "proteinG": 3.4100000000000006,
+      "carbsG": 28.05,
+      "fatG": 12.100000000000001
+    },
+    "ambiguities": [
+      "Exact recipe type (yeast-raised vs. cake donut) cannot be determined definitively from visual inspection alone"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10803
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Plain Donut",
+      "components": [
+        {
+          "name": "Plain ring donut",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "deep-fried",
+          "assumptions": [
+            "Unfrosted yeast or cake ring donut",
+            "Estimated diameter approximately 9 cm based on the 25 mm coin reference"
+          ],
+          "estimatedPer100": {
+            "kcal": 426,
+            "proteinG": 6.2,
+            "carbsG": 51,
+            "fatG": 22
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact recipe type (yeast-raised vs. cake donut) cannot be determined definitively from visual inspection alone"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 66.2,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

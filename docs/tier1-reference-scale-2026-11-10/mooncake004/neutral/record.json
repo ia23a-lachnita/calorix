@@ -1,0 +1,91 @@
+{
+  "id": "mooncake004",
+  "arm": "neutral",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 60,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Mini Mooncake",
+    "components": [
+      {
+        "name": "Mooncake",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Small mini mooncake",
+          "Assumed traditional sweet paste filling such as lotus seed or red bean paste"
+        ],
+        "estimatedPer100": {
+          "kcal": 410,
+          "proteinG": 6,
+          "carbsG": 62,
+          "fatG": 16
+        },
+        "nutrients": {
+          "kcal": 246,
+          "proteinG": 3.5999999999999996,
+          "carbsG": 37.199999999999996,
+          "fatG": 9.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 246,
+      "proteinG": 3.5999999999999996,
+      "carbsG": 37.199999999999996,
+      "fatG": 9.6
+    },
+    "ambiguities": [
+      "Specific filling is not visible (e.g., lotus seed paste, red bean, or containing egg yolk/nuts)"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9513
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Mini Mooncake",
+      "components": [
+        {
+          "name": "Mooncake",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Small mini mooncake",
+            "Assumed traditional sweet paste filling such as lotus seed or red bean paste"
+          ],
+          "estimatedPer100": {
+            "kcal": 410,
+            "proteinG": 6,
+            "carbsG": 62,
+            "fatG": 16
+          }
+        }
+      ],
+      "ambiguities": [
+        "Specific filling is not visible (e.g., lotus seed paste, red bean, or containing egg yolk/nuts)"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 41.8,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

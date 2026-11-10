@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-11-10T18:14:45.150939+00:00",
+  "modelMetadataHttpStatus": 200,
+  "modelName": "publishers/google/models/gemini-3.8-flash",
+  "url": "https://aiplatform.us.rep.googleapis.com/v1/publishers/google/models/gemini-3.8-flash",
+  "project": "calorix-xurschnell",
+  "generateContentInvocations": 0
+}

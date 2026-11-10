@@ -1,0 +1,93 @@
+{
+  "id": "bun006",
+  "arm": "neutral",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 110,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chinese Steamed Bun (Mantou)",
+    "components": [
+      {
+        "name": "Chinese steamed bun (mantou)",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "steamed",
+        "assumptions": [
+          "Plain wheat flour steamed bun",
+          "No filling (mantou)",
+          "Standard commercial or homemade density"
+        ],
+        "estimatedPer100": {
+          "kcal": 223,
+          "proteinG": 7,
+          "carbsG": 46,
+          "fatG": 1.1
+        },
+        "nutrients": {
+          "kcal": 245.3,
+          "proteinG": 7.700000000000001,
+          "carbsG": 50.6,
+          "fatG": 1.2100000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 245.3,
+      "proteinG": 7.700000000000001,
+      "carbsG": 50.6,
+      "fatG": 1.2100000000000002
+    },
+    "ambiguities": [
+      "Could potentially contain a filling (baozi), but visually appears to be a plain mantou."
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 8480
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chinese Steamed Bun (Mantou)",
+      "components": [
+        {
+          "name": "Chinese steamed bun (mantou)",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "steamed",
+          "assumptions": [
+            "Plain wheat flour steamed bun",
+            "No filling (mantou)",
+            "Standard commercial or homemade density"
+          ],
+          "estimatedPer100": {
+            "kcal": 223,
+            "proteinG": 7,
+            "carbsG": 46,
+            "fatG": 1.1
+          }
+        }
+      ],
+      "ambiguities": [
+        "Could potentially contain a filling (baozi), but visually appears to be a plain mantou."
+      ],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 78.3,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

@@ -1,0 +1,7 @@
+id,referenceMassG,neutralMassG,metricMassG,deltaAbsoluteErrorG
+bread005,26.4,35,35,0.0
+bun006,78.3,110,110,0.0
+doughnut006,66.2,55,55,0.0
+fired_dough_twist006,40.2,55,55,0.0
+mooncake004,41.8,60,55,-5.0
+sachima004,33.4,40,45,5.0

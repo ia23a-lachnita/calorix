@@ -1,0 +1,91 @@
+{
+  "id": "bun006",
+  "arm": "metric",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 110,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chinese Steamed Bun (Mantou)",
+    "components": [
+      {
+        "name": "Steamed mantou bun",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "steamed",
+        "assumptions": [
+          "Plain wheat flour steamed bun",
+          "No filling observed"
+        ],
+        "estimatedPer100": {
+          "kcal": 220,
+          "proteinG": 7,
+          "carbsG": 45,
+          "fatG": 1
+        },
+        "nutrients": {
+          "kcal": 242.00000000000003,
+          "proteinG": 7.700000000000001,
+          "carbsG": 49.50000000000001,
+          "fatG": 1.1
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 242.00000000000003,
+      "proteinG": 7.700000000000001,
+      "carbsG": 49.50000000000001,
+      "fatG": 1.1
+    },
+    "ambiguities": [
+      "Cannot verify if there is an interior filling (such as red bean or meat) or if it is completely plain"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 8977
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chinese Steamed Bun (Mantou)",
+      "components": [
+        {
+          "name": "Steamed mantou bun",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "steamed",
+          "assumptions": [
+            "Plain wheat flour steamed bun",
+            "No filling observed"
+          ],
+          "estimatedPer100": {
+            "kcal": 220,
+            "proteinG": 7,
+            "carbsG": 45,
+            "fatG": 1
+          }
+        }
+      ],
+      "ambiguities": [
+        "Cannot verify if there is an interior filling (such as red bean or meat) or if it is completely plain"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 78.3,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

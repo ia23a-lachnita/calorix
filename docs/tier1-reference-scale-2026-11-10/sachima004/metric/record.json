@@ -1,0 +1,87 @@
+{
+  "id": "sachima004",
+  "arm": "metric",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 45,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Sachima (Soft Flour Cake)",
+    "components": [
+      {
+        "name": "Sachima",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "deep-fried and syrup-bound",
+        "assumptions": [
+          "Traditional Chinese pastry made from deep-fried dough strands bound together with sugar syrup",
+          "Single square portion measuring approximately 5.5 cm by 5.5 cm by 2.5 cm"
+        ],
+        "estimatedPer100": {
+          "kcal": 470,
+          "proteinG": 6.5,
+          "carbsG": 62,
+          "fatG": 22
+        },
+        "nutrients": {
+          "kcal": 211.5,
+          "proteinG": 2.9250000000000003,
+          "carbsG": 27.900000000000002,
+          "fatG": 9.9
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 211.5,
+      "proteinG": 2.9250000000000003,
+      "carbsG": 27.900000000000002,
+      "fatG": 9.9
+    },
+    "ambiguities": [],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9146
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Sachima (Soft Flour Cake)",
+      "components": [
+        {
+          "name": "Sachima",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "deep-fried and syrup-bound",
+          "assumptions": [
+            "Traditional Chinese pastry made from deep-fried dough strands bound together with sugar syrup",
+            "Single square portion measuring approximately 5.5 cm by 5.5 cm by 2.5 cm"
+          ],
+          "estimatedPer100": {
+            "kcal": 470,
+            "proteinG": 6.5,
+            "carbsG": 62,
+            "fatG": 22
+          }
+        }
+      ],
+      "ambiguities": [],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 33.4,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

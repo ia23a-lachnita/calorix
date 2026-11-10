@@ -1,0 +1,31 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Chinese Steamed Bun (Mantou)\",\n  \"components\": [\n    {\n      \"name\": \"Chinese steamed bun (mantou)\",\n      \"massG\": 110,\n      \"catalogId\": null,\n      \"preparation\": \"steamed\",\n      \"assumptions\": [\n        \"Plain wheat flour steamed bun\",\n        \"No filling (mantou)\",\n        \"Standard commercial or homemade density\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 223,\n        \"proteinG\": 7.0,\n        \"carbsG\": 46.0,\n        \"fatG\": 1.1\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Could potentially contain a filling (baozi), but visually appears to be a plain mantou.\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2038,
+    "candidatesTokenCount": 218,
+    "totalTokenCount": 2256,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 974
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 218
+      }
+    ]
+  },
+  "latencyMs": 8480,
+  "inputSha256": "627768eb7ad1474fe489bd8ec4d4849e8c7dbb9a427fd8f1cee99b94bd124e2d",
+  "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+  "costUsd": null
+}

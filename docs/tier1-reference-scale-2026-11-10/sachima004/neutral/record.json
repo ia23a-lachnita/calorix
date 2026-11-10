@@ -1,0 +1,87 @@
+{
+  "id": "sachima004",
+  "arm": "neutral",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 40,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Sachima (Chinese Sweet Pastry)",
+    "components": [
+      {
+        "name": "sachima",
+        "massG": 40,
+        "catalogId": null,
+        "preparation": "fried pastry bound with syrup",
+        "assumptions": [
+          "Traditional Chinese egg pastry bound with sugar syrup",
+          "Single commercial standard-sized square bar"
+        ],
+        "estimatedPer100": {
+          "kcal": 485,
+          "proteinG": 6.5,
+          "carbsG": 63.5,
+          "fatG": 23
+        },
+        "nutrients": {
+          "kcal": 194,
+          "proteinG": 2.6,
+          "carbsG": 25.400000000000002,
+          "fatG": 9.200000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 194,
+      "proteinG": 2.6,
+      "carbsG": 25.400000000000002,
+      "fatG": 9.200000000000001
+    },
+    "ambiguities": [],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10516
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Sachima (Chinese Sweet Pastry)",
+      "components": [
+        {
+          "name": "sachima",
+          "massG": 40,
+          "catalogId": null,
+          "preparation": "fried pastry bound with syrup",
+          "assumptions": [
+            "Traditional Chinese egg pastry bound with sugar syrup",
+            "Single commercial standard-sized square bar"
+          ],
+          "estimatedPer100": {
+            "kcal": 485,
+            "proteinG": 6.5,
+            "carbsG": 63.5,
+            "fatG": 23
+          }
+        }
+      ],
+      "ambiguities": [],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 33.4,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

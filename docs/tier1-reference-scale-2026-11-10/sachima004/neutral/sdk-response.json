@@ -1,0 +1,32 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Sachima (Chinese Sweet Pastry)\",\n  \"components\": [\n    {\n      \"name\": \"sachima\",\n      \"massG\": 40,\n      \"catalogId\": null,\n      \"preparation\": \"fried pastry bound with syrup\",\n      \"assumptions\": [\n        \"Traditional Chinese egg pastry bound with sugar syrup\",\n        \"Single commercial standard-sized square bar\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 485,\n        \"proteinG\": 6.5,\n        \"carbsG\": 63.5,\n        \"fatG\": 23.0\n      }\n    }\n  ],\n  \"ambiguities\": [],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2038,
+    "candidatesTokenCount": 189,
+    "totalTokenCount": 2523,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 974
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 189
+      }
+    ],
+    "thoughtsTokenCount": 296
+  },
+  "latencyMs": 10516,
+  "inputSha256": "c0d989ec836b7e1533e8e92378a4e96758a2afe2ad44b7f06da72d2266b9e928",
+  "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+  "costUsd": null
+}

@@ -1,0 +1,31 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Slice of yellow bread\",\n  \"components\": [\n    {\n      \"name\": \"Slice of bread\",\n      \"massG\": 35.0,\n      \"catalogId\": null,\n      \"preparation\": \"baked\",\n      \"assumptions\": [\n        \"Single slice of commercially baked sandwich bread or sweet yellow bread\",\n        \"Estimated standard slice weight based on size relative to 1 Chinese Yuan coin (diameter ~25 mm)\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 280.0,\n        \"proteinG\": 8.0,\n        \"carbsG\": 50.0,\n        \"fatG\": 4.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Exact recipe of bread (e.g., standard white/egg bread vs. brioche or sweet pumpkin/corn bread)\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2038,
+    "candidatesTokenCount": 232,
+    "totalTokenCount": 2270,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 974
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 232
+      }
+    ]
+  },
+  "latencyMs": 9523,
+  "inputSha256": "a3ae366bc3361d5442a77142702301872962ccb404d1ea875ce1d4f81b429662",
+  "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+  "costUsd": null
+}

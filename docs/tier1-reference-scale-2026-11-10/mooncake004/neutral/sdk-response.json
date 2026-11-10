@@ -1,0 +1,31 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Mini Mooncake\",\n  \"components\": [\n    {\n      \"name\": \"Mooncake\",\n      \"massG\": 60,\n      \"catalogId\": null,\n      \"preparation\": \"baked\",\n      \"assumptions\": [\n        \"Small mini mooncake\",\n        \"Assumed traditional sweet paste filling such as lotus seed or red bean paste\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 410,\n        \"proteinG\": 6,\n        \"carbsG\": 62,\n        \"fatG\": 16\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Specific filling is not visible (e.g., lotus seed paste, red bean, or containing egg yolk/nuts)\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2038,
+    "candidatesTokenCount": 207,
+    "totalTokenCount": 2245,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 974
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 207
+      }
+    ]
+  },
+  "latencyMs": 9513,
+  "inputSha256": "e084e6eff191aa294be2d437ff0f4101cfe1612b301f946d822c2576bcf2c52f",
+  "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+  "costUsd": null
+}

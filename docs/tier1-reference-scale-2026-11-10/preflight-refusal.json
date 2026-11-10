@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-11-10T18:20:25.348216+00:00",
+  "sourceCommit": "3ccd33817282f976cdcc8c4dea1a9aa6309ac39d",
+  "cause": "fs.realpathSync of task venv Python entry bypassed venv and xlrd2.0.2",
+  "reproducedError": "ModuleNotFoundError: No module named 'xlrd'",
+  "resolvedPython": "/usr/bin/python3.13",
+  "registryExistsAfterRefusal": false,
+  "outputExistsAfterRefusal": false,
+  "sdkInvocations": 0,
+  "fix": "Preserve absolute executable entry path and check executable access; actual full6reference preflight now PASS; no prompt/model/order/manifest/budget change",
+  "regression": "Python entry symlink test observed RED then GREEN; full Node30PASS"
+}

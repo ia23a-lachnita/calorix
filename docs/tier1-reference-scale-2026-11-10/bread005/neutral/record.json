@@ -1,0 +1,91 @@
+{
+  "id": "bread005",
+  "arm": "neutral",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 35,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Slice of yellow bread",
+    "components": [
+      {
+        "name": "Slice of bread",
+        "massG": 35,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Single slice of commercially baked sandwich bread or sweet yellow bread",
+          "Estimated standard slice weight based on size relative to 1 Chinese Yuan coin (diameter ~25 mm)"
+        ],
+        "estimatedPer100": {
+          "kcal": 280,
+          "proteinG": 8,
+          "carbsG": 50,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 98,
+          "proteinG": 2.8,
+          "carbsG": 17.5,
+          "fatG": 1.575
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 98,
+      "proteinG": 2.8,
+      "carbsG": 17.5,
+      "fatG": 1.575
+    },
+    "ambiguities": [
+      "Exact recipe of bread (e.g., standard white/egg bread vs. brioche or sweet pumpkin/corn bread)"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9523
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Slice of yellow bread",
+      "components": [
+        {
+          "name": "Slice of bread",
+          "massG": 35,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Single slice of commercially baked sandwich bread or sweet yellow bread",
+            "Estimated standard slice weight based on size relative to 1 Chinese Yuan coin (diameter ~25 mm)"
+          ],
+          "estimatedPer100": {
+            "kcal": 280,
+            "proteinG": 8,
+            "carbsG": 50,
+            "fatG": 4.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact recipe of bread (e.g., standard white/egg bread vs. brioche or sweet pumpkin/corn bread)"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 26.4,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

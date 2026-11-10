@@ -1,0 +1,32 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Sachima (Soft Flour Cake)\",\n  \"components\": [\n    {\n      \"name\": \"Sachima\",\n      \"massG\": 45.0,\n      \"catalogId\": null,\n      \"preparation\": \"deep-fried and syrup-bound\",\n      \"assumptions\": [\n        \"Traditional Chinese pastry made from deep-fried dough strands bound together with sugar syrup\",\n        \"Single square portion measuring approximately 5.5 cm by 5.5 cm by 2.5 cm\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 470.0,\n        \"proteinG\": 6.5,\n        \"carbsG\": 62.0,\n        \"fatG\": 22.0\n      }\n    }\n  ],\n  \"ambiguities\": [],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2069,
+    "candidatesTokenCount": 215,
+    "totalTokenCount": 2472,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1005
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 215
+      }
+    ],
+    "thoughtsTokenCount": 188
+  },
+  "latencyMs": 9146,
+  "inputSha256": "c0d989ec836b7e1533e8e92378a4e96758a2afe2ad44b7f06da72d2266b9e928",
+  "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+  "costUsd": null
+}

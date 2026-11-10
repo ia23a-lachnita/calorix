@@ -1,0 +1,32 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Mini Mooncake\",\n  \"components\": [\n    {\n      \"name\": \"Mini baked mooncake\",\n      \"massG\": 55,\n      \"catalogId\": null,\n      \"preparation\": \"baked\",\n      \"assumptions\": [\n        \"Small traditional baked mooncake with dense sweet filling (e.g., lotus seed or red bean paste)\",\n        \"Diameter approximately 5 cm based on 25 mm coin scale\",\n        \"Typical weight for mini mooncake format is ~50-60 g\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 420.0,\n        \"proteinG\": 6.0,\n        \"carbsG\": 63.0,\n        \"fatG\": 16.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Exact internal filling (e.g., lotus seed paste, red bean, mixed nuts, or salted egg yolk) is invisible from exterior\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2069,
+    "candidatesTokenCount": 255,
+    "totalTokenCount": 2575,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1005
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 255
+      }
+    ],
+    "thoughtsTokenCount": 251
+  },
+  "latencyMs": 10047,
+  "inputSha256": "e084e6eff191aa294be2d437ff0f4101cfe1612b301f946d822c2576bcf2c52f",
+  "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+  "costUsd": null
+}

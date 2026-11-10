@@ -1,0 +1,159 @@
+{
+  "sourceCommit": "ba36c2c7fa068010e98a504c200c8ca10eb4ccf0",
+  "engineCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "manifestSha256": "53b53169b606ff5c40dc9c3e575dd3651a3ecc340554b9455a9048bfc7bf7aca",
+  "protocolSha256": "cd67bc4942261a75bcabf59fdda39cf776f8a25e8effdb59ec8ec9acb10d0933",
+  "bundleSha256": "c15276ba8395dfcacefaeb583cebe9680942056233395b9f489a85fa36684db7",
+  "model": "gemini-3.8-flash",
+  "promptSha256": {
+    "neutral": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+    "metric": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda"
+  },
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "outputDir": "/home/agent-runner/.local/share/calorix-reference-scale-20261110/experiment",
+  "sourceRoot": "/home/agent-runner/.local/share/calorix-reference-scale-20261110",
+  "consentVersion": "tier1-v1",
+  "referenceVerification": {
+    "cases": 6,
+    "portionImageMassMappingVerified": true,
+    "originalPhotosVerified": true,
+    "volumeReferenceUsed": false,
+    "calorieReference": null
+  },
+  "status": "completed",
+  "phase": "complete",
+  "maxSdkEntries": 13,
+  "completedSdkEntries": 13,
+  "unknownInFlight": false,
+  "startedAt": "2026-11-10T18:21:08.154Z",
+  "order": [
+    {
+      "id": "bread005",
+      "arms": [
+        "neutral",
+        "metric"
+      ]
+    },
+    {
+      "id": "bun006",
+      "arms": [
+        "metric",
+        "neutral"
+      ]
+    },
+    {
+      "id": "doughnut006",
+      "arms": [
+        "neutral",
+        "metric"
+      ]
+    },
+    {
+      "id": "fired_dough_twist006",
+      "arms": [
+        "metric",
+        "neutral"
+      ]
+    },
+    {
+      "id": "mooncake004",
+      "arms": [
+        "neutral",
+        "metric"
+      ]
+    },
+    {
+      "id": "sachima004",
+      "arms": [
+        "metric",
+        "neutral"
+      ]
+    }
+  ],
+  "outcomes": [
+    {
+      "id": "bread005",
+      "arm": "neutral",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "bread005",
+      "arm": "metric",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "bun006",
+      "arm": "metric",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "bun006",
+      "arm": "neutral",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "doughnut006",
+      "arm": "neutral",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "doughnut006",
+      "arm": "metric",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "fired_dough_twist006",
+      "arm": "metric",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "fired_dough_twist006",
+      "arm": "neutral",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "mooncake004",
+      "arm": "neutral",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "mooncake004",
+      "arm": "metric",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "sachima004",
+      "arm": "metric",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "sachima004",
+      "arm": "neutral",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    }
+  ]
+}

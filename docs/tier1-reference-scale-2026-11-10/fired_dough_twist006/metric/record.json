@@ -1,0 +1,93 @@
+{
+  "id": "fired_dough_twist006",
+  "arm": "metric",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 55,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chinese Fried Dough Twist (Mahua)",
+    "components": [
+      {
+        "name": "Chinese fried dough twist (Mahua)",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "deep-fried pastry",
+        "assumptions": [
+          "Twisted fried dough snack / pastry, brown/whole-wheat or standard fried mahua",
+          "Length approx. 8-9 cm, width 2.5-3 cm based on reference coin (25 mm) and ruler",
+          "Typical dense fried flour and sugar composition"
+        ],
+        "estimatedPer100": {
+          "kcal": 490,
+          "proteinG": 7.5,
+          "carbsG": 60,
+          "fatG": 24.5
+        },
+        "nutrients": {
+          "kcal": 269.5,
+          "proteinG": 4.125,
+          "carbsG": 33,
+          "fatG": 13.475000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 269.5,
+      "proteinG": 4.125,
+      "carbsG": 33,
+      "fatG": 13.475000000000001
+    },
+    "ambiguities": [
+      "Specific flavor or sweetening (honey, sugar, savory, or whole grain) is uncertain"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 13431
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chinese Fried Dough Twist (Mahua)",
+      "components": [
+        {
+          "name": "Chinese fried dough twist (Mahua)",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "deep-fried pastry",
+          "assumptions": [
+            "Twisted fried dough snack / pastry, brown/whole-wheat or standard fried mahua",
+            "Length approx. 8-9 cm, width 2.5-3 cm based on reference coin (25 mm) and ruler",
+            "Typical dense fried flour and sugar composition"
+          ],
+          "estimatedPer100": {
+            "kcal": 490,
+            "proteinG": 7.5,
+            "carbsG": 60,
+            "fatG": 24.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Specific flavor or sweetening (honey, sugar, savory, or whole grain) is uncertain"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 40.2,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

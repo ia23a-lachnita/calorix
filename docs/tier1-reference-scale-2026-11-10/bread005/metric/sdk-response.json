@@ -1,0 +1,31 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Slice of Yellow Bread\",\n  \"components\": [\n    {\n      \"name\": \"Yellow bread slice\",\n      \"massG\": 35,\n      \"catalogId\": null,\n      \"preparation\": \"baked\",\n      \"assumptions\": [\n        \"Single standard-to-thin slice of bread (corn bread, egg bread, or pumpkin/butter toast)\",\n        \"Dimensions approx 9-10 cm by 9-10 cm, thickness approx 1.2 cm\",\n        \"Plain, no visible spread or topping\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 280,\n        \"proteinG\": 8.5,\n        \"carbsG\": 50.0,\n        \"fatG\": 4.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Exact bread variety is uncertain (e.g., brioche, sweet egg bread, pumpkin bread, or plain white toast with yellowish lighting)\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2069,
+    "candidatesTokenCount": 255,
+    "totalTokenCount": 2324,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 1005
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 255
+      }
+    ]
+  },
+  "latencyMs": 8625,
+  "inputSha256": "a3ae366bc3361d5442a77142702301872962ccb404d1ea875ce1d4f81b429662",
+  "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+  "costUsd": null
+}

@@ -1,0 +1,249 @@
+{
+  "selectedCases": 6,
+  "allAttempts": {
+    "neutral": {
+      "attempted": 6,
+      "scored": 6,
+      "failed": 0,
+      "coverage": 1.0,
+      "maeG": 15.183333333333335,
+      "medianAbsoluteErrorG": 13.0,
+      "p90AbsoluteErrorG": 24.950000000000003,
+      "biasG": 11.450000000000001
+    },
+    "metric": {
+      "attempted": 6,
+      "scored": 6,
+      "failed": 0,
+      "coverage": 1.0,
+      "maeG": 15.183333333333335,
+      "medianAbsoluteErrorG": 12.400000000000002,
+      "p90AbsoluteErrorG": 23.25,
+      "biasG": 11.450000000000001
+    }
+  },
+  "pairedValid": {
+    "scoredPairs": 6,
+    "improved": 1,
+    "worsened": 1,
+    "tied": 4,
+    "neutral": {
+      "attempted": 6,
+      "scored": 6,
+      "failed": 0,
+      "coverage": 1.0,
+      "maeG": 15.183333333333335,
+      "medianAbsoluteErrorG": 13.0,
+      "p90AbsoluteErrorG": 24.950000000000003,
+      "biasG": 11.450000000000001
+    },
+    "metric": {
+      "attempted": 6,
+      "scored": 6,
+      "failed": 0,
+      "coverage": 1.0,
+      "maeG": 15.183333333333335,
+      "medianAbsoluteErrorG": 12.400000000000002,
+      "p90AbsoluteErrorG": 23.25,
+      "biasG": 11.450000000000001
+    }
+  },
+  "cases": [
+    {
+      "id": "bread005",
+      "referenceMassG": 26.4,
+      "neutralMassG": 35,
+      "metricMassG": 35,
+      "deltaAbsoluteErrorG": 0.0
+    },
+    {
+      "id": "bun006",
+      "referenceMassG": 78.3,
+      "neutralMassG": 110,
+      "metricMassG": 110,
+      "deltaAbsoluteErrorG": 0.0
+    },
+    {
+      "id": "doughnut006",
+      "referenceMassG": 66.2,
+      "neutralMassG": 55,
+      "metricMassG": 55,
+      "deltaAbsoluteErrorG": 0.0
+    },
+    {
+      "id": "fired_dough_twist006",
+      "referenceMassG": 40.2,
+      "neutralMassG": 55,
+      "metricMassG": 55,
+      "deltaAbsoluteErrorG": 0.0
+    },
+    {
+      "id": "mooncake004",
+      "referenceMassG": 41.8,
+      "neutralMassG": 60,
+      "metricMassG": 55,
+      "deltaAbsoluteErrorG": -5.0
+    },
+    {
+      "id": "sachima004",
+      "referenceMassG": 33.4,
+      "neutralMassG": 40,
+      "metricMassG": 45,
+      "deltaAbsoluteErrorG": 5.0
+    }
+  ],
+  "calorieReference": null,
+  "volumeReferenceUsed": false,
+  "productionPromotable": false,
+  "representativeAccuracy": false,
+  "interpretation": "Same photo with visible coin in both arms; explicit known-diameter/use-scale cue only. Six simple portions; descriptive P90; unknown foundation-model exposure. No calorie, calibrated geometry, Android transfer or population accuracy claim.",
+  "schemaVersion": "reference-scale-result-1",
+  "sourceCommit": "ba36c2c7fa068010e98a504c200c8ca10eb4ccf0",
+  "engineCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "model": "gemini-3.8-flash",
+  "promptSha256": {
+    "neutral": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+    "metric": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda"
+  },
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "manifestSha256": "53b53169b606ff5c40dc9c3e575dd3651a3ecc340554b9455a9048bfc7bf7aca",
+  "protocolSha256": "cd67bc4942261a75bcabf59fdda39cf776f8a25e8effdb59ec8ec9acb10d0933",
+  "experimentReceiptSha256": "051ed16648b08de7db0424075d10e9376740610bc51ab5bb08c69fb408d32f0f",
+  "sdkEntries": 13,
+  "newFoodPredictionEntries": 12,
+  "newPublicReferencePortions": 6,
+  "androidWeighedMeals": 0,
+  "receiptPins": [
+    {
+      "id": "bread005",
+      "arm": "neutral",
+      "recordSha256": "23d096e9a7f992db67a4fdd81b13fa53d00b0dc23343d98daf291779f53f74f1",
+      "responseSha256": "7dd493b9604dc46ab3c51cc469b1779ceb887f56c1faf2fbd51bbd716489f474"
+    },
+    {
+      "id": "bread005",
+      "arm": "metric",
+      "recordSha256": "628daeb5f910e3354a5700f3606e1a7c4cd58ee1c4828a969437af59fcc80ae8",
+      "responseSha256": "ac8ac02d1db38667f4a151eff006196397b3ad487450a8fb9cd9e4fbb9e177a8"
+    },
+    {
+      "id": "bun006",
+      "arm": "neutral",
+      "recordSha256": "f610c5eeafd68ca61d1d467942db79022d24470467134ce77513157dc439f0dd",
+      "responseSha256": "d39165f8868ab87d3ed5ba0381243dafcba499e4155722e14e1e4dbdf28721e9"
+    },
+    {
+      "id": "bun006",
+      "arm": "metric",
+      "recordSha256": "67a7ce3ca002bf1627909ba0d1f1b5c78deaa57486928da841918fd08772488c",
+      "responseSha256": "c70700c740588e0a15bb8482a05ebd3fe5c54e0736d31387297783aa61c82c9a"
+    },
+    {
+      "id": "doughnut006",
+      "arm": "neutral",
+      "recordSha256": "4227b298c58bf1c2ff407009ab1db960d754edb59ad15a78916bd165bddbc563",
+      "responseSha256": "da409e81e5e2098d3ca3216c7f7f8915c87150ada8b3aad28750da44ba8abbe9"
+    },
+    {
+      "id": "doughnut006",
+      "arm": "metric",
+      "recordSha256": "29785db708088908824861eb5504b23e451411748af5a87e41fa855fed46868b",
+      "responseSha256": "e3437f607a5bf42bb8e42cd7aabfa53028d90a59b5b1e771600b2f3b5568d051"
+    },
+    {
+      "id": "fired_dough_twist006",
+      "arm": "neutral",
+      "recordSha256": "5bbc2fa5127c3ccd6db295a385e795a7ad66e0021d7d9ee3c693b05ef78f3aa8",
+      "responseSha256": "12af6ca410e76760959d39a367a86f722d9a9668acbefd6bc10382e704ba628a"
+    },
+    {
+      "id": "fired_dough_twist006",
+      "arm": "metric",
+      "recordSha256": "57999e2a7831334a17e5d01e0f6a3d350b66a13d4988c5634ca04c32102bb9b9",
+      "responseSha256": "d576d8d1b453abe2ace67dc596b864cc120d67809e8dfa117420adb6953fbc02"
+    },
+    {
+      "id": "mooncake004",
+      "arm": "neutral",
+      "recordSha256": "76739e6bf9deb5751a07d8b229ca839d042b36a9055931bc9136d13dba3ef5a8",
+      "responseSha256": "94836d53c59f1eac93dbbf4cd8a488a10aa5cd0fe8924ec8884c092b8ccfd949"
+    },
+    {
+      "id": "mooncake004",
+      "arm": "metric",
+      "recordSha256": "a20ff38fd603cbbcb571b48935f6b3769d332b079088de25432d2d7c61be000b",
+      "responseSha256": "4a03066a3e2211e3ae42da6c58e159b6040231bb5f98b6f01bdb6746d76b4cea"
+    },
+    {
+      "id": "sachima004",
+      "arm": "neutral",
+      "recordSha256": "30e04a7cae581cf201ce0b73d19bd1c39f56261e83fdfc161da7dff88934aaaf",
+      "responseSha256": "ed847ae0ba5d7e9688b8ff325122fc0342daa2adad7269e656beb52dbdf1b0c7"
+    },
+    {
+      "id": "sachima004",
+      "arm": "metric",
+      "recordSha256": "aaa62322a74d1dfc293c8118e288fd601393720f2156471a1e696f66040e1aeb",
+      "responseSha256": "b1045cbabb6a1f80c760b1bb55e7c968ad61b2c28fdb7e83a77e2dfb7a5435ec"
+    }
+  ],
+  "modelLatencyMs": {
+    "neutral": {
+      "median": 9439.5,
+      "max": 10516,
+      "records": 6
+    },
+    "metric": {
+      "median": 9596.5,
+      "max": 13431,
+      "records": 6
+    }
+  },
+  "tokenUsage": {
+    "neutral": {
+      "promptTokenCount": {
+        "knownSum": 12228,
+        "recordsKnown": 6,
+        "attempted": 6
+      },
+      "candidatesTokenCount": {
+        "knownSum": 1274,
+        "recordsKnown": 6,
+        "attempted": 6
+      },
+      "thoughtsTokenCount": {
+        "knownSum": 296,
+        "recordsKnown": 1,
+        "attempted": 6
+      },
+      "totalTokenCount": {
+        "knownSum": 13798,
+        "recordsKnown": 6,
+        "attempted": 6
+      }
+    },
+    "metric": {
+      "promptTokenCount": {
+        "knownSum": 12414,
+        "recordsKnown": 6,
+        "attempted": 6
+      },
+      "candidatesTokenCount": {
+        "knownSum": 1399,
+        "recordsKnown": 6,
+        "attempted": 6
+      },
+      "thoughtsTokenCount": {
+        "knownSum": 776,
+        "recordsKnown": 3,
+        "attempted": 6
+      },
+      "totalTokenCount": {
+        "knownSum": 14589,
+        "recordsKnown": 6,
+        "attempted": 6
+      }
+    }
+  },
+  "costUsd": null
+}

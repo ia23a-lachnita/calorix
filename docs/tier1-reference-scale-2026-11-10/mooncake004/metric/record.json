@@ -1,0 +1,93 @@
+{
+  "id": "mooncake004",
+  "arm": "metric",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 55,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Mini Mooncake",
+    "components": [
+      {
+        "name": "Mini baked mooncake",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Small traditional baked mooncake with dense sweet filling (e.g., lotus seed or red bean paste)",
+          "Diameter approximately 5 cm based on 25 mm coin scale",
+          "Typical weight for mini mooncake format is ~50-60 g"
+        ],
+        "estimatedPer100": {
+          "kcal": 420,
+          "proteinG": 6,
+          "carbsG": 63,
+          "fatG": 16.5
+        },
+        "nutrients": {
+          "kcal": 231.00000000000003,
+          "proteinG": 3.3000000000000003,
+          "carbsG": 34.650000000000006,
+          "fatG": 9.075000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 231.00000000000003,
+      "proteinG": 3.3000000000000003,
+      "carbsG": 34.650000000000006,
+      "fatG": 9.075000000000001
+    },
+    "ambiguities": [
+      "Exact internal filling (e.g., lotus seed paste, red bean, mixed nuts, or salted egg yolk) is invisible from exterior"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10047
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Mini Mooncake",
+      "components": [
+        {
+          "name": "Mini baked mooncake",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Small traditional baked mooncake with dense sweet filling (e.g., lotus seed or red bean paste)",
+            "Diameter approximately 5 cm based on 25 mm coin scale",
+            "Typical weight for mini mooncake format is ~50-60 g"
+          ],
+          "estimatedPer100": {
+            "kcal": 420,
+            "proteinG": 6,
+            "carbsG": 63,
+            "fatG": 16.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact internal filling (e.g., lotus seed paste, red bean, mixed nuts, or salted egg yolk) is invisible from exterior"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 41.8,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

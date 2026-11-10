@@ -91,8 +91,8 @@ portion_audit_promotion: no automatic promotion
 portion_audit_executed_sdk_calls: 20
 portion_audit_valid_outputs: 20
 portion_audit_report: docs/tier1-portion-audit-2026-11-09/report.md
-public_evaluation_sdk_invocations: 152
-public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog plus20 portion-audit plus20 mealrange two-model plus30 scalar-calibration TRAIN20/TEST10 plus10 mass-power newTEST plus12 paired-view controlled predictions on6existingdevelopmentmeals; nonfood/text diagnostics excluded
+public_evaluation_sdk_invocations: 164
+public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog plus20 portion-audit plus20 mealrange two-model plus30 scalar-calibration TRAIN20/TEST10 plus10 mass-power newTEST plus12 paired-view controlled predictions on6existingdevelopmentmeals; plus12 reference-scale cue mass-only predictions on6newECUSTportions; nonfood/text diagnostics excluded
 
 vlm_challenger_status: archived for failed P90 guard; not default or deployed
 vlm_challenger_model: gemini-4-argon
@@ -183,3 +183,19 @@ paired_view_sample: selected4largesthistoricalerrors plus2smallestcontrols; deve
 paired_view_gain_validated: false
 paired_view_physics_calibration_validated: false
 next_reference_scale_feasibility: originalECUSTFD25mmcoin/weight_g; verifyunits/portionmapping/ediblecompatibility/rights beforeseparatereviewedbudget; no calorie_gold_invention
+
+reference_scale_cue_status: completed_negative_mass_comparison; not_promoted
+reference_scale_cue_report: docs/tier1-reference-scale-2026-11-10/report.md
+reference_scale_cue_source_commit: ba36c2c7fa068010e98a504c200c8ca10eb4ccf0
+reference_scale_cue_dataset_commit: 59603e70c99807af46df9af3c2c507995fdd0029
+reference_scale_cue_public_portions: 6
+reference_scale_cue_food_sdk_entries: 12
+reference_scale_cue_owned_blank_probe_entries: 1
+reference_scale_cue_registry_status: closed; neverresume/reset
+reference_scale_cue_calorie_reference: null
+reference_scale_cue_volume_used: false
+reference_scale_cue_android_weighed_meals: 0
+reference_scale_cue_mass_mae_g_both_arms: 15.183333333333335
+reference_scale_cue_gain_validated: false
+reference_scale_cue_physical_geometry_validated: false
+public_reference_inventory_scope: 80Nutrition5k scans including20TRAIN+60benchmark/development, separately6ECUST simpleportions; no combined calorie metric or independentmealcount

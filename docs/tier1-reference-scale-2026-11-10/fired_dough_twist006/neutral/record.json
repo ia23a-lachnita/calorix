@@ -1,0 +1,91 @@
+{
+  "id": "fired_dough_twist006",
+  "arm": "neutral",
+  "sdkInvocations": 1,
+  "status": "ok",
+  "failure": null,
+  "massG": 55,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chinese Fried Dough Twist (Mahua)",
+    "components": [
+      {
+        "name": "Chinese fried dough twist (Mahua)",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "deep-fried",
+        "assumptions": [
+          "A single piece of traditional twisted fried pastry (mahua)",
+          "Dense, fried flour dough with sugar"
+        ],
+        "estimatedPer100": {
+          "kcal": 490,
+          "proteinG": 7.5,
+          "carbsG": 62,
+          "fatG": 24
+        },
+        "nutrients": {
+          "kcal": 269.5,
+          "proteinG": 4.125,
+          "carbsG": 34.1,
+          "fatG": 13.200000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 269.5,
+      "proteinG": 4.125,
+      "carbsG": 34.1,
+      "fatG": 13.200000000000001
+    },
+    "ambiguities": [
+      "Exact recipe and whether it contains sweet filling or sesame seeds inside"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 8706
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chinese Fried Dough Twist (Mahua)",
+      "components": [
+        {
+          "name": "Chinese fried dough twist (Mahua)",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "deep-fried",
+          "assumptions": [
+            "A single piece of traditional twisted fried pastry (mahua)",
+            "Dense, fried flour dough with sugar"
+          ],
+          "estimatedPer100": {
+            "kcal": 490,
+            "proteinG": 7.5,
+            "carbsG": 62,
+            "fatG": 24
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact recipe and whether it contains sweet filling or sesame seeds inside"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "referenceMassG": 40.2,
+  "calorieReference": null,
+  "volumeReferenceUsed": false
+}

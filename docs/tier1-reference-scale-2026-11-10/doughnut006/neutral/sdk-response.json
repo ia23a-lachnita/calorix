@@ -1,0 +1,31 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Plain Ring Donut\",\n  \"components\": [\n    {\n      \"name\": \"Plain ring donut\",\n      \"massG\": 55.0,\n      \"catalogId\": null,\n      \"preparation\": \"fried yeast or cake donut\",\n      \"assumptions\": [\n        \"Standard single plain/lightly glazed ring donut\",\n        \"Estimated diameter approx 8-9 cm based on reference coin\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 421.0,\n        \"proteinG\": 6.2,\n        \"carbsG\": 49.0,\n        \"fatG\": 22.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Exact dough type (yeast-raised vs cake) and sugar glaze content cannot be fully determined from the photo\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2038,
+    "candidatesTokenCount": 225,
+    "totalTokenCount": 2263,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 974
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 225
+      }
+    ]
+  },
+  "latencyMs": 9366,
+  "inputSha256": "73d0100394033a753e85dab41fc0b126e187798747884ffa13439796a6c2d73f",
+  "promptSha256": "47a1fad480e238019eccef7f3d4040cc48164c73c42f2eb44c29ee65dc412791",
+  "costUsd": null
+}
