@@ -28,6 +28,24 @@ def references(*rows):return {'schema_version':'1.0','meals':list(rows)}
 
 
 class WorkflowEvaluatorTest(unittest.TestCase):
+    def test_v2_food_action_coverage_does_not_invent_accuracy_pairs(self):
+        event={**correction(),'kind':'food_saved'}
+        data=export([event]);data['schemaVersion']=2;data['meals'][0]['source']='food_correction'
+        result=evaluate_workflows(data,references(meal()))
+        self.assertEqual(result['paired_served_A']['scored_meals'],0)
+        self.assertEqual(result['action_counts']['food_saved'],1)
+        self.assertIsNone(result['timing']['actual_active_user_ms'])
+
+    def test_v2_later_food_change_does_not_remove_prior_portion_pair(self):
+        data=export([correction(),{**correction(),'kind':'food_saved','sequence':1}]);data['schemaVersion']=2
+        self.assertEqual(evaluate_workflows(data,references(meal()))['paired_served_A']['scored_meals'],1)
+
+    def test_v1_rejects_food_kinds_and_v2_still_rejects_private_fields(self):
+        data=export([{**correction(),'kind':'food_saved'}])
+        with self.assertRaises(ValueError):evaluate_workflows(data,references(meal()))
+        data['schemaVersion']=2;data['meals'][0]['events'][0]['recordId']='usda:168878'
+        with self.assertRaises(ValueError):evaluate_workflows(data,references(meal()))
+
     def test_unhashable_identity_fields_are_schema_errors(self):
         for field in ['kind','answerCode','source']:
             for value in [{},[]]:
