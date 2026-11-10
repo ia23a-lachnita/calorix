@@ -111,6 +111,30 @@ class PublicWeighedTest(unittest.TestCase):
             with self.assertRaises(ValueError):write_json(bad,{'bad':float('nan')})
             self.assertFalse(bad.exists())
 
+    def test_builder_positive_control_and_source_drift(self):
+        with tempfile.TemporaryDirectory(prefix='public-builder-control-') as d:
+            root=Path(d);case=copy.deepcopy(bundle()['cases'][0]);image=root/'image.jpg';image.write_bytes(b'synthetic-image-only')
+            image_sha=hashlib.sha256(image.read_bytes()).hexdigest()
+            original={'id':case['id'],'captureDate':case['captureDate'],'reference':case['reference'],'ingredients':case['ingredients'],
+                'inputSha256':image_sha,'sourceImageUrl':case['sourceImageUrl'],'sourceMetadataFile':'fixture.csv','rowFieldsSha256':'d'*64}
+            manifest={'schemaVersion':1,'scope':'public_dataset','datasetId':'nutrition5k','sampleCount':1,'cases':[original]}
+            receipt={'id':case['id'],'A0':case['predictions']['A0'],'A1':case['predictions']['A1'],
+                'estimate':{'provenance':{'latencyMs':123,'costUsd':None},'question':None}}
+            run={'model':'gemini-3.8-flash','catalogVersion':'usda-sr-2019-tier1-20261108-v1',
+                'promptSha256':'7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566',
+                'schemaSha256':'4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185','sourceCommit':'1'*40}
+            def put(name,value):
+                p=root/name;p.write_text(json.dumps(value,sort_keys=True));return hashlib.sha256(p.read_bytes()).hexdigest()
+            mh=put('manifest.json',manifest);rh=put('receipt.json',receipt);run['manifestSha256']=mh;runh=put('run.json',run)
+            index={'schema_version':'public-weighed-inputs-1','scope':'custom_fixture','selection':'Synthetic test only','cohorts':[
+                {'name':'fixture','manifestPath':'manifest.json','manifestSha256':mh,'runManifestPath':'manifest.json','runManifestSha256':mh,
+                 'runPath':'run.json','runSha256':runh,'cases':[{'id':case['id'],'receiptPath':'receipt.json','receiptSha256':rh,'inputPath':'image.jpg','inputSha256':image_sha}]}]}
+            ih=put('index.json',index);result=builder.build(root/'index.json',root,expected_sha256=ih)
+            self.assertEqual(result['scope'],'custom_pinned_inputs');self.assertEqual(len(result['cases']),1)
+            self.assertEqual(benchmark(result)['routes']['A1']['served']['mae_kcal'],80)
+            (root/'receipt.json').write_text('{}')
+            with self.assertRaises(ValueError):builder.build(root/'index.json',root,expected_sha256=ih)
+
     def test_builder_rejects_index_drift_before_accessing_sources(self):
         with tempfile.TemporaryDirectory(prefix='public-builder-') as d:
             p=Path(d)/'index.json';p.write_text('{}')
