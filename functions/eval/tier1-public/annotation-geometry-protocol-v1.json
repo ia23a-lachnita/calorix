@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "experiment": "annotation-geometry-v1",
+  "model": "gemini-3.8-flash",
+  "engineCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "qualifiedCoreCiRun": 42811800401,
+  "maxSdkEntries": 13,
+  "manifestSha256": "53b53169b606ff5c40dc9c3e575dd3651a3ecc340554b9455a9048bfc7bf7aca",
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "originalPromptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "controlPrompt": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation.",
+  "controlPromptSha256": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+  "geometryPreparationSha256": "5feeb03e82a3a2fc5ded019f0dfe843b31d9522cb48cb6583be269bbe5c94287",
+  "cases": [
+    {
+      "id": "bread005",
+      "geometry": {
+        "schemaVersion": 1,
+        "imageSizePx": [
+          816,
+          612
+        ],
+        "coinBoxCornersPx": [
+          397,
+          486,
+          463,
+          551
+        ],
+        "coinBoxCornerSpansPx": [
+          66,
+          65
+        ],
+        "coinMeanCornerSpanPx": "65.500000",
+        "foodBoxCornersPx": [
+          316,
+          106,
+          609,
+          418
+        ],
+        "foodBoxCornerSpansPx": [
+          293,
+          312
+        ],
+        "projectedFoodBoxSpansMm": [
+          "111.832061",
+          "119.083969"
+        ],
+        "coinDiameterMm": 25
+      },
+      "imageSha256": "a3ae366bc3361d5442a77142702301872962ccb404d1ea875ce1d4f81b429662",
+      "annotationSha256": "243aa13fbc9023a05dbc2525d2eb494f70c59bf4bf3db2fc2bad4d88925deca9",
+      "geometryPrompt": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation.\nSupplementary annotation-derived image geometry (oracle localization, not automatic detection). Corner spans are coordinate differences, not inclusive pixel counts or segmentation areas. The projected millimeter spans use the 25 mm coin and assume the food and coin share the same planar image scale. They are not measured physical dimensions, height, volume, mass or density, and do not correct perspective or camera pose. Use this spatial information to inform edible mass while inferring missing factors from the photograph and stating assumptions. GEOMETRY_JSON={\"schemaVersion\":1,\"imageSizePx\":[816,612],\"coinBoxCornersPx\":[397,486,463,551],\"coinBoxCornerSpansPx\":[66,65],\"coinMeanCornerSpanPx\":\"65.500000\",\"foodBoxCornersPx\":[316,106,609,418],\"foodBoxCornerSpansPx\":[293,312],\"projectedFoodBoxSpansMm\":[\"111.832061\",\"119.083969\"],\"coinDiameterMm\":25}",
+      "promptSha256": {
+        "control": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+        "geometry": "be5653c2016f210251468970741811e25899761d08ca3fbd090bc475b36538c1"
+      }
+    },
+    {
+      "id": "bun006",
+      "geometry": {
+        "schemaVersion": 1,
+        "imageSizePx": [
+          816,
+          612
+        ],
+        "coinBoxCornersPx": [
+          183,
+          194,
+          238,
+          251
+        ],
+        "coinBoxCornerSpansPx": [
+          55,
+          57
+        ],
+        "coinMeanCornerSpanPx": "56.000000",
+        "foodBoxCornersPx": [
+          409,
+          192,
+          658,
+          390
+        ],
+        "foodBoxCornerSpansPx": [
+          249,
+          198
+        ],
+        "projectedFoodBoxSpansMm": [
+          "111.160714",
+          "88.392857"
+        ],
+        "coinDiameterMm": 25
+      },
+      "imageSha256": "627768eb7ad1474fe489bd8ec4d4849e8c7dbb9a427fd8f1cee99b94bd124e2d",
+      "annotationSha256": "39088d9c8e26ebf477addde5a83e7da4c6f826236f6737285bb450737baa74cb",
+      "geometryPrompt": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation.\nSupplementary annotation-derived image geometry (oracle localization, not automatic detection). Corner spans are coordinate differences, not inclusive pixel counts or segmentation areas. The projected millimeter spans use the 25 mm coin and assume the food and coin share the same planar image scale. They are not measured physical dimensions, height, volume, mass or density, and do not correct perspective or camera pose. Use this spatial information to inform edible mass while inferring missing factors from the photograph and stating assumptions. GEOMETRY_JSON={\"schemaVersion\":1,\"imageSizePx\":[816,612],\"coinBoxCornersPx\":[183,194,238,251],\"coinBoxCornerSpansPx\":[55,57],\"coinMeanCornerSpanPx\":\"56.000000\",\"foodBoxCornersPx\":[409,192,658,390],\"foodBoxCornerSpansPx\":[249,198],\"projectedFoodBoxSpansMm\":[\"111.160714\",\"88.392857\"],\"coinDiameterMm\":25}",
+      "promptSha256": {
+        "control": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+        "geometry": "bad90e83df5501553e2094fc69aa84775af318eb06a51379956ccdf4fa97d6ee"
+      }
+    },
+    {
+      "id": "doughnut006",
+      "geometry": {
+        "schemaVersion": 1,
+        "imageSizePx": [
+          816,
+          612
+        ],
+        "coinBoxCornersPx": [
+          152,
+          144,
+          221,
+          209
+        ],
+        "coinBoxCornerSpansPx": [
+          69,
+          65
+        ],
+        "coinMeanCornerSpanPx": "67.000000",
+        "foodBoxCornersPx": [
+          403,
+          228,
+          663,
+          515
+        ],
+        "foodBoxCornerSpansPx": [
+          260,
+          287
+        ],
+        "projectedFoodBoxSpansMm": [
+          "97.014925",
+          "107.089552"
+        ],
+        "coinDiameterMm": 25
+      },
+      "imageSha256": "73d0100394033a753e85dab41fc0b126e187798747884ffa13439796a6c2d73f",
+      "annotationSha256": "cafdfafeedd2be45a3f38a9ad85d3df325874798194e856ed5bb14c277a31e0e",
+      "geometryPrompt": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation.\nSupplementary annotation-derived image geometry (oracle localization, not automatic detection). Corner spans are coordinate differences, not inclusive pixel counts or segmentation areas. The projected millimeter spans use the 25 mm coin and assume the food and coin share the same planar image scale. They are not measured physical dimensions, height, volume, mass or density, and do not correct perspective or camera pose. Use this spatial information to inform edible mass while inferring missing factors from the photograph and stating assumptions. GEOMETRY_JSON={\"schemaVersion\":1,\"imageSizePx\":[816,612],\"coinBoxCornersPx\":[152,144,221,209],\"coinBoxCornerSpansPx\":[69,65],\"coinMeanCornerSpanPx\":\"67.000000\",\"foodBoxCornersPx\":[403,228,663,515],\"foodBoxCornerSpansPx\":[260,287],\"projectedFoodBoxSpansMm\":[\"97.014925\",\"107.089552\"],\"coinDiameterMm\":25}",
+      "promptSha256": {
+        "control": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+        "geometry": "17e7d3526b540e93ca2581c67b4ae95bb0038ad09429d2d81725bc5bc8ccc730"
+      }
+    },
+    {
+      "id": "fired_dough_twist006",
+      "geometry": {
+        "schemaVersion": 1,
+        "imageSizePx": [
+          504,
+          378
+        ],
+        "coinBoxCornersPx": [
+          377,
+          199,
+          411,
+          230
+        ],
+        "coinBoxCornerSpansPx": [
+          34,
+          31
+        ],
+        "coinMeanCornerSpanPx": "32.500000",
+        "foodBoxCornersPx": [
+          220,
+          109,
+          276,
+          241
+        ],
+        "foodBoxCornerSpansPx": [
+          56,
+          132
+        ],
+        "projectedFoodBoxSpansMm": [
+          "43.076923",
+          "101.538462"
+        ],
+        "coinDiameterMm": 25
+      },
+      "imageSha256": "be4a14bff2908385f834770e29356ad559ca3c2c286b48859d30c8aaa82793da",
+      "annotationSha256": "98f167d6cd2fd7013d0e5e7a0ee038ac6bfd314868cef8c6f924660b5b17b77f",
+      "geometryPrompt": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation.\nSupplementary annotation-derived image geometry (oracle localization, not automatic detection). Corner spans are coordinate differences, not inclusive pixel counts or segmentation areas. The projected millimeter spans use the 25 mm coin and assume the food and coin share the same planar image scale. They are not measured physical dimensions, height, volume, mass or density, and do not correct perspective or camera pose. Use this spatial information to inform edible mass while inferring missing factors from the photograph and stating assumptions. GEOMETRY_JSON={\"schemaVersion\":1,\"imageSizePx\":[504,378],\"coinBoxCornersPx\":[377,199,411,230],\"coinBoxCornerSpansPx\":[34,31],\"coinMeanCornerSpanPx\":\"32.500000\",\"foodBoxCornersPx\":[220,109,276,241],\"foodBoxCornerSpansPx\":[56,132],\"projectedFoodBoxSpansMm\":[\"43.076923\",\"101.538462\"],\"coinDiameterMm\":25}",
+      "promptSha256": {
+        "control": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+        "geometry": "760adef3c55015a563c281f12afd0cfc0bba5065e3f9dcf7c2bafb2f4a39f458"
+      }
+    },
+    {
+      "id": "mooncake004",
+      "geometry": {
+        "schemaVersion": 1,
+        "imageSizePx": [
+          816,
+          612
+        ],
+        "coinBoxCornersPx": [
+          115,
+          201,
+          176,
+          261
+        ],
+        "coinBoxCornerSpansPx": [
+          61,
+          60
+        ],
+        "coinMeanCornerSpanPx": "60.500000",
+        "foodBoxCornersPx": [
+          466,
+          249,
+          582,
+          371
+        ],
+        "foodBoxCornerSpansPx": [
+          116,
+          122
+        ],
+        "projectedFoodBoxSpansMm": [
+          "47.933884",
+          "50.413223"
+        ],
+        "coinDiameterMm": 25
+      },
+      "imageSha256": "e084e6eff191aa294be2d437ff0f4101cfe1612b301f946d822c2576bcf2c52f",
+      "annotationSha256": "b51d0e8498083f084884d23b458e9d3bac88f46a3136c570a334b0be18c9e0f7",
+      "geometryPrompt": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation.\nSupplementary annotation-derived image geometry (oracle localization, not automatic detection). Corner spans are coordinate differences, not inclusive pixel counts or segmentation areas. The projected millimeter spans use the 25 mm coin and assume the food and coin share the same planar image scale. They are not measured physical dimensions, height, volume, mass or density, and do not correct perspective or camera pose. Use this spatial information to inform edible mass while inferring missing factors from the photograph and stating assumptions. GEOMETRY_JSON={\"schemaVersion\":1,\"imageSizePx\":[816,612],\"coinBoxCornersPx\":[115,201,176,261],\"coinBoxCornerSpansPx\":[61,60],\"coinMeanCornerSpanPx\":\"60.500000\",\"foodBoxCornersPx\":[466,249,582,371],\"foodBoxCornerSpansPx\":[116,122],\"projectedFoodBoxSpansMm\":[\"47.933884\",\"50.413223\"],\"coinDiameterMm\":25}",
+      "promptSha256": {
+        "control": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+        "geometry": "d3b6703c50f0b7ae954d7986910f655bf8f9314f54894235627436de2e799b4e"
+      }
+    },
+    {
+      "id": "sachima004",
+      "geometry": {
+        "schemaVersion": 1,
+        "imageSizePx": [
+          816,
+          612
+        ],
+        "coinBoxCornersPx": [
+          204,
+          170,
+          260,
+          223
+        ],
+        "coinBoxCornerSpansPx": [
+          56,
+          53
+        ],
+        "coinMeanCornerSpanPx": "54.500000",
+        "foodBoxCornersPx": [
+          443,
+          245,
+          623,
+          400
+        ],
+        "foodBoxCornerSpansPx": [
+          180,
+          155
+        ],
+        "projectedFoodBoxSpansMm": [
+          "82.568807",
+          "71.100917"
+        ],
+        "coinDiameterMm": 25
+      },
+      "imageSha256": "c0d989ec836b7e1533e8e92378a4e96758a2afe2ad44b7f06da72d2266b9e928",
+      "annotationSha256": "837d357332864d8653d54c8d5bc5489c2023dfd3b2cd0ec96f8b263b42fc581e",
+      "geometryPrompt": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation.\nSupplementary annotation-derived image geometry (oracle localization, not automatic detection). Corner spans are coordinate differences, not inclusive pixel counts or segmentation areas. The projected millimeter spans use the 25 mm coin and assume the food and coin share the same planar image scale. They are not measured physical dimensions, height, volume, mass or density, and do not correct perspective or camera pose. Use this spatial information to inform edible mass while inferring missing factors from the photograph and stating assumptions. GEOMETRY_JSON={\"schemaVersion\":1,\"imageSizePx\":[816,612],\"coinBoxCornersPx\":[204,170,260,223],\"coinBoxCornerSpansPx\":[56,53],\"coinMeanCornerSpanPx\":\"54.500000\",\"foodBoxCornersPx\":[443,245,623,400],\"foodBoxCornerSpansPx\":[180,155],\"projectedFoodBoxSpansMm\":[\"82.568807\",\"71.100917\"],\"coinDiameterMm\":25}",
+      "promptSha256": {
+        "control": "3cff949e260eef6b99183c7c280ef04274ee7b13ce28408be5008e34ed498cda",
+        "geometry": "c66083e4e2c39ad3e72b14d4e62dff6b5ee379907c0ac9030fa01fbf757b69c4"
+      }
+    }
+  ],
+  "probeGeometry": {
+    "schemaVersion": 1,
+    "imageSizePx": [
+      64,
+      64
+    ],
+    "coinBoxCornersPx": null,
+    "coinBoxCornerSpansPx": null,
+    "coinMeanCornerSpanPx": null,
+    "foodBoxCornersPx": null,
+    "foodBoxCornerSpansPx": null,
+    "projectedFoodBoxSpansMm": null,
+    "coinDiameterMm": 25
+  },
+  "probePrompt": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw\nThe coin and plate are not food. Estimate only the complete visible edible food mass in grams.\nThe visible reference coin has a documented diameter of 25.0 mm. Use this known physical scale to inform food dimensions and edible mass estimation.\nSupplementary annotation-derived image geometry (oracle localization, not automatic detection). Corner spans are coordinate differences, not inclusive pixel counts or segmentation areas. The projected millimeter spans use the 25 mm coin and assume the food and coin share the same planar image scale. They are not measured physical dimensions, height, volume, mass or density, and do not correct perspective or camera pose. Use this spatial information to inform edible mass while inferring missing factors from the photograph and stating assumptions. GEOMETRY_JSON={\"schemaVersion\":1,\"imageSizePx\":[64,64],\"coinBoxCornersPx\":null,\"coinBoxCornerSpansPx\":null,\"coinMeanCornerSpanPx\":null,\"foodBoxCornersPx\":null,\"foodBoxCornerSpansPx\":null,\"projectedFoodBoxSpansMm\":null,\"coinDiameterMm\":25}",
+  "probePromptSha256": "ab5b093aee85a7cb5eb59c5cf6659273e0b70564e95bfba0e66b9d582bbfaf1b",
+  "probeImageSha256": "79e2851fd873d5115880b84cc5b82a45f32666055b6d3727e330de2d50ba267a",
+  "order": [
+    {
+      "id": "bread005",
+      "arms": [
+        "control",
+        "geometry"
+      ]
+    },
+    {
+      "id": "bun006",
+      "arms": [
+        "geometry",
+        "control"
+      ]
+    },
+    {
+      "id": "doughnut006",
+      "arms": [
+        "control",
+        "geometry"
+      ]
+    },
+    {
+      "id": "fired_dough_twist006",
+      "arms": [
+        "geometry",
+        "control"
+      ]
+    },
+    {
+      "id": "mooncake004",
+      "arms": [
+        "control",
+        "geometry"
+      ]
+    },
+    {
+      "id": "sachima004",
+      "arms": [
+        "geometry",
+        "control"
+      ]
+    }
+  ],
+  "apiAssumptions": {
+    "vertexProject": "calorix-xurschnell",
+    "location": "us",
+    "apiVersion": "v1",
+    "thinkingLevel": "LOW",
+    "maxOutputTokens": 8192,
+    "timeoutMs": 30000,
+    "attempts": 1,
+    "mediaResolution": "provider default, same configuration both arms",
+    "temperature": "provider default, same configuration both arms",
+    "stochasticity": "not eliminated"
+  },
+  "geometryArithmetic": {
+    "cornerSpan": "xmax-xmin/ymax-ymin, no inclusive-pixel increment",
+    "coinMeanSpan": "(coinDx+coinDy)/2",
+    "projectedFoodBoxSpansMm": "foodCornerSpan*50/(coinDx+coinDy)",
+    "rounding": "Exact integer rational ROUND_HALF_UP to six decimal strings; Python Decimal/Node BigInt",
+    "canonicalKeyOrder": [
+      "schemaVersion",
+      "imageSizePx",
+      "coinBoxCornersPx",
+      "coinBoxCornerSpansPx",
+      "coinMeanCornerSpanPx",
+      "foodBoxCornersPx",
+      "foodBoxCornerSpansPx",
+      "projectedFoodBoxSpansMm",
+      "coinDiameterMm"
+    ],
+    "assumptions": "Shared planar image scale only; author boxes not perfect segmentation. Not measured physical dimensions, height, volume, mass or perspective-corrected geometry."
+  },
+  "considerationGate": {
+    "all6ValidBothArms": true,
+    "relativeMaeGainMinimum": 0.1,
+    "medianMustNotWorsen": true,
+    "p90MustNotWorsen": true,
+    "productionPromotion": false
+  },
+  "questionPolicy": "Unanswered both arms; no reference-derived preparation answers",
+  "oracleAnnotationLocalization": true,
+  "physicalScaleValidated": false,
+  "calorieReference": null,
+  "volumeReferenceUsed": false,
+  "noRetry": true,
+  "noFallback": true,
+  "noResume": true,
+  "noReplacement": true,
+  "productionPromotable": false
+}
