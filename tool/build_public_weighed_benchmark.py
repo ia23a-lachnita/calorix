@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+import subprocess
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent))
 from evaluate_public_weighed import read_json,validate_bundle,write_json
 
@@ -11,6 +12,15 @@ INDEX_SHA256='2a18ef5677cf5a128f0034c3003c1dc9d56727792f4966c5988d6cd50b84dfe3'
 PROFILE={'model':'gemini-3.8-flash','catalogVersion':'usda-sr-2019-tier1-20261108-v1',
     'promptSha256':'7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566',
     'schemaSha256':'4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185'}
+
+
+def logical_manifest_sha(path):
+    # The old runner hashed JSON.stringify(parsedManifest), not the saved bytes.
+    script="const fs=require('node:fs'),crypto=require('node:crypto');if(process.versions.node.split('.')[0]!=='22')throw Error('Node22 required');const m=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(crypto.createHash('sha256').update(JSON.stringify(m)).digest('hex'));"
+    try:
+        return subprocess.run(['node','-e',script,str(path)],capture_output=True,text=True,check=True,timeout=15).stdout
+    except (OSError,subprocess.SubprocessError) as error:
+        raise RuntimeError('Node22 is required for legacy logical manifest verification; '+str(error)) from error
 
 
 def build(index_path,source_root,expected_sha256=INDEX_SHA256):
@@ -26,7 +36,7 @@ def build(index_path,source_root,expected_sha256=INDEX_SHA256):
     for cohort in index['cohorts']:
         manifest=pinned(cohort['manifestPath'],cohort['manifestSha256']);run=pinned(cohort['runPath'],cohort['runSha256'])
         run_manifest=pinned(cohort['runManifestPath'],cohort['runManifestSha256'])
-        if run.get('manifestSha256')!=cohort['runManifestSha256'] or any(run.get(k)!=v for k,v in PROFILE.items()):raise ValueError('Original run manifest/profile mismatch')
+        if run.get('manifestSha256')!=logical_manifest_sha(path(cohort['runManifestPath'])) or any(run.get(k)!=v for k,v in PROFILE.items()):raise ValueError('Original run manifest/profile mismatch')
         if manifest.get('schemaVersion')!=1 or manifest.get('scope')!='public_dataset' or manifest.get('datasetId')!='nutrition5k':raise ValueError('Expected published Nutrition5k references')
         expected={c['id']:c for c in cohort['cases']};originals={c['id']:c for c in manifest['cases']};runtime={c['id']:c for c in run_manifest['cases']}
         if len(expected)!=len(cohort['cases']) or len(originals)!=len(manifest['cases']) or len(runtime)!=len(run_manifest['cases']) or set(expected)!=set(originals) or set(expected)!=set(runtime):raise ValueError('Cohort membership changed')

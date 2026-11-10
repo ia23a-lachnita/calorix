@@ -6,6 +6,8 @@ Branch: feat/tier1-photo-pilot
 
 ## Fresh Session Handoff (Authoritative)
 
+Publicweighedcombinedreviewfix: freshsource/datareview0Critical1Important0Minor,89rawfilepins/40scans25dates/378independentDecimalmetricfields within1e-9. Importantactualbuilderlogical-vs-rawhashmismatch reproducedinrealrunandsyntheticcontrol beforefix; addedECMAScriptnumberencodingcase, actual14methods/2expectedERROR→14GREEN/all75PythonPASS. ReuseexistingNode22.23.3 standardJSON/crypto readonlysubprocess foroldlogicaldigest, retainALLrawpins/membership/vectorchecks. MCPfixpreprimary3.8/yoloagreeMUSTnone; reviewerexample>=20notadoptedactualbuilderrequires22. Actual40bundle nowbuilds twicebyteidenticalSHA0b78b33438d7b3c66647a0a2403b7f4686909be5a47e50b936a590bf84b2bea6. A140/40 MAE125.605430275,bias-92.571349275,P90290.9048822,norm.2637324823943472; A01/40,paired1. Actual6055byteappExport linkedDIAGNOSTICandexcluded(0humanpairs). No newSDK/oldinputchanges; postsource/resultreview andpublication next.
+
 PublicweighedTDD actual13methods/22expectedNotImplementederrors→13GREEN, includingpositivepinnedbuildercontrol beforehashdriftnegative. All74PythonPASS, generatorcheck0. Pureofflinebuilder/scorer/explicitattestedcorrectionbridge implemented; no Android/backend/dependency changes or SDKcalls. Intended nextsource/independentreview/actual40bundle+baseline+diagnosticexclusion/Decimalreproduction. Input-index fixed2a18ef... oldsourcefilesuntouched.
 
 Publicweighed actualfocusedRED12methods/21expectedNotImplementederrors(includingsubtests), no import/harnessfailure; addingpositive pinnedbuilderfixture beforealgorithm. FixedindexrawSHA2a18ef5677cf5a128f0034c3003c1dc9d56727792f4966c5988d6cd50b84dfe3 commitsall40inputpins; no oldreceiptsmodified/newSDK. Minimalofflineimplementation next.

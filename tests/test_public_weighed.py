@@ -125,7 +125,10 @@ class PublicWeighedTest(unittest.TestCase):
                 'schemaSha256':'4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185','sourceCommit':'1'*40}
             def put(name,value):
                 p=root/name;p.write_text(json.dumps(value,sort_keys=True));return hashlib.sha256(p.read_bytes()).hexdigest()
-            mh=put('manifest.json',manifest);rh=put('receipt.json',receipt);run['manifestSha256']=mh;runh=put('run.json',run)
+            mh=put('manifest.json',manifest);rh=put('receipt.json',receipt)
+            logical=hashlib.sha256(json.dumps(json.loads((root/'manifest.json').read_text()),ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
+            self.assertNotEqual(mh,logical)
+            run['manifestSha256']=logical;runh=put('run.json',run)
             index={'schema_version':'public-weighed-inputs-1','scope':'custom_fixture','selection':'Synthetic test only','cohorts':[
                 {'name':'fixture','manifestPath':'manifest.json','manifestSha256':mh,'runManifestPath':'manifest.json','runManifestSha256':mh,
                  'runPath':'run.json','runSha256':runh,'cases':[{'id':case['id'],'receiptPath':'receipt.json','receiptSha256':rh,'inputPath':'image.jpg','inputSha256':image_sha}]}]}
@@ -134,6 +137,12 @@ class PublicWeighedTest(unittest.TestCase):
             self.assertEqual(benchmark(result)['routes']['A1']['served']['mae_kcal'],80)
             (root/'receipt.json').write_text('{}')
             with self.assertRaises(ValueError):builder.build(root/'index.json',root,expected_sha256=ih)
+
+    def test_legacy_logical_hash_uses_ecmascript_number_encoding(self):
+        with tempfile.TemporaryDirectory(prefix='public-logical-') as d:
+            p=Path(d)/'manifest.json';p.write_text('{"x":1.0,"y":1e-7,"z":1e20,"label":"jalapeño"}')
+            expected='{"x":1,"y":1e-7,"z":100000000000000000000,"label":"jalapeño"}'
+            self.assertEqual(builder.logical_manifest_sha(p),hashlib.sha256(expected.encode()).hexdigest())
 
     def test_builder_rejects_index_drift_before_accessing_sources(self):
         with tempfile.TemporaryDirectory(prefix='public-builder-') as d:
