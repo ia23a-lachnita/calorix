@@ -140,8 +140,10 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       });
       try {await _store!.save(meal);}catch(_){await File(path).delete();rethrow;}
       final saved=(await _store!.load()).firstWhere((m)=>m.id==id);
-      if(mounted)await _open(saved,captureTick:shutterTick,startEstimate:true,
-        allowInitialEstimate:()=>mounted&&startedForeground&&_lifecycleEpoch==offerEpoch);
+      if(mounted){
+        await _open(saved,captureTick:shutterTick,startEstimate:true,
+          allowInitialEstimate:()=>mounted&&startedForeground&&_lifecycleEpoch==offerEpoch);
+      }
     } catch (_) {if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Photo could not be saved. Retake or use manual entry.')));}
     finally {
       if(ownedCapture!=null){try{final temporary=File(ownedCapture);if(await temporary.exists())await temporary.delete();}catch(_){/* No unrelated cache cleanup. */}}
@@ -222,7 +224,9 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
         _initialOfferConsumed=true;
         final state=WidgetsBinding.instance.lifecycleState;
         if(!mounted||!_foreground||(state!=null&&state!=AppLifecycleState.resumed)||
-            ModalRoute.of(context)?.isCurrent!=true||_busy||_dirty||widget.allowInitialEstimate?.call()!=true)return;
+            ModalRoute.of(context)?.isCurrent!=true||_busy||_dirty||widget.allowInitialEstimate?.call()!=true){
+          return;
+        }
         unawaited(_estimate());
       });
     }
