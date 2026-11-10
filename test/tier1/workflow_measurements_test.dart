@@ -37,7 +37,7 @@ void main(){
   });
   test('event validation rejects free text, unknown fields and nonfinite measurements',(){
     for(final extra in [{'foodName':'private meal'},{'photoPath':'/private/photo.jpg'},
-      {'beforeKcal':double.nan},{'toG':-1.0},{'portionIndex':20},{'model':'private meal'}]){
+      {'beforeKcal':double.nan},{'toG':-1.0},{'portionIndex':21},{'model':'private meal'}]){
       expect(()=>validateWorkflowEvent({...event(),...extra}),throwsFormatException);
     }
     expect(()=>validateWorkflowEvent({...event(),'timingValid':false}),throwsFormatException);
