@@ -1,0 +1,2451 @@
+{
+  "schemaVersion": 1,
+  "experiment": "open-models-v1",
+  "sampleCount": 22,
+  "cases": [
+    {
+      "id": "dish_1566590007",
+      "dataset": "nutrition5k",
+      "inputPath": "inputs/dish_1566590007.jpg",
+      "inputSha256": "9587868cba1515ceaf142652c5e9a885557e361550ddd205557eeee3dd986b38",
+      "reference": {
+        "kcal": 740.762024,
+        "massG": 457.0,
+        "fatG": 29.233101,
+        "carbsG": 57.950996,
+        "proteinG": 61.798248
+      },
+      "a1": {
+        "massG": 330,
+        "totals": {
+          "kcal": 593.5,
+          "proteinG": 26.725,
+          "carbsG": 61.550000000000004,
+          "fatG": 26.75
+        }
+      },
+      "a1Estimate": {
+        "schemaVersion": 1,
+        "mealName": "Flatbread with Quinoa Salad and Herb-Seasoned Tofu or Chicken Strips",
+        "components": [
+          {
+            "name": "Flatbread or savory pastry with cheese and tomato",
+            "massG": 120,
+            "catalogId": null,
+            "preparation": "baked",
+            "assumptions": [
+              "Crust topped with tomato sauce or puree, cheese, sliced tomatoes, red onions, and green dressing/crema",
+              "Includes crust and toppings"
+            ],
+            "estimatedPer100": {
+              "kcal": 240,
+              "proteinG": 8.5,
+              "carbsG": 28,
+              "fatG": 10.5
+            },
+            "nutrients": {
+              "kcal": 288,
+              "proteinG": 10.2,
+              "carbsG": 33.6,
+              "fatG": 12.6
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Avocado crema or green sauce drizzle",
+            "massG": 15,
+            "catalogId": null,
+            "preparation": "raw blended",
+            "assumptions": [
+              "Light drizzle of avocado/herb-based sauce on flatbread"
+            ],
+            "estimatedPer100": {
+              "kcal": 160,
+              "proteinG": 1.5,
+              "carbsG": 4,
+              "fatG": 16
+            },
+            "nutrients": {
+              "kcal": 24,
+              "proteinG": 0.22499999999999998,
+              "carbsG": 0.6,
+              "fatG": 2.4
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Cooked seasoned quinoa with herbs and tomatoes",
+            "massG": 110,
+            "catalogId": null,
+            "preparation": "cooked mixed",
+            "assumptions": [
+              "Red or spiced quinoa mixed with tomato paste/sauce, leafy greens or herbs, and oil"
+            ],
+            "estimatedPer100": {
+              "kcal": 140,
+              "proteinG": 4,
+              "carbsG": 21,
+              "fatG": 4.5
+            },
+            "nutrients": {
+              "kcal": 154,
+              "proteinG": 4.4,
+              "carbsG": 23.1,
+              "fatG": 4.95
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Marinated baked tofu or seasoned chicken strips with onions",
+            "massG": 85,
+            "catalogId": null,
+            "preparation": "marinated and baked",
+            "assumptions": [
+              "Strips appear to be firm seasoned baked tofu or shredded/sliced chicken with herbs and red onion slaw"
+            ],
+            "estimatedPer100": {
+              "kcal": 150,
+              "proteinG": 14,
+              "carbsG": 5,
+              "fatG": 8
+            },
+            "nutrients": {
+              "kcal": 127.5,
+              "proteinG": 11.9,
+              "carbsG": 4.25,
+              "fatG": 6.8
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          }
+        ],
+        "totals": {
+          "kcal": 593.5,
+          "proteinG": 26.725,
+          "carbsG": 61.550000000000004,
+          "fatG": 26.75
+        },
+        "ambiguities": [
+          "Protein strips could be seasoned baked tofu, seitan, or chicken breast",
+          "Grain salad could be bulgur, farro, or quinoa"
+        ],
+        "question": null,
+        "provenance": {
+          "model": "gemini-3.8-flash",
+          "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+          "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+          "schemaVersion": 1,
+          "returnedModel": "gemini-3.8-flash",
+          "latencyMs": 13175,
+          "inputTokens": 2018,
+          "outputTokens": 663,
+          "costUsd": null
+        },
+        "requiresReview": true,
+        "rawInventory": {
+          "schemaVersion": 1,
+          "mealName": "Flatbread with Quinoa Salad and Herb-Seasoned Tofu or Chicken Strips",
+          "components": [
+            {
+              "name": "Flatbread or savory pastry with cheese and tomato",
+              "massG": 120,
+              "catalogId": null,
+              "preparation": "baked",
+              "assumptions": [
+                "Crust topped with tomato sauce or puree, cheese, sliced tomatoes, red onions, and green dressing/crema",
+                "Includes crust and toppings"
+              ],
+              "estimatedPer100": {
+                "kcal": 240,
+                "proteinG": 8.5,
+                "carbsG": 28,
+                "fatG": 10.5
+              }
+            },
+            {
+              "name": "Avocado crema or green sauce drizzle",
+              "massG": 15,
+              "catalogId": null,
+              "preparation": "raw blended",
+              "assumptions": [
+                "Light drizzle of avocado/herb-based sauce on flatbread"
+              ],
+              "estimatedPer100": {
+                "kcal": 160,
+                "proteinG": 1.5,
+                "carbsG": 4,
+                "fatG": 16
+              }
+            },
+            {
+              "name": "Cooked seasoned quinoa with herbs and tomatoes",
+              "massG": 110,
+              "catalogId": null,
+              "preparation": "cooked mixed",
+              "assumptions": [
+                "Red or spiced quinoa mixed with tomato paste/sauce, leafy greens or herbs, and oil"
+              ],
+              "estimatedPer100": {
+                "kcal": 140,
+                "proteinG": 4,
+                "carbsG": 21,
+                "fatG": 4.5
+              }
+            },
+            {
+              "name": "Marinated baked tofu or seasoned chicken strips with onions",
+              "massG": 85,
+              "catalogId": null,
+              "preparation": "marinated and baked",
+              "assumptions": [
+                "Strips appear to be firm seasoned baked tofu or shredded/sliced chicken with herbs and red onion slaw"
+              ],
+              "estimatedPer100": {
+                "kcal": 150,
+                "proteinG": 14,
+                "carbsG": 5,
+                "fatG": 8
+              }
+            }
+          ],
+          "ambiguities": [
+            "Protein strips could be seasoned baked tofu, seitan, or chicken breast",
+            "Grain salad could be bulgur, farro, or quinoa"
+          ],
+          "askAddedFat": false
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-thinking-level-2026-11-10/dish_1566590007/low/dish_1566590007.json",
+      "a1ReceiptSha256": "97f744d31b0dc6697ab4153fab8f933612669e639c31bb108b638d197e4d1b64",
+      "referenceBasis": "Measured component masses and original recipe-USDA-derived energy/macros; exposed development mealrange set"
+    },
+    {
+      "id": "dish_1566414412",
+      "dataset": "nutrition5k",
+      "inputPath": "inputs/dish_1566414412.jpg",
+      "inputSha256": "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+      "reference": {
+        "kcal": 920.120422,
+        "massG": 658.0,
+        "fatG": 37.812386,
+        "carbsG": 57.062336,
+        "proteinG": 85.334846
+      },
+      "a1": {
+        "massG": 380,
+        "totals": {
+          "kcal": 585.75,
+          "proteinG": 31.205000000000002,
+          "carbsG": 45.824999999999996,
+          "fatG": 30.325
+        }
+      },
+      "a1Estimate": {
+        "schemaVersion": 1,
+        "mealName": "Chicken and Couscous Salad Plate with Roasted Potatoes and Greens",
+        "components": [
+          {
+            "name": "Chicken with creamy dressing / mayonnaise-based sauce",
+            "massG": 140,
+            "catalogId": null,
+            "preparation": "cooked with creamy dressing",
+            "assumptions": [
+              "Chopped chicken breast or poultry mixed with creamy dressing or mayonnaise sauce"
+            ],
+            "estimatedPer100": {
+              "kcal": 210,
+              "proteinG": 18,
+              "carbsG": 3,
+              "fatG": 14
+            },
+            "nutrients": {
+              "kcal": 294,
+              "proteinG": 25.2,
+              "carbsG": 4.199999999999999,
+              "fatG": 19.599999999999998
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Couscous or grain salad with vegetables",
+            "massG": 85,
+            "catalogId": null,
+            "preparation": "cooked mixed salad",
+            "assumptions": [
+              "Couscous or quinoa mixed with sliced bell peppers and red onion"
+            ],
+            "estimatedPer100": {
+              "kcal": 140,
+              "proteinG": 3.5,
+              "carbsG": 23,
+              "fatG": 3.5
+            },
+            "nutrients": {
+              "kcal": 119,
+              "proteinG": 2.975,
+              "carbsG": 19.55,
+              "fatG": 2.975
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Roasted potato wedges",
+            "massG": 90,
+            "catalogId": null,
+            "preparation": "roasted",
+            "assumptions": [
+              "Cut potatoes roasted with oil and seasonings"
+            ],
+            "estimatedPer100": {
+              "kcal": 145,
+              "proteinG": 2.5,
+              "carbsG": 22,
+              "fatG": 5
+            },
+            "nutrients": {
+              "kcal": 130.5,
+              "proteinG": 2.25,
+              "carbsG": 19.8,
+              "fatG": 4.5
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Mixed green salad with cherry tomato",
+            "massG": 65,
+            "catalogId": null,
+            "preparation": "raw dressed",
+            "assumptions": [
+              "Mixed lettuce leaves, red onion, and cherry tomato with light oil-based vinaigrette"
+            ],
+            "estimatedPer100": {
+              "kcal": 65,
+              "proteinG": 1.2,
+              "carbsG": 3.5,
+              "fatG": 5
+            },
+            "nutrients": {
+              "kcal": 42.25,
+              "proteinG": 0.78,
+              "carbsG": 2.275,
+              "fatG": 3.25
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          }
+        ],
+        "totals": {
+          "kcal": 585.75,
+          "proteinG": 31.205000000000002,
+          "carbsG": 45.824999999999996,
+          "fatG": 30.325
+        },
+        "ambiguities": [
+          "Exact composition of the creamy poultry mixture (whether chicken or turkey salad with mayonnaise or yogurt)",
+          "Type of grain in the salad (appears to be couscous or bulgur/quinoa)"
+        ],
+        "question": null,
+        "provenance": {
+          "model": "gemini-3.8-flash",
+          "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+          "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+          "schemaVersion": 1,
+          "returnedModel": "gemini-3.8-flash",
+          "latencyMs": 11729,
+          "inputTokens": 2018,
+          "outputTokens": 616,
+          "costUsd": null
+        },
+        "requiresReview": true,
+        "rawInventory": {
+          "schemaVersion": 1,
+          "mealName": "Chicken and Couscous Salad Plate with Roasted Potatoes and Greens",
+          "components": [
+            {
+              "name": "Chicken with creamy dressing / mayonnaise-based sauce",
+              "massG": 140,
+              "catalogId": null,
+              "preparation": "cooked with creamy dressing",
+              "assumptions": [
+                "Chopped chicken breast or poultry mixed with creamy dressing or mayonnaise sauce"
+              ],
+              "estimatedPer100": {
+                "kcal": 210,
+                "proteinG": 18,
+                "carbsG": 3,
+                "fatG": 14
+              }
+            },
+            {
+              "name": "Couscous or grain salad with vegetables",
+              "massG": 85,
+              "catalogId": null,
+              "preparation": "cooked mixed salad",
+              "assumptions": [
+                "Couscous or quinoa mixed with sliced bell peppers and red onion"
+              ],
+              "estimatedPer100": {
+                "kcal": 140,
+                "proteinG": 3.5,
+                "carbsG": 23,
+                "fatG": 3.5
+              }
+            },
+            {
+              "name": "Roasted potato wedges",
+              "massG": 90,
+              "catalogId": null,
+              "preparation": "roasted",
+              "assumptions": [
+                "Cut potatoes roasted with oil and seasonings"
+              ],
+              "estimatedPer100": {
+                "kcal": 145,
+                "proteinG": 2.5,
+                "carbsG": 22,
+                "fatG": 5
+              }
+            },
+            {
+              "name": "Mixed green salad with cherry tomato",
+              "massG": 65,
+              "catalogId": null,
+              "preparation": "raw dressed",
+              "assumptions": [
+                "Mixed lettuce leaves, red onion, and cherry tomato with light oil-based vinaigrette"
+              ],
+              "estimatedPer100": {
+                "kcal": 65,
+                "proteinG": 1.2,
+                "carbsG": 3.5,
+                "fatG": 5
+              }
+            }
+          ],
+          "ambiguities": [
+            "Exact composition of the creamy poultry mixture (whether chicken or turkey salad with mayonnaise or yogurt)",
+            "Type of grain in the salad (appears to be couscous or bulgur/quinoa)"
+          ],
+          "askAddedFat": false
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-thinking-level-2026-11-10/dish_1566414412/low/dish_1566414412.json",
+      "a1ReceiptSha256": "abf1ca6358102d2537e24b9ef17dda1f92293253412a0e23e0bee0dd3d3acc7e",
+      "referenceBasis": "Measured component masses and original recipe-USDA-derived energy/macros; exposed development mealrange set"
+    },
+    {
+      "id": "dish_1568305257",
+      "dataset": "nutrition5k",
+      "inputPath": "inputs/dish_1568305257.jpg",
+      "inputSha256": "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c",
+      "reference": {
+        "kcal": 837.147766,
+        "massG": 420.0,
+        "fatG": 65.496887,
+        "carbsG": 9.31325,
+        "proteinG": 52.072983
+      },
+      "a1": {
+        "massG": 250,
+        "totals": {
+          "kcal": 422.75,
+          "proteinG": 29.125,
+          "carbsG": 6.83,
+          "fatG": 30.505
+        }
+      },
+      "a1Estimate": {
+        "schemaVersion": 1,
+        "mealName": "Scrambled Eggs with Turkey Bacon and Saut\u00e9ed Greens",
+        "components": [
+          {
+            "name": "Scrambled eggs",
+            "massG": 140,
+            "catalogId": null,
+            "preparation": "cooked scrambled",
+            "assumptions": [
+              "Prepared with a small amount of oil or butter",
+              "Equivalent to approximately 2.5-3 large eggs"
+            ],
+            "estimatedPer100": {
+              "kcal": 149,
+              "proteinG": 10,
+              "carbsG": 1.6,
+              "fatG": 11
+            },
+            "nutrients": {
+              "kcal": 208.6,
+              "proteinG": 14,
+              "carbsG": 2.2399999999999998,
+              "fatG": 15.399999999999999
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Turkey bacon strips",
+            "massG": 45,
+            "catalogId": null,
+            "preparation": "cooked pan-fried",
+            "assumptions": [
+              "3 strips of cooked turkey bacon"
+            ],
+            "estimatedPer100": {
+              "kcal": 382,
+              "proteinG": 30,
+              "carbsG": 3.7,
+              "fatG": 27.5
+            },
+            "nutrients": {
+              "kcal": 171.9,
+              "proteinG": 13.5,
+              "carbsG": 1.665,
+              "fatG": 12.375
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Saut\u00e9ed spinach with shredded carrots",
+            "massG": 65,
+            "catalogId": null,
+            "preparation": "cooked saut\u00e9ed",
+            "assumptions": [
+              "Spinach and shredded carrots lightly cooked in oil"
+            ],
+            "estimatedPer100": {
+              "kcal": 65,
+              "proteinG": 2.5,
+              "carbsG": 4.5,
+              "fatG": 4.2
+            },
+            "nutrients": {
+              "kcal": 42.25,
+              "proteinG": 1.625,
+              "carbsG": 2.9250000000000003,
+              "fatG": 2.7300000000000004
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          }
+        ],
+        "totals": {
+          "kcal": 422.75,
+          "proteinG": 29.125,
+          "carbsG": 6.83,
+          "fatG": 30.505
+        },
+        "ambiguities": [
+          "Exact type of bacon (turkey bacon vs vegan strips)",
+          "Amount of cooking oil used in eggs and greens"
+        ],
+        "question": null,
+        "provenance": {
+          "model": "gemini-3.8-flash",
+          "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+          "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+          "schemaVersion": 1,
+          "returnedModel": "gemini-3.8-flash",
+          "latencyMs": 10002,
+          "inputTokens": 2018,
+          "outputTokens": 450,
+          "costUsd": null
+        },
+        "requiresReview": true,
+        "rawInventory": {
+          "schemaVersion": 1,
+          "mealName": "Scrambled Eggs with Turkey Bacon and Saut\u00e9ed Greens",
+          "components": [
+            {
+              "name": "Scrambled eggs",
+              "massG": 140,
+              "catalogId": null,
+              "preparation": "cooked scrambled",
+              "assumptions": [
+                "Prepared with a small amount of oil or butter",
+                "Equivalent to approximately 2.5-3 large eggs"
+              ],
+              "estimatedPer100": {
+                "kcal": 149,
+                "proteinG": 10,
+                "carbsG": 1.6,
+                "fatG": 11
+              }
+            },
+            {
+              "name": "Turkey bacon strips",
+              "massG": 45,
+              "catalogId": null,
+              "preparation": "cooked pan-fried",
+              "assumptions": [
+                "3 strips of cooked turkey bacon"
+              ],
+              "estimatedPer100": {
+                "kcal": 382,
+                "proteinG": 30,
+                "carbsG": 3.7,
+                "fatG": 27.5
+              }
+            },
+            {
+              "name": "Saut\u00e9ed spinach with shredded carrots",
+              "massG": 65,
+              "catalogId": null,
+              "preparation": "cooked saut\u00e9ed",
+              "assumptions": [
+                "Spinach and shredded carrots lightly cooked in oil"
+              ],
+              "estimatedPer100": {
+                "kcal": 65,
+                "proteinG": 2.5,
+                "carbsG": 4.5,
+                "fatG": 4.2
+              }
+            }
+          ],
+          "ambiguities": [
+            "Exact type of bacon (turkey bacon vs vegan strips)",
+            "Amount of cooking oil used in eggs and greens"
+          ],
+          "askAddedFat": false
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-thinking-level-2026-11-10/dish_1568305257/low/dish_1568305257.json",
+      "a1ReceiptSha256": "6e89107d979f90fab9a726c30c818982243258ac4ce00b1ff8c7c18e73a28c53",
+      "referenceBasis": "Measured component masses and original recipe-USDA-derived energy/macros; exposed development mealrange set"
+    },
+    {
+      "id": "dish_1558722247",
+      "dataset": "nutrition5k",
+      "inputPath": "inputs/dish_1558722247.jpg",
+      "inputSha256": "52d149ea4b05b7a3d92a848db0c607698d0f45549fa817250ed9dd850c0f8db2",
+      "reference": {
+        "kcal": 604.616028,
+        "massG": 343.0,
+        "fatG": 43.181,
+        "carbsG": 46.771999,
+        "proteinG": 21.49
+      },
+      "a1": {
+        "massG": 310,
+        "totals": {
+          "kcal": 480.8,
+          "proteinG": 15.875,
+          "carbsG": 40.370000000000005,
+          "fatG": 33.010000000000005
+        }
+      },
+      "a1Estimate": {
+        "schemaVersion": 1,
+        "mealName": "Whole Apple with Almonds and Raw Cauliflower",
+        "components": [
+          {
+            "name": "Apple",
+            "massG": 160,
+            "catalogId": null,
+            "preparation": "raw",
+            "assumptions": [
+              "One medium whole raw apple, core included in mass estimate"
+            ],
+            "estimatedPer100": {
+              "kcal": 52,
+              "proteinG": 0.3,
+              "carbsG": 13.8,
+              "fatG": 0.2
+            },
+            "nutrients": {
+              "kcal": 83.2,
+              "proteinG": 0.48,
+              "carbsG": 22.080000000000002,
+              "fatG": 0.32000000000000006
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Whole almonds",
+            "massG": 65,
+            "catalogId": null,
+            "preparation": "raw or dry roasted",
+            "assumptions": [
+              "Whole unsalted almonds",
+              "Approximately 50-60 kernels"
+            ],
+            "estimatedPer100": {
+              "kcal": 579,
+              "proteinG": 21.2,
+              "carbsG": 21.6,
+              "fatG": 49.9
+            },
+            "nutrients": {
+              "kcal": 376.35,
+              "proteinG": 13.78,
+              "carbsG": 14.040000000000001,
+              "fatG": 32.435
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Cauliflower florets",
+            "massG": 85,
+            "catalogId": null,
+            "preparation": "raw",
+            "assumptions": [
+              "Raw cauliflower florets and stems"
+            ],
+            "estimatedPer100": {
+              "kcal": 25,
+              "proteinG": 1.9,
+              "carbsG": 5,
+              "fatG": 0.3
+            },
+            "nutrients": {
+              "kcal": 21.25,
+              "proteinG": 1.615,
+              "carbsG": 4.25,
+              "fatG": 0.255
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          }
+        ],
+        "totals": {
+          "kcal": 480.8,
+          "proteinG": 15.875,
+          "carbsG": 40.370000000000005,
+          "fatG": 33.010000000000005
+        },
+        "ambiguities": [
+          "Whether almonds are raw or dry-roasted/salted"
+        ],
+        "question": null,
+        "provenance": {
+          "model": "gemini-3.8-flash",
+          "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+          "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+          "schemaVersion": 1,
+          "returnedModel": "gemini-3.8-flash",
+          "latencyMs": 8708,
+          "inputTokens": 2018,
+          "outputTokens": 425,
+          "costUsd": null
+        },
+        "requiresReview": true,
+        "rawInventory": {
+          "schemaVersion": 1,
+          "mealName": "Whole Apple with Almonds and Raw Cauliflower",
+          "components": [
+            {
+              "name": "Apple",
+              "massG": 160,
+              "catalogId": null,
+              "preparation": "raw",
+              "assumptions": [
+                "One medium whole raw apple, core included in mass estimate"
+              ],
+              "estimatedPer100": {
+                "kcal": 52,
+                "proteinG": 0.3,
+                "carbsG": 13.8,
+                "fatG": 0.2
+              }
+            },
+            {
+              "name": "Whole almonds",
+              "massG": 65,
+              "catalogId": null,
+              "preparation": "raw or dry roasted",
+              "assumptions": [
+                "Whole unsalted almonds",
+                "Approximately 50-60 kernels"
+              ],
+              "estimatedPer100": {
+                "kcal": 579,
+                "proteinG": 21.2,
+                "carbsG": 21.6,
+                "fatG": 49.9
+              }
+            },
+            {
+              "name": "Cauliflower florets",
+              "massG": 85,
+              "catalogId": null,
+              "preparation": "raw",
+              "assumptions": [
+                "Raw cauliflower florets and stems"
+              ],
+              "estimatedPer100": {
+                "kcal": 25,
+                "proteinG": 1.9,
+                "carbsG": 5,
+                "fatG": 0.3
+              }
+            }
+          ],
+          "ambiguities": [
+            "Whether almonds are raw or dry-roasted/salted"
+          ],
+          "askAddedFat": false
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-thinking-level-2026-11-10/dish_1558722247/low/dish_1558722247.json",
+      "a1ReceiptSha256": "5e8246e8a7af6d40d1a6b8198eb57c5af883230a1f94e16593bf46f169ff3ac5",
+      "referenceBasis": "Measured component masses and original recipe-USDA-derived energy/macros; exposed development mealrange set"
+    },
+    {
+      "id": "dish_1568401233",
+      "dataset": "nutrition5k",
+      "inputPath": "inputs/dish_1568401233.jpg",
+      "inputSha256": "75927711eec8957eb5010ce05154bf02541d64cefaa0fa691e7cef944556adc5",
+      "reference": {
+        "kcal": 490.393372,
+        "massG": 418.0,
+        "fatG": 22.600721,
+        "carbsG": 32.332966,
+        "proteinG": 38.631962
+      },
+      "a1": {
+        "massG": 320,
+        "totals": {
+          "kcal": 382.3,
+          "proteinG": 25.49,
+          "carbsG": 33.31,
+          "fatG": 16.77
+        }
+      },
+      "a1Estimate": {
+        "schemaVersion": 1,
+        "mealName": "Tuna Salad with Sweet Potato and Shredded Carrots",
+        "components": [
+          {
+            "name": "Tuna salad",
+            "massG": 140,
+            "catalogId": null,
+            "preparation": "mixed with mayonnaise, celery, and red onion",
+            "assumptions": [
+              "Prepared with canned tuna, light mayonnaise or oil dressing, and diced vegetables"
+            ],
+            "estimatedPer100": {
+              "kcal": 185,
+              "proteinG": 16.5,
+              "carbsG": 3.2,
+              "fatG": 11.8
+            },
+            "nutrients": {
+              "kcal": 259,
+              "proteinG": 23.099999999999998,
+              "carbsG": 4.4799999999999995,
+              "fatG": 16.52
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Mashed sweet potato",
+            "massG": 110,
+            "catalogId": null,
+            "preparation": "cooked, mashed or roasted chunks",
+            "assumptions": [
+              "Plain boiled or baked sweet potato with minimal added fat"
+            ],
+            "estimatedPer100": {
+              "kcal": 86,
+              "proteinG": 1.6,
+              "carbsG": 20.1,
+              "fatG": 0.1
+            },
+            "nutrients": {
+              "kcal": 94.60000000000001,
+              "proteinG": 1.7600000000000002,
+              "carbsG": 22.110000000000003,
+              "fatG": 0.11000000000000001
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Shredded carrots",
+            "massG": 70,
+            "catalogId": null,
+            "preparation": "raw shredded",
+            "assumptions": [
+              "Fresh raw shredded carrots without added dressing"
+            ],
+            "estimatedPer100": {
+              "kcal": 41,
+              "proteinG": 0.9,
+              "carbsG": 9.6,
+              "fatG": 0.2
+            },
+            "nutrients": {
+              "kcal": 28.7,
+              "proteinG": 0.63,
+              "carbsG": 6.72,
+              "fatG": 0.13999999999999999
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          }
+        ],
+        "totals": {
+          "kcal": 382.3,
+          "proteinG": 25.49,
+          "carbsG": 33.31,
+          "fatG": 16.77
+        },
+        "ambiguities": [
+          "Exact amount and type of dressing/mayonnaise in the tuna salad is uncertain.",
+          "Presence of added butter or oil in the sweet potato is unconfirmed."
+        ],
+        "question": null,
+        "provenance": {
+          "model": "gemini-3.8-flash",
+          "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+          "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+          "schemaVersion": 1,
+          "returnedModel": "gemini-3.8-flash",
+          "latencyMs": 11978,
+          "inputTokens": 2018,
+          "outputTokens": 463,
+          "costUsd": null
+        },
+        "requiresReview": true,
+        "rawInventory": {
+          "schemaVersion": 1,
+          "mealName": "Tuna Salad with Sweet Potato and Shredded Carrots",
+          "components": [
+            {
+              "name": "Tuna salad",
+              "massG": 140,
+              "catalogId": null,
+              "preparation": "mixed with mayonnaise, celery, and red onion",
+              "assumptions": [
+                "Prepared with canned tuna, light mayonnaise or oil dressing, and diced vegetables"
+              ],
+              "estimatedPer100": {
+                "kcal": 185,
+                "proteinG": 16.5,
+                "carbsG": 3.2,
+                "fatG": 11.8
+              }
+            },
+            {
+              "name": "Mashed sweet potato",
+              "massG": 110,
+              "catalogId": null,
+              "preparation": "cooked, mashed or roasted chunks",
+              "assumptions": [
+                "Plain boiled or baked sweet potato with minimal added fat"
+              ],
+              "estimatedPer100": {
+                "kcal": 86,
+                "proteinG": 1.6,
+                "carbsG": 20.1,
+                "fatG": 0.1
+              }
+            },
+            {
+              "name": "Shredded carrots",
+              "massG": 70,
+              "catalogId": null,
+              "preparation": "raw shredded",
+              "assumptions": [
+                "Fresh raw shredded carrots without added dressing"
+              ],
+              "estimatedPer100": {
+                "kcal": 41,
+                "proteinG": 0.9,
+                "carbsG": 9.6,
+                "fatG": 0.2
+              }
+            }
+          ],
+          "ambiguities": [
+            "Exact amount and type of dressing/mayonnaise in the tuna salad is uncertain.",
+            "Presence of added butter or oil in the sweet potato is unconfirmed."
+          ],
+          "askAddedFat": false
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-thinking-level-2026-11-10/dish_1568401233/low/dish_1568401233.json",
+      "a1ReceiptSha256": "7c38c65dc53bef1c9cb1dd571dbec2664ca1150237d3c256ae946e1556fce30f",
+      "referenceBasis": "Measured component masses and original recipe-USDA-derived energy/macros; exposed development mealrange set"
+    },
+    {
+      "id": "dish_1563389600",
+      "dataset": "nutrition5k",
+      "inputPath": "inputs/dish_1563389600.jpg",
+      "inputSha256": "5dd57e8063e5f941541faa009851cd0a47a80967942af81640ffe4e6afa6af01",
+      "reference": {
+        "kcal": 451.428009,
+        "massG": 264.0,
+        "fatG": 29.046,
+        "carbsG": 2.924,
+        "proteinG": 44.473999
+      },
+      "a1": {
+        "massG": 230,
+        "totals": {
+          "kcal": 247.19999999999996,
+          "proteinG": 44.238,
+          "carbsG": 3.51,
+          "fatG": 5.177999999999999
+        }
+      },
+      "a1Estimate": {
+        "schemaVersion": 1,
+        "mealName": "Diced Chicken Breast and Grape Tomatoes",
+        "components": [
+          {
+            "name": "Roasted chicken breast, diced",
+            "massG": 140,
+            "catalogId": "usda:171477",
+            "preparation": "cooked roasted",
+            "assumptions": [
+              "Skinless roasted chicken breast",
+              "Cooked and cut into bite-sized cubes"
+            ],
+            "estimatedPer100": null,
+            "nutrients": {
+              "kcal": 230.99999999999997,
+              "proteinG": 43.428,
+              "carbsG": 0,
+              "fatG": 4.997999999999999
+            },
+            "source": {
+              "kind": "database_match",
+              "recordId": "usda:171477",
+              "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+              "version": "usda-sr-2019-tier1-20261108-v1",
+              "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+            }
+          },
+          {
+            "name": "Grape tomatoes",
+            "massG": 90,
+            "catalogId": null,
+            "preparation": "raw",
+            "assumptions": [
+              "Whole raw grape or cherry tomatoes, approximately 8-10 pieces"
+            ],
+            "estimatedPer100": {
+              "kcal": 18,
+              "proteinG": 0.9,
+              "carbsG": 3.9,
+              "fatG": 0.2
+            },
+            "nutrients": {
+              "kcal": 16.2,
+              "proteinG": 0.81,
+              "carbsG": 3.51,
+              "fatG": 0.18000000000000002
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          }
+        ],
+        "totals": {
+          "kcal": 247.19999999999996,
+          "proteinG": 44.238,
+          "carbsG": 3.51,
+          "fatG": 5.177999999999999
+        },
+        "ambiguities": [
+          "Presence of dressing, oil, or seasonings not visibly obvious at the bottom of the bowl"
+        ],
+        "question": {
+          "id": "added-fat",
+          "text": "Was there extra oil in this serving, beyond the foods and sauces listed?",
+          "answered": false,
+          "answer": null,
+          "options": [
+            {
+              "id": "none",
+              "label": "No extra oil",
+              "add": {
+                "kcal": 0,
+                "proteinG": 0,
+                "carbsG": 0,
+                "fatG": 0
+              },
+              "component": null
+            },
+            {
+              "id": "oil_5g",
+              "label": "About 1 tsp oil (5 g)",
+              "add": {
+                "kcal": 44.2,
+                "proteinG": 0,
+                "carbsG": 0,
+                "fatG": 5
+              },
+              "component": {
+                "name": "Additional oil (olive-oil nutrient proxy)",
+                "massG": 5,
+                "catalogId": "usda:171413",
+                "preparation": "oil",
+                "assumptions": [
+                  "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+                ],
+                "estimatedPer100": null,
+                "nutrients": {
+                  "kcal": 44.2,
+                  "proteinG": 0,
+                  "carbsG": 0,
+                  "fatG": 5
+                },
+                "source": {
+                  "kind": "database_match",
+                  "recordId": "usda:171413",
+                  "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+                  "version": "usda-sr-2019-tier1-20261108-v1",
+                  "description": "Oil, olive, salad or cooking"
+                }
+              }
+            },
+            {
+              "id": "oil_10g",
+              "label": "About 2 tsp oil (10 g)",
+              "add": {
+                "kcal": 88.4,
+                "proteinG": 0,
+                "carbsG": 0,
+                "fatG": 10
+              },
+              "component": {
+                "name": "Additional oil (olive-oil nutrient proxy)",
+                "massG": 10,
+                "catalogId": "usda:171413",
+                "preparation": "oil",
+                "assumptions": [
+                  "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+                ],
+                "estimatedPer100": null,
+                "nutrients": {
+                  "kcal": 88.4,
+                  "proteinG": 0,
+                  "carbsG": 0,
+                  "fatG": 10
+                },
+                "source": {
+                  "kind": "database_match",
+                  "recordId": "usda:171413",
+                  "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+                  "version": "usda-sr-2019-tier1-20261108-v1",
+                  "description": "Oil, olive, salad or cooking"
+                }
+              }
+            },
+            {
+              "id": "oil_15g",
+              "label": "About 1 tbsp oil (15 g)",
+              "add": {
+                "kcal": 132.6,
+                "proteinG": 0,
+                "carbsG": 0,
+                "fatG": 15
+              },
+              "component": {
+                "name": "Additional oil (olive-oil nutrient proxy)",
+                "massG": 15,
+                "catalogId": "usda:171413",
+                "preparation": "oil",
+                "assumptions": [
+                  "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+                ],
+                "estimatedPer100": null,
+                "nutrients": {
+                  "kcal": 132.6,
+                  "proteinG": 0,
+                  "carbsG": 0,
+                  "fatG": 15
+                },
+                "source": {
+                  "kind": "database_match",
+                  "recordId": "usda:171413",
+                  "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+                  "version": "usda-sr-2019-tier1-20261108-v1",
+                  "description": "Oil, olive, salad or cooking"
+                }
+              }
+            }
+          ]
+        },
+        "provenance": {
+          "model": "gemini-3.8-flash",
+          "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+          "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+          "schemaVersion": 1,
+          "returnedModel": "gemini-3.8-flash",
+          "latencyMs": 8612,
+          "inputTokens": 2018,
+          "outputTokens": 298,
+          "costUsd": null
+        },
+        "requiresReview": true,
+        "rawInventory": {
+          "schemaVersion": 1,
+          "mealName": "Diced Chicken Breast and Grape Tomatoes",
+          "components": [
+            {
+              "name": "Roasted chicken breast, diced",
+              "massG": 140,
+              "catalogId": "usda:171477",
+              "preparation": "cooked roasted",
+              "assumptions": [
+                "Skinless roasted chicken breast",
+                "Cooked and cut into bite-sized cubes"
+              ],
+              "estimatedPer100": null
+            },
+            {
+              "name": "Grape tomatoes",
+              "massG": 90,
+              "catalogId": null,
+              "preparation": "raw",
+              "assumptions": [
+                "Whole raw grape or cherry tomatoes, approximately 8-10 pieces"
+              ],
+              "estimatedPer100": {
+                "kcal": 18,
+                "proteinG": 0.9,
+                "carbsG": 3.9,
+                "fatG": 0.2
+              }
+            }
+          ],
+          "ambiguities": [
+            "Presence of dressing, oil, or seasonings not visibly obvious at the bottom of the bowl"
+          ],
+          "askAddedFat": true
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-thinking-level-2026-11-10/dish_1563389600/low/dish_1563389600.json",
+      "a1ReceiptSha256": "dd99a0e2d0ebea875212a08836cead47b5c3b9b65dfcfa918c1ac567bdfcb75f",
+      "referenceBasis": "Measured component masses and original recipe-USDA-derived energy/macros; exposed development mealrange set"
+    },
+    {
+      "id": "dish_1566920365",
+      "dataset": "nutrition5k",
+      "inputPath": "inputs/dish_1566920365.jpg",
+      "inputSha256": "1de13ddeb3881509de837955cc605428ee354cc99de2e9c879aeaefbffb953cf",
+      "reference": {
+        "kcal": 490.421692,
+        "massG": 871.0,
+        "fatG": 5.324439,
+        "carbsG": 41.393566,
+        "proteinG": 60.675976
+      },
+      "a1": {
+        "massG": 330,
+        "totals": {
+          "kcal": 196.20000000000002,
+          "proteinG": 22.14,
+          "carbsG": 24.09,
+          "fatG": 0.795
+        }
+      },
+      "a1Estimate": {
+        "schemaVersion": 1,
+        "mealName": "Egg Whites and Roasted Sweet Potatoes with Salsa Verde",
+        "components": [
+          {
+            "name": "Hard-boiled egg whites",
+            "massG": 180,
+            "catalogId": null,
+            "preparation": "cooked boiled",
+            "assumptions": [
+              "Chopped whites only, yolks removed"
+            ],
+            "estimatedPer100": {
+              "kcal": 52,
+              "proteinG": 10.9,
+              "carbsG": 0.7,
+              "fatG": 0.2
+            },
+            "nutrients": {
+              "kcal": 93.60000000000001,
+              "proteinG": 19.62,
+              "carbsG": 1.26,
+              "fatG": 0.36000000000000004
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Roasted sweet potato chunks",
+            "massG": 90,
+            "catalogId": null,
+            "preparation": "cooked roasted",
+            "assumptions": [
+              "Roasted with skin on, light oil"
+            ],
+            "estimatedPer100": {
+              "kcal": 90,
+              "proteinG": 2,
+              "carbsG": 20.7,
+              "fatG": 0.15
+            },
+            "nutrients": {
+              "kcal": 81,
+              "proteinG": 1.8,
+              "carbsG": 18.63,
+              "fatG": 0.135
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Salsa verde / green chili sauce",
+            "massG": 60,
+            "catalogId": null,
+            "preparation": "cooked blended",
+            "assumptions": [
+              "Tomatillo or green chili based sauce spooned over the top"
+            ],
+            "estimatedPer100": {
+              "kcal": 36,
+              "proteinG": 1.2,
+              "carbsG": 7,
+              "fatG": 0.5
+            },
+            "nutrients": {
+              "kcal": 21.599999999999998,
+              "proteinG": 0.72,
+              "carbsG": 4.2,
+              "fatG": 0.3
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          }
+        ],
+        "totals": {
+          "kcal": 196.20000000000002,
+          "proteinG": 22.14,
+          "carbsG": 24.09,
+          "fatG": 0.795
+        },
+        "ambiguities": [
+          "White chunks appear to be chopped hard-boiled egg whites or fresh soft cheese (like mozzarella or paneer); assumed egg whites given texture and appearance."
+        ],
+        "question": null,
+        "provenance": {
+          "model": "gemini-3.8-flash",
+          "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+          "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+          "schemaVersion": 1,
+          "returnedModel": "gemini-3.8-flash",
+          "latencyMs": 11057,
+          "inputTokens": 2018,
+          "outputTokens": 446,
+          "costUsd": null
+        },
+        "requiresReview": true,
+        "rawInventory": {
+          "schemaVersion": 1,
+          "mealName": "Egg Whites and Roasted Sweet Potatoes with Salsa Verde",
+          "components": [
+            {
+              "name": "Hard-boiled egg whites",
+              "massG": 180,
+              "catalogId": null,
+              "preparation": "cooked boiled",
+              "assumptions": [
+                "Chopped whites only, yolks removed"
+              ],
+              "estimatedPer100": {
+                "kcal": 52,
+                "proteinG": 10.9,
+                "carbsG": 0.7,
+                "fatG": 0.2
+              }
+            },
+            {
+              "name": "Roasted sweet potato chunks",
+              "massG": 90,
+              "catalogId": null,
+              "preparation": "cooked roasted",
+              "assumptions": [
+                "Roasted with skin on, light oil"
+              ],
+              "estimatedPer100": {
+                "kcal": 90,
+                "proteinG": 2,
+                "carbsG": 20.7,
+                "fatG": 0.15
+              }
+            },
+            {
+              "name": "Salsa verde / green chili sauce",
+              "massG": 60,
+              "catalogId": null,
+              "preparation": "cooked blended",
+              "assumptions": [
+                "Tomatillo or green chili based sauce spooned over the top"
+              ],
+              "estimatedPer100": {
+                "kcal": 36,
+                "proteinG": 1.2,
+                "carbsG": 7,
+                "fatG": 0.5
+              }
+            }
+          ],
+          "ambiguities": [
+            "White chunks appear to be chopped hard-boiled egg whites or fresh soft cheese (like mozzarella or paneer); assumed egg whites given texture and appearance."
+          ],
+          "askAddedFat": false
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-thinking-level-2026-11-10/dish_1566920365/low/dish_1566920365.json",
+      "a1ReceiptSha256": "2f17465fbe8975783658287ad785f0cd5a19f73d65c8fcaefd91e22944f565cd",
+      "referenceBasis": "Measured component masses and original recipe-USDA-derived energy/macros; exposed development mealrange set"
+    },
+    {
+      "id": "dish_1564687046",
+      "dataset": "nutrition5k",
+      "inputPath": "inputs/dish_1564687046.jpg",
+      "inputSha256": "85aba7aa1a5eac2bfa82d07357e717681aa289aee720ade11ec13aef30651033",
+      "reference": {
+        "kcal": 374.793854,
+        "massG": 308.0,
+        "fatG": 29.070162,
+        "carbsG": 20.45834,
+        "proteinG": 33.685577
+      },
+      "a1": {
+        "massG": 285,
+        "totals": {
+          "kcal": 362,
+          "proteinG": 40.910000000000004,
+          "carbsG": 11.8,
+          "fatG": 16.875
+        }
+      },
+      "a1Estimate": {
+        "schemaVersion": 1,
+        "mealName": "Steak with Green Beans and Stuffed or Stewed Fish/Meat with Tomatoes",
+        "components": [
+          {
+            "name": "Beef steak slices",
+            "massG": 85,
+            "catalogId": null,
+            "preparation": "cooked grilled or seared",
+            "assumptions": [
+              "Cooked medium, lean trimmed beef"
+            ],
+            "estimatedPer100": {
+              "kcal": 210,
+              "proteinG": 28,
+              "carbsG": 0,
+              "fatG": 10.5
+            },
+            "nutrients": {
+              "kcal": 178.5,
+              "proteinG": 23.8,
+              "carbsG": 0,
+              "fatG": 8.924999999999999
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Green beans",
+            "massG": 90,
+            "catalogId": null,
+            "preparation": "steamed or saut\u00e9ed",
+            "assumptions": [
+              "Cooked green beans with minimal added oil"
+            ],
+            "estimatedPer100": {
+              "kcal": 45,
+              "proteinG": 1.9,
+              "carbsG": 7,
+              "fatG": 1.5
+            },
+            "nutrients": {
+              "kcal": 40.5,
+              "proteinG": 1.71,
+              "carbsG": 6.3,
+              "fatG": 1.35
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Fish or eggplant roll with tomato sauce",
+            "massG": 110,
+            "catalogId": null,
+            "preparation": "baked or stewed",
+            "assumptions": [
+              "Appears to be fish fillets or eggplant cooked with tomato-based topping/sauce"
+            ],
+            "estimatedPer100": {
+              "kcal": 130,
+              "proteinG": 14,
+              "carbsG": 5,
+              "fatG": 6
+            },
+            "nutrients": {
+              "kcal": 143,
+              "proteinG": 15.400000000000002,
+              "carbsG": 5.5,
+              "fatG": 6.6000000000000005
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          }
+        ],
+        "totals": {
+          "kcal": 362,
+          "proteinG": 40.910000000000004,
+          "carbsG": 11.8,
+          "fatG": 16.875
+        },
+        "ambiguities": [
+          "Item with tomato topping could be baked fish (such as mackerel/sardine) or eggplant/meat involtini",
+          "Precise cut of steak and amount of oil used during cooking"
+        ],
+        "question": null,
+        "provenance": {
+          "model": "gemini-3.8-flash",
+          "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+          "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+          "schemaVersion": 1,
+          "returnedModel": "gemini-3.8-flash",
+          "latencyMs": 12676,
+          "inputTokens": 2018,
+          "outputTokens": 487,
+          "costUsd": null
+        },
+        "requiresReview": true,
+        "rawInventory": {
+          "schemaVersion": 1,
+          "mealName": "Steak with Green Beans and Stuffed or Stewed Fish/Meat with Tomatoes",
+          "components": [
+            {
+              "name": "Beef steak slices",
+              "massG": 85,
+              "catalogId": null,
+              "preparation": "cooked grilled or seared",
+              "assumptions": [
+                "Cooked medium, lean trimmed beef"
+              ],
+              "estimatedPer100": {
+                "kcal": 210,
+                "proteinG": 28,
+                "carbsG": 0,
+                "fatG": 10.5
+              }
+            },
+            {
+              "name": "Green beans",
+              "massG": 90,
+              "catalogId": null,
+              "preparation": "steamed or saut\u00e9ed",
+              "assumptions": [
+                "Cooked green beans with minimal added oil"
+              ],
+              "estimatedPer100": {
+                "kcal": 45,
+                "proteinG": 1.9,
+                "carbsG": 7,
+                "fatG": 1.5
+              }
+            },
+            {
+              "name": "Fish or eggplant roll with tomato sauce",
+              "massG": 110,
+              "catalogId": null,
+              "preparation": "baked or stewed",
+              "assumptions": [
+                "Appears to be fish fillets or eggplant cooked with tomato-based topping/sauce"
+              ],
+              "estimatedPer100": {
+                "kcal": 130,
+                "proteinG": 14,
+                "carbsG": 5,
+                "fatG": 6
+              }
+            }
+          ],
+          "ambiguities": [
+            "Item with tomato topping could be baked fish (such as mackerel/sardine) or eggplant/meat involtini",
+            "Precise cut of steak and amount of oil used during cooking"
+          ],
+          "askAddedFat": false
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-thinking-level-2026-11-10/dish_1564687046/low/dish_1564687046.json",
+      "a1ReceiptSha256": "51ab5492c57444a6f77d15d53731edaf0feea88e7f5af5702e834517c8d55c6d",
+      "referenceBasis": "Measured component masses and original recipe-USDA-derived energy/macros; exposed development mealrange set"
+    },
+    {
+      "id": "dish_1558461792",
+      "dataset": "nutrition5k",
+      "inputPath": "inputs/dish_1558461792.jpg",
+      "inputSha256": "57d2955f7f2f35fabd6ecc80f99b5f437e86196906e9825ce58591e9a9bc3ffc",
+      "reference": {
+        "kcal": 331.0,
+        "massG": 233.0,
+        "fatG": 20.195999,
+        "carbsG": 34.499001,
+        "proteinG": 10.543
+      },
+      "a1": {
+        "massG": 230,
+        "totals": {
+          "kcal": 294.59999999999997,
+          "proteinG": 9.255,
+          "carbsG": 30.740000000000002,
+          "fatG": 17.884999999999998
+        }
+      },
+      "a1Estimate": {
+        "schemaVersion": 1,
+        "mealName": "Plate with Cherry Tomatoes, Baby Spinach, Grapes, and Whole Almonds",
+        "components": [
+          {
+            "name": "Whole almonds",
+            "massG": 35,
+            "catalogId": null,
+            "preparation": "raw or dry roasted",
+            "assumptions": [
+              "Unsalted or lightly salted whole almonds"
+            ],
+            "estimatedPer100": {
+              "kcal": 579,
+              "proteinG": 21.2,
+              "carbsG": 21.6,
+              "fatG": 49.9
+            },
+            "nutrients": {
+              "kcal": 202.64999999999998,
+              "proteinG": 7.419999999999999,
+              "carbsG": 7.56,
+              "fatG": 17.465
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Red and green grapes",
+            "massG": 110,
+            "catalogId": null,
+            "preparation": "raw",
+            "assumptions": [
+              "Fresh seedless grapes"
+            ],
+            "estimatedPer100": {
+              "kcal": 69,
+              "proteinG": 0.7,
+              "carbsG": 18.1,
+              "fatG": 0.2
+            },
+            "nutrients": {
+              "kcal": 75.9,
+              "proteinG": 0.77,
+              "carbsG": 19.910000000000004,
+              "fatG": 0.22000000000000003
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Cherry or grape tomatoes",
+            "massG": 70,
+            "catalogId": null,
+            "preparation": "raw",
+            "assumptions": [
+              "5 whole fresh cherry/grape tomatoes"
+            ],
+            "estimatedPer100": {
+              "kcal": 18,
+              "proteinG": 0.9,
+              "carbsG": 3.9,
+              "fatG": 0.2
+            },
+            "nutrients": {
+              "kcal": 12.6,
+              "proteinG": 0.63,
+              "carbsG": 2.73,
+              "fatG": 0.13999999999999999
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Baby spinach leaves",
+            "massG": 15,
+            "catalogId": null,
+            "preparation": "raw",
+            "assumptions": [
+              "Fresh, unseasoned raw spinach leaves"
+            ],
+            "estimatedPer100": {
+              "kcal": 23,
+              "proteinG": 2.9,
+              "carbsG": 3.6,
+              "fatG": 0.4
+            },
+            "nutrients": {
+              "kcal": 3.4499999999999997,
+              "proteinG": 0.435,
+              "carbsG": 0.54,
+              "fatG": 0.06
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          }
+        ],
+        "totals": {
+          "kcal": 294.59999999999997,
+          "proteinG": 9.255,
+          "carbsG": 30.740000000000002,
+          "fatG": 17.884999999999998
+        },
+        "ambiguities": [
+          "Whether almonds are raw or roasted with oil/salt"
+        ],
+        "question": null,
+        "provenance": {
+          "model": "gemini-3.8-flash",
+          "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+          "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+          "schemaVersion": 1,
+          "returnedModel": "gemini-3.8-flash",
+          "latencyMs": 9912,
+          "inputTokens": 2018,
+          "outputTokens": 558,
+          "costUsd": null
+        },
+        "requiresReview": true,
+        "rawInventory": {
+          "schemaVersion": 1,
+          "mealName": "Plate with Cherry Tomatoes, Baby Spinach, Grapes, and Whole Almonds",
+          "components": [
+            {
+              "name": "Whole almonds",
+              "massG": 35,
+              "catalogId": null,
+              "preparation": "raw or dry roasted",
+              "assumptions": [
+                "Unsalted or lightly salted whole almonds"
+              ],
+              "estimatedPer100": {
+                "kcal": 579,
+                "proteinG": 21.2,
+                "carbsG": 21.6,
+                "fatG": 49.9
+              }
+            },
+            {
+              "name": "Red and green grapes",
+              "massG": 110,
+              "catalogId": null,
+              "preparation": "raw",
+              "assumptions": [
+                "Fresh seedless grapes"
+              ],
+              "estimatedPer100": {
+                "kcal": 69,
+                "proteinG": 0.7,
+                "carbsG": 18.1,
+                "fatG": 0.2
+              }
+            },
+            {
+              "name": "Cherry or grape tomatoes",
+              "massG": 70,
+              "catalogId": null,
+              "preparation": "raw",
+              "assumptions": [
+                "5 whole fresh cherry/grape tomatoes"
+              ],
+              "estimatedPer100": {
+                "kcal": 18,
+                "proteinG": 0.9,
+                "carbsG": 3.9,
+                "fatG": 0.2
+              }
+            },
+            {
+              "name": "Baby spinach leaves",
+              "massG": 15,
+              "catalogId": null,
+              "preparation": "raw",
+              "assumptions": [
+                "Fresh, unseasoned raw spinach leaves"
+              ],
+              "estimatedPer100": {
+                "kcal": 23,
+                "proteinG": 2.9,
+                "carbsG": 3.6,
+                "fatG": 0.4
+              }
+            }
+          ],
+          "ambiguities": [
+            "Whether almonds are raw or roasted with oil/salt"
+          ],
+          "askAddedFat": false
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-thinking-level-2026-11-10/dish_1558461792/low/dish_1558461792.json",
+      "a1ReceiptSha256": "6995f14681f8ef9219a36fe1c9232b7a5c523034758471b2dfa38bf544570f80",
+      "referenceBasis": "Measured component masses and original recipe-USDA-derived energy/macros; exposed development mealrange set"
+    },
+    {
+      "id": "dish_1561739238",
+      "dataset": "nutrition5k",
+      "inputPath": "inputs/dish_1561739238.jpg",
+      "inputSha256": "be322f0aa9da773937028ea67c110b631abe1a9151ca46fd49dadb6f3cb98a51",
+      "reference": {
+        "kcal": 274.190002,
+        "massG": 257.0,
+        "fatG": 9.785,
+        "carbsG": 37.556999,
+        "proteinG": 9.465
+      },
+      "a1": {
+        "massG": 210,
+        "totals": {
+          "kcal": 174.10000000000002,
+          "proteinG": 9.795,
+          "carbsG": 26.645000000000003,
+          "fatG": 3.385
+        }
+      },
+      "a1Estimate": {
+        "schemaVersion": 1,
+        "mealName": "Egg Whites, Hash Browns, Roasted Sweet Potatoes, and Fresh Berries",
+        "components": [
+          {
+            "name": "Hard-boiled egg whites",
+            "massG": 65,
+            "catalogId": null,
+            "preparation": "boiled",
+            "assumptions": [
+              "Chopped cooked egg whites without visible yolks"
+            ],
+            "estimatedPer100": {
+              "kcal": 52,
+              "proteinG": 10.9,
+              "carbsG": 0.7,
+              "fatG": 0.2
+            },
+            "nutrients": {
+              "kcal": 33.800000000000004,
+              "proteinG": 7.085000000000001,
+              "carbsG": 0.45499999999999996,
+              "fatG": 0.13
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Shredded hash brown potatoes",
+            "massG": 45,
+            "catalogId": null,
+            "preparation": "pan-fried",
+            "assumptions": [
+              "Shredded potatoes cooked with minimal oil"
+            ],
+            "estimatedPer100": {
+              "kcal": 150,
+              "proteinG": 2.2,
+              "carbsG": 21,
+              "fatG": 6.5
+            },
+            "nutrients": {
+              "kcal": 67.5,
+              "proteinG": 0.9900000000000001,
+              "carbsG": 9.450000000000001,
+              "fatG": 2.9250000000000003
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Roasted sweet potato cubes",
+            "massG": 60,
+            "catalogId": null,
+            "preparation": "roasted",
+            "assumptions": [
+              "Skin-on sweet potato chunks roasted with light oil"
+            ],
+            "estimatedPer100": {
+              "kcal": 90,
+              "proteinG": 2,
+              "carbsG": 20.7,
+              "fatG": 0.15
+            },
+            "nutrients": {
+              "kcal": 54,
+              "proteinG": 1.2,
+              "carbsG": 12.42,
+              "fatG": 0.09
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          },
+          {
+            "name": "Mixed fresh berries",
+            "massG": 40,
+            "catalogId": null,
+            "preparation": "raw",
+            "assumptions": [
+              "Combination of fresh raspberries, blackberries, and blueberry"
+            ],
+            "estimatedPer100": {
+              "kcal": 47,
+              "proteinG": 1.3,
+              "carbsG": 10.8,
+              "fatG": 0.6
+            },
+            "nutrients": {
+              "kcal": 18.8,
+              "proteinG": 0.52,
+              "carbsG": 4.32,
+              "fatG": 0.24
+            },
+            "source": {
+              "kind": "unverified_vlm_estimate",
+              "recordId": null,
+              "sourceUrl": null,
+              "version": null,
+              "description": null
+            }
+          }
+        ],
+        "totals": {
+          "kcal": 174.10000000000002,
+          "proteinG": 9.795,
+          "carbsG": 26.645000000000003,
+          "fatG": 3.385
+        },
+        "ambiguities": [
+          "White pieces appear to be cooked egg whites, but could potentially be fresh cheese or tofu.",
+          "Shredded item appears to be potato hash browns, but could be toasted shredded coconut or sauerkraut."
+        ],
+        "question": null,
+        "provenance": {
+          "model": "gemini-3.8-flash",
+          "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+          "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+          "schemaVersion": 1,
+          "returnedModel": "gemini-3.8-flash",
+          "latencyMs": 14450,
+          "inputTokens": 2018,
+          "outputTokens": 575,
+          "costUsd": null
+        },
+        "requiresReview": true,
+        "rawInventory": {
+          "schemaVersion": 1,
+          "mealName": "Egg Whites, Hash Browns, Roasted Sweet Potatoes, and Fresh Berries",
+          "components": [
+            {
+              "name": "Hard-boiled egg whites",
+              "massG": 65,
+              "catalogId": null,
+              "preparation": "boiled",
+              "assumptions": [
+                "Chopped cooked egg whites without visible yolks"
+              ],
+              "estimatedPer100": {
+                "kcal": 52,
+                "proteinG": 10.9,
+                "carbsG": 0.7,
+                "fatG": 0.2
+              }
+            },
+            {
+              "name": "Shredded hash brown potatoes",
+              "massG": 45,
+              "catalogId": null,
+              "preparation": "pan-fried",
+              "assumptions": [
+                "Shredded potatoes cooked with minimal oil"
+              ],
+              "estimatedPer100": {
+                "kcal": 150,
+                "proteinG": 2.2,
+                "carbsG": 21,
+                "fatG": 6.5
+              }
+            },
+            {
+              "name": "Roasted sweet potato cubes",
+              "massG": 60,
+              "catalogId": null,
+              "preparation": "roasted",
+              "assumptions": [
+                "Skin-on sweet potato chunks roasted with light oil"
+              ],
+              "estimatedPer100": {
+                "kcal": 90,
+                "proteinG": 2,
+                "carbsG": 20.7,
+                "fatG": 0.15
+              }
+            },
+            {
+              "name": "Mixed fresh berries",
+              "massG": 40,
+              "catalogId": null,
+              "preparation": "raw",
+              "assumptions": [
+                "Combination of fresh raspberries, blackberries, and blueberry"
+              ],
+              "estimatedPer100": {
+                "kcal": 47,
+                "proteinG": 1.3,
+                "carbsG": 10.8,
+                "fatG": 0.6
+              }
+            }
+          ],
+          "ambiguities": [
+            "White pieces appear to be cooked egg whites, but could potentially be fresh cheese or tofu.",
+            "Shredded item appears to be potato hash browns, but could be toasted shredded coconut or sauerkraut."
+          ],
+          "askAddedFat": false
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-thinking-level-2026-11-10/dish_1561739238/low/dish_1561739238.json",
+      "a1ReceiptSha256": "fb6c201735f56238536b402c9507e38c0733e95174777ce410602d31623cdce5",
+      "referenceBasis": "Measured component masses and original recipe-USDA-derived energy/macros; exposed development mealrange set"
+    },
+    {
+      "id": "bread005",
+      "dataset": "ecust",
+      "subgroup": "old",
+      "inputPath": "inputs/bread005.jpg",
+      "inputSha256": "a3ae366bc3361d5442a77142702301872962ccb404d1ea875ce1d4f81b429662",
+      "reference": {
+        "massG": 26.4
+      },
+      "a1": {
+        "massG": 35,
+        "totals": {
+          "kcal": 98,
+          "proteinG": 2.8,
+          "carbsG": 17.5,
+          "fatG": 1.575
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-reference-scale-2026-11-10/bread005/neutral/record.json",
+      "a1ReceiptSha256": "23d096e9a7f992db67a4fdd81b13fa53d00b0dc23343d98daf291779f53f74f1",
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/bread005T%282%29.JPG",
+      "sourcePortionId": "bread005"
+    },
+    {
+      "id": "bun006",
+      "dataset": "ecust",
+      "subgroup": "old",
+      "inputPath": "inputs/bun006.jpg",
+      "inputSha256": "627768eb7ad1474fe489bd8ec4d4849e8c7dbb9a427fd8f1cee99b94bd124e2d",
+      "reference": {
+        "massG": 78.3
+      },
+      "a1": {
+        "massG": 110,
+        "totals": {
+          "kcal": 245.3,
+          "proteinG": 7.700000000000001,
+          "carbsG": 50.6,
+          "fatG": 1.2100000000000002
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-reference-scale-2026-11-10/bun006/neutral/record.json",
+      "a1ReceiptSha256": "f610c5eeafd68ca61d1d467942db79022d24470467134ce77513157dc439f0dd",
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/bun006T%281%29.JPG",
+      "sourcePortionId": "bun006"
+    },
+    {
+      "id": "doughnut006",
+      "dataset": "ecust",
+      "subgroup": "old",
+      "inputPath": "inputs/doughnut006.jpg",
+      "inputSha256": "73d0100394033a753e85dab41fc0b126e187798747884ffa13439796a6c2d73f",
+      "reference": {
+        "massG": 66.2
+      },
+      "a1": {
+        "massG": 55,
+        "totals": {
+          "kcal": 231.55,
+          "proteinG": 3.4100000000000006,
+          "carbsG": 26.950000000000003,
+          "fatG": 12.375000000000002
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-reference-scale-2026-11-10/doughnut006/neutral/record.json",
+      "a1ReceiptSha256": "4227b298c58bf1c2ff407009ab1db960d754edb59ad15a78916bd165bddbc563",
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/doughnut006T%2814%29.JPG",
+      "sourcePortionId": "doughnut006"
+    },
+    {
+      "id": "fired_dough_twist006",
+      "dataset": "ecust",
+      "subgroup": "old",
+      "inputPath": "inputs/fired_dough_twist006.jpg",
+      "inputSha256": "be4a14bff2908385f834770e29356ad559ca3c2c286b48859d30c8aaa82793da",
+      "reference": {
+        "massG": 40.2
+      },
+      "a1": {
+        "massG": 55,
+        "totals": {
+          "kcal": 269.5,
+          "proteinG": 4.125,
+          "carbsG": 34.1,
+          "fatG": 13.200000000000001
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-reference-scale-2026-11-10/fired_dough_twist006/neutral/record.json",
+      "a1ReceiptSha256": "5bbc2fa5127c3ccd6db295a385e795a7ad66e0021d7d9ee3c693b05ef78f3aa8",
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/fired_dough_twist006T%284%29.JPG",
+      "sourcePortionId": "fired_dough_twist006"
+    },
+    {
+      "id": "mooncake004",
+      "dataset": "ecust",
+      "subgroup": "old",
+      "inputPath": "inputs/mooncake004.jpg",
+      "inputSha256": "e084e6eff191aa294be2d437ff0f4101cfe1612b301f946d822c2576bcf2c52f",
+      "reference": {
+        "massG": 41.8
+      },
+      "a1": {
+        "massG": 60,
+        "totals": {
+          "kcal": 246,
+          "proteinG": 3.5999999999999996,
+          "carbsG": 37.199999999999996,
+          "fatG": 9.6
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-reference-scale-2026-11-10/mooncake004/neutral/record.json",
+      "a1ReceiptSha256": "76739e6bf9deb5751a07d8b229ca839d042b36a9055931bc9136d13dba3ef5a8",
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/mooncake004T%285%29.JPG",
+      "sourcePortionId": "mooncake004"
+    },
+    {
+      "id": "sachima004",
+      "dataset": "ecust",
+      "subgroup": "old",
+      "inputPath": "inputs/sachima004.jpg",
+      "inputSha256": "c0d989ec836b7e1533e8e92378a4e96758a2afe2ad44b7f06da72d2266b9e928",
+      "reference": {
+        "massG": 33.4
+      },
+      "a1": {
+        "massG": 40,
+        "totals": {
+          "kcal": 194,
+          "proteinG": 2.6,
+          "carbsG": 25.400000000000002,
+          "fatG": 9.200000000000001
+        }
+      },
+      "a1ReceiptPath": "docs/tier1-reference-scale-2026-11-10/sachima004/neutral/record.json",
+      "a1ReceiptSha256": "30e04a7cae581cf201ce0b73d19bd1c39f56261e83fdfc161da7dff88934aaaf",
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/sachima004T%288%29.JPG",
+      "sourcePortionId": "sachima004"
+    },
+    {
+      "id": "bread004",
+      "dataset": "ecust",
+      "subgroup": "fresh",
+      "inputPath": "inputs/bread004.jpg",
+      "inputSha256": "99d5a64a95ace261f3c5a07afb40b7f798b4458a5d16d2d19d2c0a2e94546179",
+      "reference": {
+        "massG": 27.7
+      },
+      "a1": null,
+      "a1ReceiptPath": null,
+      "a1ReceiptSha256": null,
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/bread004T%281%29.JPG",
+      "sourcePortionId": "bread004"
+    },
+    {
+      "id": "bun005",
+      "dataset": "ecust",
+      "subgroup": "fresh",
+      "inputPath": "inputs/bun005.jpg",
+      "inputSha256": "ccaba1347d791490dedb4e29faf3349bdcd3ff3e089140330a2052040708ccac",
+      "reference": {
+        "massG": 69.1
+      },
+      "a1": null,
+      "a1ReceiptPath": null,
+      "a1ReceiptSha256": null,
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/bun005T%285%29.JPG",
+      "sourcePortionId": "bun005"
+    },
+    {
+      "id": "doughnut008",
+      "dataset": "ecust",
+      "subgroup": "fresh",
+      "inputPath": "inputs/doughnut008.jpg",
+      "inputSha256": "6a4e7e625d27620c2e5bb403d2cc882d07be53d35c7b905a9bb7972cfa236711",
+      "reference": {
+        "massG": 54.7
+      },
+      "a1": null,
+      "a1ReceiptPath": null,
+      "a1ReceiptSha256": null,
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/doughnut008T%289%29.JPG",
+      "sourcePortionId": "doughnut008"
+    },
+    {
+      "id": "fired_dough_twist004",
+      "dataset": "ecust",
+      "subgroup": "fresh",
+      "inputPath": "inputs/fired_dough_twist004.jpg",
+      "inputSha256": "f567c34d44c9ea1cabbbc17566b83cb70c4814eec761d1c4f31406b149a0ac08",
+      "reference": {
+        "massG": 39.6
+      },
+      "a1": null,
+      "a1ReceiptPath": null,
+      "a1ReceiptSha256": null,
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/fired_dough_twist004T%283%29.JPG",
+      "sourcePortionId": "fired_dough_twist004"
+    },
+    {
+      "id": "mooncake006",
+      "dataset": "ecust",
+      "subgroup": "fresh",
+      "inputPath": "inputs/mooncake006.jpg",
+      "inputSha256": "e48aa1d6bfe2cd17a6e650bb5c36b379a7c5754cecee41f7c850d551499b3e12",
+      "reference": {
+        "massG": 126.0
+      },
+      "a1": null,
+      "a1ReceiptPath": null,
+      "a1ReceiptSha256": null,
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/mooncake006T%286%29.JPG",
+      "sourcePortionId": "mooncake006"
+    },
+    {
+      "id": "sachima005",
+      "dataset": "ecust",
+      "subgroup": "fresh",
+      "inputPath": "inputs/sachima005.jpg",
+      "inputSha256": "e7ed4113b92337c0004c3e1f2b5c989e867736606a813b19b838c917a413ea4b",
+      "reference": {
+        "massG": 32.7
+      },
+      "a1": null,
+      "a1ReceiptPath": null,
+      "a1ReceiptSha256": null,
+      "referenceBasis": "Author weight(g) only; no calorie gold, ambiguous volume unused",
+      "sourceImageUrl": "https://raw.githubusercontent.com/Liang-yc/ECUSTFD-resized-/59603e70c99807af46df9af3c2c507995fdd0029/JPEGImages/sachima005T%2821%29.JPG",
+      "sourcePortionId": "sachima005"
+    }
+  ],
+  "inferenceInput": "RGB tensor ONLY; case IDs/reference labels/grams are not model inputs",
+  "newVlmSdkInvocations": 0,
+  "noTraining": true,
+  "ecustNoCalorieGold": true,
+  "referenceSources": [
+    {
+      "manifest": "functions/eval/tier1-public/manifest-mealrange-v1.json",
+      "sha256": "9d7d8f2b3097d551df8ca93d35dcd800a594ce45fd97f3e7ac1d71c8653ff9e7"
+    },
+    {
+      "manifest": "functions/eval/tier1-public/manifest-reference-scale-v1.json",
+      "sha256": "53b53169b606ff5c40dc9c3e575dd3651a3ecc340554b9455a9048bfc7bf7aca"
+    },
+    {
+      "freshSelectionSeed": "calorix-annotation-geometry-replication-v1",
+      "excludedSourceIds": [
+        "bread005",
+        "bun006",
+        "doughnut006",
+        "fired_dough_twist006",
+        "mooncake004",
+        "sachima004"
+      ],
+      "sourceCommit": "59603e70c99807af46df9af3c2c507995fdd0029",
+      "photosActuallyViewed": 6,
+      "imageQuality": "soft focus retained, no apparent inedible wrapper/core, one food/coin; no replacements"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "experiment": "open-models-v1",
+  "manifestSha256": "b0ba43fd7f5249a3e9d9f783976e77cceb5fb7e71ab03f33e884c13be5ebf7ea",
+  "models": [
+    {
+      "id": "plate-vision",
+      "artifactName": "plate-vision.onnx",
+      "artifactBytes": 33995501,
+      "artifactSha256": "3f982c4aa8658a032cbc2a656040953a17744a3d35df11b49e722eed07f9f431",
+      "upstreamCommit": "d5690063cc8795497c603aa676f97fd253053bbf",
+      "sourceUrl": "https://github.com/simonkundrik/plate-vision/releases/download/model-v0.2.0/plate-vision-fp32.onnx",
+      "metadataPath": "open-models/plate-bundle.json",
+      "metadataSha256": "32ad38755e3cf830fc8a74013c10826518edda91197b8578aa2e08bc87ff23d7",
+      "codeLicense": "MIT",
+      "weightUse": "publisher_research_use_only",
+      "redistributeToApp": false,
+      "trainingExposure": "publisher_official_dish_split_claimed_exact_membership_unverified",
+      "heldoutComparisonEligible": null
+    },
+    {
+      "id": "dish2calories",
+      "artifactName": "dish2calories.onnx",
+      "artifactBytes": 16754310,
+      "artifactSha256": "f9fd72c5ac79952592a522f2fd2d9e71f53f9bd28481646dccb617f94f4e7c0f",
+      "upstreamCommit": "23858d3a8c7e9a036fc36e4f6ac7e882f61aa950",
+      "sourceUrl": "https://raw.githubusercontent.com/AmirrrezaZ/dish2calories/23858d3a8c7e9a036fc36e4f6ac7e882f61aa950/weights/efficientnet_b0.onnx",
+      "metadataPath": "open-models/dish-config.json",
+      "metadataSha256": "72ce59c1f1bf5b9c5ad6a782f404b5ca928798eb34b62c862d20eb66d290a413",
+      "codeLicense": "MIT",
+      "weightUse": "MIT_repository_license_and_Nutrition5k_attribution",
+      "redistributeToApp": false,
+      "trainingExposure": "image_frame_row_split_may_overlap_dishes_exact_membership_unknown",
+      "heldoutComparisonEligible": false
+    }
+  ],
+  "runtime": {
+    "onnxruntime": "1.31.1",
+    "numpy": "2.2.4",
+    "Pillow": "11.1.0",
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "intraOpThreads": 2,
+    "interOpThreads": 1,
+    "execution": "ORT_SEQUENTIAL",
+    "rssLimitBytes": 1073741824,
+    "noProgressTimeoutSeconds": 120,
+    "perModelTimeoutSeconds": 600
+  },
+  "directAndMassFusionSeparate": true,
+  "fusionDenominator": "original A1 ESTIMATED total grams, NEVER reference grams",
+  "intervalsUsed": false,
+  "productionPromotable": false,
+  "screen": "N5fusion >=10%MAEgain/noP90/normregression/all10; old6ECUSTmassMAE/P90/coverage no worse thanA1; fresh6 mass-only separately; stillno automaticpromotion",
+  "newVlmSdkInvocations": 0,
+  "noTraining": true
+}

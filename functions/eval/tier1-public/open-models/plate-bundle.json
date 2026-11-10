@@ -1,0 +1,86 @@
+{
+  "schema_version": 3,
+  "generated_utc": "2026-08-09T20:43:31.685051+00:00",
+  "contract": "shared/model_meta.json",
+  "artifact": {
+    "name": "plate-vision-fp32.onnx",
+    "bytes": 33995501,
+    "sha256": "3f982c4aa8658a032cbc2a656040953a17744a3d35df11b49e722eed07f9f431"
+  },
+  "heads_trained": {
+    "logits": true,
+    "nutrition_quantiles": true
+  },
+  "target_transform": {
+    "mean": [
+      5.092899759688152,
+      2.316529973491968,
+      2.049654313178342,
+      2.6426008353543327,
+      5.10230158814283
+    ],
+    "std": [
+      1.0959696998346145,
+      1.2285925894508425,
+      1.1880488455680116,
+      0.9258798457410264,
+      0.821378656012948
+    ],
+    "keys": [
+      "energy",
+      "protein",
+      "fat",
+      "carbohydrate",
+      "mass"
+    ]
+  },
+  "conformal": {
+    "keys": [
+      "energy",
+      "protein",
+      "fat",
+      "carbohydrate",
+      "mass"
+    ],
+    "offsets": [
+      3.26617431640625,
+      1.3615803718566895,
+      1.1576652526855469,
+      4.714557647705078,
+      4.581531524658203
+    ],
+    "alpha": 0.1,
+    "calibration_size": 202
+  },
+  "provenance": {
+    "classifier_checkpoint": "runs\\kaggle-baseline\\runs\\baseline\\best.pt",
+    "classifier_backbone": "efficientnet_b0",
+    "classifier_metric": 86.11881188118812,
+    "nutrition_source": "runs\\kaggle-nutrition-d\\runs\\nutrition\\best.pt",
+    "target_transform": {
+      "mean": [
+        5.092899759688152,
+        2.316529973491968,
+        2.049654313178342,
+        2.6426008353543327,
+        5.10230158814283
+      ],
+      "std": [
+        1.0959696998346145,
+        1.2285925894508425,
+        1.1880488455680116,
+        0.9258798457410264,
+        0.821378656012948
+      ],
+      "keys": [
+        "energy",
+        "protein",
+        "fat",
+        "carbohydrate",
+        "mass"
+      ]
+    },
+    "backbones": "separate"
+  },
+  "quantization": null
+}

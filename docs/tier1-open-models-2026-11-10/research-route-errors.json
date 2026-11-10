@@ -1,0 +1,72 @@
+[
+  {
+    "timestamp": "2026-11-10 21:37:25 UTC",
+    "model": "gemini-3.8-flash",
+    "category": "tool_timeout",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "tool call error: tool call failed for `antigravity-mcp/ask-ai`\n\nCaused by:\n    timed out awaiting tools/call after 300s"
+        }
+      ],
+      "isError": true
+    }
+  },
+  {
+    "timestamp": "2026-11-10 21:37:25 UTC",
+    "model": "gemini-3.7-flash",
+    "category": "tool_error",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Error executing ask-ai: Invalid arguments for ask-ai: maxConversationTurns: Number must be greater than or equal to 1"
+        }
+      ],
+      "isError": true
+    }
+  },
+  {
+    "timestamp": "2026-11-10 21:37:25 UTC",
+    "model": "gemini-3.6-flash",
+    "category": "tool_error",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Error executing ask-ai: Invalid arguments for ask-ai: maxConversationTurns: Number must be greater than or equal to 1"
+        }
+      ],
+      "isError": true
+    }
+  },
+  {
+    "timestamp": "2026-11-10 21:37:43 UTC",
+    "model": "gemini-3.7-flash",
+    "category": "tool_error",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Error executing ask-ai: agy exited with code 1.\nerror: invalid model selection (--model \"gemini-3.7-flash\" --effort \"high\"): --effort is not supported for model \"gemini-3.7-flash\""
+        }
+      ],
+      "isError": true
+    }
+  },
+  {
+    "timestamp": "2026-11-10 21:37:46 UTC",
+    "model": "gemini-3.6-flash",
+    "category": "tool_error",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Error executing ask-ai: agy exited with code 1.\nerror: invalid model selection (--model \"gemini-3.6-flash\" --effort \"high\"): --effort is not supported for model \"gemini-3.6-flash\""
+        }
+      ],
+      "isError": true
+    }
+  }
+]
