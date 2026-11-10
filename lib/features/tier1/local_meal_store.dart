@@ -72,8 +72,8 @@ class Tier1MealStore {
     final raw=jsonDecode(await file.readAsString());
     if(raw is! Map)throw const FormatException('Invalid workflow journal');
     final value=Map<String,dynamic>.from(raw);
-    if(value.length!=4||value['schemaVersion'] is! int||value['schemaVersion']!=1||value['mealId']!=id||value['events'] is! List||value['droppedEvents'] is! int||(value['droppedEvents'] as int)<0)throw const FormatException('Invalid workflow journal');
-    final events=validateWorkflowEvents(value['events'] as List);
+    if(value.length!=4||value['schemaVersion'] is! int||!{1,2}.contains(value['schemaVersion'])||value['mealId']!=id||value['events'] is! List||value['droppedEvents'] is! int||(value['droppedEvents'] as int)<0)throw const FormatException('Invalid workflow journal');
+    final events=validateWorkflowEvents(value['events'] as List,version:value['schemaVersion'] as int);
     return {'events':events,'droppedEvents':value['droppedEvents']};
   }
   Future<bool> appendWorkflow(String id,List<Map<String,dynamic>> events)=>_serialized(() async {
@@ -86,7 +86,7 @@ class Tier1MealStore {
     final all=[...prior,...incoming],kept=validateWorkflowEvents(all.take(workflowEventLimit).toList());
     final dropped=(old?['droppedEvents'] as int? ?? 0)+all.length-kept.length;
     final temporary=_workflowPending(id);await temporary.parent.create(recursive:true);
-    await temporary.writeAsString(jsonEncode({'schemaVersion':1,'mealId':id,'events':kept,'droppedEvents':dropped}),flush:true);
+    await temporary.writeAsString(jsonEncode({'schemaVersion':2,'mealId':id,'events':kept,'droppedEvents':dropped}),flush:true);
     await temporary.rename(_workflowFile(id).path);
     return true;
   });
@@ -96,7 +96,7 @@ class Tier1MealStore {
     for(final meal in meals){
       Map<String,dynamic>? journal;var failed=false;
       try{journal=await _readWorkflow(meal.id);}catch(_){failed=true;}
-      const sources={'manual','photo','A1','manual_correction','portion_correction','confirmed_repeat'};
+      const sources={'manual','photo','A1','manual_correction','portion_correction','confirmed_repeat','food_correction'};
       rows.add({'mealId':meal.id,'source':sources.contains(meal.source)?meal.source:'unknown','currentServedKcal':meal.served?.kcal,
         'events':journal?['events']??[],'missingMeasurements':!failed&&journal==null,'readFailure':failed,
         'droppedEvents':journal?['droppedEvents'],'truncated':journal==null?null:(journal['droppedEvents'] as int)>0});

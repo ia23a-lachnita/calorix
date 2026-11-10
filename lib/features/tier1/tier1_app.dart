@@ -10,6 +10,8 @@ import '../../core/theme/app_theme.dart';
 import '../../core/time/clock.dart';
 import '../../shared/services/camera_service.dart';
 import 'local_meal.dart';
+import 'manual_nutrient_catalog.dart';
+import 'food_selection_dialog.dart';
 import 'local_meal_store.dart';
 import 'tier1_cloud.dart';
 import 'workflow_measurements.dart';
@@ -382,7 +384,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       if(applied){
         committed=true;_trace('portion_saved',{'portionIndex':index,'fromG':current,'toG':grams,'beforeKcal':opening.served?.kcal,'afterKcal':updated.served?.kcal,
           'dialogForegroundMs':measuredDialog(),
-          'beforeFromOriginalAnalysis':opening.portionOverrides.isEmpty&&!opening.hasManualNutritionOverride&&opening.served?.kcal==(opening.analysis!['totals'] as Map)['kcal'],
+          'beforeFromOriginalAnalysis':opening.foodOverrides.isEmpty&&opening.portionOverrides.isEmpty&&!opening.hasManualNutritionOverride&&opening.served?.kcal==(opening.analysis!['totals'] as Map)['kcal'],
           'priorPortionAdjustmentCount':opening.adjustmentHistory.where((e)=>e['kind']=='portion').length,..._modelFields(opening.analysis)});
       }else{_trace('portion_conflict',{'portionIndex':index,'dialogForegroundMs':measuredDialog()});}
       if(!mounted)return;
@@ -405,6 +407,52 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       }else{setState(()=>_message='Could not save this portion. Reopen the meal to check saved values.');}
     }
     finally{if(mounted)setState(()=>_busy=false);}
+  }
+  Future<void> _food(int index) async {
+    if(_busy||_dirty||!_meal.canCorrectPortions)return;
+    final opening=_meal;
+    final dialogStarted=_meter.foregroundExcludingWaitMs;
+    _trace('food_opened',{'portionIndex':index});
+    int? dialogElapsed;
+    int? measuredDialog()=>_meter.timingValid?dialogElapsed:null;
+    var committed=false;
+    setState(()=>_busy=true);
+    try{
+      final question=opening.analysis?['question'];
+      final extraOil=question is Map&&question['answered']==true&&{'oil_5g','oil_10g','oil_15g'}.contains(question['answer']);
+      final route=DialogRoute<ManualFoodSelection>(context:context,builder:(_)=>FoodSelectionDialog(
+        name:opening.componentName(index),grams:_displayNutrient(opening.componentMassG(index)),
+        recordId:opening.foodOverrides[index],manualTotals:opening.hasManualNutritionOverride,extraOil:extraOil));
+      final selected=await Navigator.of(context).push(route);
+      await route.completed;
+      dialogElapsed=_dialogDuration(dialogStarted);
+      if(selected==null){_trace('food_cancelled',{'portionIndex':index,'dialogForegroundMs':measuredDialog()});return;}
+      if(!mounted)return;
+      final updated=opening.correctFood(index,selected.recordId,at:widget.clock.now());
+      if(identical(updated,opening)){
+        _trace('food_unchanged',{'portionIndex':index,'dialogForegroundMs':measuredDialog()});return;
+      }
+      final applied=await widget.store.replaceIfRevision(updated,opening.revision);
+      if(applied){
+        committed=true;_trace('food_saved',{'portionIndex':index,'beforeKcal':opening.served?.kcal,
+          'afterKcal':updated.served?.kcal,'dialogForegroundMs':measuredDialog()});
+      }else{_trace('food_conflict',{'portionIndex':index,'dialogForegroundMs':measuredDialog()});}
+      if(!mounted)return;
+      if(!applied){
+        final messenger=ScaffoldMessenger.of(context);Navigator.pop(context);
+        messenger.showSnackBar(const SnackBar(content:Text('Meal changed; reopen it to edit.')));return;
+      }
+      _meal=(await widget.store.load()).firstWhere((m)=>m.id==opening.id);
+      if(!mounted)return;
+      _fill();setState((){_dirty=false;_message='Food saved. Check the approximate totals and portion; consumption is unconfirmed.';});
+    }catch(_){
+      if(!committed)_trace('food_failed',{'portionIndex':index,'dialogForegroundMs':measuredDialog()});
+      if(!mounted)return;
+      if(committed){
+        final messenger=ScaffoldMessenger.of(context);Navigator.pop(context);
+        messenger.showSnackBar(const SnackBar(content:Text('Food saved, but could not refresh. Reopen the meal to check saved values.')));
+      }else{setState(()=>_message='Could not save this food. Reopen the meal to check saved values.');}
+    }finally{if(mounted)setState(()=>_busy=false);}
   }
   Future<void> _repeat() async {
     if(_busy||_dirty)return;
@@ -469,11 +517,20 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
             final c=Map<String,dynamic>.from((analysis['components'] as List)[index] as Map);final source=Map<String,dynamic>.from(c['source'] as Map);
             final current=canCorrect?_meal.componentMassG(index):null;
             final original=c['massG'] is num?(c['massG'] as num).toDouble():null;
+            final foodId=_meal.foodOverrides[index],record=foodId==null?null:manualFood(foodId);
+            final foodName=canCorrect?_meal.componentName(index):c['name'] as String;
             return Padding(padding:const EdgeInsets.symmetric(vertical:8),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-              Text('${c['name']} · ${current==null?c['massG']:_displayNutrient(current)} g · ${c['preparation']}\n${source['kind']=='database_match'?'Database nutrient record (food match estimated): ${source['recordId']}':'Unverified model nutrient estimate'}\n${(c['assumptions'] as List? ?? []).join('; ')}'),
+              Text('$foodName · ${current==null?c['massG']:_displayNutrient(current)} g · ${record?.preparation??c['preparation']}\n${record!=null?'User-selected nutrient record: ${record.id} (food match and portion approximate)':source['kind']=='database_match'?'Database nutrient record (food match estimated): ${source['recordId']}':'Unverified model nutrient estimate'}'),
+              if(record!=null)...[
+                Text('Original prediction: ${c['name']} · ${c['preparation']}'),
+                if((c['assumptions'] as List? ?? []).isNotEmpty)Text('Original assumptions: ${(c['assumptions'] as List).join('; ')}'),
+                SelectableText(record.sourceUrl),
+              ]else if((c['assumptions'] as List? ?? []).isNotEmpty)Text((c['assumptions'] as List).join('; ')),
               if(_meal.portionOverrides.containsKey(index))Text('Original estimate: ${_displayNutrient(original)} g${current==0?' · Excluded from served totals':''}'),
-              if(canCorrect)Tooltip(message:'Edit portion for ${c['name']}',child:TextButton(
+              if(canCorrect)Tooltip(message:'Edit portion for $foodName',child:TextButton(
                 onPressed:_busy||_dirty?null:()=>_portion(index),child:const Text('Edit portion'))),
+              if(canCorrect)Tooltip(message:'Change food for $foodName',child:TextButton(
+                onPressed:_busy||_dirty?null:()=>_food(index),child:const Text('Change food'))),
             ]));
           }),
           for(final ambiguity in (analysis['ambiguities'] as List? ?? []))Text('Unresolved: $ambiguity'),

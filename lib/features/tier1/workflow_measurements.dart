@@ -3,7 +3,9 @@ import 'dart:convert';
 const workflowEventLimit=256;
 const workflowExportByteLimit=500000;
 const _maximumMs=365*24*60*60*1000;
-const workflowKinds={'editor_opened','editor_closed','analysis_started','analysis_returned','analysis_saved','analysis_refresh_failed','analysis_failed','analysis_discarded','result_frame','preparation_available','preparation_answered','portion_opened','portion_rejected','portion_cancelled','portion_unchanged','portion_saved','portion_conflict','portion_failed','manual_saved','repeat_saved','export_opened','export_closed'};
+const _legacyWorkflowKinds={'editor_opened','editor_closed','analysis_started','analysis_returned','analysis_saved','analysis_refresh_failed','analysis_failed','analysis_discarded','result_frame','preparation_available','preparation_answered','portion_opened','portion_rejected','portion_cancelled','portion_unchanged','portion_saved','portion_conflict','portion_failed','manual_saved','repeat_saved','export_opened','export_closed'};
+const _foodWorkflowKinds={'food_opened','food_cancelled','food_unchanged','food_saved','food_conflict','food_failed'};
+const workflowKinds={..._legacyWorkflowKinds,..._foodWorkflowKinds};
 const _base={'kind','sessionId','sequence','atUtc','timingValid','elapsedMs','foregroundMs','waitingMs'};
 const _times={'dialogForegroundMs','clientAnalysisMs','shutterToResponseMs','shutterToSavedMs','shutterToFrameMs'};
 const _numbers={'beforeKcal','afterKcal','fromG','toG'};
@@ -21,9 +23,10 @@ void _integer(dynamic value,{int maximum=_maximumMs}){
 void _utc(dynamic value){
   if(value is! String||!(value.endsWith('Z')||value.endsWith('+00:00')||value.endsWith('-00:00'))||DateTime.tryParse(value)==null)throw const FormatException('UTC workflow timestamp required');
 }
-Map<String,dynamic> validateWorkflowEvent(Map<String,dynamic> value){
+Map<String,dynamic> validateWorkflowEvent(Map<String,dynamic> value,{int version=2}){
+  if(version!=1&&version!=2)throw const FormatException('Unsupported workflow version');
   _shape(value,{..._base,..._extra},_base);
-  if(!workflowKinds.contains(value['kind'])||value['sessionId'] is! String||!workflowIdIsValid(value['sessionId'] as String))throw const FormatException('Invalid workflow event identity');
+  if(!(version==1?_legacyWorkflowKinds:workflowKinds).contains(value['kind'])||value['sessionId'] is! String||!workflowIdIsValid(value['sessionId'] as String))throw const FormatException('Invalid workflow event identity');
   _integer(value['sequence'],maximum:9007199254740991);_utc(value['atUtc']);
   if(value['timingValid'] is! bool)throw const FormatException('Unknown timing validity');
   for(final key in ['elapsedMs','foregroundMs','waitingMs']){
@@ -46,12 +49,12 @@ Map<String,dynamic> validateWorkflowEvent(Map<String,dynamic> value){
   return Map<String,dynamic>.from(value);
 }
 
-List<Map<String,dynamic>> validateWorkflowEvents(List<dynamic> values){
+List<Map<String,dynamic>> validateWorkflowEvents(List<dynamic> values,{int version=2}){
   if(values.length>workflowEventLimit)throw const FormatException('Workflow journal exceeds event bound');
   final last=<String,int>{},events=<Map<String,dynamic>>[];
   for(final raw in values){
     if(raw is! Map)throw const FormatException('Invalid workflow event');
-    final event=validateWorkflowEvent(Map<String,dynamic>.from(raw)),session=event['sessionId'] as String,sequence=event['sequence'] as int;
+    final event=validateWorkflowEvent(Map<String,dynamic>.from(raw),version:version),session=event['sessionId'] as String,sequence=event['sequence'] as int;
     if(sequence<=(last[session]??-1))throw const FormatException('Workflow sequence is not increasing');
     last[session]=sequence;events.add(event);
   }
@@ -89,13 +92,13 @@ class WorkflowMeter {
 }
 
 Map<String,dynamic> workflowExportData({required DateTime at,required List<Map<String,dynamic>> meals,bool enabled=true,int writeFailures=0})=>{
-  'schemaVersion':1,'scope':'currently_retained_meals','exportedAtUtc':at.toUtc().toIso8601String(),'referenceIsWeighed':false,
+  'schemaVersion':2,'scope':'currently_retained_meals','exportedAtUtc':at.toUtc().toIso8601String(),'referenceIsWeighed':false,
   'timingDefinition':'editor_foreground_minus_analysis_wait_proxy_v1','measurementEnabled':enabled,'currentProcessWriteFailures':writeFailures,'meals':meals};
 
 Map<String,dynamic> validateWorkflowExport(Map<String,dynamic> value){
   const keys={'schemaVersion','scope','exportedAtUtc','referenceIsWeighed','timingDefinition','measurementEnabled','currentProcessWriteFailures','meals'};
   _shape(value,keys,keys);
-  if(value['schemaVersion'] is! int||value['schemaVersion']!=1||value['scope']!='currently_retained_meals'||value['referenceIsWeighed']!=false||value['measurementEnabled'] is! bool||value['timingDefinition']!='editor_foreground_minus_analysis_wait_proxy_v1'||value['meals'] is! List)throw const FormatException('Unsupported workflow export');
+  if(value['schemaVersion'] is! int||!{1,2}.contains(value['schemaVersion'])||value['scope']!='currently_retained_meals'||value['referenceIsWeighed']!=false||value['measurementEnabled'] is! bool||value['timingDefinition']!='editor_foreground_minus_analysis_wait_proxy_v1'||value['meals'] is! List)throw const FormatException('Unsupported workflow export');
   _utc(value['exportedAtUtc']);_integer(value['currentProcessWriteFailures'],maximum:9007199254740991);
   final ids=<String>{};
   for(final raw in value['meals'] as List){
@@ -103,13 +106,13 @@ Map<String,dynamic> validateWorkflowExport(Map<String,dynamic> value){
     final row=Map<String,dynamic>.from(raw);
     const rowKeys={'mealId','source','currentServedKcal','events','missingMeasurements','readFailure','droppedEvents','truncated'};
     _shape(row,rowKeys,rowKeys);
-    if(row['mealId'] is! String||!workflowIdIsValid(row['mealId'] as String)||!ids.add(row['mealId'] as String)||!{'manual','photo','A1','manual_correction','portion_correction','confirmed_repeat','unknown'}.contains(row['source']))throw const FormatException('Invalid workflow meal identity/source');
+    if(row['mealId'] is! String||!workflowIdIsValid(row['mealId'] as String)||!ids.add(row['mealId'] as String)||!{'manual','photo','A1','manual_correction','portion_correction','confirmed_repeat','unknown',if(value['schemaVersion']==2)'food_correction'}.contains(row['source']))throw const FormatException('Invalid workflow meal identity/source');
     final kcal=row['currentServedKcal'];if(kcal!=null&&(kcal is! num||!kcal.isFinite||kcal<0||kcal>1000000))throw const FormatException('Invalid workflow kcal');
     if(row['missingMeasurements'] is! bool||row['readFailure'] is! bool||row['events'] is! List)throw const FormatException('Invalid workflow log status');
     if(row['droppedEvents']!=null)_integer(row['droppedEvents'],maximum:9007199254740991);
     if(row['truncated']!=null&&row['truncated'] is! bool)throw const FormatException('Invalid workflow truncation flag');
     if(row['missingMeasurements']==false&&row['readFailure']==false&&(row['droppedEvents']==null||row['truncated']!=((row['droppedEvents'] as int)>0)))throw const FormatException('Inconsistent workflow truncation');
-    validateWorkflowEvents(row['events'] as List);
+    validateWorkflowEvents(row['events'] as List,version:value['schemaVersion'] as int);
   }
   return value;
 }

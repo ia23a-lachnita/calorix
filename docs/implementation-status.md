@@ -6,6 +6,8 @@ Branch: feat/tier1-photo-pilot
 
 ## Fresh Session Handoff (Authoritative)
 
+FoodcorrectionactualFlutterRED42793685869/job129753264624 source0e5dbb6:1027PASS1historicalskip26expectedFAIL (missingcatalog/method/dialog/version2), existing1026controlsPASS/onecorruptstorecontrolPASS. No compile/harnesstimeout failures. Pythonactual56PASS4expectedERROR→60PASS beforealgorithms. MinimalDartcatalog/domain/picker/CAS/privateversion2journal implementationnowafterRED; fullcanonicalGREEN/analyzer/onefreshreview/MCP/APK/nativepending. Productionbackend/model/prompt/defaultcatalog unchanged.
+
 FoodcorrectionTask1 source0e5dbb6/fullCI42793685869 FlutterRED pending; no Dartalgorithm yet. LocalPython actualRED60tests/56PASS4expectedERROR (2missinggenerator,2version2) → GREEN60PASS afterpinnedgenerator/strict1&2exportparser. Generator --check passes, exact73recordsource unchanged. BoundedPython/catalogdata commit whileDartbehavioralRED runs; no newmodelcalls/productionchange.
 
 Current Task: OPTIONAL FOOD CORRECTION tests-first atbase25ea8f8, plan docs/superpowers/plans/2026-11-10-tier1-food-correction.md. PreMCPcorrectedprimary3.8/yolo literalagree/MUSTnone; immutableexisting73recordmanualcatalog/currentgrams/rawanalysis/oil/CAS/privateversion2journal+export+legacyreaders/portion-onlyendpoint contracts fixed. SameTier1nativeeditexception, no newmodel/APIbudget. IntendedactualFlutter/PythonRED→GREEN/fullcanonicalAPK/nativeownedfixture. Previouscapturestagecomplete, no checkpointstop.
