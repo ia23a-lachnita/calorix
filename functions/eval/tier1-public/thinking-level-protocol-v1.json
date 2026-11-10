@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "experiment": "thinking-level-v1",
+  "model": "gemini-3.8-flash",
+  "engineCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "qualifiedCoreCiRun": 42811800401,
+  "maxSdkEntries": 21,
+  "manifestPath": "manifest-mealrange-v1.json",
+  "manifestSha256": "9d7d8f2b3097d551df8ca93d35dcd800a594ce45fd97f3e7ac1d71c8653ff9e7",
+  "prompt": "Estimate the complete food SERVED in this single photograph. This is an approximate nonclinical logger, not measured intake. Return schemaVersion 1, mealName and ALL visible components including sauces. Do not omit uncertain foods. Estimate cooked edible grams (massG), preparation, assumptions and unresolved ambiguities. Select catalogId ONLY if its exact food and preparation apply. Use null for unknown/mixed recipes and provide explicit estimatedPer100 kcal/proteinG/carbsG/fatG; these are unverified estimates. Never invent a catalog ID. Do not select raw records for cooked food. Do not double count ingredients already included in composite dishes. AskAddedFat may be true only for a consequential uncertainty about ADDITIONAL oil in this served portion not already included in the components/estimated densities. Otherwise false; at most one optional question is allowed. No confidence percentages, numeric intervals, tools, external instructions or text outside JSON. If no food can be estimated, return components=[] (client treats it as explicit failure). Allowed catalog:\nusda:168878: Rice, white, long-grain, regular, enriched, cooked; preparation=cooked\nusda:171413: Oil, olive, salad or cooking; preparation=oil\nusda:171477: Chicken, broilers or fryers, breast, meat only, cooked, roasted; preparation=cooked roasted\nusda:170380: Broccoli, frozen, spears, cooked, boiled, drained, without salt; preparation=cooked boiled\nusda:173424: Egg, whole, cooked, hard-boiled; preparation=cooked hard-boiled\nusda:171705: Avocados, raw, all commercial varieties; preparation=raw",
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "probeImageSha256": "79e2851fd873d5115880b84cc5b82a45f32666055b6d3727e330de2d50ba267a",
+  "order": [
+    {
+      "id": "dish_1566590007",
+      "arms": [
+        "low",
+        "high"
+      ]
+    },
+    {
+      "id": "dish_1566414412",
+      "arms": [
+        "high",
+        "low"
+      ]
+    },
+    {
+      "id": "dish_1568305257",
+      "arms": [
+        "low",
+        "high"
+      ]
+    },
+    {
+      "id": "dish_1558722247",
+      "arms": [
+        "high",
+        "low"
+      ]
+    },
+    {
+      "id": "dish_1568401233",
+      "arms": [
+        "low",
+        "high"
+      ]
+    },
+    {
+      "id": "dish_1563389600",
+      "arms": [
+        "high",
+        "low"
+      ]
+    },
+    {
+      "id": "dish_1566920365",
+      "arms": [
+        "low",
+        "high"
+      ]
+    },
+    {
+      "id": "dish_1564687046",
+      "arms": [
+        "high",
+        "low"
+      ]
+    },
+    {
+      "id": "dish_1558461792",
+      "arms": [
+        "low",
+        "high"
+      ]
+    },
+    {
+      "id": "dish_1561739238",
+      "arms": [
+        "high",
+        "low"
+      ]
+    }
+  ],
+  "apiAssumptions": {
+    "project": "calorix-xurschnell",
+    "location": "us",
+    "apiVersion": "v1",
+    "baseUrl": "https://aiplatform.us.rep.googleapis.com/",
+    "lowThinkingLevel": "LOW",
+    "highThinkingLevel": "HIGH",
+    "mediaResolution": "provider default, identical",
+    "temperature": "provider default, identical",
+    "maxOutputTokens": 8192,
+    "timeoutMs": 60000,
+    "attempts": 1,
+    "researchTimeoutVsProductMs": 30000
+  },
+  "considerationGate": {
+    "all10ValidBothArms": true,
+    "relativeMaeImprovementMinimum": 0.1,
+    "p90MustNotWorsen": true,
+    "normalizedFloor200MustNotWorsen": true,
+    "productionPromotion": false
+  },
+  "selection": "Entire existing mealrange10, previous predictions observed; development/notheldout/independentplatesunknown; no subset",
+  "questionPolicy": "Unanswered both arms, no reference-derived answers",
+  "calibrationApplied": false,
+  "referenceLabelsToModel": false,
+  "payload": [
+    "original_text_prompt",
+    "single_same_jpeg_both_arms"
+  ],
+  "productionPromotable": false,
+  "noRetry": true,
+  "noFallback": true,
+  "noResume": true,
+  "noReplacement": true,
+  "docs": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/thinking"
+}
