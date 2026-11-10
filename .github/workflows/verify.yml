@@ -80,7 +80,7 @@ jobs:
         run: python3 -m unittest discover -s tests -p 'test_*.py'
 
       - name: Test frozen public evaluation guards
-        run: node --test tool/frozen_public_eval.test.cjs
+        run: node --test tool/*.test.cjs
 
       - name: Build
         working-directory: functions

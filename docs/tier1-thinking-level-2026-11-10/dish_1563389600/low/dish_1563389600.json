@@ -1,0 +1,257 @@
+{
+  "id": "dish_1563389600",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 247.19999999999996,
+      "proteinG": 44.238,
+      "carbsG": 3.51,
+      "fatG": 5.177999999999999
+    },
+    "massG": 230,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 8620,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Diced Chicken Breast and Grape Tomatoes",
+    "components": [
+      {
+        "name": "Roasted chicken breast, diced",
+        "massG": 140,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Skinless roasted chicken breast",
+          "Cooked and cut into bite-sized cubes"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 230.99999999999997,
+          "proteinG": 43.428,
+          "carbsG": 0,
+          "fatG": 4.997999999999999
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Grape tomatoes",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Whole raw grape or cherry tomatoes, approximately 8-10 pieces"
+        ],
+        "estimatedPer100": {
+          "kcal": 18,
+          "proteinG": 0.9,
+          "carbsG": 3.9,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 16.2,
+          "proteinG": 0.81,
+          "carbsG": 3.51,
+          "fatG": 0.18000000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 247.19999999999996,
+      "proteinG": 44.238,
+      "carbsG": 3.51,
+      "fatG": 5.177999999999999
+    },
+    "ambiguities": [
+      "Presence of dressing, oil, or seasonings not visibly obvious at the bottom of the bowl"
+    ],
+    "question": {
+      "id": "added-fat",
+      "text": "Was there extra oil in this serving, beyond the foods and sauces listed?",
+      "answered": false,
+      "answer": null,
+      "options": [
+        {
+          "id": "none",
+          "label": "No extra oil",
+          "add": {
+            "kcal": 0,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 0
+          },
+          "component": null
+        },
+        {
+          "id": "oil_5g",
+          "label": "About 1 tsp oil (5 g)",
+          "add": {
+            "kcal": 44.2,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 5
+          },
+          "component": {
+            "name": "Additional oil (olive-oil nutrient proxy)",
+            "massG": 5,
+            "catalogId": "usda:171413",
+            "preparation": "oil",
+            "assumptions": [
+              "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+            ],
+            "estimatedPer100": null,
+            "nutrients": {
+              "kcal": 44.2,
+              "proteinG": 0,
+              "carbsG": 0,
+              "fatG": 5
+            },
+            "source": {
+              "kind": "database_match",
+              "recordId": "usda:171413",
+              "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+              "version": "usda-sr-2019-tier1-20261108-v1",
+              "description": "Oil, olive, salad or cooking"
+            }
+          }
+        },
+        {
+          "id": "oil_10g",
+          "label": "About 2 tsp oil (10 g)",
+          "add": {
+            "kcal": 88.4,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 10
+          },
+          "component": {
+            "name": "Additional oil (olive-oil nutrient proxy)",
+            "massG": 10,
+            "catalogId": "usda:171413",
+            "preparation": "oil",
+            "assumptions": [
+              "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+            ],
+            "estimatedPer100": null,
+            "nutrients": {
+              "kcal": 88.4,
+              "proteinG": 0,
+              "carbsG": 0,
+              "fatG": 10
+            },
+            "source": {
+              "kind": "database_match",
+              "recordId": "usda:171413",
+              "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+              "version": "usda-sr-2019-tier1-20261108-v1",
+              "description": "Oil, olive, salad or cooking"
+            }
+          }
+        },
+        {
+          "id": "oil_15g",
+          "label": "About 1 tbsp oil (15 g)",
+          "add": {
+            "kcal": 132.6,
+            "proteinG": 0,
+            "carbsG": 0,
+            "fatG": 15
+          },
+          "component": {
+            "name": "Additional oil (olive-oil nutrient proxy)",
+            "massG": 15,
+            "catalogId": "usda:171413",
+            "preparation": "oil",
+            "assumptions": [
+              "User estimate of additional cooking oil; olive-oil nutrient proxy, not weighed"
+            ],
+            "estimatedPer100": null,
+            "nutrients": {
+              "kcal": 132.6,
+              "proteinG": 0,
+              "carbsG": 0,
+              "fatG": 15
+            },
+            "source": {
+              "kind": "database_match",
+              "recordId": "usda:171413",
+              "sourceUrl": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+              "version": "usda-sr-2019-tier1-20261108-v1",
+              "description": "Oil, olive, salad or cooking"
+            }
+          }
+        }
+      ]
+    },
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 8612,
+      "inputTokens": 2018,
+      "outputTokens": 298,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Diced Chicken Breast and Grape Tomatoes",
+      "components": [
+        {
+          "name": "Roasted chicken breast, diced",
+          "massG": 140,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Skinless roasted chicken breast",
+            "Cooked and cut into bite-sized cubes"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Grape tomatoes",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Whole raw grape or cherry tomatoes, approximately 8-10 pieces"
+          ],
+          "estimatedPer100": {
+            "kcal": 18,
+            "proteinG": 0.9,
+            "carbsG": 3.9,
+            "fatG": 0.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Presence of dressing, oil, or seasonings not visibly obvious at the bottom of the bowl"
+      ],
+      "askAddedFat": true
+    }
+  },
+  "comparisonContextId": "fda92800c0a0b2e0f2e93a5c62eade3af8abc0c8094c779f50f852714d732f4e"
+}

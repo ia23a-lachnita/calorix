@@ -1,0 +1,35 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Steak with Green Beans and Stuffed or Stewed Fish/Meat with Tomatoes\",\n  \"components\": [\n    {\n      \"name\": \"Beef steak slices\",\n      \"massG\": 85.0,\n      \"catalogId\": null,\n      \"preparation\": \"cooked grilled or seared\",\n      \"assumptions\": [\"Cooked medium, lean trimmed beef\"],\n      \"estimatedPer100\": {\n        \"kcal\": 210.0,\n        \"proteinG\": 28.0,\n        \"carbsG\": 0.0,\n        \"fatG\": 10.5\n      }\n    },\n    {\n      \"name\": \"Green beans\",\n      \"massG\": 90.0,\n      \"catalogId\": null,\n      \"preparation\": \"steamed or sautéed\",\n      \"assumptions\": [\"Cooked green beans with minimal added oil\"],\n      \"estimatedPer100\": {\n        \"kcal\": 45.0,\n        \"proteinG\": 1.9,\n        \"carbsG\": 7.0,\n        \"fatG\": 1.5\n      }\n    },\n    {\n      \"name\": \"Fish or eggplant roll with tomato sauce\",\n      \"massG\": 110.0,\n      \"catalogId\": null,\n      \"preparation\": \"baked or stewed\",\n      \"assumptions\": [\"Appears to be fish fillets or eggplant cooked with tomato-based topping/sauce\"],\n      \"estimatedPer100\": {\n        \"kcal\": 130.0,\n        \"proteinG\": 14.0,\n        \"carbsG\": 5.0,\n        \"fatG\": 6.0\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Item with tomato topping could be baked fish (such as mackerel/sardine) or eggplant/meat involtini\",\n    \"Precise cut of steak and amount of oil used during cooking\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 487,
+    "totalTokenCount": 2505,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 487
+      }
+    ]
+  },
+  "latencyMs": 12676,
+  "thinkingLevel": "LOW",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "85aba7aa1a5eac2bfa82d07357e717681aa289aee720ade11ec13aef30651033"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

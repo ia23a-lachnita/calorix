@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\"schemaVersion\":1,\"mealName\":\"Chicken in Cream Sauce with Roasted Potatoes, Grain Salad, and Mixed Greens\",\"components\":[{\"name\":\"Roasted potato wedges\",\"massG\":110,\"catalogId\":null,\"preparation\":\"roasted with oil and herbs\",\"assumptions\":[\"Standard cubed roasted potatoes with skins on\"],\"estimatedPer100\":{\"kcal\":145,\"proteinG\":2.5,\"carbsG\":22.0,\"fatG\":5.5}},{\"name\":\"Couscous vegetable salad\",\"massG\":85,\"catalogId\":null,\"preparation\":\"steamed and tossed cold with vegetables and oil\",\"assumptions\":[\"Couscous or bulgur with diced red bell pepper, red onion, and cucumber\"],\"estimatedPer100\":{\"kcal\":135,\"proteinG\":3.8,\"carbsG\":23.5,\"fatG\":3.2}},{\"name\":\"Chicken breast with creamy sauce\",\"massG\":150,\"catalogId\":null,\"preparation\":\"cooked with cream or yogurt sauce\",\"assumptions\":[\"Sliced chicken breast coated in a creamy/mayo or dairy-based sauce\"],\"estimatedPer100\":{\"kcal\":185,\"proteinG\":18.5,\"carbsG\":3.0,\"fatG\":11.0}},{\"name\":\"Mixed green salad with dressing\",\"massG\":65,\"catalogId\":null,\"preparation\":\"raw dressed with light vinaigrette\",\"assumptions\":[\"Mixed baby salad greens with a cherry tomato and light oil-based dressing\"],\"estimatedPer100\":{\"kcal\":70,\"proteinG\":1.5,\"carbsG\":4.0,\"fatG\":5.5}}],\"ambiguities\":[\"Exact recipe and meat type for creamy dish in upper right, assumed chicken breast with cream/yogurt sauce\",\"Specific grain used in vegetable salad, assumed couscous\"],\"askAddedFat\":false}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 395,
+    "totalTokenCount": 3604,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 395
+      }
+    ],
+    "thoughtsTokenCount": 1191
+  },
+  "latencyMs": 19127,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\"schemaVersion\":1,\"mealName\":\"Snack Plate with Apple, Almonds, and Cauliflower\",\"components\":[{\"name\":\"Apple\",\"massG\":160,\"catalogId\":null,\"preparation\":\"raw\",\"assumptions\":[\"Medium whole apple\",\"Core weight excluded\"],\"estimatedPer100\":{\"kcal\":52,\"proteinG\":0.3,\"carbsG\":13.8,\"fatG\":0.2}},{\"name\":\"Almonds\",\"massG\":70,\"catalogId\":null,\"preparation\":\"raw\",\"assumptions\":[\"Whole plain almonds\",\"No added oil or salt visible\"],\"estimatedPer100\":{\"kcal\":579,\"proteinG\":21.2,\"carbsG\":21.6,\"fatG\":49.9}},{\"name\":\"Cauliflower florets\",\"massG\":55,\"catalogId\":null,\"preparation\":\"raw\",\"assumptions\":[\"Fresh raw cauliflower florets\"],\"estimatedPer100\":{\"kcal\":25,\"proteinG\":1.9,\"carbsG\":5.0,\"fatG\":0.3}}],\"ambiguities\":[\"Whether almonds are raw or dry-roasted\"],\"askAddedFat\":false}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 248,
+    "totalTokenCount": 3958,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 248
+      }
+    ],
+    "thoughtsTokenCount": 1692
+  },
+  "latencyMs": 23068,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "52d149ea4b05b7a3d92a848db0c607698d0f45549fa817250ed9dd850c0f8db2"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

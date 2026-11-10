@@ -1,0 +1,35 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Tuna Salad with Sweet Potato and Shredded Carrots\",\n  \"components\": [\n    {\n      \"name\": \"Tuna salad\",\n      \"massG\": 140,\n      \"catalogId\": null,\n      \"preparation\": \"mixed with mayonnaise, celery, and red onion\",\n      \"assumptions\": [\"Prepared with canned tuna, light mayonnaise or oil dressing, and diced vegetables\"],\n      \"estimatedPer100\": {\n        \"kcal\": 185,\n        \"proteinG\": 16.5,\n        \"carbsG\": 3.2,\n        \"fatG\": 11.8\n      }\n    },\n    {\n      \"name\": \"Mashed sweet potato\",\n      \"massG\": 110,\n      \"catalogId\": null,\n      \"preparation\": \"cooked, mashed or roasted chunks\",\n      \"assumptions\": [\"Plain boiled or baked sweet potato with minimal added fat\"],\n      \"estimatedPer100\": {\n        \"kcal\": 86,\n        \"proteinG\": 1.6,\n        \"carbsG\": 20.1,\n        \"fatG\": 0.1\n      }\n    },\n    {\n      \"name\": \"Shredded carrots\",\n      \"massG\": 70,\n      \"catalogId\": null,\n      \"preparation\": \"raw shredded\",\n      \"assumptions\": [\"Fresh raw shredded carrots without added dressing\"],\n      \"estimatedPer100\": {\n        \"kcal\": 41,\n        \"proteinG\": 0.9,\n        \"carbsG\": 9.6,\n        \"fatG\": 0.2\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Exact amount and type of dressing/mayonnaise in the tuna salad is uncertain.\",\n    \"Presence of added butter or oil in the sweet potato is unconfirmed.\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 463,
+    "totalTokenCount": 2481,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 463
+      }
+    ]
+  },
+  "latencyMs": 11978,
+  "thinkingLevel": "LOW",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "75927711eec8957eb5010ce05154bf02541d64cefaa0fa691e7cef944556adc5"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

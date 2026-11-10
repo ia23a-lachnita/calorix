@@ -1,0 +1,233 @@
+{
+  "sourceCommit": "7624093d8441948d25b4ce107df6f95d95e88455",
+  "engineCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "manifestSha256": "9d7d8f2b3097d551df8ca93d35dcd800a594ce45fd97f3e7ac1d71c8653ff9e7",
+  "protocolSha256": "a2ce3f24c6593334538417940954b706105a7ef04df3dde3b160ab084fff4040",
+  "bundleSha256": "c15276ba8395dfcacefaeb583cebe9680942056233395b9f489a85fa36684db7",
+  "model": "gemini-3.8-flash",
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "outputDir": "/home/agent-runner/.local/share/calorix-thinking-level-20261110/experiment",
+  "assetsRoot": "/home/agent-runner/.local/share/calorix-thinking-level-20261110/assets",
+  "consentVersion": "tier1-v1",
+  "status": "completed",
+  "phase": "complete",
+  "maxSdkEntries": 21,
+  "completedSdkEntries": 21,
+  "unknownInFlight": false,
+  "startedAt": "2026-11-10T18:40:24.126Z",
+  "order": [
+    {
+      "id": "dish_1566590007",
+      "arms": [
+        "low",
+        "high"
+      ]
+    },
+    {
+      "id": "dish_1566414412",
+      "arms": [
+        "high",
+        "low"
+      ]
+    },
+    {
+      "id": "dish_1568305257",
+      "arms": [
+        "low",
+        "high"
+      ]
+    },
+    {
+      "id": "dish_1558722247",
+      "arms": [
+        "high",
+        "low"
+      ]
+    },
+    {
+      "id": "dish_1568401233",
+      "arms": [
+        "low",
+        "high"
+      ]
+    },
+    {
+      "id": "dish_1563389600",
+      "arms": [
+        "high",
+        "low"
+      ]
+    },
+    {
+      "id": "dish_1566920365",
+      "arms": [
+        "low",
+        "high"
+      ]
+    },
+    {
+      "id": "dish_1564687046",
+      "arms": [
+        "high",
+        "low"
+      ]
+    },
+    {
+      "id": "dish_1558461792",
+      "arms": [
+        "low",
+        "high"
+      ]
+    },
+    {
+      "id": "dish_1561739238",
+      "arms": [
+        "high",
+        "low"
+      ]
+    }
+  ],
+  "outcomes": [
+    {
+      "id": "dish_1566590007",
+      "arm": "low",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1566590007",
+      "arm": "high",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1566414412",
+      "arm": "high",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1566414412",
+      "arm": "low",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1568305257",
+      "arm": "low",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1568305257",
+      "arm": "high",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1558722247",
+      "arm": "high",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1558722247",
+      "arm": "low",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1568401233",
+      "arm": "low",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1568401233",
+      "arm": "high",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1563389600",
+      "arm": "high",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1563389600",
+      "arm": "low",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1566920365",
+      "arm": "low",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1566920365",
+      "arm": "high",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1564687046",
+      "arm": "high",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1564687046",
+      "arm": "low",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1558461792",
+      "arm": "low",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1558461792",
+      "arm": "high",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1561739238",
+      "arm": "high",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    },
+    {
+      "id": "dish_1561739238",
+      "arm": "low",
+      "sdkInvocations": 1,
+      "status": "ok",
+      "failure": null
+    }
+  ]
+}

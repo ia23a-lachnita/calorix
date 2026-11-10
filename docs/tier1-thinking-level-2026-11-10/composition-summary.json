@@ -1,0 +1,22 @@
+{
+  "low": {
+    "components": 33,
+    "unverifiedComponents": 32,
+    "databaseMatchedComponents": 1,
+    "unverifiedPredictedKcalFraction": 0.938222079589217,
+    "questionProposals": 1,
+    "questionsAnswered": 0,
+    "missingFoodsAudit": "not_assessed",
+    "humanCorrectionsMeasured": 0
+  },
+  "high": {
+    "components": 33,
+    "unverifiedComponents": 32,
+    "databaseMatchedComponents": 1,
+    "unverifiedPredictedKcalFraction": 0.9385123175000333,
+    "questionProposals": 0,
+    "questionsAnswered": 0,
+    "missingFoodsAudit": "not_assessed",
+    "humanCorrectionsMeasured": 0
+  }
+}

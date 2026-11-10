@@ -1,0 +1,22 @@
+{
+  "low": {
+    "referenceMassSubstitutionMaeKcal": 68.90604952050253,
+    "medianAbsoluteErrorKcal": 66.87942821044545,
+    "p90AbsoluteErrorKcal": 131.0035294304348,
+    "biasKcal": -23.279833285414806,
+    "referencesRequired": true,
+    "deployable": false,
+    "accuracyBound": false,
+    "interpretation": "Oracle diagnostic using unavailable reference mass. Can remove compensating errors; not causal attribution or validated method."
+  },
+  "high": {
+    "referenceMassSubstitutionMaeKcal": 48.66905857025201,
+    "medianAbsoluteErrorKcal": 39.59202823196682,
+    "p90AbsoluteErrorKcal": 106.87089668297875,
+    "biasKcal": -29.600985943422735,
+    "referencesRequired": true,
+    "deployable": false,
+    "accuracyBound": false,
+    "interpretation": "Oracle diagnostic using unavailable reference mass. Can remove compensating errors; not causal attribution or validated method."
+  }
+}

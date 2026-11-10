@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\"schemaVersion\":1,\"mealName\":\"Tuna Salad with Sweet Potato and Shredded Carrots\",\"components\":[{\"name\":\"Tuna salad\",\"massG\":150,\"catalogId\":null,\"preparation\":\"mixed\",\"assumptions\":[\"Canned tuna mixed with mayonnaise, diced celery, and red onion\"],\"estimatedPer100\":{\"kcal\":175,\"proteinG\":16.0,\"carbsG\":3.0,\"fatG\":11.0}},{\"name\":\"Cooked sweet potato\",\"massG\":110,\"catalogId\":null,\"preparation\":\"cooked\",\"assumptions\":[\"Steamed or roasted sweet potato chunks\",\"Prepared without added fats\"],\"estimatedPer100\":{\"kcal\":86,\"proteinG\":1.6,\"carbsG\":20.1,\"fatG\":0.1}},{\"name\":\"Shredded carrots\",\"massG\":70,\"catalogId\":null,\"preparation\":\"raw\",\"assumptions\":[\"Fresh raw shredded carrots\",\"No added dressing or oil\"],\"estimatedPer100\":{\"kcal\":41,\"proteinG\":0.9,\"carbsG\":9.6,\"fatG\":0.2}}],\"ambiguities\":[\"The flaked salad could be chicken salad, flaked salmon, or canned tuna\",\"The orange mash could be pumpkin or squash instead of sweet potato\"],\"askAddedFat\":false}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 283,
+    "totalTokenCount": 3831,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 283
+      }
+    ],
+    "thoughtsTokenCount": 1530
+  },
+  "latencyMs": 21482,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "75927711eec8957eb5010ce05154bf02541d64cefaa0fa691e7cef944556adc5"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

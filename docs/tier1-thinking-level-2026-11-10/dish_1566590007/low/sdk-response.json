@@ -1,0 +1,35 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Flatbread with Quinoa Salad and Herb-Seasoned Tofu or Chicken Strips\",\n  \"components\": [\n    {\n      \"name\": \"Flatbread or savory pastry with cheese and tomato\",\n      \"massG\": 120,\n      \"catalogId\": null,\n      \"preparation\": \"baked\",\n      \"assumptions\": [\n        \"Crust topped with tomato sauce or puree, cheese, sliced tomatoes, red onions, and green dressing/crema\",\n        \"Includes crust and toppings\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 240,\n        \"proteinG\": 8.5,\n        \"carbsG\": 28.0,\n        \"fatG\": 10.5\n      }\n    },\n    {\n      \"name\": \"Avocado crema or green sauce drizzle\",\n      \"massG\": 15,\n      \"catalogId\": null,\n      \"preparation\": \"raw blended\",\n      \"assumptions\": [\n        \"Light drizzle of avocado/herb-based sauce on flatbread\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 160,\n        \"proteinG\": 1.5,\n        \"carbsG\": 4.0,\n        \"fatG\": 16.0\n      }\n    },\n    {\n      \"name\": \"Cooked seasoned quinoa with herbs and tomatoes\",\n      \"massG\": 110,\n      \"catalogId\": null,\n      \"preparation\": \"cooked mixed\",\n      \"assumptions\": [\n        \"Red or spiced quinoa mixed with tomato paste/sauce, leafy greens or herbs, and oil\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 140,\n        \"proteinG\": 4.0,\n        \"carbsG\": 21.0,\n        \"fatG\": 4.5\n      }\n    },\n    {\n      \"name\": \"Marinated baked tofu or seasoned chicken strips with onions\",\n      \"massG\": 85,\n      \"catalogId\": null,\n      \"preparation\": \"marinated and baked\",\n      \"assumptions\": [\n        \"Strips appear to be firm seasoned baked tofu or shredded/sliced chicken with herbs and red onion slaw\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 150,\n        \"proteinG\": 14.0,\n        \"carbsG\": 5.0,\n        \"fatG\": 8.0\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Protein strips could be seasoned baked tofu, seitan, or chicken breast\",\n    \"Grain salad could be bulgur, farro, or quinoa\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 663,
+    "totalTokenCount": 2681,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 663
+      }
+    ]
+  },
+  "latencyMs": 13175,
+  "thinkingLevel": "LOW",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "9587868cba1515ceaf142652c5e9a885557e361550ddd205557eeee3dd986b38"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

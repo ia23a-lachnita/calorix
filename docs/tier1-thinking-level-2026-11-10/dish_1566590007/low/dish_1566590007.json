@@ -1,0 +1,238 @@
+{
+  "id": "dish_1566590007",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 593.5,
+      "proteinG": 26.725,
+      "carbsG": 61.550000000000004,
+      "fatG": 26.75
+    },
+    "massG": 330,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 13189,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Flatbread with Quinoa Salad and Herb-Seasoned Tofu or Chicken Strips",
+    "components": [
+      {
+        "name": "Flatbread or savory pastry with cheese and tomato",
+        "massG": 120,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Crust topped with tomato sauce or puree, cheese, sliced tomatoes, red onions, and green dressing/crema",
+          "Includes crust and toppings"
+        ],
+        "estimatedPer100": {
+          "kcal": 240,
+          "proteinG": 8.5,
+          "carbsG": 28,
+          "fatG": 10.5
+        },
+        "nutrients": {
+          "kcal": 288,
+          "proteinG": 10.2,
+          "carbsG": 33.6,
+          "fatG": 12.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Avocado crema or green sauce drizzle",
+        "massG": 15,
+        "catalogId": null,
+        "preparation": "raw blended",
+        "assumptions": [
+          "Light drizzle of avocado/herb-based sauce on flatbread"
+        ],
+        "estimatedPer100": {
+          "kcal": 160,
+          "proteinG": 1.5,
+          "carbsG": 4,
+          "fatG": 16
+        },
+        "nutrients": {
+          "kcal": 24,
+          "proteinG": 0.22499999999999998,
+          "carbsG": 0.6,
+          "fatG": 2.4
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cooked seasoned quinoa with herbs and tomatoes",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "cooked mixed",
+        "assumptions": [
+          "Red or spiced quinoa mixed with tomato paste/sauce, leafy greens or herbs, and oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 140,
+          "proteinG": 4,
+          "carbsG": 21,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 154,
+          "proteinG": 4.4,
+          "carbsG": 23.1,
+          "fatG": 4.95
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Marinated baked tofu or seasoned chicken strips with onions",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "marinated and baked",
+        "assumptions": [
+          "Strips appear to be firm seasoned baked tofu or shredded/sliced chicken with herbs and red onion slaw"
+        ],
+        "estimatedPer100": {
+          "kcal": 150,
+          "proteinG": 14,
+          "carbsG": 5,
+          "fatG": 8
+        },
+        "nutrients": {
+          "kcal": 127.5,
+          "proteinG": 11.9,
+          "carbsG": 4.25,
+          "fatG": 6.8
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 593.5,
+      "proteinG": 26.725,
+      "carbsG": 61.550000000000004,
+      "fatG": 26.75
+    },
+    "ambiguities": [
+      "Protein strips could be seasoned baked tofu, seitan, or chicken breast",
+      "Grain salad could be bulgur, farro, or quinoa"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 13175,
+      "inputTokens": 2018,
+      "outputTokens": 663,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Flatbread with Quinoa Salad and Herb-Seasoned Tofu or Chicken Strips",
+      "components": [
+        {
+          "name": "Flatbread or savory pastry with cheese and tomato",
+          "massG": 120,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Crust topped with tomato sauce or puree, cheese, sliced tomatoes, red onions, and green dressing/crema",
+            "Includes crust and toppings"
+          ],
+          "estimatedPer100": {
+            "kcal": 240,
+            "proteinG": 8.5,
+            "carbsG": 28,
+            "fatG": 10.5
+          }
+        },
+        {
+          "name": "Avocado crema or green sauce drizzle",
+          "massG": 15,
+          "catalogId": null,
+          "preparation": "raw blended",
+          "assumptions": [
+            "Light drizzle of avocado/herb-based sauce on flatbread"
+          ],
+          "estimatedPer100": {
+            "kcal": 160,
+            "proteinG": 1.5,
+            "carbsG": 4,
+            "fatG": 16
+          }
+        },
+        {
+          "name": "Cooked seasoned quinoa with herbs and tomatoes",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "cooked mixed",
+          "assumptions": [
+            "Red or spiced quinoa mixed with tomato paste/sauce, leafy greens or herbs, and oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 4,
+            "carbsG": 21,
+            "fatG": 4.5
+          }
+        },
+        {
+          "name": "Marinated baked tofu or seasoned chicken strips with onions",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "marinated and baked",
+          "assumptions": [
+            "Strips appear to be firm seasoned baked tofu or shredded/sliced chicken with herbs and red onion slaw"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 14,
+            "carbsG": 5,
+            "fatG": 8
+          }
+        }
+      ],
+      "ambiguities": [
+        "Protein strips could be seasoned baked tofu, seitan, or chicken breast",
+        "Grain salad could be bulgur, farro, or quinoa"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "4bbaaa0015f21e944579f104b7787395b4a63183ffff345bc680df20865550ea"
+}

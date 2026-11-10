@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\"schemaVersion\":1,\"mealName\":\"Diced Chicken Breast with Cherry Tomatoes\",\"components\":[{\"name\":\"Chicken breast\",\"massG\":140,\"catalogId\":\"usda:171477\",\"preparation\":\"cooked roasted\",\"assumptions\":[\"Cooked boneless, skinless chicken breast meat diced into bite-sized pieces\"],\"estimatedPer100\":null},{\"name\":\"Cherry tomatoes\",\"massG\":100,\"catalogId\":null,\"preparation\":\"raw\",\"assumptions\":[\"Whole raw cherry or grape tomatoes, approximately 9 to 10 pieces\"],\"estimatedPer100\":{\"kcal\":18,\"proteinG\":0.9,\"carbsG\":3.9,\"fatG\":0.2}}],\"ambiguities\":[\"Whether any oil, dressing, or seasoning was added to the bowl\"],\"askAddedFat\":false}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 175,
+    "totalTokenCount": 3982,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 175
+      }
+    ],
+    "thoughtsTokenCount": 1789
+  },
+  "latencyMs": 22197,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "5dd57e8063e5f941541faa009851cd0a47a80967942af81640ffe4e6afa6af01"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

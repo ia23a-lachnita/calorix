@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Egg Whites with Roasted Sweet Potatoes and Salsa Verde\",\n  \"components\": [\n    {\n      \"name\": \"Hard-boiled egg whites\",\n      \"massG\": 180,\n      \"catalogId\": null,\n      \"preparation\": \"cooked boiled\",\n      \"assumptions\": [\n        \"Identified as chopped hard-boiled egg whites with yolks removed\",\n        \"Approximately 5-6 large egg whites\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 52,\n        \"proteinG\": 10.9,\n        \"carbsG\": 0.7,\n        \"fatG\": 0.2\n      }\n    },\n    {\n      \"name\": \"Roasted sweet potato wedges\",\n      \"massG\": 90,\n      \"catalogId\": null,\n      \"preparation\": \"cooked roasted\",\n      \"assumptions\": [\n        \"Skin-on roasted sweet potato pieces\",\n        \"Includes a small amount of oil from roasting\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 100,\n        \"proteinG\": 2.0,\n        \"carbsG\": 21.0,\n        \"fatG\": 1.5\n      }\n    },\n    {\n      \"name\": \"Salsa verde\",\n      \"massG\": 50,\n      \"catalogId\": null,\n      \"preparation\": \"prepared sauce\",\n      \"assumptions\": [\n        \"Tomatillo-based green Mexican salsa\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 35,\n        \"proteinG\": 1.5,\n        \"carbsG\": 6.5,\n        \"fatG\": 0.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"White chunks strongly resemble hard-boiled egg whites, but could alternatively be fresh cheese (such as queso fresco or mozzarella) or firm tofu\",\n    \"Orange root vegetable assumed to be sweet potato, but could be squash or carrot\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 502,
+    "totalTokenCount": 4357,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 502
+      }
+    ],
+    "thoughtsTokenCount": 1837
+  },
+  "latencyMs": 22504,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "1de13ddeb3881509de837955cc605428ee354cc99de2e9c879aeaefbffb953cf"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

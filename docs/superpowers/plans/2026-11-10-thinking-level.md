@@ -8,7 +8,7 @@ NewcanonicalGitcommonthinking-level-v1 registry max21(probe1+10x2), pendingbefor
 
 ## Tasks
 - [x] 1. Tests first for21single-usebudget/probe/failureguard/configsinglefactor and caloriepairedmetrics/coverage/gate. ExpectedRED thenGREEN. Implementsmallrunner/newprotocol/evaluator reusingunchangedf5runPublicEvaluation andsharedmetrics. Gate fixedbeforeSDK:all10validbotharms, >=10%relativekcalMAEimprovement and no worseP90/floor200norm. Bias/mass/macros/mediansreported, noCI; evenpassonlyfreshvalidationcandidate, notproductionapproval.
-- [ ] 2. Allheadlessverification, primarysource+fresh-contextwholefeatureMCP, cleancommitpushbeforeSDK. Sameold5TSbyte-qualifiedCI42811800401 only, no newapp/nativeclaim.
-- [ ] 3. Sole21entryrun; independentlyredecodeSDKraw/Decimalmetrics/publishedreplay; reportallcases/errors/failures/latency/usageincludingthoughtswhenknown/costnull. ActualresultMCP, commitpush. Failedcandidatearchivedwithoutretuning; passingcandidatefreezeandfreshvalidate.
+- [x] 2. Allheadlessverification, primarysource+fresh-contextwholefeatureMCP, cleancommitpushbeforeSDK. Sameold5TSbyte-qualifiedCI42811800401 only, no newapp/nativeclaim.
+- [x] 3. Sole21entryrun; independentlyredecodeSDKraw/Decimalmetrics/publishedreplay; reportallcases/errors/failures/latency/usageincludingthoughtswhenknown/costnull. ActualresultMCP, commitpush. Failedcandidatearchivedwithoutretuning; passingcandidatefreezeandfreshvalidate.
 
 Interfaces: fixedmanifest/protocol→runnerraw+childrecords→offlineevaluator usingallattempt/matchedvalidsamecase counts. Systemicerrorshalt/unknowninflight, no_food/invalid_model_outputscoredfailure. Reviewfocus: factorisolation, hiddenmetadata/callorder, interpretinghigherreasoning/truncation/cost, budgetbypass, missingpairedcase/partialruns, conditionalscores/gatevsexpectedabsoluteaccuracy.

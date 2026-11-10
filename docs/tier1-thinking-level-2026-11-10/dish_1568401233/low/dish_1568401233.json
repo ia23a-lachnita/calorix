@@ -1,0 +1,193 @@
+{
+  "id": "dish_1568401233",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 382.3,
+      "proteinG": 25.49,
+      "carbsG": 33.31,
+      "fatG": 16.77
+    },
+    "massG": 320,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 11984,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Tuna Salad with Sweet Potato and Shredded Carrots",
+    "components": [
+      {
+        "name": "Tuna salad",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "mixed with mayonnaise, celery, and red onion",
+        "assumptions": [
+          "Prepared with canned tuna, light mayonnaise or oil dressing, and diced vegetables"
+        ],
+        "estimatedPer100": {
+          "kcal": 185,
+          "proteinG": 16.5,
+          "carbsG": 3.2,
+          "fatG": 11.8
+        },
+        "nutrients": {
+          "kcal": 259,
+          "proteinG": 23.099999999999998,
+          "carbsG": 4.4799999999999995,
+          "fatG": 16.52
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mashed sweet potato",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "cooked, mashed or roasted chunks",
+        "assumptions": [
+          "Plain boiled or baked sweet potato with minimal added fat"
+        ],
+        "estimatedPer100": {
+          "kcal": 86,
+          "proteinG": 1.6,
+          "carbsG": 20.1,
+          "fatG": 0.1
+        },
+        "nutrients": {
+          "kcal": 94.60000000000001,
+          "proteinG": 1.7600000000000002,
+          "carbsG": 22.110000000000003,
+          "fatG": 0.11000000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Shredded carrots",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "raw shredded",
+        "assumptions": [
+          "Fresh raw shredded carrots without added dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 41,
+          "proteinG": 0.9,
+          "carbsG": 9.6,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 28.7,
+          "proteinG": 0.63,
+          "carbsG": 6.72,
+          "fatG": 0.13999999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 382.3,
+      "proteinG": 25.49,
+      "carbsG": 33.31,
+      "fatG": 16.77
+    },
+    "ambiguities": [
+      "Exact amount and type of dressing/mayonnaise in the tuna salad is uncertain.",
+      "Presence of added butter or oil in the sweet potato is unconfirmed."
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 11978,
+      "inputTokens": 2018,
+      "outputTokens": 463,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Tuna Salad with Sweet Potato and Shredded Carrots",
+      "components": [
+        {
+          "name": "Tuna salad",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "mixed with mayonnaise, celery, and red onion",
+          "assumptions": [
+            "Prepared with canned tuna, light mayonnaise or oil dressing, and diced vegetables"
+          ],
+          "estimatedPer100": {
+            "kcal": 185,
+            "proteinG": 16.5,
+            "carbsG": 3.2,
+            "fatG": 11.8
+          }
+        },
+        {
+          "name": "Mashed sweet potato",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "cooked, mashed or roasted chunks",
+          "assumptions": [
+            "Plain boiled or baked sweet potato with minimal added fat"
+          ],
+          "estimatedPer100": {
+            "kcal": 86,
+            "proteinG": 1.6,
+            "carbsG": 20.1,
+            "fatG": 0.1
+          }
+        },
+        {
+          "name": "Shredded carrots",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "raw shredded",
+          "assumptions": [
+            "Fresh raw shredded carrots without added dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 41,
+            "proteinG": 0.9,
+            "carbsG": 9.6,
+            "fatG": 0.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact amount and type of dressing/mayonnaise in the tuna salad is uncertain.",
+        "Presence of added butter or oil in the sweet potato is unconfirmed."
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "175d15d5e1f3116ef09ffedf135a048c73f6822783adb1c76b1113acb0522de9"
+}

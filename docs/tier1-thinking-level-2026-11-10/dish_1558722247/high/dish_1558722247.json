@@ -1,0 +1,195 @@
+{
+  "id": "dish_1558722247",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 502.24999999999994,
+      "proteinG": 16.365,
+      "carbsG": 39.95,
+      "fatG": 35.415
+    },
+    "massG": 285,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 23076,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Snack Plate with Apple, Almonds, and Cauliflower",
+    "components": [
+      {
+        "name": "Apple",
+        "massG": 160,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Medium whole apple",
+          "Core weight excluded"
+        ],
+        "estimatedPer100": {
+          "kcal": 52,
+          "proteinG": 0.3,
+          "carbsG": 13.8,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 83.2,
+          "proteinG": 0.48,
+          "carbsG": 22.080000000000002,
+          "fatG": 0.32000000000000006
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Almonds",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Whole plain almonds",
+          "No added oil or salt visible"
+        ],
+        "estimatedPer100": {
+          "kcal": 579,
+          "proteinG": 21.2,
+          "carbsG": 21.6,
+          "fatG": 49.9
+        },
+        "nutrients": {
+          "kcal": 405.29999999999995,
+          "proteinG": 14.839999999999998,
+          "carbsG": 15.12,
+          "fatG": 34.93
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cauliflower florets",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh raw cauliflower florets"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 1.9,
+          "carbsG": 5,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 13.750000000000002,
+          "proteinG": 1.045,
+          "carbsG": 2.75,
+          "fatG": 0.165
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 502.24999999999994,
+      "proteinG": 16.365,
+      "carbsG": 39.95,
+      "fatG": 35.415
+    },
+    "ambiguities": [
+      "Whether almonds are raw or dry-roasted"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 23068,
+      "inputTokens": 2018,
+      "outputTokens": 248,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Snack Plate with Apple, Almonds, and Cauliflower",
+      "components": [
+        {
+          "name": "Apple",
+          "massG": 160,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Medium whole apple",
+            "Core weight excluded"
+          ],
+          "estimatedPer100": {
+            "kcal": 52,
+            "proteinG": 0.3,
+            "carbsG": 13.8,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Almonds",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Whole plain almonds",
+            "No added oil or salt visible"
+          ],
+          "estimatedPer100": {
+            "kcal": 579,
+            "proteinG": 21.2,
+            "carbsG": 21.6,
+            "fatG": 49.9
+          }
+        },
+        {
+          "name": "Cauliflower florets",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh raw cauliflower florets"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 1.9,
+            "carbsG": 5,
+            "fatG": 0.3
+          }
+        }
+      ],
+      "ambiguities": [
+        "Whether almonds are raw or dry-roasted"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "e99b1c98d91e44af18c3c7be643b3286dfac3ba79d5d67ece0fce5689aecab68"
+}

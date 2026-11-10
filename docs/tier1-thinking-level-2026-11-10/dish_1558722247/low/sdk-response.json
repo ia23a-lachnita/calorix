@@ -1,0 +1,35 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Whole Apple with Almonds and Raw Cauliflower\",\n  \"components\": [\n    {\n      \"name\": \"Apple\",\n      \"massG\": 160,\n      \"catalogId\": null,\n      \"preparation\": \"raw\",\n      \"assumptions\": [\"One medium whole raw apple, core included in mass estimate\"],\n      \"estimatedPer100\": {\n        \"kcal\": 52,\n        \"proteinG\": 0.3,\n        \"carbsG\": 13.8,\n        \"fatG\": 0.2\n      }\n    },\n    {\n      \"name\": \"Whole almonds\",\n      \"massG\": 65,\n      \"catalogId\": null,\n      \"preparation\": \"raw or dry roasted\",\n      \"assumptions\": [\"Whole unsalted almonds\", \"Approximately 50-60 kernels\"],\n      \"estimatedPer100\": {\n        \"kcal\": 579,\n        \"proteinG\": 21.2,\n        \"carbsG\": 21.6,\n        \"fatG\": 49.9\n      }\n    },\n    {\n      \"name\": \"Cauliflower florets\",\n      \"massG\": 85,\n      \"catalogId\": null,\n      \"preparation\": \"raw\",\n      \"assumptions\": [\"Raw cauliflower florets and stems\"],\n      \"estimatedPer100\": {\n        \"kcal\": 25,\n        \"proteinG\": 1.9,\n        \"carbsG\": 5.0,\n        \"fatG\": 0.3\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Whether almonds are raw or dry-roasted/salted\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 425,
+    "totalTokenCount": 2443,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 425
+      }
+    ]
+  },
+  "latencyMs": 8708,
+  "thinkingLevel": "LOW",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "52d149ea4b05b7a3d92a848db0c607698d0f45549fa817250ed9dd850c0f8db2"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

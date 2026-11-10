@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\"schemaVersion\":1,\"mealName\":\"Beef Steak and Baked Fish with Green Beans\",\"components\":[{\"name\":\"Beef steak\",\"massG\":85,\"catalogId\":null,\"preparation\":\"cooked grilled\",\"assumptions\":[\"sliced lean beef (such as sirloin or flank) cooked to medium doneness\",\"trimmed of visible fat\"],\"estimatedPer100\":{\"kcal\":205,\"proteinG\":26.5,\"carbsG\":0.0,\"fatG\":10.5}},{\"name\":\"Baked fish with tomato sauce\",\"massG\":130,\"catalogId\":null,\"preparation\":\"baked with sauce\",\"assumptions\":[\"fillet with skin on, topped with stewed tomato and aromatics\",\"moderate moisture and sauce content\"],\"estimatedPer100\":{\"kcal\":115,\"proteinG\":15.0,\"carbsG\":4.0,\"fatG\":4.5}},{\"name\":\"Green beans\",\"massG\":110,\"catalogId\":null,\"preparation\":\"cooked steamed or sautéed\",\"assumptions\":[\"trimmed whole green beans\",\"lightly cooked with minimal added oil\"],\"estimatedPer100\":{\"kcal\":45,\"proteinG\":2.0,\"carbsG\":7.5,\"fatG\":1.2}}],\"ambiguities\":[\"Exact fish species in the tomato dish\",\"Specific cut and fat level of the beef steak\"],\"askAddedFat\":false}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 292,
+    "totalTokenCount": 3843,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 292
+      }
+    ],
+    "thoughtsTokenCount": 1533
+  },
+  "latencyMs": 29908,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "85aba7aa1a5eac2bfa82d07357e717681aa289aee720ade11ec13aef30651033"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

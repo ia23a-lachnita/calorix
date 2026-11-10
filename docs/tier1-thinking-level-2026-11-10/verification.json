@@ -1,0 +1,31 @@
+{
+  "runnerSourceCommit": "7624093d8441948d25b4ce107df6f95d95e88455",
+  "coreSourceCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "python": {
+    "command": "python3 -m unittest discover -s tests -p 'test_*.py'",
+    "passed": 107,
+    "failed": 0
+  },
+  "node": {
+    "command": "node --test tool/*.test.cjs",
+    "passed": 34,
+    "failed": 0,
+    "testFiles": [
+      "tool/frozen_public_eval.test.cjs",
+      "tool/reference_scale.test.cjs",
+      "tool/thinking_level.test.cjs"
+    ]
+  },
+  "rawReplayRecords": 20,
+  "componentsReplayed": 66,
+  "primaryDecimalFields": 88,
+  "secondaryOracleDecimalFields": 8,
+  "tolerance": "1e-9",
+  "publishedScoreReplayByteExact": true,
+  "newCiRunClaimed": false,
+  "oldByteIdenticalCoreCiRun": 42811800401,
+  "newAppBuildClaimed": false,
+  "apiBudgetStatus": "complete21/closed",
+  "sdkInvocationsFromVerification": 0,
+  "externalReviews": "primary3.8/yolo preplan/source/fresh-source/result/publication all agree/MUST_FIX none; text only, not pixel inspection; hallucinated aliases/causal guarantees rejected"
+}

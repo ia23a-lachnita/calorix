@@ -1,0 +1,242 @@
+{
+  "id": "dish_1566590007",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 548.5,
+      "proteinG": 24.275,
+      "carbsG": 63.02499999999999,
+      "fatG": 22.650000000000002
+    },
+    "massG": 340,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 27811,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Flatbread with seasoned quinoa, herbed tofu strips, and pickled vegetable salad",
+    "components": [
+      {
+        "name": "Flatbread with cheese, tomatoes, and avocado sauce",
+        "massG": 130,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Baked flatbread or thin-crust pizza base",
+          "Topped with cheese, tomato sauce, sliced cherry tomatoes, red onion, and avocado or herb crema"
+        ],
+        "estimatedPer100": {
+          "kcal": 235,
+          "proteinG": 8,
+          "carbsG": 28,
+          "fatG": 10.5
+        },
+        "nutrients": {
+          "kcal": 305.5,
+          "proteinG": 10.4,
+          "carbsG": 36.4,
+          "fatG": 13.65
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Seasoned grain pilaf with greens",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Cooked quinoa or bulgur wheat mixed with tomato seasoning, greens, and herbs"
+        ],
+        "estimatedPer100": {
+          "kcal": 140,
+          "proteinG": 4.5,
+          "carbsG": 23,
+          "fatG": 3.5
+        },
+        "nutrients": {
+          "kcal": 126,
+          "proteinG": 4.05,
+          "carbsG": 20.7,
+          "fatG": 3.15
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Herbed marinated tofu strips",
+        "massG": 75,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Firm tofu batons seasoned with herbs and oil",
+          "Possible alternative is grilled herbed chicken breast or seitan"
+        ],
+        "estimatedPer100": {
+          "kcal": 135,
+          "proteinG": 12.5,
+          "carbsG": 4,
+          "fatG": 7.5
+        },
+        "nutrients": {
+          "kcal": 101.25,
+          "proteinG": 9.375,
+          "carbsG": 3,
+          "fatG": 5.625
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Pickled cabbage and onion slaw",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "pickled",
+        "assumptions": [
+          "Lightly dressed shredded cabbage, red onion, and mixed vegetables"
+        ],
+        "estimatedPer100": {
+          "kcal": 35,
+          "proteinG": 1,
+          "carbsG": 6.5,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 15.75,
+          "proteinG": 0.45,
+          "carbsG": 2.9250000000000003,
+          "fatG": 0.225
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 548.5,
+      "proteinG": 24.275,
+      "carbsG": 63.02499999999999,
+      "fatG": 22.650000000000002
+    },
+    "ambiguities": [
+      "Protein strips resemble seasoned firm tofu, but could be chicken breast or seitan strips",
+      "Grain salad appears to be quinoa, but may be bulgur or couscous",
+      "Green drizzle on flatbread could be avocado crema or an herb-based dressing"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 27803,
+      "inputTokens": 2018,
+      "outputTokens": 676,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Flatbread with seasoned quinoa, herbed tofu strips, and pickled vegetable salad",
+      "components": [
+        {
+          "name": "Flatbread with cheese, tomatoes, and avocado sauce",
+          "massG": 130,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Baked flatbread or thin-crust pizza base",
+            "Topped with cheese, tomato sauce, sliced cherry tomatoes, red onion, and avocado or herb crema"
+          ],
+          "estimatedPer100": {
+            "kcal": 235,
+            "proteinG": 8,
+            "carbsG": 28,
+            "fatG": 10.5
+          }
+        },
+        {
+          "name": "Seasoned grain pilaf with greens",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Cooked quinoa or bulgur wheat mixed with tomato seasoning, greens, and herbs"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 4.5,
+            "carbsG": 23,
+            "fatG": 3.5
+          }
+        },
+        {
+          "name": "Herbed marinated tofu strips",
+          "massG": 75,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Firm tofu batons seasoned with herbs and oil",
+            "Possible alternative is grilled herbed chicken breast or seitan"
+          ],
+          "estimatedPer100": {
+            "kcal": 135,
+            "proteinG": 12.5,
+            "carbsG": 4,
+            "fatG": 7.5
+          }
+        },
+        {
+          "name": "Pickled cabbage and onion slaw",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "pickled",
+          "assumptions": [
+            "Lightly dressed shredded cabbage, red onion, and mixed vegetables"
+          ],
+          "estimatedPer100": {
+            "kcal": 35,
+            "proteinG": 1,
+            "carbsG": 6.5,
+            "fatG": 0.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Protein strips resemble seasoned firm tofu, but could be chicken breast or seitan strips",
+        "Grain salad appears to be quinoa, but may be bulgur or couscous",
+        "Green drizzle on flatbread could be avocado crema or an herb-based dressing"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "41a78e42e17bc5cd4c49aa23a9cb5950bea71a84184efaa443898352d14d964f"
+}

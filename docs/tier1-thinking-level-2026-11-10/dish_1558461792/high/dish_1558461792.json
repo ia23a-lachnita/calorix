@@ -1,0 +1,238 @@
+{
+  "id": "dish_1558461792",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 292.7,
+      "proteinG": 9.209999999999999,
+      "carbsG": 30.240000000000002,
+      "fatG": 17.885
+    },
+    "massG": 235,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 18968,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Snack plate with almonds, grapes, tomatoes, and spinach",
+    "components": [
+      {
+        "name": "Almonds",
+        "massG": 35,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Whole almonds, assumed raw or dry roasted without added oil",
+          "Approx. 28-30 kernels"
+        ],
+        "estimatedPer100": {
+          "kcal": 579,
+          "proteinG": 21.2,
+          "carbsG": 21.6,
+          "fatG": 49.9
+        },
+        "nutrients": {
+          "kcal": 202.64999999999998,
+          "proteinG": 7.419999999999999,
+          "carbsG": 7.56,
+          "fatG": 17.465
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Grapes",
+        "massG": 105,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Mix of red and green seedless grapes",
+          "Count of approximately 21 grapes"
+        ],
+        "estimatedPer100": {
+          "kcal": 69,
+          "proteinG": 0.7,
+          "carbsG": 18.1,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 72.45,
+          "proteinG": 0.735,
+          "carbsG": 19.005000000000003,
+          "fatG": 0.21000000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Grape tomatoes",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "5 whole grape/cherry tomatoes"
+        ],
+        "estimatedPer100": {
+          "kcal": 18,
+          "proteinG": 0.9,
+          "carbsG": 3.9,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 15.299999999999999,
+          "proteinG": 0.765,
+          "carbsG": 3.315,
+          "fatG": 0.17
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Baby spinach",
+        "massG": 10,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Small bunch of fresh unseasoned leaves"
+        ],
+        "estimatedPer100": {
+          "kcal": 23,
+          "proteinG": 2.9,
+          "carbsG": 3.6,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 2.3000000000000003,
+          "proteinG": 0.29,
+          "carbsG": 0.36000000000000004,
+          "fatG": 0.04000000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 292.7,
+      "proteinG": 9.209999999999999,
+      "carbsG": 30.240000000000002,
+      "fatG": 17.885
+    },
+    "ambiguities": [
+      "Whether almonds are raw or dry-roasted and whether salt or seasoning is present"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 18964,
+      "inputTokens": 2018,
+      "outputTokens": 340,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Snack plate with almonds, grapes, tomatoes, and spinach",
+      "components": [
+        {
+          "name": "Almonds",
+          "massG": 35,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Whole almonds, assumed raw or dry roasted without added oil",
+            "Approx. 28-30 kernels"
+          ],
+          "estimatedPer100": {
+            "kcal": 579,
+            "proteinG": 21.2,
+            "carbsG": 21.6,
+            "fatG": 49.9
+          }
+        },
+        {
+          "name": "Grapes",
+          "massG": 105,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Mix of red and green seedless grapes",
+            "Count of approximately 21 grapes"
+          ],
+          "estimatedPer100": {
+            "kcal": 69,
+            "proteinG": 0.7,
+            "carbsG": 18.1,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Grape tomatoes",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "5 whole grape/cherry tomatoes"
+          ],
+          "estimatedPer100": {
+            "kcal": 18,
+            "proteinG": 0.9,
+            "carbsG": 3.9,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Baby spinach",
+          "massG": 10,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Small bunch of fresh unseasoned leaves"
+          ],
+          "estimatedPer100": {
+            "kcal": 23,
+            "proteinG": 2.9,
+            "carbsG": 3.6,
+            "fatG": 0.4
+          }
+        }
+      ],
+      "ambiguities": [
+        "Whether almonds are raw or dry-roasted and whether salt or seasoning is present"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "0a7d62c8a57bf66ae8444fad3718f7ffda57549dd6a8f66a3a8eef51ceef9869"
+}

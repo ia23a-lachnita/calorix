@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Flatbread with seasoned quinoa, herbed tofu strips, and pickled vegetable salad\",\n  \"components\": [\n    {\n      \"name\": \"Flatbread with cheese, tomatoes, and avocado sauce\",\n      \"massG\": 130,\n      \"catalogId\": null,\n      \"preparation\": \"baked\",\n      \"assumptions\": [\n        \"Baked flatbread or thin-crust pizza base\",\n        \"Topped with cheese, tomato sauce, sliced cherry tomatoes, red onion, and avocado or herb crema\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 235,\n        \"proteinG\": 8.0,\n        \"carbsG\": 28.0,\n        \"fatG\": 10.5\n      }\n    },\n    {\n      \"name\": \"Seasoned grain pilaf with greens\",\n      \"massG\": 90,\n      \"catalogId\": null,\n      \"preparation\": \"cooked\",\n      \"assumptions\": [\n        \"Cooked quinoa or bulgur wheat mixed with tomato seasoning, greens, and herbs\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 140,\n        \"proteinG\": 4.5,\n        \"carbsG\": 23.0,\n        \"fatG\": 3.5\n      }\n    },\n    {\n      \"name\": \"Herbed marinated tofu strips\",\n      \"massG\": 75,\n      \"catalogId\": null,\n      \"preparation\": \"baked\",\n      \"assumptions\": [\n        \"Firm tofu batons seasoned with herbs and oil\",\n        \"Possible alternative is grilled herbed chicken breast or seitan\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 135,\n        \"proteinG\": 12.5,\n        \"carbsG\": 4.0,\n        \"fatG\": 7.5\n      }\n    },\n    {\n      \"name\": \"Pickled cabbage and onion slaw\",\n      \"massG\": 45,\n      \"catalogId\": null,\n      \"preparation\": \"pickled\",\n      \"assumptions\": [\n        \"Lightly dressed shredded cabbage, red onion, and mixed vegetables\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 35,\n        \"proteinG\": 1.0,\n        \"carbsG\": 6.5,\n        \"fatG\": 0.5\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Protein strips resemble seasoned firm tofu, but could be chicken breast or seitan strips\",\n    \"Grain salad appears to be quinoa, but may be bulgur or couscous\",\n    \"Green drizzle on flatbread could be avocado crema or an herb-based dressing\"\n  ],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 676,
+    "totalTokenCount": 4521,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 676
+      }
+    ],
+    "thoughtsTokenCount": 1827
+  },
+  "latencyMs": 27803,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "9587868cba1515ceaf142652c5e9a885557e361550ddd205557eeee3dd986b38"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

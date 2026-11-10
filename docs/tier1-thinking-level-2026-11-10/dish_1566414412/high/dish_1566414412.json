@@ -1,0 +1,236 @@
+{
+  "id": "dish_1566414412",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 597.25,
+      "proteinG": 34.705000000000005,
+      "carbsG": 51.275,
+      "fatG": 28.845000000000002
+    },
+    "massG": 410,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 19133,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chicken in Cream Sauce with Roasted Potatoes, Grain Salad, and Mixed Greens",
+    "components": [
+      {
+        "name": "Roasted potato wedges",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "roasted with oil and herbs",
+        "assumptions": [
+          "Standard cubed roasted potatoes with skins on"
+        ],
+        "estimatedPer100": {
+          "kcal": 145,
+          "proteinG": 2.5,
+          "carbsG": 22,
+          "fatG": 5.5
+        },
+        "nutrients": {
+          "kcal": 159.5,
+          "proteinG": 2.75,
+          "carbsG": 24.200000000000003,
+          "fatG": 6.050000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Couscous vegetable salad",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "steamed and tossed cold with vegetables and oil",
+        "assumptions": [
+          "Couscous or bulgur with diced red bell pepper, red onion, and cucumber"
+        ],
+        "estimatedPer100": {
+          "kcal": 135,
+          "proteinG": 3.8,
+          "carbsG": 23.5,
+          "fatG": 3.2
+        },
+        "nutrients": {
+          "kcal": 114.75,
+          "proteinG": 3.23,
+          "carbsG": 19.974999999999998,
+          "fatG": 2.72
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Chicken breast with creamy sauce",
+        "massG": 150,
+        "catalogId": null,
+        "preparation": "cooked with cream or yogurt sauce",
+        "assumptions": [
+          "Sliced chicken breast coated in a creamy/mayo or dairy-based sauce"
+        ],
+        "estimatedPer100": {
+          "kcal": 185,
+          "proteinG": 18.5,
+          "carbsG": 3,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 277.5,
+          "proteinG": 27.75,
+          "carbsG": 4.5,
+          "fatG": 16.5
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed green salad with dressing",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "raw dressed with light vinaigrette",
+        "assumptions": [
+          "Mixed baby salad greens with a cherry tomato and light oil-based dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 70,
+          "proteinG": 1.5,
+          "carbsG": 4,
+          "fatG": 5.5
+        },
+        "nutrients": {
+          "kcal": 45.5,
+          "proteinG": 0.9750000000000001,
+          "carbsG": 2.6,
+          "fatG": 3.575
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 597.25,
+      "proteinG": 34.705000000000005,
+      "carbsG": 51.275,
+      "fatG": 28.845000000000002
+    },
+    "ambiguities": [
+      "Exact recipe and meat type for creamy dish in upper right, assumed chicken breast with cream/yogurt sauce",
+      "Specific grain used in vegetable salad, assumed couscous"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 19127,
+      "inputTokens": 2018,
+      "outputTokens": 395,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chicken in Cream Sauce with Roasted Potatoes, Grain Salad, and Mixed Greens",
+      "components": [
+        {
+          "name": "Roasted potato wedges",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "roasted with oil and herbs",
+          "assumptions": [
+            "Standard cubed roasted potatoes with skins on"
+          ],
+          "estimatedPer100": {
+            "kcal": 145,
+            "proteinG": 2.5,
+            "carbsG": 22,
+            "fatG": 5.5
+          }
+        },
+        {
+          "name": "Couscous vegetable salad",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "steamed and tossed cold with vegetables and oil",
+          "assumptions": [
+            "Couscous or bulgur with diced red bell pepper, red onion, and cucumber"
+          ],
+          "estimatedPer100": {
+            "kcal": 135,
+            "proteinG": 3.8,
+            "carbsG": 23.5,
+            "fatG": 3.2
+          }
+        },
+        {
+          "name": "Chicken breast with creamy sauce",
+          "massG": 150,
+          "catalogId": null,
+          "preparation": "cooked with cream or yogurt sauce",
+          "assumptions": [
+            "Sliced chicken breast coated in a creamy/mayo or dairy-based sauce"
+          ],
+          "estimatedPer100": {
+            "kcal": 185,
+            "proteinG": 18.5,
+            "carbsG": 3,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Mixed green salad with dressing",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "raw dressed with light vinaigrette",
+          "assumptions": [
+            "Mixed baby salad greens with a cherry tomato and light oil-based dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 70,
+            "proteinG": 1.5,
+            "carbsG": 4,
+            "fatG": 5.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact recipe and meat type for creamy dish in upper right, assumed chicken breast with cream/yogurt sauce",
+        "Specific grain used in vegetable salad, assumed couscous"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "072e820bebae1eeb63154153d700db68291b8c5078426d1c9c02f3c0bdfb64e1"
+}

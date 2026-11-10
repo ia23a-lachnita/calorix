@@ -1,0 +1,197 @@
+{
+  "id": "dish_1568401233",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 385.8,
+      "proteinG": 26.39,
+      "carbsG": 33.330000000000005,
+      "fatG": 16.75
+    },
+    "massG": 330,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 21487,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Tuna Salad with Sweet Potato and Shredded Carrots",
+    "components": [
+      {
+        "name": "Tuna salad",
+        "massG": 150,
+        "catalogId": null,
+        "preparation": "mixed",
+        "assumptions": [
+          "Canned tuna mixed with mayonnaise, diced celery, and red onion"
+        ],
+        "estimatedPer100": {
+          "kcal": 175,
+          "proteinG": 16,
+          "carbsG": 3,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 262.5,
+          "proteinG": 24,
+          "carbsG": 4.5,
+          "fatG": 16.5
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cooked sweet potato",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Steamed or roasted sweet potato chunks",
+          "Prepared without added fats"
+        ],
+        "estimatedPer100": {
+          "kcal": 86,
+          "proteinG": 1.6,
+          "carbsG": 20.1,
+          "fatG": 0.1
+        },
+        "nutrients": {
+          "kcal": 94.60000000000001,
+          "proteinG": 1.7600000000000002,
+          "carbsG": 22.110000000000003,
+          "fatG": 0.11000000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Shredded carrots",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh raw shredded carrots",
+          "No added dressing or oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 41,
+          "proteinG": 0.9,
+          "carbsG": 9.6,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 28.7,
+          "proteinG": 0.63,
+          "carbsG": 6.72,
+          "fatG": 0.13999999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 385.8,
+      "proteinG": 26.39,
+      "carbsG": 33.330000000000005,
+      "fatG": 16.75
+    },
+    "ambiguities": [
+      "The flaked salad could be chicken salad, flaked salmon, or canned tuna",
+      "The orange mash could be pumpkin or squash instead of sweet potato"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 21482,
+      "inputTokens": 2018,
+      "outputTokens": 283,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Tuna Salad with Sweet Potato and Shredded Carrots",
+      "components": [
+        {
+          "name": "Tuna salad",
+          "massG": 150,
+          "catalogId": null,
+          "preparation": "mixed",
+          "assumptions": [
+            "Canned tuna mixed with mayonnaise, diced celery, and red onion"
+          ],
+          "estimatedPer100": {
+            "kcal": 175,
+            "proteinG": 16,
+            "carbsG": 3,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Cooked sweet potato",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Steamed or roasted sweet potato chunks",
+            "Prepared without added fats"
+          ],
+          "estimatedPer100": {
+            "kcal": 86,
+            "proteinG": 1.6,
+            "carbsG": 20.1,
+            "fatG": 0.1
+          }
+        },
+        {
+          "name": "Shredded carrots",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh raw shredded carrots",
+            "No added dressing or oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 41,
+            "proteinG": 0.9,
+            "carbsG": 9.6,
+            "fatG": 0.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "The flaked salad could be chicken salad, flaked salmon, or canned tuna",
+        "The orange mash could be pumpkin or squash instead of sweet potato"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "f78297a014448e57e2bcd3e8538d60e673e873de2f0b5901b7ac6d5e3df72c29"
+}

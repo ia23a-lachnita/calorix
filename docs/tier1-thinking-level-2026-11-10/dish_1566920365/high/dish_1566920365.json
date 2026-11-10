@@ -1,0 +1,197 @@
+{
+  "id": "dish_1566920365",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 201.10000000000002,
+      "proteinG": 22.17,
+      "carbsG": 23.410000000000004,
+      "fatG": 1.9600000000000002
+    },
+    "massG": 320,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 22509,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Egg Whites with Roasted Sweet Potatoes and Salsa Verde",
+    "components": [
+      {
+        "name": "Hard-boiled egg whites",
+        "massG": 180,
+        "catalogId": null,
+        "preparation": "cooked boiled",
+        "assumptions": [
+          "Identified as chopped hard-boiled egg whites with yolks removed",
+          "Approximately 5-6 large egg whites"
+        ],
+        "estimatedPer100": {
+          "kcal": 52,
+          "proteinG": 10.9,
+          "carbsG": 0.7,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 93.60000000000001,
+          "proteinG": 19.62,
+          "carbsG": 1.26,
+          "fatG": 0.36000000000000004
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted sweet potato wedges",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Skin-on roasted sweet potato pieces",
+          "Includes a small amount of oil from roasting"
+        ],
+        "estimatedPer100": {
+          "kcal": 100,
+          "proteinG": 2,
+          "carbsG": 21,
+          "fatG": 1.5
+        },
+        "nutrients": {
+          "kcal": 90,
+          "proteinG": 1.8,
+          "carbsG": 18.900000000000002,
+          "fatG": 1.35
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Salsa verde",
+        "massG": 50,
+        "catalogId": null,
+        "preparation": "prepared sauce",
+        "assumptions": [
+          "Tomatillo-based green Mexican salsa"
+        ],
+        "estimatedPer100": {
+          "kcal": 35,
+          "proteinG": 1.5,
+          "carbsG": 6.5,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 17.5,
+          "proteinG": 0.75,
+          "carbsG": 3.25,
+          "fatG": 0.25
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 201.10000000000002,
+      "proteinG": 22.17,
+      "carbsG": 23.410000000000004,
+      "fatG": 1.9600000000000002
+    },
+    "ambiguities": [
+      "White chunks strongly resemble hard-boiled egg whites, but could alternatively be fresh cheese (such as queso fresco or mozzarella) or firm tofu",
+      "Orange root vegetable assumed to be sweet potato, but could be squash or carrot"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 22504,
+      "inputTokens": 2018,
+      "outputTokens": 502,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Egg Whites with Roasted Sweet Potatoes and Salsa Verde",
+      "components": [
+        {
+          "name": "Hard-boiled egg whites",
+          "massG": 180,
+          "catalogId": null,
+          "preparation": "cooked boiled",
+          "assumptions": [
+            "Identified as chopped hard-boiled egg whites with yolks removed",
+            "Approximately 5-6 large egg whites"
+          ],
+          "estimatedPer100": {
+            "kcal": 52,
+            "proteinG": 10.9,
+            "carbsG": 0.7,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Roasted sweet potato wedges",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Skin-on roasted sweet potato pieces",
+            "Includes a small amount of oil from roasting"
+          ],
+          "estimatedPer100": {
+            "kcal": 100,
+            "proteinG": 2,
+            "carbsG": 21,
+            "fatG": 1.5
+          }
+        },
+        {
+          "name": "Salsa verde",
+          "massG": 50,
+          "catalogId": null,
+          "preparation": "prepared sauce",
+          "assumptions": [
+            "Tomatillo-based green Mexican salsa"
+          ],
+          "estimatedPer100": {
+            "kcal": 35,
+            "proteinG": 1.5,
+            "carbsG": 6.5,
+            "fatG": 0.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "White chunks strongly resemble hard-boiled egg whites, but could alternatively be fresh cheese (such as queso fresco or mozzarella) or firm tofu",
+        "Orange root vegetable assumed to be sweet potato, but could be squash or carrot"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "a99efb609089c2749fbc9e800d85f275dbfa3a9d7e014644f48611bc4ade20ec"
+}

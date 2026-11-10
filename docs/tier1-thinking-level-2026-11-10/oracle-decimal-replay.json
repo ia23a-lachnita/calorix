@@ -1,0 +1,7 @@
+{
+  "independentOracleDecimalChecks": 8,
+  "allPassed": true,
+  "tolerance": "1e-9",
+  "automaticAccuracy": false,
+  "generateContentCalls": 0
+}

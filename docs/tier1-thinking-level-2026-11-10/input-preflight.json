@@ -1,0 +1,59 @@
+{
+  "manifestSha256": "9d7d8f2b3097d551df8ca93d35dcd800a594ce45fd97f3e7ac1d71c8653ff9e7",
+  "cases": [
+    {
+      "id": "dish_1566590007",
+      "inputSha256": "9587868cba1515ceaf142652c5e9a885557e361550ddd205557eeee3dd986b38",
+      "bytes": 41134
+    },
+    {
+      "id": "dish_1566414412",
+      "inputSha256": "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+      "bytes": 42715
+    },
+    {
+      "id": "dish_1568305257",
+      "inputSha256": "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c",
+      "bytes": 42598
+    },
+    {
+      "id": "dish_1558722247",
+      "inputSha256": "52d149ea4b05b7a3d92a848db0c607698d0f45549fa817250ed9dd850c0f8db2",
+      "bytes": 46982
+    },
+    {
+      "id": "dish_1568401233",
+      "inputSha256": "75927711eec8957eb5010ce05154bf02541d64cefaa0fa691e7cef944556adc5",
+      "bytes": 40196
+    },
+    {
+      "id": "dish_1563389600",
+      "inputSha256": "5dd57e8063e5f941541faa009851cd0a47a80967942af81640ffe4e6afa6af01",
+      "bytes": 35030
+    },
+    {
+      "id": "dish_1566920365",
+      "inputSha256": "1de13ddeb3881509de837955cc605428ee354cc99de2e9c879aeaefbffb953cf",
+      "bytes": 45114
+    },
+    {
+      "id": "dish_1564687046",
+      "inputSha256": "85aba7aa1a5eac2bfa82d07357e717681aa289aee720ade11ec13aef30651033",
+      "bytes": 39311
+    },
+    {
+      "id": "dish_1558461792",
+      "inputSha256": "57d2955f7f2f35fabd6ecc80f99b5f437e86196906e9825ce58591e9a9bc3ffc",
+      "bytes": 48585
+    },
+    {
+      "id": "dish_1561739238",
+      "inputSha256": "be322f0aa9da773937028ea67c110b631abe1a9151ca46fd49dadb6f3cb98a51",
+      "bytes": 35938
+    }
+  ],
+  "sdkInvocations": 0,
+  "freshFoodReferences": 0,
+  "sameExisting10DevelopmentCases": true,
+  "oldRegistriesClosed": true
+}

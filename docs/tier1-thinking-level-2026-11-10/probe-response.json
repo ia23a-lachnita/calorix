@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\"schemaVersion\":1,\"mealName\":\"Unidentified\",\"components\":[],\"ambiguities\":[\"No food visible in image.\"],\"askAddedFat\":false}",
+  "usageMetadata": {
+    "promptTokenCount": 2043,
+    "candidatesTokenCount": 32,
+    "totalTokenCount": 2289,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1089
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 32
+      }
+    ],
+    "thoughtsTokenCount": 214
+  },
+  "latencyMs": 9800,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "79e2851fd873d5115880b84cc5b82a45f32666055b6d3727e330de2d50ba267a"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

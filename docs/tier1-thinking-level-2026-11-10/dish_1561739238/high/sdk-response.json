@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\"schemaVersion\":1,\"mealName\":\"Egg Whites with Hash Browns, Sweet Potatoes, and Berries\",\"components\":[{\"name\":\"Hard-boiled egg whites\",\"massG\":75,\"catalogId\":null,\"preparation\":\"hard-boiled\",\"assumptions\":[\"Chopped hard-boiled egg whites with yolks removed\"],\"estimatedPer100\":{\"kcal\":52,\"proteinG\":10.9,\"carbsG\":0.7,\"fatG\":0.2}},{\"name\":\"Hash brown potatoes\",\"massG\":45,\"catalogId\":null,\"preparation\":\"pan-fried\",\"assumptions\":[\"Shredded potatoes cooked with moderate oil\"],\"estimatedPer100\":{\"kcal\":160,\"proteinG\":2.3,\"carbsG\":20.0,\"fatG\":8.5}},{\"name\":\"Roasted sweet potatoes\",\"massG\":60,\"catalogId\":null,\"preparation\":\"roasted\",\"assumptions\":[\"Cubed sweet potatoes roasted with light oil and skins on\"],\"estimatedPer100\":{\"kcal\":105,\"proteinG\":1.8,\"carbsG\":21.5,\"fatG\":2.0}},{\"name\":\"Fresh mixed berries\",\"massG\":40,\"catalogId\":null,\"preparation\":\"raw\",\"assumptions\":[\"Combination of fresh raspberries, blackberries, and blueberry\"],\"estimatedPer100\":{\"kcal\":50,\"proteinG\":1.3,\"carbsG\":11.0,\"fatG\":0.6}}],\"ambiguities\":[\"White pieces assumed to be boiled egg whites rather than fresh mozzarella or tofu\",\"Cooking fat content in hash browns and roasted sweet potatoes is estimated\"],\"askAddedFat\":false}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 348,
+    "totalTokenCount": 4592,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 348
+      }
+    ],
+    "thoughtsTokenCount": 2226
+  },
+  "latencyMs": 28261,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "be322f0aa9da773937028ea67c110b631abe1a9151ca46fd49dadb6f3cb98a51"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

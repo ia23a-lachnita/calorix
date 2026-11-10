@@ -1,0 +1,199 @@
+{
+  "id": "dish_1564687046",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 373.25,
+      "proteinG": 44.225,
+      "carbsG": 13.45,
+      "fatG": 16.095
+    },
+    "massG": 325,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 29913,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Beef Steak and Baked Fish with Green Beans",
+    "components": [
+      {
+        "name": "Beef steak",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "cooked grilled",
+        "assumptions": [
+          "sliced lean beef (such as sirloin or flank) cooked to medium doneness",
+          "trimmed of visible fat"
+        ],
+        "estimatedPer100": {
+          "kcal": 205,
+          "proteinG": 26.5,
+          "carbsG": 0,
+          "fatG": 10.5
+        },
+        "nutrients": {
+          "kcal": 174.25,
+          "proteinG": 22.525,
+          "carbsG": 0,
+          "fatG": 8.924999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Baked fish with tomato sauce",
+        "massG": 130,
+        "catalogId": null,
+        "preparation": "baked with sauce",
+        "assumptions": [
+          "fillet with skin on, topped with stewed tomato and aromatics",
+          "moderate moisture and sauce content"
+        ],
+        "estimatedPer100": {
+          "kcal": 115,
+          "proteinG": 15,
+          "carbsG": 4,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 149.5,
+          "proteinG": 19.5,
+          "carbsG": 5.2,
+          "fatG": 5.8500000000000005
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Green beans",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "cooked steamed or sautéed",
+        "assumptions": [
+          "trimmed whole green beans",
+          "lightly cooked with minimal added oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 45,
+          "proteinG": 2,
+          "carbsG": 7.5,
+          "fatG": 1.2
+        },
+        "nutrients": {
+          "kcal": 49.50000000000001,
+          "proteinG": 2.2,
+          "carbsG": 8.25,
+          "fatG": 1.32
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 373.25,
+      "proteinG": 44.225,
+      "carbsG": 13.45,
+      "fatG": 16.095
+    },
+    "ambiguities": [
+      "Exact fish species in the tomato dish",
+      "Specific cut and fat level of the beef steak"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 29908,
+      "inputTokens": 2018,
+      "outputTokens": 292,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Beef Steak and Baked Fish with Green Beans",
+      "components": [
+        {
+          "name": "Beef steak",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "cooked grilled",
+          "assumptions": [
+            "sliced lean beef (such as sirloin or flank) cooked to medium doneness",
+            "trimmed of visible fat"
+          ],
+          "estimatedPer100": {
+            "kcal": 205,
+            "proteinG": 26.5,
+            "carbsG": 0,
+            "fatG": 10.5
+          }
+        },
+        {
+          "name": "Baked fish with tomato sauce",
+          "massG": 130,
+          "catalogId": null,
+          "preparation": "baked with sauce",
+          "assumptions": [
+            "fillet with skin on, topped with stewed tomato and aromatics",
+            "moderate moisture and sauce content"
+          ],
+          "estimatedPer100": {
+            "kcal": 115,
+            "proteinG": 15,
+            "carbsG": 4,
+            "fatG": 4.5
+          }
+        },
+        {
+          "name": "Green beans",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "cooked steamed or sautéed",
+          "assumptions": [
+            "trimmed whole green beans",
+            "lightly cooked with minimal added oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 45,
+            "proteinG": 2,
+            "carbsG": 7.5,
+            "fatG": 1.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact fish species in the tomato dish",
+        "Specific cut and fat level of the beef steak"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "51c6d26a743c085543042e289572df12024fbd88d2c7a28d7e9d684d17d0fcb7"
+}

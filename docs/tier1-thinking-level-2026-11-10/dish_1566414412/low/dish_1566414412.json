@@ -1,0 +1,236 @@
+{
+  "id": "dish_1566414412",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 585.75,
+      "proteinG": 31.205000000000002,
+      "carbsG": 45.824999999999996,
+      "fatG": 30.325
+    },
+    "massG": 380,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 11734,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chicken and Couscous Salad Plate with Roasted Potatoes and Greens",
+    "components": [
+      {
+        "name": "Chicken with creamy dressing / mayonnaise-based sauce",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "cooked with creamy dressing",
+        "assumptions": [
+          "Chopped chicken breast or poultry mixed with creamy dressing or mayonnaise sauce"
+        ],
+        "estimatedPer100": {
+          "kcal": 210,
+          "proteinG": 18,
+          "carbsG": 3,
+          "fatG": 14
+        },
+        "nutrients": {
+          "kcal": 294,
+          "proteinG": 25.2,
+          "carbsG": 4.199999999999999,
+          "fatG": 19.599999999999998
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Couscous or grain salad with vegetables",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "cooked mixed salad",
+        "assumptions": [
+          "Couscous or quinoa mixed with sliced bell peppers and red onion"
+        ],
+        "estimatedPer100": {
+          "kcal": 140,
+          "proteinG": 3.5,
+          "carbsG": 23,
+          "fatG": 3.5
+        },
+        "nutrients": {
+          "kcal": 119,
+          "proteinG": 2.975,
+          "carbsG": 19.55,
+          "fatG": 2.975
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted potato wedges",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "roasted",
+        "assumptions": [
+          "Cut potatoes roasted with oil and seasonings"
+        ],
+        "estimatedPer100": {
+          "kcal": 145,
+          "proteinG": 2.5,
+          "carbsG": 22,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 130.5,
+          "proteinG": 2.25,
+          "carbsG": 19.8,
+          "fatG": 4.5
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed green salad with cherry tomato",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "raw dressed",
+        "assumptions": [
+          "Mixed lettuce leaves, red onion, and cherry tomato with light oil-based vinaigrette"
+        ],
+        "estimatedPer100": {
+          "kcal": 65,
+          "proteinG": 1.2,
+          "carbsG": 3.5,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 42.25,
+          "proteinG": 0.78,
+          "carbsG": 2.275,
+          "fatG": 3.25
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 585.75,
+      "proteinG": 31.205000000000002,
+      "carbsG": 45.824999999999996,
+      "fatG": 30.325
+    },
+    "ambiguities": [
+      "Exact composition of the creamy poultry mixture (whether chicken or turkey salad with mayonnaise or yogurt)",
+      "Type of grain in the salad (appears to be couscous or bulgur/quinoa)"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 11729,
+      "inputTokens": 2018,
+      "outputTokens": 616,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chicken and Couscous Salad Plate with Roasted Potatoes and Greens",
+      "components": [
+        {
+          "name": "Chicken with creamy dressing / mayonnaise-based sauce",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "cooked with creamy dressing",
+          "assumptions": [
+            "Chopped chicken breast or poultry mixed with creamy dressing or mayonnaise sauce"
+          ],
+          "estimatedPer100": {
+            "kcal": 210,
+            "proteinG": 18,
+            "carbsG": 3,
+            "fatG": 14
+          }
+        },
+        {
+          "name": "Couscous or grain salad with vegetables",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "cooked mixed salad",
+          "assumptions": [
+            "Couscous or quinoa mixed with sliced bell peppers and red onion"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 3.5,
+            "carbsG": 23,
+            "fatG": 3.5
+          }
+        },
+        {
+          "name": "Roasted potato wedges",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "roasted",
+          "assumptions": [
+            "Cut potatoes roasted with oil and seasonings"
+          ],
+          "estimatedPer100": {
+            "kcal": 145,
+            "proteinG": 2.5,
+            "carbsG": 22,
+            "fatG": 5
+          }
+        },
+        {
+          "name": "Mixed green salad with cherry tomato",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "raw dressed",
+          "assumptions": [
+            "Mixed lettuce leaves, red onion, and cherry tomato with light oil-based vinaigrette"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 1.2,
+            "carbsG": 3.5,
+            "fatG": 5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact composition of the creamy poultry mixture (whether chicken or turkey salad with mayonnaise or yogurt)",
+        "Type of grain in the salad (appears to be couscous or bulgur/quinoa)"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "a08b32d4d965bf66cba43ab0382116013646076559f00bc632c536368c213dbb"
+}

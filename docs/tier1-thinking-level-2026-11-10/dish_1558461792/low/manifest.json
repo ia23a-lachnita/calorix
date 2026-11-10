@@ -1,0 +1,1774 @@
+{
+  "schemaVersion": 1,
+  "scope": "public_dataset",
+  "datasetId": "nutrition5k",
+  "sampleCount": 1,
+  "cases": [
+    {
+      "id": "dish_1558461792",
+      "captureDate": "2019-05-21",
+      "reference": {
+        "kcal": 331,
+        "proteinG": 10.543,
+        "carbsG": 34.499001,
+        "fatG": 20.195999,
+        "massG": 233
+      },
+      "ingredients": [
+        {
+          "id": "ingr_0000000440",
+          "name": "grapes",
+          "kcal": 87.63,
+          "massG": 127,
+          "fatG": 0.254,
+          "carbsG": 22.86,
+          "proteinG": 0.889
+        },
+        {
+          "id": "ingr_0000000036",
+          "name": "spinach (raw)",
+          "kcal": 1.15,
+          "massG": 5,
+          "fatG": 0.02,
+          "carbsG": 0.18,
+          "proteinG": 0.145
+        },
+        {
+          "id": "ingr_0000000471",
+          "name": "cherry tomatoes",
+          "kcal": 10.98,
+          "massG": 61,
+          "fatG": 0.122,
+          "carbsG": 2.379,
+          "proteinG": 0.549
+        },
+        {
+          "id": "ingr_0000000077",
+          "name": "almonds",
+          "kcal": 231.24,
+          "massG": 40,
+          "fatG": 19.8,
+          "carbsG": 9.08,
+          "proteinG": 8.96
+        }
+      ],
+      "inputStatus": "ready",
+      "inputPath": "inputs/dish_1558461792.jpg",
+      "inputSha256": "57d2955f7f2f35fabd6ecc80f99b5f437e86196906e9825ce58591e9a9bc3ffc",
+      "inputFailure": null,
+      "sourceMetadataFile": "metadataCafe1.csv",
+      "rowFieldsSha256": "9ce0a4baa50cb7eaab4b2211b8f4eddb442d652bbaecf823ae3919fedd699fe1",
+      "sourceImageUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558461792/rgb.png",
+      "width": 640,
+      "height": 480,
+      "sourceImageSha256": "32854ee894b564183099e9d75e11909c9791720d63e1c84f49701884acaa980a",
+      "armOrder": [
+        "low",
+        "high"
+      ]
+    }
+  ],
+  "split": "official overhead-available TEST; RGB only",
+  "sources": [
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/dish_metadata_cafe1.csv",
+      "sha256": "881df31f27c2343d0ce219964527e0796f6ddadd60701ce6840fa801e8c2a960",
+      "bytes": 2206282
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/dish_metadata_cafe2.csv",
+      "sha256": "ef9f800d7b9c2e7e9a9e7cda5cbb4cfe51c760a8c1af4c05786ccf051bf5d77d",
+      "bytes": 101817
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+      "sha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+      "bytes": 21540
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/dish_ids/splits/rgb_train_ids.txt",
+      "sha256": "efd34a682b5483b01e6bd0a7c1267efec28440a8194985f9d3817d8ebc8169bd",
+      "bytes": 64944
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/dish_ids/splits/rgb_test_ids.txt",
+      "sha256": "560ff0eedb1a2027c21f5da3a4c38a53fa201c87d108e76b11cceaa1d956ac8e",
+      "bytes": 11344
+    },
+    {
+      "url": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/dish_ids/splits/depth_test_ids.txt",
+      "sha256": "6e43a5334a72bd06fa9c0d4b3bc86e2f57e5342b0b260d3fa003a76f7e39eca2",
+      "bytes": 8112
+    }
+  ],
+  "license": {
+    "id": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "Thames et al., Nutrition5k, CVPR2021"
+  },
+  "preprocessing": {
+    "pillow": "11.1.0",
+    "jpegLibrary": "6.2",
+    "jpegTurbo": "2.1.5",
+    "format": "RGB JPEG",
+    "quality": 85,
+    "subsampling": 2,
+    "exif": "removed",
+    "resize": false
+  },
+  "questionPolicy": "Unanswered; no owner/reference-derived preparation answers",
+  "androidWeighedMeals": 0,
+  "pretrainingExposure": "unknown",
+  "referenceBasis": "Original dataset recipe-derived nutrients and measured component masses",
+  "selection": {
+    "seed": "calorix-tier1-mealrange-20261108-v1",
+    "strata": [
+      {
+        "lowInclusive": 600,
+        "highExclusive": 1000,
+        "quota": 4,
+        "eligibleScans": 11,
+        "eligibleDates": 8
+      },
+      {
+        "lowInclusive": 400,
+        "highExclusive": 600,
+        "quota": 3,
+        "eligibleScans": 11,
+        "eligibleDates": 7
+      },
+      {
+        "lowInclusive": 200,
+        "highExclusive": 400,
+        "quota": 3,
+        "eligibleScans": 25,
+        "eligibleDates": 14
+      }
+    ],
+    "eligibleScans": 47,
+    "eligibleDates": 19,
+    "legacyIds": [
+      "dish_1558115011",
+      "dish_1558115764",
+      "dish_1558116547",
+      "dish_1558549605",
+      "dish_1558630006",
+      "dish_1558632198",
+      "dish_1558636544",
+      "dish_1558637698",
+      "dish_1558639787",
+      "dish_1558639818",
+      "dish_1559241099",
+      "dish_1559590130",
+      "dish_1559846311",
+      "dish_1559846504",
+      "dish_1560356523",
+      "dish_1560442303",
+      "dish_1560442450",
+      "dish_1560443474",
+      "dish_1560456326",
+      "dish_1560543605",
+      "dish_1560798707",
+      "dish_1560800836",
+      "dish_1560874667",
+      "dish_1561393550",
+      "dish_1561492204",
+      "dish_1561575410",
+      "dish_1561661850",
+      "dish_1561663580",
+      "dish_1561665747",
+      "dish_1562096372",
+      "dish_1562173267",
+      "dish_1562183065",
+      "dish_1562184705",
+      "dish_1562602627",
+      "dish_1562688382",
+      "dish_1562689601",
+      "dish_1562691409",
+      "dish_1562788601",
+      "dish_1563220087",
+      "dish_1563294441",
+      "dish_1563303350",
+      "dish_1563464389",
+      "dish_1563480534",
+      "dish_1563563467",
+      "dish_1563812535",
+      "dish_1563824279",
+      "dish_1563898722",
+      "dish_1563910708",
+      "dish_1563986093",
+      "dish_1564000490",
+      "dish_1564427430",
+      "dish_1564428515",
+      "dish_1564588719",
+      "dish_1564761388",
+      "dish_1564778057",
+      "dish_1565021675",
+      "dish_1565021965",
+      "dish_1565035746",
+      "dish_1565117892",
+      "dish_1565118096",
+      "dish_1565119642",
+      "dish_1565640772",
+      "dish_1565711115",
+      "dish_1565725188",
+      "dish_1565898402",
+      "dish_1565972363",
+      "dish_1566328724",
+      "dish_1566328894",
+      "dish_1566333228",
+      "dish_1566333291",
+      "dish_1566501473",
+      "dish_1566838351",
+      "dish_1566844803",
+      "dish_1567022383",
+      "dish_1567107839",
+      "dish_1567629081"
+    ],
+    "legacyDates": [
+      "2019-05-17",
+      "2019-05-22",
+      "2019-05-23",
+      "2019-05-30",
+      "2019-06-03",
+      "2019-06-06",
+      "2019-06-12",
+      "2019-06-13",
+      "2019-06-14",
+      "2019-06-17",
+      "2019-06-18",
+      "2019-06-24",
+      "2019-06-25",
+      "2019-06-26",
+      "2019-06-27",
+      "2019-07-02",
+      "2019-07-03",
+      "2019-07-08",
+      "2019-07-09",
+      "2019-07-10",
+      "2019-07-15",
+      "2019-07-16",
+      "2019-07-18",
+      "2019-07-19",
+      "2019-07-22",
+      "2019-07-23",
+      "2019-07-24",
+      "2019-07-29",
+      "2019-07-31",
+      "2019-08-02",
+      "2019-08-05",
+      "2019-08-06",
+      "2019-08-12",
+      "2019-08-13",
+      "2019-08-15",
+      "2019-08-16",
+      "2019-08-20",
+      "2019-08-22",
+      "2019-08-26",
+      "2019-08-28",
+      "2019-08-29",
+      "2019-09-04"
+    ],
+    "recentExcludedIds": [
+      "dish_1557862783",
+      "dish_1558030182",
+      "dish_1558376437",
+      "dish_1558461607",
+      "dish_1559157454",
+      "dish_1559934477",
+      "dish_1560203400",
+      "dish_1560975517",
+      "dish_1562009810",
+      "dish_1562876494",
+      "dish_1562963246",
+      "dish_1563389548",
+      "dish_1564160043",
+      "dish_1564675411",
+      "dish_1565810969",
+      "dish_1566416701",
+      "dish_1566589933",
+      "dish_1566920339",
+      "dish_1567785622",
+      "dish_1568401261"
+    ],
+    "selectedDates": [
+      "2019-08-23",
+      "2019-08-21",
+      "2019-09-12",
+      "2019-05-24",
+      "2019-09-13",
+      "2019-07-17",
+      "2019-08-27",
+      "2019-08-01",
+      "2019-05-21",
+      "2019-06-28"
+    ],
+    "sourceExclusions": [
+      {
+        "id": "dish_1556575327",
+        "reason": "mass_sum_mismatch"
+      },
+      {
+        "id": "dish_1557861216",
+        "reason": "invalid_total"
+      },
+      {
+        "id": "dish_1558031351",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558031394",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558110297",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558110335",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558110385",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558110436",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558110478",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558113430",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558113477",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558113941",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558114086",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558114145",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558114209",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558114284",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558373074",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558373159",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558376768",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558376984",
+        "reason": "deprecated_ingredient"
+      },
+      {
+        "id": "dish_1558544663",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558545738",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558546434",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558546558",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558546663",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558549413",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558549605",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1558549773",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558549806",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558630176",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558630207",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558630288",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558630325",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558635400",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558635489",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558635523",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558635546",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558635618",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639412",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639440",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639482",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639526",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639555",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639787",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1558639818",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1558639849",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558639876",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558641164",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558641200",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558641253",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558641287",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1558641320",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559233445",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559233570",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559233627",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559233715",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559233756",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559238993",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559239151",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559239256",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559239369",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559578551",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559578579",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559578599",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559841950",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559841979",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559842047",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559844272",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559844323",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559844366",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559844458",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559844490",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559846688",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849020",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849053",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849097",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849412",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849466",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849497",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559849537",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559850283",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559850314",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1559850338",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560367904",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560367926",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560367952",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560367980",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560368019",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560368395",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560368464",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560368506",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560368570",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444869",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444892",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444914",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444931",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444948",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444967",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560444985",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560445004",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560456305",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560456326",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1560456348",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560456370",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526408",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526447",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526472",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526490",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526514",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526530",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560526552",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560800918",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560800951",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560800988",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801020",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801041",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801773",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801797",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801829",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801859",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1560801883",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561393715",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561393741",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561393764",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561405332",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561405356",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561405389",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561405411",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574368",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574394",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574428",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574456",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574479",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574783",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574815",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561574848",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561577848",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561577947",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561578775",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561578800",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561578839",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561578865",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561654326",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561654346",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561654374",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561654392",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561661324",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561661347",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561661377",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662160",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662190",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662216",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662814",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662842",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662869",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561662926",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561663541",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561663580",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1561663606",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561667207",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1561667238",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562085672",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562099053",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562099076",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562099134",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562099157",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562168648",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562168673",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562168696",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562168800",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562172561",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562172600",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562172643",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562617703",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562617939",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562618000",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562690886",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562690917",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562690950",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562691000",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562691032",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562691064",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562700496",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562700568",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562700593",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562703345",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562703382",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562703408",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562703447",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562774099",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562774129",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562774159",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562774180",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562774206",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562776428",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562776465",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562776497",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562786103",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562788506",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562788536",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562788568",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562788601",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1562790775",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562790824",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1562790855",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563208412",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563208439",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563208459",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563218408",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563220987",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563221025",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563221054",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563221086",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563221157",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563294987",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563295016",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563295044",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563305513",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563478751",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563551105",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563551134",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563551164",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563551194",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563551220",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565289",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565323",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565354",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565415",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565454",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563565508",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563566909",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563566939",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563566965",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563897047",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563897087",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563897938",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563897981",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563898019",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563898084",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563898107",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563909469",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563909507",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563909550",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563909580",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563984140",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563984167",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563984199",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563984242",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563984296",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563996441",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563996464",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563996485",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563996509",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563998210",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563998244",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563998279",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563998323",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1563998513",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564427406",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564427430",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1564427455",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564428102",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564428144",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564428181",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564588820",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564588859",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564588889",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564588919",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773826",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773847",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773876",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773903",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773942",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1564773976",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020755",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020796",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020822",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020867",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020895",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565020926",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565030350",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565030391",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565034605",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565034635",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565034661",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565034681",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565035715",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565035746",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1565035774",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565035802",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565035830",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565035858",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565117429",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565117463",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565118700",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565118729",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565118782",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565123783",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565123816",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565123845",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565123881",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565638478",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565638515",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565638550",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565638599",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565711453",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565711498",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565711527",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565711570",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565894858",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565894889",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565894910",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565896662",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565896701",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565896745",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898128",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898158",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898193",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898230",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898331",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898361",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565898402",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1565898432",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565974375",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565974409",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565986702",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1565986733",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566316681",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566316726",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566316757",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566328724",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1566328745",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566328776",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566328805",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566328831",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566501575",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566501594",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566502437",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566502472",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566502505",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566502537",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566502573",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566838286",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566838317",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566838351",
+        "reason": "previous_id"
+      },
+      {
+        "id": "dish_1566838378",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566838407",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566849862",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566849895",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566849923",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566849955",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566849987",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566850031",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566850099",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566850142",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566851549",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566851584",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566851616",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566851677",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1566851704",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567007719",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567007751",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567007783",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567007814",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567007848",
+        "reason": "previous_date"
+      },
+      {
+        "id": "dish_1567107839",
+        "reason": "previous_id"
+      }
+    ],
+    "rule": "High then mid then low quotas; SHA256-rank unique dates then IDs, no replacement. Reference-energy selection, not outcome selection. Recent capture dates may recur; independent completed plates not established."
+  }
+}

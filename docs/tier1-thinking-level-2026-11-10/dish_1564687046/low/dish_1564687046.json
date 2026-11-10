@@ -1,0 +1,193 @@
+{
+  "id": "dish_1564687046",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 362,
+      "proteinG": 40.910000000000004,
+      "carbsG": 11.8,
+      "fatG": 16.875
+    },
+    "massG": 285,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12680,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Steak with Green Beans and Stuffed or Stewed Fish/Meat with Tomatoes",
+    "components": [
+      {
+        "name": "Beef steak slices",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "cooked grilled or seared",
+        "assumptions": [
+          "Cooked medium, lean trimmed beef"
+        ],
+        "estimatedPer100": {
+          "kcal": 210,
+          "proteinG": 28,
+          "carbsG": 0,
+          "fatG": 10.5
+        },
+        "nutrients": {
+          "kcal": 178.5,
+          "proteinG": 23.8,
+          "carbsG": 0,
+          "fatG": 8.924999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Green beans",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "steamed or sautéed",
+        "assumptions": [
+          "Cooked green beans with minimal added oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 45,
+          "proteinG": 1.9,
+          "carbsG": 7,
+          "fatG": 1.5
+        },
+        "nutrients": {
+          "kcal": 40.5,
+          "proteinG": 1.71,
+          "carbsG": 6.3,
+          "fatG": 1.35
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Fish or eggplant roll with tomato sauce",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "baked or stewed",
+        "assumptions": [
+          "Appears to be fish fillets or eggplant cooked with tomato-based topping/sauce"
+        ],
+        "estimatedPer100": {
+          "kcal": 130,
+          "proteinG": 14,
+          "carbsG": 5,
+          "fatG": 6
+        },
+        "nutrients": {
+          "kcal": 143,
+          "proteinG": 15.400000000000002,
+          "carbsG": 5.5,
+          "fatG": 6.6000000000000005
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 362,
+      "proteinG": 40.910000000000004,
+      "carbsG": 11.8,
+      "fatG": 16.875
+    },
+    "ambiguities": [
+      "Item with tomato topping could be baked fish (such as mackerel/sardine) or eggplant/meat involtini",
+      "Precise cut of steak and amount of oil used during cooking"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12676,
+      "inputTokens": 2018,
+      "outputTokens": 487,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Steak with Green Beans and Stuffed or Stewed Fish/Meat with Tomatoes",
+      "components": [
+        {
+          "name": "Beef steak slices",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "cooked grilled or seared",
+          "assumptions": [
+            "Cooked medium, lean trimmed beef"
+          ],
+          "estimatedPer100": {
+            "kcal": 210,
+            "proteinG": 28,
+            "carbsG": 0,
+            "fatG": 10.5
+          }
+        },
+        {
+          "name": "Green beans",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "steamed or sautéed",
+          "assumptions": [
+            "Cooked green beans with minimal added oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 45,
+            "proteinG": 1.9,
+            "carbsG": 7,
+            "fatG": 1.5
+          }
+        },
+        {
+          "name": "Fish or eggplant roll with tomato sauce",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "baked or stewed",
+          "assumptions": [
+            "Appears to be fish fillets or eggplant cooked with tomato-based topping/sauce"
+          ],
+          "estimatedPer100": {
+            "kcal": 130,
+            "proteinG": 14,
+            "carbsG": 5,
+            "fatG": 6
+          }
+        }
+      ],
+      "ambiguities": [
+        "Item with tomato topping could be baked fish (such as mackerel/sardine) or eggplant/meat involtini",
+        "Precise cut of steak and amount of oil used during cooking"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "0eac06fea4e42684fe76b29ab8de12bf268fe03a91595d4f7f070a892b9e4646"
+}

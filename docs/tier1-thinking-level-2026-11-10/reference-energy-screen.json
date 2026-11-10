@@ -1,0 +1,62 @@
+[
+  {
+    "id": "dish_1566590007",
+    "referenceKcal": 740.762024,
+    "referenceKcalMinus449": -1.3328610000000367,
+    "interpretation": "Source-consistency screening only; not proof of bad reference, no exclusions/rewriting"
+  },
+  {
+    "id": "dish_1566414412",
+    "referenceKcal": 920.120422,
+    "referenceKcalMinus449": 10.220219999999983,
+    "interpretation": "Source-consistency screening only; not proof of bad reference, no exclusions/rewriting"
+  },
+  {
+    "id": "dish_1568305257",
+    "referenceKcal": 837.147766,
+    "referenceKcalMinus449": 2.130851000000007,
+    "interpretation": "Source-consistency screening only; not proof of bad reference, no exclusions/rewriting"
+  },
+  {
+    "id": "dish_1558722247",
+    "referenceKcal": 604.616028,
+    "referenceKcalMinus449": -57.060967999999946,
+    "interpretation": "Source-consistency screening only; not proof of bad reference, no exclusions/rewriting"
+  },
+  {
+    "id": "dish_1568401233",
+    "referenceKcal": 490.393372,
+    "referenceKcalMinus449": 3.127171000000004,
+    "interpretation": "Source-consistency screening only; not proof of bad reference, no exclusions/rewriting"
+  },
+  {
+    "id": "dish_1563389600",
+    "referenceKcal": 451.428009,
+    "referenceKcalMinus449": 0.42201299999999264,
+    "interpretation": "Source-consistency screening only; not proof of bad reference, no exclusions/rewriting"
+  },
+  {
+    "id": "dish_1566920365",
+    "referenceKcal": 490.421692,
+    "referenceKcalMinus449": 34.223573000000016,
+    "interpretation": "Source-consistency screening only; not proof of bad reference, no exclusions/rewriting"
+  },
+  {
+    "id": "dish_1564687046",
+    "referenceKcal": 374.793854,
+    "referenceKcalMinus449": -103.413272,
+    "interpretation": "Source-consistency screening only; not proof of bad reference, no exclusions/rewriting"
+  },
+  {
+    "id": "dish_1558461792",
+    "referenceKcal": 331.0,
+    "referenceKcalMinus449": -30.93199500000003,
+    "interpretation": "Source-consistency screening only; not proof of bad reference, no exclusions/rewriting"
+  },
+  {
+    "id": "dish_1561739238",
+    "referenceKcal": 274.190002,
+    "referenceKcalMinus449": -1.962994000000009,
+    "interpretation": "Source-consistency screening only; not proof of bad reference, no exclusions/rewriting"
+  }
+]

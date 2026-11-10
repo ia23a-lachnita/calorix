@@ -1,0 +1,138 @@
+{
+  "id": "dish_1563389600",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 248.99999999999997,
+      "proteinG": 44.327999999999996,
+      "carbsG": 3.9,
+      "fatG": 5.1979999999999995
+    },
+    "massG": 240,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 22201,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Diced Chicken Breast with Cherry Tomatoes",
+    "components": [
+      {
+        "name": "Chicken breast",
+        "massG": 140,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Cooked boneless, skinless chicken breast meat diced into bite-sized pieces"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 230.99999999999997,
+          "proteinG": 43.428,
+          "carbsG": 0,
+          "fatG": 4.997999999999999
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Cherry tomatoes",
+        "massG": 100,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Whole raw cherry or grape tomatoes, approximately 9 to 10 pieces"
+        ],
+        "estimatedPer100": {
+          "kcal": 18,
+          "proteinG": 0.9,
+          "carbsG": 3.9,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 18,
+          "proteinG": 0.9,
+          "carbsG": 3.9,
+          "fatG": 0.2
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 248.99999999999997,
+      "proteinG": 44.327999999999996,
+      "carbsG": 3.9,
+      "fatG": 5.1979999999999995
+    },
+    "ambiguities": [
+      "Whether any oil, dressing, or seasoning was added to the bowl"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 22197,
+      "inputTokens": 2018,
+      "outputTokens": 175,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Diced Chicken Breast with Cherry Tomatoes",
+      "components": [
+        {
+          "name": "Chicken breast",
+          "massG": 140,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Cooked boneless, skinless chicken breast meat diced into bite-sized pieces"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Cherry tomatoes",
+          "massG": 100,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Whole raw cherry or grape tomatoes, approximately 9 to 10 pieces"
+          ],
+          "estimatedPer100": {
+            "kcal": 18,
+            "proteinG": 0.9,
+            "carbsG": 3.9,
+            "fatG": 0.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Whether any oil, dressing, or seasoning was added to the bowl"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "e3e36d321bff591071943c76b01d31b971f8eed0cd928f7a549bb82632a974c4"
+}

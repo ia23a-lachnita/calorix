@@ -1,0 +1,193 @@
+{
+  "id": "dish_1558722247",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 480.8,
+      "proteinG": 15.875,
+      "carbsG": 40.370000000000005,
+      "fatG": 33.010000000000005
+    },
+    "massG": 310,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 8715,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Whole Apple with Almonds and Raw Cauliflower",
+    "components": [
+      {
+        "name": "Apple",
+        "massG": 160,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "One medium whole raw apple, core included in mass estimate"
+        ],
+        "estimatedPer100": {
+          "kcal": 52,
+          "proteinG": 0.3,
+          "carbsG": 13.8,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 83.2,
+          "proteinG": 0.48,
+          "carbsG": 22.080000000000002,
+          "fatG": 0.32000000000000006
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Whole almonds",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "raw or dry roasted",
+        "assumptions": [
+          "Whole unsalted almonds",
+          "Approximately 50-60 kernels"
+        ],
+        "estimatedPer100": {
+          "kcal": 579,
+          "proteinG": 21.2,
+          "carbsG": 21.6,
+          "fatG": 49.9
+        },
+        "nutrients": {
+          "kcal": 376.35,
+          "proteinG": 13.78,
+          "carbsG": 14.040000000000001,
+          "fatG": 32.435
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cauliflower florets",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Raw cauliflower florets and stems"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 1.9,
+          "carbsG": 5,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 21.25,
+          "proteinG": 1.615,
+          "carbsG": 4.25,
+          "fatG": 0.255
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 480.8,
+      "proteinG": 15.875,
+      "carbsG": 40.370000000000005,
+      "fatG": 33.010000000000005
+    },
+    "ambiguities": [
+      "Whether almonds are raw or dry-roasted/salted"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 8708,
+      "inputTokens": 2018,
+      "outputTokens": 425,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Whole Apple with Almonds and Raw Cauliflower",
+      "components": [
+        {
+          "name": "Apple",
+          "massG": 160,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "One medium whole raw apple, core included in mass estimate"
+          ],
+          "estimatedPer100": {
+            "kcal": 52,
+            "proteinG": 0.3,
+            "carbsG": 13.8,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Whole almonds",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "raw or dry roasted",
+          "assumptions": [
+            "Whole unsalted almonds",
+            "Approximately 50-60 kernels"
+          ],
+          "estimatedPer100": {
+            "kcal": 579,
+            "proteinG": 21.2,
+            "carbsG": 21.6,
+            "fatG": 49.9
+          }
+        },
+        {
+          "name": "Cauliflower florets",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Raw cauliflower florets and stems"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 1.9,
+            "carbsG": 5,
+            "fatG": 0.3
+          }
+        }
+      ],
+      "ambiguities": [
+        "Whether almonds are raw or dry-roasted/salted"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "c3785a7d7f0ddbcb9d2004b32ee51966df41a7620619188838b3e741161494cd"
+}

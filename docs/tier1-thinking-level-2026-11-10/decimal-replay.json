@@ -1,0 +1,7 @@
+{
+  "independentDecimalChecks": 88,
+  "tolerance": "1e-9",
+  "allPassed": true,
+  "generateContentCalls": 0,
+  "pairedValid": 10
+}

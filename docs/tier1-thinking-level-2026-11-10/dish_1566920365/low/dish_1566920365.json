@@ -1,0 +1,191 @@
+{
+  "id": "dish_1566920365",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 196.20000000000002,
+      "proteinG": 22.14,
+      "carbsG": 24.09,
+      "fatG": 0.795
+    },
+    "massG": 330,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 11068,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Egg Whites and Roasted Sweet Potatoes with Salsa Verde",
+    "components": [
+      {
+        "name": "Hard-boiled egg whites",
+        "massG": 180,
+        "catalogId": null,
+        "preparation": "cooked boiled",
+        "assumptions": [
+          "Chopped whites only, yolks removed"
+        ],
+        "estimatedPer100": {
+          "kcal": 52,
+          "proteinG": 10.9,
+          "carbsG": 0.7,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 93.60000000000001,
+          "proteinG": 19.62,
+          "carbsG": 1.26,
+          "fatG": 0.36000000000000004
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted sweet potato chunks",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Roasted with skin on, light oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 90,
+          "proteinG": 2,
+          "carbsG": 20.7,
+          "fatG": 0.15
+        },
+        "nutrients": {
+          "kcal": 81,
+          "proteinG": 1.8,
+          "carbsG": 18.63,
+          "fatG": 0.135
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Salsa verde / green chili sauce",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "cooked blended",
+        "assumptions": [
+          "Tomatillo or green chili based sauce spooned over the top"
+        ],
+        "estimatedPer100": {
+          "kcal": 36,
+          "proteinG": 1.2,
+          "carbsG": 7,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 21.599999999999998,
+          "proteinG": 0.72,
+          "carbsG": 4.2,
+          "fatG": 0.3
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 196.20000000000002,
+      "proteinG": 22.14,
+      "carbsG": 24.09,
+      "fatG": 0.795
+    },
+    "ambiguities": [
+      "White chunks appear to be chopped hard-boiled egg whites or fresh soft cheese (like mozzarella or paneer); assumed egg whites given texture and appearance."
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 11057,
+      "inputTokens": 2018,
+      "outputTokens": 446,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Egg Whites and Roasted Sweet Potatoes with Salsa Verde",
+      "components": [
+        {
+          "name": "Hard-boiled egg whites",
+          "massG": 180,
+          "catalogId": null,
+          "preparation": "cooked boiled",
+          "assumptions": [
+            "Chopped whites only, yolks removed"
+          ],
+          "estimatedPer100": {
+            "kcal": 52,
+            "proteinG": 10.9,
+            "carbsG": 0.7,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Roasted sweet potato chunks",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Roasted with skin on, light oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 90,
+            "proteinG": 2,
+            "carbsG": 20.7,
+            "fatG": 0.15
+          }
+        },
+        {
+          "name": "Salsa verde / green chili sauce",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "cooked blended",
+          "assumptions": [
+            "Tomatillo or green chili based sauce spooned over the top"
+          ],
+          "estimatedPer100": {
+            "kcal": 36,
+            "proteinG": 1.2,
+            "carbsG": 7,
+            "fatG": 0.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "White chunks appear to be chopped hard-boiled egg whites or fresh soft cheese (like mozzarella or paneer); assumed egg whites given texture and appearance."
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "b5710cd1fb4243d8bea0966758ba9f726dbd72677cdbd4f499c75ff83898aef7"
+}

@@ -1,0 +1,35 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Scrambled Eggs with Turkey Bacon and Sautéed Greens\",\n  \"components\": [\n    {\n      \"name\": \"Scrambled eggs\",\n      \"massG\": 140,\n      \"catalogId\": null,\n      \"preparation\": \"cooked scrambled\",\n      \"assumptions\": [\"Prepared with a small amount of oil or butter\", \"Equivalent to approximately 2.5-3 large eggs\"],\n      \"estimatedPer100\": {\n        \"kcal\": 149,\n        \"proteinG\": 10.0,\n        \"carbsG\": 1.6,\n        \"fatG\": 11.0\n      }\n    },\n    {\n      \"name\": \"Turkey bacon strips\",\n      \"massG\": 45,\n      \"catalogId\": null,\n      \"preparation\": \"cooked pan-fried\",\n      \"assumptions\": [\"3 strips of cooked turkey bacon\"],\n      \"estimatedPer100\": {\n        \"kcal\": 382,\n        \"proteinG\": 30.0,\n        \"carbsG\": 3.7,\n        \"fatG\": 27.5\n      }\n    },\n    {\n      \"name\": \"Sautéed spinach with shredded carrots\",\n      \"massG\": 65,\n      \"catalogId\": null,\n      \"preparation\": \"cooked sautéed\",\n      \"assumptions\": [\"Spinach and shredded carrots lightly cooked in oil\"],\n      \"estimatedPer100\": {\n        \"kcal\": 65,\n        \"proteinG\": 2.5,\n        \"carbsG\": 4.5,\n        \"fatG\": 4.2\n      }\n    }\n  ],\n  \"ambiguities\": [\"Exact type of bacon (turkey bacon vs vegan strips)\", \"Amount of cooking oil used in eggs and greens\"],\n  \"askAddedFat\": false\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 450,
+    "totalTokenCount": 2468,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 450
+      }
+    ]
+  },
+  "latencyMs": 10002,
+  "thinkingLevel": "LOW",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

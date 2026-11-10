@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\"schemaVersion\":1,\"mealName\":\"Scrambled eggs with bacon and greens\",\"components\":[{\"name\":\"Scrambled eggs\",\"massG\":140,\"catalogId\":null,\"preparation\":\"scrambled\",\"assumptions\":[\"Estimated as approximately 2.5 whole eggs\",\"Cooked with minimal added cooking fat\"],\"estimatedPer100\":{\"kcal\":149,\"proteinG\":10.0,\"carbsG\":1.6,\"fatG\":11.0}},{\"name\":\"Turkey bacon strips\",\"massG\":45,\"catalogId\":null,\"preparation\":\"pan-fried\",\"assumptions\":[\"Uniform texture and color suggests turkey bacon\",\"Estimated as 3 cooked strips\"],\"estimatedPer100\":{\"kcal\":382,\"proteinG\":30.0,\"carbsG\":2.3,\"fatG\":28.0}},{\"name\":\"Sautéed spinach with shredded carrots\",\"massG\":50,\"catalogId\":null,\"preparation\":\"sautéed\",\"assumptions\":[\"Wilted spinach leaves tossed with shredded carrots\",\"Prepared with light oil\"],\"estimatedPer100\":{\"kcal\":65,\"proteinG\":2.8,\"carbsG\":4.5,\"fatG\":4.5}}],\"ambiguities\":[\"Bacon type could be turkey, pork, or a plant-based substitute\",\"Greens could be sautéed in oil or a dressed fresh salad\"],\"askAddedFat\":false}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 299,
+    "totalTokenCount": 3721,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 299
+      }
+    ],
+    "thoughtsTokenCount": 1404
+  },
+  "latencyMs": 17838,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

@@ -91,8 +91,8 @@ portion_audit_promotion: no automatic promotion
 portion_audit_executed_sdk_calls: 20
 portion_audit_valid_outputs: 20
 portion_audit_report: docs/tier1-portion-audit-2026-11-09/report.md
-public_evaluation_sdk_invocations: 164
-public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog plus20 portion-audit plus20 mealrange two-model plus30 scalar-calibration TRAIN20/TEST10 plus10 mass-power newTEST plus12 paired-view controlled predictions on6existingdevelopmentmeals; plus12 reference-scale cue mass-only predictions on6newECUSTportions; nonfood/text diagnostics excluded
+public_evaluation_sdk_invocations: 184
+public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog plus20 portion-audit plus20 mealrange two-model plus30 scalar-calibration TRAIN20/TEST10 plus10 mass-power newTEST plus12 paired-view controlled predictions on6existingdevelopmentmeals; plus12 reference-scale cue mass-only predictions on6newECUSTportions; plus20 thinking-level LOW_HIGH predictions on10existingdevelopmentmeals; nonfood/text diagnostics excluded
 
 vlm_challenger_status: archived for failed P90 guard; not default or deployed
 vlm_challenger_model: gemini-4-argon
@@ -199,3 +199,18 @@ reference_scale_cue_mass_mae_g_both_arms: 15.183333333333335
 reference_scale_cue_gain_validated: false
 reference_scale_cue_physical_geometry_validated: false
 public_reference_inventory_scope: 80Nutrition5k scans including20TRAIN+60benchmark/development, separately6ECUST simpleportions; no combined calorie metric or independentmealcount
+
+thinking_level_status: completed_failed_consideration_gate; archived_not_promoted
+thinking_level_report: docs/tier1-thinking-level-2026-11-10/report.md
+thinking_level_source_commit: 7624093d8441948d25b4ce107df6f95d95e88455
+thinking_level_manifest_sha256: 9d7d8f2b3097d551df8ca93d35dcd800a594ce45fd97f3e7ac1d71c8653ff9e7
+thinking_level_food_sdk_entries: 20
+thinking_level_owned_blank_probe_entries: 1
+thinking_level_registry_status: closed; neverresume/reset
+thinking_level_low_mae_kcal: 177.56731689999998
+thinking_level_high_mae_kcal: 175.8023169
+thinking_level_relative_mae_gain: 0.009939892266288886
+thinking_level_passes_all: false
+thinking_level_new_reference_meals: 0
+thinking_level_product_change: false
+next_portion_measurement_candidate: bounded_oracle_pixel_localization_and_known_scale_diagnostic; not_weight_input_or_validated_geometry

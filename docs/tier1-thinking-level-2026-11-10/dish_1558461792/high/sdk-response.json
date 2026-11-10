@@ -1,0 +1,36 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\"schemaVersion\":1,\"mealName\":\"Snack plate with almonds, grapes, tomatoes, and spinach\",\"components\":[{\"name\":\"Almonds\",\"massG\":35,\"catalogId\":null,\"preparation\":\"raw\",\"assumptions\":[\"Whole almonds, assumed raw or dry roasted without added oil\",\"Approx. 28-30 kernels\"],\"estimatedPer100\":{\"kcal\":579,\"proteinG\":21.2,\"carbsG\":21.6,\"fatG\":49.9}},{\"name\":\"Grapes\",\"massG\":105,\"catalogId\":null,\"preparation\":\"raw\",\"assumptions\":[\"Mix of red and green seedless grapes\",\"Count of approximately 21 grapes\"],\"estimatedPer100\":{\"kcal\":69,\"proteinG\":0.7,\"carbsG\":18.1,\"fatG\":0.2}},{\"name\":\"Grape tomatoes\",\"massG\":85,\"catalogId\":null,\"preparation\":\"raw\",\"assumptions\":[\"5 whole grape/cherry tomatoes\"],\"estimatedPer100\":{\"kcal\":18,\"proteinG\":0.9,\"carbsG\":3.9,\"fatG\":0.2}},{\"name\":\"Baby spinach\",\"massG\":10,\"catalogId\":null,\"preparation\":\"raw\",\"assumptions\":[\"Small bunch of fresh unseasoned leaves\"],\"estimatedPer100\":{\"kcal\":23,\"proteinG\":2.9,\"carbsG\":3.6,\"fatG\":0.4}}],\"ambiguities\":[\"Whether almonds are raw or dry-roasted and whether salt or seasoning is present\"],\"askAddedFat\":false}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 340,
+    "totalTokenCount": 3960,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 340
+      }
+    ],
+    "thoughtsTokenCount": 1602
+  },
+  "latencyMs": 18964,
+  "thinkingLevel": "HIGH",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "57d2955f7f2f35fabd6ecc80f99b5f437e86196906e9825ce58591e9a9bc3ffc"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}

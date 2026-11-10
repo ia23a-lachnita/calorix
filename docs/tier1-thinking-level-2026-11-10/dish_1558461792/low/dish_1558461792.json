@@ -1,0 +1,234 @@
+{
+  "id": "dish_1558461792",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 294.59999999999997,
+      "proteinG": 9.255,
+      "carbsG": 30.740000000000002,
+      "fatG": 17.884999999999998
+    },
+    "massG": 230,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 9917,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Plate with Cherry Tomatoes, Baby Spinach, Grapes, and Whole Almonds",
+    "components": [
+      {
+        "name": "Whole almonds",
+        "massG": 35,
+        "catalogId": null,
+        "preparation": "raw or dry roasted",
+        "assumptions": [
+          "Unsalted or lightly salted whole almonds"
+        ],
+        "estimatedPer100": {
+          "kcal": 579,
+          "proteinG": 21.2,
+          "carbsG": 21.6,
+          "fatG": 49.9
+        },
+        "nutrients": {
+          "kcal": 202.64999999999998,
+          "proteinG": 7.419999999999999,
+          "carbsG": 7.56,
+          "fatG": 17.465
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Red and green grapes",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh seedless grapes"
+        ],
+        "estimatedPer100": {
+          "kcal": 69,
+          "proteinG": 0.7,
+          "carbsG": 18.1,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 75.9,
+          "proteinG": 0.77,
+          "carbsG": 19.910000000000004,
+          "fatG": 0.22000000000000003
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cherry or grape tomatoes",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "5 whole fresh cherry/grape tomatoes"
+        ],
+        "estimatedPer100": {
+          "kcal": 18,
+          "proteinG": 0.9,
+          "carbsG": 3.9,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 12.6,
+          "proteinG": 0.63,
+          "carbsG": 2.73,
+          "fatG": 0.13999999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Baby spinach leaves",
+        "massG": 15,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh, unseasoned raw spinach leaves"
+        ],
+        "estimatedPer100": {
+          "kcal": 23,
+          "proteinG": 2.9,
+          "carbsG": 3.6,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 3.4499999999999997,
+          "proteinG": 0.435,
+          "carbsG": 0.54,
+          "fatG": 0.06
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 294.59999999999997,
+      "proteinG": 9.255,
+      "carbsG": 30.740000000000002,
+      "fatG": 17.884999999999998
+    },
+    "ambiguities": [
+      "Whether almonds are raw or roasted with oil/salt"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9912,
+      "inputTokens": 2018,
+      "outputTokens": 558,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Plate with Cherry Tomatoes, Baby Spinach, Grapes, and Whole Almonds",
+      "components": [
+        {
+          "name": "Whole almonds",
+          "massG": 35,
+          "catalogId": null,
+          "preparation": "raw or dry roasted",
+          "assumptions": [
+            "Unsalted or lightly salted whole almonds"
+          ],
+          "estimatedPer100": {
+            "kcal": 579,
+            "proteinG": 21.2,
+            "carbsG": 21.6,
+            "fatG": 49.9
+          }
+        },
+        {
+          "name": "Red and green grapes",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh seedless grapes"
+          ],
+          "estimatedPer100": {
+            "kcal": 69,
+            "proteinG": 0.7,
+            "carbsG": 18.1,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Cherry or grape tomatoes",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "5 whole fresh cherry/grape tomatoes"
+          ],
+          "estimatedPer100": {
+            "kcal": 18,
+            "proteinG": 0.9,
+            "carbsG": 3.9,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Baby spinach leaves",
+          "massG": 15,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh, unseasoned raw spinach leaves"
+          ],
+          "estimatedPer100": {
+            "kcal": 23,
+            "proteinG": 2.9,
+            "carbsG": 3.6,
+            "fatG": 0.4
+          }
+        }
+      ],
+      "ambiguities": [
+        "Whether almonds are raw or roasted with oil/salt"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "6e253414d97a25b6974c62af181627ea78e2e7a50bf54ee75a2852e198899d39"
+}

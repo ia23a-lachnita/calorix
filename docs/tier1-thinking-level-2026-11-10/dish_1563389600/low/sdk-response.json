@@ -1,0 +1,35 @@
+{
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\n  \"schemaVersion\": 1,\n  \"mealName\": \"Diced Chicken Breast and Grape Tomatoes\",\n  \"components\": [\n    {\n      \"name\": \"Roasted chicken breast, diced\",\n      \"massG\": 140,\n      \"catalogId\": \"usda:171477\",\n      \"preparation\": \"cooked roasted\",\n      \"assumptions\": [\n        \"Skinless roasted chicken breast\",\n        \"Cooked and cut into bite-sized cubes\"\n      ],\n      \"estimatedPer100\": null\n    },\n    {\n      \"name\": \"Grape tomatoes\",\n      \"massG\": 90,\n      \"catalogId\": null,\n      \"preparation\": \"raw\",\n      \"assumptions\": [\n        \"Whole raw grape or cherry tomatoes, approximately 8-10 pieces\"\n      ],\n      \"estimatedPer100\": {\n        \"kcal\": 18,\n        \"proteinG\": 0.9,\n        \"carbsG\": 3.9,\n        \"fatG\": 0.2\n      }\n    }\n  ],\n  \"ambiguities\": [\n    \"Presence of dressing, oil, or seasonings not visibly obvious at the bottom of the bowl\"\n  ],\n  \"askAddedFat\": true\n}",
+  "usageMetadata": {
+    "promptTokenCount": 2018,
+    "candidatesTokenCount": 298,
+    "totalTokenCount": 2316,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1064
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 298
+      }
+    ]
+  },
+  "latencyMs": 8612,
+  "thinkingLevel": "LOW",
+  "timeoutMs": 60000,
+  "inputSha256": [
+    "5dd57e8063e5f941541faa009851cd0a47a80967942af81640ffe4e6afa6af01"
+  ],
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "costUsd": null
+}
