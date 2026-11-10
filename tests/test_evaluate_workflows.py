@@ -28,6 +28,15 @@ def references(*rows):return {'schema_version':'1.0','meals':list(rows)}
 
 
 class WorkflowEvaluatorTest(unittest.TestCase):
+    def test_v2_accepts_appended_oil_index20_but_v1_and_index21_reject(self):
+        for kind in ['portion_saved','food_saved']:
+            data=export([{**correction(),'kind':kind,'portionIndex':20}]);data['schemaVersion']=2
+            evaluate_workflows(data,references(meal()))
+            old=copy.deepcopy(data);old['schemaVersion']=1
+            with self.assertRaises(ValueError):evaluate_workflows(old,references(meal()))
+            data['meals'][0]['events'][0]['portionIndex']=21
+            with self.assertRaises(ValueError):evaluate_workflows(data,references(meal()))
+
     def test_v2_food_action_coverage_does_not_invent_accuracy_pairs(self):
         event={**correction(),'kind':'food_saved'}
         data=export([event]);data['schemaVersion']=2;data['meals'][0]['source']='food_correction'

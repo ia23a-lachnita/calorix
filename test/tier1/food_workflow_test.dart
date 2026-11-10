@@ -7,6 +7,16 @@ import 'support/portion_fixtures.dart';
 
 Map<String,dynamic> action(String kind)=>WorkflowMeter(sessionId:'food-session',elapsedMilliseconds:()=>0).event(kind,at:portionDate,fields:{'portionIndex':1});
 void main(){
+  test('version2 measures the twenty-first component appended by preparation',(){
+    final meter=WorkflowMeter(sessionId:'last-component',elapsedMilliseconds:()=>0);
+    for(final kind in ['food_opened','food_saved','portion_opened','portion_saved']){
+      final e=meter.event(kind,at:portionDate,fields:{'portionIndex':20});
+      expect(validateWorkflowEvent(e),e);
+      expect(()=>validateWorkflowEvent(e,version:1),throwsFormatException);
+    }
+    expect(()=>meter.event('food_saved',at:portionDate,fields:{'portionIndex':21}),throwsFormatException);
+  });
+
   test('version2 exports accept bounded food events without private food fields',(){
     for(final kind in ['food_opened','food_cancelled','food_unchanged','food_saved','food_conflict','food_failed']){
       final e=action(kind);expect(validateWorkflowEvent(e),e);

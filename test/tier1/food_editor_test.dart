@@ -75,7 +75,7 @@ void main(){
   });
   testWidgets('write failure leaves original and explains failure', (t)async{
     final (store,sink)=await open(t);final before=store.rows.single.toJson();await dialog(t);store.fail=true;await selectRice(t);
-    expect(store.rows.single.toJson(),before);expect(find.textContaining('Could not save this food'),findsOneWidget);
+    expect(store.rows.single.toJson(),before);expect(find.descendant(of:find.byType(SnackBar),matching:find.textContaining('Could not save this food')),findsOneWidget);
     expect(sink.events.where((e)=>e['kind']=='food_saved'),isEmpty);expect(sink.events.where((e)=>e['kind']=='food_failed').length,1);
   });
   testWidgets('successful commit followed by failed refresh is still recorded as saved', (t)async{
@@ -91,6 +91,8 @@ void main(){
   testWidgets('food correction excludes later portion from original-analysis metric', (t)async{
     final (_,sink)=await open(t,equalEnergy:true);await dialog(t);await selectRice(t);
     final edit=find.byTooltip('Edit portion for Rice, white, long-grain, regular, enriched, cooked');await visible(t,edit);await t.tap(edit);await t.pumpAndSettle();
+    expect(find.text('Portion: Rice, white, long-grain, regular, enriched, cooked'),findsOneWidget);
+    expect(find.textContaining('Original prediction: Almonds'),findsWidgets);
     await t.enterText(find.widgetWithText(TextFormField,'Served grams'),'86');await t.tap(find.text('Apply portion'));await t.pumpAndSettle();
     final event=sink.events.singleWhere((e)=>e['kind']=='portion_saved');expect(event['beforeFromOriginalAnalysis'],false);
     for(final event in sink.events){expect(event.keys, isNot(contains('recordId')));expect(event.keys,isNot(contains('query')));expect(event.keys,isNot(contains('foodName')));}
