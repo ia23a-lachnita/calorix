@@ -1,4 +1,4 @@
-manifest_version: 2
+manifest_version: 3
 assets:
   - source_id: usda-sr-2019-tier1-20261108-v1
     source_url: https://fdc.nal.usda.gov/data-documentation/
@@ -79,4 +79,19 @@ assets:
     privacy_basis: public licensed cafeteria-food photographs; no user photos uploaded
     approval_state: user-requested public evaluation; new IDs may share capture dates and incremental plates
     transformations: RGB PNG to JPEG85/subsampling2, EXIF removed, no resize; labels unchanged
+    evidence_link: https://github.com/google-research-datasets/Nutrition5k#license--contact
+
+  - source_id: nutrition5k-public-weighed-20261110
+    source_url: https://github.com/google-research-datasets/Nutrition5k
+    asset_version: forty existing pinned public scans; original20 plus mealrange10 plus portion-audit10 original baseline arms
+    license: CC-BY-4.0
+    attribution: Thames et al., Nutrition5k, CVPR2021
+    code_license: not applicable (data)
+    weights_license: not applicable
+    evaluation_allowed: true
+    redistribution_allowed: true with attribution
+    commercial_training_allowed: not used for training
+    privacy_basis: public licensed reference vectors; no owner photos or new inference requests
+    approval_state: public weighed baseline and diagnostic-safe correction adapter; no human-benefit validation
+    derived_bundle: docs/tier1-public-weighed-2026-11-10/bundle.json
     evidence_link: https://github.com/google-research-datasets/Nutrition5k#license--contact

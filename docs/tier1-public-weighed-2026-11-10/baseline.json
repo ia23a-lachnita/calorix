@@ -1,0 +1,687 @@
+{
+  "baseline": {
+    "actual_active_user_ms": null,
+    "capture_dates": 25,
+    "cohorts": {
+      "mealrange10": {
+        "A0": {
+          "abstained": 0,
+          "automatic_answers": 0,
+          "coverage": 0.0,
+          "eligible_attempts": 10,
+          "energy_bins": {
+            "200_to_600": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            },
+            "over_600": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            },
+            "under_200": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            }
+          },
+          "failed": 10,
+          "ingredient_count_proxy": {
+            "multiple_ingredients": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            },
+            "one_ingredient": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            }
+          },
+          "macros_g": {
+            "carbsG": {
+              "bias": null,
+              "mae": null,
+              "p90_absolute_error": null,
+              "scored_scans": 0
+            },
+            "fatG": {
+              "bias": null,
+              "mae": null,
+              "p90_absolute_error": null,
+              "scored_scans": 0
+            },
+            "proteinG": {
+              "bias": null,
+              "mae": null,
+              "p90_absolute_error": null,
+              "scored_scans": 0
+            }
+          },
+          "mass_g": {
+            "bias": null,
+            "mae": null,
+            "p90_absolute_error": null,
+            "scored_scans": 0
+          },
+          "served": {
+            "bias_kcal": null,
+            "mae_kcal": null,
+            "mean_normalized_absolute_error": null,
+            "p90_absolute_error_kcal": null,
+            "scored_scans": 0
+          }
+        },
+        "A1": {
+          "abstained": 0,
+          "automatic_answers": 10,
+          "coverage": 1.0,
+          "eligible_attempts": 10,
+          "energy_bins": {
+            "200_to_600": {
+              "bias_kcal": -123.91448816666666,
+              "mae_kcal": 123.98320349999999,
+              "mean_normalized_absolute_error": 0.2894630053462867,
+              "p90_absolute_error_kcal": 241.57485049999997,
+              "scored_scans": 6
+            },
+            "over_600": {
+              "bias_kcal": -296.49906,
+              "mae_kcal": 296.49906,
+              "mean_normalized_absolute_error": 0.36910825647022444,
+              "p90_absolute_error_kcal": 434.0786252,
+              "scored_scans": 4
+            },
+            "under_200": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            }
+          },
+          "failed": 0,
+          "ingredient_count_proxy": {
+            "multiple_ingredients": {
+              "bias_kcal": -192.94831689999998,
+              "mae_kcal": 192.98954609999998,
+              "mean_normalized_absolute_error": 0.3213211057958618,
+              "p90_absolute_error_kcal": 419.9950316,
+              "scored_scans": 10
+            },
+            "one_ingredient": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            }
+          },
+          "macros_g": {
+            "carbsG": {
+              "bias": -4.206945299999999,
+              "mae": 6.882352899999998,
+              "p90_absolute_error": 11.755460199999993,
+              "scored_scans": 10
+            },
+            "fatG": {
+              "bias": -12.893669499999998,
+              "mae": 12.893669499999998,
+              "p90_absolute_error": 24.987888699999996,
+              "scored_scans": 10
+            },
+            "proteinG": {
+              "bias": -16.9911591,
+              "mae": 18.3930437,
+              "p90_absolute_error": 40.5619078,
+              "scored_scans": 10
+            }
+          },
+          "mass_g": {
+            "bias": -131.5,
+            "mae": 131.7,
+            "p90_absolute_error": 320.2999999999999,
+            "scored_scans": 10
+          },
+          "served": {
+            "bias_kcal": -192.94831689999998,
+            "mae_kcal": 192.98954609999998,
+            "mean_normalized_absolute_error": 0.3213211057958618,
+            "p90_absolute_error_kcal": 419.9950316,
+            "scored_scans": 10
+          }
+        }
+      },
+      "original20": {
+        "A0": {
+          "abstained": 0,
+          "automatic_answers": 1,
+          "coverage": 0.05,
+          "eligible_attempts": 20,
+          "energy_bins": {
+            "200_to_600": {
+              "bias_kcal": -191.32800300000002,
+              "mae_kcal": 191.32800300000002,
+              "mean_normalized_absolute_error": 0.4359977068282035,
+              "p90_absolute_error_kcal": 191.32800300000002,
+              "scored_scans": 1
+            },
+            "over_600": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            },
+            "under_200": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            }
+          },
+          "failed": 19,
+          "ingredient_count_proxy": {
+            "multiple_ingredients": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            },
+            "one_ingredient": {
+              "bias_kcal": -191.32800300000002,
+              "mae_kcal": 191.32800300000002,
+              "mean_normalized_absolute_error": 0.4359977068282035,
+              "p90_absolute_error_kcal": 191.32800300000002,
+              "scored_scans": 1
+            }
+          },
+          "macros_g": {
+            "carbsG": {
+              "bias": -0.194,
+              "mae": 0.194,
+              "p90_absolute_error": 0.194,
+              "scored_scans": 1
+            },
+            "fatG": {
+              "bias": -23.551,
+              "mae": 23.551,
+              "p90_absolute_error": 23.551,
+              "scored_scans": 1
+            },
+            "proteinG": {
+              "bias": 2.686002000000002,
+              "mae": 2.686002000000002,
+              "p90_absolute_error": 2.686002000000002,
+              "scored_scans": 1
+            }
+          },
+          "mass_g": {
+            "bias": -44.0,
+            "mae": 44.0,
+            "p90_absolute_error": 44.0,
+            "scored_scans": 1
+          },
+          "served": {
+            "bias_kcal": -191.32800300000002,
+            "mae_kcal": 191.32800300000002,
+            "mean_normalized_absolute_error": 0.4359977068282035,
+            "p90_absolute_error_kcal": 191.32800300000002,
+            "scored_scans": 1
+          }
+        },
+        "A1": {
+          "abstained": 0,
+          "automatic_answers": 20,
+          "coverage": 1.0,
+          "eligible_attempts": 20,
+          "energy_bins": {
+            "200_to_600": {
+              "bias_kcal": -51.217756,
+              "mae_kcal": 121.01500475,
+              "mean_normalized_absolute_error": 0.33310771415343643,
+              "p90_absolute_error_kcal": 247.5191145,
+              "scored_scans": 8
+            },
+            "over_600": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            },
+            "under_200": {
+              "bias_kcal": 21.20094375,
+              "mae_kcal": 38.55380491666667,
+              "mean_normalized_absolute_error": 0.19276902458333334,
+              "p90_absolute_error_kcal": 96.88245350000001,
+              "scored_scans": 12
+            }
+          },
+          "failed": 0,
+          "ingredient_count_proxy": {
+            "multiple_ingredients": {
+              "bias_kcal": -32.5968425,
+              "mae_kcal": 96.30121500000001,
+              "mean_normalized_absolute_error": 0.31860964428844646,
+              "p90_absolute_error_kcal": 181.11780819999998,
+              "scored_scans": 8
+            },
+            "one_ingredient": {
+              "bias_kcal": 8.787001416666667,
+              "mae_kcal": 55.02966475,
+              "mean_normalized_absolute_error": 0.20243440449332664,
+              "p90_absolute_error_kcal": 103.64800000000002,
+              "scored_scans": 12
+            }
+          },
+          "macros_g": {
+            "carbsG": {
+              "bias": 2.8793527,
+              "mae": 5.1010191,
+              "p90_absolute_error": 9.988356300000005,
+              "scored_scans": 20
+            },
+            "fatG": {
+              "bias": -0.2895282,
+              "mae": 4.7204821,
+              "p90_absolute_error": 9.227648900000005,
+              "scored_scans": 20
+            },
+            "proteinG": {
+              "bias": -3.5067751,
+              "mae": 5.4271056,
+              "p90_absolute_error": 16.730684000000014,
+              "scored_scans": 20
+            }
+          },
+          "mass_g": {
+            "bias": -22.7,
+            "mae": 49.6,
+            "p90_absolute_error": 73.1,
+            "scored_scans": 20
+          },
+          "served": {
+            "bias_kcal": -7.76653615,
+            "mae_kcal": 71.53828485,
+            "mean_normalized_absolute_error": 0.24890450041137457,
+            "p90_absolute_error_kcal": 155.45489490000014,
+            "scored_scans": 20
+          }
+        }
+      },
+      "portion_audit10_original": {
+        "A0": {
+          "abstained": 0,
+          "automatic_answers": 0,
+          "coverage": 0.0,
+          "eligible_attempts": 10,
+          "energy_bins": {
+            "200_to_600": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            },
+            "over_600": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            },
+            "under_200": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            }
+          },
+          "failed": 10,
+          "ingredient_count_proxy": {
+            "multiple_ingredients": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            },
+            "one_ingredient": {
+              "bias_kcal": null,
+              "mae_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "p90_absolute_error_kcal": null,
+              "scored_scans": 0
+            }
+          },
+          "macros_g": {
+            "carbsG": {
+              "bias": null,
+              "mae": null,
+              "p90_absolute_error": null,
+              "scored_scans": 0
+            },
+            "fatG": {
+              "bias": null,
+              "mae": null,
+              "p90_absolute_error": null,
+              "scored_scans": 0
+            },
+            "proteinG": {
+              "bias": null,
+              "mae": null,
+              "p90_absolute_error": null,
+              "scored_scans": 0
+            }
+          },
+          "mass_g": {
+            "bias": null,
+            "mae": null,
+            "p90_absolute_error": null,
+            "scored_scans": 0
+          },
+          "served": {
+            "bias_kcal": null,
+            "mae_kcal": null,
+            "mean_normalized_absolute_error": null,
+            "p90_absolute_error_kcal": null,
+            "scored_scans": 0
+          }
+        },
+        "A1": {
+          "abstained": 0,
+          "automatic_answers": 10,
+          "coverage": 1.0,
+          "eligible_attempts": 10,
+          "energy_bins": {
+            "200_to_600": {
+              "bias_kcal": -117.08914999999998,
+              "mae_kcal": 129.4011413333333,
+              "mean_normalized_absolute_error": 0.2700080475121756,
+              "p90_absolute_error_kcal": 288.6696182,
+              "scored_scans": 3
+            },
+            "over_600": {
+              "bias_kcal": -317.72065725000004,
+              "mae_kcal": 317.72065725000004,
+              "mean_normalized_absolute_error": 0.38140602176281285,
+              "p90_absolute_error_kcal": 479.6143016000001,
+              "scored_scans": 4
+            },
+            "under_200": {
+              "bias_kcal": 1.3699999999999999,
+              "mae_kcal": 1.4900000000000009,
+              "mean_normalized_absolute_error": 0.007450000000000003,
+              "p90_absolute_error_kcal": 2.79,
+              "scored_scans": 3
+            }
+          },
+          "failed": 0,
+          "ingredient_count_proxy": {
+            "multiple_ingredients": {
+              "bias_kcal": -272.7790038,
+              "mae_kcal": 272.7790038,
+              "mean_normalized_absolute_error": 0.38349762926028524,
+              "p90_absolute_error_kcal": 480.6480176,
+              "scored_scans": 5
+            },
+            "one_ingredient": {
+              "bias_kcal": -50.82901200000002,
+              "mae_kcal": 59.93220680000002,
+              "mean_normalized_absolute_error": 0.0881020166572704,
+              "p90_absolute_error_kcal": 173.42102300000005,
+              "scored_scans": 5
+            }
+          },
+          "macros_g": {
+            "carbsG": {
+              "bias": -1.0493397999999987,
+              "mae": 3.6075634000000014,
+              "p90_absolute_error": 8.317453099999998,
+              "scored_scans": 10
+            },
+            "fatG": {
+              "bias": -10.0564201,
+              "mae": 10.9868199,
+              "p90_absolute_error": 25.32384949999999,
+              "scored_scans": 10
+            },
+            "proteinG": {
+              "bias": -17.0388554,
+              "mae": 17.1256554,
+              "p90_absolute_error": 41.4305472,
+              "scored_scans": 10
+            }
+          },
+          "mass_g": {
+            "bias": -52.8,
+            "mae": 67.8,
+            "p90_absolute_error": 192.1,
+            "scored_scans": 10
+          },
+          "served": {
+            "bias_kcal": -161.80400790000002,
+            "mae_kcal": 166.3556053,
+            "mean_normalized_absolute_error": 0.23579982295877783,
+            "p90_absolute_error_kcal": 376.9580245999999,
+            "scored_scans": 10
+          }
+        }
+      }
+    },
+    "consumed_accuracy": null,
+    "cost_usd_total": null,
+    "gold_mixed_dish_breakdown": null,
+    "independent_physical_plates": null,
+    "interpretation": "Exposed development scans from separate original baseline runs; no new inference, independent-plate, Android-transfer or correction-benefit claim. Ingredient counts are not gold mixed-dish labels.",
+    "max_absolute_closure_residual": {
+      "carbsG": 1.0407000004875044e-05,
+      "fatG": 4.0000000041118255e-06,
+      "kcal": 0.00011894000010670425,
+      "massG": 6.999999982326699e-06,
+      "proteinG": 7.327999995254686e-06
+    },
+    "paired": {
+      "A0": {
+        "bias_kcal": -191.32800300000002,
+        "mae_kcal": 191.32800300000002,
+        "mean_normalized_absolute_error": 0.4359977068282035,
+        "p90_absolute_error_kcal": 191.32800300000002,
+        "scored_scans": 1
+      },
+      "A1": {
+        "bias_kcal": -240.82800300000002,
+        "mae_kcal": 240.82800300000002,
+        "mean_normalized_absolute_error": 0.5487981654625628,
+        "p90_absolute_error_kcal": 240.82800300000002,
+        "scored_scans": 1
+      }
+    },
+    "public_scans": 40,
+    "question_proposals": 2,
+    "raw_sdk_latency_ms": {
+      "measured": 40,
+      "p50": 10569.0,
+      "p90": 12830.6
+    },
+    "reference_basis": "Published weighed masses and recipe/USDA-derived nutrients; aggregate retained unchanged",
+    "routes": {
+      "A0": {
+        "abstained": 0,
+        "automatic_answers": 1,
+        "coverage": 0.025,
+        "eligible_attempts": 40,
+        "energy_bins": {
+          "200_to_600": {
+            "bias_kcal": -191.32800300000002,
+            "mae_kcal": 191.32800300000002,
+            "mean_normalized_absolute_error": 0.4359977068282035,
+            "p90_absolute_error_kcal": 191.32800300000002,
+            "scored_scans": 1
+          },
+          "over_600": {
+            "bias_kcal": null,
+            "mae_kcal": null,
+            "mean_normalized_absolute_error": null,
+            "p90_absolute_error_kcal": null,
+            "scored_scans": 0
+          },
+          "under_200": {
+            "bias_kcal": null,
+            "mae_kcal": null,
+            "mean_normalized_absolute_error": null,
+            "p90_absolute_error_kcal": null,
+            "scored_scans": 0
+          }
+        },
+        "failed": 39,
+        "ingredient_count_proxy": {
+          "multiple_ingredients": {
+            "bias_kcal": null,
+            "mae_kcal": null,
+            "mean_normalized_absolute_error": null,
+            "p90_absolute_error_kcal": null,
+            "scored_scans": 0
+          },
+          "one_ingredient": {
+            "bias_kcal": -191.32800300000002,
+            "mae_kcal": 191.32800300000002,
+            "mean_normalized_absolute_error": 0.4359977068282035,
+            "p90_absolute_error_kcal": 191.32800300000002,
+            "scored_scans": 1
+          }
+        },
+        "macros_g": {
+          "carbsG": {
+            "bias": -0.194,
+            "mae": 0.194,
+            "p90_absolute_error": 0.194,
+            "scored_scans": 1
+          },
+          "fatG": {
+            "bias": -23.551,
+            "mae": 23.551,
+            "p90_absolute_error": 23.551,
+            "scored_scans": 1
+          },
+          "proteinG": {
+            "bias": 2.686002000000002,
+            "mae": 2.686002000000002,
+            "p90_absolute_error": 2.686002000000002,
+            "scored_scans": 1
+          }
+        },
+        "mass_g": {
+          "bias": -44.0,
+          "mae": 44.0,
+          "p90_absolute_error": 44.0,
+          "scored_scans": 1
+        },
+        "served": {
+          "bias_kcal": -191.32800300000002,
+          "mae_kcal": 191.32800300000002,
+          "mean_normalized_absolute_error": 0.4359977068282035,
+          "p90_absolute_error_kcal": 191.32800300000002,
+          "scored_scans": 1
+        }
+      },
+      "A1": {
+        "abstained": 0,
+        "automatic_answers": 40,
+        "coverage": 1.0,
+        "eligible_attempts": 40,
+        "energy_bins": {
+          "200_to_600": {
+            "bias_kcal": -88.4997898235294,
+            "mae_kcal": 123.54251076470588,
+            "mean_normalized_absolute_error": 0.3065684639906905,
+            "p90_absolute_error_kcal": 268.3677016,
+            "scored_scans": 17
+          },
+          "over_600": {
+            "bias_kcal": -307.109858625,
+            "mae_kcal": 307.109858625,
+            "mean_normalized_absolute_error": 0.37525713911651865,
+            "p90_absolute_error_kcal": 477.86429899999996,
+            "scored_scans": 8
+          },
+          "under_200": {
+            "bias_kcal": 17.234755,
+            "mae_kcal": 31.141043933333336,
+            "mean_normalized_absolute_error": 0.15570521966666667,
+            "p90_absolute_error_kcal": 89.66830399999999,
+            "scored_scans": 15
+          }
+        },
+        "failed": 0,
+        "ingredient_count_proxy": {
+          "multiple_ingredients": {
+            "bias_kcal": -154.52838817391304,
+            "mae_kcal": 176.70435652173913,
+            "mean_normalized_absolute_error": 0.33389462428554856,
+            "p90_absolute_error_kcal": 405.3622180000001,
+            "scored_scans": 23
+          },
+          "one_ingredient": {
+            "bias_kcal": -8.747120176470592,
+            "mae_kcal": 56.47158888235295,
+            "mean_normalized_absolute_error": 0.16880723160036892,
+            "p90_absolute_error_kcal": 159.91320120000006,
+            "scored_scans": 17
+          }
+        },
+        "macros_g": {
+          "carbsG": {
+            "bias": 0.12560507500000057,
+            "mae": 5.172988625,
+            "p90_absolute_error": 11.622203599999995,
+            "scored_scans": 40
+          },
+          "fatG": {
+            "bias": -5.8822865,
+            "mae": 8.3303634,
+            "p90_absolute_error": 23.467799099999997,
+            "scored_scans": 40
+          },
+          "proteinG": {
+            "bias": -10.260891175000001,
+            "mae": 11.593227575,
+            "p90_absolute_error": 38.55011710000001,
+            "scored_scans": 40
+          }
+        },
+        "mass_g": {
+          "bias": -57.425,
+          "mae": 74.675,
+          "p90_absolute_error": 192.10000000000005,
+          "scored_scans": 40
+        },
+        "served": {
+          "bias_kcal": -92.571349275,
+          "mae_kcal": 125.605430275,
+          "mean_normalized_absolute_error": 0.2637324823943472,
+          "p90_absolute_error_kcal": 290.9048822000001,
+          "scored_scans": 40
+        }
+      }
+    },
+    "schema_version": "public-weighed-report-1",
+    "scope": "frozen_existing_40_public_scans"
+  },
+  "bundle_sha256": "0b78b33438d7b3c66647a0a2403b7f4686909be5a47e50b936a590bf84b2bea6"
+}

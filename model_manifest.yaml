@@ -1,4 +1,4 @@
-manifest_version: 5
+manifest_version: 6
 baseline: A1
 requested_model: gemini-3.8-flash
 returned_model_policy: exact equality or explicit failure
@@ -120,3 +120,13 @@ manual_food_selection:
   local_meal_version: 2 only with active food overrides; legacy1 otherwise
   workflow_export_version: 2; strict readers also accept legacy1
   accuracy_evidence: no measured correction benefit or active user time yet
+
+public_weighed_reference_scans_scored: 40
+public_weighed_reference_basis: Nutrition5k incremental measured masses and recipe/USDA-derived nutritional labels
+public_weighed_reference_report: docs/tier1-public-weighed-2026-11-10/report.md
+public_weighed_reference_bundle: docs/tier1-public-weighed-2026-11-10/bundle.json
+public_weighed_reference_bundle_sha256: 0b78b33438d7b3c66647a0a2403b7f4686909be5a47e50b936a590bf84b2bea6
+public_weighed_original_prediction_receipts_reused: 40
+public_weighed_new_sdk_calls: 0
+public_weighed_independent_physical_plate_count: null
+public_weighed_actual_reference_blind_correction_pairs: 0

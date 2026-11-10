@@ -1,0 +1,66 @@
+{
+  "clipboard_utf8_bytes_without_added_newline": 6055,
+  "evidence_role": "Owned scripted diagnostic export; excluded from human correction benefit",
+  "report": {
+    "actual_active_user_ms": null,
+    "consumed_accuracy": null,
+    "cost_usd": null,
+    "coverage": {
+      "exported_meals": 1,
+      "exports_without_link": 0,
+      "links": 1,
+      "links_without_export": 0,
+      "reference_scans": 40,
+      "scored_scans": 0
+    },
+    "dialog_foreground_proxy_ms": {
+      "measured": 0,
+      "p50": null,
+      "p90": null
+    },
+    "exclusion_reasons": {
+      "diagnostic": 1
+    },
+    "food_assisted": {
+      "after": {
+        "bias_kcal": null,
+        "mae_kcal": null,
+        "mean_normalized_absolute_error": null,
+        "p90_absolute_error_kcal": null,
+        "scored_scans": 0
+      },
+      "before": {
+        "bias_kcal": null,
+        "mae_kcal": null,
+        "mean_normalized_absolute_error": null,
+        "p90_absolute_error_kcal": null,
+        "scored_scans": 0
+      },
+      "mean_absolute_error_reduction_kcal": null,
+      "scored_scans": 0
+    },
+    "interpretation": "Conditional first edits to imported frozen baselines. Diagnostic/oracle links excluded. No live-capture analysis stream or authenticated human-benefit claim.",
+    "link_assurance": "Operator attestation only; image identity, imported baseline and reference blinding are not independently proven",
+    "pairs": [],
+    "portion_only": {
+      "after": {
+        "bias_kcal": null,
+        "mae_kcal": null,
+        "mean_normalized_absolute_error": null,
+        "p90_absolute_error_kcal": null,
+        "scored_scans": 0
+      },
+      "before": {
+        "bias_kcal": null,
+        "mae_kcal": null,
+        "mean_normalized_absolute_error": null,
+        "p90_absolute_error_kcal": null,
+        "scored_scans": 0
+      },
+      "mean_absolute_error_reduction_kcal": null,
+      "scored_scans": 0
+    },
+    "schema_version": "public-workflow-report-1"
+  },
+  "workflow_export_sha256": "1c23f122ef73fbeb7b043913c8941960c10acf294047ac2e4663a16e6d97c649"
+}

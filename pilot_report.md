@@ -1,5 +1,11 @@
 # Tier1 pilot report
 
+## Weighed public baseline — November10
+
+Nutrition5k already supplies measured ingredient/plate weights and recipe-derived nutrient references. All40 existing referenced public scans are now scored together from their original frozen A1 predictions: MAE125.61kcal, bias−92.57kcal, P90absolute290.90kcal and floor-200 normalized error26.37%. A1 coverage40/40; A0 coverage1/40 with39 explicit catalog failures, so overall ranking is unsupported. This is an aggregation of existing predictions from three runs, not a new model improvement. [All40 references/predictions, executable scorer, limits and reproduction](docs/tier1-public-weighed-2026-11-10/report.md).
+
+The new correction bridge can use these public weighed references directly. Actual scripted native export compatibility passed with diagnostic exclusion; actual reference-blind human correction pairs remain0, so correction benefit remains unmeasured. No new reference collection or inference is needed to reproduce the public baseline. Android-specific collection remains a separate question.
+
 November10 food correction: optional local selection from the existing73USDA records now preserves estimated grams/original recognition and composes with portion/oil corrections. [Full build/native receipt](docs/tier1-food-correction-verification-2026-11-10.md), [latest APK/guide](docs/tier1-food-correction-guide-2026-11-10.md). Scripted native edits/export verified workflow and arithmetic; they add no accuracy or human-effort measurements. Automatic A1 remains unchanged.
 
 November10 capture update: automatic consent offer after a fresh local capture is implemented and tested on the authorized Samsung. [Build/native receipt](docs/tier1-fast-capture-verification-2026-11-10.md). This removes one interaction on eligible captures; it adds no accuracy or user-time measurements.
