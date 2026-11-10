@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "mass-power-1",
+  "anchorG": 200,
+  "bounds": [
+    0.5,
+    2
+  ],
+  "slopeLog": 0.05379745873645193,
+  "interceptLog": 0.07044051242149436,
+  "trainingIds": [
+    "dish_1556575083",
+    "dish_1559751744",
+    "dish_1560367733",
+    "dish_1560799407",
+    "dish_1562615153",
+    "dish_1563302447",
+    "dish_1563910639",
+    "dish_1564086602",
+    "dish_1564429270",
+    "dish_1564514997",
+    "dish_1564588688",
+    "dish_1565208637",
+    "dish_1565382803",
+    "dish_1565640894",
+    "dish_1565721800",
+    "dish_1566849233",
+    "dish_1567023262",
+    "dish_1567106870",
+    "dish_1567538303",
+    "dish_1568666000"
+  ],
+  "selectedTrainingScans": 20,
+  "usableTrainingScans": 20,
+  "minimumUsable": 16,
+  "fit": "Mass-only log ratio OLS; slope clipped/recentered intercept clipped; fixed bounded estimator, not exact constrained optimum",
+  "trainingInputSha256": "7dc5312a73f80351a696cd5a5c5a8db2192a58d8e29ccd84fe271a7057a86d59"
+}

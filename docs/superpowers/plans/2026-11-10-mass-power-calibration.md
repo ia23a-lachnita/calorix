@@ -1,0 +1,18 @@
+# Mass-dependent calibration on separate confirmation scans
+
+Continue V7.1 inline from c7b9232/cleanisolatedfeat/tier1-photo-pilot. Same recorded bounded native-edit exception. Pre-MCP calorix-mass-power-calibration-20261110 primary3.8/yolo agree/MUSTnone. Correct reviewer PRNG/normalization shorthand: SHA256 date/ID ranking, raw MAE primary; floor200 normalized error is a separate non-worsening guard. All three cohorts must pass, not just newest.
+
+One small analytic estimator, no VLM weight/B0/latent/depth training. Fit ONLY same20TRAIN mass pairs (strict mass-only file: id,predictedMassG,referenceMassG,rawReceiptSha256). min16positivefinite, duplicate/extra-field/hash/nonpositive invalid. x=ln(predmass)-ln200,y=ln(refmass)-ln(predmass); slope=cov/var or0 ifvar<1e-12; clip[-.5,.5]; recenterintercept=mean(y)-slope*mean(x), clip[-ln2,ln2]. Specified bounded estimator, not exact constrained-optimum claim. Per-estimatefactor=exp(clip(intercept+slope*x,-ln2,ln2)); scale original visual masses/kcal/macros once. No scaling later explicit oil/manual amounts. Full precision. Freeze profile/hash before any new SDK entry.
+
+New canonical Git-common-dir mass-power-v1 registry max11=ownednonfoodprobe1+newTEST10; rawTRAIN20 reused/no newTRAINcalls. No retries/fallback/resume/replacements/alternate-root reset; old31budget remains closed. Pin original frozen f5af422 engine and exactTS/dependency bytes qualified by fullCI42811800401; new tool source separately clean committed/pushed, tests-first Python/Node guards and source/result review. No unnecessary new Flutter/native claim for offline-only changes.
+
+Selection fixed before retrieval/results: officialRGB+overheadTEST, excludes146priorIDs +55dates ofold40/TRAIN20/firstfresh10; actualremaining15eligible dates(mid15/high7). high5 thenmid5, oneSHA256rankeddate/ID, seedmass-power-v1-20261110, mass>=150g/min2ingredients/200<=kcal<=1200, metadataquality/closure/sourcehash checks. Fail if insufficient; no fallback. Date thinning not independent-plate proof, legacydates/pretraining unknown.
+
+Fixed guards BEFOREfit/newresults on EACH old40development,firstfresh10nowdevelopment,newfresh10confirmation: servedMAE>=10%AND>=10kcal lower, floor200norm/P90/absbias notworse, noadditionalfailures/coverage loss, eachmacroMAE<=1.10raw, >=8validnewfresh/min16TRAIN. NewfreshTEST runs irrespective development outcome unless fit/compatibility/systemic fails. Same10rawA1outputs vs deterministic transformed predictions, no additional candidate calls. All failures/costunknown/latency/tokens reported; no CIs/clinical/generalization claims. No test tuning or promotion without all guards and actual-result review. Old known-mass oracle is not a prediction, bound or causal attribution.
+
+- [x] Mass-onlyfit/factor/scoring tests-first RED/GREEN; strict frozen input/profile generation.
+- [ ] Freeze new10 metadata/images/manifest/protocol; single-use11 orchestration tests-first, source review; commit/push clean before live.
+- [ ] Exactoldengine verification/newrun11; score allthree cohorts, independent replay/source/resultreview; truthful decision.
+- [ ] Publish actual evidence/status/pilot/modelmanifest, commit/push. Integrate only if all guards pass; otherwise retain baseline and state evidence limit.
+
+Source stage: strictmassinput/profilefrozen/all10ready. Python91/Node21PASS withactual5Python/2NodeRED→GREEN. Primary3.8/yolo sourceagreeMUSTnone. Freshreadonlyreviewpending; noSDKyet. Devpreview failsrelative10%guard bothcohorts; originalprotocolrequiresnew10unconditional, nofit/gaterevision. Newtoolsourcequalification scoped91/21, reusedcoreCIonlybyte-identicalmodules, no newFlutter/nativequalificationclaim.

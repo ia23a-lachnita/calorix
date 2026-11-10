@@ -184,3 +184,24 @@ test('calibration halts on invalid TRAIN or fit, never spends TEST budget, retai
  assert.equal(result.status,'halted');assert.equal(tests,failure==='test'?1:0);assert.equal(result.unknownInFlight,failure!=='fit');
  }
 });
+
+test('mass-power claims once before probe and preserves prefit bytes through fixed TEST',async t=>{
+ const {executeMassPower}=require('./run_mass_power_experiment.cjs'),root=temporary(t),registryPath=path.join(root,'claim'),outputDir=path.join(root,'out');
+ const bytes=Buffer.from('{"scale":1}'),sha=require('node:crypto').createHash('sha256').update(bytes).digest('hex');let calls=0;
+ const steps={probe:async()=>{calls++;assert.ok(fs.existsSync(registryPath));assert.equal(fs.readFileSync(path.join(outputDir,'profile.json'),'utf8'),bytes.toString());return {sdkInvocations:1,successfulCompatibility:true,returnedModel:'gemini-3.8-flash'};},test:async()=>{calls+=10;return 10;}};
+ const options={registryPath,outputDir,profileRaw:bytes,profileSha256:sha,consent:true,pins:{}};
+ const result=await executeMassPower(options,steps);assert.equal(result.status,'completed');assert.equal(result.maxSdkEntries,11);assert.equal(result.completedSdkEntries,11);
+ await assert.rejects(executeMassPower({...options,outputDir:path.join(root,'alternate')},steps));assert.equal(calls,11);
+ await assert.rejects(executeMassPower({...options,registryPath:path.join(root,'bad'),outputDir:path.join(root,'bad-out'),profileSha256:'0'.repeat(64)},steps));assert.equal(calls,11);
+});
+test('mass-power never continues after probe failure and rejects modified profile after TEST',async t=>{
+ const {executeMassPower}=require('./run_mass_power_experiment.cjs');
+ for(const phase of ['probe','test']){
+ const root=temporary(t),outputDir=path.join(root,'out'),bytes=Buffer.from('{}'),sha=require('node:crypto').createHash('sha256').update(bytes).digest('hex');let tests=0;
+ const r=await executeMassPower({registryPath:path.join(root,'claim'),outputDir,profileRaw:bytes,profileSha256:sha,consent:true,pins:{}},{
+ probe:async()=>{if(phase==='probe')throw Object.assign(Error('private content'),{status:403});return {sdkInvocations:1,successfulCompatibility:true,returnedModel:'gemini-3.8-flash'};},
+ test:async()=>{tests++;fs.writeFileSync(path.join(outputDir,'profile.json'),'changed');return 10;}});
+ assert.equal(r.status,'halted');assert.equal(tests,phase==='probe'?0:1);assert.equal(r.unknownInFlight,true);
+ if(phase==='probe')assert.equal(r.failureHttpStatus,403);assert.equal(JSON.stringify(r).includes('private content'),false);
+ }
+});

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "mass-only-training-1",
+  "rows": [
+    {
+      "id": "dish_1560367733",
+      "predictedMassG": 465,
+      "referenceMassG": 388.0,
+      "rawReceiptSha256": "66af056efac4a8ea3ea5f5cd58525c7ca8b5dfcd6ae0659163297710a0604b22"
+    },
+    {
+      "id": "dish_1564429270",
+      "predictedMassG": 300,
+      "referenceMassG": 354.0,
+      "rawReceiptSha256": "ac814d1cb847736a8c5bcb5b2c9706c5915c489a92486ce526af61c7f4c36f93"
+    },
+    {
+      "id": "dish_1567538303",
+      "predictedMassG": 245,
+      "referenceMassG": 307.0,
+      "rawReceiptSha256": "eddf4141eca60ea2169967068e6b4b10507aa9cc4f66ede5d6e7bfa9a0693df8"
+    },
+    {
+      "id": "dish_1563910639",
+      "predictedMassG": 161,
+      "referenceMassG": 447.0,
+      "rawReceiptSha256": "ed2379f18d7b6d0b8e2d98054f3299516d956a4cdf7db7d90a33d65b6748b22c"
+    },
+    {
+      "id": "dish_1564514997",
+      "predictedMassG": 370,
+      "referenceMassG": 396.0,
+      "rawReceiptSha256": "50b5168b62d70f1db19a4f0721ee7a04681579ffebd80fa93ca4696be7d393f9"
+    },
+    {
+      "id": "dish_1565208637",
+      "predictedMassG": 255,
+      "referenceMassG": 305.0,
+      "rawReceiptSha256": "e3412909f9033fe658cb7a686bb082a3cfc946645076a20f075c87b8ab0b9132"
+    },
+    {
+      "id": "dish_1568666000",
+      "predictedMassG": 240,
+      "referenceMassG": 197.0,
+      "rawReceiptSha256": "19f5ebb076e707c837936e978dab279f11589a0467c1d8e853ace70225784907"
+    },
+    {
+      "id": "dish_1565382803",
+      "predictedMassG": 165,
+      "referenceMassG": 177.0,
+      "rawReceiptSha256": "91c9a9f64c215fa40b9de63e8ba85b0ff5bc98b2865f525c07b42300da47304e"
+    },
+    {
+      "id": "dish_1567106870",
+      "predictedMassG": 285,
+      "referenceMassG": 211.0,
+      "rawReceiptSha256": "b5bab61dcda2b09665725f30730b32e110cebb878d91378f414544fa2dacd351"
+    },
+    {
+      "id": "dish_1560799407",
+      "predictedMassG": 130,
+      "referenceMassG": 122.0,
+      "rawReceiptSha256": "aa1e7143603b3569471ea6f259b98e61360a25e33d4a3c6dfb6b723b76ea498f"
+    },
+    {
+      "id": "dish_1559751744",
+      "predictedMassG": 180,
+      "referenceMassG": 188.0,
+      "rawReceiptSha256": "058a069af9b51390ade7e979a48b11e46931aaa9bc79e8c484da4d5d2284209f"
+    },
+    {
+      "id": "dish_1565640894",
+      "predictedMassG": 270,
+      "referenceMassG": 422.0,
+      "rawReceiptSha256": "3fd3ef0eb20ef7288b9b725d25d134762077c25be4e781d6390d42a89cee0600"
+    },
+    {
+      "id": "dish_1563302447",
+      "predictedMassG": 400,
+      "referenceMassG": 440.0,
+      "rawReceiptSha256": "384f15c28f15fa21bb747be2543eb71fc007d27e80d860ac44866752e53f8729"
+    },
+    {
+      "id": "dish_1562615153",
+      "predictedMassG": 285,
+      "referenceMassG": 286.0,
+      "rawReceiptSha256": "86db2f9675dea3fced15b89ee53862ec32c7fc4fd13e935adda77eb49c7bb383"
+    },
+    {
+      "id": "dish_1567023262",
+      "predictedMassG": 55,
+      "referenceMassG": 64.0,
+      "rawReceiptSha256": "488181767db8a974219a669afa07eb66f9177818b445c0eae055cfda4181273f"
+    },
+    {
+      "id": "dish_1564588688",
+      "predictedMassG": 65,
+      "referenceMassG": 43.0,
+      "rawReceiptSha256": "97a52641c3db54c2bfb7ac39ebb9a7f08575558413cb99bb3fbac348b4f889cf"
+    },
+    {
+      "id": "dish_1564086602",
+      "predictedMassG": 65,
+      "referenceMassG": 49.0,
+      "rawReceiptSha256": "083137b0a73821ebb2980e8b20e30babb6e616030b39f0c744719c9ea054e63b"
+    },
+    {
+      "id": "dish_1556575083",
+      "predictedMassG": 105,
+      "referenceMassG": 64.0,
+      "rawReceiptSha256": "c3f8695dac262e44c4f36bb739add264e99e29ebe2f151bc6d1131459e1647ea"
+    },
+    {
+      "id": "dish_1565721800",
+      "predictedMassG": 100,
+      "referenceMassG": 171.0,
+      "rawReceiptSha256": "58b4b111b5da1b823d5f3e789f3194caf3bc079d63fe79079a7f9bd4bd1f3197"
+    },
+    {
+      "id": "dish_1566849233",
+      "predictedMassG": 95,
+      "referenceMassG": 117.0,
+      "rawReceiptSha256": "e748085da853ec62a631510e11bbc028c5e00a4de08aa5e68f597e0f54b3c583"
+    }
+  ]
+}

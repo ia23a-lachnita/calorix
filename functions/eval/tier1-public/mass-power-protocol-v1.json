@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "experiment": "mass-power-v1",
+  "maxSdkEntries": 11,
+  "manifestSha256": "11b88843735215ba12c779532155e08c759a2e36edc09a7519f9f3b44eaa5f8d",
+  "trainingInputSha256": "7dc5312a73f80351a696cd5a5c5a8db2192a58d8e29ccd84fe271a7057a86d59",
+  "profileSha256": "953eb6787fca2c1fc0ad0ac661302898acdddd600281df597a162ed9d2de35f5",
+  "probeImageSha256": "79e2851fd873d5115880b84cc5b82a45f32666055b6d3727e330de2d50ba267a",
+  "firstConfirmationResultSha256": "6f61b63bde1a2ae68c543cd98824b573525f0e1f2348b61612bfacbc81ebbacb",
+  "minimumUsableTraining": 16,
+  "minimumValidNewTest": 8,
+  "engineeringGuardsEachCohort": {
+    "cohorts": [
+      "old40development",
+      "firstfresh10_nowdevelopment",
+      "newfresh10confirmation"
+    ],
+    "minimumRelativeMAEReduction": 0.1,
+    "minimumAbsoluteMAEReductionKcal": 10,
+    "floor200NormalizedNotWorse": true,
+    "p90NotWorse": true,
+    "absoluteBiasNotWorse": true,
+    "noAdditionalFailures": true,
+    "macroMAEMaximumRatio": 1.1
+  },
+  "fit": "strict mass-only20TRAIN; log ratio OLS, bounded slope and recentered/bounded intercept; no test labels or energies",
+  "selectionSeed": "mass-power-v1-20261110",
+  "productionDefaultChanged": false,
+  "noRetries": true,
+  "noResume": true,
+  "noReplacement": true,
+  "engineCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "qualifiedEngineCiRun": 42811800401
+}
