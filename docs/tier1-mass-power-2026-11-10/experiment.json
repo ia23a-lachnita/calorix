@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "e70731ffa2ac8aac38da9cb8bf7bb22ee7b2d25a",
+  "engineCommit": "f5af422eeaf753440349f20065a1e937e6084a17",
+  "manifestSha256": "11b88843735215ba12c779532155e08c759a2e36edc09a7519f9f3b44eaa5f8d",
+  "trainingInputSha256": "7dc5312a73f80351a696cd5a5c5a8db2192a58d8e29ccd84fe271a7057a86d59",
+  "protocolSha256": "ce79a4a043faf4211a3254dc6e4ae46c16ce9e0c9f2033d2b148585344987cf2",
+  "bundleSha256": "c15276ba8395dfcacefaeb583cebe9680942056233395b9f489a85fa36684db7",
+  "model": "gemini-3.8-flash",
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "outputDir": "/home/agent-runner/.local/share/calorix-mass-power-20261110/experiment",
+  "assetsRoot": "/home/agent-runner/.local/share/calorix-mass-power-20261110/prepared",
+  "consentVersion": "tier1-v1",
+  "status": "completed",
+  "phase": "complete",
+  "maxSdkEntries": 11,
+  "completedSdkEntries": 11,
+  "profileSha256": "953eb6787fca2c1fc0ad0ac661302898acdddd600281df597a162ed9d2de35f5",
+  "unknownInFlight": false,
+  "startedAt": "2026-11-10T15:41:41.157Z"
+}

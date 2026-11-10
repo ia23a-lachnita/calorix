@@ -1,0 +1,6 @@
+{
+  "at": "2026-11-10T15:41:15.312709+00:00",
+  "category": "REVIEWER_USAGE_LIMIT",
+  "message": "You\u2019ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 4:06 PM.",
+  "scope": "Fresh read-only child final turn failed; partial reproduction progress message is not final full-source audit."
+}

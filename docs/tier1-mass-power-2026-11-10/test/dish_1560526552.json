@@ -1,0 +1,322 @@
+{
+  "id": "dish_1560526552",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 327.8,
+      "proteinG": 12.060000000000002,
+      "carbsG": 32.22,
+      "fatG": 17.43
+    },
+    "massG": 330,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 13177,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Breakfast Plate with Scrambled Eggs, Home Fries, Fruit, and Mixed Greens",
+    "components": [
+      {
+        "name": "Scrambled eggs",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "cooked scrambled",
+        "assumptions": [
+          "Prepared with minimal oil/butter"
+        ],
+        "estimatedPer100": {
+          "kcal": 148,
+          "proteinG": 10,
+          "carbsG": 1.6,
+          "fatG": 11
+        },
+        "nutrients": {
+          "kcal": 125.8,
+          "proteinG": 8.5,
+          "carbsG": 1.36,
+          "fatG": 9.35
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Breakfast sauce / salsa on eggs",
+        "massG": 15,
+        "catalogId": null,
+        "preparation": "prepared",
+        "assumptions": [
+          "Mild hot sauce or salsa on top of eggs"
+        ],
+        "estimatedPer100": {
+          "kcal": 30,
+          "proteinG": 1,
+          "carbsG": 6,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 4.5,
+          "proteinG": 0.15,
+          "carbsG": 0.8999999999999999,
+          "fatG": 0.03
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted breakfast potatoes",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "roasted with oil",
+        "assumptions": [
+          "Cubed skin-on potatoes roasted with cooking oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 140,
+          "proteinG": 2.5,
+          "carbsG": 22,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 112,
+          "proteinG": 2,
+          "carbsG": 17.6,
+          "fatG": 4
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Fresh pineapple chunks",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Cut fresh pineapple"
+        ],
+        "estimatedPer100": {
+          "kcal": 50,
+          "proteinG": 0.5,
+          "carbsG": 13.1,
+          "fatG": 0.1
+        },
+        "nutrients": {
+          "kcal": 30,
+          "proteinG": 0.3,
+          "carbsG": 7.859999999999999,
+          "fatG": 0.06
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Fresh strawberries and berries",
+        "massG": 30,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Sliced strawberry and blackberry pieces"
+        ],
+        "estimatedPer100": {
+          "kcal": 35,
+          "proteinG": 0.7,
+          "carbsG": 8,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 10.5,
+          "proteinG": 0.21,
+          "carbsG": 2.4,
+          "fatG": 0.09
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed green salad with vinaigrette",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "raw tossed with dressing",
+        "assumptions": [
+          "Baby spinach and mixed salad greens with light vinaigrette"
+        ],
+        "estimatedPer100": {
+          "kcal": 75,
+          "proteinG": 1.5,
+          "carbsG": 3.5,
+          "fatG": 6.5
+        },
+        "nutrients": {
+          "kcal": 45,
+          "proteinG": 0.8999999999999999,
+          "carbsG": 2.1,
+          "fatG": 3.9
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 327.8,
+      "proteinG": 12.060000000000002,
+      "carbsG": 32.22,
+      "fatG": 17.43
+    },
+    "ambiguities": [
+      "Exact dressing type on greens (assumed light vinaigrette)",
+      "Sauce atop eggs appears to be hot sauce, mild salsa, or fruit preserve"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 13172,
+      "inputTokens": 2018,
+      "outputTokens": 792,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Breakfast Plate with Scrambled Eggs, Home Fries, Fruit, and Mixed Greens",
+      "components": [
+        {
+          "name": "Scrambled eggs",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "cooked scrambled",
+          "assumptions": [
+            "Prepared with minimal oil/butter"
+          ],
+          "estimatedPer100": {
+            "kcal": 148,
+            "proteinG": 10,
+            "carbsG": 1.6,
+            "fatG": 11
+          }
+        },
+        {
+          "name": "Breakfast sauce / salsa on eggs",
+          "massG": 15,
+          "catalogId": null,
+          "preparation": "prepared",
+          "assumptions": [
+            "Mild hot sauce or salsa on top of eggs"
+          ],
+          "estimatedPer100": {
+            "kcal": 30,
+            "proteinG": 1,
+            "carbsG": 6,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Roasted breakfast potatoes",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "roasted with oil",
+          "assumptions": [
+            "Cubed skin-on potatoes roasted with cooking oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 2.5,
+            "carbsG": 22,
+            "fatG": 5
+          }
+        },
+        {
+          "name": "Fresh pineapple chunks",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Cut fresh pineapple"
+          ],
+          "estimatedPer100": {
+            "kcal": 50,
+            "proteinG": 0.5,
+            "carbsG": 13.1,
+            "fatG": 0.1
+          }
+        },
+        {
+          "name": "Fresh strawberries and berries",
+          "massG": 30,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Sliced strawberry and blackberry pieces"
+          ],
+          "estimatedPer100": {
+            "kcal": 35,
+            "proteinG": 0.7,
+            "carbsG": 8,
+            "fatG": 0.3
+          }
+        },
+        {
+          "name": "Mixed green salad with vinaigrette",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "raw tossed with dressing",
+          "assumptions": [
+            "Baby spinach and mixed salad greens with light vinaigrette"
+          ],
+          "estimatedPer100": {
+            "kcal": 75,
+            "proteinG": 1.5,
+            "carbsG": 3.5,
+            "fatG": 6.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact dressing type on greens (assumed light vinaigrette)",
+        "Sauce atop eggs appears to be hot sauce, mild salsa, or fruit preserve"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "9a59c544b4e9f28a5cd9815601d1c0c1f3352965b44d44e179b2be909e762eb5"
+}

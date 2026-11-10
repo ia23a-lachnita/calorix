@@ -1,0 +1,195 @@
+{
+  "id": "dish_1561577947",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 454,
+      "proteinG": 47.175,
+      "carbsG": 22.85,
+      "fatG": 19.765
+    },
+    "massG": 315,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10490,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Sliced Chicken with Cream Sauce, Mixed Greens Salad, and Penne Pasta",
+    "components": [
+      {
+        "name": "Sliced chicken breast with creamy mushroom sauce",
+        "massG": 180,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Cooked sliced poultry breast topped with a cream or mushroom-based sauce",
+          "Includes sauce mass"
+        ],
+        "estimatedPer100": {
+          "kcal": 165,
+          "proteinG": 24,
+          "carbsG": 2.5,
+          "fatG": 6.8
+        },
+        "nutrients": {
+          "kcal": 297,
+          "proteinG": 43.2,
+          "carbsG": 4.5,
+          "fatG": 12.24
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Arugula and mixed greens salad with dressing",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "raw dressed",
+        "assumptions": [
+          "Fresh leafy arugula and mixed greens lightly dressed with vinaigrette"
+        ],
+        "estimatedPer100": {
+          "kcal": 85,
+          "proteinG": 1.5,
+          "carbsG": 3,
+          "fatG": 7.5
+        },
+        "nutrients": {
+          "kcal": 59.49999999999999,
+          "proteinG": 1.0499999999999998,
+          "carbsG": 2.0999999999999996,
+          "fatG": 5.25
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Penne pasta salad with cherry tomatoes",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Cooked penne pasta mixed with greens and small amount of tomato"
+        ],
+        "estimatedPer100": {
+          "kcal": 150,
+          "proteinG": 4.5,
+          "carbsG": 25,
+          "fatG": 3.5
+        },
+        "nutrients": {
+          "kcal": 97.5,
+          "proteinG": 2.9250000000000003,
+          "carbsG": 16.25,
+          "fatG": 2.275
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 454,
+      "proteinG": 47.175,
+      "carbsG": 22.85,
+      "fatG": 19.765
+    },
+    "ambiguities": [
+      "Specific sauce type and fat content over the chicken",
+      "Exact amount and type of dressing on the salad"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10475,
+      "inputTokens": 2018,
+      "outputTokens": 485,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Sliced Chicken with Cream Sauce, Mixed Greens Salad, and Penne Pasta",
+      "components": [
+        {
+          "name": "Sliced chicken breast with creamy mushroom sauce",
+          "massG": 180,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Cooked sliced poultry breast topped with a cream or mushroom-based sauce",
+            "Includes sauce mass"
+          ],
+          "estimatedPer100": {
+            "kcal": 165,
+            "proteinG": 24,
+            "carbsG": 2.5,
+            "fatG": 6.8
+          }
+        },
+        {
+          "name": "Arugula and mixed greens salad with dressing",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "raw dressed",
+          "assumptions": [
+            "Fresh leafy arugula and mixed greens lightly dressed with vinaigrette"
+          ],
+          "estimatedPer100": {
+            "kcal": 85,
+            "proteinG": 1.5,
+            "carbsG": 3,
+            "fatG": 7.5
+          }
+        },
+        {
+          "name": "Penne pasta salad with cherry tomatoes",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Cooked penne pasta mixed with greens and small amount of tomato"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 4.5,
+            "carbsG": 25,
+            "fatG": 3.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Specific sauce type and fat content over the chicken",
+        "Exact amount and type of dressing on the salad"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "52d647068e70cf884fb5cdaec3e589406f37e05d7f02d16480b8ac31c10e90e1"
+}

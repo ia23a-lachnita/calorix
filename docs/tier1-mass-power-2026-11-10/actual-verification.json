@@ -1,0 +1,60 @@
+{
+  "decimalMetricFieldsVerified": 96,
+  "decimalFactorsVerified": 60,
+  "tolerance": 1e-09,
+  "receiptPins": [
+    {
+      "id": "dish_1558630325",
+      "sha256": "40e33ac6f4cb2dbfdceba8e131c52e1d109d66c74e3cd083bdcb165f09b3bcb8"
+    },
+    {
+      "id": "dish_1559844323",
+      "sha256": "1919b4e010b6bd6078021edeb0cc7a58893cb5342c54d997596144bc65ae52db"
+    },
+    {
+      "id": "dish_1560526552",
+      "sha256": "2f3bf202941d4487e7993c139b79b53e58c7c91966830e2b238943c3128c6f6c"
+    },
+    {
+      "id": "dish_1561405411",
+      "sha256": "c993139c4683c172786c2fdda421188ca44f09e7ea3145e35b3ba52634996a34"
+    },
+    {
+      "id": "dish_1561577947",
+      "sha256": "9c86133acc72c647646740e5be398a212230ab4d3a0316d40634fb5c5bb7105d"
+    },
+    {
+      "id": "dish_1563565354",
+      "sha256": "1ff8fe5ba39a0e830549c408663bab00ad6f0b7078760a59f2f7dee6e73f2e41"
+    },
+    {
+      "id": "dish_1564773942",
+      "sha256": "7b704603138ad617635e64adc9317eff89ef0ab93e6e17b0ea913673ad137abf"
+    },
+    {
+      "id": "dish_1565974409",
+      "sha256": "4226efe770a6136aced1360f6f75fb49097bd50363ebb6020698e3185ebcd668"
+    },
+    {
+      "id": "dish_1566328805",
+      "sha256": "37a2380d6cf1e97aa0c29aa6d909fd9568621ee5f47a1fd9325d8df1ce18cfd7"
+    },
+    {
+      "id": "dish_1566502573",
+      "sha256": "acf50445a2ac93fda2adc7f794c2f127110cfa3009f319ba7a4c275931791cb3"
+    }
+  ],
+  "latencyMedianMs": 10567.0,
+  "latencyMaxMs": 18951,
+  "knownTokens": {
+    "input": 20180,
+    "candidate": 5135
+  },
+  "unverifiedEnergyFraction": 0.8621694774099521,
+  "questionsOfferedUnanswered": 0,
+  "inferenceCostUsd": null,
+  "profileOutputModifiedNs": 1794325301156061597,
+  "probeModifiedNs": 1794325309792034161,
+  "testRunModifiedNs": 1794325311176029764,
+  "nativeIndependentReview": "partial progress only; child errored with usage limit before final receipt; MCP source green; no full native review claim"
+}

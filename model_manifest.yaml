@@ -1,4 +1,4 @@
-manifest_version: 7
+manifest_version: 8
 baseline: A1
 requested_model: gemini-3.8-flash
 returned_model_policy: exact equality or explicit failure
@@ -91,8 +91,8 @@ portion_audit_promotion: no automatic promotion
 portion_audit_executed_sdk_calls: 20
 portion_audit_valid_outputs: 20
 portion_audit_report: docs/tier1-portion-audit-2026-11-09/report.md
-public_evaluation_sdk_invocations: 100
-public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog predictions plus20 new10 two-prompt predictions plus20 reusedmealrange two-model predictions; nonfood/text diagnostics excluded
+public_evaluation_sdk_invocations: 140
+public_evaluation_sdk_invocations_scope: 60 prior30 two-catalog plus20 portion-audit plus20 mealrange two-model plus30 scalar-calibration TRAIN20/TEST10 plus10 mass-power newTEST; nonfood/text diagnostics excluded
 
 vlm_challenger_status: archived for failed P90 guard; not default or deployed
 vlm_challenger_model: gemini-4-argon
@@ -144,3 +144,22 @@ portion_calibration_registry_status: closed; never resume or reset
 portion_calibration_extra_transform_sdk_entries: 0
 portion_calibration_reference_mass_diagnostic: oracle only; not photo-only accuracy, accuracy bound or causal attribution
 portion_calibration_android_weighed_meals: 0
+
+mass_power_status: archived; newheldout10 gains16.32percent but old40 andfirst10development gains9.31percent and8.15percent missfixed10percentguard; notpromoted/deployed
+mass_power_report: docs/tier1-mass-power-2026-11-10/report.md
+mass_power_source_commit: e70731ffa2ac8aac38da9cb8bf7bb22ee7b2d25a
+mass_power_frozen_engine_commit: f5af422eeaf753440349f20065a1e937e6084a17
+mass_power_profile_sha256: 953eb6787fca2c1fc0ad0ac661302898acdddd600281df597a162ed9d2de35f5
+mass_power_training_input_sha256: 7dc5312a73f80351a696cd5a5c5a8db2192a58d8e29ccd84fe271a7057a86d59
+mass_power_reused_training_scans: 20
+mass_power_new_test_scans: 10
+mass_power_food_sdk_entries: 10
+mass_power_nonfood_probe_entries: 1
+mass_power_total_sdk_entries: 11
+mass_power_registry_status: closed; neverresume/reset
+mass_power_extra_candidate_sdk_entries: 0
+tier1_public_reference_scans_now_available: 80
+tier1_public_training_reference_scans: 20
+tier1_public_benchmark_including_development_scans: 60
+tier1_public_independent_physical_plates: null
+next_validation: keepfitfrozen; planned30physicallyweighedAndroidmeals; actualreferencecollectionmissing

@@ -1,0 +1,199 @@
+{
+  "id": "dish_1558630325",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 452.55,
+      "proteinG": 14.459999999999999,
+      "carbsG": 34.019999999999996,
+      "fatG": 32.755
+    },
+    "massG": 225,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 9452,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Whole Apple, Almonds, and Mixed Salad Greens",
+    "components": [
+      {
+        "name": "Whole apple",
+        "massG": 140,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Small to medium whole fresh apple",
+          "Edible portion estimated"
+        ],
+        "estimatedPer100": {
+          "kcal": 52,
+          "proteinG": 0.3,
+          "carbsG": 13.8,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 72.8,
+          "proteinG": 0.42,
+          "carbsG": 19.32,
+          "fatG": 0.27999999999999997
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Whole almonds",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "raw or dry roasted",
+        "assumptions": [
+          "Whole shelled almonds",
+          "Unsalted or plain"
+        ],
+        "estimatedPer100": {
+          "kcal": 579,
+          "proteinG": 21.2,
+          "carbsG": 21.6,
+          "fatG": 49.9
+        },
+        "nutrients": {
+          "kcal": 376.35,
+          "proteinG": 13.78,
+          "carbsG": 14.040000000000001,
+          "fatG": 32.435
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mixed salad greens",
+        "massG": 20,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh mixed baby greens and lettuce leaves",
+          "No dressing visible"
+        ],
+        "estimatedPer100": {
+          "kcal": 17,
+          "proteinG": 1.3,
+          "carbsG": 3.3,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 3.4000000000000004,
+          "proteinG": 0.26,
+          "carbsG": 0.66,
+          "fatG": 0.04000000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 452.55,
+      "proteinG": 14.459999999999999,
+      "carbsG": 34.019999999999996,
+      "fatG": 32.755
+    },
+    "ambiguities": [
+      "Whether the almonds are raw, roasted, or salted",
+      "Whether dressing or oil was added to the greens"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9448,
+      "inputTokens": 2018,
+      "outputTokens": 464,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Whole Apple, Almonds, and Mixed Salad Greens",
+      "components": [
+        {
+          "name": "Whole apple",
+          "massG": 140,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Small to medium whole fresh apple",
+            "Edible portion estimated"
+          ],
+          "estimatedPer100": {
+            "kcal": 52,
+            "proteinG": 0.3,
+            "carbsG": 13.8,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Whole almonds",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "raw or dry roasted",
+          "assumptions": [
+            "Whole shelled almonds",
+            "Unsalted or plain"
+          ],
+          "estimatedPer100": {
+            "kcal": 579,
+            "proteinG": 21.2,
+            "carbsG": 21.6,
+            "fatG": 49.9
+          }
+        },
+        {
+          "name": "Mixed salad greens",
+          "massG": 20,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh mixed baby greens and lettuce leaves",
+            "No dressing visible"
+          ],
+          "estimatedPer100": {
+            "kcal": 17,
+            "proteinG": 1.3,
+            "carbsG": 3.3,
+            "fatG": 0.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Whether the almonds are raw, roasted, or salted",
+        "Whether dressing or oil was added to the greens"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "05162132350f734dae9d845a6dab8e64f6078264f38dc6e26272a4327d649b7f"
+}

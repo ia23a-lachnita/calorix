@@ -1,0 +1,148 @@
+{
+  "id": "dish_1565974409",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 487.45000000000005,
+      "proteinG": 28.250000000000004,
+      "carbsG": 2.31,
+      "fatG": 40.010000000000005
+    },
+    "massG": 125,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 9706,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Bacon and Sliced Sausage",
+    "components": [
+      {
+        "name": "Bacon strips",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "cooked crispy pan-fried or baked",
+        "assumptions": [
+          "Standard pork bacon, cooked until crisp, approximately 3-4 strips"
+        ],
+        "estimatedPer100": {
+          "kcal": 541,
+          "proteinG": 37,
+          "carbsG": 1.4,
+          "fatG": 41.8
+        },
+        "nutrients": {
+          "kcal": 243.45000000000002,
+          "proteinG": 16.650000000000002,
+          "carbsG": 0.63,
+          "fatG": 18.81
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Breakfast sausage pieces",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "cooked sliced sausage link",
+        "assumptions": [
+          "Sausage links sliced into rounds, pork or chicken breakfast sausage"
+        ],
+        "estimatedPer100": {
+          "kcal": 305,
+          "proteinG": 14.5,
+          "carbsG": 2.1,
+          "fatG": 26.5
+        },
+        "nutrients": {
+          "kcal": 244,
+          "proteinG": 11.600000000000001,
+          "carbsG": 1.6800000000000002,
+          "fatG": 21.200000000000003
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 487.45000000000005,
+      "proteinG": 28.250000000000004,
+      "carbsG": 2.31,
+      "fatG": 40.010000000000005
+    },
+    "ambiguities": [
+      "Exact meat type of the sliced sausage (pork, turkey, or chicken) is uncertain"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9701,
+      "inputTokens": 2018,
+      "outputTokens": 322,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Bacon and Sliced Sausage",
+      "components": [
+        {
+          "name": "Bacon strips",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "cooked crispy pan-fried or baked",
+          "assumptions": [
+            "Standard pork bacon, cooked until crisp, approximately 3-4 strips"
+          ],
+          "estimatedPer100": {
+            "kcal": 541,
+            "proteinG": 37,
+            "carbsG": 1.4,
+            "fatG": 41.8
+          }
+        },
+        {
+          "name": "Breakfast sausage pieces",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "cooked sliced sausage link",
+          "assumptions": [
+            "Sausage links sliced into rounds, pork or chicken breakfast sausage"
+          ],
+          "estimatedPer100": {
+            "kcal": 305,
+            "proteinG": 14.5,
+            "carbsG": 2.1,
+            "fatG": 26.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact meat type of the sliced sausage (pork, turkey, or chicken) is uncertain"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "88904472109d3741f4025a9feed5828d4d0f2e802a41f7a3c9db603407624c5c"
+}

@@ -1,0 +1,226 @@
+{
+  "id": "dish_1561405411",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 361.25,
+      "proteinG": 40.05199999999999,
+      "carbsG": 29.14,
+      "fatG": 8.657
+    },
+    "massG": 285,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 18955,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Seared Chicken with Yellow Couscous, Broccoli, and Arugula Salad",
+    "components": [
+      {
+        "name": "Chicken breast",
+        "massG": 110,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Identified as pan-seared or roasted chicken breast under the couscous"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 181.50000000000003,
+          "proteinG": 34.122,
+          "carbsG": 0,
+          "fatG": 3.927
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Spiced yellow couscous",
+        "massG": 90,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Steamed couscous with turmeric or saffron and seasonings"
+        ],
+        "estimatedPer100": {
+          "kcal": 140,
+          "proteinG": 4.5,
+          "carbsG": 27,
+          "fatG": 1.5
+        },
+        "nutrients": {
+          "kcal": 126,
+          "proteinG": 4.05,
+          "carbsG": 24.3,
+          "fatG": 1.35
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cooked broccoli",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "steamed",
+        "assumptions": [
+          "Steamed or blanched broccoli florets"
+        ],
+        "estimatedPer100": {
+          "kcal": 35,
+          "proteinG": 2.4,
+          "carbsG": 7.2,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 15.75,
+          "proteinG": 1.08,
+          "carbsG": 3.24,
+          "fatG": 0.18000000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Arugula salad with dressing and bits",
+        "massG": 40,
+        "catalogId": null,
+        "preparation": "raw with dressing",
+        "assumptions": [
+          "Fresh arugula dressed lightly with oil-based dressing and visible pepper/chickpea garnishes"
+        ],
+        "estimatedPer100": {
+          "kcal": 95,
+          "proteinG": 2,
+          "carbsG": 4,
+          "fatG": 8
+        },
+        "nutrients": {
+          "kcal": 38,
+          "proteinG": 0.8,
+          "carbsG": 1.6,
+          "fatG": 3.2
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 361.25,
+      "proteinG": 40.05199999999999,
+      "carbsG": 29.14,
+      "fatG": 8.657
+    },
+    "ambiguities": [
+      "Exact type of meat underneath the couscous (assumed chicken breast)",
+      "Dressing oil volume on the arugula salad"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 18951,
+      "inputTokens": 2018,
+      "outputTokens": 577,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Seared Chicken with Yellow Couscous, Broccoli, and Arugula Salad",
+      "components": [
+        {
+          "name": "Chicken breast",
+          "massG": 110,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Identified as pan-seared or roasted chicken breast under the couscous"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Spiced yellow couscous",
+          "massG": 90,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Steamed couscous with turmeric or saffron and seasonings"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 4.5,
+            "carbsG": 27,
+            "fatG": 1.5
+          }
+        },
+        {
+          "name": "Cooked broccoli",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "steamed",
+          "assumptions": [
+            "Steamed or blanched broccoli florets"
+          ],
+          "estimatedPer100": {
+            "kcal": 35,
+            "proteinG": 2.4,
+            "carbsG": 7.2,
+            "fatG": 0.4
+          }
+        },
+        {
+          "name": "Arugula salad with dressing and bits",
+          "massG": 40,
+          "catalogId": null,
+          "preparation": "raw with dressing",
+          "assumptions": [
+            "Fresh arugula dressed lightly with oil-based dressing and visible pepper/chickpea garnishes"
+          ],
+          "estimatedPer100": {
+            "kcal": 95,
+            "proteinG": 2,
+            "carbsG": 4,
+            "fatG": 8
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact type of meat underneath the couscous (assumed chicken breast)",
+        "Dressing oil volume on the arugula salad"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "ecd92e41084f240b52a1035cd95ef69cfe6e6588e798cca4d469b7039754da45"
+}

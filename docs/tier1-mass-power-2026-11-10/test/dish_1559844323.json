@@ -1,0 +1,154 @@
+{
+  "id": "dish_1559844323",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 305.40000000000003,
+      "proteinG": 9.995,
+      "carbsG": 21.485,
+      "fatG": 22.584999999999997
+    },
+    "massG": 110,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 9923,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Whole Almonds and Red Grapes",
+    "components": [
+      {
+        "name": "Almonds",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "raw or dry roasted",
+        "assumptions": [
+          "Whole unsalted almonds",
+          "Roughly 35-40 nuts"
+        ],
+        "estimatedPer100": {
+          "kcal": 579,
+          "proteinG": 21.2,
+          "carbsG": 21.6,
+          "fatG": 49.9
+        },
+        "nutrients": {
+          "kcal": 260.55,
+          "proteinG": 9.54,
+          "carbsG": 9.72,
+          "fatG": 22.455
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Red seedless grapes",
+        "massG": 65,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh whole red grapes",
+          "Roughly 13-15 grapes"
+        ],
+        "estimatedPer100": {
+          "kcal": 69,
+          "proteinG": 0.7,
+          "carbsG": 18.1,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 44.85,
+          "proteinG": 0.45499999999999996,
+          "carbsG": 11.765,
+          "fatG": 0.13
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 305.40000000000003,
+      "proteinG": 9.995,
+      "carbsG": 21.485,
+      "fatG": 22.584999999999997
+    },
+    "ambiguities": [
+      "Whether almonds are raw or dry-roasted",
+      "Whether almonds are salted"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9919,
+      "inputTokens": 2018,
+      "outputTokens": 323,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Whole Almonds and Red Grapes",
+      "components": [
+        {
+          "name": "Almonds",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "raw or dry roasted",
+          "assumptions": [
+            "Whole unsalted almonds",
+            "Roughly 35-40 nuts"
+          ],
+          "estimatedPer100": {
+            "kcal": 579,
+            "proteinG": 21.2,
+            "carbsG": 21.6,
+            "fatG": 49.9
+          }
+        },
+        {
+          "name": "Red seedless grapes",
+          "massG": 65,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh whole red grapes",
+            "Roughly 13-15 grapes"
+          ],
+          "estimatedPer100": {
+            "kcal": 69,
+            "proteinG": 0.7,
+            "carbsG": 18.1,
+            "fatG": 0.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Whether almonds are raw or dry-roasted",
+        "Whether almonds are salted"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "d38f1525cfc1e6d83a33269ed2de20612434b6fddc84c3b3b07125ad484e8ad5"
+}

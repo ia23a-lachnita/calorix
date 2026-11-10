@@ -1,0 +1,259 @@
+{
+  "id": "dish_1564773942",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 310.79999999999995,
+      "proteinG": 42.738,
+      "carbsG": 16.319,
+      "fatG": 8.2545
+    },
+    "massG": 340,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 13068,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Diced Chicken with Pineapple, Broccoli, Tomatoes, and Fish",
+    "components": [
+      {
+        "name": "Diced chicken breast",
+        "massG": 90,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Skinless diced chicken breast roasted without heavy sauce"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 148.5,
+          "proteinG": 27.918,
+          "carbsG": 0,
+          "fatG": 3.213
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Pineapple chunks",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh cut pineapple pieces"
+        ],
+        "estimatedPer100": {
+          "kcal": 50,
+          "proteinG": 0.5,
+          "carbsG": 13.1,
+          "fatG": 0.1
+        },
+        "nutrients": {
+          "kcal": 40,
+          "proteinG": 0.4,
+          "carbsG": 10.48,
+          "fatG": 0.08000000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Grape tomatoes",
+        "massG": 45,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh whole grape or cherry tomatoes"
+        ],
+        "estimatedPer100": {
+          "kcal": 18,
+          "proteinG": 0.9,
+          "carbsG": 3.9,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 8.1,
+          "proteinG": 0.405,
+          "carbsG": 1.755,
+          "fatG": 0.09000000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cooked broccoli florets",
+        "massG": 65,
+        "catalogId": "usda:170380",
+        "preparation": "cooked boiled",
+        "assumptions": [
+          "Steamed or boiled broccoli florets"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 18.2,
+          "proteinG": 2.015,
+          "carbsG": 3.4840000000000004,
+          "fatG": 0.07150000000000001
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:170380",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/170380/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Broccoli, frozen, spears, cooked, boiled, drained, without salt"
+        }
+      },
+      {
+        "name": "Cooked fish fillet portion",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "pan-seared or baked",
+        "assumptions": [
+          "Cooked white or salmon fish fillet with skin on, or seasoned fish cake"
+        ],
+        "estimatedPer100": {
+          "kcal": 160,
+          "proteinG": 20,
+          "carbsG": 1,
+          "fatG": 8
+        },
+        "nutrients": {
+          "kcal": 96,
+          "proteinG": 12,
+          "carbsG": 0.6,
+          "fatG": 4.8
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 310.79999999999995,
+      "proteinG": 42.738,
+      "carbsG": 16.319,
+      "fatG": 8.2545
+    },
+    "ambiguities": [
+      "The component in the bottom right appears to be a portion of baked or pan-seared fish with skin, but could be an omelet or savory bake.",
+      "Exact cooking oil used in preparation is visually unquantifiable."
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 13063,
+      "inputTokens": 2018,
+      "outputTokens": 619,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Diced Chicken with Pineapple, Broccoli, Tomatoes, and Fish",
+      "components": [
+        {
+          "name": "Diced chicken breast",
+          "massG": 90,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Skinless diced chicken breast roasted without heavy sauce"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Pineapple chunks",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh cut pineapple pieces"
+          ],
+          "estimatedPer100": {
+            "kcal": 50,
+            "proteinG": 0.5,
+            "carbsG": 13.1,
+            "fatG": 0.1
+          }
+        },
+        {
+          "name": "Grape tomatoes",
+          "massG": 45,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh whole grape or cherry tomatoes"
+          ],
+          "estimatedPer100": {
+            "kcal": 18,
+            "proteinG": 0.9,
+            "carbsG": 3.9,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Cooked broccoli florets",
+          "massG": 65,
+          "catalogId": "usda:170380",
+          "preparation": "cooked boiled",
+          "assumptions": [
+            "Steamed or boiled broccoli florets"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Cooked fish fillet portion",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "pan-seared or baked",
+          "assumptions": [
+            "Cooked white or salmon fish fillet with skin on, or seasoned fish cake"
+          ],
+          "estimatedPer100": {
+            "kcal": 160,
+            "proteinG": 20,
+            "carbsG": 1,
+            "fatG": 8
+          }
+        }
+      ],
+      "ambiguities": [
+        "The component in the bottom right appears to be a portion of baked or pan-seared fish with skin, but could be an omelet or savory bake.",
+        "Exact cooking oil used in preparation is visually unquantifiable."
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "436271d7907dc1269d9b34c256d239bc9422b4783e25d0b4053518eba083b41c"
+}

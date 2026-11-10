@@ -1,0 +1,33 @@
+{
+  "sdkInvocations": 1,
+  "successfulCompatibility": true,
+  "requestedModel": "gemini-3.8-flash",
+  "returnedModel": "gemini-3.8-flash",
+  "text": "{\"schemaVersion\":1,\"mealName\":\"None\",\"components\":[],\"ambiguities\":[\"No visible food or beverage could be detected in the image.\"],\"askAddedFat\":false}",
+  "usageMetadata": {
+    "promptTokenCount": 2043,
+    "candidatesTokenCount": 37,
+    "totalTokenCount": 2153,
+    "trafficType": "ON_DEMAND",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 954
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1089
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 73
+  },
+  "latencyMs": 8473,
+  "costUsd": null,
+  "foodRequests": 0
+}

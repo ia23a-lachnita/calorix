@@ -1,0 +1,228 @@
+{
+  "id": "dish_1566328805",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 695.4,
+      "proteinG": 60.020999999999994,
+      "carbsG": 63.105000000000004,
+      "fatG": 21.371
+    },
+    "massG": 425,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10340,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Hawaiian Pizza Slices with Diced Chicken Breast, Pineapple, and Cherry Tomatoes",
+    "components": [
+      {
+        "name": "Hawaiian pizza slices",
+        "massG": 180,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "4 small square slices with cheese, ham/bacon, pineapple, and red onion",
+          "thin-to-medium crust"
+        ],
+        "estimatedPer100": {
+          "kcal": 245,
+          "proteinG": 10.5,
+          "carbsG": 29.5,
+          "fatG": 9.2
+        },
+        "nutrients": {
+          "kcal": 441,
+          "proteinG": 18.900000000000002,
+          "carbsG": 53.1,
+          "fatG": 16.56
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Diced roasted chicken breast",
+        "massG": 130,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "boneless, skinless roasted chicken breast chopped into small cubes"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 214.5,
+          "proteinG": 40.326,
+          "carbsG": 0,
+          "fatG": 4.641
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Pineapple chunks",
+        "massG": 60,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "fresh cut pineapple pieces"
+        ],
+        "estimatedPer100": {
+          "kcal": 50,
+          "proteinG": 0.5,
+          "carbsG": 13.1,
+          "fatG": 0.1
+        },
+        "nutrients": {
+          "kcal": 30,
+          "proteinG": 0.3,
+          "carbsG": 7.859999999999999,
+          "fatG": 0.06
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cherry tomatoes",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "whole fresh grape/cherry tomatoes"
+        ],
+        "estimatedPer100": {
+          "kcal": 18,
+          "proteinG": 0.9,
+          "carbsG": 3.9,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 9.9,
+          "proteinG": 0.49500000000000005,
+          "carbsG": 2.145,
+          "fatG": 0.11000000000000001
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 695.4,
+      "proteinG": 60.020999999999994,
+      "carbsG": 63.105000000000004,
+      "fatG": 21.371
+    },
+    "ambiguities": [
+      "Exact crust thickness and cheese density of the pizza",
+      "Whether additional oil or marinade was used on the diced chicken breast"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10335,
+      "inputTokens": 2018,
+      "outputTokens": 533,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Hawaiian Pizza Slices with Diced Chicken Breast, Pineapple, and Cherry Tomatoes",
+      "components": [
+        {
+          "name": "Hawaiian pizza slices",
+          "massG": 180,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "4 small square slices with cheese, ham/bacon, pineapple, and red onion",
+            "thin-to-medium crust"
+          ],
+          "estimatedPer100": {
+            "kcal": 245,
+            "proteinG": 10.5,
+            "carbsG": 29.5,
+            "fatG": 9.2
+          }
+        },
+        {
+          "name": "Diced roasted chicken breast",
+          "massG": 130,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "boneless, skinless roasted chicken breast chopped into small cubes"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Pineapple chunks",
+          "massG": 60,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "fresh cut pineapple pieces"
+          ],
+          "estimatedPer100": {
+            "kcal": 50,
+            "proteinG": 0.5,
+            "carbsG": 13.1,
+            "fatG": 0.1
+          }
+        },
+        {
+          "name": "Cherry tomatoes",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "whole fresh grape/cherry tomatoes"
+          ],
+          "estimatedPer100": {
+            "kcal": 18,
+            "proteinG": 0.9,
+            "carbsG": 3.9,
+            "fatG": 0.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact crust thickness and cheese density of the pizza",
+        "Whether additional oil or marinade was used on the diced chicken breast"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "bfe27589778beed0d678f3da73068c704b56160b14187f6d003f471790180b0a"
+}
