@@ -1,0 +1,22 @@
+{
+  "verificationCommit": "5a35409f2609b98b6511cea00d495e67ebbbba50",
+  "freshCheckoutGitClean": true,
+  "gitVisibleFilePins": 107,
+  "pythonPinnedRuntime": {
+    "passed": 157,
+    "skipped": 0
+  },
+  "node": {
+    "passed": 40,
+    "skipped": 0
+  },
+  "summaryByteExact": true,
+  "perCaseCsvByteExact": true,
+  "portableAuditMatchesHostExceptIntentionalPixelRecomputeFlag": true,
+  "portableAuditPixelRecomputed": false,
+  "hostAuditPixelRecomputed": true,
+  "testDependencyLink": "Task-created symlink removed after tests; initial preflight rejected it as untracked; no source differences, no target dependency contents removed",
+  "auditorNewNeuralCalls": 0,
+  "modelBinariesRequiredForRawReplay": false,
+  "inputSourceRuntimeAndParentPinsPreflightPassed": true
+}

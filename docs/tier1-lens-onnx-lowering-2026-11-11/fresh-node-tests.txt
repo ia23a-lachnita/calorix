@@ -1,0 +1,250 @@
+TAP version 13
+# Subtest: canonical numeric facts independent of object key ordering; exact rational half-up
+ok 1 - canonical numeric facts independent of object key ordering; exact rational half-up
+  ---
+  duration_ms: 92.567316
+  type: 'test'
+  ...
+# Subtest: rejects labels/weights/extra fields, bad geometry, arithmetic mismatch before prompt
+ok 2 - rejects labels/weights/extra fields, bad geometry, arithmetic mismatch before prompt
+  ---
+  duration_ms: 25.602336
+  type: 'test'
+  ...
+# Subtest: blank permits only all-null boxes; mixed missing geometry refused
+ok 3 - blank permits only all-null boxes; mixed missing geometry refused
+  ---
+  duration_ms: 8.923216
+  type: 'test'
+  ...
+# Subtest: exact13 fixed alternation; second output cannot bypass exclusive registry
+ok 4 - exact13 fixed alternation; second output cannot bypass exclusive registry
+  ---
+  duration_ms: 313.152459
+  type: 'test'
+  ...
+# Subtest: bad probe or systemic failure halts, retains unknown and never retries
+ok 5 - bad probe or systemic failure halts, retains unknown and never retries
+  ---
+  duration_ms: 75.255253
+  type: 'test'
+  ...
+# Subtest: consent/count/order refused before claim, model domain failures remain fixed outcomes
+ok 6 - consent/count/order refused before claim, model domain failures remain fixed outcomes
+  ---
+  duration_ms: 182.572472
+  type: 'test'
+  ...
+# Subtest: exact Git-source bundle verifies; changed compiled bytes fail even if receipt hash is altered
+ok 7 - exact Git-source bundle verifies; changed compiled bytes fail even if receipt hash is altered
+  ---
+  duration_ms: 4217.79946
+  type: 'test'
+  ...
+# Subtest: existing bundle and wrong requested source commit fail closed
+ok 8 - existing bundle and wrong requested source commit fail closed
+  ---
+  duration_ms: 579.137938
+  type: 'test'
+  ...
+# Subtest: committed clean manifest is accepted without creating a run or network request
+ok 9 - committed clean manifest is accepted without creating a run or network request
+  ---
+  duration_ms: 163.83082
+  type: 'test'
+  ...
+# Subtest: missing consent and existing run or control receipt refuse before execution
+ok 10 - missing consent and existing run or control receipt refuse before execution
+  ---
+  duration_ms: 69.634065
+  type: 'test'
+  ...
+# Subtest: dirty or outside manifests cannot bypass committed-input gate
+ok 11 - dirty or outside manifests cannot bypass committed-input gate
+  ---
+  duration_ms: 104.366005
+  type: 'test'
+  ...
+# Subtest: research profiles are explicit and bind the exact prompt and function
+ok 12 - research profiles are explicit and bind the exact prompt and function
+  ---
+  duration_ms: 2.47627
+  type: 'test'
+  ...
+# Subtest: unknown profiles and unavailable frozen candidate exports fail without dispatch
+ok 13 - unknown profiles and unavailable frozen candidate exports fail without dispatch
+  ---
+  duration_ms: 1.911143
+  type: 'test'
+  ...
+# Subtest: explicit missing, duplicate or unknown profile flags cannot silently select the baseline
+ok 14 - explicit missing, duplicate or unknown profile flags cannot silently select the baseline
+  ---
+  duration_ms: 1.813032
+  type: 'test'
+  ...
+# Subtest: paired experiment reserves both arms once and cannot reset with another output directory
+ok 15 - paired experiment reserves both arms once and cannot reset with another output directory
+  ---
+  duration_ms: 29.618751
+  type: 'test'
+  ...
+# Subtest: paired experiment refuses missing consent and excess or duplicate cases before claiming
+ok 16 - paired experiment refuses missing consent and excess or duplicate cases before claiming
+  ---
+  duration_ms: 5.269967
+  type: 'test'
+  ...
+# Subtest: paired systemic or incomplete baseline halts candidate and retains claimed receipt
+ok 17 - paired systemic or incomplete baseline halts candidate and retains claimed receipt
+  ---
+  duration_ms: 84.228468
+  type: 'test'
+  ...
+# Subtest: paired per-image failures remain counted and allow candidate without retry
+ok 18 - paired per-image failures remain counted and allow candidate without retry
+  ---
+  duration_ms: 19.534483
+  type: 'test'
+  ...
+# Subtest: paired thrown arm closes experiment and never permits resumption
+ok 19 - paired thrown arm closes experiment and never permits resumption
+  ---
+  duration_ms: 7.573757
+  type: 'test'
+  ...
+# Subtest: paired immutable source profile pins reject drift before dispatch
+ok 20 - paired immutable source profile pins reject drift before dispatch
+  ---
+  duration_ms: 6.286538
+  type: 'test'
+  ...
+# Subtest: model challenger profile selects a fixed function/model and reuses the production prompt
+ok 21 - model challenger profile selects a fixed function/model and reuses the production prompt
+  ---
+  duration_ms: 1.875551
+  type: 'test'
+  ...
+# Subtest: shared pair supports only the explicit research challenger while preserving its twenty-call cap
+ok 22 - shared pair supports only the explicit research challenger while preserving its twenty-call cap
+  ---
+  duration_ms: 25.304633
+  type: 'test'
+  ...
+# Subtest: challenger source pins require the exact frozen manifest, model, schema and successful one-call probe
+ok 23 - challenger source pins require the exact frozen manifest, model, schema and successful one-call probe
+  ---
+  duration_ms: 1027.177408
+  type: 'test'
+  ...
+# Subtest: calibration reserves single canonical claim before calls and locks fit before TEST
+ok 24 - calibration reserves single canonical claim before calls and locks fit before TEST
+  ---
+  duration_ms: 19.680852
+  type: 'test'
+  ...
+# Subtest: calibration halts on invalid TRAIN or fit, never spends TEST budget, retains unknown call state
+ok 25 - calibration halts on invalid TRAIN or fit, never spends TEST budget, retains unknown call state
+  ---
+  duration_ms: 41.493181
+  type: 'test'
+  ...
+# Subtest: mass-power claims once before probe and preserves prefit bytes through fixed TEST
+ok 26 - mass-power claims once before probe and preserves prefit bytes through fixed TEST
+  ---
+  duration_ms: 14.693367
+  type: 'test'
+  ...
+# Subtest: mass-power never continues after probe failure and rejects modified profile after TEST
+ok 27 - mass-power never continues after probe failure and rejects modified profile after TEST
+  ---
+  duration_ms: 15.688956
+  type: 'test'
+  ...
+# Subtest: paired-view prompt retains catalog/semantics for both image counts
+ok 28 - paired-view prompt retains catalog/semantics for both image counts
+  ---
+  duration_ms: 3.00464
+  type: 'test'
+  ...
+# Subtest: paired-view13 budget claims once and counterbalanced case order stays fixed
+ok 29 - paired-view13 budget claims once and counterbalanced case order stays fixed
+  ---
+  duration_ms: 59.410427
+  type: 'test'
+  ...
+# Subtest: paired-view refuses invalid plan before calls and halts uncertain systemic dispatch
+ok 30 - paired-view refuses invalid plan before calls and halts uncertain systemic dispatch
+  ---
+  duration_ms: 12.171614
+  type: 'test'
+  ...
+# Subtest: fixed budget 13, balanced order, no second claim or alternate output
+ok 31 - fixed budget 13, balanced order, no second claim or alternate output
+  ---
+  duration_ms: 455.787023
+  type: 'test'
+  ...
+# Subtest: bad probe or thrown model/API failure halts without retry and retains unknown
+ok 32 - bad probe or thrown model/API failure halts without retry and retains unknown
+  ---
+  duration_ms: 99.490074
+  type: 'test'
+  ...
+# Subtest: refuses invalid balance and consent before claim; decoder failures remain outcomes
+ok 33 - refuses invalid balance and consent before claim; decoder failures remain outcomes
+  ---
+  duration_ms: 154.892845
+  type: 'test'
+  ...
+# Subtest: only metric prompt adds diameter; same base/common exclusion
+ok 34 - only metric prompt adds diameter; same base/common exclusion
+  ---
+  duration_ms: 1.496274
+  type: 'test'
+  ...
+# Subtest: decoder invalid JSON/schema/no-food become fixed failures, unknown errors halt
+ok 35 - decoder invalid JSON/schema/no-food become fixed failures, unknown errors halt
+  ---
+  duration_ms: 212.961664
+  type: 'test'
+  ...
+# Subtest: Python entry preserves virtual-environment symlink instead of bypassing it
+ok 36 - Python entry preserves virtual-environment symlink instead of bypassing it
+  ---
+  duration_ms: 13.142074
+  type: 'test'
+  ...
+# Subtest: exact21 once, fixedall10 alternatingorder, alternate output cannot bypass canonical registry
+ok 37 - exact21 once, fixedall10 alternatingorder, alternate output cannot bypass canonical registry
+  ---
+  duration_ms: 146.144203
+  type: 'test'
+  ...
+# Subtest: probe refusal/model mismatch and systemic call errors halt without retries
+ok 38 - probe refusal/model mismatch and systemic call errors halt without retries
+  ---
+  duration_ms: 30.746544
+  type: 'test'
+  ...
+# Subtest: consent/count/order invalid before claim; clean model failure completes fixed denominator
+ok 39 - consent/count/order invalid before claim; clean model failure completes fixed denominator
+  ---
+  duration_ms: 128.243623
+  type: 'test'
+  ...
+# Subtest: thinking configuration is the only request-config difference and invalid arm rejected
+ok 40 - thinking configuration is the only request-config difference and invalid arm rejected
+  ---
+  duration_ms: 3.499471
+  type: 'test'
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7405.236075

@@ -3,13 +3,13 @@
   "files": [
     {
       "path": "docs/implementation-status.md",
-      "sha256": "c00849725b2de77d5ef1de5527a0941fdedc01591b73d62f684f7345cf97c299",
-      "bytes": 2511714
+      "sha256": "53f2eb284492a1e8b75d259f75ff69ca4e75808f4c793bf76784a60bd6f3032e",
+      "bytes": 2512159
     },
     {
       "path": "docs/superpowers/plans/2026-11-11-lens-stable-sigmoid.md",
-      "sha256": "ba4d0e1d2a87035f8949265dd5b9e3694d3fd1fd284e3c842a3fec91f43ec16f",
-      "bytes": 4579
+      "sha256": "7cf21eb83118aea5f6236a443cd339ef6f2a535403b20311bd731b170f12feab",
+      "bytes": 4778
     },
     {
       "path": "docs/tier1-lens-onnx-lowering-2026-11-11/audit-code-review.json",
@@ -367,6 +367,21 @@
       "bytes": 2224
     },
     {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/fresh-checkout-verification.json",
+      "sha256": "ca2259695fce7492d435fcd49357ccfb2a57ebf192103d9cb48b520294d98501",
+      "bytes": 768
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/fresh-node-tests.txt",
+      "sha256": "7b9cbafe8486f7708bc5290320fe11b229758c99076f7ea40f5861f54e4b3759",
+      "bytes": 9341
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/fresh-python-tests.txt",
+      "sha256": "bb27a6dbad35a696d351ee16143f95afbde15c3c78e59ead7ee4c11d29ea7a1c",
+      "bytes": 332
+    },
+    {
       "path": "docs/tier1-lens-onnx-lowering-2026-11-11/fresh-source-review.json",
       "sha256": "c2b63f4f3bc18bd2481dd2487daaac17bdcbf61b9ed4d98fffe23876429a5413",
       "bytes": 1634
@@ -483,8 +498,8 @@
     },
     {
       "path": "docs/tier1-lens-onnx-lowering-2026-11-11/report.md",
-      "sha256": "827df3c7dd60ff97bcacef491dd19c23a2c156af7ff4bc0f0728808b48252c1a",
-      "bytes": 8502
+      "sha256": "3d55ca9b3a11a1a9d6bf6f59c528051b98e500014b19dbd4a9fae13705d4ec53",
+      "bytes": 8982
     },
     {
       "path": "docs/tier1-lens-onnx-lowering-2026-11-11/result-review.json",
