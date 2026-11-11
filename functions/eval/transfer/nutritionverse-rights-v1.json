@@ -5,11 +5,14 @@
   "sourceUrl": "https://www.kaggle.com/datasets/nutritionverse/nutritionverse-real",
   "license": "CC BY-NC-SA 4.0",
   "rights": {
-    "evaluationAllowed": false,
-    "purpose": "pending",
-    "decisionEvidence": null
+    "evaluationAllowed": true,
+    "purpose": "personal_noncommercial_evaluation",
+    "decisionEvidence": "User clarified this dataset is only for finding out whether the pipeline is better and explicitly instructed continuation. Agent limits this stage to a private noncommercial owner-prototype diagnostic; this is not a declaration of project-wide noncommercial status or new licensor permission."
   },
   "sourceDataRedistribution": false,
   "modelTraining": false,
-  "status": "Awaiting project-purpose clarification; owned-fixture tooling tests do not grant dataset permission"
+  "status": "Scoped private exploratory comparison only; no training, source redistribution, commercial use, deployment or performance-marketing clearance",
+  "commercialUseAuthorized": false,
+  "broaderProjectCommercialPurpose": "unresolved; outside this diagnostic",
+  "decisionRecordedAt": "2026-11-11T22:14:13.394862+00:00"
 }

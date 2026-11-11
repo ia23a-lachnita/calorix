@@ -1,3 +1,21 @@
+# Current task: execute frozen independent-domain diagnostic
+
+Prepared 20 distinct pictured NutritionVerse-Real dishes and one hash-selected view each, with 20 unique source and derived images. Qualified 251 metadata dishes; 225 have 889 matching published photographs. The 26 metadata-only dishes were unavailable, not model-filtered. Original references remain unchanged. Ingredient nutrient columns are portion totals; sums reproduce mass and nutrients within 1e-8. Cooking yields and edible-bone allocation remain independently unverified. All selected dishes have multiple source food items.
+
+The committed execution profile pins 37 source files, the private manifest and pre-image selection receipt, original A1 engine/model/prompt/schema, and qualified Lens graph/data. New call budget: at most 20 SDK invocations and 20 local forwards, zero retries. Compare all six predefined routes, including strict matched mass substitution and operational fallback separately. Keep licensed assets, labels, per-case results and numerical reports private. No production promotion, training or deployment.
+
+Pre-execution method review: `calorix-nv-transfer-execution-20261111`, gemini-3.8-flash, yolo, supplied facts only, agree / MUST_FIX none. Reviewer wording asserting licence compliance is not accepted as legal approval; project-wide commercial status remains unresolved. ADC refresh succeeded without exposing its token. Verification passed: pinned Python unittest discovery 202/202, Node tool tests 51/51, zero skips, frozen bundle verification. Next: commit and push this freeze before bounded inference, then independent arithmetic replay and result review.
+
+---
+
+# Prior task: qualify NutritionVerse data for scoped private diagnostic
+
+Latestuserclarified datasetuseonlyfindingoutwhetherpipelinebetterandexplicitlydirectedcontinuation. Agentlimitscurrentworktoprivate NONCOMMERCIAL exploratoryowner-prototypecomparison; notallprojectactivitiesclassifiednoncommercial, no newlicensorpermissionorcommercialclearance claimed. CCofficialFAQ makesNCuse-specific; notclaimingallevaluationexempt. Existingpurposegateupdatedwithexactevidence/limitations, notmereelapsed-timeapproval. MCPmethod/scopehonesty review `calorix-nv-private-diagnostic-scope-20261111` primary3.8/yolo agree/MUST_FIXnone; notlegalapproval. No training/source redistribution/deployment/marketing.
+
+Next: fetchonlysmallreference/splitCSV, inspectactualunits/joins/labelquality, thenfreeze20distinctphysicaldish IDsonevieweachbeforeretrievingpixels; originalA1andqualifiedLens+matchedmassarmunchanged. All licensedassets/privatepercase outputs remainlocal. No modelcalls yet inthis stage. Existing202Python/51Node source unchanged; sourceconfig/rightsrecordintentionalchangefromhistoricalpendingstate.
+
+---
+
 # Current task: transfer-tooling source complete and pushed; protected-data use pending purpose
 
 Source2b32dd8 published/pushed on `feat/cross-dataset-calorie-eval`. Freshcleancheckoutpassed202/202pinnedPython+51/51Node,45Git-visiblefilepins andall88previousartifactpins unchanged, no skips, remainedclean. Finaltracking-onlycommitaddsproofs/checksums; verifyfinalHEADorigin. [Report](tier1-transfer-framework-2026-11-11/report.md). Primarycorrected-source+separatefresh-contextcleanMCP reviews agree/MUST_FIXnone, suppliedtextonly. Fourmodules/fivesuitesdone; sourceactualNVschema/labels/referencequality qualification andbenchmarkNOTdone.

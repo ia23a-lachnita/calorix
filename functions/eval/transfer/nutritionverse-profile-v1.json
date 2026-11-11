@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "experiment": "nutritionverse-real-transfer-v1",
+  "datasetId": "nutritionverse-real",
+  "datasetVersion": 2,
+  "sampleCount": 20,
+  "manifestSha256": "4d5d21f705f08bc986565c92650e405b73b6b1a35376352df2ead1ecf3cdf048",
+  "selectionSha256": "c5206132e3c7e218a894b803912cf9c694a39c51c8c5295d9090a0064fb069dd",
+  "rights": {
+    "evaluationAllowed": true,
+    "purpose": "personal_noncommercial_evaluation",
+    "decisionEvidence": "User clarified this dataset is only for finding out whether the pipeline is better and explicitly instructed continuation. Agent limits this stage to a private noncommercial owner-prototype diagnostic; this is not a declaration of project-wide noncommercial status or new licensor permission."
+  },
+  "engineCommit": "b0ba28ab84852e9968c3e7ab67c1d5bf25434193",
+  "model": "gemini-3.8-flash",
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "schemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "graphSha256": "70c2d8813e9eb17a26536c4cae105b68a7738d6bd6d322a9a128a84afab5cb9e",
+  "dataSha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
+  "sourceFiles": [
+    {
+      "path": "data_rights.yaml",
+      "bytes": 6985,
+      "sha256": "6fd02cb5fc52c875a373ee0fece1094fd8429d660935490dca1963c7d399b6e4"
+    },
+    {
+      "path": "evaluate_meals.py",
+      "bytes": 16782,
+      "sha256": "4cd84e751b2cd4b30ff7040b58184d55f42670ca7f8377e653e245233d5d7801"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens-profile-v1.json",
+      "bytes": 8493,
+      "sha256": "55f5586ccb498af4cc8856e670a806eefb3d24ef647269153fc67734fab2da05"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/config.json",
+      "bytes": 67593,
+      "sha256": "a4bf17a7b78f3a0020839ac2e848a697bb8e2b98d82442e60ac8b9ac983352ce"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/ingredients_metadata.csv",
+      "bytes": 21540,
+      "sha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/onnx-requirements-lock.txt",
+      "bytes": 155,
+      "sha256": "702152fee80b90305bfb5aef21c90e5dd367d8304bcc35c42bcd512b2c5e9287"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/runtime-requirements-lock.txt",
+      "bytes": 996,
+      "sha256": "2aee8dea3d07c928be794060da43052a36dc51363c87014d74dcf121d02b7382"
+    },
+    {
+      "path": "functions/eval/tier1-public/lens-onnx-lowering-profile-v3.json",
+      "bytes": 2909,
+      "sha256": "081ce873e6f614cb389231db5f0278d1656b458627f744c282c97b2f24c5f939"
+    },
+    {
+      "path": "functions/eval/tier1-public/lens-onnx-profile-v1.json",
+      "bytes": 38271,
+      "sha256": "4b41d950e2a0463e0f80b94d8560417d66106745e77e13be695c79921ab51c96"
+    },
+    {
+      "path": "functions/eval/tier1-public/manifest-calorie-lens-v1.json",
+      "bytes": 190815,
+      "sha256": "16808bec08c1f609a3cb6deff018c9d6b43a30e180c3fb38333ed825fcc96674"
+    },
+    {
+      "path": "functions/eval/transfer/nutritionverse-rights-v1.json",
+      "bytes": 1016,
+      "sha256": "d6018f7c65cef922fad339a12e2f2c0656043f3aaaccbd756d793250aa23d67f"
+    },
+    {
+      "path": "functions/package-lock.json",
+      "bytes": 263912,
+      "sha256": "98e0617641059a0ae1029df6f5a22a90c0885dbe61235808d9a322a8f340cc51"
+    },
+    {
+      "path": "functions/src/tier1-analysis.ts",
+      "bytes": 12366,
+      "sha256": "7ad164e73a934c8822a711d678c1f572247403cb9de51aaffb96e6a4f4a5a453"
+    },
+    {
+      "path": "functions/src/tier1-callable.ts",
+      "bytes": 2065,
+      "sha256": "55c9a057c1913b885a05e4471b4c050a58c078c3581d6bc2d20d5c8ff40c7f92"
+    },
+    {
+      "path": "functions/src/tier1-catalog.ts",
+      "bytes": 3384,
+      "sha256": "a8f9753328f71e689747e21e5000672f94f33fa519e9ac97f33c8622184dcb71"
+    },
+    {
+      "path": "functions/src/tier1-cli.ts",
+      "bytes": 4907,
+      "sha256": "e0061ec1b2097cc99e431c8e703fce34c2fb24418097b2eb26707741f889b09e"
+    },
+    {
+      "path": "functions/src/tier1-public-eval.ts",
+      "bytes": 14262,
+      "sha256": "ce887a731ac7fd09c776ffba9fed4fce4d7191ea1d86982a96940c6064c71f6b"
+    },
+    {
+      "path": "functions/tsconfig.json",
+      "bytes": 516,
+      "sha256": "64cbeb5af8f3ea4132f1100fddc1b5e7facf2d09c116e27e41f6b7bed4fc5d54"
+    },
+    {
+      "path": "tests/test_lens_sigmoid_lowering.py",
+      "bytes": 5829,
+      "sha256": "b1a8d1d040f9f96ad61ac56e410c5680422432ad07cb5eff684063343b957566"
+    },
+    {
+      "path": "tool/calorie_lens_routes.py",
+      "bytes": 7545,
+      "sha256": "a1254885dd889064b59faec6746e28a3e957ff8e8adfe8308f0eb85cc36783e7"
+    },
+    {
+      "path": "tool/lens_onnx_contract.py",
+      "bytes": 7115,
+      "sha256": "483f1516598975d2f603d0d2aefd4631437d5cca0bc49e0cf2579c6c0e62487e"
+    },
+    {
+      "path": "tool/lens_sigmoid_lowering.py",
+      "bytes": 4103,
+      "sha256": "feb29b2e104fd20394b11fbae01bdf9a52582be5c1a06f8d2ab7343343089201"
+    },
+    {
+      "path": "tool/open_model_adapters.py",
+      "bytes": 7941,
+      "sha256": "19f96a82b4c453291986d4f4576dd9f35e6f62e83012c4d538d1ccbcec4d4673"
+    },
+    {
+      "path": "tool/paired_view_metrics.py",
+      "bytes": 3069,
+      "sha256": "62f65844ed07bf04767033271fbc4f1fbbb3a37a253f82cdb7a8b093972d47ef"
+    },
+    {
+      "path": "tool/portion_calibration.py",
+      "bytes": 4968,
+      "sha256": "095c1553a947e93bfe83d779bb088bc3664efb7a872f6939384d5ce67fbd8853"
+    },
+    {
+      "path": "tool/prepare_transfer_eval.py",
+      "bytes": 6704,
+      "sha256": "a350549aa69596c7f7778ad3092cff5f104327c49a62cdae4dc0dc0812e1ac9a"
+    },
+    {
+      "path": "tool/run_frozen_public_eval.cjs",
+      "bytes": 9562,
+      "sha256": "06a06d85575941e5092a3add8e3bd0951d5af3ff38ca3bd7251aaea1cb0d8a86"
+    },
+    {
+      "path": "tool/run_lens_lowering.py",
+      "bytes": 8410,
+      "sha256": "5ac5acda7130910735784f2e032d4d6cc0dcf58c3c42e9f24825ed77cd08a037"
+    },
+    {
+      "path": "tool/run_lens_onnx.py",
+      "bytes": 20536,
+      "sha256": "49f6444e368e92d552ac36fa84cee9bc741f760a52b7e9cfdbf997850ef96ad0"
+    },
+    {
+      "path": "tool/run_transfer_a1.cjs",
+      "bytes": 10474,
+      "sha256": "b00f023d522af4cb2628693ea2a453dccc6fbd8ac51b7fb1dc8ee57ab6480bb8"
+    },
+    {
+      "path": "tool/run_transfer_lens.py",
+      "bytes": 8898,
+      "sha256": "4a7ae8b7cbb25ebe42080adbe7e5ecacab8425da489c7e2af7785cc3171e768d"
+    },
+    {
+      "path": "tool/summarize_lens_lowering.py",
+      "bytes": 5260,
+      "sha256": "624c04d89f154fa643e686d03664a6e080a7bbb590813d55730d3aecd4e92d07"
+    },
+    {
+      "path": "tool/summarize_lens_onnx.py",
+      "bytes": 6511,
+      "sha256": "b41eabd2bf7fce15857cb4864b743defb53887d98b57f1cf02a2f4ba3a3d7b20"
+    },
+    {
+      "path": "tool/third_party/calorie_lens/LICENSE",
+      "bytes": 1073,
+      "sha256": "4f981de7b3e6fa60f33796a05441986327dd0cc186f31e1e3ea4c9f69f773fac"
+    },
+    {
+      "path": "tool/third_party/calorie_lens/NOTICE",
+      "bytes": 453,
+      "sha256": "82b4e4c82e321c21531e94499e5eb8ada641d3148b2fc32e5ef40ff3c1b55dee"
+    },
+    {
+      "path": "tool/third_party/calorie_lens/model.py",
+      "bytes": 38036,
+      "sha256": "ffb1b4667889be9d89a2517351826012669b672207a3f45da97c7d875d77ece6"
+    },
+    {
+      "path": "tool/transfer_dataset.py",
+      "bytes": 10142,
+      "sha256": "8e3b37be86db4295479f090661c5fefb6b8821bf0e6ceb6074b234f9df38d4b2"
+    }
+  ],
+  "maxNewSdkInvocations": 20,
+  "maxNewLocalFoodForwards": 20,
+  "retryAttempts": 0,
+  "limits": {
+    "rssLimitBytes": 3221225472,
+    "noProgressTimeoutSeconds": 120,
+    "perModelTimeoutSeconds": 1800
+  },
+  "comparisonRoutes": [
+    "A0",
+    "A1",
+    "LensFull",
+    "LensMassCounterfactual",
+    "A1LensMass",
+    "OldServingGate"
+  ],
+  "normalizedErrorFloorKcal": 200,
+  "screen": "20valid paired cases, >=10% MAE gain, nonworse median/P90/normalized error; exploratory only",
+  "sourceExposure": "Outside documented specialist training sources; broader pretraining unknown",
+  "training": false,
+  "productionPromotable": false,
+  "artifactsPolicy": "Source/derived data, raw outputs and numerical result reports stay private; no commercial/marketing clearance",
+  "referenceQualification": {
+    "originalLabelsUnchanged": true,
+    "ingredientColumnsArePortionTotals": true,
+    "arithmeticChecked": true,
+    "cookingYieldAndEdibleBoneAllocationIndependentlyVerified": false,
+    "referenceGrade": "public-author recipe reference; not an independently assigned Served-A/Consumed-A grade"
+  }
+}

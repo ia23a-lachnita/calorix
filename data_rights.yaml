@@ -57,12 +57,12 @@ assets:
     attribution: Tai et al., NutritionVerse-Real, arXiv2401.08598
     code_license: dataset, not code
     weights_license: not applicable
-    evaluation_allowed: false
+    evaluation_allowed: private noncommercial exploratory comparison only
     redistribution_allowed: false
     redistribution_policy: keep source and derived assets private
     commercial_training_allowed: false
     privacy_basis: public food-scene dataset; no owner photo collection in this comparison
-    approval_state: pending project-purpose clarification; do not infer noncommercial purpose from silence
+    approval_state: user clarified evaluation-only purpose; agent-scoped private noncommercial diagnostic, not project-wide or commercial clearance
     decision_record: functions/eval/transfer/nutritionverse-rights-v1.json
     evidence_link: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
