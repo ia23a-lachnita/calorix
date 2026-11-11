@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "experiment": "food-agreement-v1-clean-groups",
+  "engineCommit": "b0ba28ab84852e9968c3e7ab67c1d5bf25434193",
+  "sourceFiles": [
+    {
+      "path": "tool/food_agreement_routes.py",
+      "sha256": "f73e6d45fdedec57ef0ee0f0e18e2979a6f6608b2080a9bd15e4773a75571374",
+      "bytes": 7618
+    },
+    {
+      "path": "tool/prepare_food_agreement_eval.py",
+      "sha256": "b275ab206cae9d32f848b35f5ba896f11a1a3dd0c27660145d1bec1593e80d14",
+      "bytes": 7024
+    },
+    {
+      "path": "tool/run_food_agreement_eval.py",
+      "sha256": "fb95eca04a9ceb3e578239b8bb5562a930a3e1c35de6e61869f589c2ac251768",
+      "bytes": 9251
+    },
+    {
+      "path": "tests/test_food_agreement_routes.py",
+      "sha256": "d8fa55ea2b56325f4044ca410eb2f8863ec2972b2e6adad274517614f7c40be9",
+      "bytes": 7538
+    },
+    {
+      "path": "tests/test_food_agreement_cohort.py",
+      "sha256": "47af6e23c313085fec01ce1989deec5c903cb3dfd89ed4f2b7a3de622ca261da",
+      "bytes": 2362
+    },
+    {
+      "path": "tests/test_food_agreement_eval.py",
+      "sha256": "39e180b393245ece6bd9bdd6589d867c9711e705ba24d4692f7eff7a9f6db670",
+      "bytes": 2870
+    },
+    {
+      "path": "functions/eval/tier1-public/manifest-food-agreement-v1.json",
+      "sha256": "ad08f634fc7fcb537124295af8ec329325e324db5cb18f1caa8b8f10cbe25818",
+      "bytes": 58329
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/dish-groups.csv",
+      "sha256": "87d1b4ebc9db79ec3e1a558d0b3731a154c7724c4de7d71561d836bd7b09d0ec",
+      "bytes": 151832
+    },
+    {
+      "path": "functions/src/tier1-analysis.ts",
+      "sha256": "7ad164e73a934c8822a711d678c1f572247403cb9de51aaffb96e6a4f4a5a453",
+      "bytes": 12366
+    },
+    {
+      "path": "functions/src/tier1-catalog.ts",
+      "sha256": "a8f9753328f71e689747e21e5000672f94f33fa519e9ac97f33c8622184dcb71",
+      "bytes": 3384
+    },
+    {
+      "path": "functions/src/tier1-callable.ts",
+      "sha256": "55c9a057c1913b885a05e4471b4c050a58c078c3581d6bc2d20d5c8ff40c7f92",
+      "bytes": 2065
+    },
+    {
+      "path": "functions/src/tier1-cli.ts",
+      "sha256": "e0061ec1b2097cc99e431c8e703fce34c2fb24418097b2eb26707741f889b09e",
+      "bytes": 4907
+    },
+    {
+      "path": "functions/src/tier1-public-eval.ts",
+      "sha256": "ce887a731ac7fd09c776ffba9fed4fce4d7191ea1d86982a96940c6064c71f6b",
+      "bytes": 14262
+    },
+    {
+      "path": "functions/package-lock.json",
+      "sha256": "98e0617641059a0ae1029df6f5a22a90c0885dbe61235808d9a322a8f340cc51",
+      "bytes": 263912
+    }
+  ],
+  "graphSha256": "70c2d8813e9eb17a26536c4cae105b68a7738d6bd6d322a9a128a84afab5cb9e",
+  "dataSha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
+  "maxNewCloudMealCalls": 20,
+  "maxNewLocalMealPredictions": 20,
+  "retries": 0,
+  "training": false,
+  "productionPromotable": false,
+  "limits": {
+    "rssLimitBytes": 3221225472,
+    "noProgressTimeoutSeconds": 120,
+    "perModelTimeoutSeconds": 1800
+  },
+  "acceptance": "20 valid matched cases, >=10% MAE reduction, nonworse median/P90/normalized error, nonworse ECUST mass MAE/P90; exploratory only",
+  "thresholds": {
+    "a1MinMassG": 150,
+    "a1MinComponentRows": 2,
+    "minDistinctMatches": 2,
+    "a1MatchedMassFraction": 0.8,
+    "specialistNamedMassFraction": 0.8,
+    "specialistMatchedMassFraction": 0.8
+  }
+}

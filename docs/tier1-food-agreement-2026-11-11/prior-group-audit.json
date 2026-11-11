@@ -1,0 +1,232 @@
+{
+  "datasetRevision": "ed6c9cef52238fec71a70c51d7d9043814a78d8a",
+  "parquetSha256": "e6816da329318a3dc79a965899ae18bced0a7a13b321ab40d19148d32fe3aece",
+  "projectionSha256": "87d1b4ebc9db79ec3e1a558d0b3731a154c7724c4de7d71561d836bd7b09d0ec",
+  "rows": 5005,
+  "splitCounts": {
+    "test": 709,
+    "train": 3866,
+    "val": 430
+  },
+  "testCleanCount": 565,
+  "crossCohortGroups": [
+    1731,
+    2092,
+    2110,
+    2197
+  ],
+  "cases": [
+    {
+      "id": "dish_1566590007",
+      "group": "discovery10",
+      "authorGroup": 2092,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1566414412",
+      "group": "discovery10",
+      "authorGroup": 2058,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1568305257",
+      "group": "discovery10",
+      "authorGroup": 2188,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1558722247",
+      "group": "discovery10",
+      "authorGroup": 1108,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1568401233",
+      "group": "discovery10",
+      "authorGroup": 2197,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1563389600",
+      "group": "discovery10",
+      "authorGroup": 1731,
+      "authorSplit": "test",
+      "authorTestClean": false
+    },
+    {
+      "id": "dish_1566920365",
+      "group": "discovery10",
+      "authorGroup": 2110,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1564687046",
+      "group": "discovery10",
+      "authorGroup": 1906,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1558461792",
+      "group": "discovery10",
+      "authorGroup": 944,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1561739238",
+      "group": "discovery10",
+      "authorGroup": 1451,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1559934477",
+      "group": "validation20",
+      "authorGroup": 1252,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1558461607",
+      "group": "validation20",
+      "authorGroup": 942,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1566416701",
+      "group": "validation20",
+      "authorGroup": 2070,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1563389548",
+      "group": "validation20",
+      "authorGroup": 1731,
+      "authorSplit": "test",
+      "authorTestClean": false
+    },
+    {
+      "id": "dish_1567785622",
+      "group": "validation20",
+      "authorGroup": 2164,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1566589933",
+      "group": "validation20",
+      "authorGroup": 2092,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1562963246",
+      "group": "validation20",
+      "authorGroup": 1673,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1560975517",
+      "group": "validation20",
+      "authorGroup": 1341,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1558030182",
+      "group": "validation20",
+      "authorGroup": 818,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1558376437",
+      "group": "validation20",
+      "authorGroup": 889,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1560203400",
+      "group": "validation20",
+      "authorGroup": 1254,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1557862783",
+      "group": "validation20",
+      "authorGroup": 785,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1568401261",
+      "group": "validation20",
+      "authorGroup": 2197,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1565810969",
+      "group": "validation20",
+      "authorGroup": 2004,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1564675411",
+      "group": "validation20",
+      "authorGroup": 1897,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1562009810",
+      "group": "validation20",
+      "authorGroup": 1495,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1566920339",
+      "group": "validation20",
+      "authorGroup": 2110,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1559157454",
+      "group": "validation20",
+      "authorGroup": 1159,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1564160043",
+      "group": "validation20",
+      "authorGroup": 1852,
+      "authorSplit": "test",
+      "authorTestClean": true
+    },
+    {
+      "id": "dish_1562876494",
+      "group": "validation20",
+      "authorGroup": 1643,
+      "authorSplit": "test",
+      "authorTestClean": true
+    }
+  ],
+  "checkpointTrainingLineageVerified": false,
+  "referenceValuesChanged": false
+}

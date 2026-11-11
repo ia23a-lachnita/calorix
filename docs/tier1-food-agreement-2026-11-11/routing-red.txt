@@ -1,0 +1,601 @@
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+======================================================================
+ERROR: test_agreement_selects_whole_specialist_without_fusion (test_food_agreement_routes.FoodAgreementTest.test_agreement_selects_whole_specialist_without_fusion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 49, in test_agreement_selects_whole_specialist_without_fusion
+    s = lens(); result = route_food_agreement(baseline(), s)
+                         ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_alternative_identity_not_silently_resolved (test_food_agreement_routes.FoodAgreementTest.test_alternative_identity_not_silently_resolved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 79, in test_alternative_identity_not_silently_resolved
+    self.assert_fallback(baseline([(n, 100), ('chicken', 100)]), lens())
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_determinism_and_no_input_mutation (test_food_agreement_routes.FoodAgreementTest.test_determinism_and_no_input_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 138, in test_determinism_and_no_input_mutation
+    first=route_food_agreement(a,s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_eighty_percent_boundary_in_both_directions (test_food_agreement_routes.FoodAgreementTest.test_eighty_percent_boundary_in_both_directions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 92, in test_eighty_percent_boundary_in_both_directions
+    self.assertEqual(route_food_agreement(a, s)['selectedSource'], 'specialist')
+                     ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_failed_a1_is_explicit_failure (test_food_agreement_routes.FoodAgreementTest.test_failed_a1_is_explicit_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 123, in test_failed_a1_is_explicit_failure
+    result = route_food_agreement(value, lens())
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_food_conflict_keeps_a1 (test_food_agreement_routes.FoodAgreementTest.test_food_conflict_keeps_a1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 57, in test_food_conflict_keeps_a1
+    self.assert_fallback(baseline(), lens([('rice', 100), ('beef', 100)]))
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_inconsistent_summary_and_duplicate_names_are_invalid (test_food_agreement_routes.FoodAgreementTest.test_inconsistent_summary_and_duplicate_names_are_invalid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 117, in test_inconsistent_summary_and_duplicate_names_are_invalid
+    self.assert_fallback(baseline(), s)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=True, path=('massG',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=True, path=('totals', 'kcal'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=True, path=('publisherSummary', 'other', 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=True, path=('publisherSummary', 'ingredients', 0, 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=True, path=('publisherSummary', 'ingredients', 0, 'confidence'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=-1, path=('massG',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=-1, path=('totals', 'kcal'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=-1, path=('publisherSummary', 'other', 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=-1, path=('publisherSummary', 'ingredients', 0, 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=-1, path=('publisherSummary', 'ingredients', 0, 'confidence'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=nan, path=('massG',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=nan, path=('totals', 'kcal'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=nan, path=('publisherSummary', 'other', 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=nan, path=('publisherSummary', 'ingredients', 0, 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=nan, path=('publisherSummary', 'ingredients', 0, 'confidence'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=inf, path=('massG',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=inf, path=('totals', 'kcal'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=inf, path=('publisherSummary', 'other', 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=inf, path=('publisherSummary', 'ingredients', 0, 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=inf, path=('publisherSummary', 'ingredients', 0, 'confidence'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad='200', path=('massG',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad='200', path=('totals', 'kcal'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad='200', path=('publisherSummary', 'other', 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad='200', path=('publisherSummary', 'ingredients', 0, 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad='200', path=('publisherSummary', 'ingredients', 0, 'confidence'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=None, path=('massG',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=None, path=('totals', 'kcal'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=None, path=('publisherSummary', 'other', 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=None, path=('publisherSummary', 'ingredients', 0, 'grams'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back) (bad=None, path=('publisherSummary', 'ingredients', 0, 'confidence'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 104, in test_invalid_specialist_quantities_and_schema_fall_back
+    with self.subTest(bad=bad, path=path): self.assert_fallback(baseline(), s)
+                                           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_invalid_specialist_quantities_and_schema_fall_back (test_food_agreement_routes.FoodAgreementTest.test_invalid_specialist_quantities_and_schema_fall_back)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 106, in test_invalid_specialist_quantities_and_schema_fall_back
+    self.assert_fallback(baseline(), s)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_large_unknown_or_unidentified_mass_keeps_a1 (test_food_agreement_routes.FoodAgreementTest.test_large_unknown_or_unidentified_mass_keeps_a1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 60, in test_large_unknown_or_unidentified_mass_keeps_a1
+    self.assert_fallback(baseline(), lens(other=100))
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_preparation_words_plural_and_case_can_match (test_food_agreement_routes.FoodAgreementTest.test_preparation_words_plural_and_case_can_match)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 75, in test_preparation_words_plural_and_case_can_match
+    self.assertEqual(route_food_agreement(a, lens([('white rice', 100), ('grilled chicken', 100)]))['selectedSource'], 'specialist')
+                     ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_reference_metadata_cannot_change_decision_or_be_read (test_food_agreement_routes.FoodAgreementTest.test_reference_metadata_cannot_change_decision_or_be_read)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 128, in test_reference_metadata_cannot_change_decision_or_be_read
+    expected = route_food_agreement(baseline(), lens())
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_serving_domain_boundary_and_single_food (test_food_agreement_routes.FoodAgreementTest.test_serving_domain_boundary_and_single_food)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 85, in test_serving_domain_boundary_and_single_food
+    self.assert_fallback(baseline([('rice', 75), ('chicken', 74.99)]), lens())
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_specific_foods_do_not_match_shorter_conflicting_names (test_food_agreement_routes.FoodAgreementTest.test_specific_foods_do_not_match_shorter_conflicting_names) (a=[('egg whites', 100), ('rice', 100)])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 71, in test_specific_foods_do_not_match_shorter_conflicting_names
+    with self.subTest(a=a): self.assert_fallback(baseline(a), lens(s))
+                            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_specific_foods_do_not_match_shorter_conflicting_names (test_food_agreement_routes.FoodAgreementTest.test_specific_foods_do_not_match_shorter_conflicting_names) (a=[('sweet potato', 100), ('chicken', 100)])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 71, in test_specific_foods_do_not_match_shorter_conflicting_names
+    with self.subTest(a=a): self.assert_fallback(baseline(a), lens(s))
+                            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_specific_foods_do_not_match_shorter_conflicting_names (test_food_agreement_routes.FoodAgreementTest.test_specific_foods_do_not_match_shorter_conflicting_names) (a=[('turkey bacon', 100), ('rice', 100)])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 71, in test_specific_foods_do_not_match_shorter_conflicting_names
+    with self.subTest(a=a): self.assert_fallback(baseline(a), lens(s))
+                            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_specific_foods_do_not_match_shorter_conflicting_names (test_food_agreement_routes.FoodAgreementTest.test_specific_foods_do_not_match_shorter_conflicting_names) (a=[('tuna salad', 100), ('rice', 100)])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 71, in test_specific_foods_do_not_match_shorter_conflicting_names
+    with self.subTest(a=a): self.assert_fallback(baseline(a), lens(s))
+                            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+======================================================================
+ERROR: test_two_distinct_groups_required (test_food_agreement_routes.FoodAgreementTest.test_two_distinct_groups_required)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 82, in test_two_distinct_groups_required
+    self.assert_fallback(baseline([('rice', 100), ('white rice', 100)]), lens([('rice', 200)]))
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 42, in assert_fallback
+    result = route_food_agreement(a, s)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/food_agreement_routes.py", line 5, in route_food_agreement
+    raise NotImplementedError("Frozen food agreement selector")
+NotImplementedError: Frozen food agreement selector
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.055s
+
+FAILED (errors=47)

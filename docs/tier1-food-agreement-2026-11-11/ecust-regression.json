@@ -1,0 +1,69 @@
+{
+  "cases": [
+    {
+      "id": "bread005",
+      "referenceMassG": 26.4,
+      "a1MassG": 35.0,
+      "selectedMassG": 35.0,
+      "reason": "outside_fixed_serving_gate"
+    },
+    {
+      "id": "bun006",
+      "referenceMassG": 78.3,
+      "a1MassG": 110.0,
+      "selectedMassG": 110.0,
+      "reason": "outside_fixed_serving_gate"
+    },
+    {
+      "id": "doughnut006",
+      "referenceMassG": 66.2,
+      "a1MassG": 55.0,
+      "selectedMassG": 55.0,
+      "reason": "outside_fixed_serving_gate"
+    },
+    {
+      "id": "fired_dough_twist006",
+      "referenceMassG": 40.2,
+      "a1MassG": 55.0,
+      "selectedMassG": 55.0,
+      "reason": "outside_fixed_serving_gate"
+    },
+    {
+      "id": "mooncake004",
+      "referenceMassG": 41.8,
+      "a1MassG": 60.0,
+      "selectedMassG": 60.0,
+      "reason": "outside_fixed_serving_gate"
+    },
+    {
+      "id": "sachima004",
+      "referenceMassG": 33.4,
+      "a1MassG": 40.0,
+      "selectedMassG": 40.0,
+      "reason": "outside_fixed_serving_gate"
+    }
+  ],
+  "baseline": {
+    "attempted": 6,
+    "scored": 6,
+    "failed": 0,
+    "coverage": 1.0,
+    "maeG": 15.183333333333335,
+    "medianAbsoluteErrorG": 13.0,
+    "p90AbsoluteErrorG": 24.950000000000003,
+    "biasG": 11.450000000000001
+  },
+  "agreement": {
+    "attempted": 6,
+    "scored": 6,
+    "failed": 0,
+    "coverage": 1.0,
+    "maeG": 15.183333333333335,
+    "medianAbsoluteErrorG": 13.0,
+    "p90AbsoluteErrorG": 24.950000000000003,
+    "biasG": 11.450000000000001
+  },
+  "calorieReference": null,
+  "fresh6A1Baseline": null,
+  "passes": true
+}

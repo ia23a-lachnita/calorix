@@ -1,0 +1,13 @@
+{
+  "status": "fulfilled",
+  "value": {
+    "content": [
+      {
+        "type": "text",
+        "text": "AI response:\nAGREEMENT_STATUS: agree\nMUST_FIX: none\n\n### Audit Summary\n\nA fresh-context whole-feature audit of `tool/food_agreement_routes.py`, `tool/prepare_food_agreement_eval.py`, `tool/run_food_agreement_eval.py`, corresponding test suites, and `food-agreement-profile-v1.json` reveals no material defects:\n\n1. **Partial Names & Residual Noun Guard**:\n   - Longest-span greedy matching prioritizes specific compounds over shorter aliases (`egg_whites` over `eggs`, `sweet_potato` over `potato`, `turkey_bacon` over `bacon`, `tuna_salad` over `tuna`).\n   - Word boundaries `(?<!\\w)...(?!\\w)` block intra-token substring collisions.\n   - Residual noun guard `set(remainder.split()) - DESCRIPTORS` ensures unrecognized components (e.g., `mystery sauce`, `unknown casserole`, `sushi`) invalidate coverage to `frozenset()`.\n   - Multi-ingredient composite items require strict subset coverage (`groups <= s_groups` and `groups <= a_groups`).\n\n2. **Denominators & Failure Handling**:\n   - `base['massG']` is guaranteed $\\ge 150\\,\\text{g}$ via `base['eligible']` before computing `a1MatchedMassFraction`.\n   - `candidate['massG']` is validated positive and finite via `finite(..., True)` with $\\le 1\\,\\text{g}$ tolerance against total mass.\n   - `score_routes` preserves fixed denominators with `attempted=len(cases)`; failed predictions map to `point=None` without dropping cases or inventing zero-error points. All 20 cases must score for screen validity.\n\n3. **Input Wall & Reference Isolation**:\n   - `image_case` whitelists exact keys (`{'id', 'inputFile', 'inputSha256'}`), regex-validates `dish_[0-9]{10}` and sha256 hex, and rejects relative paths.\n   - `run()` validates paths within `assets` via `is_relative_to` and verifies image SHA256 hashes prior to dispatch.\n   - Routing logic is reference-blind; reference labels are excluded from runtime inputs.\n\n4. **Plate Exclusions & Cohort Integrity**:\n   - Excludes all 116 prior IDs across all 5 historical manifests and bundles, expanding to all 104 corresponding author groups.\n   - Filters strictly for `split=='test'`, `test_clean=='1'`, and `has_overhead=='1'`.\n   - Verifies 20 distinct author groups for the 20 sampled cases.\n\n5. **Source & Runtime Pins**:\n   - Enforces clean git tree matching upstream.\n   - Verifies sha256 and byte counts for 14 profile files, retained original/lowering pins, ONNX graph, and external data weights.\n   - Qualified Python version, pinned dependencies, disabled ORT session optimization, and zero-retry supervisor limits are strictly verified."
+      }
+    ],
+    "isError": false
+  }
+}
+

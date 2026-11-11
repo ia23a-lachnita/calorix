@@ -1,0 +1,13 @@
+{
+  "status": "fulfilled",
+  "value": {
+    "content": [
+      {
+        "type": "text",
+        "text": "AI response:\nAGREEMENT_STATUS: agree\nMUST_FIX: none\n\n### Review Findings\n\n1. **Residual Token Filtering (`food_groups`)**:\n   - The remainder token check (`set(remainder.split()) - DESCRIPTORS`) properly closes the partial-match loophole.\n   - Names containing unmapped nouns (e.g., \"mystery sauce\", \"casserole\", \"sushi\") fail the whitelist check and safely collapse to `frozenset()`, preventing unrecognized mass from falsely counting toward agreement.\n   - Standard cooking methods, cuts, and grammatical connectives in `DESCRIPTORS` (\"roasted\", \"diced\", \"with\", \"and\") remain supported without spurious rejection.\n\n2. **Offline Scoring CLI (`run_food_agreement_eval.py`)**:\n   - The `--score` branch validates all required paths (`manifest`, `a1`, `lens`, `summary`).\n   - Correctly loads `dish_*.json` records via glob and executes `score_routes` against frozen manifest cases, enabling offline evaluation replays without triggering ONNX or cloud inference.\n\n3. **Pre-Inference Step**:\n   - Ensure the updated source files' SHA-256 hashes and byte lengths are re-pinned in `food-agreement-profile-v1.json` prior to committing and running inference."
+      }
+    ],
+    "isError": false
+  }
+}
+

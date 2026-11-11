@@ -1,0 +1,37 @@
+EEE
+======================================================================
+ERROR: test_duplicate_or_extra_records_not_silently_ignored (test_food_agreement_eval.EvaluationTest.test_duplicate_or_extra_records_not_silently_ignored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_eval.py", line 26, in test_duplicate_or_extra_records_not_silently_ignored
+    with self.assertRaises(ValueError):score_routes([c,c],{}, {})
+                                       ~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/run_food_agreement_eval.py", line 6, in score_routes
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_fixed_failure_denominator_and_no_invented_zero_error (test_food_agreement_eval.EvaluationTest.test_fixed_failure_denominator_and_no_invented_zero_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_eval.py", line 15, in test_fixed_failure_denominator_and_no_invented_zero_error
+    result=score_routes(cases,{}, {})
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/run_food_agreement_eval.py", line 6, in score_routes
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_reference_and_path_escape_rejected_at_worker_boundary (test_food_agreement_eval.EvaluationTest.test_reference_and_path_escape_rejected_at_worker_boundary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_eval.py", line 8, in test_reference_and_path_escape_rejected_at_worker_boundary
+    self.assertEqual(image_case(c),c)
+                     ~~~~~~~~~~^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/run_food_agreement_eval.py", line 3, in image_case
+    raise NotImplementedError
+NotImplementedError
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.004s
+
+FAILED (errors=3)

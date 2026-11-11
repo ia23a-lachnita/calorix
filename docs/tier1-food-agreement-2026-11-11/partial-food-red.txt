@@ -1,0 +1,50 @@
+........FFF......
+======================================================================
+FAIL: test_known_word_does_not_cover_unrecognized_remainder_of_component (test_food_agreement_routes.FoodAgreementTest.test_known_word_does_not_cover_unrecognized_remainder_of_component) (name='rice with mystery sauce')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 67, in test_known_word_does_not_cover_unrecognized_remainder_of_component
+    with self.subTest(name=name): self.assert_fallback(a,lens())
+                                  ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 43, in assert_fallback
+    self.assertEqual(result['selectedSource'], 'A1')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'specialist' != 'A1'
+- specialist
++ A1
+
+
+======================================================================
+FAIL: test_known_word_does_not_cover_unrecognized_remainder_of_component (test_food_agreement_routes.FoodAgreementTest.test_known_word_does_not_cover_unrecognized_remainder_of_component) (name='rice and unknown casserole')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 67, in test_known_word_does_not_cover_unrecognized_remainder_of_component
+    with self.subTest(name=name): self.assert_fallback(a,lens())
+                                  ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 43, in assert_fallback
+    self.assertEqual(result['selectedSource'], 'A1')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'specialist' != 'A1'
+- specialist
++ A1
+
+
+======================================================================
+FAIL: test_known_word_does_not_cover_unrecognized_remainder_of_component (test_food_agreement_routes.FoodAgreementTest.test_known_word_does_not_cover_unrecognized_remainder_of_component) (name='chicken sushi')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 67, in test_known_word_does_not_cover_unrecognized_remainder_of_component
+    with self.subTest(name=name): self.assert_fallback(a,lens())
+                                  ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_routes.py", line 43, in assert_fallback
+    self.assertEqual(result['selectedSource'], 'A1')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'specialist' != 'A1'
+- specialist
++ A1
+
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.145s
+
+FAILED (failures=3)

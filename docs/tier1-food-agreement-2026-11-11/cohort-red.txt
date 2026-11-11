@@ -1,0 +1,146 @@
+EEEEEEEEEEEEE
+======================================================================
+ERROR: test_known_group_overlap_excludes_all_views_not_just_id (test_food_agreement_cohort.CohortTest.test_known_group_overlap_excludes_all_views_not_just_id)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 15, in test_known_group_overlap_excludes_all_views_not_just_id
+    meta=validate_groups(rows())
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap (test_food_agreement_cohort.CohortTest.test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap) (kind='duplicate')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 34, in test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap
+    with self.subTest(kind=kind),self.assertRaises(ValueError):validate_groups(rs)
+                                                               ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap (test_food_agreement_cohort.CohortTest.test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap) (kind='flag')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 34, in test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap
+    with self.subTest(kind=kind),self.assertRaises(ValueError):validate_groups(rs)
+                                                               ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap (test_food_agreement_cohort.CohortTest.test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap) (kind='clean_train')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 34, in test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap
+    with self.subTest(kind=kind),self.assertRaises(ValueError):validate_groups(rs)
+                                                               ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap (test_food_agreement_cohort.CohortTest.test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap) (kind='exposed_clean')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 34, in test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap
+    with self.subTest(kind=kind),self.assertRaises(ValueError):validate_groups(rs)
+                                                               ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap (test_food_agreement_cohort.CohortTest.test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap) (kind='invalid_split')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 34, in test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap
+    with self.subTest(kind=kind),self.assertRaises(ValueError):validate_groups(rs)
+                                                               ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap (test_food_agreement_cohort.CohortTest.test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap) (kind='train_val')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 34, in test_metadata_integrity_rejects_duplicate_flags_and_train_val_overlap
+    with self.subTest(kind=kind),self.assertRaises(ValueError):validate_groups(rs)
+                                                               ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_missing_prior_or_unknown_metadata_fails_closed (test_food_agreement_cohort.CohortTest.test_missing_prior_or_unknown_metadata_fails_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 21, in test_missing_prior_or_unknown_metadata_fails_closed
+    m=validate_groups(rows())
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_rejects_missing_or_malformed_group (test_food_agreement_cohort.CohortTest.test_rejects_missing_or_malformed_group) (group='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 39, in test_rejects_missing_or_malformed_group
+    with self.subTest(group=group),self.assertRaises(ValueError):validate_groups(rs)
+                                                                 ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_rejects_missing_or_malformed_group (test_food_agreement_cohort.CohortTest.test_rejects_missing_or_malformed_group) (group='-1')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 39, in test_rejects_missing_or_malformed_group
+    with self.subTest(group=group),self.assertRaises(ValueError):validate_groups(rs)
+                                                                 ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_rejects_missing_or_malformed_group (test_food_agreement_cohort.CohortTest.test_rejects_missing_or_malformed_group) (group='1.0')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 39, in test_rejects_missing_or_malformed_group
+    with self.subTest(group=group),self.assertRaises(ValueError):validate_groups(rs)
+                                                                 ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_rejects_missing_or_malformed_group (test_food_agreement_cohort.CohortTest.test_rejects_missing_or_malformed_group) (group=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 39, in test_rejects_missing_or_malformed_group
+    with self.subTest(group=group),self.assertRaises(ValueError):validate_groups(rs)
+                                                                 ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_unavailable_overhead_and_held_out_group_filtered (test_food_agreement_cohort.CohortTest.test_unavailable_overhead_and_held_out_group_filtered)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_food_agreement_cohort.py", line 42, in test_unavailable_overhead_and_held_out_group_filtered
+    rs=rows();rs[3]['has_overhead']='0';m=validate_groups(rs)
+                                          ~~~~~~~~~~~~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_food_agreement_eval.py", line 3, in validate_groups
+    raise NotImplementedError
+NotImplementedError
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.018s
+
+FAILED (errors=13)
