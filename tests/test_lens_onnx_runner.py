@@ -1,9 +1,15 @@
 import json, tempfile, unittest
 from pathlib import Path
-from tool.run_lens_onnx import safe_external_path, resource_stop, validate_outputs, successful_attempt, require_start_memory
+from tool.run_lens_onnx import safe_external_path, resource_stop, validate_outputs, successful_attempt, require_start_memory, optimization_enum
 import numpy as np
 
 class RunnerContractTest(unittest.TestCase):
+ def test_diagnostic_optimization_allowlist_keeps_default_and_rejects_unknown(self):
+  self.assertEqual(optimization_enum('all'),'ORT_ENABLE_ALL')
+  self.assertEqual(optimization_enum('disabled'),'ORT_DISABLE_ALL')
+  self.assertEqual(optimization_enum('basic'),'ORT_ENABLE_BASIC')
+  self.assertEqual(optimization_enum('extended'),'ORT_ENABLE_EXTENDED')
+  with self.assertRaises(ValueError):optimization_enum('auto')
  def test_startup_memory_requirement_is_separate_from_runtime_floor(self):
   profile=json.loads((Path(__file__).resolve().parents[1]/'functions/eval/tier1-public/lens-onnx-profile-v1.json').read_text())
   self.assertEqual(profile['preflightMinAvailableBytes'],int(3.5*1024**3))

@@ -85,3 +85,5 @@ Pre-review disposition: initial external review disagreed. Accepted fresh venv, 
 - Official PyPI metadata checked for each new ARM64/Python3.11 wheel; install report retained in the task directory. Source model/runtime baseline lock remains unchanged.
 
 Runtime amendment: first two worker attempts hit the erroneously continuous3.5GiB startup floor before a graph/qualification. Preserve them. The reviewed correction uses separate3.5GiB startup and512MiB runtime floor, retaining3GiB RSS and all export/numerical/model settings. New execution-v2 has at most two corrected-resource export routes. Pre/post memory review green;144Pythonpass.
+
+Numerical-debug amendment (no food seen): correctedDynamo graphpassesstructurebutblankfails4logits; legacyunsupportedbicubic-aa. Preservefailure, do notloosentolerances. Newblank-onlyrepeatTorch+ORTlevelsALL/disabled/basic/extended,5forwardsfixedorder600s120idleexistingmemorycaps,originalgraphhashesfixed. No newexport/foodpromotion;reviewresultsbeforeanynextdecision. Pre/postsourcegreen,145Pythonpass.

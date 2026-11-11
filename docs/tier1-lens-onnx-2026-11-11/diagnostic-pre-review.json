@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\n### Pre-Implementation Review\n\n**AGREEMENT_STATUS**: agree  \n**MUST_FIX**: none  \n\nThe proposed blank-only diagnostic plan is concrete, hermetic, and valid.\n\n#### Assessment\n- **Isolates Root Cause**: Running 1 fresh PyTorch repeat alongside 4 ORT CPU sessions (`ALL`, `DISABLE_ALL`, `BASIC`, `EXTENDED`) cleanly separates baseline nondeterminism and floating-point drift from ORT graph optimization and kernel fusion effects without loosening tolerances or patching backends.\n- **Execution & Resource Safety**: Pinning the graph hash without re-exporting, enforcing sequential session creation (`delete` previous before constructing next), setting 2/1 threads with passive OMP, and enforcing the 600s / 3.5 GiB limits guards against RSS spikes and thread contention.\n- **Controlled Scope**: Retaining all 5 raw outputs, input hashes, old-vs-new parity, and gating winner promotion keeps production code safe.\n\n#### Rejection of Guarantees\nAny guaranteed accuracy or speed outcome is **strictly rejected**. Disabling or varying ORT optimization levels may not eliminate the 0.002446 logit delta (which may stem from decomposed `_upsample_bicubic2d_aa` kernels or CPU vectorization differences), nor does it guarantee meeting performance thresholds. Empirical review must precede any 42-item qualification decision."
+    }
+  ],
+  "isError": false
+}

@@ -1,3 +1,11 @@
+# Current task: isolate numerical qualification failure on owned blank
+
+Corrected resource source `5e8ff68` committed/pushed clean. Actual Dynamo export completed74.15s, validIR10/opset18graph:2,655,980B graph SHAcd1f8b96b6fbc1992d79e79551eb8e492f1ced568ba080ee0817b6bb9bb0c80a plus358,417,205B data SHAf660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276. Blank37.879s, failed4/253logits bounds (maxabs.0024461746), other6heads and exactprimarykcal/mass/macros/names pass. Dynamo peak1,861,402,624B, exit1/noresourceStop. Legacy exit1/noresourceStop, unsupported `aten::_upsample_bicubic2d_aa` opset18, no graph. No food inference or speed/accuracy promotion. Both originalresource attempts and correctedattempts retained losslessly.
+
+New reviewed diagnostic tests baseline repeatability and ORT optimization only: ONE freshTorch blank plus4samegraph CPUblank sessions ALL/disabled/basic/extended, fixed order,oneORTsessionatatime,oldandfreshTorchparity retained. No export or food path in diagnostic, no threshold relaxation. Bounds600s/120idle,3GiBRSS,3.5GiBstartup/512MiBruntime; othermodel/thread/image settings unchanged. Pre/post diagnostic review gemini-3.8-flash/yolo both agree/MUST_FIX none, text-only. Optimization allowlist regression RED→GREEN/full145Pythonpass. Next after commit/pushclean: scopedvenv `python -m tool.run_lens_onnx --root <task>/execution-v2 --previous <retainedtask> --mode diagnose`. Review all5 results before any full42 decision. MealSDK187 unchanged;0newfoodpredictions in this ONNX experiment so far.
+
+---
+
 # Current task: corrected memory watchdog, resume export
 
 Source stage `ffbb98b41abd0ce19cb12da64ad9ad4817a824a5` committed/pushed clean. Initial actual export workers both terminated by the available-memory floor: Dynamo29.96s/peak805261312B, legacy26.41s/peak1120161792B. First strict state load succeeded21.60s; neither graph nor qualification receipt exists, no food calls. This is a watchdog error, not evidence of unsupported operators/model failure. Initial4.4055GB available vs continuous3.5GiB floor left insufficient model headroom.

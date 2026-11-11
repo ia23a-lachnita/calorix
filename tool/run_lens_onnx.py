@@ -10,6 +10,10 @@ PROFILE=BASE/'lens-onnx-profile-v1.json'
 SHAPES=((1,253),(1,253),(1,253),(1,5),(1,253),(1,),(1,8))
 def successful_attempt(supervision,receipt_exists):
  return supervision['workerExitCode']==0 and supervision['resourceStop'] is None and receipt_exists
+def optimization_enum(name):
+ values={'all':'ORT_ENABLE_ALL','disabled':'ORT_DISABLE_ALL','basic':'ORT_ENABLE_BASIC','extended':'ORT_ENABLE_EXTENDED'}
+ if name not in values:raise ValueError('Explicit diagnostic optimization setting required')
+ return values[name]
 def safe_external_path(root,name):
  if not name or '\\' in name or Path(name).is_absolute() or '..' in Path(name).parts:raise ValueError('Unsafe graph external data location')
  result=root/name
@@ -74,9 +78,9 @@ def load_torch(spec):
  missing,unexpected=load_model(model,spec['modelFile'],strict=True,device='cpu')
  if missing or unexpected:raise ValueError('Strict state load required')
  model.eval();return torch,module,model,(time.monotonic()-start)*1000
-def ort_session(graph):
+def ort_session(graph,optimization='all'):
  import onnxruntime as ort
- start=time.monotonic();options=ort.SessionOptions();options.intra_op_num_threads=2;options.inter_op_num_threads=1;options.execution_mode=ort.ExecutionMode.ORT_SEQUENTIAL;options.graph_optimization_level=ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+ start=time.monotonic();options=ort.SessionOptions();options.intra_op_num_threads=2;options.inter_op_num_threads=1;options.execution_mode=ort.ExecutionMode.ORT_SEQUENTIAL;options.graph_optimization_level=getattr(ort.GraphOptimizationLevel,optimization_enum(optimization))
  options.add_session_config_entry('session.intra_op.allow_spinning','0');options.add_session_config_entry('session.inter_op.allow_spinning','0')
  session=ort.InferenceSession(str(graph),sess_options=options,providers=['CPUExecutionProvider'])
  if session.get_providers()!=['CPUExecutionProvider']:raise ValueError('CPU-only provider required')
@@ -135,6 +139,14 @@ def benchmark_worker(spec):
   for engine in controls.get(case['id'],['ort']):
    row=prediction(case,cfg,sources,session=session if engine=='ort' else None,torch_model=(torch,model) if engine=='torch' else None);write(out/(case['id']+'-'+engine+'.json'),row);print(json.dumps({'id':case['id'],'runtime':engine,'parity':row['parity']['passes'],'wallMs':row['imageWallMs']}),flush=True)
   if case['id'] in controls:time.sleep(10)
+def diagnostic_worker(spec):
+ import gc
+ if 'cases' in spec or 'controls' in spec or spec['diagnosticOptimizations']!=['all','disabled','basic','extended']:raise ValueError('Frozen blank-only diagnostic required')
+ out=Path(spec['outputDir']);torch,module,model,load_ms=load_torch(spec);cfg,sources=context(spec)
+ write(out/'session.json',{'torchLoadMs':load_ms,'versions':installed(spec['versions']),'foodCases':0,'blankForwardsPlanned':5,'order':spec['diagnosticOptimizations']})
+ repeated=prediction(spec['qualification'],cfg,sources,torch_model=(torch,model));write(out/'torch-repeat.json',repeated)
+ for optimization in spec['diagnosticOptimizations']:
+  session,load_ms=ort_session(Path(spec['graphFile']),optimization);row=prediction(spec['qualification'],cfg,sources,session=session);row.update(optimization=optimization,ortLoadMs=load_ms,parityAgainstFreshTorch=parity_report(repeated,row));write(out/('ort-'+optimization+'.json'),row);del session;gc.collect()
 def preflight(repo,root,previous):
  if subprocess.check_output(['git','status','--porcelain'],cwd=repo,text=True).strip():raise ValueError('Commit clean source before model code')
  p=json.loads((repo/PROFILE).read_text())
@@ -157,14 +169,19 @@ def main(a):
    if successful_attempt(supervision,(out/'accepted.json').exists()):
     write(root/'selected.json',{'route':route,'graphFile':str(out/'model.onnx'),'receipt':json.loads((out/'accepted.json').read_text()),'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip()});return
   raise RuntimeError('Both predeclared exports failed; inspect retained worker diagnostics')
+ if a.mode=='diagnose':
+  for f in p['diagnosticGraphFiles']:verify_file(safe_external_path(root,f['path']),f['sha256'],f['bytes'])
+  out=root/'diagnostic-v1';out.mkdir();spec=make_spec(repo,previous,p,out);spec.pop('cases');spec.pop('controls');spec.update(graphFile=str(root/'export-dynamo/model.onnx'),diagnosticOptimizations=p['diagnosticOptimizations']);supervision=supervise(repo,root,spec,'diagnostic',p['diagnosticLimits'])
+  if not successful_attempt(supervision,(out/'ort-extended.json').exists()):raise RuntimeError('Blank diagnostic incomplete; retain failures')
+  return
  selected=json.loads((root/'selected.json').read_text());graph=Path(selected['graphFile'])
  for f in selected['receipt']['graph']['files']:verify_file(safe_external_path(graph.parent,f['name']),f['sha256'],f['bytes'])
  out=root/'benchmark';out.mkdir();spec=make_spec(repo,previous,p,out);spec['graphFile']=str(graph);supervision=supervise(repo,root,spec,'benchmark',p['benchmarkLimits'])
  if not successful_attempt(supervision,True):raise RuntimeError('Benchmark incomplete; inspect retained worker diagnostics and fixed denominators')
 if __name__=='__main__':
- parser=argparse.ArgumentParser();parser.add_argument('--worker',choices=['export','benchmark']);parser.add_argument('--spec',type=Path);parser.add_argument('--repo',type=Path,default=Path.cwd());parser.add_argument('--root',type=Path);parser.add_argument('--previous',type=Path);parser.add_argument('--mode',choices=['preflight','export','benchmark'],default='preflight');args=parser.parse_args()
+ parser=argparse.ArgumentParser();parser.add_argument('--worker',choices=['export','benchmark','diagnostic']);parser.add_argument('--spec',type=Path);parser.add_argument('--repo',type=Path,default=Path.cwd());parser.add_argument('--root',type=Path);parser.add_argument('--previous',type=Path);parser.add_argument('--mode',choices=['preflight','export','benchmark','diagnose'],default='preflight');args=parser.parse_args()
  if args.worker:
-  spec=json.loads(args.spec.read_text());export_worker(spec) if args.worker=='export' else benchmark_worker(spec)
+  spec=json.loads(args.spec.read_text());{'export':export_worker,'benchmark':benchmark_worker,'diagnostic':diagnostic_worker}[args.worker](spec)
  else:
   if not args.root or not args.previous:parser.error('Explicit disk-backed task root and retained baseline root required')
   main(args)

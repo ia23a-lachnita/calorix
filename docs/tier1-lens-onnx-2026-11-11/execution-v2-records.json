@@ -1,0 +1,74 @@
+[
+  {
+    "path": "export-dynamo/exported.json",
+    "sha256": "ddd0b1fc6249d993c22792d114fa66356c66cb2288e188032e30ce24f787523b",
+    "bytes": 57,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-dynamo/exported.json.gz"
+  },
+  {
+    "path": "export-dynamo/graph.json",
+    "sha256": "87d2e93043afc020adb42cc78377a962244ee9d32062cb2e3a20d7eb62b771bc",
+    "bytes": 372,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-dynamo/graph.json.gz"
+  },
+  {
+    "path": "export-dynamo/loaded.json",
+    "sha256": "5bfb879eb6301a82498135fd820e82afaa0670abc9b72c919291b7e2373bbd66",
+    "bytes": 107,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-dynamo/loaded.json.gz"
+  },
+  {
+    "path": "export-dynamo/qualification.json",
+    "sha256": "43f942ef1fa8ecbc745b5acc4413f40c80008a967d18cbea23d5bf42361d0a69",
+    "bytes": 223480,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-dynamo/qualification.json.gz"
+  },
+  {
+    "path": "export-dynamo/supervision.json",
+    "sha256": "54d15592176c23697c161be8602d7630289ab27939662d400b2f1292c85ccd4e",
+    "bytes": 134,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-dynamo/supervision.json.gz"
+  },
+  {
+    "path": "export-dynamo/worker-input.json",
+    "sha256": "bba858a9b8e8cf5aa139b6fa415e7daf8a5f03c2badf063e01f0b1b38e3f9959",
+    "bytes": 22722,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-dynamo/worker-input.json.gz"
+  },
+  {
+    "path": "export-dynamo/worker.txt",
+    "sha256": "fb74e6a2e1a1f7ee358827ebd8fc0749cb5e1b628d9e87cf08baf1099e072db3",
+    "bytes": 1764,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-dynamo/worker.txt.gz"
+  },
+  {
+    "path": "export-host.txt",
+    "sha256": "0f7aebb27c8e69ce2caed48a5d30d03ed23621e800604d8a46fed0d81228d53c",
+    "bytes": 589,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-host.txt.gz"
+  },
+  {
+    "path": "export-legacy/loaded.json",
+    "sha256": "62ebfa2ab76be685b47c4d252ab96b0104d3cd55d4a4cf83c59f6e4e205e2697",
+    "bytes": 106,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-legacy/loaded.json.gz"
+  },
+  {
+    "path": "export-legacy/supervision.json",
+    "sha256": "3876dffcd29be07482b304e269079464e5b930a7fd2499f40a7b3d9639ab9dec",
+    "bytes": 133,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-legacy/supervision.json.gz"
+  },
+  {
+    "path": "export-legacy/worker-input.json",
+    "sha256": "bc128d24d39130b943950e80e156e221a6c81e952ed63f74fb14faf5d9b85ed4",
+    "bytes": 22722,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-legacy/worker-input.json.gz"
+  },
+  {
+    "path": "export-legacy/worker.txt",
+    "sha256": "f6ced1a800baed3c3d993a5d17753277462c1350de502177c5d44a5b65c8f64e",
+    "bytes": 584605,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-legacy/worker.txt.gz"
+  }
+]

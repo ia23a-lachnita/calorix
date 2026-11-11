@@ -88,8 +88,8 @@
     },
     {
       "path": "tool/run_lens_onnx.py",
-      "sha256": "c2f6a9a2e12c4ed631dc4df67ddd121d7e995551d1275f4fb2acd87beaf3aa79",
-      "bytes": 15337
+      "sha256": "af5add6c54d1e41bc50cfe17a12d25924f325c796c9e4a51fba0ffbd851871ab",
+      "bytes": 17256
     },
     {
       "path": "tool/third_party/calorie_lens/LICENSE",
@@ -981,5 +981,30 @@
     "requiresParity42": true,
     "requiresControls6": true
   },
-  "preflightMinAvailableBytes": 3758096384
+  "preflightMinAvailableBytes": 3758096384,
+  "diagnosticOptimizations": [
+    "all",
+    "disabled",
+    "basic",
+    "extended"
+  ],
+  "diagnosticLimits": {
+    "rssBytes": 3221225472,
+    "minAvailableBytes": 536870912,
+    "wallSeconds": 600,
+    "idleSeconds": 120,
+    "artifactBytes": 536870912
+  },
+  "diagnosticGraphFiles": [
+    {
+      "path": "export-dynamo/model.onnx",
+      "sha256": "cd1f8b96b6fbc1992d79e79551eb8e492f1ced568ba080ee0817b6bb9bb0c80a",
+      "bytes": 2655980
+    },
+    {
+      "path": "export-dynamo/model.onnx.data",
+      "sha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
+      "bytes": 358417205
+    }
+  ]
 }
