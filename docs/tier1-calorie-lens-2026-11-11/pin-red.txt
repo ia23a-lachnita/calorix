@@ -1,0 +1,13 @@
+E
+======================================================================
+ERROR: test_published_metadata_hash_and_byte_drift_refused (tests.test_calorie_lens_routes.SourcePinTest.test_published_metadata_hash_and_byte_drift_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/tests/test_calorie_lens_routes.py", line 46, in test_published_metadata_hash_and_byte_drift_refused
+    from tool.run_calorie_lens_eval import verify_file
+ImportError: cannot import name 'verify_file' from 'tool.run_calorie_lens_eval' (/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/tool/run_calorie_lens_eval.py)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.030s
+
+FAILED (errors=1)

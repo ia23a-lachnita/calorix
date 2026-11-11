@@ -3,7 +3,7 @@
   "executionAmendmentCommit": "6fb20933cc245328959742b7b6f6d15efc7c068d",
   "files": [
     {
-      "path": "adapter-red.log",
+      "path": "adapter-red.txt",
       "bytes": 876,
       "sha256": "eb27d067b4ea09f0f2b6cd78c671defb50a63b8ff3122f657ef09c8bd9b89c36"
     },
@@ -473,7 +473,7 @@
       "sha256": "5fa7380262c53862fe7f7e940c3e8229b6239597f63461ae73685dc7a493d588"
     },
     {
-      "path": "node-tests.log",
+      "path": "node-tests.txt",
       "bytes": 9335,
       "sha256": "c0ce47cdae353490a103219dbd528210d70731902e020e24398747fedb2df2f3"
     },
@@ -488,7 +488,7 @@
       "sha256": "4c4f458eab50dd7d806e089ce336b75357054762612dfc69cc534495ae986e9a"
     },
     {
-      "path": "pin-red.log",
+      "path": "pin-red.txt",
       "bytes": 880,
       "sha256": "25d9d67b09bb1d5701302fbf89f08d133a5ac1683d71b47c832bc98e0c1a77b2"
     },
@@ -503,17 +503,22 @@
       "sha256": "ca10054644639595d0cfae4fbe3eede64d5f00300723e6d6264d5c23e9e58cf6"
     },
     {
+      "path": "publication-integrity-repair.json",
+      "bytes": 1391,
+      "sha256": "a6433fdc4f9e8ce99ff0256292681bce810dacab5595b45c411fe181f31e882e"
+    },
+    {
       "path": "published-replay-verification.json",
       "bytes": 758,
       "sha256": "fe00c933934c37c4253578b6fb8e4295a4b3fdb7fb87b8da9bd02d425e37ac0d"
     },
     {
-      "path": "python-inference-runtime-tests.log",
+      "path": "python-inference-runtime-tests.txt",
       "bytes": 305,
       "sha256": "b7729daf95de0b82a4c5c1aa7ee3b40c4345c4b373aa2c234e1ff5eacb98e1f7"
     },
     {
-      "path": "python-source-tests.log",
+      "path": "python-source-tests.txt",
       "bytes": 305,
       "sha256": "88878c4a3b7ee509f33ce8862d7e675e95357dda566563c22315baa6c1b36f8a"
     },
@@ -544,8 +549,8 @@
     },
     {
       "path": "report.md",
-      "bytes": 16446,
-      "sha256": "0f61a8c24a294e26dd7e5712f22bfb25ad31550dfb33e27e040cb245b6bbf8ac"
+      "bytes": 16775,
+      "sha256": "f04a8b0fd5fe42247295d72c2070acfb8a88028ed921b43cf25a564fd9f33e59"
     },
     {
       "path": "result-review.json",
