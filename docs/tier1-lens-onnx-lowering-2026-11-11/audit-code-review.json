@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\nAGREEMENT_STATUS: agree\nMUST_FIX: none\n\n### Audit Code Review Findings\n\n1. **Audit Math & Numerical Precision**:\n   - The 10-node standard FP32 replacement (`Abs`, `Neg`, `Exp`, `Add`, `Div`, `Where`) accurately implements piecewise branch-free numerically stable sigmoid ($1/(1+e^{-|x|})$ for $x \\ge 0$ and $e^{-|x|}/(1+e^{-|x|})$ for $x < 0$), preventing FP32 overflow.\n   - Decimal quantile interpolation (`prec=50`) in `q()` and MAE/bias/median/p90 error metrics are mathematically exact.\n   - Invariant tolerances in `compare()`, independent NumPy gram reader checks ($<0.01\\text{g}$ delta bound), and dot-product publisher reconstructions are strictly enforced.\n\n2. **Coverage & Lineage Verification**:\n   - Structural graph auditing verifies bitwise serialized identity for the 1,093 unmodified nodes, 331 initializers, IO schemas, and opset IR 10.\n   - Weight isolation assertions correctly verify distinct physical storage (`st_nlink == 1`, `st_ino` mismatch) and SHA-256 immutability.\n   - Parity coverage verifies all 48 test records, presence decisions, display thresholds, and paired timing ratios against frozen profile hashes.\n\n3. **Claim Bounding & Overreach**:\n   - Scripts perform offline structural and scalar verification only, with zero neural forward evaluations by the auditor.\n   - Historical failures (`originalRawV1: FAILED`, `originalEndpointV2: FAILED`) are preserved alongside the candidate strict pass.\n   - No production readiness, security adequacy, generalized accuracy, or Android latency guarantees are made or approved."
+    }
+  ],
+  "isError": false
+}

@@ -1,0 +1,23 @@
+{
+  "allChecksPass": true,
+  "oldNodes": 1094,
+  "newNodes": 1103,
+  "oldSigmoids": 1,
+  "newStableStandardNodes": 10,
+  "unchangedOtherNodes": 1093,
+  "initializersIdentical": 331,
+  "inputOutputAndOpsetIdentical": true,
+  "parentGraphSha256": "cd1f8b96b6fbc1992d79e79551eb8e492f1ced568ba080ee0817b6bb9bb0c80a",
+  "candidateGraphSha256": "70c2d8813e9eb17a26536c4cae105b68a7738d6bd6d322a9a128a84afab5cb9e",
+  "weights": [
+    {
+      "name": "model.onnx.data",
+      "sha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
+      "bytes": 358417205,
+      "independentCopies": true
+    }
+  ],
+  "neuralForwardCalls": 0,
+  "originalRawV1": "FAILED",
+  "originalEndpointV2": "FAILED"
+}

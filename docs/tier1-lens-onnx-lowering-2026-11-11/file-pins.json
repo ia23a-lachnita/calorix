@@ -1,0 +1,540 @@
+{
+  "scope": "Git-visible publication/source files; no ignored cache/build outputs",
+  "files": [
+    {
+      "path": "docs/implementation-status.md",
+      "sha256": "c00849725b2de77d5ef1de5527a0941fdedc01591b73d62f684f7345cf97c299",
+      "bytes": 2511714
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-11-lens-stable-sigmoid.md",
+      "sha256": "ba4d0e1d2a87035f8949265dd5b9e3694d3fd1fd284e3c842a3fec91f43ec16f",
+      "bytes": 4579
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/audit-code-review.json",
+      "sha256": "00a1416082ea72392cd6f77ad3fa966fc6928ebb50f1b784a6a28da9152b2b21",
+      "bytes": 1683
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/audit_full.py",
+      "sha256": "dbc719578a9066c71eb66f106f0239c8f8d82afc300e6c9ec24ead67e7afbd3d",
+      "bytes": 12094
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/audit_graph.py",
+      "sha256": "f0f96739a1b29ec6a57639ccd4384ec83d8600c4e2f589bcb40bd55d408d8fd2",
+      "bytes": 3624
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/draft-source-review.json",
+      "sha256": "6c029184bae832692481372e7e13c36c9e0fadacdf60513d6859ae7f83951c9b",
+      "bytes": 1656
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark-host.txt.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "bytes": 20
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/bread004-ort.json.gz",
+      "sha256": "53ea04f057563ae378ecd7d6710f77bbc85eabe268812d14f820c9c80f1a07ea",
+      "bytes": 32352
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/bread004-torch.json.gz",
+      "sha256": "5998ee8172261c98beea85e1294c63a8d2a92a49be92bbbeafb23b2811649019",
+      "bytes": 32247
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/bread005-ort.json.gz",
+      "sha256": "af1c53b73bd24ef1a16328793f1e168a63e61a69e30e2b9e0ca1ecb911ccede4",
+      "bytes": 32369
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/bread005-torch.json.gz",
+      "sha256": "4f8ee7ed253fa475b034594da3a934c44d677decc29611f969d707cf08b100c0",
+      "bytes": 32243
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/bun005-ort.json.gz",
+      "sha256": "9b4ddd1e05b31d5016a8fe99b370088eae3e1e936ef3e85a9b5a9aff7fcafa1a",
+      "bytes": 32600
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/bun006-ort.json.gz",
+      "sha256": "b9cbcafc751cd71e1fc1464ce360a833a74cbc5202f8b1f845885b3c8dfa8e3f",
+      "bytes": 32340
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1557862783-ort.json.gz",
+      "sha256": "288aa49404236bcf1fb92630770e521e4ef57b3edcadfc674d9529efe3b12af8",
+      "bytes": 32604
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1558030182-ort.json.gz",
+      "sha256": "fc464c3603b374417c22cca56da7c8f0bc6b2dea44ddff193ea15ea5ef70dac1",
+      "bytes": 32492
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1558376437-ort.json.gz",
+      "sha256": "76899ce5812fa5eb7dccc763fc5daddfff390077aef199709ed68af0d5b7f5a3",
+      "bytes": 32590
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1558461607-ort.json.gz",
+      "sha256": "3990e13523794f31998c7319bb9628720471ba28cf12a16972201159e66d35fa",
+      "bytes": 32575
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1558461792-ort.json.gz",
+      "sha256": "d8fae2c1888472111181bff89dd27f38b31b0e4e0884fe920ecb007be6ee4d34",
+      "bytes": 32647
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1558722247-ort.json.gz",
+      "sha256": "7abbb347c0f6be91860658b248f7b10c4686b4881db476554b415e8f92177c43",
+      "bytes": 32595
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1559157454-ort.json.gz",
+      "sha256": "a8620220b16b1f09374e2440002e42c992bff3edb5cc9702e0c602b2278360da",
+      "bytes": 32523
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1559934477-ort.json.gz",
+      "sha256": "1377fe5bbb94272179f400bf72a24a1aeff468a7231dc1e18941f8d3b5915220",
+      "bytes": 32597
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1560203400-ort.json.gz",
+      "sha256": "afd6db0f977e2620184806d0e1540e631a0b1fa0077f8a7617fec9d70274ee22",
+      "bytes": 32336
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1560203400-torch.json.gz",
+      "sha256": "085e5bd2a2b6c886b2311fbcfb0a2397a162bfef9eadc6a0041bbfae3d116a13",
+      "bytes": 32291
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1560975517-ort.json.gz",
+      "sha256": "03533b1d6b75861c4e3e3a14fc144dc3329e1aad2822d58008ecb9ede3fa8769",
+      "bytes": 32554
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1561739238-ort.json.gz",
+      "sha256": "5a1914d35f78799dc8b3e7a9d7e236f18389d0250c70617f665c9bb3c94b6952",
+      "bytes": 32881
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1562009810-ort.json.gz",
+      "sha256": "95d921b070d6c502251cc77837854c4e096db6bdb5088d69a011a7578191a09c",
+      "bytes": 32361
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1562876494-ort.json.gz",
+      "sha256": "68139f61918a2c41d685df7870f9d1de82ab2836314f2dba5163f9993c155722",
+      "bytes": 32478
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1562963246-ort.json.gz",
+      "sha256": "698143212a21158d7b004cca596e3c0e4e54f55622463090a878f9e1ef9eb2a8",
+      "bytes": 32513
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1562963246-torch.json.gz",
+      "sha256": "4d16d388496d5ace23f7087a842dbc8f7b16a1f8ff7a227758143538a06f1106",
+      "bytes": 32398
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1563389548-ort.json.gz",
+      "sha256": "ce18825e99451f5035c9f5c9ae1050773cf3b4698c4a150dd5e140d7b2e55efb",
+      "bytes": 32493
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1563389600-ort.json.gz",
+      "sha256": "26a9a0ef29edc9741e2151cc2a46d50aae0a9e06d035032889b772b0b9dd5586",
+      "bytes": 32660
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1564160043-ort.json.gz",
+      "sha256": "8c2ebf7a581f6f24c364602ed9f4af10defb791a73ec0dcda7c9371beee5aad5",
+      "bytes": 32551
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1564675411-ort.json.gz",
+      "sha256": "6632625f5572bb40b10609e246e499f8a954ef7769ea4e924294a4a06edc93b9",
+      "bytes": 32651
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1564687046-ort.json.gz",
+      "sha256": "5e846ef62aef43c6e6e6f377d7506d0c5ceb414bbc0544bb5351a65e57e08168",
+      "bytes": 32958
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1565810969-ort.json.gz",
+      "sha256": "dfbc7a13ac75c4aa93a55a8584167fd5cf95c0b3ed6d75db2f5b6e83c535756a",
+      "bytes": 32429
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1566414412-ort.json.gz",
+      "sha256": "e62d51046046b19bc94b6ac992682c8eadb27e49b238d67480715dd07dd871b2",
+      "bytes": 32951
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1566414412-torch.json.gz",
+      "sha256": "991dd1777119c319de2ad996f6aef24c0c86312ee192f0522d06e35ef9dadd3e",
+      "bytes": 32827
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1566416701-ort.json.gz",
+      "sha256": "9c5cf4eb9eddff7554b2ea67e9fa217e4d6e968365408bf27231840ea28d3df7",
+      "bytes": 32573
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1566589933-ort.json.gz",
+      "sha256": "ed12df77837a95fea3b0b052570e34b0d2de5b742114530976472b9073b503c6",
+      "bytes": 32522
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1566590007-ort.json.gz",
+      "sha256": "8181cdf541193e4b51b6fcb35e6e2e1f6896aa3606d0095cc5821d910a6f2e6c",
+      "bytes": 32631
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1566920339-ort.json.gz",
+      "sha256": "08b25cd71be48737e7a84120ca543356895baea4580d4bf349972e6dd873ad04",
+      "bytes": 32703
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1566920365-ort.json.gz",
+      "sha256": "abfbfcba2f379e358018a027c00a0f9cf1360bbb6e98173bc2de73bc49adb414",
+      "bytes": 32745
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1567785622-ort.json.gz",
+      "sha256": "bc6bfe4e19f1e641f2d7d3c5e879ce6b39e24f2c867c98eae2408ae6a2b56727",
+      "bytes": 32470
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1568305257-ort.json.gz",
+      "sha256": "4ce8a115ab1d3f87cffd99535257b05281869622eca5e3451fc7859efe258a68",
+      "bytes": 33062
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1568401233-ort.json.gz",
+      "sha256": "e9c8e7c5d3c503f534664a33a75445b38669b30ee64e33fe60d29b8e5fd98840",
+      "bytes": 32748
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1568401233-torch.json.gz",
+      "sha256": "deb5091c49d577975de5d677838d47a613debf2dd2842d8a73e28a305fb054e4",
+      "bytes": 32713
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/dish_1568401261-ort.json.gz",
+      "sha256": "92082bb8578257369ef667eda73a19b50961aff7df96ae1ebd314b1dda5a719b",
+      "bytes": 32787
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/doughnut006-ort.json.gz",
+      "sha256": "61246c29492240de3fc41e6ab80f48a419006794a1c4859aef70290a6560180d",
+      "bytes": 32589
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/doughnut008-ort.json.gz",
+      "sha256": "8636be135dc82e655e4f901cedd8900dead72165177d3a316000cbed153e912e",
+      "bytes": 32558
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/fired_dough_twist004-ort.json.gz",
+      "sha256": "78367901f77f1efb6d67c263fcf6c2d2f6983e22afc78cbb0e9cd417791d2bb9",
+      "bytes": 32347
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/fired_dough_twist006-ort.json.gz",
+      "sha256": "8026db7c89a6cca3a10c5f7b5d0337a261d489dd055752810573db994bc906d4",
+      "bytes": 32331
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/mooncake004-ort.json.gz",
+      "sha256": "ee490be576531d5403ed61f81c7c4ba16ef94084c91e30565c3317e990ec6d22",
+      "bytes": 32248
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/mooncake006-ort.json.gz",
+      "sha256": "f2b9f78f38c65a1426a926f58a33621459d1c848d0b5b785285852c4d4cb39e7",
+      "bytes": 32435
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/qualification-ort.json.gz",
+      "sha256": "28eb39d3632dd2eda5760ad1c5875f37d2ac44d78a2806e9fcc9f40fbc2dbde2",
+      "bytes": 32091
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/qualification-torch.json.gz",
+      "sha256": "51c9130e2e31b4772d113814150cd13507364045791791c81bac089893063052",
+      "bytes": 31939
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/sachima004-ort.json.gz",
+      "sha256": "0c8964970b677843944cb07afc69b509b14d8b61391d560a93bec03bf499c408",
+      "bytes": 32484
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/sachima005-ort.json.gz",
+      "sha256": "a3994b0fac7f1497109c5c71c3a220e5780b181520f6b7a28bfabe2daf0c9bfe",
+      "bytes": 32428
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/session.json.gz",
+      "sha256": "8f5374384c5f5f8f65bd4d5f77dd0d5a63729131a453e0533354bcf703547a56",
+      "bytes": 777
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/supervision.json.gz",
+      "sha256": "da2029d671aa6b6a1ee1d91d925c3bcd994792e7d890f1ea3478d05460bea702",
+      "bytes": 215
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/worker-input.json.gz",
+      "sha256": "958df30ea0b613d8f7fa9d1dfbf6744e7485e5149249d01e1c0e6c36efb67b79",
+      "bytes": 5518
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/benchmark/worker.txt.gz",
+      "sha256": "9d9ff0f0b18710d143bdc15fa0726c0244bdb2fbadd97cbe963799459809a60a",
+      "bytes": 1050
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/model/lineage.json.gz",
+      "sha256": "7d2a1deef71017ce446dce4428dc1d4b06bc2295ab170b0478a6906b79549775",
+      "bytes": 563
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/qualification-host.txt.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "bytes": 20
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/qualification/accepted.json.gz",
+      "sha256": "e6f79e683e8149eba7bfd0f1333a5567ff6f0ed3dcd2fcaa9a6fd91ae670222d",
+      "bytes": 722
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/qualification/budget.json.gz",
+      "sha256": "abeeabbfa860a96dedaea8a851283f8a1a5b1fff0bdd5654af96c435a951554d",
+      "bytes": 146
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/qualification/graph.json.gz",
+      "sha256": "f901344c92f3c65a40da18e84aa8c6b657c7aaa9daf9b0ba78187089c8090c63",
+      "bytes": 235
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/qualification/qualification.json.gz",
+      "sha256": "cbe4cdffc8edb67072da136a6c7d1439f07b655970dd2ecf26a476200706515a",
+      "bytes": 32093
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/qualification/session.json.gz",
+      "sha256": "2e28d1a2e60a3f8cf40fd227a5725013ec70c4f68a4f91e0be5448c41e9e8fb1",
+      "bytes": 196
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/qualification/supervision.json.gz",
+      "sha256": "955420c3bdb1ef0624d1413401defa7aa40c53351f9c51bb0646304670a9cc58",
+      "bytes": 216
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/qualification/worker-input.json.gz",
+      "sha256": "610177f83784e21b707661c483e634f1a058c98609637ce82099b47e3b29b3a9",
+      "bytes": 1100
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/qualification/worker.txt.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "bytes": 20
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/execution/selected.json.gz",
+      "sha256": "3284cbb28247898c79cfebea93c3291bb51ae79b4725feca0b7e804bcd44e524",
+      "bytes": 841
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/export_rows.py",
+      "sha256": "77b86733aa03e018729c3b58cc5075ecb7b0fd25b99b4f4020374756ac76c3a7",
+      "bytes": 2224
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/fresh-source-review.json",
+      "sha256": "c2b63f4f3bc18bd2481dd2487daaac17bdcbf61b9ed4d98fffe23876429a5413",
+      "bytes": 1634
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/graph-verification.json",
+      "sha256": "2cefdf87bf1cb630dbb92e00dea2ff98ca04bddd212ad1f30d673d798055c4ec",
+      "bytes": 705
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/independent-verification.json",
+      "sha256": "dc2dac4fe98248385104b692bf0b9f3394ee8894bc587b1dc0fce37d131c68ce",
+      "bytes": 831
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/io-post-review.json",
+      "sha256": "6490c2a0333cf5cd7e0df0bfc9de2930ce0504c72f7a0f50efeb4386fa1cf988",
+      "bytes": 1168
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/io-pre-review.json",
+      "sha256": "4de3b16fd30b5a5436e1a8b81ec0b985cccea7b7b5ca373f3d5fedd65569df88",
+      "bytes": 1211
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/io-startup-failure/qualification-host.txt.gz",
+      "sha256": "83c43930c2061fae5ddbe8009a47264232bea35ae98b3310e58f96e6c00640b4",
+      "bytes": 331
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/io-startup-failure/qualification/supervision.json.gz",
+      "sha256": "e7b1192887f134af6eacebad5fac3cc657d46a9ba4733f48b3cbdeaa139a71b1",
+      "bytes": 214
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/io-startup-failure/qualification/worker-input.json.gz",
+      "sha256": "ba0689d95c125748ae4c63c2f7f418d2392d71231eb30f245d1de56b8beb5e6d",
+      "bytes": 1041
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/io-startup-failure/qualification/worker.txt.gz",
+      "sha256": "d0025d8a002eaf7e8a9d85043d3ea735a404698a81caacb5828f074258a6eec7",
+      "bytes": 968
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/io-startup-failure/records.json",
+      "sha256": "5320e40e2fb97cc25338bdb234c9417a29fa7785ca33d8b73f3bee29ebb0097d",
+      "bytes": 1043
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/lowering-copy-green.txt",
+      "sha256": "6917245862d13aff1656af66779e2e76afb810fe7321465037bc7ad6758c623e",
+      "bytes": 104
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/lowering-copy-red.txt",
+      "sha256": "7ea39ab4246a3da45002ed3a08208490ed541c91e4d3fc39feaf3d879221de07",
+      "bytes": 1889
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/lowering-copy-runtime-tests.txt",
+      "sha256": "a305672ef3da6515781467427af0c7128f8466bed541c54c59dc49833eed751e",
+      "bytes": 332
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/lowering-copy-system-tests.txt",
+      "sha256": "a2c68257c7e320d0a3e5bbf3ba94c8c7d29880e0d39078d6e3350891ad7b47a9",
+      "bytes": 344
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/lowering-node-tests.txt",
+      "sha256": "ada05e444430dbacfaa950bf660147a353d743bed900cdf303c733be0aec36c9",
+      "bytes": 9334
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/lowering-repository-red.txt",
+      "sha256": "a6a3ab1a0cb680d852e35002bdea47a103c24d7f8f63402a8955f716d45fbb4c",
+      "bytes": 854
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/lowering-runtime-tests.txt",
+      "sha256": "b5fbbb39717411b98854915faa24f8b9b2650b655d4877f6daeed6bb6089bf20",
+      "bytes": 331
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/lowering-storage-repair.json",
+      "sha256": "d0d861b66d2bb1c1ab6e20e5a0440ce43c70c20e18ebee28929d0a1592c97ef7",
+      "bytes": 885
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/lowering-system-tests.txt",
+      "sha256": "ff0c78c9cb2ef9dd6ba9436c1ede01a017536e1de558525bf346692b21945a09",
+      "bytes": 343
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/per-case.csv",
+      "sha256": "8d030a6e437134a8a99d730a1b0f1483bf010afa472b43250f39a9feb64baa23",
+      "bytes": 16883
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/pre-review-conditional.json",
+      "sha256": "d4befc64268bbe5c8bf8d7664f4fc4d813a0062352a5e594420a1ef37ca10dfb",
+      "bytes": 1504
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/pre-review-green.json",
+      "sha256": "f28ea520b4fac7e124e379cd110f31dc8b4d82c250f84d68d912de697af80c7c",
+      "bytes": 1319
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/records.json",
+      "sha256": "ddbd92ca8e7a2612dca3964b8126d27bb4420aac7a91903560af3113d3a4362a",
+      "bytes": 17227
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/report.md",
+      "sha256": "827df3c7dd60ff97bcacef491dd19c23a2c156af7ff4bc0f0728808b48252c1a",
+      "bytes": 8502
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/result-review.json",
+      "sha256": "2050e560183554ed604bc9bc1508770e8258e601b59d582671878f6471123a32",
+      "bytes": 1558
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/result.json",
+      "sha256": "f1ee1e1549a5578f2ef73a29642b019e96be306da7c180f47c0056604fe5eb16",
+      "bytes": 115269
+    },
+    {
+      "path": "docs/tier1-lens-onnx-lowering-2026-11-11/source-review.json",
+      "sha256": "f6f72d4b4e9c969836bf64fea405742ff7f439777df611d78d02233aa50850b3",
+      "bytes": 1623
+    },
+    {
+      "path": "functions/eval/tier1-public/lens-onnx-lowering-profile-v3.json",
+      "sha256": "081ce873e6f614cb389231db5f0278d1656b458627f744c282c97b2f24c5f939",
+      "bytes": 2909
+    },
+    {
+      "path": "model_manifest.yaml",
+      "sha256": "9089b1725ec704fefc5480931ca9493efe08f2c4d9da8e3b1c310b775da390dd",
+      "bytes": 19134
+    },
+    {
+      "path": "pilot_report.md",
+      "sha256": "d733cf384ec5043ae9914c6d3cebb63418db3fb63607f2179ea325f9703b5dfc",
+      "bytes": 25141
+    },
+    {
+      "path": "tests/test_lens_sigmoid_lowering.py",
+      "sha256": "b1a8d1d040f9f96ad61ac56e410c5680422432ad07cb5eff684063343b957566",
+      "bytes": 5829
+    },
+    {
+      "path": "tool/lens_sigmoid_lowering.py",
+      "sha256": "feb29b2e104fd20394b11fbae01bdf9a52582be5c1a06f8d2ab7343343089201",
+      "bytes": 4103
+    },
+    {
+      "path": "tool/run_lens_lowering.py",
+      "sha256": "5ac5acda7130910735784f2e032d4d6cc0dcf58c3c42e9f24825ed77cd08a037",
+      "bytes": 8410
+    },
+    {
+      "path": "tool/summarize_lens_lowering.py",
+      "sha256": "624c04d89f154fa643e686d03664a6e080a7bbb590813d55730d3aecd4e92d07",
+      "bytes": 5260
+    }
+  ]
+}

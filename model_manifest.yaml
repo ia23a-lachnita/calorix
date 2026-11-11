@@ -298,3 +298,12 @@ calorie_lens_onnx_runtime_report: "docs/tier1-lens-onnx-2026-11-11/report.md"
 calorie_lens_onnx_original_raw_qualified: false
 calorie_lens_onnx_endpoint_v2_qualified: false
 calorie_lens_onnx_production_promoted: false
+
+# Separate mathematically equivalent export candidate; previous failures retained.
+calorie_lens_stable_onnx_candidate: "v3-stable-sigmoid"
+calorie_lens_stable_onnx_profile: "functions/eval/tier1-public/lens-onnx-lowering-profile-v3.json"
+calorie_lens_stable_onnx_report: "docs/tier1-lens-onnx-lowering-2026-11-11/report.md"
+calorie_lens_stable_onnx_strict_cpu_parity_qualified: true
+calorie_lens_stable_onnx_material_speed_qualified: true
+calorie_lens_stable_onnx_strong_speed_qualified: false
+calorie_lens_stable_onnx_production_promoted: false

@@ -1,3 +1,15 @@
+# Current task: faithful fast runtime validated; curate and fresh-checkout replay
+
+Source dc8aff0f43b6c3dea604ca621de7807f3d76f085 reviewed/tested/pushedclean beforecandidate'sfirstforwardandallfood. v3-stable-sigmoid:42/42ORT+6/6Torch originalstrict7heads ANDall253decisions/point/metricchecksPASS. Originalraw-v1/v2FAILED retained,raw_speed_qualified=false(originalonly); candidatev3material>=1.25PASS/strong>=2FAIL. Median6pairedratio1.9393234624x;42ORTmedian32.3903s,matchedTorch/ORT63.3114/32.6629s. Calories/macrosmax.01difference,mass/fooddisplaysidentical.20N5primarymetricsunchanged35.695/10.979/121.079;10N5MAE+.002kcal,otherprimarymetrics/massgroupsunchanged. No accuracygain/generalization/Androidlatency/productionclaim.
+
+Worker exit0/norestop,1966.157s,sampledpeak1993035776B(~1.856GiB). ONEactualstrictblank passed32.844s plus2warmups;earlierhardlinkstartupattempt0forwards. Originalgraph/data preserved, independentcopiedweights. Graphaudit1094→1103nodes,oneSigmoid→10stdFP32stableops;331init/1093othernodes andIO/opset/IRidentical,weightsf66unchanged,derivedgraph70c2...pinned. All12oldsourcepins/oldprofile/scoring preserved.
+
+157runtimePython/40NodePASS;system157with4optionalONNXskips. Independent16sourcepins/42baseline/48raw+tensors/49248rawscalars/24288decisions/12192gramfields/384nutrientproducts/1640publisherfields/36Decimalmetrics/6ratiosPASS,maxgramdelta.000856372g. Actualpixels/tensorsrecomputed; no auditorneuralcalls. Primary3.8/yolo actualresult and separatefreshaudit-code reviews agree/MUST_FIXnone (suppliedtextonly,no independentexternalexecution/visuals). Reject reviewer shorthand ofruntimeoptionalskips: pinnedruntime157/157,no skips;systemonly4skips. All66runtimeJSON/textarchives lossless+SHA/bytes,48rowCSVandcomplete replay scripts prepared. Next: portablefreshcheckoutbyte-replay/checksums, thencommitpush. No modelprocessactive.
+
+Counts: currentv3adds48localrepeats; v2+v3 adds96 onSAME42publicphotos(30N5calorie,12ECUSTmassonly), cumulative202released-modelrecords(previous106), not202meals. Savedownedblankrecords12;exporttracework/scalarfixturesseparate. TrackedfoodSDK187unchanged, no newcloudmealcall, actualweighedAndroid0. AppstillproductionA1, no newUI/backendbuild/deploymentclaim. Highestvaluenextaccuracyexperiment: freezeA1/specialistdomain-agreementselector,compareadditionalweighedPUBLICcohortandECUSTregression;no newtraining/capturerequirement.
+
+---
+
 # Current task: correct artifact storage before the first candidate blank
 
 Source99fcbb2 was reviewed/pushed clean. First v3worker failed duringONNXcheck_model beforeORTsessionorblank: external tensor file hadmultiplehardlinks. No numericalcandidate rejection, no blank/foodforward. Parent/data and derivedgraph bytes preserved. Derivedgraph SHA70c2d8813e9eb17a26536c4cae105b68a7738d6bd6d322a9a128a84afab5cb9e isnowpinned andverifiedbeforeORT, preventing anynumericalchange.

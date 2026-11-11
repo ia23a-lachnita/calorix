@@ -1,0 +1,34 @@
+{
+  "checks": {
+    "sourcePins": 16,
+    "baselineHashes": 42,
+    "recordHashes": 48,
+    "inputTensorHashes": 48,
+    "rawHeadScalars": 49248,
+    "presenceDecisions": 12144,
+    "massDisplayDecisions": 12144,
+    "independentGramFields": 12192,
+    "nutrientProducts": 384,
+    "publisherFields": 1640,
+    "decimalMetricFields": 36,
+    "timingRatios": 6
+  },
+  "allChecksPass": true,
+  "rawV1Qualification": "FAILED",
+  "raw_speed_qualified": false,
+  "originalEndpointV2": "FAILED",
+  "strictCandidatePasses": true,
+  "candidateFailures": [],
+  "metricGuards": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "medianPairedRatio": 1.939323462398615,
+  "maximumIndependentGramDifferenceG": 0.0008563718673713083,
+  "inputPixelRecomputed": true,
+  "ortFoodScored": 42,
+  "torchControlsScored": 6,
+  "neuralCallsByAuditor": 0
+}

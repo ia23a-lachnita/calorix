@@ -19,8 +19,8 @@ The original Dynamo graph preserved all42 served estimates within0.01kcal/macros
 - [x] Preplan review: initial resource/dynamic-range/lineage feedback resolved; amended agree/MUST_FIXnone.
 - [x] Five tests observed missing-module RED before installing new modules, then GREEN; parent/initializer preservation, identity rejection, budget, numerical fixture with extremes/Inf/NaN/Torch roundtrip. Runtime156/156, system156with3optional skips; Node40/40.
 - [x] Primary final + fresh-context whole-feature source review; preserve exact source hashes; commit/push clean before full-model candidate execution. Both agree/MUST_FIXnone; actualfixture/fullruntime156/156 andNode40pass.
-- [ ] Single qualification, retain rejection if any. If accepted, run all48 planned food records, no outcome-based exclusions or edits while active.
-- [ ] Independently replay all raw records, decisions, nutrient/gram calculations, Decimal metrics, input hashes and timing; actual-result review.
+- [x] Single qualification, retain rejection if any. If accepted, run all48 planned food records, no outcome-based exclusions or edits while active. All48strict+decision/point/metricPASS,material1.9393x;strong2xnotmet.
+- [x] Independently replay all raw records, decisions, nutrient/gram calculations, Decimal metrics, input hashes and timing; actual-result review. Exhaustivehostnumeric/graph/pixelreplay andprimaryresult/freshaudit-codereviewgreen.
 - [ ] Publish all evidence/limits, fresh-checkout replay, tracking update, commit/push. No app/backend build claim for headless-only changes.
 
 IO amendment before any full-model candidate forward: ONNX1.23.2checker rejects multiplylinked externaldata. Firstworker99fcbb2failedstartup(noORTsession/blank). Verified-bytecopyreplaceshardlink,checkerunchanged. RegressionRED→GREEN,157runtimepass. Originaldataandderivedgraphbytesunchanged; ownedfailedlinkrepairedtocopytopreserveparentnlink1; exactstorage metadata/failuretraces retained. Newexecution-v3-copyroot, samecandidategraphSHA70c2d8813e9eb17a26536c4cae105b68a7738d6bd6d322a9a128a84afab5cb9e verifiedbeforeORT. Oneactualblankstillallowed; no numericalretries. Pre/postIOreviewgreen.
