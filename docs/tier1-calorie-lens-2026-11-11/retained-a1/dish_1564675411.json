@@ -1,0 +1,193 @@
+{
+  "id": "dish_1564675411",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 381.5,
+      "proteinG": 13.235,
+      "carbsG": 36.205,
+      "fatG": 20.175
+    },
+    "massG": 275,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10047,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Mashed Potatoes with Gravy and Bacon Strip",
+    "components": [
+      {
+        "name": "Mashed potatoes",
+        "massG": 220,
+        "catalogId": null,
+        "preparation": "cooked mashed",
+        "assumptions": [
+          "Prepared with milk and butter or margarine"
+        ],
+        "estimatedPer100": {
+          "kcal": 113,
+          "proteinG": 2,
+          "carbsG": 15.5,
+          "fatG": 4.8
+        },
+        "nutrients": {
+          "kcal": 248.60000000000002,
+          "proteinG": 4.4,
+          "carbsG": 34.1,
+          "fatG": 10.56
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Gravy",
+        "massG": 30,
+        "catalogId": null,
+        "preparation": "cooked sauce",
+        "assumptions": [
+          "Brown or poultry-style prepared gravy"
+        ],
+        "estimatedPer100": {
+          "kcal": 53,
+          "proteinG": 1.2,
+          "carbsG": 5.6,
+          "fatG": 2.8
+        },
+        "nutrients": {
+          "kcal": 15.899999999999999,
+          "proteinG": 0.36,
+          "carbsG": 1.68,
+          "fatG": 0.84
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Bacon strip",
+        "massG": 25,
+        "catalogId": null,
+        "preparation": "cooked crisp",
+        "assumptions": [
+          "Single wide strip, possibly turkey bacon or pork bacon strip cooked brown"
+        ],
+        "estimatedPer100": {
+          "kcal": 468,
+          "proteinG": 33.9,
+          "carbsG": 1.7,
+          "fatG": 35.1
+        },
+        "nutrients": {
+          "kcal": 117,
+          "proteinG": 8.475,
+          "carbsG": 0.425,
+          "fatG": 8.775
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 381.5,
+      "proteinG": 13.235,
+      "carbsG": 36.205,
+      "fatG": 20.175
+    },
+    "ambiguities": [
+      "Meat strip type (pork bacon, turkey bacon, or vegan bacon alternative)",
+      "Exact fat and dairy content in mashed potatoes"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10040,
+      "inputTokens": 2018,
+      "outputTokens": 456,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Mashed Potatoes with Gravy and Bacon Strip",
+      "components": [
+        {
+          "name": "Mashed potatoes",
+          "massG": 220,
+          "catalogId": null,
+          "preparation": "cooked mashed",
+          "assumptions": [
+            "Prepared with milk and butter or margarine"
+          ],
+          "estimatedPer100": {
+            "kcal": 113,
+            "proteinG": 2,
+            "carbsG": 15.5,
+            "fatG": 4.8
+          }
+        },
+        {
+          "name": "Gravy",
+          "massG": 30,
+          "catalogId": null,
+          "preparation": "cooked sauce",
+          "assumptions": [
+            "Brown or poultry-style prepared gravy"
+          ],
+          "estimatedPer100": {
+            "kcal": 53,
+            "proteinG": 1.2,
+            "carbsG": 5.6,
+            "fatG": 2.8
+          }
+        },
+        {
+          "name": "Bacon strip",
+          "massG": 25,
+          "catalogId": null,
+          "preparation": "cooked crisp",
+          "assumptions": [
+            "Single wide strip, possibly turkey bacon or pork bacon strip cooked brown"
+          ],
+          "estimatedPer100": {
+            "kcal": 468,
+            "proteinG": 33.9,
+            "carbsG": 1.7,
+            "fatG": 35.1
+          }
+        }
+      ],
+      "ambiguities": [
+        "Meat strip type (pork bacon, turkey bacon, or vegan bacon alternative)",
+        "Exact fat and dairy content in mashed potatoes"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "3a4025ee1f011bd0c7e8d4e8a4d786df40b7203a50a9f033b3f9bf886f85014b"
+}

@@ -1,0 +1,236 @@
+{
+  "id": "dish_1559157454",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 66.01,
+      "proteinG": 1.476,
+      "carbsG": 2.995,
+      "fatG": 5.959
+    },
+    "massG": 43,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12301,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Arugula and Blueberry Side Salad",
+    "components": [
+      {
+        "name": "Arugula and mixed baby greens",
+        "massG": 25,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "fresh baby greens and arugula"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 2.6,
+          "carbsG": 3.7,
+          "fatG": 0.7
+        },
+        "nutrients": {
+          "kcal": 6.25,
+          "proteinG": 0.65,
+          "carbsG": 0.925,
+          "fatG": 0.175
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Fresh blueberries",
+        "massG": 8,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "approximately 3-4 whole blueberries"
+        ],
+        "estimatedPer100": {
+          "kcal": 57,
+          "proteinG": 0.7,
+          "carbsG": 14.5,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 4.5600000000000005,
+          "proteinG": 0.055999999999999994,
+          "carbsG": 1.16,
+          "fatG": 0.024
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Walnut pieces",
+        "massG": 5,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "small pieces mixed into greens"
+        ],
+        "estimatedPer100": {
+          "kcal": 654,
+          "proteinG": 15.2,
+          "carbsG": 13.7,
+          "fatG": 65.2
+        },
+        "nutrients": {
+          "kcal": 32.7,
+          "proteinG": 0.76,
+          "carbsG": 0.685,
+          "fatG": 3.2600000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Vinaigrette / oil dressing",
+        "massG": 5,
+        "catalogId": null,
+        "preparation": "prepared",
+        "assumptions": [
+          "light coating of dressing visible as sheen on leaves"
+        ],
+        "estimatedPer100": {
+          "kcal": 450,
+          "proteinG": 0.2,
+          "carbsG": 4.5,
+          "fatG": 50
+        },
+        "nutrients": {
+          "kcal": 22.5,
+          "proteinG": 0.010000000000000002,
+          "carbsG": 0.225,
+          "fatG": 2.5
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 66.01,
+      "proteinG": 1.476,
+      "carbsG": 2.995,
+      "fatG": 5.959
+    },
+    "ambiguities": [
+      "Exact composition and quantity of dressing on the greens",
+      "Presence and amount of nuts mixed within the salad"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12293,
+      "inputTokens": 2018,
+      "outputTokens": 534,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Arugula and Blueberry Side Salad",
+      "components": [
+        {
+          "name": "Arugula and mixed baby greens",
+          "massG": 25,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "fresh baby greens and arugula"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 2.6,
+            "carbsG": 3.7,
+            "fatG": 0.7
+          }
+        },
+        {
+          "name": "Fresh blueberries",
+          "massG": 8,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "approximately 3-4 whole blueberries"
+          ],
+          "estimatedPer100": {
+            "kcal": 57,
+            "proteinG": 0.7,
+            "carbsG": 14.5,
+            "fatG": 0.3
+          }
+        },
+        {
+          "name": "Walnut pieces",
+          "massG": 5,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "small pieces mixed into greens"
+          ],
+          "estimatedPer100": {
+            "kcal": 654,
+            "proteinG": 15.2,
+            "carbsG": 13.7,
+            "fatG": 65.2
+          }
+        },
+        {
+          "name": "Vinaigrette / oil dressing",
+          "massG": 5,
+          "catalogId": null,
+          "preparation": "prepared",
+          "assumptions": [
+            "light coating of dressing visible as sheen on leaves"
+          ],
+          "estimatedPer100": {
+            "kcal": 450,
+            "proteinG": 0.2,
+            "carbsG": 4.5,
+            "fatG": 50
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact composition and quantity of dressing on the greens",
+        "Presence and amount of nuts mixed within the salad"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "be7603f3fc8d339f92fc250548f2160d3118009181d995d72d3531109d89613c"
+}

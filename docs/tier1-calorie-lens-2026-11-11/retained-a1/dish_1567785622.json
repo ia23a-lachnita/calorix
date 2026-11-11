@@ -1,0 +1,144 @@
+{
+  "id": "dish_1567785622",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 31.85,
+      "proteinG": 0.56,
+      "carbsG": 7.86,
+      "fatG": 0.24
+    },
+    "massG": 80,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12784,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Fresh Strawberries and Blueberries",
+    "components": [
+      {
+        "name": "Strawberries",
+        "massG": 55,
+        "catalogId": null,
+        "preparation": "raw sliced",
+        "assumptions": [
+          "Fresh raw strawberries, trimmed and halved"
+        ],
+        "estimatedPer100": {
+          "kcal": 32,
+          "proteinG": 0.7,
+          "carbsG": 7.7,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 17.6,
+          "proteinG": 0.385,
+          "carbsG": 4.235,
+          "fatG": 0.165
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Blueberries",
+        "massG": 25,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh whole blueberries"
+        ],
+        "estimatedPer100": {
+          "kcal": 57,
+          "proteinG": 0.7,
+          "carbsG": 14.5,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 14.25,
+          "proteinG": 0.175,
+          "carbsG": 3.625,
+          "fatG": 0.075
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 31.85,
+      "proteinG": 0.56,
+      "carbsG": 7.86,
+      "fatG": 0.24
+    },
+    "ambiguities": [],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12774,
+      "inputTokens": 2018,
+      "outputTokens": 271,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Fresh Strawberries and Blueberries",
+      "components": [
+        {
+          "name": "Strawberries",
+          "massG": 55,
+          "catalogId": null,
+          "preparation": "raw sliced",
+          "assumptions": [
+            "Fresh raw strawberries, trimmed and halved"
+          ],
+          "estimatedPer100": {
+            "kcal": 32,
+            "proteinG": 0.7,
+            "carbsG": 7.7,
+            "fatG": 0.3
+          }
+        },
+        {
+          "name": "Blueberries",
+          "massG": 25,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh whole blueberries"
+          ],
+          "estimatedPer100": {
+            "kcal": 57,
+            "proteinG": 0.7,
+            "carbsG": 14.5,
+            "fatG": 0.3
+          }
+        }
+      ],
+      "ambiguities": [],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "1675b23e4969386451edb9914167ddb5f8449585b5ab7fb7738ba59655c4d1ba"
+}

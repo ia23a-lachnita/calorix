@@ -1,0 +1,103 @@
+{
+  "id": "dish_1558461607",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 82.8,
+      "proteinG": 0.864,
+      "carbsG": 21.720000000000002,
+      "fatG": 0.192
+    },
+    "massG": 120,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 11965,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Fresh Red and Green Grapes",
+    "components": [
+      {
+        "name": "Fresh grapes",
+        "massG": 120,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Mix of predominantly red seedless grapes and a few green grapes",
+          "Estimated count of approximately 20-25 grapes in a small bowl"
+        ],
+        "estimatedPer100": {
+          "kcal": 69,
+          "proteinG": 0.72,
+          "carbsG": 18.1,
+          "fatG": 0.16
+        },
+        "nutrients": {
+          "kcal": 82.8,
+          "proteinG": 0.864,
+          "carbsG": 21.720000000000002,
+          "fatG": 0.192
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 82.8,
+      "proteinG": 0.864,
+      "carbsG": 21.720000000000002,
+      "fatG": 0.192
+    },
+    "ambiguities": [],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 11956,
+      "inputTokens": 2018,
+      "outputTokens": 196,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Fresh Red and Green Grapes",
+      "components": [
+        {
+          "name": "Fresh grapes",
+          "massG": 120,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Mix of predominantly red seedless grapes and a few green grapes",
+            "Estimated count of approximately 20-25 grapes in a small bowl"
+          ],
+          "estimatedPer100": {
+            "kcal": 69,
+            "proteinG": 0.72,
+            "carbsG": 18.1,
+            "fatG": 0.16
+          }
+        }
+      ],
+      "ambiguities": [],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "ca92534d3b7acd8da235c9b50a5a173c70fe2b0f7b34e13a7b73927abf7d9163"
+}

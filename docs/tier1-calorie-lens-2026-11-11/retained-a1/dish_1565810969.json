@@ -1,0 +1,107 @@
+{
+  "id": "dish_1565810969",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 11.5,
+      "proteinG": 1.45,
+      "carbsG": 1.8,
+      "fatG": 0.2
+    },
+    "massG": 50,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10718,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Fresh Baby Spinach Salad",
+    "components": [
+      {
+        "name": "Baby spinach leaves",
+        "massG": 50,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Uncooked, fresh baby spinach leaves",
+          "Plain with no visible dressing, oil, or toppings"
+        ],
+        "estimatedPer100": {
+          "kcal": 23,
+          "proteinG": 2.9,
+          "carbsG": 3.6,
+          "fatG": 0.4
+        },
+        "nutrients": {
+          "kcal": 11.5,
+          "proteinG": 1.45,
+          "carbsG": 1.8,
+          "fatG": 0.2
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 11.5,
+      "proteinG": 1.45,
+      "carbsG": 1.8,
+      "fatG": 0.2
+    },
+    "ambiguities": [
+      "Presence of light clear oil or dressing not readily visible"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10711,
+      "inputTokens": 2018,
+      "outputTokens": 198,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Fresh Baby Spinach Salad",
+      "components": [
+        {
+          "name": "Baby spinach leaves",
+          "massG": 50,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Uncooked, fresh baby spinach leaves",
+            "Plain with no visible dressing, oil, or toppings"
+          ],
+          "estimatedPer100": {
+            "kcal": 23,
+            "proteinG": 2.9,
+            "carbsG": 3.6,
+            "fatG": 0.4
+          }
+        }
+      ],
+      "ambiguities": [
+        "Presence of light clear oil or dressing not readily visible"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "f6fa0e8b965bd13e3f14d02bf443e80507f4c986bb85ad93c92e34832c2c2957"
+}

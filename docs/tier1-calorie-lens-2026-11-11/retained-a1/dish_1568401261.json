@@ -1,0 +1,226 @@
+{
+  "id": "dish_1568401261",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 415.7,
+      "proteinG": 32.23,
+      "carbsG": 35.579,
+      "fatG": 17.558
+    },
+    "massG": 370,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10907,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Tuna Salad with Sweet Potato, Shredded Carrots, and Avocado",
+    "components": [
+      {
+        "name": "Tuna salad",
+        "massG": 160,
+        "catalogId": null,
+        "preparation": "mixed and dressed",
+        "assumptions": [
+          "Prepared with canned tuna, celery, red onion, and light mayonnaise or oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 150,
+          "proteinG": 18,
+          "carbsG": 2,
+          "fatG": 8
+        },
+        "nutrients": {
+          "kcal": 240,
+          "proteinG": 28.8,
+          "carbsG": 3.2,
+          "fatG": 12.8
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Mashed sweet potato",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "cooked mashed",
+        "assumptions": [
+          "Cooked or baked sweet potato, lightly mashed"
+        ],
+        "estimatedPer100": {
+          "kcal": 90,
+          "proteinG": 2,
+          "carbsG": 21,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 99.00000000000001,
+          "proteinG": 2.2,
+          "carbsG": 23.1,
+          "fatG": 0.22000000000000003
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Shredded carrots",
+        "massG": 70,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh raw shredded carrots without dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 41,
+          "proteinG": 0.9,
+          "carbsG": 9.6,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 28.7,
+          "proteinG": 0.63,
+          "carbsG": 6.72,
+          "fatG": 0.13999999999999999
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Avocado slices",
+        "massG": 30,
+        "catalogId": "usda:171705",
+        "preparation": "raw",
+        "assumptions": [
+          "A few slices of fresh avocado"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 48,
+          "proteinG": 0.6,
+          "carbsG": 2.5589999999999997,
+          "fatG": 4.398
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171705",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171705/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Avocados, raw, all commercial varieties"
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 415.7,
+      "proteinG": 32.23,
+      "carbsG": 35.579,
+      "fatG": 17.558
+    },
+    "ambiguities": [
+      "Dressing or mayonnaise content and type in the tuna salad is uncertain.",
+      "Presence of butter or oil in the sweet potato is unconfirmed."
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10899,
+      "inputTokens": 2018,
+      "outputTokens": 515,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Tuna Salad with Sweet Potato, Shredded Carrots, and Avocado",
+      "components": [
+        {
+          "name": "Tuna salad",
+          "massG": 160,
+          "catalogId": null,
+          "preparation": "mixed and dressed",
+          "assumptions": [
+            "Prepared with canned tuna, celery, red onion, and light mayonnaise or oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 150,
+            "proteinG": 18,
+            "carbsG": 2,
+            "fatG": 8
+          }
+        },
+        {
+          "name": "Mashed sweet potato",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "cooked mashed",
+          "assumptions": [
+            "Cooked or baked sweet potato, lightly mashed"
+          ],
+          "estimatedPer100": {
+            "kcal": 90,
+            "proteinG": 2,
+            "carbsG": 21,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Shredded carrots",
+          "massG": 70,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh raw shredded carrots without dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 41,
+            "proteinG": 0.9,
+            "carbsG": 9.6,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Avocado slices",
+          "massG": 30,
+          "catalogId": "usda:171705",
+          "preparation": "raw",
+          "assumptions": [
+            "A few slices of fresh avocado"
+          ],
+          "estimatedPer100": null
+        }
+      ],
+      "ambiguities": [
+        "Dressing or mayonnaise content and type in the tuna salad is uncertain.",
+        "Presence of butter or oil in the sweet potato is unconfirmed."
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "01d74262c67bbfb91ba4c62bf38288695b46f8c95c84209249e294bca2ac5486"
+}

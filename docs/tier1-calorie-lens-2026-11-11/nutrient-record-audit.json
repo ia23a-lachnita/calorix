@@ -1,0 +1,2279 @@
+[
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 1,
+    "name": "cottage cheese",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 2,
+    "name": "strawberries",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 3,
+    "name": "garden salad",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 4,
+    "name": "bacon",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 5,
+    "name": "potatoes",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 6,
+    "name": "caesar salad",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 7,
+    "name": "cauliflower",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 8,
+    "name": "scrambled eggs",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 9,
+    "name": "wild rice",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 10,
+    "name": "steak",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 11,
+    "name": "cheese pizza",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 12,
+    "name": "olives",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 13,
+    "name": "berries",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 14,
+    "name": "asparagus",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 15,
+    "name": "hash browns",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 16,
+    "name": "brussels sprouts",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 17,
+    "name": "pasta salad",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 18,
+    "name": "turkey",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 19,
+    "name": "bread",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 21,
+    "name": "squash",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 23,
+    "name": "brown rice",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 25,
+    "name": "beef",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 26,
+    "name": "white rice",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 27,
+    "name": "broccoli",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 28,
+    "name": "chicken",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 29,
+    "name": "mixed greens",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 30,
+    "name": "lettuce",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 31,
+    "name": "cucumbers",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 32,
+    "name": "tomatoes",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 33,
+    "name": "bell peppers",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 34,
+    "name": "celery",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 35,
+    "name": "blue cheese",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 36,
+    "name": "spinach (raw)",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 37,
+    "name": "cantaloupe",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 38,
+    "name": "pineapple",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 39,
+    "name": "sausage",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 40,
+    "name": "raspberries",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 41,
+    "name": "blackberries",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 42,
+    "name": "avocado",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 43,
+    "name": "green beans",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 45,
+    "name": "carrot",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 46,
+    "name": "mushroom",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 47,
+    "name": "corn",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 48,
+    "name": "ham",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 49,
+    "name": "fish",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 50,
+    "name": "tofu",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 51,
+    "name": "shrimp",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 52,
+    "name": "cheese",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 53,
+    "name": "nuts",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 54,
+    "name": "apple",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 55,
+    "name": "banana",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 56,
+    "name": "kiwi",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 57,
+    "name": "lemon",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 58,
+    "name": "orange",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 59,
+    "name": "oatmeal",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 60,
+    "name": "tortilla",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 61,
+    "name": "potato chips",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 62,
+    "name": "noodles",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "unverified_publisher_table",
+    "recordId": 63,
+    "name": "bean(seed)",
+    "coreNutrientsMatched": false,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 67,
+    "name": "syrup",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 70,
+    "name": "figs",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 72,
+    "name": "kale",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 73,
+    "name": "radishes",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 74,
+    "name": "pasta",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 76,
+    "name": "brisket",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 77,
+    "name": "almonds",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 80,
+    "name": "turkey bacon",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 81,
+    "name": "pickles",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 82,
+    "name": "pecans",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 87,
+    "name": "coleslaw",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 89,
+    "name": "spaghetti",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 92,
+    "name": "wine",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 94,
+    "name": "onions",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 95,
+    "name": "artichokes",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 98,
+    "name": "multigrain bread",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 100,
+    "name": "oats",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 101,
+    "name": "leeks",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 102,
+    "name": "snow peas",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 105,
+    "name": "grilled chicken",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 110,
+    "name": "barbecue sauce",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 112,
+    "name": "honeydew melons",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 113,
+    "name": "ketchup",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 116,
+    "name": "mayonnaise",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 117,
+    "name": "tacos",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 121,
+    "name": "watermelon",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 122,
+    "name": "garlic",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 124,
+    "name": "walnuts",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 126,
+    "name": "mustard",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 128,
+    "name": "egg whites",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 129,
+    "name": "raisins",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 133,
+    "name": "shallots",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 134,
+    "name": "biscuits",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 136,
+    "name": "poached eggs",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 137,
+    "name": "succotash",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 140,
+    "name": "caesar dressing",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 141,
+    "name": "tuna salad",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 148,
+    "name": "parmesan cheese",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 152,
+    "name": "cabbage",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 153,
+    "name": "bulgur",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 154,
+    "name": "brown sugar",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 155,
+    "name": "chicken thighs",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 159,
+    "name": "apple cider",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 161,
+    "name": "olive oil",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 162,
+    "name": "parsnips",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 166,
+    "name": "grapefruit juice",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 168,
+    "name": "lasagna",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 174,
+    "name": "bread crumbs",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 177,
+    "name": "tempeh",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 179,
+    "name": "eggs",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 180,
+    "name": "rice noodles",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 185,
+    "name": "collards",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 187,
+    "name": "chickpeas",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 189,
+    "name": "vinegar",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 192,
+    "name": "yam",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 194,
+    "name": "fried rice",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 196,
+    "name": "cod",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 200,
+    "name": "buttermilk",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 201,
+    "name": "blueberries",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 203,
+    "name": "chili",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 205,
+    "name": "corn on the cob",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 208,
+    "name": "ice cream cones",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 213,
+    "name": "pears",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 214,
+    "name": "seeds",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 217,
+    "name": "lamb",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 220,
+    "name": "pita bread",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 221,
+    "name": "vegetable oil",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 228,
+    "name": "cornmeal",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 238,
+    "name": "hominy",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 243,
+    "name": "mozzarella cheese",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 244,
+    "name": "chicken breast",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 245,
+    "name": "wheat bread",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 249,
+    "name": "cashews",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 251,
+    "name": "tortilla chips",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 252,
+    "name": "broth",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 254,
+    "name": "mashed potatoes",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 257,
+    "name": "brownies",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 262,
+    "name": "yogurt",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 264,
+    "name": "bagels",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 273,
+    "name": "sandwiches",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 275,
+    "name": "frozen yogurt",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 279,
+    "name": "omelets",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 281,
+    "name": "edamame",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 287,
+    "name": "toast",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 290,
+    "name": "cheddar cheese",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 291,
+    "name": "salt",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 294,
+    "name": "granola",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 297,
+    "name": "pepperoni",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 306,
+    "name": "croutons",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 312,
+    "name": "pepper",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 314,
+    "name": "sourdough bread",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 316,
+    "name": "roast chicken",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 318,
+    "name": "flour",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 319,
+    "name": "feta cheese",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 320,
+    "name": "black beans",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 321,
+    "name": "water",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 328,
+    "name": "sugar",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 332,
+    "name": "salmon",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 335,
+    "name": "eggplant",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 337,
+    "name": "waffles",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 338,
+    "name": "vinaigrette",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 341,
+    "name": "cream",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 342,
+    "name": "turnips",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 347,
+    "name": "baby carrots",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 349,
+    "name": "mangos",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 357,
+    "name": "lentils",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 359,
+    "name": "honey",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 364,
+    "name": "sunflower seeds",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 367,
+    "name": "lime",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 371,
+    "name": "dumplings",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 372,
+    "name": "chilaquiles",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 375,
+    "name": "fruit salad",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 377,
+    "name": "quinoa",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 380,
+    "name": "pizza",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 385,
+    "name": "curries",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 392,
+    "name": "pepperoni pizza",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 393,
+    "name": "teriyaki sauce",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 402,
+    "name": "tuna",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 409,
+    "name": "greek salad",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 413,
+    "name": "pilaf",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 415,
+    "name": "cereal",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 421,
+    "name": "ground turkey",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 425,
+    "name": "goat cheese",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 428,
+    "name": "white wine",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 433,
+    "name": "roasted potatoes",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 434,
+    "name": "sour cream",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 437,
+    "name": "sweet potato",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 440,
+    "name": "grapes",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 441,
+    "name": "butter",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 442,
+    "name": "hummus",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 444,
+    "name": "dates",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 448,
+    "name": "jalapenos",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 455,
+    "name": "cookies",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 456,
+    "name": "barley",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 457,
+    "name": "sun dried tomatoes",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 462,
+    "name": "pork",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 463,
+    "name": "beets",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 466,
+    "name": "pistachios",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 471,
+    "name": "cherry tomatoes",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 472,
+    "name": "couscous",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 473,
+    "name": "cranberries",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 475,
+    "name": "salsa",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 476,
+    "name": "almond milk",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 481,
+    "name": "flatbread",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 484,
+    "name": "chicken salad",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 485,
+    "name": "zucchini",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 487,
+    "name": "crepes",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 494,
+    "name": "jams",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 495,
+    "name": "cream cheese",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 498,
+    "name": "orange juice",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 502,
+    "name": "milk",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 506,
+    "name": "pinto beans",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 507,
+    "name": "mandarin oranges",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 508,
+    "name": "soy sauce",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 510,
+    "name": "chicken apple sausage",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 511,
+    "name": "spinach (cooked)",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 512,
+    "name": "kimchi",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 513,
+    "name": "millet",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 514,
+    "name": "wheat berry",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 515,
+    "name": "arugula",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 516,
+    "name": "rosemary",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 517,
+    "name": "chard",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 518,
+    "name": "thyme",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 519,
+    "name": "oregano",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 520,
+    "name": "lemon juice",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 521,
+    "name": "basil",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 522,
+    "name": "tatsoi",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 523,
+    "name": "cilantro",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 524,
+    "name": "parsley",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 525,
+    "name": "bok choy",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 526,
+    "name": "mustard greens",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 527,
+    "name": "chive",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 528,
+    "name": "celery root",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 529,
+    "name": "chayote squash",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 530,
+    "name": "endive",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 531,
+    "name": "pumpkin seeds",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 532,
+    "name": "pesto",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 534,
+    "name": "country rice",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 535,
+    "name": "green onions",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 536,
+    "name": "banana with peel",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 537,
+    "name": "orange with peel",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 538,
+    "name": "jicama",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 539,
+    "name": "nopales",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 540,
+    "name": "ginger",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 541,
+    "name": "tomatillo",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 542,
+    "name": "white beans",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 543,
+    "name": "chia seeds",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 545,
+    "name": "greek yogurt",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 546,
+    "name": "balsamic vinegar",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 549,
+    "name": "pizza dough",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 550,
+    "name": "fennel",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 551,
+    "name": "pizza sauce",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 553,
+    "name": "nut cheese",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  },
+  {
+    "kind": "nutrition5k_dataset_record",
+    "recordId": 555,
+    "name": "oil",
+    "coreNutrientsMatched": true,
+    "sourceSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+    "sourceUrl": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/ingredients_metadata.csv",
+    "extendedUsdaVerified": false
+  }
+]

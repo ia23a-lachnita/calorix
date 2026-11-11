@@ -1,0 +1,2 @@
+# Preserve the pinned original Nutrition5k metadata bytes and its CRLF records.
+functions/eval/tier1-public/calorie-lens/ingredients_metadata.csv -text whitespace=cr-at-eol

@@ -1,0 +1,109 @@
+{
+  "id": "dish_1562009810",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 159.5,
+      "proteinG": 3.08,
+      "carbsG": 28.05,
+      "fatG": 3.8500000000000005
+    },
+    "massG": 110,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 8924,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Seasoned Rice / Pilaf",
+    "components": [
+      {
+        "name": "Seasoned rice with minced vegetables",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Rice cooked with broth, oil/butter, and minor bits of vegetables (carrot/onion)",
+          "Not plain white rice due to brown coloration and slight sheen"
+        ],
+        "estimatedPer100": {
+          "kcal": 145,
+          "proteinG": 2.8,
+          "carbsG": 25.5,
+          "fatG": 3.5
+        },
+        "nutrients": {
+          "kcal": 159.5,
+          "proteinG": 3.08,
+          "carbsG": 28.05,
+          "fatG": 3.8500000000000005
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 159.5,
+      "proteinG": 3.08,
+      "carbsG": 28.05,
+      "fatG": 3.8500000000000005
+    },
+    "ambiguities": [
+      "Exact cooking liquid and added fat amount used during preparation",
+      "Whether the coloration is from whole grain brown rice or seasoned/pilaf white rice"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 8920,
+      "inputTokens": 2018,
+      "outputTokens": 238,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Seasoned Rice / Pilaf",
+      "components": [
+        {
+          "name": "Seasoned rice with minced vegetables",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Rice cooked with broth, oil/butter, and minor bits of vegetables (carrot/onion)",
+            "Not plain white rice due to brown coloration and slight sheen"
+          ],
+          "estimatedPer100": {
+            "kcal": 145,
+            "proteinG": 2.8,
+            "carbsG": 25.5,
+            "fatG": 3.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact cooking liquid and added fat amount used during preparation",
+        "Whether the coloration is from whole grain brown rice or seasoned/pilaf white rice"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "806d47e736f57b76fb69f612bc2d7885a4fb8ddbdb4058d281502c7c06af5643"
+}

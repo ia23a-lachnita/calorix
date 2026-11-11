@@ -1,0 +1,183 @@
+{
+  "id": "dish_1566416701",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 99.25,
+      "proteinG": 14.168999999999999,
+      "carbsG": 0.6000000000000001,
+      "fatG": 4.056500000000001
+    },
+    "massG": 60,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 11015,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Chicken and Herb Salad Leftovers",
+    "components": [
+      {
+        "name": "Roasted chicken breast pieces",
+        "massG": 45,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Chopped or shredded cooked chicken breast leftover on plate"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 74.25,
+          "proteinG": 13.959,
+          "carbsG": 0,
+          "fatG": 1.6065
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Mixed greens and fresh herbs",
+        "massG": 10,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Cilantro or parsley and mixed leafy greens scattered with chicken"
+        ],
+        "estimatedPer100": {
+          "kcal": 25,
+          "proteinG": 2,
+          "carbsG": 3.5,
+          "fatG": 0.5
+        },
+        "nutrients": {
+          "kcal": 2.5,
+          "proteinG": 0.2,
+          "carbsG": 0.35000000000000003,
+          "fatG": 0.05
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Salad dressing residue",
+        "massG": 5,
+        "catalogId": null,
+        "preparation": "dressing mixture",
+        "assumptions": [
+          "Light oil and vinegar based dressing residue coating the chicken and plate"
+        ],
+        "estimatedPer100": {
+          "kcal": 450,
+          "proteinG": 0.2,
+          "carbsG": 5,
+          "fatG": 48
+        },
+        "nutrients": {
+          "kcal": 22.5,
+          "proteinG": 0.010000000000000002,
+          "carbsG": 0.25,
+          "fatG": 2.4000000000000004
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 99.25,
+      "proteinG": 14.168999999999999,
+      "carbsG": 0.6000000000000001,
+      "fatG": 4.056500000000001
+    },
+    "ambiguities": [
+      "Plate appears to contain leftovers or scraps from a finished salad",
+      "Exact dressing type cannot be fully identified from light smears"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 11008,
+      "inputTokens": 2018,
+      "outputTokens": 413,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Chicken and Herb Salad Leftovers",
+      "components": [
+        {
+          "name": "Roasted chicken breast pieces",
+          "massG": 45,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Chopped or shredded cooked chicken breast leftover on plate"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Mixed greens and fresh herbs",
+          "massG": 10,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Cilantro or parsley and mixed leafy greens scattered with chicken"
+          ],
+          "estimatedPer100": {
+            "kcal": 25,
+            "proteinG": 2,
+            "carbsG": 3.5,
+            "fatG": 0.5
+          }
+        },
+        {
+          "name": "Salad dressing residue",
+          "massG": 5,
+          "catalogId": null,
+          "preparation": "dressing mixture",
+          "assumptions": [
+            "Light oil and vinegar based dressing residue coating the chicken and plate"
+          ],
+          "estimatedPer100": {
+            "kcal": 450,
+            "proteinG": 0.2,
+            "carbsG": 5,
+            "fatG": 48
+          }
+        }
+      ],
+      "ambiguities": [
+        "Plate appears to contain leftovers or scraps from a finished salad",
+        "Exact dressing type cannot be fully identified from light smears"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "4d5f4686a90bdd1021bac2096e8b14ce1912efa0eaecbc1935e032b11c72bff7"
+}

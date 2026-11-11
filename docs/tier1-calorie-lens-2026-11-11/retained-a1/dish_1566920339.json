@@ -1,0 +1,152 @@
+{
+  "id": "dish_1566920339",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 186.4,
+      "proteinG": 25.580000000000005,
+      "carbsG": 18.099999999999998,
+      "fatG": 0.56
+    },
+    "massG": 300,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 9263,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Boiled Egg Whites and Roasted Sweet Potato",
+    "components": [
+      {
+        "name": "Hard-boiled egg whites",
+        "massG": 220,
+        "catalogId": null,
+        "preparation": "cooked boiled",
+        "assumptions": [
+          "Egg whites separated from whole hard-boiled eggs",
+          "Chopped or crumbled on plate"
+        ],
+        "estimatedPer100": {
+          "kcal": 52,
+          "proteinG": 10.9,
+          "carbsG": 0.7,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 114.4,
+          "proteinG": 23.980000000000004,
+          "carbsG": 1.54,
+          "fatG": 0.44000000000000006
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Roasted sweet potato chunks",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Skin-on orange flesh sweet potato",
+          "Roasted with minimal added oil"
+        ],
+        "estimatedPer100": {
+          "kcal": 90,
+          "proteinG": 2,
+          "carbsG": 20.7,
+          "fatG": 0.15
+        },
+        "nutrients": {
+          "kcal": 72,
+          "proteinG": 1.6,
+          "carbsG": 16.56,
+          "fatG": 0.12
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 186.4,
+      "proteinG": 25.580000000000005,
+      "carbsG": 18.099999999999998,
+      "fatG": 0.56
+    },
+    "ambiguities": [
+      "White food could alternatively be soft white cheese or cauliflower, but texture and curd appearance strongly match chopped hard-boiled egg whites."
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9258,
+      "inputTokens": 2018,
+      "outputTokens": 350,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Boiled Egg Whites and Roasted Sweet Potato",
+      "components": [
+        {
+          "name": "Hard-boiled egg whites",
+          "massG": 220,
+          "catalogId": null,
+          "preparation": "cooked boiled",
+          "assumptions": [
+            "Egg whites separated from whole hard-boiled eggs",
+            "Chopped or crumbled on plate"
+          ],
+          "estimatedPer100": {
+            "kcal": 52,
+            "proteinG": 10.9,
+            "carbsG": 0.7,
+            "fatG": 0.2
+          }
+        },
+        {
+          "name": "Roasted sweet potato chunks",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Skin-on orange flesh sweet potato",
+            "Roasted with minimal added oil"
+          ],
+          "estimatedPer100": {
+            "kcal": 90,
+            "proteinG": 2,
+            "carbsG": 20.7,
+            "fatG": 0.15
+          }
+        }
+      ],
+      "ambiguities": [
+        "White food could alternatively be soft white cheese or cauliflower, but texture and curd appearance strongly match chopped hard-boiled egg whites."
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "d4d2be73f5e6a7a594fbcfffdf0980d87e05d7061d8dba13232a05d7d7010fbb"
+}

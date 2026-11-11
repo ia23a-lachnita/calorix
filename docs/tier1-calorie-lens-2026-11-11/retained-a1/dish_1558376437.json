@@ -1,0 +1,107 @@
+{
+  "id": "dish_1558376437",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 27.200000000000003,
+      "proteinG": 0.6400000000000001,
+      "carbsG": 6.56,
+      "fatG": 0.16000000000000003
+    },
+    "massG": 80,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 9929,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Cantaloupe Chunks",
+    "components": [
+      {
+        "name": "Cantaloupe chunks",
+        "massG": 80,
+        "catalogId": null,
+        "preparation": "raw",
+        "assumptions": [
+          "Fresh cut cantaloupe or similar orange-fleshed melon",
+          "Approximately 5-6 bite-sized pieces"
+        ],
+        "estimatedPer100": {
+          "kcal": 34,
+          "proteinG": 0.8,
+          "carbsG": 8.2,
+          "fatG": 0.2
+        },
+        "nutrients": {
+          "kcal": 27.200000000000003,
+          "proteinG": 0.6400000000000001,
+          "carbsG": 6.56,
+          "fatG": 0.16000000000000003
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 27.200000000000003,
+      "proteinG": 0.6400000000000001,
+      "carbsG": 6.56,
+      "fatG": 0.16000000000000003
+    },
+    "ambiguities": [
+      "Specific melon variety (e.g., cantaloupe vs. papaya or other orange-fleshed fruit)"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9922,
+      "inputTokens": 2018,
+      "outputTokens": 217,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Cantaloupe Chunks",
+      "components": [
+        {
+          "name": "Cantaloupe chunks",
+          "massG": 80,
+          "catalogId": null,
+          "preparation": "raw",
+          "assumptions": [
+            "Fresh cut cantaloupe or similar orange-fleshed melon",
+            "Approximately 5-6 bite-sized pieces"
+          ],
+          "estimatedPer100": {
+            "kcal": 34,
+            "proteinG": 0.8,
+            "carbsG": 8.2,
+            "fatG": 0.2
+          }
+        }
+      ],
+      "ambiguities": [
+        "Specific melon variety (e.g., cantaloupe vs. papaya or other orange-fleshed fruit)"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "4a9333e7fb1ed43ffccde368eb0f0100daff88477b0a0e142f872aa9f64f201d"
+}

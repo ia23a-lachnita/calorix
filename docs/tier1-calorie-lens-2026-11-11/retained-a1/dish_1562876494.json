@@ -1,0 +1,183 @@
+{
+  "id": "dish_1562876494",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 70.75,
+      "proteinG": 8.485,
+      "carbsG": 6.390000000000001,
+      "fatG": 1.1025
+    },
+    "massG": 55,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 9786,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Small Tasting Portion of Chicken, Green Beans, and Rice",
+    "components": [
+      {
+        "name": "Chicken pieces",
+        "massG": 25,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Roasted or pan-cooked chicken breast bites",
+          "Two small chunks visible"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 41.25,
+          "proteinG": 7.755,
+          "carbsG": 0,
+          "fatG": 0.8925
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      },
+      {
+        "name": "Green beans",
+        "massG": 10,
+        "catalogId": null,
+        "preparation": "cooked steamed or sautéed",
+        "assumptions": [
+          "A few short green bean segments"
+        ],
+        "estimatedPer100": {
+          "kcal": 35,
+          "proteinG": 1.9,
+          "carbsG": 7.9,
+          "fatG": 0.3
+        },
+        "nutrients": {
+          "kcal": 3.5,
+          "proteinG": 0.19,
+          "carbsG": 0.79,
+          "fatG": 0.03
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Seasoned brown or mixed rice",
+        "massG": 20,
+        "catalogId": null,
+        "preparation": "cooked",
+        "assumptions": [
+          "Small scattering of cooked grains/rice with light seasoning"
+        ],
+        "estimatedPer100": {
+          "kcal": 130,
+          "proteinG": 2.7,
+          "carbsG": 28,
+          "fatG": 0.9
+        },
+        "nutrients": {
+          "kcal": 26,
+          "proteinG": 0.54,
+          "carbsG": 5.6000000000000005,
+          "fatG": 0.18000000000000002
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 70.75,
+      "proteinG": 8.485,
+      "carbsG": 6.390000000000001,
+      "fatG": 1.1025
+    },
+    "ambiguities": [
+      "Extremely small sample or toddler portion size; total weight under 60 grams"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9780,
+      "inputTokens": 2018,
+      "outputTokens": 420,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Small Tasting Portion of Chicken, Green Beans, and Rice",
+      "components": [
+        {
+          "name": "Chicken pieces",
+          "massG": 25,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Roasted or pan-cooked chicken breast bites",
+            "Two small chunks visible"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Green beans",
+          "massG": 10,
+          "catalogId": null,
+          "preparation": "cooked steamed or sautéed",
+          "assumptions": [
+            "A few short green bean segments"
+          ],
+          "estimatedPer100": {
+            "kcal": 35,
+            "proteinG": 1.9,
+            "carbsG": 7.9,
+            "fatG": 0.3
+          }
+        },
+        {
+          "name": "Seasoned brown or mixed rice",
+          "massG": 20,
+          "catalogId": null,
+          "preparation": "cooked",
+          "assumptions": [
+            "Small scattering of cooked grains/rice with light seasoning"
+          ],
+          "estimatedPer100": {
+            "kcal": 130,
+            "proteinG": 2.7,
+            "carbsG": 28,
+            "fatG": 0.9
+          }
+        }
+      ],
+      "ambiguities": [
+        "Extremely small sample or toddler portion size; total weight under 60 grams"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "0507482199469b17c1d43ef6b9c124a4536fb0f6e36304d3c7570e7c22ce2ec8"
+}

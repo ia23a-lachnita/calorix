@@ -1,0 +1,102 @@
+{
+  "id": "dish_1563389548",
+  "A0": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 247.5,
+      "proteinG": 46.53,
+      "carbsG": 0,
+      "fatG": 5.3549999999999995
+    },
+    "massG": 150,
+    "failure": null
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 198,
+      "proteinG": 37.224,
+      "carbsG": 0,
+      "fatG": 4.284
+    },
+    "massG": 120,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 13355,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Diced Roasted Chicken Breast",
+    "components": [
+      {
+        "name": "Chicken breast",
+        "massG": 120,
+        "catalogId": "usda:171477",
+        "preparation": "cooked roasted",
+        "assumptions": [
+          "Boneless, skinless cooked chicken breast, diced into bite-sized cubes",
+          "Roasted or baked preparation"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 198,
+          "proteinG": 37.224,
+          "carbsG": 0,
+          "fatG": 4.284
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:171477",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted"
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 198,
+      "proteinG": 37.224,
+      "carbsG": 0,
+      "fatG": 4.284
+    },
+    "ambiguities": [
+      "Presence of added oil or marinade during cooking"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 13340,
+      "inputTokens": 2018,
+      "outputTokens": 164,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Diced Roasted Chicken Breast",
+      "components": [
+        {
+          "name": "Chicken breast",
+          "massG": 120,
+          "catalogId": "usda:171477",
+          "preparation": "cooked roasted",
+          "assumptions": [
+            "Boneless, skinless cooked chicken breast, diced into bite-sized cubes",
+            "Roasted or baked preparation"
+          ],
+          "estimatedPer100": null
+        }
+      ],
+      "ambiguities": [
+        "Presence of added oil or marinade during cooking"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "9531619ce44d03eb27e90cbfb94e72c5ec112bd58762682aef796a668c2f8d3e"
+}

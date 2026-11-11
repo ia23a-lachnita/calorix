@@ -1,0 +1,148 @@
+{
+  "id": "dish_1566589933",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 96,
+      "proteinG": 7.48,
+      "carbsG": 4.15,
+      "fatG": 5.6
+    },
+    "massG": 90,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 11596,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Tofu strips with cabbage salad",
+    "components": [
+      {
+        "name": "Seasoned baked tofu strips",
+        "massG": 50,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "strips appear to be firm seasoned or herb-marinated tofu"
+        ],
+        "estimatedPer100": {
+          "kcal": 140,
+          "proteinG": 14,
+          "carbsG": 3.5,
+          "fatG": 8
+        },
+        "nutrients": {
+          "kcal": 70,
+          "proteinG": 7,
+          "carbsG": 1.75,
+          "fatG": 4
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Cabbage and vegetable slaw",
+        "massG": 40,
+        "catalogId": null,
+        "preparation": "raw shredded with dressing",
+        "assumptions": [
+          "shredded white/red cabbage with light oil or vinegar dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 65,
+          "proteinG": 1.2,
+          "carbsG": 6,
+          "fatG": 4
+        },
+        "nutrients": {
+          "kcal": 26,
+          "proteinG": 0.48,
+          "carbsG": 2.4000000000000004,
+          "fatG": 1.6
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 96,
+      "proteinG": 7.48,
+      "carbsG": 4.15,
+      "fatG": 5.6
+    },
+    "ambiguities": [
+      "Protein strips could be seasoned chicken breast strips or baked firm tofu"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 11581,
+      "inputTokens": 2018,
+      "outputTokens": 315,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Tofu strips with cabbage salad",
+      "components": [
+        {
+          "name": "Seasoned baked tofu strips",
+          "massG": 50,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "strips appear to be firm seasoned or herb-marinated tofu"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 14,
+            "carbsG": 3.5,
+            "fatG": 8
+          }
+        },
+        {
+          "name": "Cabbage and vegetable slaw",
+          "massG": 40,
+          "catalogId": null,
+          "preparation": "raw shredded with dressing",
+          "assumptions": [
+            "shredded white/red cabbage with light oil or vinegar dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 65,
+            "proteinG": 1.2,
+            "carbsG": 6,
+            "fatG": 4
+          }
+        }
+      ],
+      "ambiguities": [
+        "Protein strips could be seasoned chicken breast strips or baked firm tofu"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "933ff058980a72336374dd281ff9cebbd29c4df6868e05a3f8d4efd161e8ba9c"
+}

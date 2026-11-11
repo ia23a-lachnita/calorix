@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "experiment": "calorie-lens-routes-v1",
+  "manifestSha256": "16808bec08c1f609a3cb6deff018c9d6b43a30e180c3fb38333ed825fcc96674",
+  "modelRevision": "f0d34a638b6b572e2df601067881b56fe6848c79",
+  "artifactName": "calorie-lens/model.safetensors",
+  "artifactBytes": 378588160,
+  "artifactSha256": "302f495630509a45d3437d56fdf234e0d1ecc80251cf75b71a6e73e69c05cb38",
+  "sourceFiles": [
+    {
+      "path": "tool/third_party/calorie_lens/model.py",
+      "bytes": 38036,
+      "sha256": "ffb1b4667889be9d89a2517351826012669b672207a3f45da97c7d875d77ece6"
+    },
+    {
+      "path": "tool/third_party/calorie_lens/LICENSE",
+      "bytes": 1073,
+      "sha256": "4f981de7b3e6fa60f33796a05441986327dd0cc186f31e1e3ea4c9f69f773fac"
+    },
+    {
+      "path": "tool/third_party/calorie_lens/NOTICE",
+      "bytes": 453,
+      "sha256": "82b4e4c82e321c21531e94499e5eb8ada641d3148b2fc32e5ef40ff3c1b55dee"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/config.json",
+      "bytes": 67593,
+      "sha256": "a4bf17a7b78f3a0020839ac2e848a697bb8e2b98d82442e60ac8b9ac983352ce"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/ingredients_metadata.csv",
+      "bytes": 21540,
+      "sha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/runtime-requirements-lock.txt",
+      "bytes": 996,
+      "sha256": "2aee8dea3d07c928be794060da43052a36dc51363c87014d74dcf121d02b7382"
+    }
+  ],
+  "configPath": "functions/eval/tier1-public/calorie-lens/config.json",
+  "modelSourcePath": "tool/third_party/calorie_lens/model.py",
+  "nutrientMetadataPath": "functions/eval/tier1-public/calorie-lens/ingredients_metadata.csv",
+  "nutrientMetadataSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+  "retainedPlateRecords": [
+    {
+      "id": "dish_1566590007",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/dish_1566590007.json",
+      "sha256": "7c42bb7b0d70bf2cd4ed3d6d6e1bca52196c71dd54b403df77daa97ba8add439"
+    },
+    {
+      "id": "dish_1566414412",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/dish_1566414412.json",
+      "sha256": "720698d7ac02d37be5067426493e0ac1fd2d3c9d683fadf6460549a4913ec3e2"
+    },
+    {
+      "id": "dish_1568305257",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/dish_1568305257.json",
+      "sha256": "e28660220a6280e47a42292fe18728aa01284624567ddf581372b13741357640"
+    },
+    {
+      "id": "dish_1558722247",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/dish_1558722247.json",
+      "sha256": "867eca919c2ce04debdc339c4ec7f5ab203c53cd2854ac6726a794824c6a4dfb"
+    },
+    {
+      "id": "dish_1568401233",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/dish_1568401233.json",
+      "sha256": "d2e4e1d5d4463dfe0810e2b7104c316f9c06fe5306e85e4c88de9f7882898e0c"
+    },
+    {
+      "id": "dish_1563389600",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/dish_1563389600.json",
+      "sha256": "e91b227d0b1b644b5c972d9fd29a06fb83051a91f820ed97a22a11874f3b7517"
+    },
+    {
+      "id": "dish_1566920365",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/dish_1566920365.json",
+      "sha256": "764b3b280ade1e536796b7268fd1bfd98d4a200ea7aa70848ba30b7dcd5f6613"
+    },
+    {
+      "id": "dish_1564687046",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/dish_1564687046.json",
+      "sha256": "543ee8d50cc5cf462de35f05f6f083cf59741b56757b79541540d49638f0312e"
+    },
+    {
+      "id": "dish_1558461792",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/dish_1558461792.json",
+      "sha256": "a9fb5df46a758765c4c43aa0e26c6d125498603a8c845b547813b0fb013da475"
+    },
+    {
+      "id": "dish_1561739238",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/dish_1561739238.json",
+      "sha256": "82a286912d6f1ad78ce1959b5fcfdae72cbb2aa4c8b7da88fd92c3c4de5d933a"
+    },
+    {
+      "id": "bread005",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/bread005.json",
+      "sha256": "f3f3cad53fb4d8019c5baecb98336fc2e8cd3ea2a1977a77cc022c203478dc8b"
+    },
+    {
+      "id": "bun006",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/bun006.json",
+      "sha256": "b38b4c5457498655eae5cc95a0f5a6e3c9e26463a9ae78f03d2a31d7d1d2ac63"
+    },
+    {
+      "id": "doughnut006",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/doughnut006.json",
+      "sha256": "704e06772bddc8cc1c2c557aabf0fd7e5ee734e2566720b08ee64d780fa37a86"
+    },
+    {
+      "id": "fired_dough_twist006",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/fired_dough_twist006.json",
+      "sha256": "0ba255aa736fe1f6d6280ffe44bc5026768137a7f896edf7f2c43d4f2d8c98d0"
+    },
+    {
+      "id": "mooncake004",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/mooncake004.json",
+      "sha256": "8e71f39f6a260dc74434699061cde8d5097617d837b65359ae6da29bef529595"
+    },
+    {
+      "id": "sachima004",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/sachima004.json",
+      "sha256": "fd5e2b2d5db04ee1dad1eda81f32f4827df94dd615fe29f2341c77ec6ca8c605"
+    },
+    {
+      "id": "bread004",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/bread004.json",
+      "sha256": "156215400e16c34daf568be3413eb5d0900dde96f44e4906079137639a56365c"
+    },
+    {
+      "id": "bun005",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/bun005.json",
+      "sha256": "827089d73756678c444f59e8e5056e2512bdb8c55de95ae5499f0a9813188af4"
+    },
+    {
+      "id": "doughnut008",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/doughnut008.json",
+      "sha256": "c3cc5f657d83b44a7757bb35dbc18cc541a7d3586719702aeff319f714ddd0a0"
+    },
+    {
+      "id": "fired_dough_twist004",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/fired_dough_twist004.json",
+      "sha256": "a37603b231922061c88b607e5fa7e6732de60236e10803cec7a99f33a6638902"
+    },
+    {
+      "id": "mooncake006",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/mooncake006.json",
+      "sha256": "5277ca9eb5924bdde65d5841b0dcd288387bb33c92a501de603cd7738d86759a"
+    },
+    {
+      "id": "sachima005",
+      "path": "docs/tier1-open-models-2026-11-10/plate-vision/sachima005.json",
+      "sha256": "dfa6d4f4434d4911ba47c266a8e45ebea3bb0e2626ce3a20ec62f916aecbadec"
+    }
+  ],
+  "plate": {
+    "id": "plate-vision",
+    "artifactName": "plate-vision.onnx",
+    "artifactBytes": 33995501,
+    "artifactSha256": "3f982c4aa8658a032cbc2a656040953a17744a3d35df11b49e722eed07f9f431",
+    "upstreamCommit": "d5690063cc8795497c603aa676f97fd253053bbf",
+    "sourceUrl": "https://github.com/simonkundrik/plate-vision/releases/download/model-v0.2.0/plate-vision-fp32.onnx",
+    "metadataPath": "open-models/plate-bundle.json",
+    "metadataSha256": "32ad38755e3cf830fc8a74013c10826518edda91197b8578aa2e08bc87ff23d7",
+    "codeLicense": "MIT",
+    "weightUse": "publisher_research_use_only",
+    "redistributeToApp": false,
+    "trainingExposure": "publisher_official_dish_split_claimed_exact_membership_unverified",
+    "heldoutComparisonEligible": null
+  },
+  "runtime": {
+    "python": "3.11.15",
+    "versions": {
+      "torch": "2.13.0+cpu",
+      "torchvision": "0.28.0+cpu",
+      "transformers": "5.22.2",
+      "huggingface-hub": "2.4.0",
+      "safetensors": "0.8.0",
+      "numpy": "2.2.4",
+      "Pillow": "11.1.0"
+    },
+    "intraOpThreads": 2,
+    "interOpThreads": 1,
+    "rssLimitBytes": 2684354560,
+    "minAvailableBytes": 3221225472,
+    "noProgressTimeoutSeconds": 120,
+    "perModelTimeoutSeconds": 1200,
+    "sourceMirrors": "Official PyTorch CPU wheel URLs/SHA256; PyPI and host-configured piwheels for dependency wheels; exact version lock retained"
+  },
+  "plateRuntime": {
+    "onnxruntime": "1.31.1",
+    "numpy": "2.2.4",
+    "Pillow": "11.1.0"
+  },
+  "servingGate": {
+    "a1EstimatedMassAtLeastG": 150,
+    "positiveComponentRowsAtLeast": 2,
+    "fractionalRowsCount": true,
+    "referenceUsed": false
+  },
+  "groups": {
+    "discovery10": 10,
+    "validation20": 20,
+    "ecust-old": 6,
+    "ecust-fresh": 6
+  },
+  "newLocalFoodPredictions": 62,
+  "qualificationForwardCalls": 1,
+  "newVlmCalls": 0,
+  "training": false,
+  "productionPromotable": false,
+  "intervalsUsed": false,
+  "automaticPromotion": false,
+  "qualificationSha256": "d7a63f76547125dc28785a1f1247a6996cc06bc935739115f9e3150c29956858"
+}

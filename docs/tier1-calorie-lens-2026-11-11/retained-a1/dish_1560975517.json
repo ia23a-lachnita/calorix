@@ -1,0 +1,140 @@
+{
+  "id": "dish_1560975517",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 89.15,
+      "proteinG": 2.205,
+      "carbsG": 4.583,
+      "fatG": 7.258
+    },
+    "massG": 115,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 10345,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Side Salad with Cooked Broccoli",
+    "components": [
+      {
+        "name": "Steamed or boiled broccoli floret",
+        "massG": 30,
+        "catalogId": "usda:170380",
+        "preparation": "cooked boiled",
+        "assumptions": [
+          "Plain cooked broccoli floret without added butter or rich sauce"
+        ],
+        "estimatedPer100": null,
+        "nutrients": {
+          "kcal": 8.4,
+          "proteinG": 0.9299999999999999,
+          "carbsG": 1.608,
+          "fatG": 0.033
+        },
+        "source": {
+          "kind": "database_match",
+          "recordId": "usda:170380",
+          "sourceUrl": "https://fdc.nal.usda.gov/food-details/170380/nutrients",
+          "version": "usda-sr-2019-tier1-20261108-v1",
+          "description": "Broccoli, frozen, spears, cooked, boiled, drained, without salt"
+        }
+      },
+      {
+        "name": "Romaine lettuce salad with creamy dressing",
+        "massG": 85,
+        "catalogId": null,
+        "preparation": "dressed raw salad",
+        "assumptions": [
+          "Chopped leafy green lettuce lightly coated with creamy dressing (such as Caesar or ranch)"
+        ],
+        "estimatedPer100": {
+          "kcal": 95,
+          "proteinG": 1.5,
+          "carbsG": 3.5,
+          "fatG": 8.5
+        },
+        "nutrients": {
+          "kcal": 80.75,
+          "proteinG": 1.275,
+          "carbsG": 2.975,
+          "fatG": 7.225
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 89.15,
+      "proteinG": 2.205,
+      "carbsG": 4.583,
+      "fatG": 7.258
+    },
+    "ambiguities": [
+      "Exact dressing type and oil content on the salad greens",
+      "Whether broccoli was seasoned with oil or butter"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 10340,
+      "inputTokens": 2018,
+      "outputTokens": 310,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Side Salad with Cooked Broccoli",
+      "components": [
+        {
+          "name": "Steamed or boiled broccoli floret",
+          "massG": 30,
+          "catalogId": "usda:170380",
+          "preparation": "cooked boiled",
+          "assumptions": [
+            "Plain cooked broccoli floret without added butter or rich sauce"
+          ],
+          "estimatedPer100": null
+        },
+        {
+          "name": "Romaine lettuce salad with creamy dressing",
+          "massG": 85,
+          "catalogId": null,
+          "preparation": "dressed raw salad",
+          "assumptions": [
+            "Chopped leafy green lettuce lightly coated with creamy dressing (such as Caesar or ranch)"
+          ],
+          "estimatedPer100": {
+            "kcal": 95,
+            "proteinG": 1.5,
+            "carbsG": 3.5,
+            "fatG": 8.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact dressing type and oil content on the salad greens",
+        "Whether broccoli was seasoned with oil or butter"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "401d696bbd1d0f23fe502a3a203cd8e5eaf523a879b4a7e3d8344439645a7cdc"
+}

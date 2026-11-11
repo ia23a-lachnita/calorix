@@ -1,0 +1,107 @@
+{
+  "id": "dish_1562963246",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 292.6,
+      "proteinG": 12.100000000000001,
+      "carbsG": 36.300000000000004,
+      "fatG": 11
+    },
+    "massG": 110,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 14080,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Pizza slice",
+    "components": [
+      {
+        "name": "Pizza slice (cheese, sauce, vegetables/meat)",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Portion represents approximately one medium to large rectangular/cut slice of pizza",
+          "Includes crust, tomato sauce, cheese, and sparse toppings (green bell pepper/bits of meat or onion)"
+        ],
+        "estimatedPer100": {
+          "kcal": 266,
+          "proteinG": 11,
+          "carbsG": 33,
+          "fatG": 10
+        },
+        "nutrients": {
+          "kcal": 292.6,
+          "proteinG": 12.100000000000001,
+          "carbsG": 36.300000000000004,
+          "fatG": 11
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 292.6,
+      "proteinG": 12.100000000000001,
+      "carbsG": 36.300000000000004,
+      "fatG": 11
+    },
+    "ambiguities": [
+      "Exact topping ingredients beneath melted cheese are partially obscured"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 14068,
+      "inputTokens": 2018,
+      "outputTokens": 229,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Pizza slice",
+      "components": [
+        {
+          "name": "Pizza slice (cheese, sauce, vegetables/meat)",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Portion represents approximately one medium to large rectangular/cut slice of pizza",
+            "Includes crust, tomato sauce, cheese, and sparse toppings (green bell pepper/bits of meat or onion)"
+          ],
+          "estimatedPer100": {
+            "kcal": 266,
+            "proteinG": 11,
+            "carbsG": 33,
+            "fatG": 10
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact topping ingredients beneath melted cheese are partially obscured"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "03ff3c71906918cf5afb502cd15d3b0a40339634cd66c9bbf8412642c6e79ef5"
+}

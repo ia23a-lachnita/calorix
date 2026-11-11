@@ -1,0 +1,109 @@
+{
+  "id": "dish_1564160043",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 327.75,
+      "proteinG": 13.225,
+      "carbsG": 55.199999999999996,
+      "fatG": 5.75
+    },
+    "massG": 115,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 9348,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Baked Cheese Bagel",
+    "components": [
+      {
+        "name": "Cheese bagel",
+        "massG": 115,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Bagel topped or baked with cheese (e.g., asiago or cheddar)",
+          "Standard medium bakery size"
+        ],
+        "estimatedPer100": {
+          "kcal": 285,
+          "proteinG": 11.5,
+          "carbsG": 48,
+          "fatG": 5
+        },
+        "nutrients": {
+          "kcal": 327.75,
+          "proteinG": 13.225,
+          "carbsG": 55.199999999999996,
+          "fatG": 5.75
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 327.75,
+      "proteinG": 13.225,
+      "carbsG": 55.199999999999996,
+      "fatG": 5.75
+    },
+    "ambiguities": [
+      "Exact cheese variety and dough recipe",
+      "Presence of internal fillings or spreads not visible"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9343,
+      "inputTokens": 2018,
+      "outputTokens": 216,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Baked Cheese Bagel",
+      "components": [
+        {
+          "name": "Cheese bagel",
+          "massG": 115,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Bagel topped or baked with cheese (e.g., asiago or cheddar)",
+            "Standard medium bakery size"
+          ],
+          "estimatedPer100": {
+            "kcal": 285,
+            "proteinG": 11.5,
+            "carbsG": 48,
+            "fatG": 5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact cheese variety and dough recipe",
+        "Presence of internal fillings or spreads not visible"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "769fbc9dfebf1a7a7d1774c513d7bb5895455fbbd34e6d65e6fbc3bb8ff7ce56"
+}

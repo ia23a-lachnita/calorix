@@ -1,0 +1,107 @@
+{
+  "id": "dish_1558030182",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 143,
+      "proteinG": 2.53,
+      "carbsG": 23.1,
+      "fatG": 4.95
+    },
+    "massG": 110,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 9055,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Roasted Potato Wedges",
+    "components": [
+      {
+        "name": "Roasted potatoes",
+        "massG": 110,
+        "catalogId": null,
+        "preparation": "roasted",
+        "assumptions": [
+          "Potatoes cut into chunks/wedges and roasted with light oil",
+          "Visible skin intact on some pieces"
+        ],
+        "estimatedPer100": {
+          "kcal": 130,
+          "proteinG": 2.3,
+          "carbsG": 21,
+          "fatG": 4.5
+        },
+        "nutrients": {
+          "kcal": 143,
+          "proteinG": 2.53,
+          "carbsG": 23.1,
+          "fatG": 4.95
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 143,
+      "proteinG": 2.53,
+      "carbsG": 23.1,
+      "fatG": 4.95
+    },
+    "ambiguities": [
+      "Exact amount of oil or fat used during roasting"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 9047,
+      "inputTokens": 2018,
+      "outputTokens": 201,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Roasted Potato Wedges",
+      "components": [
+        {
+          "name": "Roasted potatoes",
+          "massG": 110,
+          "catalogId": null,
+          "preparation": "roasted",
+          "assumptions": [
+            "Potatoes cut into chunks/wedges and roasted with light oil",
+            "Visible skin intact on some pieces"
+          ],
+          "estimatedPer100": {
+            "kcal": 130,
+            "proteinG": 2.3,
+            "carbsG": 21,
+            "fatG": 4.5
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact amount of oil or fat used during roasting"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "0f233e5fd731e4e0ecfe5bd63ced84ccce1d77b78901c09cc9695af4af37a772"
+}

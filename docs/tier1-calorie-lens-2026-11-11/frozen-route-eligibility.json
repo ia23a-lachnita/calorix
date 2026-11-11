@@ -1,0 +1,22 @@
+{
+  "discovery10": {
+    "cases": 10,
+    "eligible": 10,
+    "invalidA1": 0
+  },
+  "ecust-old": {
+    "cases": 6,
+    "eligible": 0,
+    "invalidA1": 0
+  },
+  "ecust-fresh": {
+    "cases": 6,
+    "eligible": 0,
+    "invalidA1": 6
+  },
+  "validation20": {
+    "cases": 20,
+    "eligible": 4,
+    "invalidA1": 0
+  }
+}

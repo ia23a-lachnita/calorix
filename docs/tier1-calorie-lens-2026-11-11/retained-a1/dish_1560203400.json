@@ -1,0 +1,107 @@
+{
+  "id": "dish_1560203400",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 343.75,
+      "proteinG": 14.375,
+      "carbsG": 35,
+      "fatG": 16.25
+    },
+    "massG": 125,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 8389,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Pepperoni Pizza Slice",
+    "components": [
+      {
+        "name": "Pepperoni pizza slice",
+        "massG": 125,
+        "catalogId": null,
+        "preparation": "baked",
+        "assumptions": [
+          "Square-cut medium-thick crust pizza slice",
+          "Includes crust, tomato sauce, mozzarella cheese, and 4 slices of pepperoni"
+        ],
+        "estimatedPer100": {
+          "kcal": 275,
+          "proteinG": 11.5,
+          "carbsG": 28,
+          "fatG": 13
+        },
+        "nutrients": {
+          "kcal": 343.75,
+          "proteinG": 14.375,
+          "carbsG": 35,
+          "fatG": 16.25
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 343.75,
+      "proteinG": 14.375,
+      "carbsG": 35,
+      "fatG": 16.25
+    },
+    "ambiguities": [
+      "Exact dough thickness and specific brand/recipe nutrition profile"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 8384,
+      "inputTokens": 2018,
+      "outputTokens": 215,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Pepperoni Pizza Slice",
+      "components": [
+        {
+          "name": "Pepperoni pizza slice",
+          "massG": 125,
+          "catalogId": null,
+          "preparation": "baked",
+          "assumptions": [
+            "Square-cut medium-thick crust pizza slice",
+            "Includes crust, tomato sauce, mozzarella cheese, and 4 slices of pepperoni"
+          ],
+          "estimatedPer100": {
+            "kcal": 275,
+            "proteinG": 11.5,
+            "carbsG": 28,
+            "fatG": 13
+          }
+        }
+      ],
+      "ambiguities": [
+        "Exact dough thickness and specific brand/recipe nutrition profile"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "0f986a4a0b3f8c251cd0ef77217cec0f2e50f89094b736b807976550dccbe60d"
+}

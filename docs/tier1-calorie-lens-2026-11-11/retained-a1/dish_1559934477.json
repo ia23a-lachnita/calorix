@@ -1,0 +1,150 @@
+{
+  "id": "dish_1559934477",
+  "A0": {
+    "status": "failed",
+    "predicted": null,
+    "massG": null,
+    "failure": "catalog_coverage_failure"
+  },
+  "A1": {
+    "status": "ok",
+    "predicted": {
+      "kcal": 131.05,
+      "proteinG": 2.58,
+      "carbsG": 11.995,
+      "fatG": 8.22
+    },
+    "massG": 65,
+    "failure": null
+  },
+  "sdkInvoked": true,
+  "datasetFailure": false,
+  "runnerWallMs": 12284,
+  "estimate": {
+    "schemaVersion": 1,
+    "mealName": "Small Caesar Salad with Croutons",
+    "components": [
+      {
+        "name": "Romaine lettuce with Caesar dressing",
+        "massG": 50,
+        "catalogId": null,
+        "preparation": "raw, dressed",
+        "assumptions": [
+          "Romaine lettuce tossed with creamy Caesar salad dressing"
+        ],
+        "estimatedPer100": {
+          "kcal": 140,
+          "proteinG": 1.8,
+          "carbsG": 3.5,
+          "fatG": 13.5
+        },
+        "nutrients": {
+          "kcal": 70,
+          "proteinG": 0.9,
+          "carbsG": 1.75,
+          "fatG": 6.75
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      },
+      {
+        "name": "Croutons",
+        "massG": 15,
+        "catalogId": null,
+        "preparation": "baked/toasted",
+        "assumptions": [
+          "Toasted bread cubes, seasoned"
+        ],
+        "estimatedPer100": {
+          "kcal": 407,
+          "proteinG": 11.2,
+          "carbsG": 68.3,
+          "fatG": 9.8
+        },
+        "nutrients": {
+          "kcal": 61.05,
+          "proteinG": 1.68,
+          "carbsG": 10.245,
+          "fatG": 1.47
+        },
+        "source": {
+          "kind": "unverified_vlm_estimate",
+          "recordId": null,
+          "sourceUrl": null,
+          "version": null,
+          "description": null
+        }
+      }
+    ],
+    "totals": {
+      "kcal": 131.05,
+      "proteinG": 2.58,
+      "carbsG": 11.995,
+      "fatG": 8.22
+    },
+    "ambiguities": [
+      "Dressing brand and type (full fat vs light)",
+      "Exact amount of croutons and dressing absorption"
+    ],
+    "question": null,
+    "provenance": {
+      "model": "gemini-3.8-flash",
+      "catalogVersion": "usda-sr-2019-tier1-20261108-v1",
+      "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+      "schemaVersion": 1,
+      "returnedModel": "gemini-3.8-flash",
+      "latencyMs": 12256,
+      "inputTokens": 2018,
+      "outputTokens": 330,
+      "costUsd": null
+    },
+    "requiresReview": true,
+    "rawInventory": {
+      "schemaVersion": 1,
+      "mealName": "Small Caesar Salad with Croutons",
+      "components": [
+        {
+          "name": "Romaine lettuce with Caesar dressing",
+          "massG": 50,
+          "catalogId": null,
+          "preparation": "raw, dressed",
+          "assumptions": [
+            "Romaine lettuce tossed with creamy Caesar salad dressing"
+          ],
+          "estimatedPer100": {
+            "kcal": 140,
+            "proteinG": 1.8,
+            "carbsG": 3.5,
+            "fatG": 13.5
+          }
+        },
+        {
+          "name": "Croutons",
+          "massG": 15,
+          "catalogId": null,
+          "preparation": "baked/toasted",
+          "assumptions": [
+            "Toasted bread cubes, seasoned"
+          ],
+          "estimatedPer100": {
+            "kcal": 407,
+            "proteinG": 11.2,
+            "carbsG": 68.3,
+            "fatG": 9.8
+          }
+        }
+      ],
+      "ambiguities": [
+        "Dressing brand and type (full fat vs light)",
+        "Exact amount of croutons and dressing absorption"
+      ],
+      "askAddedFat": false
+    }
+  },
+  "comparisonContextId": "170a410ebf8ef051ab5d72e4c4a3d19d62c92b5ac9de3fd6e53737fe94bf5c30"
+}

@@ -1,0 +1,27 @@
+# Calorie Lens and fixed serving-route evaluation
+
+Continue the approved Tier-1 accuracy roadmap from clean pushed source f526aae. User asks to keep useful parts and improve them. No training, new VLM calls, deployment, app changes, obligatory object or extra photograph. Reuse the existing isolated worktree and benchmark tools. Same bounded native editing exception applies; exact editing-route failures remain in implementation status. Antigravity primary 3.8/yolo pre-plan review agrees with no must-fix issues.
+
+## Frozen decisions
+
+- Calorie Lens HF revision f0d34a638b6b572e2df601067881b56fe6848c79; MIT/Apache notices. Safetensors 378,588,160 bytes, SHA256 302f495630509a45d3437d56fdf234e0d1ecc80251cf75b71a6e73e69c05cb38. Check all source/config hashes. No pickle or hidden backbone downloads; strict offline state load, pretrained false.
+- Publisher preprocessing: RGB, aspect-fit BICUBIC 378×504, ImageNet-mean RGB padding, float/255 before internal normalization. Preserve configured two mirrored views of one photo and publisher blending. Never pass measured total grams. Save all 253 ingredient gram outputs, direct totals head, mass gap and publisher summary. NutriText text inference is not used.
+- Validate four core nutrient densities against original pinned Nutrition5k ingredient metadata; expose record ID and source hash for matches. Extended USDA columns remain publisher claims, not independently verified matches.
+- Freeze original 22 photos plus ALL original manifest-v1 twenty Nutrition5k photos, excluding old ten IDs. New twenty are unseen by this open-model comparison, not pristine external-training holdouts or unknown to earlier VLM work. Report discovery ten, validation twenty and ECUST mass-only separately.
+- Plate retains existing 22 receipts and runs only on additional twenty; Lens runs all 42. Total 62 new local image predictions, zero VLM calls. A separate non-food qualification pass may test loading/numerical contracts, never count as a weighed meal.
+- Fixed route for EACH specialist: use its DIRECT output only when original A1 estimated component mass sum is >=150 g and there are >=2 validated positive-mass component rows; otherwise retain A1. Fractional positive rows count, no distinct-food inference. This is a domain-informed hypothesis designed after old results, not reference-based per-case winner selection. Missing/invalid A1 gives a categorized routing failure. A valid A1 is retained if specialist output fails. Record eligibility, fallback reason and selected provenance. Direct learned nutrients never become verified database matches.
+- Also report full specialist and mass-only fusion routes. No tuning after outcomes or pooled heldout claims. Primary validation screen: all20 baseline/routed valid, >=10% calorie MAE reduction, median/P90/normalized error no worse; old6 mass coverage/MAE/P90 no worse. Report macro errors and all failures. Fresh6ECUST has no A1 baseline: score specialist mass only, no invented hybrid result. No automatic promotion; Plate research-only weights preclude app redistribution.
+- Own disk-backed Python3.11 venv, official CPU torch2.13.0+cpu/torchvision0.28.0+cpu, transformer5.22.2, HFhub2.4.0, safetensors0.8.0, NumPy2.2.4/Pillow11.1.0; lock actual transitive runtime. Do not use or resolve a LocateAnything interpreter/model/service or start GPU/SSH/emulators. Only own worker may be terminated. CPU2/1threads, sampled2.5GiB RSS guard, >=3GiB available-memory preflight,120-second no-progress/1200-second model wall bounds; preserve failed/unattempted cases. RSS polling is not hard OS isolation.
+
+## Tasks
+
+- [x] 1. Pin 42 images and retained A1 receipts, model/source/nutrient table and own runtime. Write focused adapter/routing/coverage/unit tests, observe RED, implement minimal helpers, observe GREEN.
+- [x] 2. Add supervised headless worker and offline scoring, source + fresh-context whole-feature external review, complete relevant Python/Node checks, commit/push clean before executing model code.
+- [ ] 3. Preflight then bounded qualification and 42 Lens /20 Plate predictions. Preserve raw outputs and model/runtime/input hashes; no silent replacement or source changes during run.
+- [ ] 4. Independent raw/tensor/table/Decimal replay, subgroup/route results including losses, actual-result review. Update pilot/model manifest/status, commit/push.
+
+## Review rulings
+
+Reject pre-review guarantees about prevention of all code execution, resource starvation, optimistic leakage or p-hacking: only actual scoped controls and measurements are claimed. Preserve publisher Python rounding and full-precision metrics/CSV; do not apply proposed ROUND_HALF_UP to model outputs. Component rows are counted only after validating positive finite mass, including sub-gram quantities. New twenty retain any failures and no threshold fitting occurs on them.
+
+Source-stage verification:130Python/40Node PASS; new7adapter/route tests and published-metadata pin regression actualRED→GREEN. Main/source-note/fresh external reviews agree/MUST_FIX none; runtime has PyPI+piwheels provenance, not allofficialPyPI. SourcePinTest portable TemporaryDirectory honors callerTMPDIR. MIT+Apache text retained. All42input/20A1/newmodel/source/config/retained22Plate pins frozen. No model code or food predictions yet; cleancommitpush thenpreflight/run.
