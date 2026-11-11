@@ -291,3 +291,10 @@ calorie_lens_training: false
 calorie_lens_production_change: false
 calorie_lens_next_experiment: "Same pinned model ONNX numerical parity and CPU latency; not yet executed"
 calorie_lens_training_scope: "No additional training in this experiment; upstream model is pretrained on Nutrition5k, Flavoria and USDA data"
+
+# Runtime-only conversion experiment: neither original protocol qualified.
+calorie_lens_onnx_runtime_profile: "functions/eval/tier1-public/lens-onnx-profile-v1.json"
+calorie_lens_onnx_runtime_report: "docs/tier1-lens-onnx-2026-11-11/report.md"
+calorie_lens_onnx_original_raw_qualified: false
+calorie_lens_onnx_endpoint_v2_qualified: false
+calorie_lens_onnx_production_promoted: false

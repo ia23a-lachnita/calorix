@@ -1,0 +1,412 @@
+{
+  "checks": {
+    "sourcePins": 12,
+    "baselineHashes": 42,
+    "recordHashes": 48,
+    "inputTensorHashes": 48,
+    "rawHeadScalars": 49248,
+    "presenceDecisions": 12144,
+    "massDisplayDecisions": 12144,
+    "independentGramFields": 12192,
+    "nutrientProducts": 384,
+    "publisherFields": 1640,
+    "decimalMetricFields": 36,
+    "timingRatios": 6
+  },
+  "allChecksPass": true,
+  "rawV1Qualification": "FAILED",
+  "raw_speed_qualified": false,
+  "endpointV2Passes": false,
+  "v2Failures": [
+    {
+      "id": "dish_1566590007",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1566414412",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1568305257",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1558722247",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1568401233",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1563389600",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1566920365",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1564687046",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1558461792",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1561739238",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "bread005",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "bun006",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "doughnut006",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "fired_dough_twist006",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "mooncake004",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "sachima004",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "bread004",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "bun005",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "doughnut008",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "fired_dough_twist004",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "mooncake006",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "sachima005",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1559934477",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1558461607",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1566416701",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1563389548",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1567785622",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1566589933",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1562963246",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1560975517",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1558030182",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1558376437",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1560203400",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1557862783",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1568401261",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1565810969",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1564675411",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1562009810",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1566920339",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1559157454",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1564160043",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    },
+    {
+      "id": "dish_1562876494",
+      "runtime": "ort",
+      "rawV1": false,
+      "endpointV2": false,
+      "failures": [
+        "log_grams:numeric"
+      ]
+    }
+  ],
+  "metricGuards": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "medianPairedRatio": 1.8555463940689179,
+  "maximumIndependentGramDifferenceG": 0.0008815211207320317,
+  "inputPixelRecomputed": true,
+  "ortFoodScored": 42,
+  "torchControlsScored": 6,
+  "neuralCallsByAuditor": 0
+}

@@ -1,8 +1,6 @@
-## Same-model runtime conversion: raw qualification failed; endpoint protocol pending
+## Same-model runtime comparison completed; internal parity rejected
 
-The pinned Lens source and weights exported to a valid ONNX graph, but raw-v1 qualification failed only on 3–4 internal logits; all other heads and served totals/displayed foods matched on owned blanks. Legacy export failed on an unsupported antialiased-bicubic operator. Five diagnostic forwards and one original blank qualification are software checks, not meal measurements. A fresh Torch repeat matched its saved raw baseline exactly. Independent archive/scalar replay passed. No food ORT result or food speed claim exists yet.
-
-A separately reviewed and frozen endpoint-compatibility-v2 experiment uses the **unchanged graph** and requires exact actual presence/mass display decisions, food names/order, tight probability/portion/nutrient bounds, and all42photos/six timing controls. The original raw-v1 failure and raw_speed_qualified=false are retained alongside every v2 verdict. [Protocol, failures and evidence](docs/superpowers/plans/2026-11-11-lens-onnx-runtime.md). All151 Python/40 Node tests passed; production A1 is unchanged.
+On the same42photos, unchanged Lens ONNX produced servedkcal/macros within0.01 of PyTorch, identical mass/food display decisions, and median six-pair speed ratio1.8555x (ORT42 median36.443s). Originalraw-v1 and separately frozen endpoint-v2 BOTHFAIL; all42 food records exceed the conditional-log-gram bound. No production/default change or accuracy gain is claimed.48newlocal predictions are repeats, notnewmeals; SDK187 unchanged, weighedAndroid references0. All151Python/40Node tests and exhaustive independent replay passed. [Complete report, raw records and limits](docs/tier1-lens-onnx-2026-11-11/report.md). Next: one versioned stable-sigmoid lowering, strictblankgated before any fullcohort.
 
 ## Calorie Lens and fixed-route comparison completed
 

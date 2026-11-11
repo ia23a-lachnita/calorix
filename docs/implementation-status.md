@@ -1,3 +1,13 @@
+# Current task: ONNX v2 cohort complete; publish before one lowering candidate
+
+Source1979215 was reviewed/pushed clean before any food. All42ORT+6Torch controls finished exit0/noresourceStop,2145.733s, sampledpeak2108284928B. Median6pairedimagewallratio1.855546394x; ORT42median36.4434s. Servedkcal/macros maxdifference0.01, mass/names/order/all253presence/displayeligibility decisions identical. Raw-v1FAILED and endpoint-v2FAILED onall42 conditional-log-gram heads; allotherphysical/metricguards pass. AllqualifiedspeedflagsFALSE; no production/default/accuracygain claim.20N5metrics unchanged35.695/10.979/121.079kcal;10N5MAE changes+.002kcal, remainingprimarymetrics/massgroups unchanged. Fullreport/raw evidence prepared; actual-result review gemini-3.8-flash/yolo agrees/MUST_FIXnone on suppliedreport/facts, no independentraw/pixel inspection. Reject impliedexclusivehost/isolation beyond measured settings.
+
+Independent replay:48raw/tensor hashes,49248rawscalars,24288discretedecisions,12192gramfields,384nutrientproducts,1640publisherfields,36Decimalmetrics,6timingratios pass; maxgramdiff.000881522g (<.01g).151Pythonbothruntimes/40NodePASS. SDK187 unchanged;48newreleasedmodel records, cumulative154repeatedpredictions,42photosnot48newmeals. Measuredownedblankforwards9 inclv2qualification/warmups, export/tracingseparate. PhysicallyweighedAndroid0.
+
+Nextboundedcandidate v3-stable-sigmoid ispre-reviewed, draftsourceagree/MUST_FIXnone, NOTexecutedyet. SingleSigmoid→10standardFP32stablearithmeticnodes, identicalweights/source/TTA/input, ORTNONE; strictoriginal7head+actualdecision/pointgates,<=128sblank/projected3600scohortbudget, onecandidate/no retry. Originalraw/v2failurespermanentlypreserved. Draftin own disk task, activev2source was untouched. Afterv2resultreview/commitpush: copy newmodules/test, generateSEPARATEv3profile preservingoldsource/profile/summarypins; completeGREEN/newsource/freshreviews+cleanpush beforeoneblank. Drafttests observed missing-moduleRED; no candidate modelcall.
+
+---
+
 # Current task: separately frozen endpoint compatibility protocol, before food
 
 Branch `feat/calorie-lens-onnx`, source base `547060b`. Raw-v1 qualification remains FAILED permanently, raw_speed_qualified=false. Diagnostic exit0/263.17s/peak1783595008B: freshTorch raw exactly matches oldbaseline; all4ORTsettings fail only3–4logits, allother6heads and primarykcal/macros/mass/namesexact. Independent22archivehashes/6156rawscalars verified. Six measuredblankforwards total (exportqualification1+diagnostic5), export/tracing work separate;0foodORTcalls.

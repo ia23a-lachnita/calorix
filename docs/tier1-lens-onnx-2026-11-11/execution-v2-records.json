@@ -1,5 +1,335 @@
 [
   {
+    "path": "benchmark-v2/bread004-ort.json",
+    "sha256": "16aa9cc0a68aaab96f632de1e652bbb822b849b04c161f7c74202297ddac5af4",
+    "bytes": 227076,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/bread004-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/bread004-torch.json",
+    "sha256": "930a3bffbfcd37dfe1a07ff98ddea97a0f7804c29710ecc9d00d97583d769519",
+    "bytes": 226557,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/bread004-torch.json.gz"
+  },
+  {
+    "path": "benchmark-v2/bread005-ort.json",
+    "sha256": "d4c182a51703f5badf19608b3aeb62135916584a5ed8af71c56098b50451f9ae",
+    "bytes": 227171,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/bread005-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/bread005-torch.json",
+    "sha256": "218f2f2bc5407b57f958dfddeff6f71639a2e0f7e0fdebd4e72f4e1b9157347f",
+    "bytes": 226816,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/bread005-torch.json.gz"
+  },
+  {
+    "path": "benchmark-v2/bun005-ort.json",
+    "sha256": "73cb18141e182fd91d2231675f33ad8d2f6a3f33b5b08b4d35336d7299eb3e65",
+    "bytes": 227504,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/bun005-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/bun006-ort.json",
+    "sha256": "742a9fb7f7c90f4931a5f8e753948dcc2e273d9e4753825fb1ac014d654906cc",
+    "bytes": 226677,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/bun006-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1557862783-ort.json",
+    "sha256": "dcdad7674258dbddb9acbf50e0e8805b570c829da56b89bc2a7a99471a061437",
+    "bytes": 228152,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1557862783-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1558030182-ort.json",
+    "sha256": "62fb2d84bbf23e0aabfb0e7a16867a6f2e619ba068c0b663d2649d0343317b09",
+    "bytes": 227883,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1558030182-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1558376437-ort.json",
+    "sha256": "6ad9acf6d4c5f68317d485ce9643df5ac1567d515e60c7f4dd208a7dd6e208f1",
+    "bytes": 227592,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1558376437-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1558461607-ort.json",
+    "sha256": "e3313e65ecbeb6f42cc61e060a76fca25c93105dd4b54f8cea009cde2daae9a8",
+    "bytes": 227616,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1558461607-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1558461792-ort.json",
+    "sha256": "771d22c422db742cf90d8ca3fd5016894fe4df386a287ebfdbdf783e21481976",
+    "bytes": 228468,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1558461792-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1558722247-ort.json",
+    "sha256": "52603514e94a7da4482c4b59c510216f397e66239d0eed38c7816018bf3cf97a",
+    "bytes": 228222,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1558722247-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1559157454-ort.json",
+    "sha256": "89c622543352efcee2b601337893a91d2c71dfa30bdd09c78a7ced5170375dcc",
+    "bytes": 227349,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1559157454-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1559934477-ort.json",
+    "sha256": "441fd2127ebb15064baf10b7fa717af2a9a2c21f603c01b854c086a982bd33f1",
+    "bytes": 227281,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1559934477-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1560203400-ort.json",
+    "sha256": "60496aeca0f71a570f4db7e18f38faacb3a28128c39e98e2ef3541bbf3227d45",
+    "bytes": 227019,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1560203400-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1560203400-torch.json",
+    "sha256": "1f389ec324666a6575cec190895439ba6832478e11e62314f8410ab1af5c49db",
+    "bytes": 226631,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1560203400-torch.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1560975517-ort.json",
+    "sha256": "ce25502ea67a7ee348b365eff9a18863e824659361bae0d48b062cb46ae9f548",
+    "bytes": 227879,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1560975517-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1561739238-ort.json",
+    "sha256": "f82ef8a76fe8ea29a36892b4f90e09486f1bc239d514c70b4c2430f7b2a2a6b0",
+    "bytes": 228784,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1561739238-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1562009810-ort.json",
+    "sha256": "86aca63dc7f41514ecbaa048723b0e38a59724d651949505e4f28ebdb0ab403b",
+    "bytes": 227094,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1562009810-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1562876494-ort.json",
+    "sha256": "570766f086a8cedc37b3cdcd27e63b6ecbc5779415d519f0f34aa7043043dd42",
+    "bytes": 227265,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1562876494-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1562963246-ort.json",
+    "sha256": "b3dabf65e9a8e44242a06f738b9fd1a038f40f5dbc3aa7745185b297bf0322bb",
+    "bytes": 228030,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1562963246-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1562963246-torch.json",
+    "sha256": "d97f08b419b8adafe8463241251bdc6ed7e35c647d6ac932adfafe6ba5612ea5",
+    "bytes": 227746,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1562963246-torch.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1563389548-ort.json",
+    "sha256": "e09fe017388205d11136dfcc952ad4549134cd1e72f2102ad874c952b1a690f9",
+    "bytes": 227541,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1563389548-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1563389600-ort.json",
+    "sha256": "89fa4657622b66b45afe088e3d3671ce63661aea4ed3078365b20a4d531b0bee",
+    "bytes": 227795,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1563389600-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1564160043-ort.json",
+    "sha256": "23a210952a1d9d47cfb3fda68d01ca2f93b75f5c6df3331a39b5049ff7b540f2",
+    "bytes": 227614,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1564160043-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1564675411-ort.json",
+    "sha256": "7bedfc2cd8457e9da656c44a9794487f951aa0ee1491ac3f552907a15358e662",
+    "bytes": 227900,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1564675411-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1564687046-ort.json",
+    "sha256": "fa53494f212d0cb1137bf29814e9788a7a8125cb81a26e4f1bcfc4668c4f29a8",
+    "bytes": 228692,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1564687046-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1565810969-ort.json",
+    "sha256": "a3d3c69ec42513831bba5761479103dc5d9b6146dcbc93921cf758f37be739f7",
+    "bytes": 227799,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1565810969-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1566414412-ort.json",
+    "sha256": "9e48d6ff99df7ba6278935c2ede448d24fad28b8acc288872d7a7b1d5d0811ed",
+    "bytes": 229344,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1566414412-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1566414412-torch.json",
+    "sha256": "0c7fe11bbaae7ac38d23e8fb50775158ca0e55a1526cf321a64b3039cc4ddaf7",
+    "bytes": 228963,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1566414412-torch.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1566416701-ort.json",
+    "sha256": "d06bce9e4bdfdf5622847b9a951a3a606ed9b7da01a214b087ebad14603b3d8c",
+    "bytes": 227150,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1566416701-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1566589933-ort.json",
+    "sha256": "a6f4361824bb6ef9bc906acebed0424dbd8dd3dd5086a051f3c3dbaadf121fb3",
+    "bytes": 227214,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1566589933-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1566590007-ort.json",
+    "sha256": "aa1f0cd51e9b249dbf25ce7bbab03a8107d926742726b6e9ade5a4071e3f3f3d",
+    "bytes": 227769,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1566590007-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1566920339-ort.json",
+    "sha256": "7422685309893dc613241a1da713bedfb9ad790dd0de0630f38088793460884e",
+    "bytes": 228353,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1566920339-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1566920365-ort.json",
+    "sha256": "06f26d3f1be458cce610b2a3d8db4dbb9d242e9d94020c5dddd3f1abf5466bce",
+    "bytes": 228169,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1566920365-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1567785622-ort.json",
+    "sha256": "183d485aebb14b544b7ad65ecf0019e3e785ec9b48e55b1133b37e816d366dfe",
+    "bytes": 227755,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1567785622-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1568305257-ort.json",
+    "sha256": "a7fa7657a551a33471b5f006e53de732a9f9f1a916dc15cb54b16f302b9a7a65",
+    "bytes": 229105,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1568305257-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1568401233-ort.json",
+    "sha256": "e9517d7187ac138da334fdfc3090dc03f8db9a9e861e21fe869066c6190bcd83",
+    "bytes": 227882,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1568401233-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1568401233-torch.json",
+    "sha256": "9ef512d28499db36277b6793d7ce3b32d431430f403ebb7f2c1afa99c8e53b58",
+    "bytes": 227810,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1568401233-torch.json.gz"
+  },
+  {
+    "path": "benchmark-v2/dish_1568401261-ort.json",
+    "sha256": "b87aee5b47dd6c669d5fdf3849c2c158a5f89a808c487b7fab02e5f3741a2395",
+    "bytes": 227945,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/dish_1568401261-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/doughnut006-ort.json",
+    "sha256": "f1bb7513062e2352f37f91a38db044241b347cc98b90c1fe7e0cc2e71635a7ab",
+    "bytes": 227496,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/doughnut006-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/doughnut008-ort.json",
+    "sha256": "8fcaf52af8b4ddce2de69278ad1638a8114dcecfcb144e0c3ab0ce74a649c1be",
+    "bytes": 227460,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/doughnut008-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/fired_dough_twist004-ort.json",
+    "sha256": "67e2aea182e7577e909c17c1a214205ad8bb88d8b48a0a1c8f2ee5a33fda09ee",
+    "bytes": 226571,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/fired_dough_twist004-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/fired_dough_twist006-ort.json",
+    "sha256": "7ad31ea63a5bf38b2350afdee795fa06d04ab7209b6a8091d9b5032219a36226",
+    "bytes": 226678,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/fired_dough_twist006-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/mooncake004-ort.json",
+    "sha256": "cf489aaaf37930156b6e8328084f89a844b545eca23898b33bb78d2ec57e13bd",
+    "bytes": 226744,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/mooncake004-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/mooncake006-ort.json",
+    "sha256": "960f6a3b6e9c584b84c5d2932ca941a322651077b939611b0f4dc9a7b7ad950c",
+    "bytes": 226908,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/mooncake006-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/qualification-ort.json",
+    "sha256": "aacbbe7739f9a191cce1366e4796bc980502922ba91f01dcb8b3fe8e1dd459b5",
+    "bytes": 225340,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/qualification-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/qualification-torch.json",
+    "sha256": "5ca7cdd22b50d3e1eacb9cd3349c7e2e45280b2a5649720ab56479e14e446516",
+    "bytes": 225064,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/qualification-torch.json.gz"
+  },
+  {
+    "path": "benchmark-v2/sachima004-ort.json",
+    "sha256": "6daba8647c7e9e2ed0380107d2534c2037b93886abfe34fd5c29662c3274b033",
+    "bytes": 226789,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/sachima004-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/sachima005-ort.json",
+    "sha256": "99c08d3614d0f0c446766a5b8cf96aff488ad8ecbac1c8d45279f94c9716a866",
+    "bytes": 226893,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/sachima005-ort.json.gz"
+  },
+  {
+    "path": "benchmark-v2/session.json",
+    "sha256": "a3deae6e7f0080a4bc4895945ce0523eee7a5cedc426b6445aa0ba7d22231d0a",
+    "bytes": 1605,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/session.json.gz"
+  },
+  {
+    "path": "benchmark-v2/supervision.json",
+    "sha256": "f031c13ad6f82fb6ebeae14703614ce4d2150dfb16b78d5c95d3cce1adf1b8ff",
+    "bytes": 134,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/supervision.json.gz"
+  },
+  {
+    "path": "benchmark-v2/worker-input.json",
+    "sha256": "6dc13025dd9374901635b58973ee6b60864042f55a6eedffcc977aef63c26988",
+    "bytes": 22871,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/worker-input.json.gz"
+  },
+  {
+    "path": "benchmark-v2/worker.txt",
+    "sha256": "57f08a8c7a205da5d1e030c868f67a7692374905655f1c65f66edc06b55c9c85",
+    "bytes": 6659,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2/worker.txt.gz"
+  },
+  {
+    "path": "benchmark-v2-host.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/benchmark-v2-host.txt.gz"
+  },
+  {
     "path": "diagnostic-host.txt",
     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "bytes": 0,
@@ -130,5 +460,53 @@
     "sha256": "f6ced1a800baed3c3d993a5d17753277462c1350de502177c5d44a5b65c8f64e",
     "bytes": 584605,
     "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/export-legacy/worker.txt.gz"
+  },
+  {
+    "path": "qualification-v2/accepted.json",
+    "sha256": "68afa6303f12fbb2201125b3924aae710ea649ffcaceafde0fa337028e6d8708",
+    "bytes": 1755,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/qualification-v2/accepted.json.gz"
+  },
+  {
+    "path": "qualification-v2/qualification.json",
+    "sha256": "0c080a1c5a1e57e05e475f19e0d2d24af28e309d5cb9a2a9882129a4cfaba145",
+    "bytes": 225340,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/qualification-v2/qualification.json.gz"
+  },
+  {
+    "path": "qualification-v2/session.json",
+    "sha256": "35eeb26337c692d28581f4d82ccd331490cece63b40a6857071d441b1e2fd59a",
+    "bytes": 187,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/qualification-v2/session.json.gz"
+  },
+  {
+    "path": "qualification-v2/supervision.json",
+    "sha256": "2214393f36c1779e8317ae4845f661e97c03b9c2f25ff14819251867b2789116",
+    "bytes": 133,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/qualification-v2/supervision.json.gz"
+  },
+  {
+    "path": "qualification-v2/worker-input.json",
+    "sha256": "d46e455b78f7961f495c027d6f4d8344b8c5927ecf7bf519b6359cf53e14394c",
+    "bytes": 2238,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/qualification-v2/worker-input.json.gz"
+  },
+  {
+    "path": "qualification-v2/worker.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/qualification-v2/worker.txt.gz"
+  },
+  {
+    "path": "qualification-v2-host.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/qualification-v2-host.txt.gz"
+  },
+  {
+    "path": "selected-v2.json",
+    "sha256": "18cfa190fd7f9e53aa38428cf8f5f923fe43536d0a060e2274a467b907973299",
+    "bytes": 2642,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/selected-v2.json.gz"
   }
 ]

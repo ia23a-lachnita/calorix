@@ -1,0 +1,4737 @@
+{
+  "experiment": "lens-onnx-endpoint-compatibility-v2",
+  "profileSha256": "4b41d950e2a0463e0f80b94d8560417d66106745e77e13be695c79921ab51c96",
+  "rawV1": {
+    "qualification": "FAILED",
+    "foodScored": 42,
+    "foodPassed": 0,
+    "foodPlanned": 42
+  },
+  "endpointV2": {
+    "passes": false,
+    "foodScored": 42,
+    "foodPassed": 0,
+    "foodPlanned": 42,
+    "controlScored": 6,
+    "metricGuards": [
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "raw_speed_qualified": false,
+  "v2_material_speed_qualified": false,
+  "v2_strong_speed_qualified": false,
+  "pairedTiming": {
+    "planned": 6,
+    "scored": 6,
+    "rows": [
+      {
+        "id": "bread004",
+        "order": [
+          "torch",
+          "ort"
+        ],
+        "imageWallRatio": 1.7398935003996474,
+        "forwardAndDecodeRatio": 1.7408212836885755,
+        "torchImageWallMs": 65161.34971100837,
+        "ortImageWallMs": 37451.343829976395
+      },
+      {
+        "id": "bread005",
+        "order": [
+          "ort",
+          "torch"
+        ],
+        "imageWallRatio": 1.8560138900951362,
+        "forwardAndDecodeRatio": 1.857208377261379,
+        "torchImageWallMs": 67715.86093399674,
+        "ortImageWallMs": 36484.56581891514
+      },
+      {
+        "id": "dish_1562963246",
+        "order": [
+          "torch",
+          "ort"
+        ],
+        "imageWallRatio": 1.8550788980426993,
+        "forwardAndDecodeRatio": 1.8559609481959134,
+        "torchImageWallMs": 67456.12587593496,
+        "ortImageWallMs": 36362.94173100032
+      },
+      {
+        "id": "dish_1566414412",
+        "order": [
+          "ort",
+          "torch"
+        ],
+        "imageWallRatio": 1.7866999877983871,
+        "forwardAndDecodeRatio": 1.787555589856452,
+        "torchImageWallMs": 66644.81261116453,
+        "ortImageWallMs": 37300.505438121036
+      },
+      {
+        "id": "dish_1560203400",
+        "order": [
+          "torch",
+          "ort"
+        ],
+        "imageWallRatio": 1.9537814730886984,
+        "forwardAndDecodeRatio": 1.9548545995057987,
+        "torchImageWallMs": 66762.23551901057,
+        "ortImageWallMs": 34170.77930085361
+      },
+      {
+        "id": "dish_1568401233",
+        "order": [
+          "ort",
+          "torch"
+        ],
+        "imageWallRatio": 1.9309664637605648,
+        "forwardAndDecodeRatio": 1.9324823037100634,
+        "torchImageWallMs": 70497.75153701194,
+        "ortImageWallMs": 36509.050188120455
+      }
+    ],
+    "medianPairedImageWallRatio": 1.8555463940689179,
+    "medianPairedForwardRatio": 1.8565846627286462,
+    "ratioOfImageWallMedians": 1.8387684942476161
+  },
+  "servedCalorieMetrics": {
+    "discovery10": {
+      "selected": 10,
+      "oldTorch": {
+        "selected": 10,
+        "scored": 10,
+        "failed": 0,
+        "coverage": 1.0,
+        "served": {
+          "scored_meals": 10,
+          "mae_kcal": 109.25793530000001,
+          "bias_kcal": -46.456316900000004,
+          "p90_absolute_error_kcal": 237.68103160000007,
+          "mean_normalized_absolute_error": 0.18699568879186934,
+          "median_absolute_error_kcal": 92.271986
+        },
+        "amounts": {
+          "massG": {
+            "mae": 43.36999999999999,
+            "bias": -38.73,
+            "p90_absolute_error": 91.44999999999996
+          },
+          "proteinG": {
+            "mae": 10.4400017,
+            "bias": 2.5498408999999995,
+            "p90_absolute_error": 22.248409399999993
+          },
+          "carbsG": {
+            "mae": 8.6787457,
+            "bias": -6.839345300000001,
+            "p90_absolute_error": 21.884902999999998
+          },
+          "fatG": {
+            "mae": 6.9378291,
+            "bias": -3.3905695000000002,
+            "p90_absolute_error": 18.357270400000004
+          }
+        }
+      },
+      "newOrt": {
+        "selected": 10,
+        "scored": 10,
+        "failed": 0,
+        "coverage": 1.0,
+        "served": {
+          "scored_meals": 10,
+          "mae_kcal": 109.25993530000001,
+          "bias_kcal": -46.456316900000004,
+          "p90_absolute_error_kcal": 237.68103160000007,
+          "mean_normalized_absolute_error": 0.18699925394571498,
+          "median_absolute_error_kcal": 92.271986
+        },
+        "amounts": {
+          "massG": {
+            "mae": 43.36999999999999,
+            "bias": -38.73,
+            "p90_absolute_error": 91.44999999999996
+          },
+          "proteinG": {
+            "mae": 10.4410017,
+            "bias": 2.5508409,
+            "p90_absolute_error": 22.249409399999994
+          },
+          "carbsG": {
+            "mae": 8.6787457,
+            "bias": -6.839345300000001,
+            "p90_absolute_error": 21.884902999999998
+          },
+          "fatG": {
+            "mae": 6.9378291,
+            "bias": -3.3905695000000002,
+            "p90_absolute_error": 18.357270400000004
+          }
+        }
+      },
+      "absoluteMetricDifferences": {
+        "mae_kcal": 0.001999999999995339,
+        "bias_kcal": 0.0,
+        "median_absolute_error_kcal": 0.0,
+        "p90_absolute_error_kcal": 0.0,
+        "mean_normalized_absolute_error": 3.5651538456416e-06
+      },
+      "passesBounds": true,
+      "rawV1Protocol": "FAILED qualification",
+      "endpointV2Verdict": "FAIL_OR_INCOMPLETE"
+    },
+    "validation20": {
+      "selected": 20,
+      "oldTorch": {
+        "selected": 20,
+        "scored": 20,
+        "failed": 0,
+        "coverage": 1.0,
+        "served": {
+          "scored_meals": 20,
+          "mae_kcal": 35.695046950000005,
+          "bias_kcal": -2.651036149999998,
+          "p90_absolute_error_kcal": 121.07898150000003,
+          "mean_normalized_absolute_error": 0.12425727685257137,
+          "median_absolute_error_kcal": 10.979143500000028
+        },
+        "amounts": {
+          "massG": {
+            "mae": 21.330000000000005,
+            "bias": -0.8100000000000047,
+            "p90_absolute_error": 42.95
+          },
+          "proteinG": {
+            "mae": 4.7707916,
+            "bias": 2.3144248999999997,
+            "p90_absolute_error": 15.05881990000001
+          },
+          "carbsG": {
+            "mae": 4.0337093,
+            "bias": -1.0824973,
+            "p90_absolute_error": 10.878999900000014
+          },
+          "fatG": {
+            "mae": 2.5568526,
+            "bias": -1.0249282000000002,
+            "p90_absolute_error": 7.258900100000007
+          }
+        }
+      },
+      "newOrt": {
+        "selected": 20,
+        "scored": 20,
+        "failed": 0,
+        "coverage": 1.0,
+        "served": {
+          "scored_meals": 20,
+          "mae_kcal": 35.695046950000005,
+          "bias_kcal": -2.651036149999998,
+          "p90_absolute_error_kcal": 121.07898150000003,
+          "mean_normalized_absolute_error": 0.12425727685257137,
+          "median_absolute_error_kcal": 10.979143500000028
+        },
+        "amounts": {
+          "massG": {
+            "mae": 21.330000000000005,
+            "bias": -0.8100000000000047,
+            "p90_absolute_error": 42.95
+          },
+          "proteinG": {
+            "mae": 4.7707916,
+            "bias": 2.3144248999999997,
+            "p90_absolute_error": 15.05881990000001
+          },
+          "carbsG": {
+            "mae": 4.0337093,
+            "bias": -1.0824973,
+            "p90_absolute_error": 10.878999900000014
+          },
+          "fatG": {
+            "mae": 2.5568526,
+            "bias": -1.0249282000000002,
+            "p90_absolute_error": 7.258900100000007
+          }
+        }
+      },
+      "absoluteMetricDifferences": {
+        "mae_kcal": 0.0,
+        "bias_kcal": 0.0,
+        "median_absolute_error_kcal": 0.0,
+        "p90_absolute_error_kcal": 0.0,
+        "mean_normalized_absolute_error": 0.0
+      },
+      "passesBounds": true,
+      "rawV1Protocol": "FAILED qualification",
+      "endpointV2Verdict": "FAIL_OR_INCOMPLETE"
+    }
+  },
+  "massOnlyMetrics": {
+    "old": {
+      "oldTorch": {
+        "attempted": 6,
+        "scored": 6,
+        "failed": 0,
+        "coverage": 1.0,
+        "maeG": 29.116666666666667,
+        "medianAbsoluteErrorG": 33.65,
+        "p90AbsoluteErrorG": 37.6,
+        "biasG": 18.383333333333333
+      },
+      "newOrt": {
+        "attempted": 6,
+        "scored": 6,
+        "failed": 0,
+        "coverage": 1.0,
+        "maeG": 29.116666666666667,
+        "medianAbsoluteErrorG": 33.65,
+        "p90AbsoluteErrorG": 37.6,
+        "biasG": 18.383333333333333
+      },
+      "absoluteMetricDifferences": {
+        "maeG": 0.0,
+        "biasG": 0.0,
+        "medianAbsoluteErrorG": 0.0,
+        "p90AbsoluteErrorG": 0.0
+      },
+      "passesBounds": true,
+      "rawV1Protocol": "FAILED qualification",
+      "endpointV2Verdict": "FAIL_OR_INCOMPLETE"
+    },
+    "fresh": {
+      "oldTorch": {
+        "attempted": 6,
+        "scored": 6,
+        "failed": 0,
+        "coverage": 1.0,
+        "maeG": 35.11666666666667,
+        "medianAbsoluteErrorG": 34.2,
+        "p90AbsoluteErrorG": 54.9,
+        "biasG": 12.550000000000002
+      },
+      "newOrt": {
+        "attempted": 6,
+        "scored": 6,
+        "failed": 0,
+        "coverage": 1.0,
+        "maeG": 35.11666666666667,
+        "medianAbsoluteErrorG": 34.2,
+        "p90AbsoluteErrorG": 54.9,
+        "biasG": 12.550000000000002
+      },
+      "absoluteMetricDifferences": {
+        "maeG": 0.0,
+        "biasG": 0.0,
+        "medianAbsoluteErrorG": 0.0,
+        "p90AbsoluteErrorG": 0.0
+      },
+      "passesBounds": true,
+      "rawV1Protocol": "FAILED qualification",
+      "endpointV2Verdict": "FAIL_OR_INCOMPLETE"
+    }
+  },
+  "allRecordChecks": [
+    {
+      "id": "dish_1566590007",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.006079673767089844,
+            "outsideTolerance": 16
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.2891310453414917,
+            "outsideTolerance": 18
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.52587890625e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 4.291534423828125e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.00103759765625,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0047607421875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.009999999999990905,
+          "proteinG": 0.010000000000005116,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.196065820663339e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1566414412",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.021045684814453125,
+            "outsideTolerance": 15
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.05935525894165039,
+            "outsideTolerance": 4
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.000102996826171875,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.9073486328125e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.000152587890625,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.001708984375,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.4835859002415575e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1566414412",
+      "runtime": "torch",
+      "rawV1": {
+        "passes": true,
+        "failures": [],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": true,
+        "failures": [],
+        "maxProbabilityAbsoluteDifference": 0.0,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1568305257",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.017510414123535156,
+            "outsideTolerance": 32
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 5.0954185128211975,
+            "outsideTolerance": 11
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.9073486328125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.9073486328125e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.00054931640625,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.002685546875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.3024950197837448e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1558722247",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.032813072204589844,
+            "outsideTolerance": 38
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.0345448702573776,
+            "outsideTolerance": 14
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 9.5367431640625e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0001983642578125,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.00067138671875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 7.306813656298576e-08,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1568401233",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.020154953002929688,
+            "outsideTolerance": 36
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.5814948081970215,
+            "outsideTolerance": 20
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.57763671875e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.430511474609375e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.00018310546875,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.000579833984375,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.5760274761356108e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1568401233",
+      "runtime": "torch",
+      "rawV1": {
+        "passes": true,
+        "failures": [],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": true,
+        "failures": [],
+        "maxProbabilityAbsoluteDifference": 0.0,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1563389600",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.03669261932373047,
+            "outsideTolerance": 44
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.3943042755126953,
+            "outsideTolerance": 21
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.430511474609375e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0001068115234375,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.00048828125,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.009999999999990905,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 8.649693530871083e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1566920365",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.013579368591308594,
+            "outsideTolerance": 35
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 5.354466617107391,
+            "outsideTolerance": 17
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.000152587890625,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 9.5367431640625e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.00030517578125,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.00012207039981149137,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.001953125,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 7.422642805954283e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1564687046",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.012318611145019531,
+            "outsideTolerance": 22
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.2798522710800171,
+            "outsideTolerance": 9
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0001068115234375,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.430511474609375e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 6.103515625e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 3.0517585400957614e-05,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.000732421875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.6643643429015142e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1558461792",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.01591014862060547,
+            "outsideTolerance": 42
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 6.005568231921643,
+            "outsideTolerance": 24
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 4.76837158203125e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 1.8189894035458565e-12,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 1.9073486328125e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 6.580895889340965e-08,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1561739238",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.019626617431640625,
+            "outsideTolerance": 35
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.053766250610352,
+            "outsideTolerance": 21
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 2.288818359375e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 7.152557373046875e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 3.0517596314894035e-05,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 6.103515625e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 2.1600256802645212e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "bread005",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.02203845977783203,
+            "outsideTolerance": 32
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.2986796796321869,
+            "outsideTolerance": 12
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.52587890625e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 9.5367431640625e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 3.7738038827228593e-06,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0001220703125,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 3.724736825638786e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "bread005",
+      "runtime": "torch",
+      "rawV1": {
+        "passes": true,
+        "failures": [],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": true,
+        "failures": [],
+        "maxProbabilityAbsoluteDifference": 0.0,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "bun006",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.013514518737792969,
+            "outsideTolerance": 25
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.2249942123889923,
+            "outsideTolerance": 9
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.00543212890625e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 2.384185791015625e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 6.4849853515625e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 6.866455078125e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 4.2243147230225375e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "doughnut006",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.01801776885986328,
+            "outsideTolerance": 35
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.8262325525283813,
+            "outsideTolerance": 12
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.7567072063684464e-06,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.00034332275390625,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 7.365096280409489e-06,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.001617431640625,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.00999999999999801,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.29812369499549e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "fired_dough_twist006",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.008531570434570312,
+            "outsideTolerance": 25
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.23917531967163086,
+            "outsideTolerance": 10
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.8666032701730728e-06,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 2.86102294921875e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 9.03615728020668e-06,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 6.29425048828125e-05,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 7.62939453125e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.009999999999999787
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.9108628022956875e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "mooncake004",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.02617168426513672,
+            "outsideTolerance": 23
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.24040347337722778,
+            "outsideTolerance": 9
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.76837158203125e-06,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 2.6226043701171875e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.4332275390625e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 1.9073493149335263e-06,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0003204345703125,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 4.667262932800398e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "sachima004",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.04161834716796875,
+            "outsideTolerance": 22
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.09798061847686768,
+            "outsideTolerance": 7
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 9.5367431640625e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.147125244140625e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 8.20159912109375e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 8.634378996785763e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "bread004",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.02089214324951172,
+            "outsideTolerance": 33
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.1573827862739563,
+            "outsideTolerance": 9
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 2.6702880859375e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.9073486328125e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.1948089599609375e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 3.814696810877649e-06,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 9.1552734375e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 5.197532212952716e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "bread004",
+      "runtime": "torch",
+      "rawV1": {
+        "passes": true,
+        "failures": [],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": true,
+        "failures": [],
+        "maxProbabilityAbsoluteDifference": 0.0,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "bun005",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.010201454162597656,
+            "outsideTolerance": 20
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.2515837252140045,
+            "outsideTolerance": 9
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.00016021728515625,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.000457763671875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.1209663123845637e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "doughnut008",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.016872406005859375,
+            "outsideTolerance": 35
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.033469796180725,
+            "outsideTolerance": 14
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.3113021850585938e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 6.437301635742188e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 7.552010629297001e-06,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0001220703125,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 3.3568849316933935e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "fired_dough_twist004",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.015428543090820312,
+            "outsideTolerance": 30
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.7665689587593079,
+            "outsideTolerance": 12
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 2.5331974029541016e-06,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.430511474609375e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.2874603271484375e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 3.814697265625e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.2617979055495887e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "mooncake006",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.02972412109375,
+            "outsideTolerance": 32
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.828739404678345,
+            "outsideTolerance": 13
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 7.62939453125e-06,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 9.5367431640625e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 6.103515625e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0003662109375,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 3.651164714180144e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "sachima005",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.020926475524902344,
+            "outsideTolerance": 29
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.12178587913513184,
+            "outsideTolerance": 8
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.71661376953125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.9073486328125e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.00016021728515625,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0001068115234375,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 6.108315447894697e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1559934477",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.02537822723388672,
+            "outsideTolerance": 26
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.1933504045009613,
+            "outsideTolerance": 7
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.6689300537109375e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.1961669921875e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0001373291015625,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 2.0817113222104666e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1558461607",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.012310981750488281,
+            "outsideTolerance": 32
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.4798452854156494,
+            "outsideTolerance": 11
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 4.76837158203125e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.000518798828125,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 7.629396350239404e-06,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.00026702880859375,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 6.082531102025884e-08,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1566416701",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.021465301513671875,
+            "outsideTolerance": 43
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.47193360328674316,
+            "outsideTolerance": 26
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.000213623046875,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.430511474609375e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0001220703125,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 1.525879997643642e-05,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0013427734375,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 2.862052507213164e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1563389548",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.022103309631347656,
+            "outsideTolerance": 47
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.7475085258483887,
+            "outsideTolerance": 27
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 2.86102294921875e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.000335693359375,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 1.5258801795425825e-05,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0015869140625,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 6.152671333525817e-08,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1567785622",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.034336090087890625,
+            "outsideTolerance": 44
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.0379818677902222,
+            "outsideTolerance": 23
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.52587890625e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 8.344650268554688e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 2.6702880859375e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 6.611026214154879e-08,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1566589933",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.05915260314941406,
+            "outsideTolerance": 37
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.3623851537704468,
+            "outsideTolerance": 24
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.57763671875e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 2.9802322387695312e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.0728836059570312e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.000579833984375,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.3143238136725799e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1562963246",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.027790069580078125,
+            "outsideTolerance": 46
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.21132493019104004,
+            "outsideTolerance": 30
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0001220703125,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 9.5367431640625e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 5.340576171875e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 7.627761533512967e-06,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0003662109375,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.0908969001466318e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1562963246",
+      "runtime": "torch",
+      "rawV1": {
+        "passes": true,
+        "failures": [],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": true,
+        "failures": [],
+        "maxProbabilityAbsoluteDifference": 0.0,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1560975517",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.03779125213623047,
+            "outsideTolerance": 43
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.6266771554946899,
+            "outsideTolerance": 13
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.52587890625e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 4.76837158203125e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.57763671875e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 9.1552734375e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 2.532575930080938e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1558030182",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.032868385314941406,
+            "outsideTolerance": 54
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.4957015812397003,
+            "outsideTolerance": 17
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 5.340576171875e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.9669532775878906e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 5.340576171875e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 2.546585164964199e-11,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.00011444091796875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 6.501682904065395e-08,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1558376437",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.023794174194335938,
+            "outsideTolerance": 41
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0929126739501953,
+            "outsideTolerance": 17
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.3560056686401367e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 5.340576171875e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 2.765655517578125e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 6.0068553575654e-08,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1560203400",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.03446197509765625,
+            "outsideTolerance": 34
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.4849625825881958,
+            "outsideTolerance": 16
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.719329833984375e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.9591064453125e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 6.103515625e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 3.8726999221361247e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1560203400",
+      "runtime": "torch",
+      "rawV1": {
+        "passes": true,
+        "failures": [],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": true,
+        "failures": [],
+        "maxProbabilityAbsoluteDifference": 0.0,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1557862783",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.01707935333251953,
+            "outsideTolerance": 29
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.0467152893543243,
+            "outsideTolerance": 20
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.000415802001953125,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.9073486328125e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.000362396240234375,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.000732421875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 5.723735106433203e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1568401261",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.028341293334960938,
+            "outsideTolerance": 35
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.830633521080017,
+            "outsideTolerance": 20
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0001068115234375,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.1920928955078125e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 7.581710815429688e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 3.0040509914064373e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1565810969",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.04284858703613281,
+            "outsideTolerance": 41
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.606071412563324,
+            "outsideTolerance": 29
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.9073486328125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.430511474609375e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.9591064453125e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 4.57763671875e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.0509034729239142e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1564675411",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.03738689422607422,
+            "outsideTolerance": 45
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 5.370634734630585,
+            "outsideTolerance": 15
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.0517578125e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.9073486328125e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0003662109375,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 3.051756721106358e-05,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.001220703125,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 2.9977322155150254e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1562009810",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.04443073272705078,
+            "outsideTolerance": 46
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 5.4679781794548035,
+            "outsideTolerance": 34
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 5.91278076171875e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.9073486328125e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.00018310546875,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.00067138671875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 7.48535420702634e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1566920339",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.029924392700195312,
+            "outsideTolerance": 37
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 4.996947288513184,
+            "outsideTolerance": 19
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 3.814697265625e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.0010986328125,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.00213623046875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 4.177703080698869e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1559157454",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.01076507568359375,
+            "outsideTolerance": 35
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.9420923292636871,
+            "outsideTolerance": 19
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 2.6702880859375e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.430511474609375e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.52587890625e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.00011444091796875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 8.467955130431193e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1564160043",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.020325660705566406,
+            "outsideTolerance": 31
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.5884997248649597,
+            "outsideTolerance": 15
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 2.288818359375e-05,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 1.430511474609375e-06,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 9.918212890625e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 0.000457763671875,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 4.225451516182144e-07,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    },
+    {
+      "id": "dish_1562876494",
+      "runtime": "ort",
+      "rawV1": {
+        "passes": false,
+        "failures": [
+          "logits:numeric",
+          "log_grams:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.01838970184326172,
+            "outsideTolerance": 41
+          },
+          "log_grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 0.4052150100469589,
+            "outsideTolerance": 16
+          },
+          "soft": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 6.67572021484375e-06,
+            "outsideTolerance": 0
+          },
+          "log_totals": {
+            "shape": [
+              1,
+              5
+            ],
+            "maxAbsoluteDifference": 9.5367431640625e-07,
+            "outsideTolerance": 0
+          },
+          "grams": {
+            "shape": [
+              1,
+              253
+            ],
+            "maxAbsoluteDifference": 1.33514404296875e-05,
+            "outsideTolerance": 0
+          },
+          "mass_gap": {
+            "shape": [
+              1
+            ],
+            "maxAbsoluteDifference": 0.0,
+            "outsideTolerance": 0
+          },
+          "totals": {
+            "shape": [
+              1,
+              8
+            ],
+            "maxAbsoluteDifference": 1.52587890625e-05,
+            "outsideTolerance": 0
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        }
+      },
+      "endpointV2": {
+        "protocol": "endpoint-compatibility-v2",
+        "passes": false,
+        "failures": [
+          "log_grams:numeric"
+        ],
+        "maxProbabilityAbsoluteDifference": 1.5468081477898465e-06,
+        "presenceDecisionChanges": 0,
+        "massDisplayEligibilityChanges": 0
+      },
+      "raw_speed_qualified": false
+    }
+  ],
+  "recordPins": [
+    {
+      "id": "dish_1566590007",
+      "runtime": "ort",
+      "sha256": "aa1f0cd51e9b249dbf25ce7bbab03a8107d926742726b6e9ade5a4071e3f3f3d",
+      "bytes": 227769
+    },
+    {
+      "id": "dish_1566414412",
+      "runtime": "ort",
+      "sha256": "9e48d6ff99df7ba6278935c2ede448d24fad28b8acc288872d7a7b1d5d0811ed",
+      "bytes": 229344
+    },
+    {
+      "id": "dish_1566414412",
+      "runtime": "torch",
+      "sha256": "0c7fe11bbaae7ac38d23e8fb50775158ca0e55a1526cf321a64b3039cc4ddaf7",
+      "bytes": 228963
+    },
+    {
+      "id": "dish_1568305257",
+      "runtime": "ort",
+      "sha256": "a7fa7657a551a33471b5f006e53de732a9f9f1a916dc15cb54b16f302b9a7a65",
+      "bytes": 229105
+    },
+    {
+      "id": "dish_1558722247",
+      "runtime": "ort",
+      "sha256": "52603514e94a7da4482c4b59c510216f397e66239d0eed38c7816018bf3cf97a",
+      "bytes": 228222
+    },
+    {
+      "id": "dish_1568401233",
+      "runtime": "ort",
+      "sha256": "e9517d7187ac138da334fdfc3090dc03f8db9a9e861e21fe869066c6190bcd83",
+      "bytes": 227882
+    },
+    {
+      "id": "dish_1568401233",
+      "runtime": "torch",
+      "sha256": "9ef512d28499db36277b6793d7ce3b32d431430f403ebb7f2c1afa99c8e53b58",
+      "bytes": 227810
+    },
+    {
+      "id": "dish_1563389600",
+      "runtime": "ort",
+      "sha256": "89fa4657622b66b45afe088e3d3671ce63661aea4ed3078365b20a4d531b0bee",
+      "bytes": 227795
+    },
+    {
+      "id": "dish_1566920365",
+      "runtime": "ort",
+      "sha256": "06f26d3f1be458cce610b2a3d8db4dbb9d242e9d94020c5dddd3f1abf5466bce",
+      "bytes": 228169
+    },
+    {
+      "id": "dish_1564687046",
+      "runtime": "ort",
+      "sha256": "fa53494f212d0cb1137bf29814e9788a7a8125cb81a26e4f1bcfc4668c4f29a8",
+      "bytes": 228692
+    },
+    {
+      "id": "dish_1558461792",
+      "runtime": "ort",
+      "sha256": "771d22c422db742cf90d8ca3fd5016894fe4df386a287ebfdbdf783e21481976",
+      "bytes": 228468
+    },
+    {
+      "id": "dish_1561739238",
+      "runtime": "ort",
+      "sha256": "f82ef8a76fe8ea29a36892b4f90e09486f1bc239d514c70b4c2430f7b2a2a6b0",
+      "bytes": 228784
+    },
+    {
+      "id": "bread005",
+      "runtime": "ort",
+      "sha256": "d4c182a51703f5badf19608b3aeb62135916584a5ed8af71c56098b50451f9ae",
+      "bytes": 227171
+    },
+    {
+      "id": "bread005",
+      "runtime": "torch",
+      "sha256": "218f2f2bc5407b57f958dfddeff6f71639a2e0f7e0fdebd4e72f4e1b9157347f",
+      "bytes": 226816
+    },
+    {
+      "id": "bun006",
+      "runtime": "ort",
+      "sha256": "742a9fb7f7c90f4931a5f8e753948dcc2e273d9e4753825fb1ac014d654906cc",
+      "bytes": 226677
+    },
+    {
+      "id": "doughnut006",
+      "runtime": "ort",
+      "sha256": "f1bb7513062e2352f37f91a38db044241b347cc98b90c1fe7e0cc2e71635a7ab",
+      "bytes": 227496
+    },
+    {
+      "id": "fired_dough_twist006",
+      "runtime": "ort",
+      "sha256": "7ad31ea63a5bf38b2350afdee795fa06d04ab7209b6a8091d9b5032219a36226",
+      "bytes": 226678
+    },
+    {
+      "id": "mooncake004",
+      "runtime": "ort",
+      "sha256": "cf489aaaf37930156b6e8328084f89a844b545eca23898b33bb78d2ec57e13bd",
+      "bytes": 226744
+    },
+    {
+      "id": "sachima004",
+      "runtime": "ort",
+      "sha256": "6daba8647c7e9e2ed0380107d2534c2037b93886abfe34fd5c29662c3274b033",
+      "bytes": 226789
+    },
+    {
+      "id": "bread004",
+      "runtime": "ort",
+      "sha256": "16aa9cc0a68aaab96f632de1e652bbb822b849b04c161f7c74202297ddac5af4",
+      "bytes": 227076
+    },
+    {
+      "id": "bread004",
+      "runtime": "torch",
+      "sha256": "930a3bffbfcd37dfe1a07ff98ddea97a0f7804c29710ecc9d00d97583d769519",
+      "bytes": 226557
+    },
+    {
+      "id": "bun005",
+      "runtime": "ort",
+      "sha256": "73cb18141e182fd91d2231675f33ad8d2f6a3f33b5b08b4d35336d7299eb3e65",
+      "bytes": 227504
+    },
+    {
+      "id": "doughnut008",
+      "runtime": "ort",
+      "sha256": "8fcaf52af8b4ddce2de69278ad1638a8114dcecfcb144e0c3ab0ce74a649c1be",
+      "bytes": 227460
+    },
+    {
+      "id": "fired_dough_twist004",
+      "runtime": "ort",
+      "sha256": "67e2aea182e7577e909c17c1a214205ad8bb88d8b48a0a1c8f2ee5a33fda09ee",
+      "bytes": 226571
+    },
+    {
+      "id": "mooncake006",
+      "runtime": "ort",
+      "sha256": "960f6a3b6e9c584b84c5d2932ca941a322651077b939611b0f4dc9a7b7ad950c",
+      "bytes": 226908
+    },
+    {
+      "id": "sachima005",
+      "runtime": "ort",
+      "sha256": "99c08d3614d0f0c446766a5b8cf96aff488ad8ecbac1c8d45279f94c9716a866",
+      "bytes": 226893
+    },
+    {
+      "id": "dish_1559934477",
+      "runtime": "ort",
+      "sha256": "441fd2127ebb15064baf10b7fa717af2a9a2c21f603c01b854c086a982bd33f1",
+      "bytes": 227281
+    },
+    {
+      "id": "dish_1558461607",
+      "runtime": "ort",
+      "sha256": "e3313e65ecbeb6f42cc61e060a76fca25c93105dd4b54f8cea009cde2daae9a8",
+      "bytes": 227616
+    },
+    {
+      "id": "dish_1566416701",
+      "runtime": "ort",
+      "sha256": "d06bce9e4bdfdf5622847b9a951a3a606ed9b7da01a214b087ebad14603b3d8c",
+      "bytes": 227150
+    },
+    {
+      "id": "dish_1563389548",
+      "runtime": "ort",
+      "sha256": "e09fe017388205d11136dfcc952ad4549134cd1e72f2102ad874c952b1a690f9",
+      "bytes": 227541
+    },
+    {
+      "id": "dish_1567785622",
+      "runtime": "ort",
+      "sha256": "183d485aebb14b544b7ad65ecf0019e3e785ec9b48e55b1133b37e816d366dfe",
+      "bytes": 227755
+    },
+    {
+      "id": "dish_1566589933",
+      "runtime": "ort",
+      "sha256": "a6f4361824bb6ef9bc906acebed0424dbd8dd3dd5086a051f3c3dbaadf121fb3",
+      "bytes": 227214
+    },
+    {
+      "id": "dish_1562963246",
+      "runtime": "ort",
+      "sha256": "b3dabf65e9a8e44242a06f738b9fd1a038f40f5dbc3aa7745185b297bf0322bb",
+      "bytes": 228030
+    },
+    {
+      "id": "dish_1562963246",
+      "runtime": "torch",
+      "sha256": "d97f08b419b8adafe8463241251bdc6ed7e35c647d6ac932adfafe6ba5612ea5",
+      "bytes": 227746
+    },
+    {
+      "id": "dish_1560975517",
+      "runtime": "ort",
+      "sha256": "ce25502ea67a7ee348b365eff9a18863e824659361bae0d48b062cb46ae9f548",
+      "bytes": 227879
+    },
+    {
+      "id": "dish_1558030182",
+      "runtime": "ort",
+      "sha256": "62fb2d84bbf23e0aabfb0e7a16867a6f2e619ba068c0b663d2649d0343317b09",
+      "bytes": 227883
+    },
+    {
+      "id": "dish_1558376437",
+      "runtime": "ort",
+      "sha256": "6ad9acf6d4c5f68317d485ce9643df5ac1567d515e60c7f4dd208a7dd6e208f1",
+      "bytes": 227592
+    },
+    {
+      "id": "dish_1560203400",
+      "runtime": "ort",
+      "sha256": "60496aeca0f71a570f4db7e18f38faacb3a28128c39e98e2ef3541bbf3227d45",
+      "bytes": 227019
+    },
+    {
+      "id": "dish_1560203400",
+      "runtime": "torch",
+      "sha256": "1f389ec324666a6575cec190895439ba6832478e11e62314f8410ab1af5c49db",
+      "bytes": 226631
+    },
+    {
+      "id": "dish_1557862783",
+      "runtime": "ort",
+      "sha256": "dcdad7674258dbddb9acbf50e0e8805b570c829da56b89bc2a7a99471a061437",
+      "bytes": 228152
+    },
+    {
+      "id": "dish_1568401261",
+      "runtime": "ort",
+      "sha256": "b87aee5b47dd6c669d5fdf3849c2c158a5f89a808c487b7fab02e5f3741a2395",
+      "bytes": 227945
+    },
+    {
+      "id": "dish_1565810969",
+      "runtime": "ort",
+      "sha256": "a3d3c69ec42513831bba5761479103dc5d9b6146dcbc93921cf758f37be739f7",
+      "bytes": 227799
+    },
+    {
+      "id": "dish_1564675411",
+      "runtime": "ort",
+      "sha256": "7bedfc2cd8457e9da656c44a9794487f951aa0ee1491ac3f552907a15358e662",
+      "bytes": 227900
+    },
+    {
+      "id": "dish_1562009810",
+      "runtime": "ort",
+      "sha256": "86aca63dc7f41514ecbaa048723b0e38a59724d651949505e4f28ebdb0ab403b",
+      "bytes": 227094
+    },
+    {
+      "id": "dish_1566920339",
+      "runtime": "ort",
+      "sha256": "7422685309893dc613241a1da713bedfb9ad790dd0de0630f38088793460884e",
+      "bytes": 228353
+    },
+    {
+      "id": "dish_1559157454",
+      "runtime": "ort",
+      "sha256": "89c622543352efcee2b601337893a91d2c71dfa30bdd09c78a7ced5170375dcc",
+      "bytes": 227349
+    },
+    {
+      "id": "dish_1564160043",
+      "runtime": "ort",
+      "sha256": "23a210952a1d9d47cfb3fda68d01ca2f93b75f5c6df3331a39b5049ff7b540f2",
+      "bytes": 227614
+    },
+    {
+      "id": "dish_1562876494",
+      "runtime": "ort",
+      "sha256": "570766f086a8cedc37b3cdcd27e63b6ecbc5779415d519f0f34aa7043043dd42",
+      "bytes": 227265
+    }
+  ],
+  "supervision": {
+    "workerExitCode": 0,
+    "resourceStop": null,
+    "sampledPeakProcessTreeRssBytes": 2108284928,
+    "hostWallMs": 2145732.8295179177
+  },
+  "newLocalFoodPredictions": 48,
+  "plannedLocalFoodPredictions": 48,
+  "newMealVlmCalls": 0,
+  "productionPromotable": false
+}
