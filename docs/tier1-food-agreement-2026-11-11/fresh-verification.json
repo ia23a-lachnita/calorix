@@ -1,0 +1,13 @@
+{
+  "publicationCommit": "29df834",
+  "freshGitVisiblePins": 84,
+  "pythonTests": 181,
+  "pythonSkips": 0,
+  "nodeTests": 40,
+  "nodeSkips": 0,
+  "archiveAuditFactsEqual": true,
+  "freshWorktreeClean": true,
+  "newNeuralOrNetworkCalls": 0,
+  "originalSourceAndFrozenManifestUnchanged": true,
+  "scope": "Fresh source/runtime unit tests and offline arithmetic/provenance replay; no Android/UI/food-identity validation"
+}

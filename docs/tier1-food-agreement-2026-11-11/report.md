@@ -61,7 +61,7 @@ TMPDIR=/disk/task/tmp /path/to/pinned/bin/python \
   --archive docs/tier1-food-agreement-2026-11-11/predictions.zip
 ```
 
-Archive replay checks numeric/provenance closure without images and reports0 images recomputed. Host mode with `--root` pointing to retained run/assets also verifies all20 input pixels/tensors. Neither mode calls a model. Fresh-checkout publication verification is recorded separately.
+Archive replay checks numeric/provenance closure without images and reports0 images recomputed. Host mode with `--root` pointing to retained run/assets also verifies all20 input pixels/tensors. Neither mode calls a model. Fresh checkout of publication `29df834` passed84 Git-visible file pins,181/181 pinned-runtime Python tests,40/40 Node tests and an identical portable audit; it remained clean. [Verification receipt](fresh-verification.json). No additional model calls were made. Final tracking adds these verification receipts and refreshed artifact checksums; it changes no experiment source or predictions.
 
 Antigravity primary `gemini-3.8-flash`/yolo plan, corrected-source, separate fresh-context source and actual-result reviews explicitly report agreement/no must-fixes. They reviewed supplied source/result text, not independent execution or images. The host rejected invented file links, overbroad guarantees and a partial-alias safety overclaim in an earlier response, reproduced the bug, fixed it before fresh inference and obtained corrected reviews. Numeric review is not a food-recognition accuracy audit.
 

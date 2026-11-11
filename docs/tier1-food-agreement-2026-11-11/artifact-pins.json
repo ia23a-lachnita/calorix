@@ -3,7 +3,7 @@
     {
       "path": "docs/plans/2026-11-11-food-agreement-routing.md",
       "bytes": 3490,
-      "sha256": "811f4d56b229c223f77779fe898feee38251771928e2c8d006fc62e5312429a5"
+      "sha256": "6bd931b4003357e6b7fedd2e98d7d57a2b0fd33781b53fb993ae8ba1e7d3abd8"
     },
     {
       "path": "docs/tier1-food-agreement-2026-11-11/a1-control.json",
@@ -126,6 +126,26 @@
       "sha256": "70b959d10007551d44df147ed4de33bef15140df45bbb69bd1836dc0c2938129"
     },
     {
+      "path": "docs/tier1-food-agreement-2026-11-11/fresh-audit.json",
+      "bytes": 493,
+      "sha256": "82294ef7fd7b2d112bb3fb99dee728c40eca08a3a18d88eb1f8d72dc26c1d8ac"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/fresh-node.txt",
+      "bytes": 9338,
+      "sha256": "355d1402be8115232399d65ffc5962ab49d70fc5b4d407f223c374cb1a8a72dc"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/fresh-python.txt",
+      "bytes": 356,
+      "sha256": "312ecf82d1c6ec6d2d9cf1578d5b638243fa01e9849f189356d51f8dbb7b7386"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/fresh-verification.json",
+      "bytes": 420,
+      "sha256": "8023288ef3a0e03f44c8b959fecfe0fa14d7d1cc87077e4c9c84c0c3af4ef5d9"
+    },
+    {
       "path": "docs/tier1-food-agreement-2026-11-11/independent-audit.json",
       "bytes": 494,
       "sha256": "67014fa1e459058ec54388413f8b15998bcb1cd5d255a0a4d5b52f480945c267"
@@ -217,8 +237,8 @@
     },
     {
       "path": "docs/tier1-food-agreement-2026-11-11/report.md",
-      "bytes": 10251,
-      "sha256": "535b9437946e713d943c8fabecc503433863053315fbb8250ca34d909ebfac0b"
+      "bytes": 10579,
+      "sha256": "3682f6916ee7f6683ea556e39d704a2d27513d20f6f7720a23beff5c22dd3c81"
     },
     {
       "path": "docs/tier1-food-agreement-2026-11-11/result.json",

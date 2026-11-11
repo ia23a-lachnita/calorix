@@ -1,0 +1,19 @@
+{
+  "passes": true,
+  "profilePins": 14,
+  "publicImagesAndTensorsRecomputed": 0,
+  "authorMetadataRows": 5005,
+  "authorGroupsDisjointFromKnown": true,
+  "checkpointTrainingLineageVerified": false,
+  "rawScalarsFinite": 20520,
+  "nutrientProductsChecked": 20428,
+  "independentDecimalMetricFields": 90,
+  "rawToScoredPointFields": 405,
+  "actualMealSdkInvocations": 20,
+  "tokens": {
+    "input": 40360,
+    "output": 7121
+  },
+  "neuralCallsInAudit": 0,
+  "visualFoodIdentityAudit": false
+}

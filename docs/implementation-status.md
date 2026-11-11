@@ -1,3 +1,13 @@
+# Current task: fresh public accuracy screen complete; next nutrient-resolution implementation
+
+Published29df834 and pushed. Fresh clean checkout verified84Git-visiblefilepins,181/181pinned-runtimePython (0skips),40/40Node, exactportableauditfacts; remainedclean. All40actualmodelpredictions/rawnumericproducts/metrics retained and replayable; 0newmodelcallsduringaudit. Finaltracking-onlycommit recordsfreshreceipts/report/checksums; verifyfinalHEADagainstoriginbeforehandoff. No modelprocessactive. No app/default/deployment change.
+
+Outcome: fullLens new20MAE/median/P90 32.107/9.049/94.975 vsA180.799/51.734/193.821. Existinggate46.252/28.163/132.678,9switches6better3worse. Newfoodagreement0switches, failedgain criterion, rejectedwithoutretuning. Actualsource1abf452 predatedallfoodcalls. See [report](tier1-food-agreement-2026-11-11/report.md). Authorclean/groupdisjointonly; checkpointlineage andAndroidtransfer unverified. A0coverage1/20;19catalogfailures; 92.506% A1energyunverified, notsilentlyDBmatched. Actual20SDK+20localfoodcalls, no questions/retries. This is a completed bounded experiment, not all-roadmap or production-readiness completion.
+
+Nextwithinapprovedroadmap: implementationplan+pre-reviewforstrictpost-recognition73-recordnutrientresolver, preservingoriginalfoodidentities/order/count/grams andreceipts. Explicitnormalizedpreparationmatch, rejectcomposites/unknownstates, no extraVLMprompt/question. Researchdirectionreviewgreenonly, notsourceapproval. Knownreceiptsaredevelopmentfornewhypothesis; candidatevalidationrequiresseparatefreeze. Donotrepeatfailedexpandedpromptorpost-tunelexicalgate. Oldbranches/worktrees/user-owneduntrackedfilepreserved; removeonlyownedfreshverificationcheckout/metadataparservenv afterproofscollected.
+
+---
+
 # Current task: publish fresh public accuracy evidence
 
 Source1abf452b1780b27fe8dca9d68bef561e44da94cb was reviewed/tested/pushedclean before allnewfoodcalls. Exactly20originalA1SDKinvocations +20qualifiedlocalORTfoodforwards, all40valid,0retries/questions/manualcorrections/resource stops. [Report](tier1-food-agreement-2026-11-11/report.md). Fresh20 across20dates/20author-cleangroups excluding116priorIDs/104groups; checkpointtraininglineageunverified, no anotherkitchen/Androidaccuracyclaim.

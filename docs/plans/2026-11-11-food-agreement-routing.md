@@ -14,4 +14,4 @@ Current branch: `feat/food-agreement-routing`, base `b0ba28ab84852e9968c3e7ab67c
 
 Pre-implementation consultation: Antigravity MCP `calorix-food-agreement-routing-20261111`, gemini-3.8-flash/yolo, amended review explicitly reports `AGREEMENT_STATUS: agree` and `MUST_FIX: none`. Current development is offline; later public-photo A1 calls are separately frozen and bounded. The reviewer summarized exclusions as 30 prior scans; actual requirement is ALL prior inventory groups, including calibration/development/public sets, not just the 30 specialist scans. Author metadata does not independently establish checkpoint training lineage.
 
-- [ ] Publish committed evidence, verify an independent clean checkout and push final tracking.
+- [x] Publish committed evidence, verify an independent clean checkout and push final tracking.
