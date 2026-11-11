@@ -1,4 +1,16 @@
-# Current task: execute frozen independent-domain diagnostic
+# Current task: frozen independent-domain diagnostic completed
+
+Run `nutritionverse-real-transfer-v1-3c6b40c` completed from clean pushed source `3c6b40c8e7ac037aabaa8439c9e2014938663bdd`. Actual new invocations: 20 SDK and 20 local food forwards, zero retries/failures. Cumulative historical counters now 227 SDK / 242 local food repeats; zero newly weighed Android references. Six original-label route comparisons and strict mass-only control are scored. Existing default retained; no candidate promotion, source algorithm changes, APK or deployment.
+
+Private numerical report and all raw/licensed artefacts remain local. Public [execution evidence](tier1-transfer-framework-2026-11-11/execution-evidence.json) records the run, source/profile/manifest/selection hashes, opaque private evidence pins, tests and review scope. Qualification uncovered an unresolved source semantic nutrient anomaly; original labels/all cases retained, no replacement or sensitivity ranking. Arithmetic consistency does not establish reference correctness. Distinct dish IDs do not prove independent physical food instances.
+
+Verification: pinned Python `-m unittest discover -s tests` 202/202; `node --test tool/*.test.cjs` 51/51, zero skips. All 37 source pins checked, frozen bundle verified, source selection and all 20 derived JPEGs reproduced. Exhaustive arithmetic/provenance replay passed 20520 finite raw scalars, 20516 nutrient products, 500 raw-to-score fields and 132 independent Decimal metric fields; zero extra model calls. Only the three highest A1-error photographs were visually inspected. CPU worker completed within resource limits. Cost unknown, not zero. Protocol, reference-quality and actual-result reviews through Antigravity MCP gemini-3.8-flash/yolo report agree / MUST_FIX none on supplied facts; no independent visual/source execution, legal approval or significance claim adopted.
+
+Next within the approved roadmap: improve our A1 portion estimation and traceable nutrient coverage using a separately frozen validation cohort. These outcomes are development evidence, not a reusable fresh test. Do not promote Lens from the prior in-domain win, retune a gate on these outcomes, repeat the failed expanded prompt, or claim Android transfer. This is a completed bounded experiment; the full V7.1 roadmap remains incomplete. Final tracking commit/push and clean/upstream/evidence verification follow.
+
+---
+
+# Prior task: execute frozen independent-domain diagnostic
 
 Prepared 20 distinct pictured NutritionVerse-Real dishes and one hash-selected view each, with 20 unique source and derived images. Qualified 251 metadata dishes; 225 have 889 matching published photographs. The 26 metadata-only dishes were unavailable, not model-filtered. Original references remain unchanged. Ingredient nutrient columns are portion totals; sums reproduce mass and nutrients within 1e-8. Cooking yields and edible-bone allocation remain independently unverified. All selected dishes have multiple source food items.
 

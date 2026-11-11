@@ -1,4 +1,14 @@
-# Independent-domain comparison: tooling and current gate
+# Independent-domain comparison: completed private execution
+
+The frozen comparison has now run from source `3c6b40c`: 20 SDK calls and 20 qualified local forwards, zero retries/failures. The original-label result and strict mass-only comparison support retaining the existing default; no candidate is promoted. All source/input/selection checks and the independent arithmetic replay pass. Numerical results, licensed source data, predictions and the detailed report remain private. See the public [execution receipt](execution-evidence.json) for source, evidence hashes, checks, routes and review scope.
+
+Source qualification found an unresolved semantic nutrient-label anomaly. Original labels and all selected cases remain unchanged. Distinct publisher dish IDs do not prove independent physical food instances. No universal-superiority, verified-unseen-training, Android-accuracy or commercial-clearance claim follows. The scoped purpose decision is recorded with its limitations; broader commercial project purpose remains unresolved.
+
+The following is the historical source-only stage report, preserved as evidence of what had and had not run at that stage.
+
+---
+
+## Historical source-only stage and gate
 
 The dataset adapter, bounded A1/local-model runners and comparison metrics are implemented and tested. **No NutritionVerse-Real calorie benchmark has run.** No reference CSV or photos have been saved/processed, no new meal SDK calls or local food forwards occurred, and no app/default/deployment changed.
 

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "runId": "nutritionverse-real-transfer-v1-3c6b40c",
+  "sourceCommit": "3c6b40c8e7ac037aabaa8439c9e2014938663bdd",
+  "profileSha256": "570548be62ab6643b116a9d948a62ebfd63d9d702e14d69e04c21b3016d3d582",
+  "manifestSha256": "4d5d21f705f08bc986565c92650e405b73b6b1a35376352df2ead1ecf3cdf048",
+  "selectionSha256": "c5206132e3c7e218a894b803912cf9c694a39c51c8c5295d9090a0064fb069dd",
+  "privateEvidencePinsSha256": "4d27558da83eb722fbd8d421dccbfedacd51641e9401e47252c8023d38060e77",
+  "privateEvidenceFileCount": 97,
+  "modelRoutes": {
+    "baseline": "original frozen A1 Gemini3.8-flash",
+    "specialist": "qualified unchanged Calorie Lens stable-sigmoid CPU ONNX"
+  },
+  "newSdkInvocations": 20,
+  "newLocalForwards": 20,
+  "retries": 0,
+  "newAndroidWeighedReferences": 0,
+  "sourceTests": {
+    "pythonPassed": 202,
+    "nodePassed": 51,
+    "skipped": 0
+  },
+  "audit": {
+    "sourceFiles": 37,
+    "derivedImagesReproduced": 20,
+    "tensorImagesChecked": 20,
+    "rawScalars": 20520,
+    "nutrientProducts": 20516,
+    "rawToScoreFields": 500,
+    "independentDecimalFields": 132,
+    "extraNeuralCalls": 0,
+    "visualValidation": "Three outcome-selected error cases only; not exhaustive"
+  },
+  "review": {
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "conversationId": "calorix-nv-transfer-execution-20261111",
+    "agreementStatus": "agree",
+    "mustFix": "none",
+    "scope": "Supplied protocol/result facts only; no independent source/image inspection, statistical significance or legal approval claimed"
+  },
+  "decision": "Retain existing default; no candidate promotion. Source reference anomaly unresolved. Numerical results and licensed data remain private.",
+  "productionChanged": false,
+  "universalSuperiorityClaimed": false
+}
