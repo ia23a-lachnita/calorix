@@ -1,3 +1,15 @@
+# Current task: transfer-tooling source complete and pushed; protected-data use pending purpose
+
+Source2b32dd8 published/pushed on `feat/cross-dataset-calorie-eval`. Freshcleancheckoutpassed202/202pinnedPython+51/51Node,45Git-visiblefilepins andall88previousartifactpins unchanged, no skips, remainedclean. Finaltracking-onlycommitaddsproofs/checksums; verifyfinalHEADorigin. [Report](tier1-transfer-framework-2026-11-11/report.md). Primarycorrected-source+separatefresh-contextcleanMCP reviews agree/MUST_FIXnone, suppliedtextonly. Fourmodules/fivesuitesdone; sourceactualNVschema/labels/referencequality qualification andbenchmarkNOTdone.
+
+NO newfoodSDK/localforwards andNO newAndroidmeasurements; tracked207SDK/222localrepeatsunchanged. No sourceCSV/images savedorprocessed; onlypublicmetadatafilelist/paper/headeraccess checked. Rightsgatefalse/purposepending machine-refusalverifiedbeforeoutput/data/model. AwaittheONEasynchronousproject-purpose answer alreadyasked: personal/noncommercial vscommercialR&D. CCBY-NC-SA4.0 restrictscommercialuse, currentprojectpurposeundetermined. Neverinferpermissionfromsilence/elapsedtime or flipflagbecausecodingwasapproved. No model/app/default/deploymentchange. No activeworker/modelprocess.
+
+Nextaftercompatiblepurpose/evidence: updatepurpose record+rightsmanifest, inspectactualCSVheaders/units/ingredients/labelquality and cross-sourcejoin discrepancies, freeze20physicaldishIDs+onevieweach (noLens-vocab/errorfilters), prepareprivateassets andpre-image selectionreceipt/finalmanifest hashes, generatecommittedsource/runtime/profileincludingbothhashesandoriginalb0A1model/prompt/schema, review/amendifneeded,commitpushclean, run20A1+20qualifiedORTonce/noretries, independentaudit+resultreview. Puremasscounterfactual separatefromA1-fallbackworkflow, allfailed/unattemptedcasescounted. KeepNCsource/derivedassetsprivate; publicpermittedaggregates+hashes/codeonly. SDKAPIcredentialsnotclaimednewlyverified.
+
+Ownedfreshverificationworktreeremovedafterproofs; ownedSDKsourcewheelcleanupnext. Alloriginalworktrees/user-owneduntrackedfilepreserved. SourceeditingnativefallbacktraceandactualRED/GREENproofs retained. Thishandoffisablockedbenchmark/data-use stage, notsuccessfulcrossdatasetperformanceoroverallroadmapcompletion.
+
+---
+
 # Current task: transfer tooling verified; real benchmark awaits dataset-purpose answer
 
 Branch `feat/cross-dataset-calorie-eval`, base dcc0ba44ddff99382c4421507f56400b2b6b02d9. [Implementation/readiness report](tier1-transfer-framework-2026-11-11/report.md). Four new modules/five suites provide strict source joins/physical grouping, one-view SHA selection, purpose-gated private preparation, unchanged-A1 generic runner, qualified local-image-only runner and six-route metrics. Final202/202pinnedPython and51/51NodePASS, no skips; all88oldexperimentartifactpinsunchanged. ActualNVreferenceCSV/photosNOTsaved/processed,0newfoodSDK/localforwards,0newAndroidreferences. Currenttrackedfoodcounts207SDK/222localrepeatsunchanged. No app/provider/default/deploychange.

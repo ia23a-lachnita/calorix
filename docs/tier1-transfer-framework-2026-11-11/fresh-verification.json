@@ -1,0 +1,15 @@
+{
+  "sourceCommit": "2b32dd8",
+  "freshGitVisibleFilePins": 45,
+  "previousArtifactPinsUnchanged": 88,
+  "pythonPassed": 202,
+  "pythonSkipped": 0,
+  "nodePassed": 51,
+  "nodeSkipped": 0,
+  "freshWorktreeClean": true,
+  "newFoodSdkCalls": 0,
+  "newLocalFoodForwards": 0,
+  "protectedDatasetQualified": false,
+  "purposeClarification": "pending",
+  "scope": "Owned-fixture implementation verification only; no real-dataset accuracy or Android validation"
+}

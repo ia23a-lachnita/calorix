@@ -66,6 +66,21 @@
       "sha256": "6636b20aefa037b0f5e48ec26465c36e4950dd9b71fbf58a2bf39648f455a353"
     },
     {
+      "path": "docs/tier1-transfer-framework-2026-11-11/fresh-node.txt",
+      "bytes": 11828,
+      "sha256": "24e13d4291a8eab123c8088554dd7733e5f0136602d331354353382061d68f4e"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/fresh-python.txt",
+      "bytes": 377,
+      "sha256": "46de98dba4905a22a9ce8555b52ad6999cac17930c69c0d2c733fa248ea9ffa1"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/fresh-verification.json",
+      "bytes": 456,
+      "sha256": "c25e82f120eeaa1270a17ee52c3e9c68c20a59b4993b3fcf27b9c6fb4235298e"
+    },
+    {
       "path": "docs/tier1-transfer-framework-2026-11-11/local-green.txt",
       "bytes": 100,
       "sha256": "6f283ee6225d2cef4c0127d95456a6f954c45141c92b97dd89016cb1c630e8f4"
@@ -132,8 +147,8 @@
     },
     {
       "path": "docs/tier1-transfer-framework-2026-11-11/report.md",
-      "bytes": 9124,
-      "sha256": "f8edc98ed3f161d050d87aeaf04146b6d00676c9c11a13727abd5e4bd6055766"
+      "bytes": 9333,
+      "sha256": "e2ba6512a1689e259d1666f20d69fa3d7250973f5cee7386ea60fa2aaa4d9e3a"
     },
     {
       "path": "docs/tier1-transfer-framework-2026-11-11/review-green.txt",
