@@ -289,7 +289,7 @@ calorie_lens_target_android_accuracy_measured: false
 calorie_lens_new_reference_meals: 0
 calorie_lens_training: false
 calorie_lens_production_change: false
-calorie_lens_next_experiment: "Same pinned model ONNX numerical parity and CPU latency; not yet executed"
+calorie_lens_next_experiment: "Faithful ONNX and clean public screen completed; next isolate post-recognition nutrient resolution"
 calorie_lens_training_scope: "No additional training in this experiment; upstream model is pretrained on Nutrition5k, Flavoria and USDA data"
 
 # Runtime-only conversion experiment: neither original protocol qualified.
@@ -307,3 +307,23 @@ calorie_lens_stable_onnx_strict_cpu_parity_qualified: true
 calorie_lens_stable_onnx_material_speed_qualified: true
 calorie_lens_stable_onnx_strong_speed_qualified: false
 calorie_lens_stable_onnx_production_promoted: false
+
+# Frozen author-group-disjoint public accuracy screen; original A1 remains default.
+food_agreement_experiment: "food-agreement-v1-clean-groups"
+food_agreement_source_commit: "1abf452b1780b27fe8dca9d68bef561e44da94cb"
+food_agreement_profile: "functions/eval/tier1-public/food-agreement-profile-v1.json"
+food_agreement_report: "docs/tier1-food-agreement-2026-11-11/report.md"
+food_agreement_new_public_cases: 20
+food_agreement_actual_meal_sdk_invocations: 20
+food_agreement_actual_local_food_forwards: 20
+food_agreement_checkpoint_training_lineage_verified: false
+food_agreement_new_selector_status: "rejected_zero_switches_no_accuracy_gain"
+food_agreement_new_selector_mae_kcal: 80.7992503
+food_agreement_a1_mae_kcal: 80.7992503
+food_agreement_full_specialist_mae_kcal: 32.107301
+food_agreement_full_specialist_median_kcal: 9.0489465
+food_agreement_full_specialist_p90_kcal: 94.9747078
+food_agreement_existing_gate_mae_kcal: 46.25232
+food_agreement_existing_gate_median_kcal: 28.1634935
+food_agreement_existing_gate_p90_kcal: 132.6783702
+food_agreement_production_promoted: false

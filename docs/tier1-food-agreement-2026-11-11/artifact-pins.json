@@ -1,0 +1,424 @@
+{
+  "files": [
+    {
+      "path": "docs/plans/2026-11-11-food-agreement-routing.md",
+      "bytes": 3490,
+      "sha256": "811f4d56b229c223f77779fe898feee38251771928e2c8d006fc62e5312429a5"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/a1-control.json",
+      "bytes": 2005,
+      "sha256": "40267813e7ea6899aab9420a2e3f868f0c0a5f7ad8903186fb8f9c0cbc84798a"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/a1-host.txt",
+      "bytes": 7490,
+      "sha256": "710d9134f738a34e0cd208d5413ab9aadc83fff02da3c329cbe86254f194e267"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/a1-run.json",
+      "bytes": 666,
+      "sha256": "1d7be26a07400102b810e55674a6cd4efd2c112d8d1a50a6def655782ca138e0"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/a1-summary.json",
+      "bytes": 6432,
+      "sha256": "a97afade3538405b85be8f45ac10f72eb26db89641dc08277256924babfdb585"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/antigravity-amended.json",
+      "bytes": 1580,
+      "sha256": "cf6eb5a96cbdd31eef2c373a404f3a9dd7f3df29a9e93e20770b84602d32ce8b"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/antigravity-amendedSource.json",
+      "bytes": 1333,
+      "sha256": "a92b76ee245e77e10b7e060da0892bc84fe85a4da5ba8c8c6c755a69a5b492b8"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/antigravity-freshSource.json",
+      "bytes": 2732,
+      "sha256": "2bcff61a1e19119774de8f6b9bb67460f635ffda047272f7b80d6767f21cd158"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/antigravity-nutrientResearch.json",
+      "bytes": 1782,
+      "sha256": "a7140fd5d14439e3d03c2b1d3163f4543d43b89a51d25aa0c6b5802d7deff3c8"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/antigravity-nutrientResearchAmendment.json",
+      "bytes": 1126,
+      "sha256": "2f423978b5b14430a6239aee8ed7e9c3d390f859ddbef8068a0cd5d554b1ee12"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/antigravity-pre.json",
+      "bytes": 6470,
+      "sha256": "46dc1fc89f6d767a0dadd8f19ced6478e49fd6f5c6e3dbba2f2b79fe1f53c275"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/antigravity-publication.json",
+      "bytes": 2082,
+      "sha256": "956885ee68d88978a4cf3de9d8b07b78da3e03b6718a54fe3c79165fe46bf37a"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/antigravity-results.json",
+      "bytes": 1779,
+      "sha256": "b6c32eda0021208b355a818337243909162077b968b50263262dd3a512473695"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/antigravity-source.json",
+      "bytes": 3548,
+      "sha256": "44892086de8c952b0bd6386d593bbca6d582d1bc35d4afbbd4dbbace32a5d9dc"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/breakdown.json",
+      "bytes": 12579,
+      "sha256": "476f7ce22bc7c83e647cc3d9cc9d27f16de327efa3aebed4688f8901437ae100"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/cohort-green.txt",
+      "bytes": 103,
+      "sha256": "0f7e4b97443e54aca647179972594d13bb587afcbf151fab8228148587ea844a"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/cohort-red.txt",
+      "bytes": 11562,
+      "sha256": "c36b9845b11ad1b0813e78c15cab61fc7d246a44b2c09f248ba30a73a5b51448"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/dataset-api.json",
+      "bytes": 9805,
+      "sha256": "546ad13f74e03160653af6dee2e9defb996c75581002117e6937d9d66e237718"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/dataset-card.md",
+      "bytes": 5833,
+      "sha256": "ba0235b8ded45bfe8ebae65ae1228b1f24c30b0cd0ac026fc162035bc68b3c17"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/development-results.json",
+      "bytes": 48806,
+      "sha256": "42ddf805121f71c06e00d94b0227105476161083519773653a2ac1866b63f054"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/dish-groups.csv",
+      "bytes": 151832,
+      "sha256": "87d1b4ebc9db79ec3e1a558d0b3731a154c7724c4de7d71561d836bd7b09d0ec"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/dishes.parquet",
+      "bytes": 403077,
+      "sha256": "e6816da329318a3dc79a965899ae18bced0a7a13b321ab40d19148d32fe3aece"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/ecust-regression.json",
+      "bytes": 1577,
+      "sha256": "3412d54ccb80bc46f697a26f01c47c952c9518d8aa1bb1746508c4d85fe8fbfc"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/eval-green.txt",
+      "bytes": 101,
+      "sha256": "199ba496f288116d36c62f29346d4fbf0bd75745a1c893abfcbdaa4c6d5b1033"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/eval-red.txt",
+      "bytes": 2501,
+      "sha256": "70b959d10007551d44df147ed4de33bef15140df45bbb69bd1836dc0c2938129"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/independent-audit.json",
+      "bytes": 494,
+      "sha256": "67014fa1e459058ec54388413f8b15998bcb1cd5d255a0a4d5b52f480945c267"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/lens-host.txt",
+      "bytes": 118,
+      "sha256": "26d514098bed4ee2fcc39c7de9fc715a0e51d590e91a90a03efb9fc7329e9f25"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/lens-session.json",
+      "bytes": 1460,
+      "sha256": "dc04d54572d1907298f59392b871388b3852cd7bbe0f0265f9c01d91e6bdcc8e"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/lens-supervision.json",
+      "bytes": 128,
+      "sha256": "c742bf6ba657b99f87bcf1492221920f0cf41d5f3dee06239c3eaa30978a42c5"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/lens-worker-input.json",
+      "bytes": 6713,
+      "sha256": "abd2198c37925a7aabb48005799d372eebbf2f17c627687d17e3f3136b8e5890"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/model-api.json",
+      "bytes": 4973,
+      "sha256": "752b30e5c8c99f18f1bb90e4bf88fa6bdf17085282ad1e3d6d6dbbc4f7787153"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/model-card.md",
+      "bytes": 15062,
+      "sha256": "b59c59545257af75158df7fc4ae48f7695e82c4675f30dfb774350638b485b47"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/node-all.txt",
+      "bytes": 9333,
+      "sha256": "02fbe5846eb1a9e750b73be7709b41d468fc64794dacd71507fde74ba54ff454"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/partial-food-green.txt",
+      "bytes": 114,
+      "sha256": "dd66dc12bfcb6c4d993aa8eb8214ddc7eeda8fe6971e32e64613831e880088f9"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/partial-food-red.txt",
+      "bytes": 3231,
+      "sha256": "ccf608209c26792188075934b30b27ef8a398fd6f51db987c7d525361c3ce0c8"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/per-case.csv",
+      "bytes": 10115,
+      "sha256": "907cd78570e6827c908cf1b1bad82a92b783fc3a94a4f7a56310fd7e6e21b049"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/portable-audit.json",
+      "bytes": 493,
+      "sha256": "82294ef7fd7b2d112bb3fb99dee728c40eca08a3a18d88eb1f8d72dc26c1d8ac"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/predictions.zip",
+      "bytes": 686861,
+      "sha256": "73a32fd0ad42b66e9cd532f378b8f4c83590ea7fa4d3192144d4c7754c918c8e"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/prior-group-audit.json",
+      "bytes": 5345,
+      "sha256": "4b44e3baa5f3efc03894068b1ccbe330569677f7a5c02ed3c38e7a5390aa698e"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/protocol.md",
+      "bytes": 4492,
+      "sha256": "d57a44dde410b2139b3c97cca896bdc4ef552c30d1f3ec50ecdcf13f68f76229"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/python-all.txt",
+      "bytes": 366,
+      "sha256": "e8ae4136f180180f13874e2364a48844bef0a79e2561090b6ee34f70ced9fbe2"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/python-runtime-final.txt",
+      "bytes": 356,
+      "sha256": "4ed68b74e23b0bb2e5fdf985e69e194b9d1337bc42700ad44fb5a497fe91cbe2"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/replay.py",
+      "bytes": 9514,
+      "sha256": "9893b96cbddffbb5f61861f210ef5c0424199bc9c21f21d4f39ae065e937af47"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/report.md",
+      "bytes": 10251,
+      "sha256": "535b9437946e713d943c8fabecc503433863053315fbb8250ca34d909ebfac0b"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/result.json",
+      "bytes": 28636,
+      "sha256": "a6872dc658599ea146011e454a45b6711207276f5e86ee3aa38c730177368aea"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/routing-green.txt",
+      "bytes": 113,
+      "sha256": "ca96efe64455e2b08e49978ef4005cb9cd961a7198e7571426b71b05fe0b2724"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/routing-red.txt",
+      "bytes": 53279,
+      "sha256": "6a7f1c630b524050cd2d48876cb99be69311350fa0160082ec322123242d163c"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/selection-before-images.json",
+      "bytes": 49529,
+      "sha256": "c89811806081805818ded248f13d9c7a070cf1ba9e15f0556b4616af1fb76b8e"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/worker-claude.json",
+      "bytes": 178,
+      "sha256": "61e20c06961632ddfc8931e62fb5637b9d745adde14b54d23b73113dfb3a519d"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/worker-grok.json",
+      "bytes": 363,
+      "sha256": "380d7f76e3625a3d2f8b95069b228f6ac096c50874d69836385d6d6427442e88"
+    },
+    {
+      "path": "docs/tier1-food-agreement-2026-11-11/worker-qwen.json",
+      "bytes": 375,
+      "sha256": "2f2de545c58c3fb85359e71db267ff2b00a51cf9a22d5e60c9abf1603bc7f880"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens-profile-v1.json",
+      "bytes": 8493,
+      "sha256": "55f5586ccb498af4cc8856e670a806eefb3d24ef647269153fc67734fab2da05"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/config.json",
+      "bytes": 67593,
+      "sha256": "a4bf17a7b78f3a0020839ac2e848a697bb8e2b98d82442e60ac8b9ac983352ce"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/ingredients_metadata.csv",
+      "bytes": 21540,
+      "sha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/onnx-requirements-lock.txt",
+      "bytes": 155,
+      "sha256": "702152fee80b90305bfb5aef21c90e5dd367d8304bcc35c42bcd512b2c5e9287"
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/runtime-requirements-lock.txt",
+      "bytes": 996,
+      "sha256": "2aee8dea3d07c928be794060da43052a36dc51363c87014d74dcf121d02b7382"
+    },
+    {
+      "path": "functions/eval/tier1-public/food-agreement-profile-v1.json",
+      "bytes": 3341,
+      "sha256": "cb5d25e44fb0eaba0241fd247c7cc557bac0e2bceb3de8d43b4b2229284975e7"
+    },
+    {
+      "path": "functions/eval/tier1-public/lens-onnx-lowering-profile-v3.json",
+      "bytes": 2909,
+      "sha256": "081ce873e6f614cb389231db5f0278d1656b458627f744c282c97b2f24c5f939"
+    },
+    {
+      "path": "functions/eval/tier1-public/lens-onnx-profile-v1.json",
+      "bytes": 38271,
+      "sha256": "4b41d950e2a0463e0f80b94d8560417d66106745e77e13be695c79921ab51c96"
+    },
+    {
+      "path": "functions/eval/tier1-public/manifest-calorie-lens-v1.json",
+      "bytes": 190815,
+      "sha256": "16808bec08c1f609a3cb6deff018c9d6b43a30e180c3fb38333ed825fcc96674"
+    },
+    {
+      "path": "functions/eval/tier1-public/manifest-food-agreement-v1.json",
+      "bytes": 58329,
+      "sha256": "ad08f634fc7fcb537124295af8ec329325e324db5cb18f1caa8b8f10cbe25818"
+    },
+    {
+      "path": "functions/package-lock.json",
+      "bytes": 263912,
+      "sha256": "98e0617641059a0ae1029df6f5a22a90c0885dbe61235808d9a322a8f340cc51"
+    },
+    {
+      "path": "functions/src/tier1-analysis.ts",
+      "bytes": 12366,
+      "sha256": "7ad164e73a934c8822a711d678c1f572247403cb9de51aaffb96e6a4f4a5a453"
+    },
+    {
+      "path": "functions/src/tier1-callable.ts",
+      "bytes": 2065,
+      "sha256": "55c9a057c1913b885a05e4471b4c050a58c078c3581d6bc2d20d5c8ff40c7f92"
+    },
+    {
+      "path": "functions/src/tier1-catalog.ts",
+      "bytes": 3384,
+      "sha256": "a8f9753328f71e689747e21e5000672f94f33fa519e9ac97f33c8622184dcb71"
+    },
+    {
+      "path": "functions/src/tier1-cli.ts",
+      "bytes": 4907,
+      "sha256": "e0061ec1b2097cc99e431c8e703fce34c2fb24418097b2eb26707741f889b09e"
+    },
+    {
+      "path": "functions/src/tier1-public-eval.ts",
+      "bytes": 14262,
+      "sha256": "ce887a731ac7fd09c776ffba9fed4fce4d7191ea1d86982a96940c6064c71f6b"
+    },
+    {
+      "path": "model_manifest.yaml",
+      "bytes": 20239,
+      "sha256": "4c082d5d4ca0896928415b8b214932e9d78f9c33479d14b3f0dbbaac37f40ff3"
+    },
+    {
+      "path": "tests/test_food_agreement_cohort.py",
+      "bytes": 2362,
+      "sha256": "47af6e23c313085fec01ce1989deec5c903cb3dfd89ed4f2b7a3de622ca261da"
+    },
+    {
+      "path": "tests/test_food_agreement_eval.py",
+      "bytes": 2870,
+      "sha256": "39e180b393245ece6bd9bdd6589d867c9711e705ba24d4692f7eff7a9f6db670"
+    },
+    {
+      "path": "tests/test_food_agreement_routes.py",
+      "bytes": 7538,
+      "sha256": "d8fa55ea2b56325f4044ca410eb2f8863ec2972b2e6adad274517614f7c40be9"
+    },
+    {
+      "path": "tests/test_lens_sigmoid_lowering.py",
+      "bytes": 5829,
+      "sha256": "b1a8d1d040f9f96ad61ac56e410c5680422432ad07cb5eff684063343b957566"
+    },
+    {
+      "path": "tool/food_agreement_routes.py",
+      "bytes": 7618,
+      "sha256": "f73e6d45fdedec57ef0ee0f0e18e2979a6f6608b2080a9bd15e4773a75571374"
+    },
+    {
+      "path": "tool/lens_onnx_contract.py",
+      "bytes": 7115,
+      "sha256": "483f1516598975d2f603d0d2aefd4631437d5cca0bc49e0cf2579c6c0e62487e"
+    },
+    {
+      "path": "tool/lens_sigmoid_lowering.py",
+      "bytes": 4103,
+      "sha256": "feb29b2e104fd20394b11fbae01bdf9a52582be5c1a06f8d2ab7343343089201"
+    },
+    {
+      "path": "tool/prepare_food_agreement_eval.py",
+      "bytes": 7024,
+      "sha256": "b275ab206cae9d32f848b35f5ba896f11a1a3dd0c27660145d1bec1593e80d14"
+    },
+    {
+      "path": "tool/run_food_agreement_eval.py",
+      "bytes": 9251,
+      "sha256": "fb95eca04a9ceb3e578239b8bb5562a930a3e1c35de6e61869f589c2ac251768"
+    },
+    {
+      "path": "tool/run_lens_lowering.py",
+      "bytes": 8410,
+      "sha256": "5ac5acda7130910735784f2e032d4d6cc0dcf58c3c42e9f24825ed77cd08a037"
+    },
+    {
+      "path": "tool/run_lens_onnx.py",
+      "bytes": 20536,
+      "sha256": "49f6444e368e92d552ac36fa84cee9bc741f760a52b7e9cfdbf997850ef96ad0"
+    },
+    {
+      "path": "tool/summarize_lens_lowering.py",
+      "bytes": 5260,
+      "sha256": "624c04d89f154fa643e686d03664a6e080a7bbb590813d55730d3aecd4e92d07"
+    },
+    {
+      "path": "tool/summarize_lens_onnx.py",
+      "bytes": 6511,
+      "sha256": "b41eabd2bf7fce15857cb4864b743defb53887d98b57f1cf02a2f4ba3a3d7b20"
+    },
+    {
+      "path": "tool/third_party/calorie_lens/LICENSE",
+      "bytes": 1073,
+      "sha256": "4f981de7b3e6fa60f33796a05441986327dd0cc186f31e1e3ea4c9f69f773fac"
+    },
+    {
+      "path": "tool/third_party/calorie_lens/NOTICE",
+      "bytes": 453,
+      "sha256": "82b4e4c82e321c21531e94499e5eb8ada641d3148b2fc32e5ef40ff3c1b55dee"
+    },
+    {
+      "path": "tool/third_party/calorie_lens/model.py",
+      "bytes": 38036,
+      "sha256": "ffb1b4667889be9d89a2517351826012669b672207a3f45da97c7d875d77ece6"
+    }
+  ]
+}

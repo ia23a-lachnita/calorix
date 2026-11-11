@@ -1,0 +1,10 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\n**AGREEMENT_STATUS: agree**  \n**MUST_FIX: none**\n\n### Accepted Amendments\n1. **Preparation & Composites**: Require strict normalized preparation-state equality (absent/ambiguous $\\rightarrow$ no match). Disallow composites from matching (no segmentation).\n2. **Immutability & Provenance**: Assert identical component names, order, count, and masses (no bounding regions invented; zero modifications/double-counts). Preserve original receipts; version candidate separately.\n3. **Claim Scope**: Retract unmeasured superiority, latency, and catalog-invalidation claims. Conclude only whether this resolver improved this dataset.\n4. **Cohort Discipline**: Evaluating the current fresh 20 converts them to development data for this hypothesis; validation requires a separately frozen cohort.\n5. **Criteria**: $\\ge$10% MAE improvement, non-worse median/P90/normalized error/coverage, fewer unverified densities, zero preparation mismatches.\n\n*(Research direction only; no implementation or promotion approval.)*"
+    }
+  ],
+  "isError": false
+}
+

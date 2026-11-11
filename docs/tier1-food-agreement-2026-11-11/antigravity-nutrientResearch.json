@@ -1,0 +1,10 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\n**AGREEMENT_STATUS: agree**\n\n**MUST_FIX:**\n1. **Explicit Preparation State Matcher**: Require strict equality between detected preparation (`raw`, `boiled`, `roasted`, `fried`) and the USDA record descriptor. If cooking state is absent or ambiguous, forbid matching.\n2. **Composite Dish Isolation**: Disallow mapping multi-ingredient items (e.g., casseroles, sandwiches) to single-ingredient USDA records unless segmented into discrete sub-components; enforce that component grams sum exactly to plate item grams with zero overlap.\n3. **Identity/Portion Immutability Assertion**: Unit tests must assert zero divergence in item labels, detected bounding regions, and assigned grams before vs. after resolution.\n\n---\n\n### Critical Assessment\nA post-recognition deterministic resolver is superior to a food-routing specialist trial. It isolates nutrient-density variance from VLM segmentation/portion variance with zero additional latency, prompt drift, or multi-agent orchestration overhead. Running this offline against frozen A1 receipts cleanly measures the true catalog counterfactual.\n\n### Exact Falsifiable Criteria (Development Set)\n* **Pass**:\n  * Counterfactual MAE beats baseline (< 71.54 kcal) on the 20-photo receipt set.\n  * P90 does not regress (> 155.45 kcal).\n  * Unverified energy fraction decreases below 75% with zero raw/cooked mismatch errors.\n* **Fail (Abandon/Pivot)**:\n  * MAE ≥ 71.54 kcal, indicating density variance is secondary to gram/portion estimation errors, invalidating further pure-catalog expansion without portion calibration.\n\n*(Research direction only; does not imply production readiness or guaranteed accuracy.)*"
+    }
+  ],
+  "isError": false
+}
+

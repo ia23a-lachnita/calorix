@@ -1,3 +1,17 @@
+# Current task: publish fresh public accuracy evidence
+
+Source1abf452b1780b27fe8dca9d68bef561e44da94cb was reviewed/tested/pushedclean before allnewfoodcalls. Exactly20originalA1SDKinvocations +20qualifiedlocalORTfoodforwards, all40valid,0retries/questions/manualcorrections/resource stops. [Report](tier1-food-agreement-2026-11-11/report.md). Fresh20 across20dates/20author-cleangroups excluding116priorIDs/104groups; checkpointtraininglineageunverified, no anotherkitchen/Androidaccuracyclaim.
+
+ActualMAE/median/P90kcal: A180.799/51.734/193.821; fullLens32.107/9.049/94.975; oldservinggate46.252/28.163/132.678. Newlexicalrule0switches, identicalA1metrics, FAILMAEgain criterion, REJECTED withoutpostoutcome edits. Oldgate9switches6better3worse, old6ECUST exactA1fallback15.183gMAE/24.95gP90. A0only1/20covered (19catalogfailures), nofullcohortA0ranking. A14/47componentsDBmatched,92.506%energyexplicitunverified. Tokens40360/7121,costunknown. Localhost638.517s,median31.164s,peak1319378944B;A1SDKmedian12.234s, notmatchedspeed/Androidlatency.
+
+Independenthost20JPEG/tensors/20520rawscalars/20428nutrientproducts/405raw-to-scorefields/90Decimalmetrics/14sourcepins/5005metadata rowsPASS,0auditneuralcalls. Lossless42member686861B archive+100comparisonrows prepared. Portablearchive replayPASSsamechecks with0imagesrecomputed, explicitlyrecorded. Full181pinnedPython/40NodePASS, no sourcechangesafterinferencefreeze; no newUI/backendbuild/deployment. Antigravity primary actualresult and separateaudit-code/reportreviews explicitagree/MUST_FIXnone, suppliedtextonly/noexternalexecutionorvisualaudit; rejectbroadguarantee/securitywording.
+
+Currentverification: gitdiffcheck, artifactfilepins, commit/pushpublication, thenfreshcheckout181Python/40Node/portableaudit+Git-visiblepinclosure. No modelprocessactive. TrackedSDK187->207 for this workflow; releasedmodelrepeats202->222 across62publicphotos (50N5+12ECUST), not222meals. PhysicallyweighedAndroid0. Allpriorworktrees/untrackedfilepreserved.
+
+Nextapprovedroadmapstep afterpublication: strictPOST-recognition73-recordnutrientresolver preservingallnames/order/count/grams, explicitpreparationmatch/compositerejection, originalreceiptsretained. Researchconsultationcorrectedagree/MUSTnone, notimplementation/promotionapproval. Currentnew20wouldbedevelopmentdatafor that newhypothesis; separatefreezevalidationrequired. No defaults changed; originalA1app remains.
+
+---
+
 # Current task: frozen clean-group source ready for fresh inference
 
 Branch `feat/food-agreement-routing`, base b0ba28a. Three new modules and three suites implement reference-blind food agreement, author-group cohort preparation, image-only qualified runtime and replayable fixed-denominator scoring. All original source pins unchanged. Focused stub REDs:14routing/5cohort/3score; GREEN. Independent partial-name investigation then reproduced3false switches, residual noun rejection fixed them;15route tests pass. Additional hand-calculated20-row scoring test passes. Final181/181 pinned-runtime Python tests pass; system179 (before last2 additions) passes with4optional skips;40/40 Node tooling tests pass. No new neural/cloud food calls yet.

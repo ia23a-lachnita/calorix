@@ -1,0 +1,10 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\nAGREEMENT_STATUS: agree\nMUST_FIX: none\n\n### Audit Code Review\nThe arithmetic replay script provides complete, mathematically closed verification without network or model calls:\n1. **Provenance & Metadata**: Validates 14 source file pins, SHA-256 digests, and metadata partitioning (5,005 metadata rows, `test_clean=='1'`, author groups disjoint from train/val and prior excluded groups).\n2. **Numeric Closure**: Verifies all 20,520 finite raw tensor scalars, 20,428 nutrient products, and 405 raw-to-scored point fields across all routes (`A0`, `A1`, `Lens`, `old`, and candidate `agreement`).\n3. **Independent Metrics**: Recomputes all 90 high-precision `Decimal` route metrics (coverage, MAE, bias, median, P90, normalized error, and nutrient error distributions) matching `result.json`.\n4. **Archive Safety**: Temporary directory extraction strictly filters members via regex (`result.json`, `research/frozen-a1-catalog.json`, `(a1|lens)/dish_[0-9]{10}.json`), preventing path traversal. Portable archive mode appropriately skips missing image files and reports zero recomputed tensors while preserving full numerical closure.\n\n### Report Review\nThe report is rigorous, measured, and free of overclaims:\n1. **Negative Result Integrity**: Transparently states that the candidate lexical agreement selector switched 0/20 meals, failed its >=10% MAE improvement guard, and is rejected without post-hoc threshold edits.\n2. **Domain Qualifications**: Accurately reports specialist performance (32.11 MAE vs A1 80.80 MAE) while clearly stating that training-data checkpoint lineage remains unverified, domain overlap exists with Nutrition5k, Android references remain 0, and no production promotion is made.\n3. **Assumption Disclosures**: Notes that 92.51% of A1 predicted energy relied on explicitly unverified densities, and separates offline workflow timings from Android latency claims.\n\nBoth audit code and report are verified sound and publication-ready."
+    }
+  ],
+  "isError": false
+}
+

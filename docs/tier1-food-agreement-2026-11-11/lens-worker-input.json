@@ -1,0 +1,160 @@
+{
+  "cases": [
+    {
+      "id": "dish_1565898158",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1565898158.jpg",
+      "inputSha256": "92ca85fea095b467d07659a61aa9a107cb47ecd71371d51c6984cfa55e3599ff"
+    },
+    {
+      "id": "dish_1566502505",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1566502505.jpg",
+      "inputSha256": "fdb9b617a0c1816ebc12960dc648b0dae5183c27f14c7aece1258c553ee73f80"
+    },
+    {
+      "id": "dish_1565974409",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1565974409.jpg",
+      "inputSha256": "05a3693d2f68490320b718edeca6d332fda9a5f40a2f1192c049707b17dcaa61"
+    },
+    {
+      "id": "dish_1557937574",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1557937574.jpg",
+      "inputSha256": "1f21201ec6255283042f1aca23c6418efe857eeef17d380d296f91f5d64f5bbf"
+    },
+    {
+      "id": "dish_1560526490",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1560526490.jpg",
+      "inputSha256": "43340bcc600c231ade2882b1e2e072e555fa27d21da64fd99e1d7d96678d4050"
+    },
+    {
+      "id": "dish_1565711498",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1565711498.jpg",
+      "inputSha256": "09d15731c34eb22a2a9110280844e73b57d99f1a3ad91d2ad64cc46a5d31e49d"
+    },
+    {
+      "id": "dish_1563305513",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1563305513.jpg",
+      "inputSha256": "294ba1339b1e17e754dc35f0b03da628b5d773bd32d44b7524273b9c9017179b"
+    },
+    {
+      "id": "dish_1562617939",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1562617939.jpg",
+      "inputSha256": "fcc4ee1acfb7c355cba0649bd6caac5a292433dec744dd81cab67b65190df2af"
+    },
+    {
+      "id": "dish_1566850142",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1566850142.jpg",
+      "inputSha256": "c529e7e304e0b9aacff13db0d60ee5ebdfffb9a3b9c14daa0402c5c0d96f54c9"
+    },
+    {
+      "id": "dish_1557862345",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1557862345.jpg",
+      "inputSha256": "9ae3e14759843861d08329ff690dc9f6cef1b54da3fdc42accbf37f5adef18b3"
+    },
+    {
+      "id": "dish_1561405356",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1561405356.jpg",
+      "inputSha256": "7e65880781aad2d1b8659ecffbc3fa272c6b78a07875013b6049c790dcae5195"
+    },
+    {
+      "id": "dish_1558031237",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1558031237.jpg",
+      "inputSha256": "ffb301f70db0c0c237862467ea1323e23c490479839a164c8db035fd48bf2ff7"
+    },
+    {
+      "id": "dish_1566414291",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1566414291.jpg",
+      "inputSha256": "949660faca2398d47771323a39f28b96461f7af4902c6a81a593217d877ce739"
+    },
+    {
+      "id": "dish_1564588889",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1564588889.jpg",
+      "inputSha256": "ede75bfdfc9fd84b6e280b22b5a13ea68cec1481903c02d12d1b7663e5cb4a93"
+    },
+    {
+      "id": "dish_1558718610",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1558718610.jpg",
+      "inputSha256": "b4b557efc05105f4597728697ebda8f2c9ac1eacead411b8a80140f824733f24"
+    },
+    {
+      "id": "dish_1564773826",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1564773826.jpg",
+      "inputSha256": "2c942d44eeb5bb34e72734bbc40211840fa83752d60707076532402f64d688b0"
+    },
+    {
+      "id": "dish_1560444931",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1560444931.jpg",
+      "inputSha256": "91a6841d9a272936336f68ba5856f8c2dc8802bf7c2370247e5829300daedc96"
+    },
+    {
+      "id": "dish_1562009006",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1562009006.jpg",
+      "inputSha256": "e1f6b01855b62c1e832a9611d6da05b271a7d3ea538477dd17257a96a8adf96c"
+    },
+    {
+      "id": "dish_1561574394",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1561574394.jpg",
+      "inputSha256": "6072371e94631bae562575234e872e3cea8e219c3a9134df5474a4b0299f5c05"
+    },
+    {
+      "id": "dish_1559578579",
+      "inputFile": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/prepared/inputs/dish_1559578579.jpg",
+      "inputSha256": "cd68c9832c10c9f95896f4cdc3ec3b4fd8c91455dff679c44ea9de0d00cf951a"
+    }
+  ],
+  "graphFile": "/home/agent-runner/.local/share/calorix-lens-onnx-20261111/execution-v3-copy/model/model.onnx",
+  "graphSha256": "70c2d8813e9eb17a26536c4cae105b68a7738d6bd6d322a9a128a84afab5cb9e",
+  "dataSha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
+  "configPath": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/functions/eval/tier1-public/calorie-lens/config.json",
+  "nutrientMetadataPath": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/functions/eval/tier1-public/calorie-lens/ingredients_metadata.csv",
+  "nutrientMetadataSha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+  "outputDir": "/home/agent-runner/.local/share/calorix-food-agreement-20261111/lens",
+  "versions": [
+    "hf-xet",
+    "typer",
+    "idna",
+    "onnx",
+    "sympy",
+    "typing-inspection",
+    "pydantic_core",
+    "onnx-ir",
+    "huggingface_hub",
+    "annotated-types",
+    "fsspec",
+    "markdown-it-py",
+    "truststore",
+    "shellingham",
+    "tqdm",
+    "onnxscript",
+    "rich",
+    "protobuf",
+    "Jinja2",
+    "packaging",
+    "click",
+    "transformers",
+    "httpcore2",
+    "annotated-doc",
+    "torchvision",
+    "mpmath",
+    "tokenizers",
+    "MarkupSafe",
+    "httpx2",
+    "onnxruntime",
+    "networkx",
+    "regex",
+    "filelock",
+    "safetensors",
+    "torch",
+    "numpy",
+    "pydantic",
+    "anyio",
+    "h11",
+    "mdurl",
+    "pillow",
+    "flatbuffers",
+    "Pygments",
+    "typing_extensions",
+    "ml_dtypes",
+    "PyYAML"
+  ],
+  "sourceCommit": "1abf452b1780b27fe8dca9d68bef561e44da94cb"
+}

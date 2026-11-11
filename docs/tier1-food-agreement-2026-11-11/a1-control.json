@@ -1,0 +1,45 @@
+{
+  "engineCommit": "b0ba28ab84852e9968c3e7ab67c1d5bf25434193",
+  "manifestCommit": "1abf452b1780b27fe8dca9d68bef561e44da94cb",
+  "manifestSha256": "ad08f634fc7fcb537124295af8ec329325e324db5cb18f1caa8b8f10cbe25818",
+  "bundleSha256": "7651f929db633348c5ea3c23517b85b248fb1d6434d9312b9103d06b9836e535",
+  "profile": "original",
+  "model": "gemini-3.8-flash",
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "maxSdkInvocations": 20,
+  "consentVersion": "tier1-v1",
+  "bundle": {
+    "engineCommit": "b0ba28ab84852e9968c3e7ab67c1d5bf25434193",
+    "lockSha256": "98e0617641059a0ae1029df6f5a22a90c0885dbe61235808d9a322a8f340cc51",
+    "dependencies": {
+      "@google/genai": "2.19.0",
+      "firebase-admin": "12.7.0",
+      "firebase-functions": "5.1.1",
+      "zod": "3.25.76",
+      "typescript": "5.9.3"
+    },
+    "nodeVersion": "22.23.3",
+    "files": {
+      "tier1-analysis": {
+        "sourceSha256": "7ad164e73a934c8822a711d678c1f572247403cb9de51aaffb96e6a4f4a5a453",
+        "compiledSha256": "18ff2682fc23a9163b67f981b34f9372753f4540ee59ba08eef11f011c6fb4be"
+      },
+      "tier1-catalog": {
+        "sourceSha256": "a8f9753328f71e689747e21e5000672f94f33fa519e9ac97f33c8622184dcb71",
+        "compiledSha256": "31e84ba26274bbd2f277e13b958cea372f2473814e9fe8a6e8d52b7fc7f52176"
+      },
+      "tier1-callable": {
+        "sourceSha256": "55c9a057c1913b885a05e4471b4c050a58c078c3581d6bc2d20d5c8ff40c7f92",
+        "compiledSha256": "410332760a622192d6c1397c764003e19daad9ff7c92b00e9fe3d6a3cfb3b602"
+      },
+      "tier1-cli": {
+        "sourceSha256": "e0061ec1b2097cc99e431c8e703fce34c2fb24418097b2eb26707741f889b09e",
+        "compiledSha256": "0f9a9c191ef5f0676b76596f5572662fd308fc7beac98fc92a126aa33b10dcd5"
+      },
+      "tier1-public-eval": {
+        "sourceSha256": "ce887a731ac7fd09c776ffba9fed4fce4d7191ea1d86982a96940c6064c71f6b",
+        "compiledSha256": "ee17f32de29d0e7f5f22db26d293727da64faeb00d6c0522935ec315f25757cc"
+      }
+    }
+  }
+}
