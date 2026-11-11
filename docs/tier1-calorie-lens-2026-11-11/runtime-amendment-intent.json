@@ -1,0 +1,33 @@
+{
+  "timestampUtc": "2026-11-11T06:13:25.629435+00:00",
+  "reason": "Measured same-model CPU latency about64seconds perphoto makes42foods exceed1200second model cap. Only timing/status inspected; no Lens nutrient/gram outcomes consulted. Request runtime-only continuation under3600second wall cap, identical model/input/routing/scoring/RSS/thread settings.",
+  "completedTimingOnly": [
+    {
+      "id": "dish_1558722247",
+      "status": "ok",
+      "wallMs": 65676.67668894865
+    },
+    {
+      "id": "dish_1566590007",
+      "status": "ok",
+      "wallMs": 63787.97628101893
+    },
+    {
+      "id": "dish_1566414412",
+      "status": "ok",
+      "wallMs": 64212.120330077596
+    },
+    {
+      "id": "__qualification__",
+      "status": "ok",
+      "wallMs": 64631.70267897658
+    },
+    {
+      "id": "dish_1568305257",
+      "status": "ok",
+      "wallMs": 67062.47228500433
+    }
+  ],
+  "outputsInspectedForNutrients": false,
+  "originalPreserved": true
+}

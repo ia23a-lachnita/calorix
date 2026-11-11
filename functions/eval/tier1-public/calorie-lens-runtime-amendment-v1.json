@@ -1,0 +1,221 @@
+{
+  "schemaVersion": "calorie-lens-runtime-amendment-1",
+  "originalSourceCommit": "b268f5fb89c17048ebfd7b7b9971658207569ee8",
+  "originalProfileSha256": "55f5586ccb498af4cc8856e670a806eefb3d24ef647269153fc67734fab2da05",
+  "originalManifestSha256": "16808bec08c1f609a3cb6deff018c9d6b43a30e180c3fb38333ed825fcc96674",
+  "originalPartialResultSha256": "aa612cef7058790c116f98cd28b2eb7871acbf93f497f02f6c1c1ae676abd3d1",
+  "acknowledgedLensFoodIds": [
+    "dish_1566590007",
+    "dish_1566414412",
+    "dish_1568305257",
+    "dish_1558722247",
+    "dish_1568401233",
+    "dish_1563389600",
+    "dish_1566920365"
+  ],
+  "remainingLensFoodIds": [
+    "dish_1564687046",
+    "dish_1558461792",
+    "dish_1561739238",
+    "bread005",
+    "bun006",
+    "doughnut006",
+    "fired_dough_twist006",
+    "mooncake004",
+    "sachima004",
+    "bread004",
+    "bun005",
+    "doughnut008",
+    "fired_dough_twist004",
+    "mooncake006",
+    "sachima005",
+    "dish_1559934477",
+    "dish_1558461607",
+    "dish_1566416701",
+    "dish_1563389548",
+    "dish_1567785622",
+    "dish_1566589933",
+    "dish_1562963246",
+    "dish_1560975517",
+    "dish_1558030182",
+    "dish_1558376437",
+    "dish_1560203400",
+    "dish_1557862783",
+    "dish_1568401261",
+    "dish_1565810969",
+    "dish_1564675411",
+    "dish_1562009810",
+    "dish_1566920339",
+    "dish_1559157454",
+    "dish_1564160043",
+    "dish_1562876494"
+  ],
+  "originalFoodRecordPins": [
+    {
+      "model": "plate-vision",
+      "id": "dish_1559934477",
+      "sha256": "b56daacbb02c269df0fe1c51dd358c0962edb75702f14790ee249801c1df4ba6"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1558461607",
+      "sha256": "50742eeae44b2c6577b4c732223536b4dbc3b285869c941f6b13b5b458315a22"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1566416701",
+      "sha256": "c6da38f0e36c5ee35d234dbc96c0ea435cf079612bc4c85064c7ae13cb5ef0d9"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1563389548",
+      "sha256": "9eeca8a316261fb8c49ff1214f2fc7de347c64cf49cccdc819b656dc5b87ce8a"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1567785622",
+      "sha256": "92572d4862517e0d833f16dfeba512760d49ada7868ebf427dd3c80409d09a36"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1566589933",
+      "sha256": "afead758100c7ad186c328e34b280e09535cf6f8923f70978679dfb66b31aafd"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1562963246",
+      "sha256": "0c2002c831cf0b632ae984fb2268cdd63e248b254aa9a6ff9888adc77fd00ee9"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1560975517",
+      "sha256": "2cf9b791549cffb64c8baeef113506bd068607b523d46dd246a11759f1bc7e9a"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1558030182",
+      "sha256": "025866f9ef11f5956b711433a22495827d3ae34b573940c8caa5bdbfdecab3f0"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1558376437",
+      "sha256": "9be6315fb2e31bb4569ed2b0f160c2a279b479156cf9bba46e8e1688a5cbda05"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1560203400",
+      "sha256": "68b31f0773335498de8f516c404f7f26ea6e580577f8e6882a5fa40260e366d8"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1557862783",
+      "sha256": "b38e9fd4310249d4a7a4d554d0b8e38f85cfad5b783ad8dd11680be20f18a231"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1568401261",
+      "sha256": "a8b0198a7e908d4e9afbcbe0cafe182b648f8aa66dda45ff75fd81b5c66ecb8f"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1565810969",
+      "sha256": "e4810e0b98f326b2c0a21aadd74c435fd3bc81de14065b77f036d13aa5090752"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1564675411",
+      "sha256": "5cc37eb355315949ce48d153595918e00da49001e2581414f959b96bf36d1856"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1562009810",
+      "sha256": "43b9b686183eb1182dc5eb09fa79e7c89bafded102aedd5e72fa79b9b0fd0fb9"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1566920339",
+      "sha256": "7ac4b6fb2db2fccf0afa78be4e53ecd83eef9e5f808e9632d6e3f1932a3f7eba"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1559157454",
+      "sha256": "448611dc66ba488811ad90be99cc154b2499c41a7d5b970b35d2fcfaedbe8139"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1564160043",
+      "sha256": "a09c241050c1531f48d3a536f0e2d9bd3a28d7a5bcae86f6ed8c704b50cddcd3"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1562876494",
+      "sha256": "c4b8ba06a34023c8c24a63e6b46000c7f970c9836c569f8e96066391e36312a0"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1566590007",
+      "sha256": "8f7d54fa210559c7af074a55683cf70027d28e6e70e83ddc58fefb8251257a7f"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1566414412",
+      "sha256": "b8a9ff66154945ecaba1ec3003c9bfc13241f85dc594d6a7742d9c9d4270ce98"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1568305257",
+      "sha256": "2552d1e8313ad61769cd00004905238bcface91cedee3cd65b092e098d0e47f6"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1558722247",
+      "sha256": "fc8e8f6610efe8d81c7def0f7126c004444d3398b6fd46f8eaab0279919ceecf"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1568401233",
+      "sha256": "a28b999648291d46a029041effe8ced54920164fc82a1dfeeac5948a5ce87d14"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1563389600",
+      "sha256": "d1d739222956424e87cf50ce67d9378f8aa99cdb289e50e203191c9ba5deb1ce"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1566920365",
+      "sha256": "abb84412a9161e60f8f57313c6ee22e56b17eabff5cb56353f1a112c1786f8c7"
+    }
+  ],
+  "continuationWorkerSpecSha256": "949a94d66ef782a2645d75f59925f8124ead2d1ab465b292ec05d9609d3eeec9",
+  "continuationImageProjectionSha256": "1705028b99d4391e474a2048d68946cc7ae707d6a75229d1147e9234f7b0ae07",
+  "runtime": {
+    "python": "3.11.15",
+    "versions": {
+      "torch": "2.13.0+cpu",
+      "torchvision": "0.28.0+cpu",
+      "transformers": "5.22.2",
+      "huggingface-hub": "2.4.0",
+      "safetensors": "0.8.0",
+      "numpy": "2.2.4",
+      "Pillow": "11.1.0"
+    },
+    "intraOpThreads": 2,
+    "interOpThreads": 1,
+    "rssLimitBytes": 2684354560,
+    "minAvailableBytes": 3221225472,
+    "noProgressTimeoutSeconds": 120,
+    "perModelTimeoutSeconds": 3600,
+    "sourceMirrors": "Official PyTorch CPU wheel URLs/SHA256; PyPI and host-configured piwheels for dependency wheels; exact version lock retained"
+  },
+  "onlyRuntimeOverride": "perModelTimeoutSeconds:1200->3600",
+  "lensModelAndSourceUnchanged": true,
+  "retainedModelParametersAndPredicate": true,
+  "referenceBasedSelection": false,
+  "originalSourceProfileUnmodified": true,
+  "requalifyOwnedBlank": true,
+  "atMostOneInterruptedForwardUnknown": true,
+  "plannedDistinctNewFoodRecords": 62,
+  "previousPlate20Rerun": false,
+  "newVlmCalls": 0
+}

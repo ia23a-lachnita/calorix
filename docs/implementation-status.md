@@ -1,3 +1,15 @@
+# Current task: runtime-only Lens continuation, outcome-blind amendment
+
+Clean source b268f5fb89c17048ebfd7b7b9971658207569ee8 was pushed before preflight/model execution. Actual strict offline CPU load succeeded23.34s, blank qualification64.63s; repeated food forward times64–67s. Original1200-second cap cannot complete42 photos. Before inspecting any Lens nutrient/gram outcomes, recorded timing-only intent and obtained Antigravity3.8/yolo agreement/MUST_FIXnone for ONLY3600-second wall-budget continuation. All model/preproc/TTA2/FP32/blends/thread/RSS/idle/input/A1/predicate/scoring settings unchanged; originalsourceprofile stays immutable.
+
+Stopped only exact owned Lens child; parent finishedoriginalpartialresult. Plate20complete; Lens7 acknowledged food records retained, remaining35 frozen by absence of completed files, not prediction values. At mostone in-flight local forward may have been interrupted without a saved prediction; no remote/billing/SDK effects. Failed completed records, if any, are retained; no outcome-dependent retry. Originalpartialoutputs/receipt and SHA preserved. Separateownedblank qualification repeats before remaining Lens foods; do not claim the original1200s run completed.
+
+Runtime amendment manifest pins originalprofile/manifest/result, all acknowledged newrawrecord hashes, remainingIDs/projection/newimage-onlyworker spec and override. Source code/weights/config unchanged; execute alreadyreviewed supervisor and Lensworker from a CLEAN publication of this runtime amendment, fresh continuationoutput. Same2.5GiB sampledRSS/120sno-progress/twoCPUthreads/3GiB available preflight. No smallerimage/precision/TTA shortcut, no source changes during inference, no predicate/outcome tuning. 130Python/40Node/strictsourcepins previouslyPASS; this stage changes documentation/execution data only. Reject review assertions of zero selective-stopping/p-hacking or OS safety guarantees. Exactreceipts underdocs/tier1-calorie-lens-2026-11-11.
+
+Next command: task Python invoke existing tool.run_calorie_lens_eval.supervise with newly pinned continuation worker-input, amendedruntime, ownfreshoutput; collect completion before further model decisions. Merge original and continuation receipts for full42Lens+42Plate cohort including retained22 priorPlate; report62distinctnewfoodrecords/2qualifications/possibly1interruptedcompute separately. Actual accuracy outcomes not yet inspected for selection; finalfull/route/subgroupmetrics/independentchecks/resultreview/publication pending. GlobalfoodSDK187unchanged. CurrentmodelA1 unchanged; geometryrecoveryonhold. This computation takes approximately40minutes on this CPU, so continue independentverification work while it runs.
+
+---
+
 Source-export note: original pinned Nutrition5k CSV uses CRLF. First staged whitespace check stopped before commit. Preserve exact source bytes/SHA via a file-specific -text / whitespace=cr-at-eol Git attribute; no runtime/source-table normalization. Staged whitespace check then passed. This source-format-only attribute does not change inference or relax checks for other files.
 
 # Current task: Calorie Lens and fixed serving-route comparison

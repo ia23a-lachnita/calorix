@@ -1,0 +1,9 @@
+{
+  "timestampUtc": "2026-11-11T06:16:20.061967+00:00",
+  "action": "SIGTERM exact owned Lens worker only",
+  "pid": 217913,
+  "spec": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/calorie-lens/worker-input.json",
+  "reason": "Reviewed runtime-only continuation; preserve acknowledged outputs, original limit unchanged",
+  "atMostOneInFlightForwardUnknown": true,
+  "nutrientOutcomesInspectedBeforeAmendment": false
+}
