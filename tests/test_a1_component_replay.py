@@ -33,3 +33,8 @@ class ReplayTests(unittest.TestCase):
   from tool.replay_a1_components import validate_bindings
   b={'cohorts':[{'id':'one'},{'id':'one'}]}
   with self.assertRaises(ValueError):validate_bindings(b,{'cohortIds':['one','two']})
+
+ def test_incomplete_unknown_and_systemic_statuses_refused(self):
+  for value in [{'status':'pending'},{'status':'not_attempted'},{'status':'failed','failure':'http_429'},{'status':'failed','failure':'inference_system_failure'},{'status':'unknown'},{}]:
+   self.records['owned-case']['A1']=value
+   with self.subTest(value=value),self.assertRaises(ValueError):self.replay()

@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "id": "a1-component-development-replay-v2",
+  "bindingSha256": "606bf71482bd39f1ebd583da138526c84385f508bfec9f52c1b9c87cca34701a",
+  "cohortIds": [
+    "n5-development20",
+    "nv-development20"
+  ],
+  "cohortSize": 20,
+  "catalogPath": "functions/eval/tier1-public/catalog-v2.json",
+  "policyPath": "functions/eval/tier1-public/nutrient-resolution-policy-v1.json",
+  "policySha256": "61064d521afaceedf46d5325525bcfe86435533a36ea050df2adcbcc4938d683",
+  "massProfilePath": "docs/tier1-mass-power-2026-11-10/profile.json",
+  "massProfileSha256": "953eb6787fca2c1fc0ad0ac661302898acdddd600281df597a162ed9d2de35f5",
+  "sourceFiles": [
+    {
+      "path": "tool/tier1_nutrient_resolver.py",
+      "bytes": 7996,
+      "sha256": "4b577780af59597ca3375e10ecffb2c49a5c05231c7c719d4d62777f3f9702a4"
+    },
+    {
+      "path": "tool/replay_a1_components.py",
+      "bytes": 8824,
+      "sha256": "ef375a0c7367c49b14aa44891298fc77a8c56da70e4a961186e01db54f631f22"
+    },
+    {
+      "path": "tool/mass_power_calibration.py",
+      "bytes": 4556,
+      "sha256": "e8b5eeb2e07354fcaccda0305819a8294548ebde2753dbb731e4305f2aa4bcc9"
+    },
+    {
+      "path": "tool/portion_calibration.py",
+      "bytes": 4968,
+      "sha256": "095c1553a947e93bfe83d779bb088bc3664efb7a872f6939384d5ce67fbd8853"
+    },
+    {
+      "path": "tool/paired_view_metrics.py",
+      "bytes": 3069,
+      "sha256": "62f65844ed07bf04767033271fbc4f1fbbb3a37a253f82cdb7a8b093972d47ef"
+    },
+    {
+      "path": "evaluate_meals.py",
+      "bytes": 16782,
+      "sha256": "4cd84e751b2cd4b30ff7040b58184d55f42670ca7f8377e653e245233d5d7801"
+    },
+    {
+      "path": "tests/test_tier1_nutrient_resolver.py",
+      "bytes": 6711,
+      "sha256": "d4ce4b703f31079df7e1f3f053d124893a5d161b6f545400b9b3b7497ae6e638"
+    },
+    {
+      "path": "tests/test_a1_component_replay.py",
+      "bytes": 3981,
+      "sha256": "498f707316ea51a03c7b4396eee6d9f3781943a8e68a2823fd86fce9f80965b9"
+    },
+    {
+      "path": "functions/eval/tier1-public/catalog-v2.json",
+      "bytes": 47630,
+      "sha256": "bad3d924253513d093728351436cdcc6e099caba25eead2cae24778ea35ff178"
+    },
+    {
+      "path": "functions/eval/tier1-public/nutrient-resolution-policy-v1.json",
+      "bytes": 1808,
+      "sha256": "61064d521afaceedf46d5325525bcfe86435533a36ea050df2adcbcc4938d683"
+    },
+    {
+      "path": "docs/tier1-mass-power-2026-11-10/profile.json",
+      "bytes": 959,
+      "sha256": "953eb6787fca2c1fc0ad0ac661302898acdddd600281df597a162ed9d2de35f5"
+    }
+  ],
+  "arms": [
+    "A1",
+    "Nutrient",
+    "Mass",
+    "Both"
+  ],
+  "newModelCalls": 0,
+  "refit": false,
+  "referencesUnchanged": true,
+  "historicalCalibrationPromotionGateRemainsFailed": true,
+  "productionPromotable": false,
+  "scope": "Retrospective development diagnostic; all raw/NV numerical outputs private",
+  "screen": {
+    "minimumMaeGainPercent": 10,
+    "minimumMaeGainKcal": 10,
+    "nonworse": [
+      "medianAbsoluteError",
+      "p90AbsoluteError",
+      "meanNormalizedAbsoluteErrorFloor200",
+      "absoluteBias",
+      "coverage"
+    ],
+    "macroMaeWithinPercent": 110,
+    "resolverFewerUnverifiedDensities": true,
+    "preparationMismatches": 0
+  },
+  "methodReview": "calorix-a1-nutrient-resolution-20261112 / calorix-frozen-mass-transfer-20261112; supplied methods agree/MUST_FIX none",
+  "supersedes": "v1 preserves d10aedf source and original results; v2 only rejects incomplete/systemic input statuses"
+}

@@ -22,6 +22,8 @@ def replay_cases(cases,records,policy,mass_profile,mass_profile_sha,receipt_hash
     for case in cases:
         identifier=case['id'];record=records[identifier]
         if record.get('id',identifier)!=identifier:raise ValueError('Source receipt ID mismatch')
+        answer=record.get('A1')
+        if not isinstance(answer,dict) or (answer.get('status')!='ok' and not (answer.get('status')=='failed' and answer.get('failure') in ('no_food','invalid_model_output','dataset_input_failure'))):raise ValueError('Completed semantic inference outcome required; incomplete/systemic outcomes cannot be scored')
         points={n:None for n in names};resolved=None;factor=None;matches=0
         if record.get('A1',{}).get('status')=='ok':
             original=record['estimate']
