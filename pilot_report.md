@@ -1,3 +1,9 @@
+## Same-model runtime conversion: raw qualification failed; endpoint protocol pending
+
+The pinned Lens source and weights exported to a valid ONNX graph, but raw-v1 qualification failed only on 3–4 internal logits; all other heads and served totals/displayed foods matched on owned blanks. Legacy export failed on an unsupported antialiased-bicubic operator. Five diagnostic forwards and one original blank qualification are software checks, not meal measurements. A fresh Torch repeat matched its saved raw baseline exactly. Independent archive/scalar replay passed. No food ORT result or food speed claim exists yet.
+
+A separately reviewed and frozen endpoint-compatibility-v2 experiment uses the **unchanged graph** and requires exact actual presence/mass display decisions, food names/order, tight probability/portion/nutrient bounds, and all42photos/six timing controls. The original raw-v1 failure and raw_speed_qualified=false are retained alongside every v2 verdict. [Protocol, failures and evidence](docs/superpowers/plans/2026-11-11-lens-onnx-runtime.md). All151 Python/40 Node tests passed; production A1 is unchanged.
+
 ## Calorie Lens and fixed-route comparison completed
 
 [Full results and exact replay](docs/tier1-calorie-lens-2026-11-11/report.md): on twenty additional Nutrition5k photos, full Lens MAE fell from A1's **71.54 to 35.70 kcal**, median 43.19 to 10.98 and P90 155.45 to 121.08. The fixed serving rule switched 4/20 cases, yielding MAE **57.34 for Plate** and **60.06 for Lens**; both exploratory screens pass, but both worsen two switched meals. Old-six ECUST mass stays at A1's 15.18 g by fallback; the specialist mass estimates worsen and no ECUST calorie gold exists. On the original mixed ten, Lens mass fusion improves MAE 177.57 to 88.81, but the additional-twenty median worsens; the post-hoc gated fusion is not promoted.

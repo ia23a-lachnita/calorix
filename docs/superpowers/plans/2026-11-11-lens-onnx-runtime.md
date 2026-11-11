@@ -87,3 +87,11 @@ Pre-review disposition: initial external review disagreed. Accepted fresh venv, 
 Runtime amendment: first two worker attempts hit the erroneously continuous3.5GiB startup floor before a graph/qualification. Preserve them. The reviewed correction uses separate3.5GiB startup and512MiB runtime floor, retaining3GiB RSS and all export/numerical/model settings. New execution-v2 has at most two corrected-resource export routes. Pre/post memory review green;144Pythonpass.
 
 Numerical-debug amendment (no food seen): correctedDynamo graphpassesstructurebutblankfails4logits; legacyunsupportedbicubic-aa. Preservefailure, do notloosentolerances. Newblank-onlyrepeatTorch+ORTlevelsALL/disabled/basic/extended,5forwardsfixedorder600s120idleexistingmemorycaps,originalgraphhashesfixed. No newexport/foodpromotion;reviewresultsbeforeanynextdecision. Pre/postsourcegreen,145Pythonpass.
+
+## Explicit pre-food endpoint-compatibility-v2 amendment
+
+Raw-v1 remains FAILED; no thresholds or raw verdicts rewritten. After five nonfood diagnostics and standalone Sigmoid fixtures, a separately named contract is frozen BEFORE any foodORT output: sameoriginalDynamograph andORTALL (no operator/precision/modelpatch); probabilityatol1e-6/rtol1e-4 plus ALL253actualpresence.65/mass-display3gdecisions exact; displayednames/order exact; allother6rawhead andpointbounds unchanged. All42/6controls andoriginalMAE/median/P90/massmetricbounds required. raw_speed_qualified remainsfalse; newmaterial/strongflags separatelyv2. Medianof6per-caseTorch/ORTimagewallratios defines speed,allratiosreported. sourceprofile/tests/offlinesummary committed/reviewed/pushedclean before newblankqualification orfood. Reject review allpossiblethresholds/probranking demands because sourceonlyoperates.65 andsortsgrams; preserveallattempts. No first-divergent-fullmodeloperatorclaim.
+
+- [x] Commit/push reviewed v2 source and exact full-cohort harness before any food.
+- [ ] New owned-blank v2 qualification then42ORT+6counterbalancedTorch controls,originalgraph unchanged.
+- [ ] Independently verify dualverdicts/6156+foodrawscalars/metricbounds/timing; publish allfailures andpartialcoverageif any.

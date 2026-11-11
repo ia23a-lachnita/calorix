@@ -1,5 +1,65 @@
 [
   {
+    "path": "diagnostic-host.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/diagnostic-host.txt.gz"
+  },
+  {
+    "path": "diagnostic-v1/ort-all.json",
+    "sha256": "c31353b338408be7635d004611e89376c959e33eedbe713400d2de3e08fe1a15",
+    "bytes": 224959,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/diagnostic-v1/ort-all.json.gz"
+  },
+  {
+    "path": "diagnostic-v1/ort-basic.json",
+    "sha256": "ecff8f4d77659ce2dc9c8f632655ad1f43e0a258cd928102c2be164853cf6260",
+    "bytes": 225036,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/diagnostic-v1/ort-basic.json.gz"
+  },
+  {
+    "path": "diagnostic-v1/ort-disabled.json",
+    "sha256": "8ccce3cfcdd324ec5d45f71d450bc5b057baa3d4f6f5356af70ef59d9c3aeb2f",
+    "bytes": 225073,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/diagnostic-v1/ort-disabled.json.gz"
+  },
+  {
+    "path": "diagnostic-v1/ort-extended.json",
+    "sha256": "1ef83ec2fd8efbc328e0e8027e95703de8ac6f54d16afc11d26d334a574993df",
+    "bytes": 224963,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/diagnostic-v1/ort-extended.json.gz"
+  },
+  {
+    "path": "diagnostic-v1/session.json",
+    "sha256": "534b77d77f8f039c8283100f7c809effc4a3e6effa79af0c1d831d391bfca3a3",
+    "bytes": 1386,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/diagnostic-v1/session.json.gz"
+  },
+  {
+    "path": "diagnostic-v1/supervision.json",
+    "sha256": "9ecf00ee5fc11688624e75c4c9ebb387b12b2e0b00ac1e3d54b8953441c91d54",
+    "bytes": 133,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/diagnostic-v1/supervision.json.gz"
+  },
+  {
+    "path": "diagnostic-v1/torch-repeat.json",
+    "sha256": "251e359f492addf21d09086b4a3f99b3063c8557b6848e9a80d8572500083e4b",
+    "bytes": 223356,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/diagnostic-v1/torch-repeat.json.gz"
+  },
+  {
+    "path": "diagnostic-v1/worker-input.json",
+    "sha256": "55e17f73b6306b15d5df0d5bfaa5860fe4eacf51a83f0121462ac8591bee14eb",
+    "bytes": 2270,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/diagnostic-v1/worker-input.json.gz"
+  },
+  {
+    "path": "diagnostic-v1/worker.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "archive": "docs/tier1-lens-onnx-2026-11-11/execution-v2/diagnostic-v1/worker.txt.gz"
+  },
+  {
     "path": "export-dynamo/exported.json",
     "sha256": "ddd0b1fc6249d993c22792d114fa66356c66cb2288e188032e30ce24f787523b",
     "bytes": 57,

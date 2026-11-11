@@ -47,6 +47,24 @@ def parity_report(expected,actual):
    if delta>tolerance+1e-12:failures.append(name+':point')
  except (KeyError,TypeError,ValueError,OverflowError):failures.append('invalid_record')
  return {'passes':not failures,'failures':failures,'heads':heads,'pointAbsoluteDifferences':point}
+def compatibility_report(expected,actual,config):
+ """Separate pre-food v2 contract; never reclassifies the failed raw-v1 experiment."""
+ raw=parity_report(expected,actual);failures=[f for f in raw['failures'] if f!='logits:numeric'];maximum=None;presence_changes=None;mass_changes=None
+ try:
+  k=len(config['ingredients']);e=np.asarray(expected['raw']['logits'],np.float64);a=np.asarray(actual['raw']['logits'],np.float64)
+  if e.shape!=(1,k) or a.shape!=e.shape or not np.isfinite(e).all() or not np.isfinite(a).all():raise ValueError('Finite aligned logits required')
+  def probability(z):
+   p=np.empty_like(z);positive=z>=0;p[positive]=1/(1+np.exp(-z[positive]));v=np.exp(z[~positive]);p[~positive]=v/(1+v);return p
+  ep=probability(e);ap=probability(a);maximum=float(np.max(np.abs(ep-ap)))
+  if np.any(np.abs(ep-ap)>1e-6+1e-4*np.abs(ep)):failures.append('presence_probability:numeric')
+  presence_changes=int(np.count_nonzero((ep.astype(np.float32)>=config['presence_threshold'])!=(ap.astype(np.float32)>=config['presence_threshold'])))
+  eg=np.asarray(expected['raw']['grams'],np.float32);ag=np.asarray(actual['raw']['grams'],np.float32)
+  if eg.shape!=(1,k) or ag.shape!=eg.shape or not np.isfinite(eg).all() or not np.isfinite(ag).all():raise ValueError('Finite aligned grams required')
+  mass_changes=int(np.count_nonzero((eg>=config['display_min_grams'])!=(ag>=config['display_min_grams'])))
+  if presence_changes:failures.append('presence_decisions')
+  if mass_changes:failures.append('mass_display_eligibility')
+ except (KeyError,TypeError,ValueError,OverflowError):failures.append('invalid_compatibility_record')
+ return {'rawV1':raw,'endpointV2':{'protocol':'endpoint-compatibility-v2','passes':not failures,'failures':failures,'maxProbabilityAbsoluteDifference':maximum,'presenceDecisionChanges':presence_changes,'massDisplayEligibilityChanges':mass_changes},'raw_speed_qualified':False}
 def select_controls(cases,seed):
  if not seed or len({c['id'] for c in cases})!=len(cases):raise ValueError('Unique cases and fixed seed required')
  def rank(c,part):return hashlib.sha256((seed+'|'+part+'|'+c['id']).encode()).hexdigest(),c['id']

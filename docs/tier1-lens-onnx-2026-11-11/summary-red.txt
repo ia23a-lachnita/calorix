@@ -1,0 +1,17 @@
+E
+======================================================================
+ERROR: test_lens_onnx_summary (unittest.loader._FailedTest.test_lens_onnx_summary)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_lens_onnx_summary
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+  File "/home/agent-runner/.local/share/calorix-lens-verification-worktree.7mbbsoe_/tests/test_lens_onnx_summary.py", line 2, in <module>
+    from tool.summarize_lens_onnx import timing_summary
+ModuleNotFoundError: No module named 'tool.summarize_lens_onnx'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (errors=1)

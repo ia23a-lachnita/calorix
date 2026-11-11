@@ -2,7 +2,7 @@
 import argparse, hashlib, importlib.util, json, os, platform, signal, subprocess, sys, time
 from pathlib import Path
 import numpy as np
-from tool.lens_onnx_contract import OUTPUTS, preprocess, publisher_summary, parity_report
+from tool.lens_onnx_contract import OUTPUTS, preprocess, publisher_summary, parity_report, compatibility_report
 from tool.calorie_lens_routes import density_records, decode_lens
 from tool.run_calorie_lens_eval import BASE, installed, sha, verify_file, write
 
@@ -14,6 +14,8 @@ def optimization_enum(name):
  values={'all':'ORT_ENABLE_ALL','disabled':'ORT_DISABLE_ALL','basic':'ORT_ENABLE_BASIC','extended':'ORT_ENABLE_EXTENDED'}
  if name not in values:raise ValueError('Explicit diagnostic optimization setting required')
  return values[name]
+def validate_v2_selection(selected,root):
+ if selected.get('protocol')!='endpoint-compatibility-v2' or selected.get('raw_speed_qualified') is not False or Path(selected['graphFile']).absolute()!=root/'export-dynamo/model.onnx' or not selected['receipt']['endpointV2']['passes']:raise ValueError('Pinned original graph and explicit dual protocol receipt required')
 def safe_external_path(root,name):
  if not name or '\\' in name or Path(name).is_absolute() or '..' in Path(name).parts:raise ValueError('Unsafe graph external data location')
  result=root/name
@@ -101,7 +103,7 @@ def prediction(case,cfg,sources,session=None,torch_model=None):
   values=[output[k].float().cpu().numpy() for k in OUTPUTS]
  validate_outputs(values);raw={k:v.tolist() for k,v in zip(OUTPUTS,values)};summary=publisher_summary(raw,cfg);decoded=decode_lens(summary,raw,cfg,sources)
  row={'id':case['id'],'runtime':'ort' if session is not None else 'torch','status':'ok','raw':raw,'publisherSummary':summary,'inputTensor':tensor,**decoded,'forwardAndDecodeMs':(time.monotonic()-forward)*1000,'imageWallMs':(time.monotonic()-start)*1000,'before':before,'after':telemetry(),'inputSha256':case['inputSha256'],'expectedSha256':case['expectedSha256']}
- row['parity']=parity_report(json.loads(Path(case['expectedFile']).read_text()),row);return row
+ row['compatibility']=compatibility_report(json.loads(Path(case['expectedFile']).read_text()),row,cfg);row['parity']=row['compatibility']['rawV1'];return row
 def inspect_graph(path):
  import onnx
  from onnx.external_data_helper import _get_all_tensors
@@ -129,15 +131,17 @@ def export_worker(spec):
  if row['imageWallMs']>128000:raise ValueError('Owned-blank runtime exceeds fixed full-evaluation budget')
  write(out/'accepted.json',{'route':spec['route'],'ortLoadMs':load_ms,'qualificationMs':row['imageWallMs'],'graph':structure})
 def benchmark_worker(spec):
+ if spec.get('compatibilityProtocol','raw-v1') not in ['raw-v1','endpoint-compatibility-v2']:raise ValueError('Explicit supported protocol required')
  out=Path(spec['outputDir']);torch,module,model,torch_load=load_torch(spec);cfg,sources=context(spec);session,ort_load=ort_session(Path(spec['graphFile']))
- write(out/'session.json',{'python':platform.python_version(),'versions':installed(spec['versions']),'torchLoadMs':torch_load,'ortLoadMs':ort_load,'torchIntra':torch.get_num_threads(),'torchInter':torch.get_num_interop_threads(),'ortIntra':2,'ortInter':1,'providers':session.get_providers(),'combinedProcess':True,'ttaViews':model.tta_views,'totalGramsPassed':False})
+ write(out/'session.json',{'python':platform.python_version(),'versions':installed(spec['versions']),'torchLoadMs':torch_load,'ortLoadMs':ort_load,'torchIntra':torch.get_num_threads(),'torchInter':torch.get_num_interop_threads(),'ortIntra':2,'ortInter':1,'providers':session.get_providers(),'combinedProcess':True,'ttaViews':model.tta_views,'totalGramsPassed':False,'compatibilityProtocol':spec.get('compatibilityProtocol','raw-v1'),'raw_speed_qualified':False})
  for engine in ['torch','ort']:
   row=prediction(spec['qualification'],cfg,sources,session=session if engine=='ort' else None,torch_model=(torch,model) if engine=='torch' else None);write(out/('qualification-'+engine+'.json'),row)
-  if not row['parity']['passes'] or row['imageWallMs']>128000:raise ValueError('Warmup parity or runtime qualification failed')
+  passed=row['compatibility']['endpointV2']['passes'] if spec.get('compatibilityProtocol')=='endpoint-compatibility-v2' else row['parity']['passes']
+  if not passed or row['imageWallMs']>128000:raise ValueError('Warmup parity or runtime qualification failed')
  controls={c['id']:c['order'] for c in spec['controls']}
  for case in spec['cases']:
   for engine in controls.get(case['id'],['ort']):
-   row=prediction(case,cfg,sources,session=session if engine=='ort' else None,torch_model=(torch,model) if engine=='torch' else None);write(out/(case['id']+'-'+engine+'.json'),row);print(json.dumps({'id':case['id'],'runtime':engine,'parity':row['parity']['passes'],'wallMs':row['imageWallMs']}),flush=True)
+   row=prediction(case,cfg,sources,session=session if engine=='ort' else None,torch_model=(torch,model) if engine=='torch' else None);write(out/(case['id']+'-'+engine+'.json'),row);print(json.dumps({'id':case['id'],'runtime':engine,'rawV1':row['parity']['passes'],'endpointV2':row['compatibility']['endpointV2']['passes'],'raw_speed_qualified':False,'wallMs':row['imageWallMs']}),flush=True)
   if case['id'] in controls:time.sleep(10)
 def diagnostic_worker(spec):
  import gc
@@ -147,6 +151,12 @@ def diagnostic_worker(spec):
  repeated=prediction(spec['qualification'],cfg,sources,torch_model=(torch,model));write(out/'torch-repeat.json',repeated)
  for optimization in spec['diagnosticOptimizations']:
   session,load_ms=ort_session(Path(spec['graphFile']),optimization);row=prediction(spec['qualification'],cfg,sources,session=session);row.update(optimization=optimization,ortLoadMs=load_ms,parityAgainstFreshTorch=parity_report(repeated,row));write(out/('ort-'+optimization+'.json'),row);del session;gc.collect()
+def compatibility_qualification_worker(spec):
+ if 'cases' in spec or 'controls' in spec or spec.get('compatibilityProtocol')!='endpoint-compatibility-v2':raise ValueError('Blank-only explicit v2 qualification required')
+ out=Path(spec['outputDir']);cfg,sources=context(spec);session,load_ms=ort_session(Path(spec['graphFile']));write(out/'session.json',{'ortLoadMs':load_ms,'optimization':'all','providers':session.get_providers(),'protocol':spec['compatibilityProtocol'],'raw_speed_qualified':False})
+ row=prediction(spec['qualification'],cfg,sources,session=session);write(out/'qualification.json',row)
+ if not row['compatibility']['endpointV2']['passes'] or row['imageWallMs']>128000:raise ValueError('V2 owned-blank qualification failed')
+ write(out/'accepted.json',{'rawV1':row['parity'],'endpointV2':row['compatibility']['endpointV2'],'raw_speed_qualified':False,'ortLoadMs':load_ms,'qualificationMs':row['imageWallMs']})
 def preflight(repo,root,previous):
  if subprocess.check_output(['git','status','--porcelain'],cwd=repo,text=True).strip():raise ValueError('Commit clean source before model code')
  p=json.loads((repo/PROFILE).read_text())
@@ -174,14 +184,24 @@ def main(a):
   out=root/'diagnostic-v1';out.mkdir();spec=make_spec(repo,previous,p,out);spec.pop('cases');spec.pop('controls');spec.update(graphFile=str(root/'export-dynamo/model.onnx'),diagnosticOptimizations=p['diagnosticOptimizations']);supervision=supervise(repo,root,spec,'diagnostic',p['diagnosticLimits'])
   if not successful_attempt(supervision,(out/'ort-extended.json').exists()):raise RuntimeError('Blank diagnostic incomplete; retain failures')
   return
- selected=json.loads((root/'selected.json').read_text());graph=Path(selected['graphFile'])
+ if a.mode=='qualify-v2':
+  for f in p['diagnosticGraphFiles']:verify_file(safe_external_path(root,f['path']),f['sha256'],f['bytes'])
+  out=root/'qualification-v2';out.mkdir();spec=make_spec(repo,previous,p,out);spec.pop('cases');spec.pop('controls');spec.update(graphFile=str(root/'export-dynamo/model.onnx'),compatibilityProtocol='endpoint-compatibility-v2');supervision=supervise(repo,root,spec,'compat-qualification',p['diagnosticLimits'])
+  if not successful_attempt(supervision,(out/'accepted.json').exists()):raise RuntimeError('V2 qualification failed; no food evaluation permitted')
+  receipt=json.loads((out/'accepted.json').read_text());receipt['graph']=json.loads((root/'export-dynamo/graph.json').read_text());write(root/'selected-v2.json',{'graphFile':spec['graphFile'],'protocol':'endpoint-compatibility-v2','receipt':receipt,'raw_speed_qualified':False,'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip()});return
+ selected=json.loads((root/('selected-v2.json' if a.mode=='benchmark-v2' else 'selected.json')).read_text());graph=Path(selected['graphFile'])
+ if a.mode=='benchmark-v2':
+  validate_v2_selection(selected,root)
+  for f in p['diagnosticGraphFiles']:verify_file(safe_external_path(root,f['path']),f['sha256'],f['bytes'])
  for f in selected['receipt']['graph']['files']:verify_file(safe_external_path(graph.parent,f['name']),f['sha256'],f['bytes'])
- out=root/'benchmark';out.mkdir();spec=make_spec(repo,previous,p,out);spec['graphFile']=str(graph);supervision=supervise(repo,root,spec,'benchmark',p['benchmarkLimits'])
+ out=root/('benchmark-v2' if a.mode=='benchmark-v2' else 'benchmark');out.mkdir();spec=make_spec(repo,previous,p,out);spec['graphFile']=str(graph)
+ if a.mode=='benchmark-v2':spec['compatibilityProtocol']='endpoint-compatibility-v2'
+ supervision=supervise(repo,root,spec,'benchmark',p['benchmarkLimits'])
  if not successful_attempt(supervision,True):raise RuntimeError('Benchmark incomplete; inspect retained worker diagnostics and fixed denominators')
 if __name__=='__main__':
- parser=argparse.ArgumentParser();parser.add_argument('--worker',choices=['export','benchmark','diagnostic']);parser.add_argument('--spec',type=Path);parser.add_argument('--repo',type=Path,default=Path.cwd());parser.add_argument('--root',type=Path);parser.add_argument('--previous',type=Path);parser.add_argument('--mode',choices=['preflight','export','benchmark','diagnose'],default='preflight');args=parser.parse_args()
+ parser=argparse.ArgumentParser();parser.add_argument('--worker',choices=['export','benchmark','diagnostic','compat-qualification']);parser.add_argument('--spec',type=Path);parser.add_argument('--repo',type=Path,default=Path.cwd());parser.add_argument('--root',type=Path);parser.add_argument('--previous',type=Path);parser.add_argument('--mode',choices=['preflight','export','benchmark','diagnose','qualify-v2','benchmark-v2'],default='preflight');args=parser.parse_args()
  if args.worker:
-  spec=json.loads(args.spec.read_text());{'export':export_worker,'benchmark':benchmark_worker,'diagnostic':diagnostic_worker}[args.worker](spec)
+  spec=json.loads(args.spec.read_text());{'export':export_worker,'benchmark':benchmark_worker,'diagnostic':diagnostic_worker,'compat-qualification':compatibility_qualification_worker}[args.worker](spec)
  else:
   if not args.root or not args.previous:parser.error('Explicit disk-backed task root and retained baseline root required')
   main(args)

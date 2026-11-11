@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\nAGREEMENT_STATUS: agree\nMUST_FIX: none\n\n**Source Review Findings:**\n1. **Protocol Separation**: Dual reporting strictly preserves the original `raw-v1` failure alongside `endpoint-compatibility-v2`. `raw_speed_qualified` is frozen to `false` globally across schema, runner, worker receipts, and summary output.\n2. **Contract Precision**: `compatibility_report` waives only `logits:numeric` under strict sigmoid presence probability bounds (atol $10^{-6}$, rtol $10^{-4}$). Exactness is enforced for all 253 presence threshold ($0.65$) decisions and mass display ($\\ge 3\\text{g}$) decisions. All other six heads and downstream metric bounds remain identical to the original numerical contract.\n3. **Execution & Isolation**: `qualify-v2` creates isolated `qualification-v2/accepted.json` and `selected-v2.json` artifacts, validating graph hashes before executing `benchmark-v2`. Graph architecture, FP32 weights, and CPU optimization settings are unchanged.\n4. **Offline Summary**: `summarize_lens_onnx.py` locks fixed cohorts (42 ORT, 6 Torch controls), requires clean worker supervision exit (`exitCode == 0`, no resource stop), enforces paired timing thresholds ($\\ge 1.25$ material, $\\ge 2.0$ strong), and explicitly disclaims production promotion. All tests pass with no code defects detected."
+    }
+  ],
+  "isError": false
+}

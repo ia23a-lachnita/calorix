@@ -1,7 +1,7 @@
 import copy, hashlib, io, unittest
 import numpy as np
 from PIL import Image
-from tool.lens_onnx_contract import preprocess, publisher_summary, parity_report, select_controls
+from tool.lens_onnx_contract import preprocess, publisher_summary, parity_report, select_controls, compatibility_report
 
 def config():
  return {'image_size':[1,2],'ingredients':['rice','oil'],'density_sources':['usda_match','none'],'densities':[[1,.01,.2,.03,0,0,0,0],[9,1,0,0,0,0,0,0]],'mean_density':[2,.1,.2,.3,0,0,0,0],'presence_threshold':.65,'display_min_grams':3}
@@ -10,6 +10,20 @@ def raw():
 def record():
  return {'raw':raw(),'massG':17,'totals':{'kcal':59,'proteinG':.9,'fatG':5.3,'carbsG':2.4},'inputTensor':{'dtype':'float32','shape':[1,3,1,2],'sha256':hashlib.sha256(b'fixture').hexdigest()},'publisherSummary':{'ingredients':[{'name':'rice'}]}}
 class OnnxContractTest(unittest.TestCase):
+ def test_compatibility_keeps_raw_failure_and_accepts_only_small_tail_probability_delta(self):
+  e=record();e['raw']['logits']=[[-10.6630764,-2]];e['publisherSummary']['ingredients']=[];a=copy.deepcopy(e);a['raw']['logits'][0][0]= -10.6655226
+  r=compatibility_report(e,a,config());self.assertFalse(r['rawV1']['passes']);self.assertTrue(r['endpointV2']['passes']);self.assertFalse(r['raw_speed_qualified'])
+  a['raw']['logits'][0][0]= -9.;self.assertFalse(compatibility_report(e,a,config())['endpointV2']['passes'])
+  a=copy.deepcopy(e);a['totals']['kcal']+=.11;self.assertFalse(compatibility_report(e,a,config())['endpointV2']['passes'])
+ def test_compatibility_rejects_all_class_decision_changes_even_if_undisplayed(self):
+  e=record();e['publisherSummary']['ingredients']=[];e['raw']['logits'][0][0]=float(np.log((.65-1e-7)/(1-.65+1e-7)));a=copy.deepcopy(e);a['raw']['logits'][0][0]=float(np.log((.65+1e-7)/(1-.65-1e-7)))
+  self.assertFalse(compatibility_report(e,a,config())['endpointV2']['passes'])
+  e=record();e['raw']['grams'][0][1]=2.999999;a=copy.deepcopy(e);a['raw']['grams'][0][1]=3.000001
+  self.assertFalse(compatibility_report(e,a,config())['endpointV2']['passes'])
+ def test_compatibility_does_not_waive_other_heads_or_shapes(self):
+  e=record();a=copy.deepcopy(e);a['raw']['soft'][0][0]+=1
+  self.assertFalse(compatibility_report(e,a,config())['endpointV2']['passes'])
+  a=copy.deepcopy(e);a['raw']['logits']=[[1]];self.assertFalse(compatibility_report(e,a,config())['endpointV2']['passes'])
  def test_input_rgb_nchw_float_and_no_double_normalization(self):
   im=Image.new('RGB',(2,1));im.putdata([(255,0,0),(0,0,255)]);b=io.BytesIO();im.save(b,format='PNG');x=preprocess(b.getvalue(),[1,2]);self.assertEqual(x.shape,(1,3,1,2));self.assertEqual(x.dtype,np.float32);self.assertEqual(x[0,:,0,0].tolist(),[1,0,0]);self.assertEqual(x[0,:,0,1].tolist(),[0,0,1])
  def test_input_retains_pillow_fit_and_mean_padding(self):

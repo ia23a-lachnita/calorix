@@ -1,0 +1,1057 @@
+{
+  "recordArchiveHashesVerified": 22,
+  "rawScalarComparisonsAgainstOldSource": 6156,
+  "newFoodPredictions": 0,
+  "measuredBlankForwards": 6,
+  "exportTraceWorkSeparate": true,
+  "plannedFoodRecordsUnattempted": 48,
+  "blankResults": {
+    "export-dynamo/qualification.json": {
+      "oldBaseline": {
+        "passes": false,
+        "failures": [
+          "logits:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 4,
+            "maxAbsoluteDifference": 0.0024461746215820312,
+            "outside": [
+              {
+                "index": 48,
+                "expected": -10.663076400756836,
+                "actual": -10.665522575378418,
+                "absoluteDifference": 0.0024461746215820312,
+                "allowed": 0.0011663076400756838
+              },
+              {
+                "index": 70,
+                "expected": -10.64770793914795,
+                "actual": -10.649056434631348,
+                "absoluteDifference": 0.0013484954833984375,
+                "allowed": 0.001164770793914795
+              },
+              {
+                "index": 130,
+                "expected": -10.0638427734375,
+                "actual": -10.062507629394531,
+                "absoluteDifference": 0.00133514404296875,
+                "allowed": 0.0011063842773437501
+              },
+              {
+                "index": 251,
+                "expected": -10.334312438964844,
+                "actual": -10.33563232421875,
+                "absoluteDifference": 0.00131988525390625,
+                "allowed": 0.0011334312438964845
+              }
+            ]
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 2.1219253540039062e-05,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.00054931640625,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 7.115367508525594e-07
+      },
+      "freshTorch": {
+        "passes": false,
+        "failures": [
+          "logits:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 4,
+            "maxAbsoluteDifference": 0.0024461746215820312,
+            "outside": [
+              {
+                "index": 48,
+                "expected": -10.663076400756836,
+                "actual": -10.665522575378418,
+                "absoluteDifference": 0.0024461746215820312,
+                "allowed": 0.0011663076400756838
+              },
+              {
+                "index": 70,
+                "expected": -10.64770793914795,
+                "actual": -10.649056434631348,
+                "absoluteDifference": 0.0013484954833984375,
+                "allowed": 0.001164770793914795
+              },
+              {
+                "index": 130,
+                "expected": -10.0638427734375,
+                "actual": -10.062507629394531,
+                "absoluteDifference": 0.00133514404296875,
+                "allowed": 0.0011063842773437501
+              },
+              {
+                "index": 251,
+                "expected": -10.334312438964844,
+                "actual": -10.33563232421875,
+                "absoluteDifference": 0.00131988525390625,
+                "allowed": 0.0011334312438964845
+              }
+            ]
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 2.1219253540039062e-05,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.00054931640625,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 7.115367508525594e-07
+      },
+      "imageWallMs": 37878.58633289579,
+      "forwardAndDecodeMs": 37828.09458998963,
+      "before": {
+        "thermalMilliC": 53069,
+        "cpu0KHz": 1800000
+      },
+      "after": {
+        "thermalMilliC": 55991,
+        "cpu0KHz": 1800000
+      }
+    },
+    "diagnostic-v1/torch-repeat.json": {
+      "oldBaseline": {
+        "passes": true,
+        "failures": [],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 0.0
+      },
+      "freshTorch": {
+        "passes": true,
+        "failures": [],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 0.0
+      },
+      "imageWallMs": 68329.30435391609,
+      "forwardAndDecodeMs": 68254.08134888858,
+      "before": {
+        "thermalMilliC": 54043,
+        "cpu0KHz": 1800000
+      },
+      "after": {
+        "thermalMilliC": 54043,
+        "cpu0KHz": 1800000
+      }
+    },
+    "diagnostic-v1/ort-all.json": {
+      "oldBaseline": {
+        "passes": false,
+        "failures": [
+          "logits:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 4,
+            "maxAbsoluteDifference": 0.0024461746215820312,
+            "outside": [
+              {
+                "index": 48,
+                "expected": -10.663076400756836,
+                "actual": -10.665522575378418,
+                "absoluteDifference": 0.0024461746215820312,
+                "allowed": 0.0011663076400756838
+              },
+              {
+                "index": 70,
+                "expected": -10.64770793914795,
+                "actual": -10.649056434631348,
+                "absoluteDifference": 0.0013484954833984375,
+                "allowed": 0.001164770793914795
+              },
+              {
+                "index": 130,
+                "expected": -10.0638427734375,
+                "actual": -10.062507629394531,
+                "absoluteDifference": 0.00133514404296875,
+                "allowed": 0.0011063842773437501
+              },
+              {
+                "index": 251,
+                "expected": -10.334312438964844,
+                "actual": -10.33563232421875,
+                "absoluteDifference": 0.00131988525390625,
+                "allowed": 0.0011334312438964845
+              }
+            ]
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 2.1219253540039062e-05,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.00054931640625,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 7.115367508525594e-07
+      },
+      "freshTorch": {
+        "passes": false,
+        "failures": [
+          "logits:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 4,
+            "maxAbsoluteDifference": 0.0024461746215820312,
+            "outside": [
+              {
+                "index": 48,
+                "expected": -10.663076400756836,
+                "actual": -10.665522575378418,
+                "absoluteDifference": 0.0024461746215820312,
+                "allowed": 0.0011663076400756838
+              },
+              {
+                "index": 70,
+                "expected": -10.64770793914795,
+                "actual": -10.649056434631348,
+                "absoluteDifference": 0.0013484954833984375,
+                "allowed": 0.001164770793914795
+              },
+              {
+                "index": 130,
+                "expected": -10.0638427734375,
+                "actual": -10.062507629394531,
+                "absoluteDifference": 0.00133514404296875,
+                "allowed": 0.0011063842773437501
+              },
+              {
+                "index": 251,
+                "expected": -10.334312438964844,
+                "actual": -10.33563232421875,
+                "absoluteDifference": 0.00131988525390625,
+                "allowed": 0.0011334312438964845
+              }
+            ]
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 2.1219253540039062e-05,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.00054931640625,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 7.115367508525594e-07
+      },
+      "imageWallMs": 42628.12464707531,
+      "forwardAndDecodeMs": 42576.43207395449,
+      "before": {
+        "thermalMilliC": 54530,
+        "cpu0KHz": 1800000
+      },
+      "after": {
+        "thermalMilliC": 55017,
+        "cpu0KHz": 1800000
+      }
+    },
+    "diagnostic-v1/ort-disabled.json": {
+      "oldBaseline": {
+        "passes": false,
+        "failures": [
+          "logits:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 4,
+            "maxAbsoluteDifference": 0.0015554428100585938,
+            "outside": [
+              {
+                "index": 70,
+                "expected": -10.64770793914795,
+                "actual": -10.649056434631348,
+                "absoluteDifference": 0.0013484954833984375,
+                "allowed": 0.001164770793914795
+              },
+              {
+                "index": 130,
+                "expected": -10.0638427734375,
+                "actual": -10.062507629394531,
+                "absoluteDifference": 0.00133514404296875,
+                "allowed": 0.0011063842773437501
+              },
+              {
+                "index": 173,
+                "expected": -10.499333381652832,
+                "actual": -10.497777938842773,
+                "absoluteDifference": 0.0015554428100585938,
+                "allowed": 0.0011499333381652832
+              },
+              {
+                "index": 251,
+                "expected": -10.334312438964844,
+                "actual": -10.332880973815918,
+                "absoluteDifference": 0.0014314651489257812,
+                "allowed": 0.0011334312438964845
+              }
+            ]
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 6.8712979555130005e-06,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.119558095932007e-05,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.8146995393617544e-06,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0004730224609375,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 8.940603141716075e-07
+      },
+      "freshTorch": {
+        "passes": false,
+        "failures": [
+          "logits:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 4,
+            "maxAbsoluteDifference": 0.0015554428100585938,
+            "outside": [
+              {
+                "index": 70,
+                "expected": -10.64770793914795,
+                "actual": -10.649056434631348,
+                "absoluteDifference": 0.0013484954833984375,
+                "allowed": 0.001164770793914795
+              },
+              {
+                "index": 130,
+                "expected": -10.0638427734375,
+                "actual": -10.062507629394531,
+                "absoluteDifference": 0.00133514404296875,
+                "allowed": 0.0011063842773437501
+              },
+              {
+                "index": 173,
+                "expected": -10.499333381652832,
+                "actual": -10.497777938842773,
+                "absoluteDifference": 0.0015554428100585938,
+                "allowed": 0.0011499333381652832
+              },
+              {
+                "index": 251,
+                "expected": -10.334312438964844,
+                "actual": -10.332880973815918,
+                "absoluteDifference": 0.0014314651489257812,
+                "allowed": 0.0011334312438964845
+              }
+            ]
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 6.8712979555130005e-06,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.119558095932007e-05,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.8146995393617544e-06,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0004730224609375,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 8.940603141716075e-07
+      },
+      "imageWallMs": 38267.08494708873,
+      "forwardAndDecodeMs": 38214.95672687888,
+      "before": {
+        "thermalMilliC": 54530,
+        "cpu0KHz": 1800000
+      },
+      "after": {
+        "thermalMilliC": 54530,
+        "cpu0KHz": 1800000
+      }
+    },
+    "diagnostic-v1/ort-basic.json": {
+      "oldBaseline": {
+        "passes": false,
+        "failures": [
+          "logits:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 3,
+            "maxAbsoluteDifference": 0.0020093917846679688,
+            "outside": [
+              {
+                "index": 130,
+                "expected": -10.0638427734375,
+                "actual": -10.062507629394531,
+                "absoluteDifference": 0.00133514404296875,
+                "allowed": 0.0011063842773437501
+              },
+              {
+                "index": 139,
+                "expected": -10.008749008178711,
+                "actual": -10.010758399963379,
+                "absoluteDifference": 0.0020093917846679688,
+                "allowed": 0.0011008749008178712
+              },
+              {
+                "index": 251,
+                "expected": -10.334312438964844,
+                "actual": -10.332880973815918,
+                "absoluteDifference": 0.0014314651489257812,
+                "allowed": 0.0011334312438964845
+              }
+            ]
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 4.291534423828125e-06,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.6954879760742188e-06,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 2.3365020751953125e-05,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.814697720372351e-06,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0004425048828125,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 9.568944909221777e-07
+      },
+      "freshTorch": {
+        "passes": false,
+        "failures": [
+          "logits:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 3,
+            "maxAbsoluteDifference": 0.0020093917846679688,
+            "outside": [
+              {
+                "index": 130,
+                "expected": -10.0638427734375,
+                "actual": -10.062507629394531,
+                "absoluteDifference": 0.00133514404296875,
+                "allowed": 0.0011063842773437501
+              },
+              {
+                "index": 139,
+                "expected": -10.008749008178711,
+                "actual": -10.010758399963379,
+                "absoluteDifference": 0.0020093917846679688,
+                "allowed": 0.0011008749008178712
+              },
+              {
+                "index": 251,
+                "expected": -10.334312438964844,
+                "actual": -10.332880973815918,
+                "absoluteDifference": 0.0014314651489257812,
+                "allowed": 0.0011334312438964845
+              }
+            ]
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 4.291534423828125e-06,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.6954879760742188e-06,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 2.3365020751953125e-05,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.814697720372351e-06,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0004425048828125,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 9.568944909221777e-07
+      },
+      "imageWallMs": 37907.934808172286,
+      "forwardAndDecodeMs": 37853.07476297021,
+      "before": {
+        "thermalMilliC": 54530,
+        "cpu0KHz": 1800000
+      },
+      "after": {
+        "thermalMilliC": 54530,
+        "cpu0KHz": 1800000
+      }
+    },
+    "diagnostic-v1/ort-extended.json": {
+      "oldBaseline": {
+        "passes": false,
+        "failures": [
+          "logits:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 4,
+            "maxAbsoluteDifference": 0.0024461746215820312,
+            "outside": [
+              {
+                "index": 48,
+                "expected": -10.663076400756836,
+                "actual": -10.665522575378418,
+                "absoluteDifference": 0.0024461746215820312,
+                "allowed": 0.0011663076400756838
+              },
+              {
+                "index": 70,
+                "expected": -10.64770793914795,
+                "actual": -10.649056434631348,
+                "absoluteDifference": 0.0013484954833984375,
+                "allowed": 0.001164770793914795
+              },
+              {
+                "index": 130,
+                "expected": -10.0638427734375,
+                "actual": -10.062507629394531,
+                "absoluteDifference": 0.00133514404296875,
+                "allowed": 0.0011063842773437501
+              },
+              {
+                "index": 251,
+                "expected": -10.334312438964844,
+                "actual": -10.33563232421875,
+                "absoluteDifference": 0.00131988525390625,
+                "allowed": 0.0011334312438964845
+              }
+            ]
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 2.1219253540039062e-05,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.00054931640625,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 7.115367508525594e-07
+      },
+      "freshTorch": {
+        "passes": false,
+        "failures": [
+          "logits:numeric"
+        ],
+        "heads": {
+          "logits": {
+            "elements": 253,
+            "outsideTolerance": 4,
+            "maxAbsoluteDifference": 0.0024461746215820312,
+            "outside": [
+              {
+                "index": 48,
+                "expected": -10.663076400756836,
+                "actual": -10.665522575378418,
+                "absoluteDifference": 0.0024461746215820312,
+                "allowed": 0.0011663076400756838
+              },
+              {
+                "index": 70,
+                "expected": -10.64770793914795,
+                "actual": -10.649056434631348,
+                "absoluteDifference": 0.0013484954833984375,
+                "allowed": 0.001164770793914795
+              },
+              {
+                "index": 130,
+                "expected": -10.0638427734375,
+                "actual": -10.062507629394531,
+                "absoluteDifference": 0.00133514404296875,
+                "allowed": 0.0011063842773437501
+              },
+              {
+                "index": 251,
+                "expected": -10.334312438964844,
+                "actual": -10.33563232421875,
+                "absoluteDifference": 0.00131988525390625,
+                "allowed": 0.0011334312438964845
+              }
+            ]
+          },
+          "log_grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.814697265625e-06,
+            "outside": []
+          },
+          "soft": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "log_totals": {
+            "elements": 5,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 3.337860107421875e-06,
+            "outside": []
+          },
+          "grams": {
+            "elements": 253,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 2.1219253540039062e-05,
+            "outside": []
+          },
+          "mass_gap": {
+            "elements": 1,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.0,
+            "outside": []
+          },
+          "totals": {
+            "elements": 8,
+            "outsideTolerance": 0,
+            "maxAbsoluteDifference": 0.00054931640625,
+            "outside": []
+          }
+        },
+        "pointAbsoluteDifferences": {
+          "massG": 0.0,
+          "kcal": 0.0,
+          "proteinG": 0.0,
+          "carbsG": 0.0,
+          "fatG": 0.0
+        },
+        "maxPresenceProbabilityDifference": 7.115367508525594e-07
+      },
+      "imageWallMs": 38267.83585106023,
+      "forwardAndDecodeMs": 38219.0212009009,
+      "before": {
+        "thermalMilliC": 54530,
+        "cpu0KHz": 1800000
+      },
+      "after": {
+        "thermalMilliC": 54043,
+        "cpu0KHz": 1800000
+      }
+    }
+  },
+  "diagnosticSupervision": {
+    "workerExitCode": 0,
+    "resourceStop": null,
+    "sampledPeakProcessTreeRssBytes": 1783595008,
+    "hostWallMs": 263169.1531169927
+  },
+  "noFoodAccuracyOrSpeedConclusion": true
+}

@@ -1,0 +1,156 @@
+{
+  "scope": "13-element standalone FP32 Sigmoid arithmetic fixture, no meal/image/weights",
+  "graphSha256": "2b8759a6268a54d81151e54d23e0a061baadcabaa0026f84ce965e061776bdbd",
+  "providers": [
+    "CPUExecutionProvider"
+  ],
+  "optimization": "disabled",
+  "rows": [
+    {
+      "input": -12.0,
+      "torchProbability": 6.144174221844878e-06,
+      "ortProbability": 6.144174221844878e-06,
+      "mathematicalProbability": 6.144174602214718e-06,
+      "torchRoundTripLogit": -12.000000953674316,
+      "ortRoundTripLogit": -12.000000953674316,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0013000000953674318
+    },
+    {
+      "input": -10.663076400756836,
+      "torchProbability": 2.3392389266518876e-05,
+      "ortProbability": 2.3392389266518876e-05,
+      "mathematicalProbability": 2.3392390204651145e-05,
+      "torchRoundTripLogit": -10.663076400756836,
+      "ortRoundTripLogit": -10.663076400756836,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0011663076400756838
+    },
+    {
+      "input": -10.64770793914795,
+      "torchProbability": 2.375466465309728e-05,
+      "ortProbability": 2.375466465309728e-05,
+      "mathematicalProbability": 2.375466337578933e-05,
+      "torchRoundTripLogit": -10.64770793914795,
+      "ortRoundTripLogit": -10.64770793914795,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.001164770793914795
+    },
+    {
+      "input": -10.0638427734375,
+      "torchProbability": 4.259024717612192e-05,
+      "ortProbability": 4.259024353814311e-05,
+      "mathematicalProbability": 4.259024316580749e-05,
+      "torchRoundTripLogit": -10.0638427734375,
+      "ortRoundTripLogit": -10.0638427734375,
+      "probabilityAbsoluteDifference": 3.637978807091713e-12,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0011063842773437501
+    },
+    {
+      "input": -10.334312438964844,
+      "torchProbability": 3.249758083256893e-05,
+      "ortProbability": 3.249758083256893e-05,
+      "mathematicalProbability": 3.249757986567692e-05,
+      "torchRoundTripLogit": -10.334312438964844,
+      "ortRoundTripLogit": -10.334312438964844,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0011334312438964845
+    },
+    {
+      "input": -10.0,
+      "torchProbability": 4.539787187241018e-05,
+      "ortProbability": 4.539786823443137e-05,
+      "mathematicalProbability": 4.5397868702434395e-05,
+      "torchRoundTripLogit": -10.0,
+      "ortRoundTripLogit": -10.0,
+      "probabilityAbsoluteDifference": 3.637978807091713e-12,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0011
+    },
+    {
+      "input": -8.0,
+      "torchProbability": 0.00033535013790242374,
+      "ortProbability": 0.00033535013790242374,
+      "mathematicalProbability": 0.0003353501304664781,
+      "torchRoundTripLogit": -8.0,
+      "ortRoundTripLogit": -8.0,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0009000000000000001
+    },
+    {
+      "input": -4.0,
+      "torchProbability": 0.01798621006309986,
+      "ortProbability": 0.01798621006309986,
+      "mathematicalProbability": 0.01798620996209156,
+      "torchRoundTripLogit": -4.0,
+      "ortRoundTripLogit": -4.0,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0005
+    },
+    {
+      "input": 0.0,
+      "torchProbability": 0.5,
+      "ortProbability": 0.5,
+      "mathematicalProbability": 0.5,
+      "torchRoundTripLogit": 0.0,
+      "ortRoundTripLogit": 0.0,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0001
+    },
+    {
+      "input": 4.0,
+      "torchProbability": 0.9820137619972229,
+      "ortProbability": 0.9820137619972229,
+      "mathematicalProbability": 0.9820137900379085,
+      "torchRoundTripLogit": 3.9999985694885254,
+      "ortRoundTripLogit": 3.9999985694885254,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0004999998569488526
+    },
+    {
+      "input": 8.0,
+      "torchProbability": 0.9996646642684937,
+      "ortProbability": 0.9996646642684937,
+      "mathematicalProbability": 0.9996646498695336,
+      "torchRoundTripLogit": 8.000042915344238,
+      "ortRoundTripLogit": 8.000042915344238,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0009000042915344239
+    },
+    {
+      "input": 10.0,
+      "torchProbability": 0.9999545812606812,
+      "ortProbability": 0.9999545812606812,
+      "mathematicalProbability": 0.9999546021312976,
+      "torchRoundTripLogit": 9.999540328979492,
+      "ortRoundTripLogit": 9.999540328979492,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0010999540328979493
+    },
+    {
+      "input": 12.0,
+      "torchProbability": 0.9999938011169434,
+      "ortProbability": 0.9999938011169434,
+      "mathematicalProbability": 0.9999938558253978,
+      "torchRoundTripLogit": 11.991134643554688,
+      "ortRoundTripLogit": 11.991134643554688,
+      "probabilityAbsoluteDifference": 0.0,
+      "logitAbsoluteDifference": 0.0,
+      "frozenLogitTolerance": 0.0012991134643554688
+    }
+  ],
+  "maxProbabilityAbsoluteDifference": 3.637978807091713e-12,
+  "maxLogitAbsoluteDifference": 0.0,
+  "fullModelFirstDivergentOperatorProven": false
+}

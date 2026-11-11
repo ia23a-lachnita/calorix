@@ -1,9 +1,14 @@
 import json, tempfile, unittest
 from pathlib import Path
-from tool.run_lens_onnx import safe_external_path, resource_stop, validate_outputs, successful_attempt, require_start_memory, optimization_enum
+from tool.run_lens_onnx import safe_external_path, resource_stop, validate_outputs, successful_attempt, require_start_memory, optimization_enum, validate_v2_selection
 import numpy as np
 
 class RunnerContractTest(unittest.TestCase):
+ def test_v2_selection_cannot_switch_graph_or_protocol_or_erase_raw_failure(self):
+  root=Path('/owned');s={'graphFile':'/owned/export-dynamo/model.onnx','protocol':'endpoint-compatibility-v2','raw_speed_qualified':False,'receipt':{'endpointV2':{'passes':True}}};validate_v2_selection(s,root)
+  for key,value in [('graphFile','/elsewhere/model.onnx'),('protocol','raw-v1'),('raw_speed_qualified',True)]:
+   bad={**s,key:value}
+   with self.assertRaises(ValueError):validate_v2_selection(bad,root)
  def test_diagnostic_optimization_allowlist_keeps_default_and_rejects_unknown(self):
   self.assertEqual(optimization_enum('all'),'ORT_ENABLE_ALL')
   self.assertEqual(optimization_enum('disabled'),'ORT_DISABLE_ALL')

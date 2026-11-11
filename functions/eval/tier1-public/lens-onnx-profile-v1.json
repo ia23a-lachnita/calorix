@@ -83,13 +83,13 @@
     },
     {
       "path": "tool/lens_onnx_contract.py",
-      "sha256": "62b047b8f6314670072125b4bfc24ac1686ff6840fc3814978eb3b96a1e8ac12",
-      "bytes": 5211
+      "sha256": "483f1516598975d2f603d0d2aefd4631437d5cca0bc49e0cf2579c6c0e62487e",
+      "bytes": 7115
     },
     {
       "path": "tool/run_lens_onnx.py",
-      "sha256": "af5add6c54d1e41bc50cfe17a12d25924f325c796c9e4a51fba0ffbd851871ab",
-      "bytes": 17256
+      "sha256": "49f6444e368e92d552ac36fa84cee9bc741f760a52b7e9cfdbf997850ef96ad0",
+      "bytes": 20536
     },
     {
       "path": "tool/third_party/calorie_lens/LICENSE",
@@ -105,6 +105,11 @@
       "path": "tool/third_party/calorie_lens/model.py",
       "sha256": "ffb1b4667889be9d89a2517351826012669b672207a3f45da97c7d875d77ece6",
       "bytes": 38036
+    },
+    {
+      "path": "tool/summarize_lens_onnx.py",
+      "sha256": "b41eabd2bf7fce15857cb4864b743defb53887d98b57f1cf02a2f4ba3a3d7b20",
+      "bytes": 6511
     }
   ],
   "previousFiles": [
@@ -1006,5 +1011,24 @@
       "sha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
       "bytes": 358417205
     }
-  ]
+  ],
+  "endpointCompatibilityV2": {
+    "protocol": "endpoint-compatibility-v2",
+    "amendmentTiming": "after owned-blank/scalar diagnostics, before ANY ORT food prediction",
+    "rawV1Verdict": "failed",
+    "raw_speed_qualified": false,
+    "presenceProbabilityAtol": 1e-06,
+    "presenceProbabilityRtol": 0.0001,
+    "allClassPresenceDecisionsExact": true,
+    "presenceThreshold": 0.65,
+    "allClassMassDisplayEligibilityExact": true,
+    "massDisplayThresholdG": 3,
+    "displayedNamesAndGramOrderExact": true,
+    "otherSixRawHeadsAndAllPointMetricBounds": "unchanged original numericalContract",
+    "all42FoodRequired": true,
+    "all6ControlsRequired": true,
+    "graphAndCpuOptimization": "unchanged original Dynamo graph / ORT ALL",
+    "medianRatioDefinition": "median of six per-case Torch image-wall / ORT image-wall ratios",
+    "allPerCaseRatiosReported": true
+  }
 }

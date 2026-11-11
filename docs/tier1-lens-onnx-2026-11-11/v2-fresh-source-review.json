@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\nAGREEMENT_STATUS: agree\nMUST_FIX: none\n\n### Source Review Summary\n\n1. **Dual Protocol Separation**: [`compatibility_report`](file:///home/agent-runner/.local/share/calorix-lens-onnx-20261111/review/tool/lens_onnx_contract.py#L50-L68) strictly preserves [`rawV1`](file:///home/agent-runner/.local/share/calorix-lens-onnx-20261111/review/tool/lens_onnx_contract.py#L52) failure status without reclassification. It conditionally waives only `logits:numeric` under the strict probability bound (`atol=1e-6`, `rtol=1e-4`).\n2. **Exact Decision Gates**: Evaluates exact boolean parity across all 253 ingredient classes for presence (`>= 0.65`) and mass eligibility (`>= 3g`), preserving displayed names, gram order, and all other 6 output head tolerances.\n3. **Execution Guardrails**:\n   - `qualify-v2` cleanly writes isolated [`selected-v2.json`](file:///home/agent-runner/.local/share/calorix-lens-onnx-20261111/review/tool/run_lens_onnx.py#L190).\n   - [`validate_v2_selection`](file:///home/agent-runner/.local/share/calorix-lens-onnx-20261111/review/tool/run_lens_onnx.py#L17-L19) verifies graph file integrity and external data hashes before `benchmark-v2`.\n   - `raw_speed_qualified` is globally locked to `False`.\n   - 10-second cooldown is maintained between the 6 matched control pairs (42 ORT + 6 Torch).\n4. **Summary Frozen Contract**: [`summarize_lens_onnx.py`](file:///home/agent-runner/.local/share/calorix-lens-onnx-20261111/review/tool/summarize_lens_onnx.py) enforces fixed denominators (42 + 6), clean worker exits (`workerExitCode == 0`), tight metric bounds (energy/mass), and paired median wall-time ratios (1.25 material, 2.0 strong) alongside raw failures.\n\nNo code defects or regressions identified; implementation is compliant."
+    }
+  ],
+  "isError": false
+}
