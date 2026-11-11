@@ -1,0 +1,20 @@
+[
+  {
+    "timeUtc": "2026-11-11T09:05:28Z (recorded after timeout)",
+    "model": "gemini-3.8-flash",
+    "category": "MCP timeout",
+    "message": "tool call error: tool call failed for antigravity-mcp/ask-ai; timed out awaiting tools/call after 300s"
+  },
+  {
+    "timeUtc": "2026-11-11T09:05:28Z..2026-11-11T09:05:43Z (recorded call interval)",
+    "model": "gemini-3.7-flash",
+    "category": "unsupported effort",
+    "message": "agy exited with code 1. error: invalid model selection (--model \"gemini-3.7-flash\" --effort \"high\"): --effort is not supported for model \"gemini-3.7-flash\""
+  },
+  {
+    "timeUtc": "2026-11-11T09:05:43Z (recorded before 4.3-second failing call)",
+    "model": "gemini-3.6-flash",
+    "category": "unsupported effort",
+    "message": "agy exited with code 1. error: invalid model selection (--model \"gemini-3.6-flash\" --effort \"high\"): --effort is not supported for model \"gemini-3.6-flash\""
+  }
+]

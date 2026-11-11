@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\n**AGREEMENT_STATUS: agree**  \n**MUST_FIX: none**\n\n### Review Summary\n- **Numerical & Adapter Contract:** Preprocessing, output tensor shapes `(1, 253)`, `(1, 5)`, `(1,)`, `(1, 8)`, tolerances, and `publisher_summary` strictly mirror the pinned two-view model contract without referencing ground truth during inference.\n- **Supervision & Exit Hardening:** `successful_attempt` cleanly couples `workerExitCode == 0`, `resourceStop is None`, and receipt verification (`accepted.json` on export; failure propagation on benchmark).\n- **Export Fallback:** Predeclared two-stage route (`dynamo` then `legacy` opset 18) gates selection on owned-blank parity and runtime bounds prior to evaluating food cases. Safe relative path validation prevents directory traversal on external weights.\n- **Resource & Thread Controls:** Intra/inter thread parameters (2/1), sequential ORT execution, spinning disabled (`session.*_op.allow_spinning=0`), passive OMP, and 10s cooldown spacing on matched Torch/ORT controls strictly adhere to the bounded memory and runtime budgets."
+    }
+  ],
+  "isError": false
+}

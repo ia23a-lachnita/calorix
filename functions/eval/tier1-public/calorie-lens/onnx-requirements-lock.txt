@@ -1,0 +1,8 @@
+-r runtime-requirements-lock.txt
+flatbuffers==25.12.19
+ml_dtypes==0.6.0
+onnx==1.23.2
+onnx-ir==1.1.0
+onnxruntime==1.31.1
+onnxscript==0.7.2
+protobuf==7.36.2

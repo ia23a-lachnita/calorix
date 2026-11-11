@@ -1,0 +1,984 @@
+{
+  "schemaVersion": 1,
+  "experiment": "lens-onnx-runtime-v1",
+  "python": "3.11.15",
+  "versions": {
+    "hf-xet": "1.8.0",
+    "typer": "0.29.0",
+    "idna": "3.20",
+    "onnx": "1.23.2",
+    "sympy": "1.14.0",
+    "typing-inspection": "0.4.5",
+    "pydantic_core": "2.50.4",
+    "onnx-ir": "1.1.0",
+    "huggingface_hub": "2.4.0",
+    "annotated-types": "0.8.0",
+    "fsspec": "2026.9.0",
+    "markdown-it-py": "4.3.0",
+    "truststore": "0.10.5",
+    "shellingham": "1.5.4",
+    "tqdm": "4.70.1",
+    "onnxscript": "0.7.2",
+    "rich": "15.0.0",
+    "protobuf": "7.36.2",
+    "Jinja2": "3.1.6",
+    "packaging": "26.3",
+    "click": "8.5.1",
+    "transformers": "5.22.2",
+    "httpcore2": "2.16.0",
+    "annotated-doc": "0.0.6",
+    "torchvision": "0.28.0+cpu",
+    "mpmath": "1.3.0",
+    "tokenizers": "0.23.3",
+    "MarkupSafe": "3.0.4",
+    "httpx2": "2.16.0",
+    "onnxruntime": "1.31.1",
+    "networkx": "3.6.1",
+    "regex": "2026.11.9",
+    "filelock": "4.2.10",
+    "safetensors": "0.8.0",
+    "torch": "2.13.0+cpu",
+    "numpy": "2.2.4",
+    "pydantic": "2.14.3",
+    "anyio": "4.16.0",
+    "h11": "0.16.0",
+    "mdurl": "0.1.2",
+    "pillow": "11.1.0",
+    "flatbuffers": "25.12.19",
+    "Pygments": "2.21.0",
+    "typing_extensions": "4.16.0",
+    "ml_dtypes": "0.6.0",
+    "PyYAML": "6.0.3"
+  },
+  "sourceFiles": [
+    {
+      "path": "functions/eval/tier1-public/calorie-lens-profile-v1.json",
+      "sha256": "55f5586ccb498af4cc8856e670a806eefb3d24ef647269153fc67734fab2da05",
+      "bytes": 8493
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/config.json",
+      "sha256": "a4bf17a7b78f3a0020839ac2e848a697bb8e2b98d82442e60ac8b9ac983352ce",
+      "bytes": 67593
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/ingredients_metadata.csv",
+      "sha256": "87a9bbd1fd2e28f09f16305a04946ddbe31eb7d9d03686d7e2fb3d8f19f3effb",
+      "bytes": 21540
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/onnx-requirements-lock.txt",
+      "sha256": "702152fee80b90305bfb5aef21c90e5dd367d8304bcc35c42bcd512b2c5e9287",
+      "bytes": 155
+    },
+    {
+      "path": "functions/eval/tier1-public/calorie-lens/runtime-requirements-lock.txt",
+      "sha256": "2aee8dea3d07c928be794060da43052a36dc51363c87014d74dcf121d02b7382",
+      "bytes": 996
+    },
+    {
+      "path": "functions/eval/tier1-public/manifest-calorie-lens-v1.json",
+      "sha256": "16808bec08c1f609a3cb6deff018c9d6b43a30e180c3fb38333ed825fcc96674",
+      "bytes": 190815
+    },
+    {
+      "path": "tool/lens_onnx_contract.py",
+      "sha256": "62b047b8f6314670072125b4bfc24ac1686ff6840fc3814978eb3b96a1e8ac12",
+      "bytes": 5211
+    },
+    {
+      "path": "tool/run_lens_onnx.py",
+      "sha256": "2b80d6ea8bbbd2fc8a1799009b46048f8c0061a8412807a121b344e06654e4e7",
+      "bytes": 15102
+    },
+    {
+      "path": "tool/third_party/calorie_lens/LICENSE",
+      "sha256": "4f981de7b3e6fa60f33796a05441986327dd0cc186f31e1e3ea4c9f69f773fac",
+      "bytes": 1073
+    },
+    {
+      "path": "tool/third_party/calorie_lens/NOTICE",
+      "sha256": "82b4e4c82e321c21531e94499e5eb8ada641d3148b2fc32e5ef40ff3c1b55dee",
+      "bytes": 453
+    },
+    {
+      "path": "tool/third_party/calorie_lens/model.py",
+      "sha256": "ffb1b4667889be9d89a2517351826012669b672207a3f45da97c7d875d77ece6",
+      "bytes": 38036
+    }
+  ],
+  "previousFiles": [
+    {
+      "path": "models/calorie-lens/model.safetensors",
+      "sha256": "302f495630509a45d3437d56fdf234e0d1ecc80251cf75b71a6e73e69c05cb38",
+      "bytes": 378588160
+    },
+    {
+      "path": "assets/inputs/dish_1566590007.jpg",
+      "sha256": "9587868cba1515ceaf142652c5e9a885557e361550ddd205557eeee3dd986b38",
+      "bytes": 41134
+    },
+    {
+      "path": "experiment/calorie-lens/dish_1566590007.json",
+      "sha256": "8f7d54fa210559c7af074a55683cf70027d28e6e70e83ddc58fefb8251257a7f",
+      "bytes": 224270
+    },
+    {
+      "path": "assets/inputs/dish_1566414412.jpg",
+      "sha256": "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+      "bytes": 42715
+    },
+    {
+      "path": "experiment/calorie-lens/dish_1566414412.json",
+      "sha256": "b8a9ff66154945ecaba1ec3003c9bfc13241f85dc594d6a7742d9c9d4270ce98",
+      "bytes": 225893
+    },
+    {
+      "path": "assets/inputs/dish_1568305257.jpg",
+      "sha256": "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c",
+      "bytes": 42598
+    },
+    {
+      "path": "experiment/calorie-lens/dish_1568305257.json",
+      "sha256": "2552d1e8313ad61769cd00004905238bcface91cedee3cd65b092e098d0e47f6",
+      "bytes": 226053
+    },
+    {
+      "path": "assets/inputs/dish_1558722247.jpg",
+      "sha256": "52d149ea4b05b7a3d92a848db0c607698d0f45549fa817250ed9dd850c0f8db2",
+      "bytes": 46982
+    },
+    {
+      "path": "experiment/calorie-lens/dish_1558722247.json",
+      "sha256": "fc8e8f6610efe8d81c7def0f7126c004444d3398b6fd46f8eaab0279919ceecf",
+      "bytes": 224813
+    },
+    {
+      "path": "assets/inputs/dish_1568401233.jpg",
+      "sha256": "75927711eec8957eb5010ce05154bf02541d64cefaa0fa691e7cef944556adc5",
+      "bytes": 40196
+    },
+    {
+      "path": "experiment/calorie-lens/dish_1568401233.json",
+      "sha256": "a28b999648291d46a029041effe8ced54920164fc82a1dfeeac5948a5ce87d14",
+      "bytes": 224739
+    },
+    {
+      "path": "assets/inputs/dish_1563389600.jpg",
+      "sha256": "5dd57e8063e5f941541faa009851cd0a47a80967942af81640ffe4e6afa6af01",
+      "bytes": 35030
+    },
+    {
+      "path": "experiment/calorie-lens/dish_1563389600.json",
+      "sha256": "d1d739222956424e87cf50ce67d9378f8aa99cdb289e50e203191c9ba5deb1ce",
+      "bytes": 224517
+    },
+    {
+      "path": "assets/inputs/dish_1566920365.jpg",
+      "sha256": "1de13ddeb3881509de837955cc605428ee354cc99de2e9c879aeaefbffb953cf",
+      "bytes": 45114
+    },
+    {
+      "path": "experiment/calorie-lens/dish_1566920365.json",
+      "sha256": "abb84412a9161e60f8f57313c6ee22e56b17eabff5cb56353f1a112c1786f8c7",
+      "bytes": 224838
+    },
+    {
+      "path": "assets/inputs/dish_1564687046.jpg",
+      "sha256": "85aba7aa1a5eac2bfa82d07357e717681aa289aee720ade11ec13aef30651033",
+      "bytes": 39311
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1564687046.json",
+      "sha256": "6ae8235ec8dcc69c93ac367363bd539de6a6c518191bdb8a04b6a1ac91d7a916",
+      "bytes": 225243
+    },
+    {
+      "path": "assets/inputs/dish_1558461792.jpg",
+      "sha256": "57d2955f7f2f35fabd6ecc80f99b5f437e86196906e9825ce58591e9a9bc3ffc",
+      "bytes": 48585
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1558461792.json",
+      "sha256": "2c2666669bdf2162a07f2185bad06b8af4a84c519c025abcca15c4dbae98a9e3",
+      "bytes": 225189
+    },
+    {
+      "path": "assets/inputs/dish_1561739238.jpg",
+      "sha256": "be322f0aa9da773937028ea67c110b631abe1a9151ca46fd49dadb6f3cb98a51",
+      "bytes": 35938
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1561739238.json",
+      "sha256": "934a101b38d82b61c83f06644115b54fa482cec2c6714f9633344e1151969898",
+      "bytes": 225446
+    },
+    {
+      "path": "assets/inputs/bread005.jpg",
+      "sha256": "a3ae366bc3361d5442a77142702301872962ccb404d1ea875ce1d4f81b429662",
+      "bytes": 45127
+    },
+    {
+      "path": "continuation/calorie-lens/bread005.json",
+      "sha256": "ce45b9b05843abc53bb969e30c6d668b78775903b8130f4ce2a5a46810819958",
+      "bytes": 223744
+    },
+    {
+      "path": "assets/inputs/bun006.jpg",
+      "sha256": "627768eb7ad1474fe489bd8ec4d4849e8c7dbb9a427fd8f1cee99b94bd124e2d",
+      "bytes": 50647
+    },
+    {
+      "path": "continuation/calorie-lens/bun006.json",
+      "sha256": "96fb8c431d372a9046dc8cb498f4fb59f979d236d83c4f183f010dc3097c431c",
+      "bytes": 223249
+    },
+    {
+      "path": "assets/inputs/doughnut006.jpg",
+      "sha256": "73d0100394033a753e85dab41fc0b126e187798747884ffa13439796a6c2d73f",
+      "bytes": 53563
+    },
+    {
+      "path": "continuation/calorie-lens/doughnut006.json",
+      "sha256": "d69ede6ad05c0178ded78e62efe7a83cb62f09f131e9c1f9a4687c4f02068587",
+      "bytes": 223988
+    },
+    {
+      "path": "assets/inputs/fired_dough_twist006.jpg",
+      "sha256": "be4a14bff2908385f834770e29356ad559ca3c2c286b48859d30c8aaa82793da",
+      "bytes": 17206
+    },
+    {
+      "path": "continuation/calorie-lens/fired_dough_twist006.json",
+      "sha256": "b2db7e2d416f0e4e6735686704b98b5d62ab2d7cd69884c28589ac1d72e7cb95",
+      "bytes": 223121
+    },
+    {
+      "path": "assets/inputs/mooncake004.jpg",
+      "sha256": "e084e6eff191aa294be2d437ff0f4101cfe1612b301f946d822c2576bcf2c52f",
+      "bytes": 41831
+    },
+    {
+      "path": "continuation/calorie-lens/mooncake004.json",
+      "sha256": "0abe2abdc0460d4503f84f5da8498b1aed66a5e89f63363ac7518a76453a0b7b",
+      "bytes": 223258
+    },
+    {
+      "path": "assets/inputs/sachima004.jpg",
+      "sha256": "c0d989ec836b7e1533e8e92378a4e96758a2afe2ad44b7f06da72d2266b9e928",
+      "bytes": 40900
+    },
+    {
+      "path": "continuation/calorie-lens/sachima004.json",
+      "sha256": "bced2e44423d8a1b0a49a383b386df6bedc0425979865fba7efa68db595f1485",
+      "bytes": 223328
+    },
+    {
+      "path": "assets/inputs/bread004.jpg",
+      "sha256": "99d5a64a95ace261f3c5a07afb40b7f798b4458a5d16d2d19d2c0a2e94546179",
+      "bytes": 52552
+    },
+    {
+      "path": "continuation/calorie-lens/bread004.json",
+      "sha256": "cdeb792baae45cb7cecd00d7387aea13064af4fd6be6d7ae8c0a2d64e52c9371",
+      "bytes": 223484
+    },
+    {
+      "path": "assets/inputs/bun005.jpg",
+      "sha256": "ccaba1347d791490dedb4e29faf3349bdcd3ff3e089140330a2052040708ccac",
+      "bytes": 38956
+    },
+    {
+      "path": "continuation/calorie-lens/bun005.json",
+      "sha256": "2b879d5ea98f7fbe0691600e21164a3d75e45757d5f0c37ccfcf3ad0817e5c92",
+      "bytes": 224089
+    },
+    {
+      "path": "assets/inputs/doughnut008.jpg",
+      "sha256": "6a4e7e625d27620c2e5bb403d2cc882d07be53d35c7b905a9bb7972cfa236711",
+      "bytes": 49087
+    },
+    {
+      "path": "continuation/calorie-lens/doughnut008.json",
+      "sha256": "011951e456f2f58a3d8452fa1265dd7383f9b94b0f4bb66102d3200b0fee023c",
+      "bytes": 224122
+    },
+    {
+      "path": "assets/inputs/fired_dough_twist004.jpg",
+      "sha256": "f567c34d44c9ea1cabbbc17566b83cb70c4814eec761d1c4f31406b149a0ac08",
+      "bytes": 48580
+    },
+    {
+      "path": "continuation/calorie-lens/fired_dough_twist004.json",
+      "sha256": "d656e9f62fd3aeeba554176fec63f5fd545a2e190070f654a63cd88b252b06d0",
+      "bytes": 223089
+    },
+    {
+      "path": "assets/inputs/mooncake006.jpg",
+      "sha256": "e48aa1d6bfe2cd17a6e650bb5c36b379a7c5754cecee41f7c850d551499b3e12",
+      "bytes": 36699
+    },
+    {
+      "path": "continuation/calorie-lens/mooncake006.json",
+      "sha256": "07789efca3a2e2d4044efa0c65aafc2ddfef3773c9fcfccc3a05ad23deca667d",
+      "bytes": 223676
+    },
+    {
+      "path": "assets/inputs/sachima005.jpg",
+      "sha256": "e7ed4113b92337c0004c3e1f2b5c989e867736606a813b19b838c917a413ea4b",
+      "bytes": 35348
+    },
+    {
+      "path": "continuation/calorie-lens/sachima005.json",
+      "sha256": "99f942e5bc2986d4250b8f757a37cf62f1534206be74ece494e4d1fae05b39d3",
+      "bytes": 223408
+    },
+    {
+      "path": "assets/inputs/dish_1559934477.jpg",
+      "sha256": "911f3efd91b17fa9979f2bae7fe9e22c0866dd4e36c0abf9e53bc299e618e660",
+      "bytes": 43469
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1559934477.json",
+      "sha256": "6674e90abe0b2b72670f1dee9aa28fd40f9427fc15a0d435ebe2734578af4380",
+      "bytes": 223765
+    },
+    {
+      "path": "assets/inputs/dish_1558461607.jpg",
+      "sha256": "a5fbbcd0e8d884a8d3e29c65237c1f983ff332f0eda7950723ef06dbf7eca7e4",
+      "bytes": 38114
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1558461607.json",
+      "sha256": "527f5e15a7e791bdc7ad59a867d416a1d12e81181c63988fb6e9fb5f1db710fd",
+      "bytes": 224140
+    },
+    {
+      "path": "assets/inputs/dish_1566416701.jpg",
+      "sha256": "65678e42ad5d6bda986fcc481d9c42b82c3dc7b9b01606502aaf54afaa6e9945",
+      "bytes": 34564
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1566416701.json",
+      "sha256": "7c505c530c966ea2f348e4db8ed9c36aea38476f1ecb74741ca0a4338918a61f",
+      "bytes": 223752
+    },
+    {
+      "path": "assets/inputs/dish_1563389548.jpg",
+      "sha256": "aaff4bd962c51281a66db70e4bfa85892e30aaad384ff5ddbc083a9a1b0a66c5",
+      "bytes": 36007
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1563389548.json",
+      "sha256": "6c7f1af28ffb157940e2a281781711c4b7a6b2d2b029169d5633879359042254",
+      "bytes": 224314
+    },
+    {
+      "path": "assets/inputs/dish_1567785622.jpg",
+      "sha256": "3dc31a657b3d5e59ab129e0f55f95ae6885a0ed440c8ad4c912d688d4b2cd374",
+      "bytes": 29831
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1567785622.json",
+      "sha256": "d064a8cf44cee36e923acdad541df8eb3210cdc359e641f1a9fd987c0636388e",
+      "bytes": 224363
+    },
+    {
+      "path": "assets/inputs/dish_1566589933.jpg",
+      "sha256": "1cee9aca83ea11fd91231275e7eedde0e0bc1d720995e0eda14454bb2ede3cc6",
+      "bytes": 29131
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1566589933.json",
+      "sha256": "b42e1c0e616a7a1946097700c0a77e25cd1d0cc7bc5393a87c8ae5624760a85a",
+      "bytes": 223811
+    },
+    {
+      "path": "assets/inputs/dish_1562963246.jpg",
+      "sha256": "8efa6ecc244aad3e65f242693d47e0e093ac7b318097036a66a0be1775546bf3",
+      "bytes": 24580
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1562963246.json",
+      "sha256": "c8f36da6b5618c96ebb756511fe7c94932eee29895eda3244fcc1d52066167e8",
+      "bytes": 224675
+    },
+    {
+      "path": "assets/inputs/dish_1560975517.jpg",
+      "sha256": "db61d696a9c3fdc3f801feed93ad9c53089d3f157b200883ea0ca8f10bc043a0",
+      "bytes": 41664
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1560975517.json",
+      "sha256": "5cf606e3e48d4b229348e00329139d01bcce9c21aacbd9ad05a0e35fd946fb1d",
+      "bytes": 224444
+    },
+    {
+      "path": "assets/inputs/dish_1558030182.jpg",
+      "sha256": "2ca6fe0d6c1da896fed2af3bee93cca2fbd013270a57a903fff3cf92caddcefc",
+      "bytes": 33919
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1558030182.json",
+      "sha256": "967f0df8372e8cce1b80f3ceb90e09792539477f63ee12bdea50e898f617f0b0",
+      "bytes": 224447
+    },
+    {
+      "path": "assets/inputs/dish_1558376437.jpg",
+      "sha256": "b16c40982d5daadb9385defa0a914ef9fb98e225a890ba43f9a5057a0d253b96",
+      "bytes": 34409
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1558376437.json",
+      "sha256": "8d933ba68d6935a51be1545f5d86ec566fad3c2466b90c7f66a9d6ac60bed0bd",
+      "bytes": 224285
+    },
+    {
+      "path": "assets/inputs/dish_1560203400.jpg",
+      "sha256": "c280672f43feef455445f4bfe20b0a2c267205d8b9cf0033e79830d88e05d873",
+      "bytes": 41726
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1560203400.json",
+      "sha256": "41c63f75cd32ce1f77db01539a6bd32c7831f78390adfbf088df88f473bf9e96",
+      "bytes": 223558
+    },
+    {
+      "path": "assets/inputs/dish_1557862783.jpg",
+      "sha256": "bf99a8f9c0994d2d7368509a6e9427bfbbc1fdc78eac2b9fe95459740a6d77ba",
+      "bytes": 41320
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1557862783.json",
+      "sha256": "2776ba6d8048a29cba2164f146b0b7994a565a730278557ac642f43db33539a7",
+      "bytes": 224678
+    },
+    {
+      "path": "assets/inputs/dish_1568401261.jpg",
+      "sha256": "ab7372719e73fdee584ec725ca06298720ae1f51b8518cb895d00b3dd6679e18",
+      "bytes": 40716
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1568401261.json",
+      "sha256": "e88ce03ca882acbaae7f26f0ec9324600eacc6eb7db4469f43447a88562fae65",
+      "bytes": 224793
+    },
+    {
+      "path": "assets/inputs/dish_1565810969.jpg",
+      "sha256": "c9c7824ffb405aa86781d4d6c89a3a0047187e1f7d13895d084bac955c26ded5",
+      "bytes": 41842
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1565810969.json",
+      "sha256": "f44f39644077a796c6c18f4f954e13256bebf51902cb7a5db2d6577e1a5917bf",
+      "bytes": 224383
+    },
+    {
+      "path": "assets/inputs/dish_1564675411.jpg",
+      "sha256": "8340ebf93d47529ff7b54190c04c6e94e81276cac9c70c2c6c7ec4c0e21b7a27",
+      "bytes": 35477
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1564675411.json",
+      "sha256": "9aca3b2dca5233d3fae703d2735df4f168b91cf46a861dd7d3c6889433ebe4b5",
+      "bytes": 224941
+    },
+    {
+      "path": "assets/inputs/dish_1562009810.jpg",
+      "sha256": "0be63d4f01fc7ee7035865efbbca91fbf808c0318a2c40fe7b12149efd4521f4",
+      "bytes": 31109
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1562009810.json",
+      "sha256": "9fa03b6a476866fa06c3874ade0f72cdc7eef4bb94cc830ab1ced60bd493fa3c",
+      "bytes": 223847
+    },
+    {
+      "path": "assets/inputs/dish_1566920339.jpg",
+      "sha256": "2420ac2875fb53c7558aac6f3ab00d04529bb3807887a40a51419a750efa735a",
+      "bytes": 40697
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1566920339.json",
+      "sha256": "459d572892bbc6f0009c279a8cfdf1498d53c243784bac954c3d0647c122a47f",
+      "bytes": 225065
+    },
+    {
+      "path": "assets/inputs/dish_1559157454.jpg",
+      "sha256": "28a5394d5e29b499388ba0926d573d9ad5096576e7572cd206dfdd8e5803e405",
+      "bytes": 36672
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1559157454.json",
+      "sha256": "1a0c9137cec4c5f0d90a210a20ce3d168fe92e7f6c53bc9d2cd518079985c1c7",
+      "bytes": 223899
+    },
+    {
+      "path": "assets/inputs/dish_1564160043.jpg",
+      "sha256": "f6790ca9acf26e19fd658a5863e8529f20ac3936ffb22df362ad948ca8cea6a5",
+      "bytes": 31193
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1564160043.json",
+      "sha256": "bd0c91373817ac052114b7373b392e38f8a2d5fcc1c3183316c40a1522e3f5c8",
+      "bytes": 224159
+    },
+    {
+      "path": "assets/inputs/dish_1562876494.jpg",
+      "sha256": "3f1135ea6de056975804cba2b3ebc10329843c7e2b288c0e6a8604a18b22d81c",
+      "bytes": 26464
+    },
+    {
+      "path": "continuation/calorie-lens/dish_1562876494.json",
+      "sha256": "7379c5f71f7ec7c7e56d75644f4a9f74a39266abd282a2dcf6162a56519e1988",
+      "bytes": 223779
+    },
+    {
+      "path": "assets/qualification.png",
+      "sha256": "d7a63f76547125dc28785a1f1247a6996cc06bc935739115f9e3150c29956858",
+      "bytes": 1946
+    },
+    {
+      "path": "experiment/calorie-lens/__qualification__.json",
+      "sha256": "c23c05131104bb908a936fafe9372c5d9f57cb1d34e5aa0d95ea0da78d656ced",
+      "bytes": 221993
+    }
+  ],
+  "cases": [
+    {
+      "id": "dish_1566590007",
+      "group": "discovery10",
+      "inputPath": "assets/inputs/dish_1566590007.jpg",
+      "inputSha256": "9587868cba1515ceaf142652c5e9a885557e361550ddd205557eeee3dd986b38",
+      "expectedPath": "experiment/calorie-lens/dish_1566590007.json",
+      "expectedSha256": "8f7d54fa210559c7af074a55683cf70027d28e6e70e83ddc58fefb8251257a7f"
+    },
+    {
+      "id": "dish_1566414412",
+      "group": "discovery10",
+      "inputPath": "assets/inputs/dish_1566414412.jpg",
+      "inputSha256": "1a7cf5e17cfd46b58f74be8f1b4eeeeacc19e988542f548db8b89c685b7924c4",
+      "expectedPath": "experiment/calorie-lens/dish_1566414412.json",
+      "expectedSha256": "b8a9ff66154945ecaba1ec3003c9bfc13241f85dc594d6a7742d9c9d4270ce98"
+    },
+    {
+      "id": "dish_1568305257",
+      "group": "discovery10",
+      "inputPath": "assets/inputs/dish_1568305257.jpg",
+      "inputSha256": "e95ae8673f4fd5a5ca10edfff762e7c9a24c17d313752767688ae8d1f4b2874c",
+      "expectedPath": "experiment/calorie-lens/dish_1568305257.json",
+      "expectedSha256": "2552d1e8313ad61769cd00004905238bcface91cedee3cd65b092e098d0e47f6"
+    },
+    {
+      "id": "dish_1558722247",
+      "group": "discovery10",
+      "inputPath": "assets/inputs/dish_1558722247.jpg",
+      "inputSha256": "52d149ea4b05b7a3d92a848db0c607698d0f45549fa817250ed9dd850c0f8db2",
+      "expectedPath": "experiment/calorie-lens/dish_1558722247.json",
+      "expectedSha256": "fc8e8f6610efe8d81c7def0f7126c004444d3398b6fd46f8eaab0279919ceecf"
+    },
+    {
+      "id": "dish_1568401233",
+      "group": "discovery10",
+      "inputPath": "assets/inputs/dish_1568401233.jpg",
+      "inputSha256": "75927711eec8957eb5010ce05154bf02541d64cefaa0fa691e7cef944556adc5",
+      "expectedPath": "experiment/calorie-lens/dish_1568401233.json",
+      "expectedSha256": "a28b999648291d46a029041effe8ced54920164fc82a1dfeeac5948a5ce87d14"
+    },
+    {
+      "id": "dish_1563389600",
+      "group": "discovery10",
+      "inputPath": "assets/inputs/dish_1563389600.jpg",
+      "inputSha256": "5dd57e8063e5f941541faa009851cd0a47a80967942af81640ffe4e6afa6af01",
+      "expectedPath": "experiment/calorie-lens/dish_1563389600.json",
+      "expectedSha256": "d1d739222956424e87cf50ce67d9378f8aa99cdb289e50e203191c9ba5deb1ce"
+    },
+    {
+      "id": "dish_1566920365",
+      "group": "discovery10",
+      "inputPath": "assets/inputs/dish_1566920365.jpg",
+      "inputSha256": "1de13ddeb3881509de837955cc605428ee354cc99de2e9c879aeaefbffb953cf",
+      "expectedPath": "experiment/calorie-lens/dish_1566920365.json",
+      "expectedSha256": "abb84412a9161e60f8f57313c6ee22e56b17eabff5cb56353f1a112c1786f8c7"
+    },
+    {
+      "id": "dish_1564687046",
+      "group": "discovery10",
+      "inputPath": "assets/inputs/dish_1564687046.jpg",
+      "inputSha256": "85aba7aa1a5eac2bfa82d07357e717681aa289aee720ade11ec13aef30651033",
+      "expectedPath": "continuation/calorie-lens/dish_1564687046.json",
+      "expectedSha256": "6ae8235ec8dcc69c93ac367363bd539de6a6c518191bdb8a04b6a1ac91d7a916"
+    },
+    {
+      "id": "dish_1558461792",
+      "group": "discovery10",
+      "inputPath": "assets/inputs/dish_1558461792.jpg",
+      "inputSha256": "57d2955f7f2f35fabd6ecc80f99b5f437e86196906e9825ce58591e9a9bc3ffc",
+      "expectedPath": "continuation/calorie-lens/dish_1558461792.json",
+      "expectedSha256": "2c2666669bdf2162a07f2185bad06b8af4a84c519c025abcca15c4dbae98a9e3"
+    },
+    {
+      "id": "dish_1561739238",
+      "group": "discovery10",
+      "inputPath": "assets/inputs/dish_1561739238.jpg",
+      "inputSha256": "be322f0aa9da773937028ea67c110b631abe1a9151ca46fd49dadb6f3cb98a51",
+      "expectedPath": "continuation/calorie-lens/dish_1561739238.json",
+      "expectedSha256": "934a101b38d82b61c83f06644115b54fa482cec2c6714f9633344e1151969898"
+    },
+    {
+      "id": "bread005",
+      "group": "ecust-old",
+      "inputPath": "assets/inputs/bread005.jpg",
+      "inputSha256": "a3ae366bc3361d5442a77142702301872962ccb404d1ea875ce1d4f81b429662",
+      "expectedPath": "continuation/calorie-lens/bread005.json",
+      "expectedSha256": "ce45b9b05843abc53bb969e30c6d668b78775903b8130f4ce2a5a46810819958"
+    },
+    {
+      "id": "bun006",
+      "group": "ecust-old",
+      "inputPath": "assets/inputs/bun006.jpg",
+      "inputSha256": "627768eb7ad1474fe489bd8ec4d4849e8c7dbb9a427fd8f1cee99b94bd124e2d",
+      "expectedPath": "continuation/calorie-lens/bun006.json",
+      "expectedSha256": "96fb8c431d372a9046dc8cb498f4fb59f979d236d83c4f183f010dc3097c431c"
+    },
+    {
+      "id": "doughnut006",
+      "group": "ecust-old",
+      "inputPath": "assets/inputs/doughnut006.jpg",
+      "inputSha256": "73d0100394033a753e85dab41fc0b126e187798747884ffa13439796a6c2d73f",
+      "expectedPath": "continuation/calorie-lens/doughnut006.json",
+      "expectedSha256": "d69ede6ad05c0178ded78e62efe7a83cb62f09f131e9c1f9a4687c4f02068587"
+    },
+    {
+      "id": "fired_dough_twist006",
+      "group": "ecust-old",
+      "inputPath": "assets/inputs/fired_dough_twist006.jpg",
+      "inputSha256": "be4a14bff2908385f834770e29356ad559ca3c2c286b48859d30c8aaa82793da",
+      "expectedPath": "continuation/calorie-lens/fired_dough_twist006.json",
+      "expectedSha256": "b2db7e2d416f0e4e6735686704b98b5d62ab2d7cd69884c28589ac1d72e7cb95"
+    },
+    {
+      "id": "mooncake004",
+      "group": "ecust-old",
+      "inputPath": "assets/inputs/mooncake004.jpg",
+      "inputSha256": "e084e6eff191aa294be2d437ff0f4101cfe1612b301f946d822c2576bcf2c52f",
+      "expectedPath": "continuation/calorie-lens/mooncake004.json",
+      "expectedSha256": "0abe2abdc0460d4503f84f5da8498b1aed66a5e89f63363ac7518a76453a0b7b"
+    },
+    {
+      "id": "sachima004",
+      "group": "ecust-old",
+      "inputPath": "assets/inputs/sachima004.jpg",
+      "inputSha256": "c0d989ec836b7e1533e8e92378a4e96758a2afe2ad44b7f06da72d2266b9e928",
+      "expectedPath": "continuation/calorie-lens/sachima004.json",
+      "expectedSha256": "bced2e44423d8a1b0a49a383b386df6bedc0425979865fba7efa68db595f1485"
+    },
+    {
+      "id": "bread004",
+      "group": "ecust-fresh",
+      "inputPath": "assets/inputs/bread004.jpg",
+      "inputSha256": "99d5a64a95ace261f3c5a07afb40b7f798b4458a5d16d2d19d2c0a2e94546179",
+      "expectedPath": "continuation/calorie-lens/bread004.json",
+      "expectedSha256": "cdeb792baae45cb7cecd00d7387aea13064af4fd6be6d7ae8c0a2d64e52c9371"
+    },
+    {
+      "id": "bun005",
+      "group": "ecust-fresh",
+      "inputPath": "assets/inputs/bun005.jpg",
+      "inputSha256": "ccaba1347d791490dedb4e29faf3349bdcd3ff3e089140330a2052040708ccac",
+      "expectedPath": "continuation/calorie-lens/bun005.json",
+      "expectedSha256": "2b879d5ea98f7fbe0691600e21164a3d75e45757d5f0c37ccfcf3ad0817e5c92"
+    },
+    {
+      "id": "doughnut008",
+      "group": "ecust-fresh",
+      "inputPath": "assets/inputs/doughnut008.jpg",
+      "inputSha256": "6a4e7e625d27620c2e5bb403d2cc882d07be53d35c7b905a9bb7972cfa236711",
+      "expectedPath": "continuation/calorie-lens/doughnut008.json",
+      "expectedSha256": "011951e456f2f58a3d8452fa1265dd7383f9b94b0f4bb66102d3200b0fee023c"
+    },
+    {
+      "id": "fired_dough_twist004",
+      "group": "ecust-fresh",
+      "inputPath": "assets/inputs/fired_dough_twist004.jpg",
+      "inputSha256": "f567c34d44c9ea1cabbbc17566b83cb70c4814eec761d1c4f31406b149a0ac08",
+      "expectedPath": "continuation/calorie-lens/fired_dough_twist004.json",
+      "expectedSha256": "d656e9f62fd3aeeba554176fec63f5fd545a2e190070f654a63cd88b252b06d0"
+    },
+    {
+      "id": "mooncake006",
+      "group": "ecust-fresh",
+      "inputPath": "assets/inputs/mooncake006.jpg",
+      "inputSha256": "e48aa1d6bfe2cd17a6e650bb5c36b379a7c5754cecee41f7c850d551499b3e12",
+      "expectedPath": "continuation/calorie-lens/mooncake006.json",
+      "expectedSha256": "07789efca3a2e2d4044efa0c65aafc2ddfef3773c9fcfccc3a05ad23deca667d"
+    },
+    {
+      "id": "sachima005",
+      "group": "ecust-fresh",
+      "inputPath": "assets/inputs/sachima005.jpg",
+      "inputSha256": "e7ed4113b92337c0004c3e1f2b5c989e867736606a813b19b838c917a413ea4b",
+      "expectedPath": "continuation/calorie-lens/sachima005.json",
+      "expectedSha256": "99f942e5bc2986d4250b8f757a37cf62f1534206be74ece494e4d1fae05b39d3"
+    },
+    {
+      "id": "dish_1559934477",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1559934477.jpg",
+      "inputSha256": "911f3efd91b17fa9979f2bae7fe9e22c0866dd4e36c0abf9e53bc299e618e660",
+      "expectedPath": "continuation/calorie-lens/dish_1559934477.json",
+      "expectedSha256": "6674e90abe0b2b72670f1dee9aa28fd40f9427fc15a0d435ebe2734578af4380"
+    },
+    {
+      "id": "dish_1558461607",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1558461607.jpg",
+      "inputSha256": "a5fbbcd0e8d884a8d3e29c65237c1f983ff332f0eda7950723ef06dbf7eca7e4",
+      "expectedPath": "continuation/calorie-lens/dish_1558461607.json",
+      "expectedSha256": "527f5e15a7e791bdc7ad59a867d416a1d12e81181c63988fb6e9fb5f1db710fd"
+    },
+    {
+      "id": "dish_1566416701",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1566416701.jpg",
+      "inputSha256": "65678e42ad5d6bda986fcc481d9c42b82c3dc7b9b01606502aaf54afaa6e9945",
+      "expectedPath": "continuation/calorie-lens/dish_1566416701.json",
+      "expectedSha256": "7c505c530c966ea2f348e4db8ed9c36aea38476f1ecb74741ca0a4338918a61f"
+    },
+    {
+      "id": "dish_1563389548",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1563389548.jpg",
+      "inputSha256": "aaff4bd962c51281a66db70e4bfa85892e30aaad384ff5ddbc083a9a1b0a66c5",
+      "expectedPath": "continuation/calorie-lens/dish_1563389548.json",
+      "expectedSha256": "6c7f1af28ffb157940e2a281781711c4b7a6b2d2b029169d5633879359042254"
+    },
+    {
+      "id": "dish_1567785622",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1567785622.jpg",
+      "inputSha256": "3dc31a657b3d5e59ab129e0f55f95ae6885a0ed440c8ad4c912d688d4b2cd374",
+      "expectedPath": "continuation/calorie-lens/dish_1567785622.json",
+      "expectedSha256": "d064a8cf44cee36e923acdad541df8eb3210cdc359e641f1a9fd987c0636388e"
+    },
+    {
+      "id": "dish_1566589933",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1566589933.jpg",
+      "inputSha256": "1cee9aca83ea11fd91231275e7eedde0e0bc1d720995e0eda14454bb2ede3cc6",
+      "expectedPath": "continuation/calorie-lens/dish_1566589933.json",
+      "expectedSha256": "b42e1c0e616a7a1946097700c0a77e25cd1d0cc7bc5393a87c8ae5624760a85a"
+    },
+    {
+      "id": "dish_1562963246",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1562963246.jpg",
+      "inputSha256": "8efa6ecc244aad3e65f242693d47e0e093ac7b318097036a66a0be1775546bf3",
+      "expectedPath": "continuation/calorie-lens/dish_1562963246.json",
+      "expectedSha256": "c8f36da6b5618c96ebb756511fe7c94932eee29895eda3244fcc1d52066167e8"
+    },
+    {
+      "id": "dish_1560975517",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1560975517.jpg",
+      "inputSha256": "db61d696a9c3fdc3f801feed93ad9c53089d3f157b200883ea0ca8f10bc043a0",
+      "expectedPath": "continuation/calorie-lens/dish_1560975517.json",
+      "expectedSha256": "5cf606e3e48d4b229348e00329139d01bcce9c21aacbd9ad05a0e35fd946fb1d"
+    },
+    {
+      "id": "dish_1558030182",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1558030182.jpg",
+      "inputSha256": "2ca6fe0d6c1da896fed2af3bee93cca2fbd013270a57a903fff3cf92caddcefc",
+      "expectedPath": "continuation/calorie-lens/dish_1558030182.json",
+      "expectedSha256": "967f0df8372e8cce1b80f3ceb90e09792539477f63ee12bdea50e898f617f0b0"
+    },
+    {
+      "id": "dish_1558376437",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1558376437.jpg",
+      "inputSha256": "b16c40982d5daadb9385defa0a914ef9fb98e225a890ba43f9a5057a0d253b96",
+      "expectedPath": "continuation/calorie-lens/dish_1558376437.json",
+      "expectedSha256": "8d933ba68d6935a51be1545f5d86ec566fad3c2466b90c7f66a9d6ac60bed0bd"
+    },
+    {
+      "id": "dish_1560203400",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1560203400.jpg",
+      "inputSha256": "c280672f43feef455445f4bfe20b0a2c267205d8b9cf0033e79830d88e05d873",
+      "expectedPath": "continuation/calorie-lens/dish_1560203400.json",
+      "expectedSha256": "41c63f75cd32ce1f77db01539a6bd32c7831f78390adfbf088df88f473bf9e96"
+    },
+    {
+      "id": "dish_1557862783",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1557862783.jpg",
+      "inputSha256": "bf99a8f9c0994d2d7368509a6e9427bfbbc1fdc78eac2b9fe95459740a6d77ba",
+      "expectedPath": "continuation/calorie-lens/dish_1557862783.json",
+      "expectedSha256": "2776ba6d8048a29cba2164f146b0b7994a565a730278557ac642f43db33539a7"
+    },
+    {
+      "id": "dish_1568401261",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1568401261.jpg",
+      "inputSha256": "ab7372719e73fdee584ec725ca06298720ae1f51b8518cb895d00b3dd6679e18",
+      "expectedPath": "continuation/calorie-lens/dish_1568401261.json",
+      "expectedSha256": "e88ce03ca882acbaae7f26f0ec9324600eacc6eb7db4469f43447a88562fae65"
+    },
+    {
+      "id": "dish_1565810969",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1565810969.jpg",
+      "inputSha256": "c9c7824ffb405aa86781d4d6c89a3a0047187e1f7d13895d084bac955c26ded5",
+      "expectedPath": "continuation/calorie-lens/dish_1565810969.json",
+      "expectedSha256": "f44f39644077a796c6c18f4f954e13256bebf51902cb7a5db2d6577e1a5917bf"
+    },
+    {
+      "id": "dish_1564675411",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1564675411.jpg",
+      "inputSha256": "8340ebf93d47529ff7b54190c04c6e94e81276cac9c70c2c6c7ec4c0e21b7a27",
+      "expectedPath": "continuation/calorie-lens/dish_1564675411.json",
+      "expectedSha256": "9aca3b2dca5233d3fae703d2735df4f168b91cf46a861dd7d3c6889433ebe4b5"
+    },
+    {
+      "id": "dish_1562009810",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1562009810.jpg",
+      "inputSha256": "0be63d4f01fc7ee7035865efbbca91fbf808c0318a2c40fe7b12149efd4521f4",
+      "expectedPath": "continuation/calorie-lens/dish_1562009810.json",
+      "expectedSha256": "9fa03b6a476866fa06c3874ade0f72cdc7eef4bb94cc830ab1ced60bd493fa3c"
+    },
+    {
+      "id": "dish_1566920339",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1566920339.jpg",
+      "inputSha256": "2420ac2875fb53c7558aac6f3ab00d04529bb3807887a40a51419a750efa735a",
+      "expectedPath": "continuation/calorie-lens/dish_1566920339.json",
+      "expectedSha256": "459d572892bbc6f0009c279a8cfdf1498d53c243784bac954c3d0647c122a47f"
+    },
+    {
+      "id": "dish_1559157454",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1559157454.jpg",
+      "inputSha256": "28a5394d5e29b499388ba0926d573d9ad5096576e7572cd206dfdd8e5803e405",
+      "expectedPath": "continuation/calorie-lens/dish_1559157454.json",
+      "expectedSha256": "1a0c9137cec4c5f0d90a210a20ce3d168fe92e7f6c53bc9d2cd518079985c1c7"
+    },
+    {
+      "id": "dish_1564160043",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1564160043.jpg",
+      "inputSha256": "f6790ca9acf26e19fd658a5863e8529f20ac3936ffb22df362ad948ca8cea6a5",
+      "expectedPath": "continuation/calorie-lens/dish_1564160043.json",
+      "expectedSha256": "bd0c91373817ac052114b7373b392e38f8a2d5fcc1c3183316c40a1522e3f5c8"
+    },
+    {
+      "id": "dish_1562876494",
+      "group": "validation20",
+      "inputPath": "assets/inputs/dish_1562876494.jpg",
+      "inputSha256": "3f1135ea6de056975804cba2b3ebc10329843c7e2b288c0e6a8604a18b22d81c",
+      "expectedPath": "continuation/calorie-lens/dish_1562876494.json",
+      "expectedSha256": "7379c5f71f7ec7c7e56d75644f4a9f74a39266abd282a2dcf6162a56519e1988"
+    }
+  ],
+  "qualification": {
+    "id": "__qualification__",
+    "inputPath": "assets/qualification.png",
+    "inputSha256": "d7a63f76547125dc28785a1f1247a6996cc06bc935739115f9e3150c29956858",
+    "expectedPath": "experiment/calorie-lens/__qualification__.json",
+    "expectedSha256": "c23c05131104bb908a936fafe9372c5d9f57cb1d34e5aa0d95ea0da78d656ced"
+  },
+  "controlSeed": "calorix-lens-onnx-controls-v1",
+  "controls": [
+    {
+      "id": "bread004",
+      "group": "ecust-fresh",
+      "order": [
+        "torch",
+        "ort"
+      ]
+    },
+    {
+      "id": "bread005",
+      "group": "ecust-old",
+      "order": [
+        "ort",
+        "torch"
+      ]
+    },
+    {
+      "id": "dish_1562963246",
+      "group": "validation20",
+      "order": [
+        "torch",
+        "ort"
+      ]
+    },
+    {
+      "id": "dish_1566414412",
+      "group": "discovery10",
+      "order": [
+        "ort",
+        "torch"
+      ]
+    },
+    {
+      "id": "dish_1560203400",
+      "group": "validation20",
+      "order": [
+        "torch",
+        "ort"
+      ]
+    },
+    {
+      "id": "dish_1568401233",
+      "group": "discovery10",
+      "order": [
+        "ort",
+        "torch"
+      ]
+    }
+  ],
+  "exportLimits": {
+    "rssBytes": 3221225472,
+    "minAvailableBytes": 3758096384,
+    "wallSeconds": 900,
+    "idleSeconds": 900,
+    "artifactBytes": 536870912
+  },
+  "benchmarkLimits": {
+    "rssBytes": 3221225472,
+    "minAvailableBytes": 3758096384,
+    "wallSeconds": 3600,
+    "idleSeconds": 120,
+    "artifactBytes": 536870912
+  },
+  "numericalContract": {
+    "rtol": 0.0001,
+    "dimensionlessAtol": 0.0001,
+    "gramHeadsAtol": 0.005,
+    "totalsAtol": [
+      0.05,
+      0.005,
+      0.005,
+      0.005,
+      0.005,
+      0.005,
+      0.005,
+      0.5
+    ],
+    "pointKcalAtol": 0.1,
+    "pointMassAtol": 0.1,
+    "pointMacroAtol": 0.02,
+    "exactDisplayedNamesAndOrder": true,
+    "metricKcalAtol": 0.1,
+    "metricMassAtol": 0.1
+  },
+  "speedScreen": {
+    "materialMedianRatio": 1.25,
+    "strongMedianRatio": 2,
+    "requiresParity42": true,
+    "requiresControls6": true
+  }
+}

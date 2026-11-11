@@ -1,0 +1,17 @@
+E
+======================================================================
+ERROR: test_lens_onnx_runner (unittest.loader._FailedTest.test_lens_onnx_runner)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_lens_onnx_runner
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+  File "/home/agent-runner/.local/share/calorix-lens-verification-worktree.7mbbsoe_/tests/test_lens_onnx_runner.py", line 3, in <module>
+    from tool.run_lens_onnx import safe_external_path, resource_stop, validate_outputs, successful_attempt
+ImportError: cannot import name 'successful_attempt' from 'tool.run_lens_onnx' (/home/agent-runner/.local/share/calorix-lens-verification-worktree.7mbbsoe_/tool/run_lens_onnx.py)
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (errors=1)
