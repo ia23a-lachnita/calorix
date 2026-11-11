@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\n**AGREEMENT_STATUS**: agree  \n**MUST_FIX**: none  \n\n**PRE-EXECUTION REVIEW**:  \nThe frozen profile (`lens-onnx-lowering-profile-v3.json`) and the byte-identical four modules satisfy all architectural, resource, and governance constraints:  \n\n1. **Lineage & Verdict Retention**: Prior `originalRawV1: FAILED`, `originalEndpointV2: FAILED`, and `raw_speed_qualified: false` remain permanently coupled across all downstream artifacts. Base runtime SHA-256 and parent external data files (`model.onnx`, `model.onnx.data`) are pinned with exact byte sizes and hashes.  \n2. **Stable Lowering**: Exactly one standard Sigmoid is replaced by the 10 standard FP32 nodes ($e=\\exp(-\\operatorname{abs}(x)), d=1+e, \\operatorname{where}(x \\ge 0, 1/d, e/d)$) under isolated prefix `__calorix_v3_stable_sigmoid_`. Checkpoint weights, input preprocessing, and TTA views remain bit-identical.  \n3. **Execution Gating & Limits**: Qualification strictly requires blank raw parity, endpoint compatibility, $\\le 128\\text{s}$ wall-time, and cohort projection $\\le 3600\\text{s}$ against retained Torch blank ($68329.30\\text{ms}$). Any failure stops execution immediately without retries. Cohort limits strictly enforce 3 GiB RSS peak, 512 MiB available memory floor, passive threading, and 120s idle timeout.  \n4. **Speedup Evaluation**: Candidate evaluations ($1.25\\times$ material, $2.0\\times$ strong) remain standalone performance thresholds with no production readiness, generalization, or safety guarantees claimed."
+    }
+  ],
+  "isError": false
+}

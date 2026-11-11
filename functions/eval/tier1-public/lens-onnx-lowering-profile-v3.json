@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "candidate": "v3-stable-sigmoid",
+  "originalRawV1": "FAILED",
+  "originalEndpointV2": "FAILED",
+  "raw_speed_qualified": false,
+  "baseRuntimeProfileSha256": "4b41d950e2a0463e0f80b94d8560417d66106745e77e13be695c79921ab51c96",
+  "parentGraphFiles": [
+    {
+      "name": "model.onnx",
+      "sha256": "cd1f8b96b6fbc1992d79e79551eb8e492f1ced568ba080ee0817b6bb9bb0c80a",
+      "bytes": 2655980
+    },
+    {
+      "name": "model.onnx.data",
+      "sha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
+      "bytes": 358417205
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "tool/lens_sigmoid_lowering.py",
+      "sha256": "d13ca5b080e7eb2b03d273b894774cca5bf2195ca5a20150d98a158f3a061965",
+      "bytes": 4091
+    },
+    {
+      "path": "tool/run_lens_lowering.py",
+      "sha256": "9049b3b2fbe2f516a0fd80c4da6a252d1388df3f71dba9a44ba41be45d5d3634",
+      "bytes": 8299
+    },
+    {
+      "path": "tool/summarize_lens_lowering.py",
+      "sha256": "624c04d89f154fa643e686d03664a6e080a7bbb590813d55730d3aecd4e92d07",
+      "bytes": 5260
+    },
+    {
+      "path": "tests/test_lens_sigmoid_lowering.py",
+      "sha256": "31e096dfae362eb624125dd40448a0569f2e1baf0bb49d684c3b78c135cdd98f",
+      "bytes": 4132
+    }
+  ],
+  "retainedTorchBlankMs": 68329.30435391609,
+  "qualificationLimits": {
+    "rssBytes": 3221225472,
+    "minAvailableBytes": 536870912,
+    "wallSeconds": 900,
+    "idleSeconds": 120,
+    "artifactBytes": 536870912
+  },
+  "benchmarkLimits": {
+    "rssBytes": 3221225472,
+    "minAvailableBytes": 536870912,
+    "wallSeconds": 3600,
+    "idleSeconds": 120,
+    "artifactBytes": 536870912
+  },
+  "candidatePolicy": {
+    "singleCandidate": true,
+    "noRetryIfBlankRejected": true,
+    "checkpointSourceConfigTtaPrecisionUnchanged": true,
+    "singleStandardSigmoidReplacedByStandardNodes": 10,
+    "formula": "e=exp(-abs(x));d=1+e;where(x>=0,1/d,e/d)",
+    "optimization": "disabled",
+    "requiredBlankRawAndEndpointPasses": true,
+    "qualificationMaxImageWallMs": 128000,
+    "projectedFullCohortMsMax": 3600000,
+    "projection": "1.2*(42*ORTblank+6*retainedTorchBlank)+ORTblank+retainedTorchBlank+120000",
+    "all42OrtAnd6ControlsRequired": true,
+    "originalNumericalAndMetricBounds": "unchanged base profile",
+    "medianRatioDefinition": "median of six per-case Torch image-wall / ORT image-wall ratios",
+    "materialSpeedRatio": 1.25,
+    "strongSpeedRatio": 2,
+    "noProductionPromotion": true
+  }
+}
