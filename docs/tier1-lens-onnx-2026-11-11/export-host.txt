@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/agent-runner/.local/share/calorix-lens-verification-worktree.7mbbsoe_/tool/run_lens_onnx.py", line 167, in <module>
+    main(args)
+  File "/home/agent-runner/.local/share/calorix-lens-verification-worktree.7mbbsoe_/tool/run_lens_onnx.py", line 156, in main
+    raise RuntimeError('Both predeclared exports failed; inspect retained worker diagnostics')
+RuntimeError: Both predeclared exports failed; inspect retained worker diagnostics

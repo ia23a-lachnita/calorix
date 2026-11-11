@@ -1,3 +1,13 @@
+# Current task: corrected memory watchdog, resume export
+
+Source stage `ffbb98b41abd0ce19cb12da64ad9ad4817a824a5` committed/pushed clean. Initial actual export workers both terminated by the available-memory floor: Dynamo29.96s/peak805261312B, legacy26.41s/peak1120161792B. First strict state load succeeded21.60s; neither graph nor qualification receipt exists, no food calls. This is a watchdog error, not evidence of unsupported operators/model failure. Initial4.4055GB available vs continuous3.5GiB floor left insufficient model headroom.
+
+Reviewed correction separates >=3.5GiB available BEFORE EACH WORKER from512MiB continuous reserve; sampled3GiB process-tree cap,900s/512MiB exports,3600s/120s benchmark and all model/numerical/thread settings remain fixed. Memory review conversation `calorix-lens-onnx-memory-20261111`, gemini-3.8-flash/yolo pre/post both agree/MUST_FIX none. New regression observed RED→GREEN;14focused and144full Python tests pass. Initial failures retained under evidence; no outcomes or tolerances tuned. No app/default/deployment change, foodSDK187 unchanged.
+
+Next after this fix is committed/pushed clean: create task-owned `execution-v2/tmp`, run scoped interpreter `tool.run_lens_onnx --root <task>/execution-v2 --previous <retained Lens task> --mode export`. At most two fresh corrected-resource routes, Dynamo then legacy once if needed. Original attempts preserved. Keep source clean while active; then benchmark only if selected graph passes qualification.
+
+---
+
 # Current task: same-model ONNX parity and CPU speed experiment
 
 Branch `feat/calorie-lens-onnx`, isolated worktree based on `cd1e715044d28b5820fdac10db4371cadecad4fd`. Current stage: add frozen numerical contract and bounded export/runtime runner. Intended checks: full Python unittest discovery, `node --test tool/*.test.cjs`, exact scoped-runtime preflight, two source reviews, then commit/push clean before export/model execution. Original checkout and unknown empty `nutrients` file are preserved.

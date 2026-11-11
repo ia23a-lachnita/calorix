@@ -24,6 +24,8 @@ def resource_stop(rss,available,wall,idle,size,limits):
   if hit:return reason
  return None
 def available_memory():return int(next(l.split()[1] for l in Path('/proc/meminfo').read_text().splitlines() if l.startswith('MemAvailable:')))*1024
+def require_start_memory(available,minimum):
+ if available<minimum:raise ValueError('Insufficient available memory before worker start')
 def telemetry():
  result={}
  for name,path in [('thermalMilliC','/sys/class/thermal/thermal_zone0/temp'),('cpu0KHz','/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq')]:
@@ -43,6 +45,7 @@ def tree_rss(pid):
   owned|=added
  return sum(sizes.get(n,0) for n in owned)
 def supervise(repo,root,spec,kind,limits):
+ require_start_memory(available_memory(),spec['preflightMinAvailableBytes'])
  start=last=time.monotonic();peak=0;stop=None;seen=None
  env=os.environ.copy();env.update(TMPDIR=str(root/'tmp'),OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',MKL_NUM_THREADS='1',OMP_WAIT_POLICY='PASSIVE',HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',HF_HUB_DISABLE_TELEMETRY='1',HF_HOME=str(root/'tmp/hf-cache'),TOKENIZERS_PARALLELISM='false',PYTHONDONTWRITEBYTECODE='1')
  out=Path(spec['outputDir']);specpath=out/'worker-input.json';write(specpath,spec)
@@ -138,13 +141,13 @@ def preflight(repo,root,previous):
  if platform.python_version()!=p['python'] or installed(p['versions'])!=p['versions']:raise ValueError('Pinned isolated runtime required')
  for f in p['sourceFiles']:verify_file(repo/f['path'],f['sha256'],f['bytes'])
  for f in p['previousFiles']:verify_file(previous/f['path'],f['sha256'],f['bytes'])
- if available_memory()<p['exportLimits']['minAvailableBytes']:raise ValueError('Insufficient memory before model load')
+ require_start_memory(available_memory(),p['preflightMinAvailableBytes'])
  if not (root/'tmp').is_dir() or subprocess.check_output(['stat','-f','-c','%T',str(root)],text=True).strip()=='tmpfs':raise ValueError('Disk-backed task root required')
  return p
 def make_spec(repo,previous,p,out):
  old=json.loads((repo/BASE/'calorie-lens-profile-v1.json').read_text());spec={k:str(repo/old[k]) for k in ['modelSourcePath','configPath','nutrientMetadataPath']};spec['sourcePath']=spec.pop('modelSourcePath');spec.update(modelFile=str(previous/'models/calorie-lens/model.safetensors'),outputDir=str(out),nutrientMetadataSha256=old['nutrientMetadataSha256'],versions=list(p['versions']))
  def project(c):return {'id':c['id'],'inputFile':str(previous/c['inputPath']),'inputSha256':c['inputSha256'],'expectedFile':str(previous/c['expectedPath']),'expectedSha256':c['expectedSha256']}
- spec['qualification']=project(p['qualification']);spec['cases']=[project(c) for c in p['cases']];spec['controls']=p['controls'];return spec
+ spec['qualification']=project(p['qualification']);spec['cases']=[project(c) for c in p['cases']];spec['controls']=p['controls'];spec['preflightMinAvailableBytes']=p['preflightMinAvailableBytes'];return spec
 def main(a):
  repo=a.repo.absolute();root=a.root.absolute();previous=a.previous.absolute();p=preflight(repo,root,previous)
  if a.mode=='preflight':print(json.dumps({'cleanSource':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip(),'cases':len(p['cases']),'controls':p['controls'],'availableBytes':available_memory()}));return

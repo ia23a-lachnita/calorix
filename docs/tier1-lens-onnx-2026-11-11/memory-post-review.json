@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\nAGREEMENT_STATUS: agree  \nMUST_FIX: none  \n\n### Review Summary\nThe diff faithfully implements the decoupled memory architecture:\n1. **Decoupled Configuration**: Sets `preflightMinAvailableBytes` to 3.5 GiB and lowers continuous runtime floors (`exportLimits` and `benchmarkLimits.minAvailableBytes`) to 512 MiB.\n2. **Dual-Gate Preflight**: `require_start_memory()` validates the 3.5 GiB threshold both during initial parent preflight and immediately prior to spawning each worker in `supervise()`.\n3. **Runtime Watchdog**: `resource_stop()` checks the 512 MiB continuous floor, permitting the 3 GiB process-tree RSS cap to function without premature memory aborts.\n4. **Verification**: New contract test enforces limit values and preflight gate boundary conditions; source file checksums and lengths are updated.\n\nPrior failure did not indicate export incompatibility; runtime watchdogs remain heuristics, not kernel memory guarantees or speed assurances. Fresh `execution-v2` may proceed."
+    }
+  ],
+  "isError": false
+}

@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\nAGREEMENT_STATUS: agree  \nMUST_FIX: none  \n\n### Review Summary\nThe diagnosis is sound. Conflating the preflight requirement with a continuous runtime floor aborted workers after allocating <0.7 GiB, preventing the 3 GiB process-tree RSS cap from functioning as designed. Strict load succeeded; prior SIGTERMs stemmed from threshold misconfiguration, not model or export incompatibility. Application watchdogs remain heuristics, not kernel memory guarantees or speed assurances.\n\n### Key Adjustments\n1. **Decouple Limits**: Separate `preflightMinAvailableBytes = 3.5 GiB` (checked before worker launch) from runtime `minAvailableBytes = 512 MiB`.\n2. **Retain Caps**: Keep 3 GiB sampled process-tree RSS limit, 900s export timeout, 512 MiB artifact ceiling, and 3600s/120s idle benchmark limits.\n3. **Verification**: Implement new unit test asserting separate preflight configuration (RED first, then GREEN). Update source profile pins.\n4. **Execution-v2**: Preserve both failed run records. Launch fresh `execution-v2` root with at most two routes (Dynamo first, legacy fallback if necessary) under exact same checkpoint, inputs, tolerances, threads, and unchanged accuracy gates. No food predictions seen."
+    }
+  ],
+  "isError": false
+}

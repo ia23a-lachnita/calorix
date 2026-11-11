@@ -1,9 +1,16 @@
-import tempfile, unittest
+import json, tempfile, unittest
 from pathlib import Path
-from tool.run_lens_onnx import safe_external_path, resource_stop, validate_outputs, successful_attempt
+from tool.run_lens_onnx import safe_external_path, resource_stop, validate_outputs, successful_attempt, require_start_memory
 import numpy as np
 
 class RunnerContractTest(unittest.TestCase):
+ def test_startup_memory_requirement_is_separate_from_runtime_floor(self):
+  profile=json.loads((Path(__file__).resolve().parents[1]/'functions/eval/tier1-public/lens-onnx-profile-v1.json').read_text())
+  self.assertEqual(profile['preflightMinAvailableBytes'],int(3.5*1024**3))
+  self.assertEqual(profile['exportLimits']['minAvailableBytes'],512*1024**2)
+  self.assertEqual(profile['benchmarkLimits']['minAvailableBytes'],512*1024**2)
+  require_start_memory(profile['preflightMinAvailableBytes'],profile['preflightMinAvailableBytes'])
+  with self.assertRaises(ValueError):require_start_memory(profile['preflightMinAvailableBytes']-1,profile['preflightMinAvailableBytes'])
  def test_receipt_cannot_override_worker_or_resource_failure(self):
   self.assertTrue(successful_attempt({'workerExitCode':0,'resourceStop':None},True))
   self.assertFalse(successful_attempt({'workerExitCode':1,'resourceStop':None},True))

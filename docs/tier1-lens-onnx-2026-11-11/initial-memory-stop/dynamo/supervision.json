@@ -1,0 +1,6 @@
+{
+  "workerExitCode": -15,
+  "resourceStop": "available_memory",
+  "sampledPeakProcessTreeRssBytes": 805261312,
+  "hostWallMs": 29959.672791999765
+}

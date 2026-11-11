@@ -88,8 +88,8 @@
     },
     {
       "path": "tool/run_lens_onnx.py",
-      "sha256": "2b80d6ea8bbbd2fc8a1799009b46048f8c0061a8412807a121b344e06654e4e7",
-      "bytes": 15102
+      "sha256": "c2f6a9a2e12c4ed631dc4df67ddd121d7e995551d1275f4fb2acd87beaf3aa79",
+      "bytes": 15337
     },
     {
       "path": "tool/third_party/calorie_lens/LICENSE",
@@ -942,14 +942,14 @@
   ],
   "exportLimits": {
     "rssBytes": 3221225472,
-    "minAvailableBytes": 3758096384,
+    "minAvailableBytes": 536870912,
     "wallSeconds": 900,
     "idleSeconds": 900,
     "artifactBytes": 536870912
   },
   "benchmarkLimits": {
     "rssBytes": 3221225472,
-    "minAvailableBytes": 3758096384,
+    "minAvailableBytes": 536870912,
     "wallSeconds": 3600,
     "idleSeconds": 120,
     "artifactBytes": 536870912
@@ -980,5 +980,6 @@
     "strongMedianRatio": 2,
     "requiresParity42": true,
     "requiresControls6": true
-  }
+  },
+  "preflightMinAvailableBytes": 3758096384
 }
