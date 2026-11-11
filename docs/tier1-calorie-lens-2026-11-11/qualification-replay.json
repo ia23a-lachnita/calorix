@@ -1,0 +1,8 @@
+{
+  "sameRawAndPublisherSummaryAndInputTensor": true,
+  "qualificationOnly": true,
+  "notFoodAccuracyEvidence": true,
+  "firstFileSha256": "c23c05131104bb908a936fafe9372c5d9f57cb1d34e5aa0d95ea0da78d656ced",
+  "secondFileSha256": "331545ce01fee1f5dd56a40727eb684cb12b3698fc424a681fed56fb71452b0b",
+  "intentScopeClarification": "Runtime amendment was before FOOD-estimate outcome inspection; initial blank mass63.6g was visible as numerical-contract output, never a weighed reference or source-selection criterion."
+}

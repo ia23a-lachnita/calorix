@@ -1,0 +1,35 @@
+{
+  "host": "Raspberry Pi4 ModelB aarch64 Debian13; CPU2 intra-op/1interop, no affinity/dedicated-core claim",
+  "androidMeasurement": false,
+  "lensFoodCount": 42,
+  "lensMedianImageWallMs": 63647.55222003441,
+  "lensMinImageWallMs": 61317.62034294661,
+  "lensMaxImageWallMs": 78352.6149810059,
+  "plateNewFoodCount": 20,
+  "plateMedianImageWallMs": 316.06001302134246,
+  "originalWorkers": {
+    "plate-vision": {
+      "workerExitCode": 0,
+      "resourceStop": null,
+      "sampledPeakWorkerRssBytes": 172867584,
+      "hostWallMs": 8334.808513056487
+    },
+    "calorie-lens": {
+      "workerExitCode": -15,
+      "resourceStop": null,
+      "sampledPeakWorkerRssBytes": 1055350784,
+      "hostWallMs": 558259.6466579707
+    }
+  },
+  "continuation": {
+    "workerExitCode": 0,
+    "resourceStop": null,
+    "sampledPeakWorkerRssBytes": 1128398848,
+    "hostWallMs": 2353785.224705003,
+    "sourceCommit": "6fb20933cc245328959742b7b6f6d15efc7c068d",
+    "originalModelSourceCommit": "b268f5fb89c17048ebfd7b7b9971658207569ee8",
+    "amendmentSha256": "d46cb98ef36f5c808d2780ed45eae02ae7f7f7b4b87eb5823693ce4b27eed835",
+    "workerSpecSha256": "949a94d66ef782a2645d75f59925f8124ead2d1ab465b292ec05d9609d3eeec9",
+    "availableMemoryBeforeBytes": 4363960320
+  }
+}

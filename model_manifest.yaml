@@ -1,4 +1,4 @@
-manifest_version: 11
+manifest_version: 12
 baseline: A1
 requested_model: gemini-3.8-flash
 returned_model_policy: exact equality or explicit failure
@@ -198,7 +198,7 @@ reference_scale_cue_android_weighed_meals: 0
 reference_scale_cue_mass_mae_g_both_arms: 15.183333333333335
 reference_scale_cue_gain_validated: false
 reference_scale_cue_physical_geometry_validated: false
-public_reference_inventory_scope: 80Nutrition5k scans including20TRAIN+60benchmark/development, separately6ECUST simpleportions; no combined calorie metric or independentmealcount
+public_reference_inventory_scope: 80Nutrition5k scans including20TRAIN+60benchmark/development, separately12ECUST portionIDs; no combined calorie metric or independentmealcount
 
 thinking_level_status: completed_failed_consideration_gate; archived_not_promoted
 thinking_level_report: docs/tier1-thinking-level-2026-11-10/report.md
@@ -251,3 +251,43 @@ open_models_dish_training_exposure: row_split_permits_dish_overlap_exact_checkpo
 open_models_android_latency_measured: false
 open_models_production_change: false
 annotation_geometry_recovery_status: on_hold_unexecuted_after_user_open_source_research_steering
+
+# Released Calorie Lens and frozen serving-route comparison. Production A1 above is unchanged.
+calorie_lens_comparison_status: "completed_exploratory_candidates_not_promoted"
+calorie_lens_report: "docs/tier1-calorie-lens-2026-11-11/report.md"
+calorie_lens_code_commit: "b268f5fb89c17048ebfd7b7b9971658207569ee8"
+calorie_lens_execution_amendment_commit: "6fb20933cc245328959742b7b6f6d15efc7c068d"
+calorie_lens_profile: "functions/eval/tier1-public/calorie-lens-profile-v1.json"
+calorie_lens_runtime_amendment: "functions/eval/tier1-public/calorie-lens-runtime-amendment-v1.json"
+calorie_lens_upstream_revision: "f0d34a638b6b572e2df601067881b56fe6848c79"
+calorie_lens_weights_sha256: "302f495630509a45d3437d56fdf234e0d1ecc80251cf75b71a6e73e69c05cb38"
+calorie_lens_compared_photo_count: 42
+calorie_lens_compared_food_records: 84
+calorie_lens_prior_plate_records: 22
+calorie_lens_new_local_food_records: 62
+calorie_lens_blank_qualifications: 2
+calorie_lens_interrupted_local_forward_max: 1
+calorie_lens_new_meal_inference_sdk_entries: 0
+released_models_total_persisted_food_records: 106
+calorie_lens_validation20_baseline_mae_kcal: 71.53828485
+calorie_lens_validation20_full_mae_kcal: 35.695046950000005
+calorie_lens_validation20_gated_mae_kcal: 60.06461405000001
+calorie_lens_validation20_full_p90_kcal: 121.07898150000003
+calorie_lens_discovery10_mass_fusion_mae_kcal: 88.81008917659153
+calorie_lens_exploratory_screen_passed: true
+plate_serving_route_exploratory_screen_passed: true
+calorie_lens_route_validation_eligible: 4
+calorie_lens_route_eligible_cases_improved: 2
+calorie_lens_route_eligible_cases_worsened: 2
+calorie_lens_full_validation_no_displayed_ingredients: 2
+calorie_lens_ecust_no_displayed_ingredients: 6
+calorie_lens_core_nutrient_records_matched: 252
+calorie_lens_core_nutrient_records_total: 253
+calorie_lens_extended_usda_verified: false
+calorie_lens_median_host_food_wall_seconds: 63.64755222003441
+calorie_lens_target_android_accuracy_measured: false
+calorie_lens_new_reference_meals: 0
+calorie_lens_training: false
+calorie_lens_production_change: false
+calorie_lens_next_experiment: "Same pinned model ONNX numerical parity and CPU latency; not yet executed"
+calorie_lens_training_scope: "No additional training in this experiment; upstream model is pretrained on Nutrition5k, Flavoria and USDA data"

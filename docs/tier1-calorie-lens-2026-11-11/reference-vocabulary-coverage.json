@@ -1,0 +1,275 @@
+{
+  "scope": "Source recipe ID coverage only; no model inference, visual recognition accuracy or new routing criteria",
+  "cases": [
+    {
+      "id": "dish_1566590007",
+      "group": "discovery10",
+      "sourceIngredientRows": 13,
+      "referenceIngredientMassG": 457.000006,
+      "referenceMassInModelVocabularyG": 457.000006,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1566414412",
+      "group": "discovery10",
+      "sourceIngredientRows": 27,
+      "referenceIngredientMassG": 658.000003,
+      "referenceMassInModelVocabularyG": 658.000003,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1568305257",
+      "group": "discovery10",
+      "sourceIngredientRows": 10,
+      "referenceIngredientMassG": 420.000001,
+      "referenceMassInModelVocabularyG": 420.000001,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1558722247",
+      "group": "discovery10",
+      "sourceIngredientRows": 3,
+      "referenceIngredientMassG": 343.0,
+      "referenceMassInModelVocabularyG": 343.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1568401233",
+      "group": "discovery10",
+      "sourceIngredientRows": 5,
+      "referenceIngredientMassG": 417.999996,
+      "referenceMassInModelVocabularyG": 417.999996,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1563389600",
+      "group": "discovery10",
+      "sourceIngredientRows": 2,
+      "referenceIngredientMassG": 264.0,
+      "referenceMassInModelVocabularyG": 264.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1566920365",
+      "group": "discovery10",
+      "sourceIngredientRows": 4,
+      "referenceIngredientMassG": 871.000004,
+      "referenceMassInModelVocabularyG": 871.000004,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1564687046",
+      "group": "discovery10",
+      "sourceIngredientRows": 17,
+      "referenceIngredientMassG": 308.000007,
+      "referenceMassInModelVocabularyG": 308.000007,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1558461792",
+      "group": "discovery10",
+      "sourceIngredientRows": 4,
+      "referenceIngredientMassG": 233.0,
+      "referenceMassInModelVocabularyG": 233.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1561739238",
+      "group": "discovery10",
+      "sourceIngredientRows": 4,
+      "referenceIngredientMassG": 257.0,
+      "referenceMassInModelVocabularyG": 257.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1559934477",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 57.0,
+      "referenceMassInModelVocabularyG": 57.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1558461607",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 127.0,
+      "referenceMassInModelVocabularyG": 127.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1566416701",
+      "group": "validation20",
+      "sourceIngredientRows": 17,
+      "referenceIngredientMassG": 122.00000299999999,
+      "referenceMassInModelVocabularyG": 122.00000299999999,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1563389548",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 194.0,
+      "referenceMassInModelVocabularyG": 194.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1567785622",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 54.0,
+      "referenceMassInModelVocabularyG": 54.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1566589933",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 122.0,
+      "referenceMassInModelVocabularyG": 122.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1562963246",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 122.0,
+      "referenceMassInModelVocabularyG": 122.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1560975517",
+      "group": "validation20",
+      "sourceIngredientRows": 2,
+      "referenceIngredientMassG": 99.0,
+      "referenceMassInModelVocabularyG": 99.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1558030182",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 88.0,
+      "referenceMassInModelVocabularyG": 88.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1558376437",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 39.0,
+      "referenceMassInModelVocabularyG": 39.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1560203400",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 104.0,
+      "referenceMassInModelVocabularyG": 104.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1557862783",
+      "group": "validation20",
+      "sourceIngredientRows": 3,
+      "referenceIngredientMassG": 258.0,
+      "referenceMassInModelVocabularyG": 258.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1568401261",
+      "group": "validation20",
+      "sourceIngredientRows": 6,
+      "referenceIngredientMassG": 442.999996,
+      "referenceMassInModelVocabularyG": 442.999996,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1565810969",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 20.0,
+      "referenceMassInModelVocabularyG": 20.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1564675411",
+      "group": "validation20",
+      "sourceIngredientRows": 2,
+      "referenceIngredientMassG": 308.0,
+      "referenceMassInModelVocabularyG": 308.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1562009810",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 108.0,
+      "referenceMassInModelVocabularyG": 108.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1566920339",
+      "group": "validation20",
+      "sourceIngredientRows": 3,
+      "referenceIngredientMassG": 730.000004,
+      "referenceMassInModelVocabularyG": 730.000004,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1559157454",
+      "group": "validation20",
+      "sourceIngredientRows": 9,
+      "referenceIngredientMassG": 28.0,
+      "referenceMassInModelVocabularyG": 28.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1564160043",
+      "group": "validation20",
+      "sourceIngredientRows": 1,
+      "referenceIngredientMassG": 98.0,
+      "referenceMassInModelVocabularyG": 98.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    },
+    {
+      "id": "dish_1562876494",
+      "group": "validation20",
+      "sourceIngredientRows": 14,
+      "referenceIngredientMassG": 26.0,
+      "referenceMassInModelVocabularyG": 26.0,
+      "massVocabularyCoverage": 1.0,
+      "outsideVocabulary": []
+    }
+  ]
+}

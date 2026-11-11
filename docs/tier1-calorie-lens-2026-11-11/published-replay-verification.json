@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "restoredExactFiles": 72,
+  "restoredNewRawRecords": 64,
+  "repeatedModelForwardCalls": 0,
+  "byteIdenticalFiles": [
+    {
+      "path": "metrics.json",
+      "sha256": "5fa7380262c53862fe7f7e940c3e8229b6239597f63461ae73685dc7a493d588",
+      "bytes": 62074
+    },
+    {
+      "path": "per-case.csv",
+      "sha256": "4c4f458eab50dd7d806e089ce336b75357054762612dfc69cc534495ae986e9a",
+      "bytes": 10170
+    },
+    {
+      "path": "eligible-four.json",
+      "sha256": "9696d21a28b98f01d0a7221113fb865d9ada52a5f3dd997166d9c0c951da4073",
+      "bytes": 1212
+    },
+    {
+      "path": "independent-verification.json",
+      "sha256": "f89f07a52ad2f304e9713d33d166bc2d4d46b22399758d6713da962a3ddfe522",
+      "bytes": 931
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "kind": "unexpected_filesystem_artifact_during_review_window",
+  "path": "nutrients",
+  "bytes": 0,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fileTimestampUtc": "2026-11-11T06:34:32.089768638Z",
+  "researchResponseTimestampUtc": "2026-11-11T06:35:02.224Z",
+  "correlation": "Appeared during bounded source-research window; exact creator is unproven. No other agent is live.",
+  "sourceImpact": "No tracked inference code changed; independent pinned source and input checks passed.",
+  "disposition": "Preserved untracked in original checkout, not committed, moved, overwritten or deleted. Research verdict was factual N/A, not counted as an approval. Verification uses a separate clean worktree."
+}

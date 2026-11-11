@@ -17,8 +17,8 @@ Continue the approved Tier-1 accuracy roadmap from clean pushed source f526aae. 
 
 - [x] 1. Pin 42 images and retained A1 receipts, model/source/nutrient table and own runtime. Write focused adapter/routing/coverage/unit tests, observe RED, implement minimal helpers, observe GREEN.
 - [x] 2. Add supervised headless worker and offline scoring, source + fresh-context whole-feature external review, complete relevant Python/Node checks, commit/push clean before executing model code.
-- [ ] 3. Preflight then bounded qualification and 42 Lens /20 Plate predictions. Preserve raw outputs and model/runtime/input hashes; no silent replacement or source changes during run.
-- [ ] 4. Independent raw/tensor/table/Decimal replay, subgroup/route results including losses, actual-result review. Update pilot/model manifest/status, commit/push.
+- [x] 3. Preflight then bounded qualification and 42 Lens /20 Plate predictions. Preserve raw outputs and model/runtime/input hashes; no silent replacement or source changes during run.
+- [x] 4. Independent raw/tensor/table/Decimal replay, subgroup/route results including losses, actual-result review. Update pilot/model manifest/status, commit/push.
 
 ## Review rulings
 
@@ -27,3 +27,5 @@ Reject pre-review guarantees about prevention of all code execution, resource st
 Source-stage verification:130Python/40Node PASS; new7adapter/route tests and published-metadata pin regression actualRED→GREEN. Main/source-note/fresh external reviews agree/MUST_FIX none; runtime has PyPI+piwheels provenance, not allofficialPyPI. SourcePinTest portable TemporaryDirectory honors callerTMPDIR. MIT+Apache text retained. All42input/20A1/newmodel/source/config/retained22Plate pins frozen. No model code or food predictions yet; cleancommitpush thenpreflight/run.
 
 Execution amendment before Lens nutrient outcome inspection: strictload23.34s/qualification64.63s/food64–67s confirms original1200s budget insufficient for42. Timing-only intent, MCPgreen runtime-only3600s continuation, then exactownedworker stop. OriginalpartialPlate20/Lens7preserved; remaining35 fixedby completed-fileabsence, no outcomeselection. Originalprofile remainsimmutable; newruntime-amendment-v1 data manifest pins sources/pending IDs/outputs. Code,weights,TTA,threads,RSS/idle andscoringunchanged; qualificationrepeats, atmostoneinterruptedlocalforwardunknown. Reviewsecurity/no-biasguaranteesrejected.
+
+Completed:62newfood+22retained=84compared/42images,2qualifications,atmost1interruptedforwardunknown. FullLensadditional20MAE35.70vs71.54; fixedgatedLens60.06/Plate57.34 bothscreensPASS/twoof4switchesworse. Fullmixed10massfusion88.81vs177.57butadditional20medianworse; posthocgatedfusionfailsgain/norm/notpromoted.130Python/40Node+130actualvenvPASS; exhaustive84raw/input/10668gram/338Decimalchecks andpublishedgziproundtrip byteexactPASS. Actual-result and final-curation MCP reviews agree/MUST_FIX none; publish verified evidence with tracking. Numericvalidity notrecognition2/20and6/12nonamedLensrows. No production/modelcodechange; nextsame-weightONNXparity/latencyunexecuted.

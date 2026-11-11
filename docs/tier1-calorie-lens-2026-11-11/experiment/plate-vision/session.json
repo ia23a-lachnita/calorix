@@ -1,0 +1,30 @@
+{
+  "providers": [
+    "CPUExecutionProvider"
+  ],
+  "loadMs": 408.23879197705537,
+  "inputs": [
+    {
+      "name": "image",
+      "type": "tensor(uint8)",
+      "shape": [
+        "batch",
+        "height",
+        "width",
+        3
+      ]
+    }
+  ],
+  "outputs": [
+    "logits",
+    "nutrition_quantiles"
+  ],
+  "versions": {
+    "onnxruntime": "1.31.1",
+    "numpy": "2.2.4",
+    "Pillow": "11.1.0"
+  },
+  "intraOpThreads": 2,
+  "interOpThreads": 1,
+  "execution": "ORT_SEQUENTIAL"
+}

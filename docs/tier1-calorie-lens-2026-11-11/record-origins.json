@@ -1,0 +1,342 @@
+{
+  "plate-vision": {
+    "dish_1566590007": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/dish_1566590007.json",
+      "sha256": "7c42bb7b0d70bf2cd4ed3d6d6e1bca52196c71dd54b403df77daa97ba8add439"
+    },
+    "dish_1566414412": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/dish_1566414412.json",
+      "sha256": "720698d7ac02d37be5067426493e0ac1fd2d3c9d683fadf6460549a4913ec3e2"
+    },
+    "dish_1568305257": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/dish_1568305257.json",
+      "sha256": "e28660220a6280e47a42292fe18728aa01284624567ddf581372b13741357640"
+    },
+    "dish_1558722247": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/dish_1558722247.json",
+      "sha256": "867eca919c2ce04debdc339c4ec7f5ab203c53cd2854ac6726a794824c6a4dfb"
+    },
+    "dish_1568401233": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/dish_1568401233.json",
+      "sha256": "d2e4e1d5d4463dfe0810e2b7104c316f9c06fe5306e85e4c88de9f7882898e0c"
+    },
+    "dish_1563389600": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/dish_1563389600.json",
+      "sha256": "e91b227d0b1b644b5c972d9fd29a06fb83051a91f820ed97a22a11874f3b7517"
+    },
+    "dish_1566920365": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/dish_1566920365.json",
+      "sha256": "764b3b280ade1e536796b7268fd1bfd98d4a200ea7aa70848ba30b7dcd5f6613"
+    },
+    "dish_1564687046": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/dish_1564687046.json",
+      "sha256": "543ee8d50cc5cf462de35f05f6f083cf59741b56757b79541540d49638f0312e"
+    },
+    "dish_1558461792": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/dish_1558461792.json",
+      "sha256": "a9fb5df46a758765c4c43aa0e26c6d125498603a8c845b547813b0fb013da475"
+    },
+    "dish_1561739238": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/dish_1561739238.json",
+      "sha256": "82a286912d6f1ad78ce1959b5fcfdae72cbb2aa4c8b7da88fd92c3c4de5d933a"
+    },
+    "bread005": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/bread005.json",
+      "sha256": "f3f3cad53fb4d8019c5baecb98336fc2e8cd3ea2a1977a77cc022c203478dc8b"
+    },
+    "bun006": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/bun006.json",
+      "sha256": "b38b4c5457498655eae5cc95a0f5a6e3c9e26463a9ae78f03d2a31d7d1d2ac63"
+    },
+    "doughnut006": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/doughnut006.json",
+      "sha256": "704e06772bddc8cc1c2c557aabf0fd7e5ee734e2566720b08ee64d780fa37a86"
+    },
+    "fired_dough_twist006": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/fired_dough_twist006.json",
+      "sha256": "0ba255aa736fe1f6d6280ffe44bc5026768137a7f896edf7f2c43d4f2d8c98d0"
+    },
+    "mooncake004": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/mooncake004.json",
+      "sha256": "8e71f39f6a260dc74434699061cde8d5097617d837b65359ae6da29bef529595"
+    },
+    "sachima004": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/sachima004.json",
+      "sha256": "fd5e2b2d5db04ee1dad1eda81f32f4827df94dd615fe29f2341c77ec6ca8c605"
+    },
+    "bread004": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/bread004.json",
+      "sha256": "156215400e16c34daf568be3413eb5d0900dde96f44e4906079137639a56365c"
+    },
+    "bun005": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/bun005.json",
+      "sha256": "827089d73756678c444f59e8e5056e2512bdb8c55de95ae5499f0a9813188af4"
+    },
+    "doughnut008": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/doughnut008.json",
+      "sha256": "c3cc5f657d83b44a7757bb35dbc18cc541a7d3586719702aeff319f714ddd0a0"
+    },
+    "fired_dough_twist004": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/fired_dough_twist004.json",
+      "sha256": "a37603b231922061c88b607e5fa7e6732de60236e10803cec7a99f33a6638902"
+    },
+    "mooncake006": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/mooncake006.json",
+      "sha256": "5277ca9eb5924bdde65d5841b0dcd288387bb33c92a501de603cd7738d86759a"
+    },
+    "sachima005": {
+      "path": "/home/agent-runner/.local/share/calorix-failure-diagnostics-worktree.hs0c9bmt/docs/tier1-open-models-2026-11-10/plate-vision/sachima005.json",
+      "sha256": "dfa6d4f4434d4911ba47c266a8e45ebea3bb0e2626ce3a20ec62f916aecbadec"
+    },
+    "dish_1559934477": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1559934477.json",
+      "sha256": "b56daacbb02c269df0fe1c51dd358c0962edb75702f14790ee249801c1df4ba6"
+    },
+    "dish_1558461607": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1558461607.json",
+      "sha256": "50742eeae44b2c6577b4c732223536b4dbc3b285869c941f6b13b5b458315a22"
+    },
+    "dish_1566416701": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1566416701.json",
+      "sha256": "c6da38f0e36c5ee35d234dbc96c0ea435cf079612bc4c85064c7ae13cb5ef0d9"
+    },
+    "dish_1563389548": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1563389548.json",
+      "sha256": "9eeca8a316261fb8c49ff1214f2fc7de347c64cf49cccdc819b656dc5b87ce8a"
+    },
+    "dish_1567785622": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1567785622.json",
+      "sha256": "92572d4862517e0d833f16dfeba512760d49ada7868ebf427dd3c80409d09a36"
+    },
+    "dish_1566589933": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1566589933.json",
+      "sha256": "afead758100c7ad186c328e34b280e09535cf6f8923f70978679dfb66b31aafd"
+    },
+    "dish_1562963246": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1562963246.json",
+      "sha256": "0c2002c831cf0b632ae984fb2268cdd63e248b254aa9a6ff9888adc77fd00ee9"
+    },
+    "dish_1560975517": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1560975517.json",
+      "sha256": "2cf9b791549cffb64c8baeef113506bd068607b523d46dd246a11759f1bc7e9a"
+    },
+    "dish_1558030182": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1558030182.json",
+      "sha256": "025866f9ef11f5956b711433a22495827d3ae34b573940c8caa5bdbfdecab3f0"
+    },
+    "dish_1558376437": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1558376437.json",
+      "sha256": "9be6315fb2e31bb4569ed2b0f160c2a279b479156cf9bba46e8e1688a5cbda05"
+    },
+    "dish_1560203400": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1560203400.json",
+      "sha256": "68b31f0773335498de8f516c404f7f26ea6e580577f8e6882a5fa40260e366d8"
+    },
+    "dish_1557862783": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1557862783.json",
+      "sha256": "b38e9fd4310249d4a7a4d554d0b8e38f85cfad5b783ad8dd11680be20f18a231"
+    },
+    "dish_1568401261": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1568401261.json",
+      "sha256": "a8b0198a7e908d4e9afbcbe0cafe182b648f8aa66dda45ff75fd81b5c66ecb8f"
+    },
+    "dish_1565810969": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1565810969.json",
+      "sha256": "e4810e0b98f326b2c0a21aadd74c435fd3bc81de14065b77f036d13aa5090752"
+    },
+    "dish_1564675411": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1564675411.json",
+      "sha256": "5cc37eb355315949ce48d153595918e00da49001e2581414f959b96bf36d1856"
+    },
+    "dish_1562009810": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1562009810.json",
+      "sha256": "43b9b686183eb1182dc5eb09fa79e7c89bafded102aedd5e72fa79b9b0fd0fb9"
+    },
+    "dish_1566920339": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1566920339.json",
+      "sha256": "7ac4b6fb2db2fccf0afa78be4e53ecd83eef9e5f808e9632d6e3f1932a3f7eba"
+    },
+    "dish_1559157454": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1559157454.json",
+      "sha256": "448611dc66ba488811ad90be99cc154b2499c41a7d5b970b35d2fcfaedbe8139"
+    },
+    "dish_1564160043": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1564160043.json",
+      "sha256": "a09c241050c1531f48d3a536f0e2d9bd3a28d7a5bcae86f6ed8c704b50cddcd3"
+    },
+    "dish_1562876494": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/plate-vision/dish_1562876494.json",
+      "sha256": "c4b8ba06a34023c8c24a63e6b46000c7f970c9836c569f8e96066391e36312a0"
+    }
+  },
+  "calorie-lens": {
+    "dish_1566590007": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/calorie-lens/dish_1566590007.json",
+      "sha256": "8f7d54fa210559c7af074a55683cf70027d28e6e70e83ddc58fefb8251257a7f"
+    },
+    "dish_1566414412": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/calorie-lens/dish_1566414412.json",
+      "sha256": "b8a9ff66154945ecaba1ec3003c9bfc13241f85dc594d6a7742d9c9d4270ce98"
+    },
+    "dish_1568305257": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/calorie-lens/dish_1568305257.json",
+      "sha256": "2552d1e8313ad61769cd00004905238bcface91cedee3cd65b092e098d0e47f6"
+    },
+    "dish_1558722247": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/calorie-lens/dish_1558722247.json",
+      "sha256": "fc8e8f6610efe8d81c7def0f7126c004444d3398b6fd46f8eaab0279919ceecf"
+    },
+    "dish_1568401233": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/calorie-lens/dish_1568401233.json",
+      "sha256": "a28b999648291d46a029041effe8ced54920164fc82a1dfeeac5948a5ce87d14"
+    },
+    "dish_1563389600": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/calorie-lens/dish_1563389600.json",
+      "sha256": "d1d739222956424e87cf50ce67d9378f8aa99cdb289e50e203191c9ba5deb1ce"
+    },
+    "dish_1566920365": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/experiment/calorie-lens/dish_1566920365.json",
+      "sha256": "abb84412a9161e60f8f57313c6ee22e56b17eabff5cb56353f1a112c1786f8c7"
+    },
+    "dish_1564687046": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1564687046.json",
+      "sha256": "6ae8235ec8dcc69c93ac367363bd539de6a6c518191bdb8a04b6a1ac91d7a916"
+    },
+    "dish_1558461792": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1558461792.json",
+      "sha256": "2c2666669bdf2162a07f2185bad06b8af4a84c519c025abcca15c4dbae98a9e3"
+    },
+    "dish_1561739238": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1561739238.json",
+      "sha256": "934a101b38d82b61c83f06644115b54fa482cec2c6714f9633344e1151969898"
+    },
+    "bread005": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/bread005.json",
+      "sha256": "ce45b9b05843abc53bb969e30c6d668b78775903b8130f4ce2a5a46810819958"
+    },
+    "bun006": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/bun006.json",
+      "sha256": "96fb8c431d372a9046dc8cb498f4fb59f979d236d83c4f183f010dc3097c431c"
+    },
+    "doughnut006": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/doughnut006.json",
+      "sha256": "d69ede6ad05c0178ded78e62efe7a83cb62f09f131e9c1f9a4687c4f02068587"
+    },
+    "fired_dough_twist006": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/fired_dough_twist006.json",
+      "sha256": "b2db7e2d416f0e4e6735686704b98b5d62ab2d7cd69884c28589ac1d72e7cb95"
+    },
+    "mooncake004": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/mooncake004.json",
+      "sha256": "0abe2abdc0460d4503f84f5da8498b1aed66a5e89f63363ac7518a76453a0b7b"
+    },
+    "sachima004": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/sachima004.json",
+      "sha256": "bced2e44423d8a1b0a49a383b386df6bedc0425979865fba7efa68db595f1485"
+    },
+    "bread004": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/bread004.json",
+      "sha256": "cdeb792baae45cb7cecd00d7387aea13064af4fd6be6d7ae8c0a2d64e52c9371"
+    },
+    "bun005": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/bun005.json",
+      "sha256": "2b879d5ea98f7fbe0691600e21164a3d75e45757d5f0c37ccfcf3ad0817e5c92"
+    },
+    "doughnut008": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/doughnut008.json",
+      "sha256": "011951e456f2f58a3d8452fa1265dd7383f9b94b0f4bb66102d3200b0fee023c"
+    },
+    "fired_dough_twist004": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/fired_dough_twist004.json",
+      "sha256": "d656e9f62fd3aeeba554176fec63f5fd545a2e190070f654a63cd88b252b06d0"
+    },
+    "mooncake006": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/mooncake006.json",
+      "sha256": "07789efca3a2e2d4044efa0c65aafc2ddfef3773c9fcfccc3a05ad23deca667d"
+    },
+    "sachima005": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/sachima005.json",
+      "sha256": "99f942e5bc2986d4250b8f757a37cf62f1534206be74ece494e4d1fae05b39d3"
+    },
+    "dish_1559934477": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1559934477.json",
+      "sha256": "6674e90abe0b2b72670f1dee9aa28fd40f9427fc15a0d435ebe2734578af4380"
+    },
+    "dish_1558461607": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1558461607.json",
+      "sha256": "527f5e15a7e791bdc7ad59a867d416a1d12e81181c63988fb6e9fb5f1db710fd"
+    },
+    "dish_1566416701": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1566416701.json",
+      "sha256": "7c505c530c966ea2f348e4db8ed9c36aea38476f1ecb74741ca0a4338918a61f"
+    },
+    "dish_1563389548": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1563389548.json",
+      "sha256": "6c7f1af28ffb157940e2a281781711c4b7a6b2d2b029169d5633879359042254"
+    },
+    "dish_1567785622": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1567785622.json",
+      "sha256": "d064a8cf44cee36e923acdad541df8eb3210cdc359e641f1a9fd987c0636388e"
+    },
+    "dish_1566589933": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1566589933.json",
+      "sha256": "b42e1c0e616a7a1946097700c0a77e25cd1d0cc7bc5393a87c8ae5624760a85a"
+    },
+    "dish_1562963246": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1562963246.json",
+      "sha256": "c8f36da6b5618c96ebb756511fe7c94932eee29895eda3244fcc1d52066167e8"
+    },
+    "dish_1560975517": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1560975517.json",
+      "sha256": "5cf606e3e48d4b229348e00329139d01bcce9c21aacbd9ad05a0e35fd946fb1d"
+    },
+    "dish_1558030182": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1558030182.json",
+      "sha256": "967f0df8372e8cce1b80f3ceb90e09792539477f63ee12bdea50e898f617f0b0"
+    },
+    "dish_1558376437": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1558376437.json",
+      "sha256": "8d933ba68d6935a51be1545f5d86ec566fad3c2466b90c7f66a9d6ac60bed0bd"
+    },
+    "dish_1560203400": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1560203400.json",
+      "sha256": "41c63f75cd32ce1f77db01539a6bd32c7831f78390adfbf088df88f473bf9e96"
+    },
+    "dish_1557862783": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1557862783.json",
+      "sha256": "2776ba6d8048a29cba2164f146b0b7994a565a730278557ac642f43db33539a7"
+    },
+    "dish_1568401261": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1568401261.json",
+      "sha256": "e88ce03ca882acbaae7f26f0ec9324600eacc6eb7db4469f43447a88562fae65"
+    },
+    "dish_1565810969": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1565810969.json",
+      "sha256": "f44f39644077a796c6c18f4f954e13256bebf51902cb7a5db2d6577e1a5917bf"
+    },
+    "dish_1564675411": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1564675411.json",
+      "sha256": "9aca3b2dca5233d3fae703d2735df4f168b91cf46a861dd7d3c6889433ebe4b5"
+    },
+    "dish_1562009810": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1562009810.json",
+      "sha256": "9fa03b6a476866fa06c3874ade0f72cdc7eef4bb94cc830ab1ced60bd493fa3c"
+    },
+    "dish_1566920339": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1566920339.json",
+      "sha256": "459d572892bbc6f0009c279a8cfdf1498d53c243784bac954c3d0647c122a47f"
+    },
+    "dish_1559157454": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1559157454.json",
+      "sha256": "1a0c9137cec4c5f0d90a210a20ce3d168fe92e7f6c53bc9d2cd518079985c1c7"
+    },
+    "dish_1564160043": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1564160043.json",
+      "sha256": "bd0c91373817ac052114b7373b392e38f8a2d5fcc1c3183316c40a1522e3f5c8"
+    },
+    "dish_1562876494": {
+      "path": "/home/agent-runner/.local/share/calorix-calorie-lens-20261111/continuation/calorie-lens/dish_1562876494.json",
+      "sha256": "7379c5f71f7ec7c7e56d75644f4a9f74a39266abd282a2dcf6162a56519e1988"
+    }
+  }
+}

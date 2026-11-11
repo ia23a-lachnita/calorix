@@ -1,0 +1,61 @@
+{
+  "meaning": "Exact worker specifications, sessions and execution receipts; original absolute paths are provenance only, not instructions to run the model on those paths",
+  "records": [
+    {
+      "path": "experiment/plate-vision/worker-input.json.gz",
+      "destination": "experiment/plate-vision/worker-input.json",
+      "uncompressedBytes": 8085,
+      "uncompressedSha256": "1750d722a99bb3bff4e4c38634a49fe510fa7a44d76cf7658ab28917d53c9811",
+      "gzipSha256": "cb5c3c308316a4c686e4cc82c57f54be90694768064243e8cf5406633ae18617"
+    },
+    {
+      "path": "experiment/calorie-lens/worker-input.json.gz",
+      "destination": "experiment/calorie-lens/worker-input.json",
+      "uncompressedBytes": 11677,
+      "uncompressedSha256": "d2573c668c978a4f3b849cd13f7b36ea645cd17b114cb6af4dcf99c48b3bb9d1",
+      "gzipSha256": "884f4e03e8222f168b362e7cc06f2355ed7cf0106c6d747ad4e8285aca16e7ae"
+    },
+    {
+      "path": "continuation/calorie-lens/worker-input.json.gz",
+      "destination": "continuation/calorie-lens/worker-input.json",
+      "uncompressedBytes": 9929,
+      "uncompressedSha256": "949a94d66ef782a2645d75f59925f8124ead2d1ab465b292ec05d9609d3eeec9",
+      "gzipSha256": "2e8765038ad9129c5a6aaa781594264447ca6e158e08fa03a86dfee6a8fe3523"
+    },
+    {
+      "path": "experiment/result.json.gz",
+      "destination": "experiment/result.json",
+      "uncompressedBytes": 74919,
+      "uncompressedSha256": "aa612cef7058790c116f98cd28b2eb7871acbf93f497f02f6c1c1ae676abd3d1",
+      "gzipSha256": "9d89a249f3de82b8282af85afee1976ce428893480e00c26be27d7b11b03b627"
+    },
+    {
+      "path": "continuation/runtime-result.json.gz",
+      "destination": "continuation/runtime-result.json",
+      "uncompressedBytes": 488,
+      "uncompressedSha256": "e560d838fb95ad09f458614f47374a47d2070a977a6f48c90e00b5f6e396e758",
+      "gzipSha256": "976e83a0b5b0dc1e70b459f5d8fc9f4c69307018668895615e347e54b4c3b534"
+    },
+    {
+      "path": "experiment/plate-vision/session.json.gz",
+      "destination": "experiment/plate-vision/session.json",
+      "uncompressedBytes": 490,
+      "uncompressedSha256": "35086f4e5ff91e7e4f527a3281c5de3939d6a32738c8ecaa2d48e4664c9eb760",
+      "gzipSha256": "ccbb1acd19160120b8b9d600b9a157957a83a2964c890c281de8a8f513108e5d"
+    },
+    {
+      "path": "experiment/calorie-lens/session.json.gz",
+      "destination": "experiment/calorie-lens/session.json",
+      "uncompressedBytes": 543,
+      "uncompressedSha256": "ef2680ba994c1ed340b089b8713a97aa315832b646ebbd88a1d313c03231d93f",
+      "gzipSha256": "367c114a2f63f0346a76daf710bfe3507266fb7abe3701670c01b0f27f0cb0d8"
+    },
+    {
+      "path": "continuation/calorie-lens/session.json.gz",
+      "destination": "continuation/calorie-lens/session.json",
+      "uncompressedBytes": 542,
+      "uncompressedSha256": "35cbe11851e15b15a225168e5430547fe8ed301c46ba965733a65130690c72fc",
+      "gzipSha256": "1173e6669d88be0721fe254d4970f5fcd3bd02228b6feea35daa9d68a22bfd64"
+    }
+  ]
+}

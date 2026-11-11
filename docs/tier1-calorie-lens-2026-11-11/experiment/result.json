@@ -1,0 +1,2271 @@
+{
+  "experiment": "calorie-lens-routes-v1",
+  "sourceCommit": "b268f5fb89c17048ebfd7b7b9971658207569ee8",
+  "manifestSha256": "16808bec08c1f609a3cb6deff018c9d6b43a30e180c3fb38333ed825fcc96674",
+  "profileSha256": "55f5586ccb498af4cc8856e670a806eefb3d24ef647269153fc67734fab2da05",
+  "models": {
+    "plate-vision": {
+      "metrics": {
+        "discovery10": {
+          "baseline": {
+            "selected": 10,
+            "scored": 10,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 10,
+              "mae_kcal": 177.5673169,
+              "bias_kcal": -177.5673169,
+              "p90_absolute_error_kcal": 342.37315639999997,
+              "mean_normalized_absolute_error": 0.30438992385275127,
+              "median_absolute_error_kcal": 135.539026
+            },
+            "amounts": {
+              "massG": {
+                "mae": 135.4,
+                "bias": -135.4,
+                "p90_absolute_error": 304.2999999999999
+              },
+              "proteinG": {
+                "mae": 17.8522437,
+                "bias": -16.3413591,
+                "p90_absolute_error": 40.09536299999999
+              },
+              "carbsG": {
+                "mae": 6.5917529,
+                "bias": -5.559345299999999,
+                "p90_absolute_error": 11.843959000000003
+              },
+              "fatG": {
+                "mae": 11.0267695,
+                "bias": -11.0267695,
+                "p90_absolute_error": 24.9803887
+              }
+            }
+          },
+          "direct": {
+            "selected": 10,
+            "scored": 10,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 10,
+              "mae_kcal": 119.19853214776226,
+              "bias_kcal": -89.38855091900672,
+              "p90_absolute_error_kcal": 277.7949552195554,
+              "mean_normalized_absolute_error": 0.21691540289506853,
+              "median_absolute_error_kcal": 75.65143207827228
+            },
+            "amounts": {
+              "massG": {
+                "mae": 81.79014626678476,
+                "bias": -39.87559779532037,
+                "p90_absolute_error": 165.94075043302237
+              },
+              "proteinG": {
+                "mae": 11.362899335738845,
+                "bias": -1.3511681565313212,
+                "p90_absolute_error": 28.287365840578328
+              },
+              "carbsG": {
+                "mae": 12.247687000057464,
+                "bias": -8.709711673731373,
+                "p90_absolute_error": 22.66724230967554
+              },
+              "fatG": {
+                "mae": 8.679311492575602,
+                "bias": -7.692112519594256,
+                "p90_absolute_error": 18.93338372768336
+              }
+            }
+          },
+          "gated": {
+            "selected": 10,
+            "scored": 10,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 10,
+              "mae_kcal": 119.19853214776226,
+              "bias_kcal": -89.38855091900672,
+              "p90_absolute_error_kcal": 277.7949552195554,
+              "mean_normalized_absolute_error": 0.21691540289506853,
+              "median_absolute_error_kcal": 75.65143207827228
+            },
+            "amounts": {
+              "massG": {
+                "mae": 81.79014626678476,
+                "bias": -39.87559779532037,
+                "p90_absolute_error": 165.94075043302237
+              },
+              "proteinG": {
+                "mae": 11.362899335738845,
+                "bias": -1.3511681565313212,
+                "p90_absolute_error": 28.287365840578328
+              },
+              "carbsG": {
+                "mae": 12.247687000057464,
+                "bias": -8.709711673731373,
+                "p90_absolute_error": 22.66724230967554
+              },
+              "fatG": {
+                "mae": 8.679311492575602,
+                "bias": -7.692112519594256,
+                "p90_absolute_error": 18.93338372768336
+              }
+            }
+          },
+          "massFusion": {
+            "selected": 10,
+            "scored": 10,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 10,
+              "mae_kcal": 140.0341159265352,
+              "bias_kcal": -70.32687042373085,
+              "p90_absolute_error_kcal": 217.63390039068057,
+              "mean_normalized_absolute_error": 0.24544713130747228,
+              "median_absolute_error_kcal": 167.4076362985379
+            },
+            "amounts": {
+              "massG": {
+                "mae": 81.79014626678476,
+                "bias": -39.87559779532037,
+                "p90_absolute_error": 165.94075043302237
+              },
+              "proteinG": {
+                "mae": 14.288395710930834,
+                "bias": -7.921705232255992,
+                "p90_absolute_error": 27.396160268845016
+              },
+              "carbsG": {
+                "mae": 7.836301634621057,
+                "bias": 3.1905911286998316,
+                "p90_absolute_error": 15.193165818181086
+              },
+              "fatG": {
+                "mae": 9.555998136653994,
+                "bias": -6.891430849450475,
+                "p90_absolute_error": 21.013317615579
+              }
+            }
+          },
+          "directHead": {
+            "selected": 10,
+            "scored": 0,
+            "failed": 10,
+            "coverage": 0.0,
+            "served": {
+              "scored_meals": 0,
+              "mae_kcal": null,
+              "bias_kcal": null,
+              "p90_absolute_error_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "median_absolute_error_kcal": null
+            },
+            "amounts": {
+              "massG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "proteinG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "carbsG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "fatG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              }
+            }
+          },
+          "routeCounts": {
+            "A1": 0,
+            "specialist": 10,
+            "null": 0
+          }
+        },
+        "validation20": {
+          "baseline": {
+            "selected": 20,
+            "scored": 20,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 20,
+              "mae_kcal": 71.53828485,
+              "bias_kcal": -7.766536150000003,
+              "p90_absolute_error_kcal": 155.45489490000014,
+              "mean_normalized_absolute_error": 0.24890450041137457,
+              "median_absolute_error_kcal": 43.189998
+            },
+            "amounts": {
+              "massG": {
+                "mae": 49.6,
+                "bias": -22.7,
+                "p90_absolute_error": 73.1
+              },
+              "proteinG": {
+                "mae": 5.4271056,
+                "bias": -3.5067751,
+                "p90_absolute_error": 16.730684000000014
+              },
+              "carbsG": {
+                "mae": 5.1010191,
+                "bias": 2.8793527,
+                "p90_absolute_error": 9.988356300000005
+              },
+              "fatG": {
+                "mae": 4.7204821,
+                "bias": -0.2895282,
+                "p90_absolute_error": 9.227648900000005
+              }
+            }
+          },
+          "direct": {
+            "selected": 20,
+            "scored": 20,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 20,
+              "mae_kcal": 47.95029234146468,
+              "bias_kcal": 5.648940541813282,
+              "p90_absolute_error_kcal": 116.02564978879452,
+              "mean_normalized_absolute_error": 0.17064659072729668,
+              "median_absolute_error_kcal": 19.926718116975017
+            },
+            "amounts": {
+              "massG": {
+                "mae": 37.35630825208776,
+                "bias": 1.8605249590266246,
+                "p90_absolute_error": 86.2581728537535
+              },
+              "proteinG": {
+                "mae": 3.8259620063942634,
+                "bias": 2.472862880923496,
+                "p90_absolute_error": 8.191888777072222
+              },
+              "carbsG": {
+                "mae": 5.707268907206379,
+                "bias": -2.1142736015828936,
+                "p90_absolute_error": 14.47047582749886
+              },
+              "fatG": {
+                "mae": 4.074089617519829,
+                "bias": 0.8942205309835002,
+                "p90_absolute_error": 11.285534791332639
+              }
+            }
+          },
+          "gated": {
+            "selected": 20,
+            "scored": 20,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 20,
+              "mae_kcal": 57.34375124950594,
+              "bias_kcal": 8.153581918454968,
+              "p90_absolute_error_kcal": 116.02564978879452,
+              "mean_normalized_absolute_error": 0.20523993151422243,
+              "median_absolute_error_kcal": 35.7089875
+            },
+            "amounts": {
+              "massG": {
+                "mae": 35.1368248563786,
+                "bias": -5.464210815381875,
+                "p90_absolute_error": 74.72449373178648
+              },
+              "proteinG": {
+                "mae": 3.747748688968722,
+                "bias": 0.9979616889687218,
+                "p90_absolute_error": 8.764801222872695
+              },
+              "carbsG": {
+                "mae": 4.7949106297621515,
+                "bias": 0.8373059030549361,
+                "p90_absolute_error": 10.00657265009896
+              },
+              "fatG": {
+                "mae": 4.316538734591527,
+                "bias": 0.31709973494130905,
+                "p90_absolute_error": 8.34420975978232
+              }
+            }
+          },
+          "massFusion": {
+            "selected": 20,
+            "scored": 20,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 20,
+              "mae_kcal": 56.90952106468624,
+              "bias_kcal": 13.873568133808906,
+              "p90_absolute_error_kcal": 138.99393899244652,
+              "mean_normalized_absolute_error": 0.21473858392101935,
+              "median_absolute_error_kcal": 34.500538418216905
+            },
+            "amounts": {
+              "massG": {
+                "mae": 37.35630825208776,
+                "bias": 1.8605249590266246,
+                "p90_absolute_error": 86.2581728537535
+              },
+              "proteinG": {
+                "mae": 3.894442482975527,
+                "bias": 0.12732325974305855,
+                "p90_absolute_error": 10.311764054218978
+              },
+              "carbsG": {
+                "mae": 4.541367615810958,
+                "bias": 2.779923832070678,
+                "p90_absolute_error": 5.701836977810411
+              },
+              "fatG": {
+                "mae": 4.83974354397355,
+                "bias": 0.4268657755840185,
+                "p90_absolute_error": 13.045821621949802
+              }
+            }
+          },
+          "directHead": {
+            "selected": 20,
+            "scored": 0,
+            "failed": 20,
+            "coverage": 0.0,
+            "served": {
+              "scored_meals": 0,
+              "mae_kcal": null,
+              "bias_kcal": null,
+              "p90_absolute_error_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "median_absolute_error_kcal": null
+            },
+            "amounts": {
+              "massG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "proteinG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "carbsG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "fatG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              }
+            }
+          },
+          "routeCounts": {
+            "A1": 16,
+            "specialist": 4,
+            "null": 0
+          }
+        },
+        "ecust": {
+          "old": {
+            "baseline": {
+              "attempted": 6,
+              "scored": 6,
+              "failed": 0,
+              "coverage": 1.0,
+              "maeG": 15.183333333333335,
+              "medianAbsoluteErrorG": 13.0,
+              "p90AbsoluteErrorG": 24.950000000000003,
+              "biasG": 11.450000000000001
+            },
+            "direct": {
+              "attempted": 6,
+              "scored": 6,
+              "failed": 0,
+              "coverage": 1.0,
+              "maeG": 33.12684880594776,
+              "medianAbsoluteErrorG": 33.3456681146068,
+              "p90AbsoluteErrorG": 50.687207330528615,
+              "biasG": 27.875452428605236
+            },
+            "gated": {
+              "attempted": 6,
+              "scored": 6,
+              "failed": 0,
+              "coverage": 1.0,
+              "maeG": 15.183333333333335,
+              "medianAbsoluteErrorG": 13.0,
+              "p90AbsoluteErrorG": 24.950000000000003,
+              "biasG": 11.450000000000001
+            }
+          },
+          "fresh": {
+            "direct": {
+              "attempted": 6,
+              "scored": 6,
+              "failed": 0,
+              "coverage": 1.0,
+              "maeG": 33.46808852006238,
+              "medianAbsoluteErrorG": 28.65068046656696,
+              "p90AbsoluteErrorG": 61.84278517336616,
+              "biasG": 4.411367933748541
+            },
+            "hybrid": null
+          },
+          "energy": null
+        },
+        "routing": {
+          "dish_1566590007": {
+            "massG": 524.989134724703,
+            "totals": {
+              "kcal": 734.4657922334839,
+              "proteinG": 62.2652330006034,
+              "carbsG": 40.610970196642576,
+              "fatG": 31.927165340613698
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 330.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1566414412": {
+            "massG": 450.572175121304,
+            "totals": {
+              "kcal": 647.3616807304954,
+              "proteinG": 58.41884998923347,
+              "carbsG": 24.024301075383352,
+              "fatG": 33.199983175114326
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 380.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1568305257": {
+            "massG": 366.8820565391098,
+            "totals": {
+              "kcal": 514.0268852299866,
+              "proteinG": 31.7275922566296,
+              "carbsG": 18.296402002928453,
+              "fatG": 35.87271013026185
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 250.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1558722247": {
+            "massG": 263.6307684358692,
+            "totals": {
+              "kcal": 566.4582121585058,
+              "proteinG": 20.299591322434118,
+              "carbsG": 42.47032754078771,
+              "fatG": 37.18004345482507
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 310.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1568401233": {
+            "massG": 340.32118359301546,
+            "totals": {
+              "kcal": 448.2233125184281,
+              "proteinG": 39.79545996087137,
+              "carbsG": 19.5492834791386,
+              "fatG": 19.89754794356192
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 320.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1563389600": {
+            "massG": 243.51527590591132,
+            "totals": {
+              "kcal": 268.3517394365011,
+              "proteinG": 34.67543079152855,
+              "carbsG": 6.11292399060598,
+              "fatG": 11.300482176989393
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 230.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1566920365": {
+            "massG": 709.6689245053858,
+            "totals": {
+              "kcal": 530.3387934688051,
+              "proteinG": 101.3056703088846,
+              "carbsG": 19.878633980873467,
+              "fatG": 7.566369524293027
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 330.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1564687046": {
+            "massG": 409.3191265507036,
+            "totals": {
+              "kcal": 483.92665867497266,
+              "proteinG": 37.82699000032178,
+              "carbsG": 25.97614063809602,
+              "fatG": 24.55611036236355
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 285.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1558461792": {
+            "massG": 224.0808955888788,
+            "totals": {
+              "kcal": 177.91832837820172,
+              "proteinG": 5.2230261788234245,
+              "carbsG": 27.456520094003153,
+              "fatG": 7.069737210584425
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 230.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1561739238": {
+            "massG": 297.26448108191533,
+            "totals": {
+              "kcal": 249.9162569805524,
+              "proteinG": 13.122065625356477,
+              "carbsG": 28.79083326422696,
+              "fatG": 6.254420485450175
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 210.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1559934477": {
+            "massG": 65.0,
+            "totals": {
+              "kcal": 131.05,
+              "proteinG": 2.58,
+              "carbsG": 11.995,
+              "fatG": 8.22
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 65.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1558461607": {
+            "massG": 120.0,
+            "totals": {
+              "kcal": 82.8,
+              "proteinG": 0.864,
+              "carbsG": 21.720000000000002,
+              "fatG": 0.192
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 120.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1566416701": {
+            "massG": 60.0,
+            "totals": {
+              "kcal": 99.25,
+              "proteinG": 14.168999999999999,
+              "carbsG": 0.6000000000000001,
+              "fatG": 4.056500000000001
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 60.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1563389548": {
+            "massG": 120.0,
+            "totals": {
+              "kcal": 198.0,
+              "proteinG": 37.224,
+              "carbsG": 0.0,
+              "fatG": 4.284
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 120.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1567785622": {
+            "massG": 80.0,
+            "totals": {
+              "kcal": 31.85,
+              "proteinG": 0.56,
+              "carbsG": 7.86,
+              "fatG": 0.24
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 80.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1566589933": {
+            "massG": 90.0,
+            "totals": {
+              "kcal": 96.0,
+              "proteinG": 7.48,
+              "carbsG": 4.15,
+              "fatG": 5.6
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 90.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1562963246": {
+            "massG": 110.0,
+            "totals": {
+              "kcal": 292.6,
+              "proteinG": 12.100000000000001,
+              "carbsG": 36.300000000000004,
+              "fatG": 11.0
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 110.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1560975517": {
+            "massG": 115.0,
+            "totals": {
+              "kcal": 89.15,
+              "proteinG": 2.205,
+              "carbsG": 4.583,
+              "fatG": 7.258
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 115.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1558030182": {
+            "massG": 110.0,
+            "totals": {
+              "kcal": 143.0,
+              "proteinG": 2.53,
+              "carbsG": 23.1,
+              "fatG": 4.95
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 110.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1558376437": {
+            "massG": 80.0,
+            "totals": {
+              "kcal": 27.200000000000003,
+              "proteinG": 0.6400000000000001,
+              "carbsG": 6.56,
+              "fatG": 0.16000000000000003
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 80.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1560203400": {
+            "massG": 125.0,
+            "totals": {
+              "kcal": 343.75,
+              "proteinG": 14.375,
+              "carbsG": 35.0,
+              "fatG": 16.25
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 125.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1557862783": {
+            "massG": 317.381677470185,
+            "totals": {
+              "kcal": 566.809588093359,
+              "proteinG": 53.72797520637668,
+              "carbsG": 11.980435736287216,
+              "fatG": 36.46428656364687
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 300.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1568401261": {
+            "massG": 361.75506268213525,
+            "totals": {
+              "kcal": 415.2348286894904,
+              "proteinG": 44.33587396646989,
+              "carbsG": 17.40574623391738,
+              "fatG": 18.36218632953597
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 370.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1565810969": {
+            "massG": 50.0,
+            "totals": {
+              "kcal": 11.5,
+              "proteinG": 1.45,
+              "carbsG": 1.8,
+              "fatG": 0.2
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 50.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1564675411": {
+            "massG": 318.34446293978226,
+            "totals": {
+              "kcal": 260.572938409258,
+              "proteinG": 43.13723891430298,
+              "carbsG": 6.739045591883667,
+              "fatG": 3.0960866739618536
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 275.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1562009810": {
+            "massG": 110.0,
+            "totals": {
+              "kcal": 159.5,
+              "proteinG": 3.08,
+              "carbsG": 28.05,
+              "fatG": 3.8500000000000005
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 110.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1566920339": {
+            "massG": 592.23458060026,
+            "totals": {
+              "kcal": 463.88500617699196,
+              "proteinG": 78.3566476922249,
+              "carbsG": 17.917836499010455,
+              "fatG": 8.665999131681486
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 300.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "unverified_published_model_estimate",
+            "referenceUsed": false
+          },
+          "dish_1559157454": {
+            "massG": 43.0,
+            "totals": {
+              "kcal": 66.01,
+              "proteinG": 1.476,
+              "carbsG": 2.995,
+              "fatG": 5.959
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 43.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1564160043": {
+            "massG": 115.0,
+            "totals": {
+              "kcal": 327.75,
+              "proteinG": 13.225,
+              "carbsG": 55.199999999999996,
+              "fatG": 5.75
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 115.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1562876494": {
+            "massG": 55.0,
+            "totals": {
+              "kcal": 70.75,
+              "proteinG": 8.485,
+              "carbsG": 6.390000000000001,
+              "fatG": 1.1025
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 55.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "bread005": {
+            "massG": 35.0,
+            "totals": {
+              "kcal": 98.0,
+              "proteinG": 2.8,
+              "carbsG": 17.5,
+              "fatG": 1.575
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 35.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "bun006": {
+            "massG": 110.0,
+            "totals": {
+              "kcal": 245.3,
+              "proteinG": 7.700000000000001,
+              "carbsG": 50.6,
+              "fatG": 1.2100000000000002
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 110.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "doughnut006": {
+            "massG": 55.0,
+            "totals": {
+              "kcal": 231.55,
+              "proteinG": 3.4100000000000006,
+              "carbsG": 26.950000000000003,
+              "fatG": 12.375000000000002
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 55.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "fired_dough_twist006": {
+            "massG": 55.0,
+            "totals": {
+              "kcal": 269.5,
+              "proteinG": 4.125,
+              "carbsG": 34.1,
+              "fatG": 13.200000000000001
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 55.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "mooncake004": {
+            "massG": 60.0,
+            "totals": {
+              "kcal": 246.0,
+              "proteinG": 3.5999999999999996,
+              "carbsG": 37.199999999999996,
+              "fatG": 9.6
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 60.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "sachima004": {
+            "massG": 40.0,
+            "totals": {
+              "kcal": 194.0,
+              "proteinG": 2.6,
+              "carbsG": 25.400000000000002,
+              "fatG": 9.200000000000001
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 40.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          }
+        },
+        "screen": {
+          "guards": {
+            "all20Valid": true,
+            "maeAtLeast10PercentBetter": true,
+            "medianNotWorse": true,
+            "p90NotWorse": true,
+            "normalizedNotWorse": true,
+            "old6Coverage": true,
+            "old6MassMaeNotWorse": true,
+            "old6MassP90NotWorse": true
+          },
+          "passesAll": true
+        },
+        "productionPromotable": false
+      },
+      "runtime": {
+        "workerExitCode": 0,
+        "resourceStop": null,
+        "sampledPeakWorkerRssBytes": 172867584,
+        "hostWallMs": 8334.808513056487
+      }
+    },
+    "calorie-lens": {
+      "metrics": {
+        "discovery10": {
+          "baseline": {
+            "selected": 10,
+            "scored": 10,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 10,
+              "mae_kcal": 177.5673169,
+              "bias_kcal": -177.5673169,
+              "p90_absolute_error_kcal": 342.37315639999997,
+              "mean_normalized_absolute_error": 0.30438992385275127,
+              "median_absolute_error_kcal": 135.539026
+            },
+            "amounts": {
+              "massG": {
+                "mae": 135.4,
+                "bias": -135.4,
+                "p90_absolute_error": 304.2999999999999
+              },
+              "proteinG": {
+                "mae": 17.8522437,
+                "bias": -16.3413591,
+                "p90_absolute_error": 40.09536299999999
+              },
+              "carbsG": {
+                "mae": 6.5917529,
+                "bias": -5.559345299999999,
+                "p90_absolute_error": 11.843959000000003
+              },
+              "fatG": {
+                "mae": 11.0267695,
+                "bias": -11.0267695,
+                "p90_absolute_error": 24.9803887
+              }
+            }
+          },
+          "direct": {
+            "selected": 10,
+            "scored": 7,
+            "failed": 3,
+            "coverage": 0.7,
+            "served": {
+              "scored_meals": 7,
+              "mae_kcal": 133.67474414285715,
+              "bias_kcal": -67.61418757142857,
+              "p90_absolute_error_kcal": 238.2608284,
+              "mean_normalized_absolute_error": 0.1947027679105653,
+              "median_absolute_error_kcal": 120.72797600000001
+            },
+            "amounts": {
+              "massG": {
+                "mae": 55.8142857142857,
+                "bias": -55.8142857142857,
+                "p90_absolute_error": 111.70000000000002
+              },
+              "proteinG": {
+                "mae": 13.898227714285714,
+                "bias": 3.244569428571428,
+                "p90_absolute_error": 26.389523600000004
+              },
+              "carbsG": {
+                "mae": 9.572445,
+                "bias": -8.725587571428573,
+                "p90_absolute_error": 22.910714000000002
+              },
+              "fatG": {
+                "mae": 8.438207714285713,
+                "bias": -4.8577905714285725,
+                "p90_absolute_error": 18.5084206
+              }
+            }
+          },
+          "gated": {
+            "selected": 10,
+            "scored": 10,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 10,
+              "mae_kcal": 108.5007065,
+              "bias_kcal": -62.2583169,
+              "p90_absolute_error_kcal": 237.68103160000007,
+              "mean_normalized_absolute_error": 0.18720637193773387,
+              "median_absolute_error_kcal": 105.28698699999998
+            },
+            "amounts": {
+              "massG": {
+                "mae": 46.36999999999999,
+                "bias": -46.36999999999999,
+                "p90_absolute_error": 91.44999999999996
+              },
+              "proteinG": {
+                "mae": 10.6130017,
+                "bias": 2.8978409,
+                "p90_absolute_error": 22.248409399999993
+              },
+              "carbsG": {
+                "mae": 9.0336455,
+                "bias": -8.4408453,
+                "p90_absolute_error": 21.884902999999998
+              },
+              "fatG": {
+                "mae": 7.997361500000001,
+                "bias": -5.4910695,
+                "p90_absolute_error": 18.357270400000004
+              }
+            }
+          },
+          "massFusion": {
+            "selected": 10,
+            "scored": 7,
+            "failed": 3,
+            "coverage": 0.7,
+            "served": {
+              "scored_meals": 7,
+              "mae_kcal": 113.5472354105731,
+              "bias_kcal": -100.79752656208822,
+              "p90_absolute_error_kcal": 219.9586439739131,
+              "mean_normalized_absolute_error": 0.17628279422175713,
+              "median_absolute_error_kcal": 76.66660864516132
+            },
+            "amounts": {
+              "massG": {
+                "mae": 55.8142857142857,
+                "bias": -55.8142857142857,
+                "p90_absolute_error": 111.70000000000002
+              },
+              "proteinG": {
+                "mae": 15.192717239617954,
+                "bias": -14.35340391042541,
+                "p90_absolute_error": 33.48107916172249
+              },
+              "carbsG": {
+                "mae": 7.642140699612455,
+                "bias": 6.900429704220749,
+                "p90_absolute_error": 20.813815939393947
+              },
+              "fatG": {
+                "mae": 10.189369651874852,
+                "bias": -7.747191524283145,
+                "p90_absolute_error": 23.931353269565225
+              }
+            }
+          },
+          "directHead": {
+            "selected": 10,
+            "scored": 7,
+            "failed": 3,
+            "coverage": 0.7,
+            "served": {
+              "scored_meals": 7,
+              "mae_kcal": 106.86760128571427,
+              "bias_kcal": -81.83561614285713,
+              "p90_absolute_error_kcal": 224.95535959999995,
+              "mean_normalized_absolute_error": 0.15510401399983045,
+              "median_absolute_error_kcal": 94.74337200000002
+            },
+            "amounts": {
+              "massG": {
+                "mae": 44.442857142857164,
+                "bias": -40.55714285714287,
+                "p90_absolute_error": 97.14000000000004
+              },
+              "proteinG": {
+                "mae": 7.37537057142857,
+                "bias": -4.938287714285714,
+                "p90_absolute_error": 13.777728200000004
+              },
+              "carbsG": {
+                "mae": 9.449587857142857,
+                "bias": -6.565587571428572,
+                "p90_absolute_error": 19.297532000000004
+              },
+              "fatG": {
+                "mae": 8.052618857142857,
+                "bias": -4.604933428571428,
+                "p90_absolute_error": 15.402894199999999
+              }
+            }
+          },
+          "routeCounts": {
+            "A1": 3,
+            "specialist": 7,
+            "null": 0
+          }
+        },
+        "validation20": {
+          "baseline": {
+            "selected": 20,
+            "scored": 20,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 20,
+              "mae_kcal": 71.53828485,
+              "bias_kcal": -7.766536150000003,
+              "p90_absolute_error_kcal": 155.45489490000014,
+              "mean_normalized_absolute_error": 0.24890450041137457,
+              "median_absolute_error_kcal": 43.189998
+            },
+            "amounts": {
+              "massG": {
+                "mae": 49.6,
+                "bias": -22.7,
+                "p90_absolute_error": 73.1
+              },
+              "proteinG": {
+                "mae": 5.4271056,
+                "bias": -3.5067751,
+                "p90_absolute_error": 16.730684000000014
+              },
+              "carbsG": {
+                "mae": 5.1010191,
+                "bias": 2.8793527,
+                "p90_absolute_error": 9.988356300000005
+              },
+              "fatG": {
+                "mae": 4.7204821,
+                "bias": -0.2895282,
+                "p90_absolute_error": 9.227648900000005
+              }
+            }
+          },
+          "direct": {
+            "selected": 20,
+            "scored": 0,
+            "failed": 20,
+            "coverage": 0.0,
+            "served": {
+              "scored_meals": 0,
+              "mae_kcal": null,
+              "bias_kcal": null,
+              "p90_absolute_error_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "median_absolute_error_kcal": null
+            },
+            "amounts": {
+              "massG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "proteinG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "carbsG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "fatG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              }
+            }
+          },
+          "gated": {
+            "selected": 20,
+            "scored": 20,
+            "failed": 0,
+            "coverage": 1.0,
+            "served": {
+              "scored_meals": 20,
+              "mae_kcal": 71.53828485,
+              "bias_kcal": -7.766536150000003,
+              "p90_absolute_error_kcal": 155.45489490000014,
+              "mean_normalized_absolute_error": 0.24890450041137457,
+              "median_absolute_error_kcal": 43.189998
+            },
+            "amounts": {
+              "massG": {
+                "mae": 49.6,
+                "bias": -22.7,
+                "p90_absolute_error": 73.1
+              },
+              "proteinG": {
+                "mae": 5.4271056,
+                "bias": -3.5067751,
+                "p90_absolute_error": 16.730684000000014
+              },
+              "carbsG": {
+                "mae": 5.1010191,
+                "bias": 2.8793527,
+                "p90_absolute_error": 9.988356300000005
+              },
+              "fatG": {
+                "mae": 4.7204821,
+                "bias": -0.2895282,
+                "p90_absolute_error": 9.227648900000005
+              }
+            }
+          },
+          "massFusion": {
+            "selected": 20,
+            "scored": 0,
+            "failed": 20,
+            "coverage": 0.0,
+            "served": {
+              "scored_meals": 0,
+              "mae_kcal": null,
+              "bias_kcal": null,
+              "p90_absolute_error_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "median_absolute_error_kcal": null
+            },
+            "amounts": {
+              "massG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "proteinG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "carbsG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "fatG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              }
+            }
+          },
+          "directHead": {
+            "selected": 20,
+            "scored": 0,
+            "failed": 20,
+            "coverage": 0.0,
+            "served": {
+              "scored_meals": 0,
+              "mae_kcal": null,
+              "bias_kcal": null,
+              "p90_absolute_error_kcal": null,
+              "mean_normalized_absolute_error": null,
+              "median_absolute_error_kcal": null
+            },
+            "amounts": {
+              "massG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "proteinG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "carbsG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              },
+              "fatG": {
+                "mae": null,
+                "bias": null,
+                "p90_absolute_error": null
+              }
+            }
+          },
+          "routeCounts": {
+            "A1": 20,
+            "specialist": 0,
+            "null": 0
+          }
+        },
+        "ecust": {
+          "old": {
+            "baseline": {
+              "attempted": 6,
+              "scored": 6,
+              "failed": 0,
+              "coverage": 1.0,
+              "maeG": 15.183333333333335,
+              "medianAbsoluteErrorG": 13.0,
+              "p90AbsoluteErrorG": 24.950000000000003,
+              "biasG": 11.450000000000001
+            },
+            "direct": {
+              "attempted": 6,
+              "scored": 0,
+              "failed": 6,
+              "coverage": 0.0,
+              "maeG": null,
+              "medianAbsoluteErrorG": null,
+              "p90AbsoluteErrorG": null,
+              "biasG": null
+            },
+            "gated": {
+              "attempted": 6,
+              "scored": 6,
+              "failed": 0,
+              "coverage": 1.0,
+              "maeG": 15.183333333333335,
+              "medianAbsoluteErrorG": 13.0,
+              "p90AbsoluteErrorG": 24.950000000000003,
+              "biasG": 11.450000000000001
+            }
+          },
+          "fresh": {
+            "direct": {
+              "attempted": 6,
+              "scored": 0,
+              "failed": 6,
+              "coverage": 0.0,
+              "maeG": null,
+              "medianAbsoluteErrorG": null,
+              "p90AbsoluteErrorG": null,
+              "biasG": null
+            },
+            "hybrid": null
+          },
+          "energy": null
+        },
+        "routing": {
+          "dish_1566590007": {
+            "massG": 434.6,
+            "totals": {
+              "kcal": 861.49,
+              "proteinG": 96.47,
+              "carbsG": 44.51,
+              "fatG": 30.65
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 330.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "published_dataset_table_estimate",
+            "referenceUsed": false
+          },
+          "dish_1566414412": {
+            "massG": 505.8,
+            "totals": {
+              "kcal": 680.7,
+              "proteinG": 72.46,
+              "carbsG": 32.1,
+              "fatG": 31.65
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 380.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "published_dataset_table_estimate",
+            "referenceUsed": false
+          },
+          "dish_1568305257": {
+            "massG": 335.3,
+            "totals": {
+              "kcal": 599.66,
+              "proteinG": 35.61,
+              "carbsG": 7.89,
+              "fatG": 47.19
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 250.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "published_dataset_table_estimate",
+            "referenceUsed": false
+          },
+          "dish_1558722247": {
+            "massG": 340.4,
+            "totals": {
+              "kcal": 715.1,
+              "proteinG": 25.95,
+              "carbsG": 49.04,
+              "fatG": 53.4
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 310.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "published_dataset_table_estimate",
+            "referenceUsed": false
+          },
+          "dish_1568401233": {
+            "massG": 346.5,
+            "totals": {
+              "kcal": 327.25,
+              "proteinG": 59.5,
+              "carbsG": 10.79,
+              "fatG": 3.79
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 320.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "published_dataset_table_estimate",
+            "referenceUsed": false
+          },
+          "dish_1563389600": {
+            "massG": 246.5,
+            "totals": {
+              "kcal": 399.2,
+              "proteinG": 38.35,
+              "carbsG": 3.62,
+              "fatG": 25.79
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 230.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "published_dataset_table_estimate",
+            "referenceUsed": false
+          },
+          "dish_1566920365": {
+            "massG": 831.2,
+            "totals": {
+              "kcal": 478.19,
+              "proteinG": 58.85,
+              "carbsG": 38.72,
+              "fatG": 6.22
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "specialist",
+            "reason": "fixed_serving_gate",
+            "originalA1EstimatedMassG": 330.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "published_dataset_table_estimate",
+            "referenceUsed": false
+          },
+          "dish_1564687046": {
+            "massG": 285.0,
+            "totals": {
+              "kcal": 362.0,
+              "proteinG": 40.910000000000004,
+              "carbsG": 11.8,
+              "fatG": 16.875
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "A1",
+            "reason": "specialist_failed",
+            "originalA1EstimatedMassG": 285.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1558461792": {
+            "massG": 230.0,
+            "totals": {
+              "kcal": 294.59999999999997,
+              "proteinG": 9.255,
+              "carbsG": 30.740000000000002,
+              "fatG": 17.884999999999998
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "A1",
+            "reason": "specialist_failed",
+            "originalA1EstimatedMassG": 230.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1561739238": {
+            "massG": 210.0,
+            "totals": {
+              "kcal": 174.10000000000002,
+              "proteinG": 9.795,
+              "carbsG": 26.645000000000003,
+              "fatG": 3.385
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "A1",
+            "reason": "specialist_failed",
+            "originalA1EstimatedMassG": 210.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1559934477": {
+            "massG": 65.0,
+            "totals": {
+              "kcal": 131.05,
+              "proteinG": 2.58,
+              "carbsG": 11.995,
+              "fatG": 8.22
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 65.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1558461607": {
+            "massG": 120.0,
+            "totals": {
+              "kcal": 82.8,
+              "proteinG": 0.864,
+              "carbsG": 21.720000000000002,
+              "fatG": 0.192
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 120.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1566416701": {
+            "massG": 60.0,
+            "totals": {
+              "kcal": 99.25,
+              "proteinG": 14.168999999999999,
+              "carbsG": 0.6000000000000001,
+              "fatG": 4.056500000000001
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 60.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1563389548": {
+            "massG": 120.0,
+            "totals": {
+              "kcal": 198.0,
+              "proteinG": 37.224,
+              "carbsG": 0.0,
+              "fatG": 4.284
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 120.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1567785622": {
+            "massG": 80.0,
+            "totals": {
+              "kcal": 31.85,
+              "proteinG": 0.56,
+              "carbsG": 7.86,
+              "fatG": 0.24
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 80.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1566589933": {
+            "massG": 90.0,
+            "totals": {
+              "kcal": 96.0,
+              "proteinG": 7.48,
+              "carbsG": 4.15,
+              "fatG": 5.6
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 90.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1562963246": {
+            "massG": 110.0,
+            "totals": {
+              "kcal": 292.6,
+              "proteinG": 12.100000000000001,
+              "carbsG": 36.300000000000004,
+              "fatG": 11.0
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 110.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1560975517": {
+            "massG": 115.0,
+            "totals": {
+              "kcal": 89.15,
+              "proteinG": 2.205,
+              "carbsG": 4.583,
+              "fatG": 7.258
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 115.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1558030182": {
+            "massG": 110.0,
+            "totals": {
+              "kcal": 143.0,
+              "proteinG": 2.53,
+              "carbsG": 23.1,
+              "fatG": 4.95
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 110.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1558376437": {
+            "massG": 80.0,
+            "totals": {
+              "kcal": 27.200000000000003,
+              "proteinG": 0.6400000000000001,
+              "carbsG": 6.56,
+              "fatG": 0.16000000000000003
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 80.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1560203400": {
+            "massG": 125.0,
+            "totals": {
+              "kcal": 343.75,
+              "proteinG": 14.375,
+              "carbsG": 35.0,
+              "fatG": 16.25
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 125.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1557862783": {
+            "massG": 300.0,
+            "totals": {
+              "kcal": 404.5,
+              "proteinG": 58.418,
+              "carbsG": 5.0,
+              "fatG": 16.163
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "A1",
+            "reason": "specialist_failed",
+            "originalA1EstimatedMassG": 300.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1568401261": {
+            "massG": 370.0,
+            "totals": {
+              "kcal": 415.7,
+              "proteinG": 32.23,
+              "carbsG": 35.579,
+              "fatG": 17.558
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "A1",
+            "reason": "specialist_failed",
+            "originalA1EstimatedMassG": 370.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1565810969": {
+            "massG": 50.0,
+            "totals": {
+              "kcal": 11.5,
+              "proteinG": 1.45,
+              "carbsG": 1.8,
+              "fatG": 0.2
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 50.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1564675411": {
+            "massG": 275.0,
+            "totals": {
+              "kcal": 381.5,
+              "proteinG": 13.235,
+              "carbsG": 36.205,
+              "fatG": 20.175
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "A1",
+            "reason": "specialist_failed",
+            "originalA1EstimatedMassG": 275.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1562009810": {
+            "massG": 110.0,
+            "totals": {
+              "kcal": 159.5,
+              "proteinG": 3.08,
+              "carbsG": 28.05,
+              "fatG": 3.8500000000000005
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 110.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1566920339": {
+            "massG": 300.0,
+            "totals": {
+              "kcal": 186.4,
+              "proteinG": 25.580000000000005,
+              "carbsG": 18.099999999999998,
+              "fatG": 0.56
+            },
+            "status": "ok",
+            "eligible": true,
+            "selectedSource": "A1",
+            "reason": "specialist_failed",
+            "originalA1EstimatedMassG": 300.0,
+            "componentRows": 2,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1559157454": {
+            "massG": 43.0,
+            "totals": {
+              "kcal": 66.01,
+              "proteinG": 1.476,
+              "carbsG": 2.995,
+              "fatG": 5.959
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 43.0,
+            "componentRows": 4,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1564160043": {
+            "massG": 115.0,
+            "totals": {
+              "kcal": 327.75,
+              "proteinG": 13.225,
+              "carbsG": 55.199999999999996,
+              "fatG": 5.75
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 115.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "dish_1562876494": {
+            "massG": 55.0,
+            "totals": {
+              "kcal": 70.75,
+              "proteinG": 8.485,
+              "carbsG": 6.390000000000001,
+              "fatG": 1.1025
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 55.0,
+            "componentRows": 3,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "bread005": {
+            "massG": 35.0,
+            "totals": {
+              "kcal": 98.0,
+              "proteinG": 2.8,
+              "carbsG": 17.5,
+              "fatG": 1.575
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 35.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "bun006": {
+            "massG": 110.0,
+            "totals": {
+              "kcal": 245.3,
+              "proteinG": 7.700000000000001,
+              "carbsG": 50.6,
+              "fatG": 1.2100000000000002
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 110.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "doughnut006": {
+            "massG": 55.0,
+            "totals": {
+              "kcal": 231.55,
+              "proteinG": 3.4100000000000006,
+              "carbsG": 26.950000000000003,
+              "fatG": 12.375000000000002
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 55.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "fired_dough_twist006": {
+            "massG": 55.0,
+            "totals": {
+              "kcal": 269.5,
+              "proteinG": 4.125,
+              "carbsG": 34.1,
+              "fatG": 13.200000000000001
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 55.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "mooncake004": {
+            "massG": 60.0,
+            "totals": {
+              "kcal": 246.0,
+              "proteinG": 3.5999999999999996,
+              "carbsG": 37.199999999999996,
+              "fatG": 9.6
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 60.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          },
+          "sachima004": {
+            "massG": 40.0,
+            "totals": {
+              "kcal": 194.0,
+              "proteinG": 2.6,
+              "carbsG": 25.400000000000002,
+              "fatG": 9.200000000000001
+            },
+            "status": "ok",
+            "eligible": false,
+            "selectedSource": "A1",
+            "reason": "outside_fixed_serving_gate",
+            "originalA1EstimatedMassG": 40.0,
+            "componentRows": 1,
+            "nutrientSourceKind": "retained_A1_provenance",
+            "referenceUsed": false
+          }
+        },
+        "screen": {
+          "guards": {
+            "all20Valid": true,
+            "maeAtLeast10PercentBetter": false,
+            "medianNotWorse": true,
+            "p90NotWorse": true,
+            "normalizedNotWorse": true,
+            "old6Coverage": true,
+            "old6MassMaeNotWorse": true,
+            "old6MassP90NotWorse": true
+          },
+          "passesAll": false
+        },
+        "productionPromotable": false
+      },
+      "runtime": {
+        "workerExitCode": -15,
+        "resourceStop": null,
+        "sampledPeakWorkerRssBytes": 1055350784,
+        "hostWallMs": 558259.6466579707
+      }
+    }
+  },
+  "recordPins": [
+    {
+      "model": "plate-vision",
+      "id": "dish_1559934477",
+      "sha256": "b56daacbb02c269df0fe1c51dd358c0962edb75702f14790ee249801c1df4ba6"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1558461607",
+      "sha256": "50742eeae44b2c6577b4c732223536b4dbc3b285869c941f6b13b5b458315a22"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1566416701",
+      "sha256": "c6da38f0e36c5ee35d234dbc96c0ea435cf079612bc4c85064c7ae13cb5ef0d9"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1563389548",
+      "sha256": "9eeca8a316261fb8c49ff1214f2fc7de347c64cf49cccdc819b656dc5b87ce8a"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1567785622",
+      "sha256": "92572d4862517e0d833f16dfeba512760d49ada7868ebf427dd3c80409d09a36"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1566589933",
+      "sha256": "afead758100c7ad186c328e34b280e09535cf6f8923f70978679dfb66b31aafd"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1562963246",
+      "sha256": "0c2002c831cf0b632ae984fb2268cdd63e248b254aa9a6ff9888adc77fd00ee9"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1560975517",
+      "sha256": "2cf9b791549cffb64c8baeef113506bd068607b523d46dd246a11759f1bc7e9a"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1558030182",
+      "sha256": "025866f9ef11f5956b711433a22495827d3ae34b573940c8caa5bdbfdecab3f0"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1558376437",
+      "sha256": "9be6315fb2e31bb4569ed2b0f160c2a279b479156cf9bba46e8e1688a5cbda05"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1560203400",
+      "sha256": "68b31f0773335498de8f516c404f7f26ea6e580577f8e6882a5fa40260e366d8"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1557862783",
+      "sha256": "b38e9fd4310249d4a7a4d554d0b8e38f85cfad5b783ad8dd11680be20f18a231"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1568401261",
+      "sha256": "a8b0198a7e908d4e9afbcbe0cafe182b648f8aa66dda45ff75fd81b5c66ecb8f"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1565810969",
+      "sha256": "e4810e0b98f326b2c0a21aadd74c435fd3bc81de14065b77f036d13aa5090752"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1564675411",
+      "sha256": "5cc37eb355315949ce48d153595918e00da49001e2581414f959b96bf36d1856"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1562009810",
+      "sha256": "43b9b686183eb1182dc5eb09fa79e7c89bafded102aedd5e72fa79b9b0fd0fb9"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1566920339",
+      "sha256": "7ac4b6fb2db2fccf0afa78be4e53ecd83eef9e5f808e9632d6e3f1932a3f7eba"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1559157454",
+      "sha256": "448611dc66ba488811ad90be99cc154b2499c41a7d5b970b35d2fcfaedbe8139"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1564160043",
+      "sha256": "a09c241050c1531f48d3a536f0e2d9bd3a28d7a5bcae86f6ed8c704b50cddcd3"
+    },
+    {
+      "model": "plate-vision",
+      "id": "dish_1562876494",
+      "sha256": "c4b8ba06a34023c8c24a63e6b46000c7f970c9836c569f8e96066391e36312a0"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1566590007",
+      "sha256": "8f7d54fa210559c7af074a55683cf70027d28e6e70e83ddc58fefb8251257a7f"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1566414412",
+      "sha256": "b8a9ff66154945ecaba1ec3003c9bfc13241f85dc594d6a7742d9c9d4270ce98"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1568305257",
+      "sha256": "2552d1e8313ad61769cd00004905238bcface91cedee3cd65b092e098d0e47f6"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1558722247",
+      "sha256": "fc8e8f6610efe8d81c7def0f7126c004444d3398b6fd46f8eaab0279919ceecf"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1568401233",
+      "sha256": "a28b999648291d46a029041effe8ced54920164fc82a1dfeeac5948a5ce87d14"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1563389600",
+      "sha256": "d1d739222956424e87cf50ce67d9378f8aa99cdb289e50e203191c9ba5deb1ce"
+    },
+    {
+      "model": "calorie-lens",
+      "id": "dish_1566920365",
+      "sha256": "abb84412a9161e60f8f57313c6ee22e56b17eabff5cb56353f1a112c1786f8c7"
+    }
+  ],
+  "newLocalFoodPredictions": 27,
+  "plannedLocalFoodPredictions": 62,
+  "qualificationForwardCalls": 1,
+  "newVlmCalls": 0,
+  "training": false,
+  "productionPromotable": false
+}

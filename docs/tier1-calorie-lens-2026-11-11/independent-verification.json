@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "checks": {
+    "rawRecordHashes": 84,
+    "inputTensorHashes": 84,
+    "workerImageOnlyCases": 99,
+    "publisherSummaryFields": 1743,
+    "rawNutritionDotFields": 336,
+    "independentGramReadoutFields": 10668,
+    "directHeadFields": 210,
+    "decimalMetricFields": 338,
+    "routingCases": 72,
+    "sourcePins": 10
+  },
+  "newModelForwardCalls": 0,
+  "distinctComparedModelFoodRecords": 84,
+  "distinctNewFoodRecords": 62,
+  "priorPlateRecords": 22,
+  "continuedLensFoodRecords": 35,
+  "qualifications": 2,
+  "atMostOneInterruptedForwardUnknown": true,
+  "metricTolerance": "1e-9",
+  "publisherSummaryRoundingTolerance": "0.011",
+  "directHeadRoundingTolerance": "0.011 nutrients/0.051g",
+  "rawMatrixFp32Tolerance": "0.002",
+  "independentFloat64GramReadoutTolerance": "0.01g",
+  "sourceScope": "Pinned artifacts and all rows, no Android/medical/generalization or visual identity adjudication claim"
+}

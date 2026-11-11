@@ -1,0 +1,144 @@
+{
+  "predeclaredPrimary": false,
+  "independentValidation": false,
+  "meaning": "Proposed after inspecting original comparison; needs a separately frozen set",
+  "method": "same fixed150g/2component gate; specialist=Lens publisher total mass fused with retained A1 components/densities",
+  "metrics": {
+    "selected": 20,
+    "scored": 20,
+    "failed": 0,
+    "coverage": 1.0,
+    "served": {
+      "scored_meals": 20,
+      "mae_kcal": 67.02195080413597,
+      "bias_kcal": 7.847979714045861,
+      "p90_absolute_error_kcal": 143.58654591081103,
+      "mean_normalized_absolute_error": 0.24980581194110002,
+      "median_absolute_error_kcal": 43.189998
+    },
+    "amounts": {
+      "massG": {
+        "mae": 30.660000000000004,
+        "bias": -0.8200000000000045,
+        "p90_absolute_error": 63.20000000000002
+      },
+      "proteinG": {
+        "mae": 3.503504002784603,
+        "bias": -1.8875051694512703,
+        "p90_absolute_error": 9.088949386486505
+      },
+      "carbsG": {
+        "mae": 5.372440946683046,
+        "bias": 4.494317516953317,
+        "p90_absolute_error": 9.551687033333332
+      },
+      "fatG": {
+        "mae": 5.063027292301393,
+        "bias": -0.045164301392301556,
+        "p90_absolute_error": 10.634916390909108
+      }
+    }
+  },
+  "routing": [
+    {
+      "id": "dish_1559934477",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1558461607",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1566416701",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1563389548",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1567785622",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1566589933",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1562963246",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1560975517",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1558030182",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1558376437",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1560203400",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1557862783",
+      "eligible": true,
+      "selectedSource": "specialist"
+    },
+    {
+      "id": "dish_1568401261",
+      "eligible": true,
+      "selectedSource": "specialist"
+    },
+    {
+      "id": "dish_1565810969",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1564675411",
+      "eligible": true,
+      "selectedSource": "specialist"
+    },
+    {
+      "id": "dish_1562009810",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1566920339",
+      "eligible": true,
+      "selectedSource": "specialist"
+    },
+    {
+      "id": "dish_1559157454",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1564160043",
+      "eligible": false,
+      "selectedSource": "A1"
+    },
+    {
+      "id": "dish_1562876494",
+      "eligible": false,
+      "selectedSource": "A1"
+    }
+  ]
+}

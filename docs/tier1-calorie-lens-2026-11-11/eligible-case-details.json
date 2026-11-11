@@ -1,0 +1,38 @@
+[
+  {
+    "id": "dish_1557862783",
+    "referenceKcal": 442.97998,
+    "a1Kcal": 404.5,
+    "plateKcal": 566.809588093359,
+    "lensKcal": 323.98,
+    "plateDeltaAbsoluteErrorKcal": 85.349628093359,
+    "lensDeltaAbsoluteErrorKcal": 80.51999999999998
+  },
+  {
+    "id": "dish_1568401261",
+    "referenceKcal": 530.393372,
+    "a1Kcal": 415.7,
+    "plateKcal": 415.2348286894904,
+    "lensKcal": 362.33,
+    "plateDeltaAbsoluteErrorKcal": 0.46517131050956095,
+    "lensDeltaAbsoluteErrorKcal": 53.370000000000005
+  },
+  {
+    "id": "dish_1564675411",
+    "referenceKcal": 235.531006,
+    "a1Kcal": 381.5,
+    "plateKcal": 260.572938409258,
+    "lensKcal": 268.7,
+    "plateDeltaAbsoluteErrorKcal": -120.92706159074203,
+    "lensDeltaAbsoluteErrorKcal": -112.80000000000001
+  },
+  {
+    "id": "dish_1566920339",
+    "referenceKcal": 449.531708,
+    "a1Kcal": 186.4,
+    "plateKcal": 463.88500617699196,
+    "lensKcal": 462.1,
+    "plateDeltaAbsoluteErrorKcal": -248.77840982300802,
+    "lensDeltaAbsoluteErrorKcal": -250.56341599999996
+  }
+]

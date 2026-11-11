@@ -1,0 +1,341 @@
+{
+  "meaning": "Publisher displayed ingredient coverage only, not adjudicated food recognition accuracy; other includes low-score/small/top-k-hidden slots plus unassigned-mass prior",
+  "rows": [
+    {
+      "id": "dish_1566590007",
+      "group": "discovery10",
+      "displayedIngredientRows": 5,
+      "otherUnidentifiedMassG": 64.3,
+      "totalMassG": 434.6,
+      "otherMassFraction": 0.14795213989875747
+    },
+    {
+      "id": "dish_1566414412",
+      "group": "discovery10",
+      "displayedIngredientRows": 12,
+      "otherUnidentifiedMassG": 86.7,
+      "totalMassG": 505.8,
+      "otherMassFraction": 0.17141162514827996
+    },
+    {
+      "id": "dish_1568305257",
+      "group": "discovery10",
+      "displayedIngredientRows": 8,
+      "otherUnidentifiedMassG": 18.5,
+      "totalMassG": 335.3,
+      "otherMassFraction": 0.0551744706233224
+    },
+    {
+      "id": "dish_1558722247",
+      "group": "discovery10",
+      "displayedIngredientRows": 3,
+      "otherUnidentifiedMassG": 0.3,
+      "totalMassG": 340.4,
+      "otherMassFraction": 0.0008813160987074031
+    },
+    {
+      "id": "dish_1568401233",
+      "group": "discovery10",
+      "displayedIngredientRows": 4,
+      "otherUnidentifiedMassG": 10.1,
+      "totalMassG": 346.5,
+      "otherMassFraction": 0.029148629148629146
+    },
+    {
+      "id": "dish_1563389600",
+      "group": "discovery10",
+      "displayedIngredientRows": 2,
+      "otherUnidentifiedMassG": 13.8,
+      "totalMassG": 246.5,
+      "otherMassFraction": 0.05598377281947262
+    },
+    {
+      "id": "dish_1566920365",
+      "group": "discovery10",
+      "displayedIngredientRows": 4,
+      "otherUnidentifiedMassG": 29.3,
+      "totalMassG": 831.2,
+      "otherMassFraction": 0.0352502406159769
+    },
+    {
+      "id": "dish_1564687046",
+      "group": "discovery10",
+      "displayedIngredientRows": 7,
+      "otherUnidentifiedMassG": 29.5,
+      "totalMassG": 299.0,
+      "otherMassFraction": 0.09866220735785954
+    },
+    {
+      "id": "dish_1558461792",
+      "group": "discovery10",
+      "displayedIngredientRows": 4,
+      "otherUnidentifiedMassG": 0.3,
+      "totalMassG": 222.2,
+      "otherMassFraction": 0.0013501350135013501
+    },
+    {
+      "id": "dish_1561739238",
+      "group": "discovery10",
+      "displayedIngredientRows": 5,
+      "otherUnidentifiedMassG": 2.7,
+      "totalMassG": 280.2,
+      "otherMassFraction": 0.009635974304068524
+    },
+    {
+      "id": "bread005",
+      "group": "ecust-old",
+      "displayedIngredientRows": 0,
+      "otherUnidentifiedMassG": 61.3,
+      "totalMassG": 61.3,
+      "otherMassFraction": 1.0
+    },
+    {
+      "id": "bun006",
+      "group": "ecust-old",
+      "displayedIngredientRows": 0,
+      "otherUnidentifiedMassG": 113.8,
+      "totalMassG": 113.8,
+      "otherMassFraction": 1.0
+    },
+    {
+      "id": "doughnut006",
+      "group": "ecust-old",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 1.7,
+      "totalMassG": 105.9,
+      "otherMassFraction": 0.016052880075542963
+    },
+    {
+      "id": "fired_dough_twist006",
+      "group": "ecust-old",
+      "displayedIngredientRows": 0,
+      "otherUnidentifiedMassG": 25.2,
+      "totalMassG": 25.2,
+      "otherMassFraction": 1.0
+    },
+    {
+      "id": "mooncake004",
+      "group": "ecust-old",
+      "displayedIngredientRows": 0,
+      "otherUnidentifiedMassG": 24.6,
+      "totalMassG": 24.6,
+      "otherMassFraction": 1.0
+    },
+    {
+      "id": "sachima004",
+      "group": "ecust-old",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 42.2,
+      "totalMassG": 65.8,
+      "otherMassFraction": 0.6413373860182372
+    },
+    {
+      "id": "bread004",
+      "group": "ecust-fresh",
+      "displayedIngredientRows": 0,
+      "otherUnidentifiedMassG": 52.6,
+      "totalMassG": 52.6,
+      "otherMassFraction": 1.0
+    },
+    {
+      "id": "bun005",
+      "group": "ecust-fresh",
+      "displayedIngredientRows": 2,
+      "otherUnidentifiedMassG": 33.4,
+      "totalMassG": 101.3,
+      "otherMassFraction": 0.3297137216189536
+    },
+    {
+      "id": "doughnut008",
+      "group": "ecust-fresh",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 6.0,
+      "totalMassG": 104.4,
+      "otherMassFraction": 0.05747126436781609
+    },
+    {
+      "id": "fired_dough_twist004",
+      "group": "ecust-fresh",
+      "displayedIngredientRows": 0,
+      "otherUnidentifiedMassG": 32.0,
+      "totalMassG": 32.0,
+      "otherMassFraction": 1.0
+    },
+    {
+      "id": "mooncake006",
+      "group": "ecust-fresh",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 5.5,
+      "totalMassG": 65.9,
+      "otherMassFraction": 0.08345978755690439
+    },
+    {
+      "id": "sachima005",
+      "group": "ecust-fresh",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 21.5,
+      "totalMassG": 68.9,
+      "otherMassFraction": 0.3120464441219158
+    },
+    {
+      "id": "dish_1559934477",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 2.1,
+      "totalMassG": 55.7,
+      "otherMassFraction": 0.03770197486535009
+    },
+    {
+      "id": "dish_1558461607",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 0.6,
+      "totalMassG": 115.3,
+      "otherMassFraction": 0.005203816131830009
+    },
+    {
+      "id": "dish_1566416701",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 21.8,
+      "totalMassG": 164.5,
+      "otherMassFraction": 0.1325227963525836
+    },
+    {
+      "id": "dish_1563389548",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 6.6,
+      "totalMassG": 183.4,
+      "otherMassFraction": 0.035986913849509264
+    },
+    {
+      "id": "dish_1567785622",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 0.2,
+      "totalMassG": 63.8,
+      "otherMassFraction": 0.0031347962382445144
+    },
+    {
+      "id": "dish_1566589933",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 13.5,
+      "totalMassG": 138.3,
+      "otherMassFraction": 0.09761388286334055
+    },
+    {
+      "id": "dish_1562963246",
+      "group": "validation20",
+      "displayedIngredientRows": 2,
+      "otherUnidentifiedMassG": 0.2,
+      "totalMassG": 111.3,
+      "otherMassFraction": 0.0017969451931716084
+    },
+    {
+      "id": "dish_1560975517",
+      "group": "validation20",
+      "displayedIngredientRows": 2,
+      "otherUnidentifiedMassG": 0.4,
+      "totalMassG": 117.5,
+      "otherMassFraction": 0.0034042553191489366
+    },
+    {
+      "id": "dish_1558030182",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 0.1,
+      "totalMassG": 84.6,
+      "otherMassFraction": 0.0011820330969267141
+    },
+    {
+      "id": "dish_1558376437",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 0.2,
+      "totalMassG": 43.1,
+      "otherMassFraction": 0.004640371229698376
+    },
+    {
+      "id": "dish_1560203400",
+      "group": "validation20",
+      "displayedIngredientRows": 0,
+      "otherUnidentifiedMassG": 76.3,
+      "totalMassG": 76.3,
+      "otherMassFraction": 1.0
+    },
+    {
+      "id": "dish_1557862783",
+      "group": "validation20",
+      "displayedIngredientRows": 3,
+      "otherUnidentifiedMassG": 65.0,
+      "totalMassG": 282.4,
+      "otherMassFraction": 0.2301699716713881
+    },
+    {
+      "id": "dish_1568401261",
+      "group": "validation20",
+      "displayedIngredientRows": 4,
+      "otherUnidentifiedMassG": 18.3,
+      "totalMassG": 353.9,
+      "otherMassFraction": 0.05170952246397288
+    },
+    {
+      "id": "dish_1565810969",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 0.1,
+      "totalMassG": 53.4,
+      "otherMassFraction": 0.0018726591760299628
+    },
+    {
+      "id": "dish_1564675411",
+      "group": "validation20",
+      "displayedIngredientRows": 3,
+      "otherUnidentifiedMassG": 0.3,
+      "totalMassG": 355.0,
+      "otherMassFraction": 0.0008450704225352112
+    },
+    {
+      "id": "dish_1562009810",
+      "group": "validation20",
+      "displayedIngredientRows": 0,
+      "otherUnidentifiedMassG": 86.3,
+      "totalMassG": 86.3,
+      "otherMassFraction": 1.0
+    },
+    {
+      "id": "dish_1566920339",
+      "group": "validation20",
+      "displayedIngredientRows": 4,
+      "otherUnidentifiedMassG": 9.5,
+      "totalMassG": 691.3,
+      "otherMassFraction": 0.01374222479386663
+    },
+    {
+      "id": "dish_1559157454",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 9.0,
+      "totalMassG": 21.5,
+      "otherMassFraction": 0.4186046511627907
+    },
+    {
+      "id": "dish_1564160043",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 0.4,
+      "totalMassG": 106.6,
+      "otherMassFraction": 0.0037523452157598503
+    },
+    {
+      "id": "dish_1562876494",
+      "group": "validation20",
+      "displayedIngredientRows": 1,
+      "otherUnidentifiedMassG": 5.6,
+      "totalMassG": 26.6,
+      "otherMassFraction": 0.21052631578947367
+    }
+  ]
+}

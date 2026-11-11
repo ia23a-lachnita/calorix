@@ -1,0 +1,24 @@
+{
+  "device": "cpu",
+  "loadMs": 23343.45987101551,
+  "versions": {
+    "torch": "2.13.0+cpu",
+    "torchvision": "0.28.0+cpu",
+    "transformers": "5.22.2",
+    "huggingface-hub": "2.4.0",
+    "safetensors": "0.8.0",
+    "numpy": "2.2.4",
+    "Pillow": "11.1.0"
+  },
+  "python": "3.11.15",
+  "threads": 2,
+  "interOpThreads": 1,
+  "strictStateLoad": true,
+  "missingKeys": [],
+  "unexpectedKeys": [],
+  "ttaViews": 2,
+  "measuredTotalGramsPassed": false,
+  "nutrientRows": 253,
+  "coreNutrientMatches": 252,
+  "extendedUsdaVerified": false
+}

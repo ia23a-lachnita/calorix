@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/FoodCNN/FoodCNN",
+  "revision": "2c944166f988acff4374d131b8b1fe535a64abf6",
+  "file": "src/02_weight_estimation/DeepWeightCNN.ipynb",
+  "verifiedGitBlobSha1": "552fc0eaf5a27f51d43632f215e8a290b8df353f",
+  "sourceBytes": 1155188,
+  "inspection": "Fetched bounded notebook and inspected code cells only; no notebook code or model weights executed.",
+  "finding": "Valid image paths are collected from merged extracted frames, mapped to dish metadata, then train_test_split(valid_image_paths, valid_labels, test_size=0.2, random_state=42) is called without dish grouping. This permits dish overlap; exact released checkpoint membership is unknown.",
+  "weightCheckpointBytes": 1744978,
+  "weightCheckpointExecuted": false
+}

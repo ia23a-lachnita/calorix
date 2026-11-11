@@ -1,0 +1,217 @@
+{
+  "kind": "unverified_publisher_training_mean",
+  "source": "Pinned config.mean_density; never a verified nutrient-record match",
+  "nonzeroGapCases": 16,
+  "rows": [
+    {
+      "id": "dish_1566590007",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1566414412",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1568305257",
+      "massGapG": 3.0517578125e-05,
+      "gapKcalFromUnverifiedTrainingMean": 3.5771568946074694e-05
+    },
+    {
+      "id": "dish_1558722247",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1568401233",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1563389600",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1566920365",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1564687046",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1558461792",
+      "massGapG": 1.52587890625e-05,
+      "gapKcalFromUnverifiedTrainingMean": 1.7885784473037347e-05
+    },
+    {
+      "id": "dish_1561739238",
+      "massGapG": 3.0517596314894035e-05,
+      "gapKcalFromUnverifiedTrainingMean": 3.5771590267591295e-05
+    },
+    {
+      "id": "bread005",
+      "massGapG": 3.7738038827228593e-06,
+      "gapKcalFromUnverifiedTrainingMean": 4.4235124172319995e-06
+    },
+    {
+      "id": "bun006",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "doughnut006",
+      "massGapG": 1.4730191651324276e-05,
+      "gapKcalFromUnverifiedTrainingMean": 1.7266182266691263e-05
+    },
+    {
+      "id": "fired_dough_twist006",
+      "massGapG": 11.488897323608398,
+      "gapKcalFromUnverifiedTrainingMean": 13.466857725160025
+    },
+    {
+      "id": "mooncake004",
+      "massGapG": 3.814697720372351e-06,
+      "gapKcalFromUnverifiedTrainingMean": 4.471446651297252e-06
+    },
+    {
+      "id": "sachima004",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "bread004",
+      "massGapG": 3.8146949918882456e-06,
+      "gapKcalFromUnverifiedTrainingMean": 4.471443453069762e-06
+    },
+    {
+      "id": "bun005",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "doughnut008",
+      "massGapG": 7.552010629297001e-06,
+      "gapKcalFromUnverifiedTrainingMean": 8.852185707557245e-06
+    },
+    {
+      "id": "fired_dough_twist004",
+      "massGapG": 18.76395606994629,
+      "gapKcalFromUnverifiedTrainingMean": 21.994410746091944
+    },
+    {
+      "id": "mooncake006",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "sachima005",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1559934477",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1558461607",
+      "massGapG": 7.629396350239404e-06,
+      "gapKcalFromUnverifiedTrainingMean": 8.942894368670334e-06
+    },
+    {
+      "id": "dish_1566416701",
+      "massGapG": 1.525879997643642e-05,
+      "gapKcalFromUnverifiedTrainingMean": 1.7885797265947308e-05
+    },
+    {
+      "id": "dish_1563389548",
+      "massGapG": 1.5258801795425825e-05,
+      "gapKcalFromUnverifiedTrainingMean": 1.7885799398098968e-05
+    },
+    {
+      "id": "dish_1567785622",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1566589933",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1562963246",
+      "massGapG": 7.627761533512967e-06,
+      "gapKcalFromUnverifiedTrainingMean": 8.940978097365829e-06
+    },
+    {
+      "id": "dish_1560975517",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1558030182",
+      "massGapG": 1.525879451946821e-05,
+      "gapKcalFromUnverifiedTrainingMean": 1.7885790869492327e-05
+    },
+    {
+      "id": "dish_1558376437",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1560203400",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1557862783",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1568401261",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1565810969",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1564675411",
+      "massGapG": 3.051756721106358e-05,
+      "gapKcalFromUnverifiedTrainingMean": 3.5771556153164734e-05
+    },
+    {
+      "id": "dish_1562009810",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1566920339",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1559157454",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1564160043",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    },
+    {
+      "id": "dish_1562876494",
+      "massGapG": 0.0,
+      "gapKcalFromUnverifiedTrainingMean": 0.0
+    }
+  ]
+}

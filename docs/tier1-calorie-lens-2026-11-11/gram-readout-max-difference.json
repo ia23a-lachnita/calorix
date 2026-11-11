@@ -1,0 +1,7 @@
+{
+  "records": 42,
+  "fields": 10668,
+  "maxAbsoluteDifferenceG": 0.000356535008904757,
+  "toleranceG": 0.01,
+  "noNewForwardCalls": true
+}
