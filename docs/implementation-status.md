@@ -1,4 +1,16 @@
-# Current task: frozen independent-domain diagnostic completed
+# Current task: conservative post-recognition nutrient resolver
+
+Branch `feat/a1-nutrient-resolution`, clean base `9453998`; reused isolated worktree. Continuing the approved roadmap without another user approval. Plan: `docs/superpowers/plans/2026-11-12-a1-nutrient-resolution.md`. Intended verification: focused resolver RED/GREEN, full pinned Python/Node, zero-call immutable development replay and code/result review. Preimplementation supplied-method review `calorix-a1-nutrient-resolution-20261112` primary3.8/yolo agree / MUST_FIX none. Production/model/prompt/grams unchanged.
+
+Source stage verified: 12 resolver and 8 replay tests, genuine missing-module RED then GREEN. Two additional real RED edge regressions found and fixed: answered preparation receipts were eligible for mass scaling; duplicate cohort bindings could overwrite results. Final pinned full Python222/222 and Node51/51 pass, zero skips. Actual supplied-code review and edge addendum green; reject invented review file URI/filename noise as filesystem evidence. Frozen11 source pins, existing73-record catalog, conservative11-record automatic eligibility policy, unchanged Nov10 mass-profile and private two-cohort binding hashes. No model calls, fit or replay outcomes yet. Commit/push source freeze, then run `python -m tool.replay_a1_components` against frozen private bindings; independent audit and result review follow. Existing rejected calibration promotion gate remains failed.
+
+All permitted editing routes for this bounded task are exhausted: OpenCode catalog refresh and all five route launches failed before provider execution on shared config `Unrecognized key: plugins` (individual ISO receipts below; config preserved). Final claude-sonnet-5 route delivered zero output bytes/no source files within180s; process group terminated at 2026-11-11T23:10:54.786687+00:00. No quota or subscription exhaustion inferred. Standing native fallback now applies to this bounded resolver/replay task; retain TDD/reviews/verification/commits/pushes. Clean baseline passed202 Python/51 Node, zero skips.
+
+Editing-worker fallback: 2026-11-11T23:05:41.334141+00:00 grok-4.6 exit1, unavailable model: `Couldn't set model 'grok-4.6': Invalid params: "unknown model id". Run 'grok models' to see available models.` No repository source edits delivered. 2026-11-11T23:06:30.050457+00:00 qwen3.7-max exit1: `[API Error: 403 The free quota has been exhausted. To continue accessing the model on a paid basis, please complete your payment information （or disable the "use free tier only" mode in the management console if already completed).]` Next: refresh active OpenCode catalog and test permitted routes; preserve shared config.
+
+---
+
+# Prior task: frozen independent-domain diagnostic completed
 
 Run `nutritionverse-real-transfer-v1-3c6b40c` completed from clean pushed source `3c6b40c8e7ac037aabaa8439c9e2014938663bdd`. Actual new invocations: 20 SDK and 20 local food forwards, zero retries/failures. Cumulative historical counters now 227 SDK / 242 local food repeats; zero newly weighed Android references. Six original-label route comparisons and strict mass-only control are scored. Existing default retained; no candidate promotion, source algorithm changes, APK or deployment.
 
@@ -5525,3 +5537,13 @@ Transfer adapter route unavailable: {"at": "2026-11-11T21:19:22.520914+00:00", "
 
 Transfer adapter editing route failure: {"at": "2026-11-11T21:22:23.538061+00:00", "model": "claude-sonnet-5", "category": "BOUNDED_NONDELIVERY", "exit": 143, "seconds": 180.80232840008102, "message": "", "bound": "180s for synthetic fixture tests+stubs only"}
 All current permitted routes are unavailable or bounded nondelivery. Standing 2026-10-28 native editing exception applies for this bounded cross-dataset task. No permanent account/subscription exhaustion inferred; no spend-cap message occurred. Preserve failing-tests-first, external reviews, clean stage commits/pushes. Actual licensed-data ingestion remains gated independently.
+
+Editing route failure: {"time": "2026-11-11T23:07:32.721346+00:00", "route": "opencode/nemotron-3-ultra-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Editing route failure: {"time": "2026-11-11T23:07:38.075498+00:00", "route": "opencode/muse-spark-1.3-contributor-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Editing route failure: {"time": "2026-11-11T23:07:43.526988+00:00", "route": "opencode/nemotron-3.5-lightning-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Editing route failure: {"time": "2026-11-11T23:07:49.093126+00:00", "route": "opencode/ling-3.0-flash-fin-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Editing route failure: {"time": "2026-11-11T23:07:54.545255+00:00", "route": "opencode/big-pickle", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}

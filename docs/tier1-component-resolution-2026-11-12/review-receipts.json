@@ -1,0 +1,42 @@
+[
+  {
+    "id": "mass_transfer_pre",
+    "sha256": "da1f86853c2276f6bb90969ee8bb648e78a700357325547879b21e863999fda6",
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "approvalMode": "yolo",
+    "agreementStatus": "agree",
+    "mustFix": "none",
+    "scope": "Supplied methods/code only; fabricated file URI/filename noise rejected; not legal/deployment approval"
+  },
+  {
+    "id": "resolver_pre_review",
+    "sha256": "26d7d366d88e125a751c98d76ae7b2e175c3b8208ebe07ef6e6c13444cd0f1ee",
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "approvalMode": "yolo",
+    "agreementStatus": "agree",
+    "mustFix": "none",
+    "scope": "Supplied methods/code only; fabricated file URI/filename noise rejected; not legal/deployment approval"
+  },
+  {
+    "id": "resolver_source_addendum",
+    "sha256": "21fbd50ec6ec2d2b8c883b05c7ba07f51547bbd24976a25ebabda4b17ad1a3dc",
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "approvalMode": "yolo",
+    "agreementStatus": "agree",
+    "mustFix": "none",
+    "scope": "Supplied methods/code only; fabricated file URI/filename noise rejected; not legal/deployment approval"
+  },
+  {
+    "id": "resolver_source_review",
+    "sha256": "50f8a542f6cbb3d9a8b8f0dc518b6ada304bc770e63354ca0d525e0baad38dc4",
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "approvalMode": "yolo",
+    "agreementStatus": "agree",
+    "mustFix": "none",
+    "scope": "Supplied methods/code only; fabricated file URI/filename noise rejected; not legal/deployment approval"
+  }
+]

@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "id": "a1-nutrient-resolution-v1",
+  "catalogSha256": "bad3d924253513d093728351436cdcc6e099caba25eead2cae24778ea35ff178",
+  "catalogVersion": "usda-sr-2018-tier1-20261108-v2",
+  "scope": "Offline candidate; database record matching does not verify photographed food identity or portion",
+  "eligibleRecordIds": [
+    "usda:168917",
+    "usda:171705",
+    "usda:170393",
+    "usda:170379",
+    "usda:168462",
+    "usda:173944",
+    "usda:167762",
+    "usda:171711",
+    "usda:173423",
+    "usda:172187",
+    "usda:173424"
+  ],
+  "aliases": [
+    {
+      "recordId": "usda:168917",
+      "names": [
+        "Cooked quinoa",
+        "Quinoa"
+      ]
+    },
+    {
+      "recordId": "usda:171705",
+      "names": [
+        "Raw avocado",
+        "Avocado"
+      ]
+    },
+    {
+      "recordId": "usda:170393",
+      "names": [
+        "Raw carrots",
+        "Carrots"
+      ]
+    },
+    {
+      "recordId": "usda:170379",
+      "names": [
+        "Raw broccoli",
+        "Broccoli"
+      ]
+    },
+    {
+      "recordId": "usda:168462",
+      "names": [
+        "Raw spinach",
+        "Spinach"
+      ]
+    },
+    {
+      "recordId": "usda:173944",
+      "names": [
+        "Raw banana",
+        "Banana",
+        "Bananas"
+      ]
+    },
+    {
+      "recordId": "usda:167762",
+      "names": [
+        "Raw strawberries",
+        "Strawberries"
+      ]
+    },
+    {
+      "recordId": "usda:171711",
+      "names": [
+        "Raw blueberries",
+        "Blueberries"
+      ]
+    },
+    {
+      "recordId": "usda:173423",
+      "names": [
+        "Fried whole egg"
+      ]
+    },
+    {
+      "recordId": "usda:172187",
+      "names": [
+        "Scrambled whole eggs"
+      ]
+    },
+    {
+      "recordId": "usda:173424",
+      "names": [
+        "Hard-boiled whole egg"
+      ]
+    }
+  ]
+}
