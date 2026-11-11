@@ -1,0 +1,32 @@
+{
+  "reason": "restore original parent single-link storage without altering any file bytes; independent candidate copy",
+  "before": {
+    "parent": {
+      "sha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
+      "bytes": 358417205,
+      "inode": 34210286,
+      "links": 2
+    },
+    "candidate": {
+      "sha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
+      "bytes": 358417205,
+      "inode": 34210286,
+      "links": 2
+    }
+  },
+  "after": {
+    "parent": {
+      "sha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
+      "bytes": 358417205,
+      "inode": 34210286,
+      "links": 1
+    },
+    "candidate": {
+      "sha256": "f660f737f7780254f8b553aba05ad1a2332f095ce0eb65556ce603440231c276",
+      "bytes": 358417205,
+      "inode": 34210389,
+      "links": 1
+    }
+  },
+  "blankForwards": 0
+}

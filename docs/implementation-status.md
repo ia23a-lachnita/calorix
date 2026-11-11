@@ -1,3 +1,13 @@
+# Current task: correct artifact storage before the first candidate blank
+
+Source99fcbb2 was reviewed/pushed clean. First v3worker failed duringONNXcheck_model beforeORTsessionorblank: external tensor file hadmultiplehardlinks. No numericalcandidate rejection, no blank/foodforward. Parent/data and derivedgraph bytes preserved. Derivedgraph SHA70c2d8813e9eb17a26536c4cae105b68a7738d6bd6d322a9a128a84afab5cb9e isnowpinned andverifiedbeforeORT, preventing anynumericalchange.
+
+IO-onlyfix usesverifiedbytecopies, keepscheckerprotections enabled. Focused external-data regression reproduced exacthardlinkRED; all6focused/full157runtimeGREEN. Storage repair replacedONLYownedfailedcandidate'slinkwithbyte-identicalindependentcopy; parentandcandidate dataSHAf660...unchanged,nlink1each, old/newinode/linkmetadataretained. Originalgraph/data availability restored, failuretraces archived. PrimaryIOpre/postreviews agree/MUST_FIXnone; reject broad safety/determinism guarantees. Original12sourcepins andallnumerical/model/precision/budgetsettingsunchanged.
+
+Nextaftercommitpushclean: sameONEcandidate, NEWexecution-v3-copyroot, `tool.run_lens_lowering --root <task>/execution-v3-copy --previous <Lens task> --parent-execution <task>/execution-v2 --mode qualify`. Singleactualblanklimit remains becausefirststartup attempted0. Stoponanynumericalblankrejection,noretry. Previousraw/v2failures andno productionpromotionremain.
+
+---
+
 # Current task: single stable-sigmoid candidate source stage
 
 Originalruntime cohort and allfailures published/pushed at1840301;85losslessarchives replay v2summary byte-exact. Both originalprotocolsFAILED, raw_speed_qualified=false permanently. Newv3source is separate3modules+5tests+NEWprofile; all12originalsourcepins andoldprofile/scoring/summary unchanged. Draft/fullsource byte equality verified. No fullmodelcandidate executionyet.

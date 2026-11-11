@@ -27,7 +27,7 @@ def qualified(row):return row['parity']['passes'] and row['compatibility']['endp
 
 def qualification_worker(spec):
  if 'cases' in spec or 'controls' in spec:raise ValueError('Blank only before candidate acceptance')
- out=Path(spec['outputDir']);graph,structure=lower_once(Path(spec['parentGraph']),Path(spec['candidateDir']),spec['parentGraphFiles']);write(out/'graph.json',structure);cfg,sources=context(spec);session,load_ms=ort_session(graph,'disabled');write(out/'session.json',{**VERDICTS,'ortLoadMs':load_ms,'optimization':'disabled','providers':session.get_providers()});row=prediction(spec['qualification'],cfg,sources,session=session);row.update(VERDICTS);write(out/'qualification.json',row);budget=cohort_budget_ms(row['imageWallMs'],spec['retainedTorchBlankMs']);write(out/'budget.json',{'projectedMs':budget,'limitMs':3600000,'factor':1.2,'retainedTorchBlankMs':spec['retainedTorchBlankMs'],'actualWorkerStillBounded':True})
+ out=Path(spec['outputDir']);graph,structure=lower_once(Path(spec['parentGraph']),Path(spec['candidateDir']),spec['parentGraphFiles']);verify_file(graph,spec['expectedCandidateGraphSha256']);write(out/'graph.json',structure);cfg,sources=context(spec);session,load_ms=ort_session(graph,'disabled');write(out/'session.json',{**VERDICTS,'ortLoadMs':load_ms,'optimization':'disabled','providers':session.get_providers()});row=prediction(spec['qualification'],cfg,sources,session=session);row.update(VERDICTS);write(out/'qualification.json',row);budget=cohort_budget_ms(row['imageWallMs'],spec['retainedTorchBlankMs']);write(out/'budget.json',{'projectedMs':budget,'limitMs':3600000,'factor':1.2,'retainedTorchBlankMs':spec['retainedTorchBlankMs'],'actualWorkerStillBounded':True})
  if not qualified(row) or budget>3600000:raise ValueError('Single candidate failed strict blank or projected cohort budget; no retries/food permitted')
  write(out/'accepted.json',{**VERDICTS,'strictRawParity':row['parity'],'endpointCompatibility':row['compatibility']['endpointV2'],'graph':structure,'qualificationMs':row['imageWallMs'],'projectedCohortMs':budget})
 
@@ -48,7 +48,7 @@ def main(a):
  for f in p['sourceFiles']:verify_file(repo/f['path'],f['sha256'],f['bytes'])
  for f in p['parentGraphFiles']:verify_file(safe_external_path(parent/'export-dynamo',f['name']),f['sha256'],f['bytes'])
  if a.mode=='preflight':print(json.dumps({**VERDICTS,'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip(),'cases':42,'controls':6,'availableBytes':available_memory()}));return
- out=root/('qualification' if a.mode=='qualify' else 'benchmark');out.mkdir();spec=make_spec(repo,previous,base,out);spec.update(candidateDir=str(root/'model'),parentGraph=str(parent/'export-dynamo/model.onnx'),parentGraphFiles=p['parentGraphFiles'],retainedTorchBlankMs=p['retainedTorchBlankMs'])
+ out=root/('qualification' if a.mode=='qualify' else 'benchmark');out.mkdir();spec=make_spec(repo,previous,base,out);spec.update(candidateDir=str(root/'model'),parentGraph=str(parent/'export-dynamo/model.onnx'),parentGraphFiles=p['parentGraphFiles'],retainedTorchBlankMs=p['retainedTorchBlankMs'],expectedCandidateGraphSha256=p['candidateGraphSha256'])
  if a.mode=='qualify':
   spec.pop('cases');spec.pop('controls');receipt=supervise(repo,root,spec,'qualification',p['qualificationLimits'])
   if not successful_attempt(receipt,(out/'accepted.json').exists()):raise RuntimeError('Candidate rejected; retain evidence and stop, no retry')

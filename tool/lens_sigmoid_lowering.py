@@ -1,5 +1,5 @@
 """One explicitly versioned, standard FP32 Sigmoid lowering; checkpoint unchanged."""
-import copy,math,os
+import copy,math,shutil
 from pathlib import Path
 
 def cohort_budget_ms(ort_blank_ms,torch_blank_ms):
@@ -30,7 +30,7 @@ def lower_once(parent_graph,output_dir,parent_files):
  before=sha(parent_graph);model=onnx.load(str(parent_graph),load_external_data=False);changed=rewrite_sigmoid(model);output_dir.mkdir()
  for f in parent_files:
   if f['name']==parent_graph.name:continue
-  source=safe_external_path(parent_graph.parent,f['name']);target=safe_external_path(output_dir,f['name']);target.parent.mkdir(parents=True,exist_ok=True);os.link(source,target)
+  source=safe_external_path(parent_graph.parent,f['name']);target=safe_external_path(output_dir,f['name']);target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,target)
  graph=output_dir/'model.onnx';onnx.save_model(changed,str(graph));receipt=inspect_graph(graph)
  if sha(parent_graph)!=before:raise ValueError('Parent graph changed')
  for f in parent_files:verify_file(safe_external_path(parent_graph.parent,f['name']),f['sha256'],f['bytes'])

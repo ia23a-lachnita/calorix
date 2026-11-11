@@ -20,13 +20,13 @@
   "sourceFiles": [
     {
       "path": "tool/lens_sigmoid_lowering.py",
-      "sha256": "d13ca5b080e7eb2b03d273b894774cca5bf2195ca5a20150d98a158f3a061965",
-      "bytes": 4091
+      "sha256": "feb29b2e104fd20394b11fbae01bdf9a52582be5c1a06f8d2ab7343343089201",
+      "bytes": 4103
     },
     {
       "path": "tool/run_lens_lowering.py",
-      "sha256": "9049b3b2fbe2f516a0fd80c4da6a252d1388df3f71dba9a44ba41be45d5d3634",
-      "bytes": 8299
+      "sha256": "5ac5acda7130910735784f2e032d4d6cc0dcf58c3c42e9f24825ed77cd08a037",
+      "bytes": 8410
     },
     {
       "path": "tool/summarize_lens_lowering.py",
@@ -35,8 +35,8 @@
     },
     {
       "path": "tests/test_lens_sigmoid_lowering.py",
-      "sha256": "31e096dfae362eb624125dd40448a0569f2e1baf0bb49d684c3b78c135cdd98f",
-      "bytes": 4132
+      "sha256": "b1a8d1d040f9f96ad61ac56e410c5680422432ad07cb5eff684063343b957566",
+      "bytes": 5829
     }
   ],
   "retainedTorchBlankMs": 68329.30435391609,
@@ -71,5 +71,13 @@
     "materialSpeedRatio": 1.25,
     "strongSpeedRatio": 2,
     "noProductionPromotion": true
+  },
+  "candidateGraphSha256": "70c2d8813e9eb17a26536c4cae105b68a7738d6bd6d322a9a128a84afab5cb9e",
+  "ioAmendment": {
+    "previousSourceCommit": "99fcbb2674febc1a1848622bc01691aec45625d2",
+    "failure": "ONNX checker rejects multiple hard links before any ORT session/blank",
+    "externalDataStorage": "independent verified byte copy",
+    "fullModelBlankForwardsBeforeAmendment": 0,
+    "sameDerivedGraphBytesRequired": true
   }
 }

@@ -1,0 +1,21 @@
+E
+======================================================================
+ERROR: test_external_weights_use_independent_verified_copies_accepted_by_checker (tests.test_lens_sigmoid_lowering.StableLoweringTest.test_external_weights_use_independent_verified_copies_accepted_by_checker)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-lens-verification-worktree.7mbbsoe_/tests/test_lens_sigmoid_lowering.py", line 22, in test_external_weights_use_independent_verified_copies_accepted_by_checker
+    graph,receipt=lower_once(parent/'model.onnx',root/'candidate',pins);onnx.checker.check_model(str(graph),full_check=True)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-lens-verification-worktree.7mbbsoe_/tool/lens_sigmoid_lowering.py", line 34, in lower_once
+    graph=output_dir/'model.onnx';onnx.save_model(changed,str(graph));receipt=inspect_graph(graph)
+                                                                              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-lens-verification-worktree.7mbbsoe_/tool/run_lens_onnx.py", line 116, in inspect_graph
+    onnx.checker.check_model(str(path),full_check=True)
+  File "/home/agent-runner/.local/share/calorix-lens-onnx-20261111/venv/lib/python3.11/site-packages/onnx/checker.py", line 147, in check_model
+    C.check_model_path(
+onnx.onnx_cpp2py_export.checker.ValidationError: Data of TensorProto ( tensor name: retained) should be stored in /home/agent-runner/.local/share/calorix-lens-onnx-20261111/tmp/tmp5hadaz79/candidate/model.onnx.data, but it has multiple hard links, indicating a potential hardlink attack.
+
+----------------------------------------------------------------------
+Ran 1 test in 0.454s
+
+FAILED (errors=1)

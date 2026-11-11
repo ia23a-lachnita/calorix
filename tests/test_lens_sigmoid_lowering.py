@@ -1,5 +1,6 @@
-import importlib.util,math,unittest
-from tool.lens_sigmoid_lowering import rewrite_sigmoid,cohort_budget_ms
+import hashlib,importlib.util,math,tempfile,unittest
+from pathlib import Path
+from tool.lens_sigmoid_lowering import rewrite_sigmoid,cohort_budget_ms,lower_once
 HAS_ONNX=importlib.util.find_spec('onnx') is not None
 HAS_RUNTIME=HAS_ONNX and importlib.util.find_spec('onnxruntime') is not None and importlib.util.find_spec('torch') is not None
 
@@ -7,6 +8,19 @@ def toy():
  from onnx import helper,TensorProto
  return helper.make_model(helper.make_graph([helper.make_node('Sigmoid',['add_33'],['sigmoid'],name='node_sigmoid')],'fixture',[helper.make_tensor_value_info('add_33',TensorProto.FLOAT,[None])],[helper.make_tensor_value_info('sigmoid',TensorProto.FLOAT,[None])]),opset_imports=[helper.make_opsetid('',18)],ir_version=10)
 class StableLoweringTest(unittest.TestCase):
+ @unittest.skipUnless(HAS_ONNX,'Optional pinned ONNX conversion environment required')
+ def test_external_weights_use_independent_verified_copies_accepted_by_checker(self):
+  import onnx
+  from onnx import helper,TensorProto
+  from onnx.external_data_helper import set_external_data
+  from tool.lens_onnx_contract import OUTPUTS
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);parent=root/'parent';parent.mkdir();model=toy();del model.graph.output[:]
+   for name in OUTPUTS:
+    model.graph.node.append(helper.make_node('Identity',['sigmoid'],[name],name='out_'+name));model.graph.output.append(helper.make_tensor_value_info(name,TensorProto.FLOAT,[None]))
+   data=b'\x00\x00\x80\x3f';weight=helper.make_tensor('retained',TensorProto.FLOAT,[1],data,raw=True);set_external_data(weight,location='model.onnx.data',offset=0,length=4);weight.data_location=TensorProto.EXTERNAL;weight.ClearField('raw_data');model.graph.initializer.append(weight);(parent/'model.onnx.data').write_bytes(data);onnx.save_model(model,str(parent/'model.onnx'));pins=[{'name':f.name,'sha256':hashlib.sha256(f.read_bytes()).hexdigest(),'bytes':f.stat().st_size} for f in [parent/'model.onnx',parent/'model.onnx.data']]
+   graph,receipt=lower_once(parent/'model.onnx',root/'candidate',pins);onnx.checker.check_model(str(graph),full_check=True)
+   self.assertEqual((root/'candidate/model.onnx.data').read_bytes(),data);self.assertNotEqual((parent/'model.onnx.data').stat().st_ino,(root/'candidate/model.onnx.data').stat().st_ino);self.assertEqual((parent/'model.onnx.data').stat().st_nlink,1);self.assertEqual((root/'candidate/model.onnx.data').stat().st_nlink,1)
  def test_budget_accepts_fast_blank_and_rejects_overrun(self):
   self.assertLess(cohort_budget_ms(40000,68329.30435391609),3600000)
   self.assertGreater(cohort_budget_ms(128000,68329.30435391609),3600000)

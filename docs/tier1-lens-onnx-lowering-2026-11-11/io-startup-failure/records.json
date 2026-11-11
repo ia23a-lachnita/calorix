@@ -1,0 +1,26 @@
+[
+  {
+    "path": "qualification/supervision.json",
+    "bytes": 263,
+    "sha256": "98ad7c0c0792d71a73245134f2bc80e293463654b2b46868311d197e0116d90a",
+    "archive": "docs/tier1-lens-onnx-lowering-2026-11-11/io-startup-failure/qualification/supervision.json.gz"
+  },
+  {
+    "path": "qualification/worker-input.json",
+    "bytes": 2656,
+    "sha256": "6764a2deba934518230fdec0888d3bf3309f187c4ae3f8cb1da5b09aad030404",
+    "archive": "docs/tier1-lens-onnx-lowering-2026-11-11/io-startup-failure/qualification/worker-input.json.gz"
+  },
+  {
+    "path": "qualification/worker.txt",
+    "bytes": 2550,
+    "sha256": "09a069f9a20b95eae5de8bf279dff0a631e8b2bf0ab9cf84ec2ca20cbfd372d0",
+    "archive": "docs/tier1-lens-onnx-lowering-2026-11-11/io-startup-failure/qualification/worker.txt.gz"
+  },
+  {
+    "path": "qualification-host.txt",
+    "bytes": 777,
+    "sha256": "0b6d85210b131841531aa96d1a836a52b3153aefda7a881012d0a56dc1bcbcdb",
+    "archive": "docs/tier1-lens-onnx-lowering-2026-11-11/io-startup-failure/qualification-host.txt.gz"
+  }
+]
