@@ -1,0 +1,10 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\nAGREEMENT_STATUS:agree\nMUST_FIX:\n1. **Macro non-negativity**: Enforce strict positive (> 0) bounds for `total_calories` and `total_food_weight`, but allow non-negative (>= 0) for individual macros (`total_fats`, `total_carbohydrates`, `total_protein`) so valid zero-carb or zero-fat dishes are not falsely rejected.\n2. **Image-to-dish mapping validation**: Cross-reference image filenames against `nutritionverse_dish_metadata3.csv` and split CSV records rather than relying purely on basename regex parsing to prevent multi-view mismatch.\n3. **Deterministic selection canonicalization**: Specify lexicographic sorting on `sha256(dish_id)` and `sha256(image_filename)` to guarantee zero platform-dependent ordering drift during the 20-dish hash freeze.\n\n### Material Risks & Gaps Review\n- **Metadata Column Variations**: Kaggle NVReal v2 header naming (e.g., `total_food_weight` vs `total_weight`) must be verified against CSV headers via mock/unit tests before ingestion; use explicit key mapping with strict numeric validation.\n- **Metric Integrity**: Treating API and inference failures as `None` (reporting reduced coverage) rather than imputing `0 kcal` correctly prevents severe negative bias and artificial MAE distortion.\n- **ID & Graph Boundary Isolation**: Replacing the hardcoded `dish_10digits` pattern with `nv-dish-<int>` inside the new generic ORT wrapper isolates NVReal runs without touching existing production N5 test pins.\n- **Licence Compliance**: Enforcing an absolute download block until user commercial/noncommercial classification is resolved—while proceeding strictly with synthetic fixtures, RED/GREEN tests, and runner scaffolding—maintains clean IP boundaries."
+    }
+  ],
+  "isError": false
+}
+

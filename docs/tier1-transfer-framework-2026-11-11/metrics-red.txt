@@ -1,0 +1,49 @@
+EEEE
+======================================================================
+ERROR: test_duplicate_physical_meals_or_extra_records_rejected (test_transfer_metrics.TransferMetricsTest.test_duplicate_physical_meals_or_extra_records_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_metrics.py", line 50, in test_duplicate_physical_meals_or_extra_records_rejected
+    with self.assertRaises(ValueError):score_transfer(cs,a|{'nv-dish-999':{}},s)
+                                       ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 133, in score_transfer
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_failed_specialist_mass_arm_falls_back_without_hiding_failure (test_transfer_metrics.TransferMetricsTest.test_failed_specialist_mass_arm_falls_back_without_hiding_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_metrics.py", line 32, in test_failed_specialist_mass_arm_falls_back_without_hiding_failure
+    cs,a,s=fixture();r=score_transfer(cs,a,{})
+                       ~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 133, in score_transfer
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_matched_composition_mass_arm_has_hand_calculated_zero_error (test_transfer_metrics.TransferMetricsTest.test_matched_composition_mass_arm_has_hand_calculated_zero_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_metrics.py", line 22, in test_matched_composition_mass_arm_has_hand_calculated_zero_error
+    cs,a,s=fixture();before=copy.deepcopy(a);r=score_transfer(cs,a,s)
+                                               ~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 133, in score_transfer
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_missing_a1_does_not_create_a_fake_fused_inventory (test_transfer_metrics.TransferMetricsTest.test_missing_a1_does_not_create_a_fake_fused_inventory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_metrics.py", line 42, in test_missing_a1_does_not_create_a_fake_fused_inventory
+    cs,a,s=fixture();r=score_transfer(cs,{},s)
+                       ~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 133, in score_transfer
+    raise NotImplementedError
+NotImplementedError
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.009s
+
+FAILED (errors=4)

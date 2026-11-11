@@ -50,6 +50,22 @@ assets:
     transformations: RGB PNG to JPEG85/subsampling2, EXIF removed, no resize; original labels retained
     evidence_link: https://github.com/google-research-datasets/Nutrition5k#license--contact
 
+  - source_id: nutritionverse-real-transfer-v1
+    source_url: https://www.kaggle.com/datasets/nutritionverse/nutritionverse-real
+    asset_version: publisher API version2; public file metadata inspected, protected labels/photos not ingested
+    license: CC BY-NC-SA 4.0
+    attribution: Tai et al., NutritionVerse-Real, arXiv2401.08598
+    code_license: dataset, not code
+    weights_license: not applicable
+    evaluation_allowed: false
+    redistribution_allowed: false
+    redistribution_policy: keep source and derived assets private
+    commercial_training_allowed: false
+    privacy_basis: public food-scene dataset; no owner photo collection in this comparison
+    approval_state: pending project-purpose clarification; do not infer noncommercial purpose from silence
+    decision_record: functions/eval/transfer/nutritionverse-rights-v1.json
+    evidence_link: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
   - source_id: usda-sr-2018-tier1-20261108-v2
     source_url: https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip
     asset_version: official6MB CSV archive SHA b80817294b8850530aaedf2e515c02593b1824f763a0ff356e5c2081643e6fd0;73 selected FDC records

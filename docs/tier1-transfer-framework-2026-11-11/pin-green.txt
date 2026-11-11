@@ -1,0 +1,70 @@
+TAP version 13
+# {"id":"nv-dish-0","A1":"ok"}
+# {"id":"nv-dish-1","A1":"ok"}
+# {"id":"nv-dish-2","A1":"ok"}
+# {"id":"nv-dish-0","A1":"failed"}
+# {"id":"nv-dish-0","A1":"failed"}
+# {"id":"nv-dish-1","A1":"failed"}
+# Subtest: generic manifest accepts physical dish IDs without inventing capture dates
+ok 1 - generic manifest accepts physical dish IDs without inventing capture dates
+  ---
+  duration_ms: 12.12337
+  type: 'test'
+  ...
+# Subtest: duplicates, mismatching physical IDs, unsafe paths and invalid counts rejected
+ok 2 - duplicates, mismatching physical IDs, unsafe paths and invalid counts rejected
+  ---
+  duration_ms: 5.51815
+  type: 'test'
+  ...
+# Subtest: image projection verifies bytes and excludes reference information
+ok 3 - image projection verifies bytes and excludes reference information
+  ---
+  duration_ms: 8.601881
+  type: 'test'
+  ...
+# Subtest: each inference receives only image bytes and has a pending receipt first
+ok 4 - each inference receives only image bytes and has a pending receipt first
+  ---
+  duration_ms: 31.38133
+  type: 'test'
+  ...
+# Subtest: systemic error halts with unattempted remainder and no retry
+ok 5 - systemic error halts with unattempted remainder and no retry
+  ---
+  duration_ms: 14.379956
+  type: 'test'
+  ...
+# Subtest: no-food result continues to next meal; drift halts
+ok 6 - no-food result continues to next meal; drift halts
+  ---
+  duration_ms: 13.317219
+  type: 'test'
+  ...
+# Subtest: missing cloud consent prevents output or calls
+ok 7 - missing cloud consent prevents output or calls
+  ---
+  duration_ms: 3.018731
+  type: 'test'
+  ...
+# Subtest: committed source gates accept exact private bytes and reject manifest drift or undecided purpose
+ok 8 - committed source gates accept exact private bytes and reject manifest drift or undecided purpose
+  ---
+  duration_ms: 347.977209
+  type: 'test'
+  ...
+# Subtest: frozen source pins cannot name a file outside the Git checkout
+ok 9 - frozen source pins cannot name a file outside the Git checkout
+  ---
+  duration_ms: 242.899864
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 942.563085

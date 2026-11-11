@@ -1,0 +1,10 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "AI response:\nAGREEMENT_STATUS: agree\nMUST_FIX: none\n\nYes. Committing the SHA256 manifest hash alongside runtime, code, and model pins guarantees a tamper-proof pre-test freeze and offline auditability without redistributing CC-BY-NC-SA assets. Requiring both A1 and Lens runners to verify identical local bytes against the committed profile hash before execution prevents dataset drift while disallowing CLI bypasses. Label-stripping case projection ensures evaluation isolation, and logging header-only Kaggle metadata preserves strict compliance while the user-purpose gate remains pending."
+    }
+  ],
+  "isError": false
+}
+

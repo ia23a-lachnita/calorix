@@ -1,0 +1,97 @@
+TAP version 13
+# {"id":"nv-dish-0","A1":"ok"}
+# {"id":"nv-dish-1","A1":"ok"}
+# {"id":"nv-dish-2","A1":"ok"}
+# {"id":"nv-dish-0","A1":"failed"}
+# {"id":"nv-dish-0","A1":"failed"}
+# {"id":"nv-dish-1","A1":"failed"}
+# Subtest: generic manifest accepts physical dish IDs without inventing capture dates
+ok 1 - generic manifest accepts physical dish IDs without inventing capture dates
+  ---
+  duration_ms: 12.118094
+  type: 'test'
+  ...
+# Subtest: duplicates, mismatching physical IDs, unsafe paths and invalid counts rejected
+ok 2 - duplicates, mismatching physical IDs, unsafe paths and invalid counts rejected
+  ---
+  duration_ms: 7.762718
+  type: 'test'
+  ...
+# Subtest: image projection verifies bytes and excludes reference information
+ok 3 - image projection verifies bytes and excludes reference information
+  ---
+  duration_ms: 11.850298
+  type: 'test'
+  ...
+# Subtest: each inference receives only image bytes and has a pending receipt first
+ok 4 - each inference receives only image bytes and has a pending receipt first
+  ---
+  duration_ms: 43.257502
+  type: 'test'
+  ...
+# Subtest: systemic error halts with unattempted remainder and no retry
+ok 5 - systemic error halts with unattempted remainder and no retry
+  ---
+  duration_ms: 13.942774
+  type: 'test'
+  ...
+# Subtest: no-food result continues to next meal; drift halts
+ok 6 - no-food result continues to next meal; drift halts
+  ---
+  duration_ms: 12.376538
+  type: 'test'
+  ...
+# Subtest: missing cloud consent prevents output or calls
+ok 7 - missing cloud consent prevents output or calls
+  ---
+  duration_ms: 3.259731
+  type: 'test'
+  ...
+# Subtest: committed source gates accept exact private bytes and reject manifest drift or undecided purpose
+ok 8 - committed source gates accept exact private bytes and reject manifest drift or undecided purpose
+  ---
+  duration_ms: 391.068734
+  type: 'test'
+  ...
+# Subtest: frozen source pins cannot name a file outside the Git checkout
+ok 9 - frozen source pins cannot name a file outside the Git checkout
+  ---
+  duration_ms: 251.876516
+  type: 'test'
+  ...
+# Subtest: profile must match committed bytes even if Git hides its working-file change
+ok 10 - profile must match committed bytes even if Git hides its working-file change
+  ---
+  duration_ms: 177.337143
+  type: 'test'
+  ...
+# Subtest: pre-image selection receipt is bound to the final frozen manifest
+not ok 11 - pre-image selection receipt is bound to the final frozen manifest
+  ---
+  duration_ms: 190.414085
+  type: 'test'
+  location: '/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/run_transfer_a1.test.cjs:101:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/run_transfer_a1.test.cjs:104:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 10
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1393.370052

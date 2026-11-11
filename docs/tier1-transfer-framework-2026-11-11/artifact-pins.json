@@ -1,0 +1,229 @@
+{
+  "files": [
+    {
+      "path": "data_rights.yaml",
+      "bytes": 6900,
+      "sha256": "68fbb143d66f12d26587530071e12afb50b55481405b5037a32d05b2ab322f19"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-11-independent-domain-evaluation.md",
+      "bytes": 6283,
+      "sha256": "c0ec82ee9e66b32fc9e28861da0baf9082c53e7985c50e82b3232bff0e8c6acb"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/a1-green.txt",
+      "bytes": 1710,
+      "sha256": "c7c1961296777330682a89e3333f5a18d30d3e432a715a4212f28369a09f9815"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/a1-red.txt",
+      "bytes": 5639,
+      "sha256": "ef89c8dd0963ffcedd75dc9655a15b1d955b4608a9e95e09ec2a0f467c9a4f94"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/adapter-green.txt",
+      "bytes": 109,
+      "sha256": "e3c842207de5dd4b41f70e34894c2e6e9650d49c3e1198c5dd834e2e977e76df"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/adapter-red.txt",
+      "bytes": 34099,
+      "sha256": "947dcc7c55c49505cf5a24adfbc589e17ae487ce0d255273d4ca4cf265365e22"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/antigravity-freshClean.json",
+      "bytes": 665,
+      "sha256": "b0e6d822660a2af7713846dd632e6676ac177aa28999682689ff55ee47801d9f"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/antigravity-freshInitial.json",
+      "bytes": 3383,
+      "sha256": "9c9142dd97ce5645cad7849ec369030bc46e5742afa89f0d436a33d36d7d832f"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/antigravity-plan.json",
+      "bytes": 1813,
+      "sha256": "ffb31dc227a6747187cd1e97d0d638fde94b717e3763d9821c7f5dbd71f65fbb"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/antigravity-planAmended.json",
+      "bytes": 864,
+      "sha256": "8c4b07f51cd1ab940d9546a3528817db6dbb6c33b88d6a11da0b647d60a6c4dc"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/antigravity-privateProfile.json",
+      "bytes": 691,
+      "sha256": "2c3bf5b58b0933931a0be2fbb446190907a215e894643646b3b303c655ab6a77"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/antigravity-sourceAmended.json",
+      "bytes": 1878,
+      "sha256": "3c16af8a3a932b741754d1b4786b97bec3264543e71912baaf52c9224cbbfcad"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/antigravity-sourceInitial.json",
+      "bytes": 3503,
+      "sha256": "6636b20aefa037b0f5e48ec26465c36e4950dd9b71fbf58a2bf39648f455a353"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/local-green.txt",
+      "bytes": 100,
+      "sha256": "6f283ee6225d2cef4c0127d95456a6f954c45141c92b97dd89016cb1c630e8f4"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/local-red.txt",
+      "bytes": 5949,
+      "sha256": "f2607b5cd0197e64c5758a1d7b83de00d30a95a6cdd1f0ac07b9a16be3e96ac0"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/metrics-green.txt",
+      "bytes": 102,
+      "sha256": "695d659532a50ccb2c8c721223b0d28db4557e4602b82b948fbd5f9c7d0bf1f5"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/metrics-red.txt",
+      "bytes": 3497,
+      "sha256": "30103176f05c75e7a3ad43acacf01237c5d6a451fb63f9497de58399fe53650d"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/pin-green.txt",
+      "bytes": 2169,
+      "sha256": "eacff566f67fb6d9627b5b76765673a587ddfbe5be85c9f181cd2e5de07a8267"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/pin-red.txt",
+      "bytes": 2969,
+      "sha256": "cedce8294388f9e6c32a0703c25c4292f8c7dc203b2b3c3547096dcedcfc6131"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/preparation-green.txt",
+      "bytes": 101,
+      "sha256": "42b1882b6b4635fd5b5b2386fc10e7a364b898717ffd671f753de6cb9ef4d113"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/preparation-red.txt",
+      "bytes": 2587,
+      "sha256": "bcd34b21e2c3f4676b46d5c959da08e1ccf17e5f7416cf54cf3e64627503900d"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/profile-green.txt",
+      "bytes": 2401,
+      "sha256": "dedf51169c2b658e626a648a7b9ccb781c0dcec485e9175dc5ad4f6ce6ef5863"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/profile-red.txt",
+      "bytes": 3198,
+      "sha256": "ca045ab37d0a0a398b634bf77141ed2257acecfc6c4087b649073b2b0853865e"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/qualified-node.txt",
+      "bytes": 11832,
+      "sha256": "a9ebbd6c35c808b1eb3abe70ee5f65391e25087e37845e54bf242101447e09fd"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/qualified-python.txt",
+      "bytes": 377,
+      "sha256": "6474da5b00dc68899e4145724de3b6baac2ceb08237fd806adb2d14d588ef97b"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/real-config-gate-check.json",
+      "bytes": 154,
+      "sha256": "a0477c124d40f664e67a8d5decb283a8d772e147dd7013faeca80e0ae726c420"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/report.md",
+      "bytes": 9124,
+      "sha256": "f8edc98ed3f161d050d87aeaf04146b6d00676c9c11a13727abd5e4bd6055766"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/review-green.txt",
+      "bytes": 120,
+      "sha256": "fa5c8d7981ee7e9fbf726306ce1bffa5c178d94b69c7380052956aac270991b7"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/review-red.txt",
+      "bytes": 5058,
+      "sha256": "3dd79bc79c7b6ac2443a0ceb12b020fe0548fb58074e5c7c3b46383c6f12a45a"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/selection-green.txt",
+      "bytes": 2607,
+      "sha256": "2293987e00cafbf82114dcb3355c781925d479b7a4d21cec312606f663a2da16"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/selection-red.txt",
+      "bytes": 3406,
+      "sha256": "60c245a9b13fd6967b8eea8ef9af01e807509ea2ea2f4e456122df76307a04b2"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/source-access.json",
+      "bytes": 917,
+      "sha256": "9dc5c224b36a2eaaae4fe03246bee460c512bf1067feb21573c986dfe03f8422"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/worker-claude.json",
+      "bytes": 236,
+      "sha256": "7d416bff31311d78365b46bd39383e7cef71a27c17535697fa4fb8c17f6671f0"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/worker-grok.json",
+      "bytes": 364,
+      "sha256": "04ca592cd708c441835641527e271713b9ebdd6b6158e450eb1070fc13768329"
+    },
+    {
+      "path": "docs/tier1-transfer-framework-2026-11-11/worker-qwen.json",
+      "bytes": 375,
+      "sha256": "57587d331efab0d13a32658f1bf7274ece67ebc3d25106012e514f320d9b7641"
+    },
+    {
+      "path": "functions/eval/transfer/nutritionverse-rights-v1.json",
+      "bytes": 487,
+      "sha256": "563b739c934232d063b401e3e6723a2040e435a7e2fffc14f556454b16ac2663"
+    },
+    {
+      "path": "tests/test_prepare_transfer.py",
+      "bytes": 3649,
+      "sha256": "d6ac3343ba7b118ab64985b869617ccd4dd17520629c1a1fc6ddb92126d9ba9c"
+    },
+    {
+      "path": "tests/test_transfer_dataset.py",
+      "bytes": 6474,
+      "sha256": "a4f715eb63186a4bc573a936f74db75add4047ff39cd141668dc04a3ef149e0a"
+    },
+    {
+      "path": "tests/test_transfer_metrics.py",
+      "bytes": 3053,
+      "sha256": "36627489a65d88e8a3f5eab8172ba587c29ce7f17ce2466af75766bbb62bd8b3"
+    },
+    {
+      "path": "tests/test_transfer_runner.py",
+      "bytes": 2024,
+      "sha256": "7bf8d3dd4be9a6e607cab970e80d32864f69b9ae8b3e2d8cfd5ba3547a3cf84b"
+    },
+    {
+      "path": "tool/prepare_transfer_eval.py",
+      "bytes": 6704,
+      "sha256": "a350549aa69596c7f7778ad3092cff5f104327c49a62cdae4dc0dc0812e1ac9a"
+    },
+    {
+      "path": "tool/run_transfer_a1.cjs",
+      "bytes": 10474,
+      "sha256": "b00f023d522af4cb2628693ea2a453dccc6fbd8ac51b7fb1dc8ee57ab6480bb8"
+    },
+    {
+      "path": "tool/run_transfer_a1.test.cjs",
+      "bytes": 8626,
+      "sha256": "1e698263d297a3b5b2d294dbdddffd6c84393b4aa48e7ecc8bf4269ede4b9256"
+    },
+    {
+      "path": "tool/run_transfer_lens.py",
+      "bytes": 8898,
+      "sha256": "4a7ae8b7cbb25ebe42080adbe7e5ecacab8425da489c7e2af7785cc3171e768d"
+    },
+    {
+      "path": "tool/transfer_dataset.py",
+      "bytes": 10142,
+      "sha256": "8e3b37be86db4295479f090661c5fefb6b8821bf0e6ceb6074b234f9df38d4b2"
+    }
+  ]
+}

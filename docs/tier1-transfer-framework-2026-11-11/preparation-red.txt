@@ -1,0 +1,36 @@
+EEE
+======================================================================
+ERROR: test_bad_photo_kept_as_failure_without_replacement (test_prepare_transfer.PreparationTest.test_bad_photo_kept_as_failure_without_replacement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_prepare_transfer.py", line 55, in test_bad_photo_kept_as_failure_without_replacement
+    manifest=prepare_transfer(rights,files,root/'out',2,fetch)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_transfer_eval.py", line 3, in prepare_transfer
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_freeze_precedes_pixels_and_only_one_view_per_dish_is_fetched (test_prepare_transfer.PreparationTest.test_freeze_precedes_pixels_and_only_one_view_per_dish_is_fetched)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_prepare_transfer.py", line 39, in test_freeze_precedes_pixels_and_only_one_view_per_dish_is_fetched
+    manifest=prepare_transfer(rights,files,output,2,fetch)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_transfer_eval.py", line 3, in prepare_transfer
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_rights_gate_prevents_all_data_access (test_prepare_transfer.PreparationTest.test_rights_gate_prevents_all_data_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_prepare_transfer.py", line 28, in test_rights_gate_prevents_all_data_access
+    with self.assertRaises(ValueError):prepare_transfer(rights,root/'absent.json',root/'out',2,lambda *a:called.append(a))
+                                       ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/prepare_transfer_eval.py", line 3, in prepare_transfer
+    raise NotImplementedError
+NotImplementedError
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.060s
+
+FAILED (errors=3)

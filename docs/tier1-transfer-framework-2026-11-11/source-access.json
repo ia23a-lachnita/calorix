@@ -1,0 +1,26 @@
+{
+  "datasetId": "nutritionverse-real",
+  "publisherVersion": 2,
+  "publisherUrl": "https://www.kaggle.com/datasets/nutritionverse/nutritionverse-real",
+  "reportedPhysicalDishes": 251,
+  "reportedPhotographs": 889,
+  "publishedFilesListed": 892,
+  "licenseName": "CC BY-NC-SA 4.0",
+  "referenceMetadataBytes": 204751,
+  "splitMetadataBytes": 61424,
+  "annotationMetadataBytes": 3095055,
+  "protectedCsvSchemaQualified": false,
+  "sourceImageProcessingPerformed": false,
+  "protectedReferenceValuesRead": false,
+  "headerOnlySingleFileAccessStatus": 200,
+  "singleFileEndpoint": "https://api.kaggle.com/v1/datasets.DatasetApiService/DownloadDataset",
+  "publiclyDocumentedSpecialistTraining": [
+    "Nutrition5k",
+    "FlavoriaFoodWeight1700",
+    "USDA FoodData Central"
+  ],
+  "zeroPretrainingExposureProven": false,
+  "purposeDecision": "pending",
+  "actualNewFoodSdkCalls": 0,
+  "actualNewLocalFoodForwards": 0
+}

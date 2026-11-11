@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "nutritionverse-real",
+  "datasetVersion": 2,
+  "sourceUrl": "https://www.kaggle.com/datasets/nutritionverse/nutritionverse-real",
+  "license": "CC BY-NC-SA 4.0",
+  "rights": {
+    "evaluationAllowed": false,
+    "purpose": "pending",
+    "decisionEvidence": null
+  },
+  "sourceDataRedistribution": false,
+  "modelTraining": false,
+  "status": "Awaiting project-purpose clarification; owned-fixture tooling tests do not grant dataset permission"
+}

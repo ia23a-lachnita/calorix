@@ -1,0 +1,343 @@
+EEEEEEEEEEEEEEEEEEEEEEEEEEEE
+======================================================================
+ERROR: test_duplicate_published_basenames_and_unsafe_paths_rejected (test_transfer_dataset.TransferDatasetTest.test_duplicate_published_basenames_and_unsafe_paths_rejected) (files=[{'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_0_IMG_0_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_0_IMG_1_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_0_IMG_2_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_1_IMG_0_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_1_IMG_1_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_1_IMG_2_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_2_IMG_0_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_2_IMG_1_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_2_IMG_2_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_0_IMG_0_jpeg.rf.abc.jpg'}])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 59, in test_duplicate_published_basenames_and_unsafe_paths_rejected
+    with self.subTest(files=files),self.assertRaises(ValueError):associate_images(meta(),s,files)
+                                                                                  ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_duplicate_published_basenames_and_unsafe_paths_rejected (test_transfer_dataset.TransferDatasetTest.test_duplicate_published_basenames_and_unsafe_paths_rejected) (files=[{'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_0_IMG_0_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_0_IMG_1_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_0_IMG_2_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_1_IMG_0_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_1_IMG_1_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_1_IMG_2_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_2_IMG_0_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_2_IMG_1_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_2_IMG_2_jpeg.rf.abc.jpg'}, {'name': 'elsewhere/dish_0_IMG_0_jpeg.rf.abc.jpg'}])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 59, in test_duplicate_published_basenames_and_unsafe_paths_rejected
+    with self.subTest(files=files),self.assertRaises(ValueError):associate_images(meta(),s,files)
+                                                                                  ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_duplicate_published_basenames_and_unsafe_paths_rejected (test_transfer_dataset.TransferDatasetTest.test_duplicate_published_basenames_and_unsafe_paths_rejected) (files=[{'name': '../nutritionverse-manual/nutritionverse-manual/images/dish_0_IMG_0_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_0_IMG_1_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_0_IMG_2_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_1_IMG_0_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_1_IMG_1_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_1_IMG_2_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_2_IMG_0_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_2_IMG_1_jpeg.rf.abc.jpg'}, {'name': 'nutritionverse-manual/nutritionverse-manual/images/dish_2_IMG_2_jpeg.rf.abc.jpg'}])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 59, in test_duplicate_published_basenames_and_unsafe_paths_rejected
+    with self.subTest(files=files),self.assertRaises(ValueError):associate_images(meta(),s,files)
+                                                                                  ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_duplicate_published_basenames_and_unsafe_paths_rejected (test_transfer_dataset.TransferDatasetTest.test_duplicate_published_basenames_and_unsafe_paths_rejected) (n='../dish_0_a.jpg')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 61, in test_duplicate_published_basenames_and_unsafe_paths_rejected
+    with self.subTest(n=n),self.assertRaises(ValueError):associate_images(meta(),[{'file_name':n}],f)
+                                                                          ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_duplicate_published_basenames_and_unsafe_paths_rejected (test_transfer_dataset.TransferDatasetTest.test_duplicate_published_basenames_and_unsafe_paths_rejected) (n='/dish_0_a.jpg')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 61, in test_duplicate_published_basenames_and_unsafe_paths_rejected
+    with self.subTest(n=n),self.assertRaises(ValueError):associate_images(meta(),[{'file_name':n}],f)
+                                                                          ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_duplicate_published_basenames_and_unsafe_paths_rejected (test_transfer_dataset.TransferDatasetTest.test_duplicate_published_basenames_and_unsafe_paths_rejected) (n='images\\dish_0_a.jpg')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 61, in test_duplicate_published_basenames_and_unsafe_paths_rejected
+    with self.subTest(n=n),self.assertRaises(ValueError):associate_images(meta(),[{'file_name':n}],f)
+                                                                          ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_image_projection_strips_all_measured_labels_and_checks_hash (test_transfer_dataset.TransferDatasetTest.test_image_projection_strips_all_measured_labels_and_checks_hash)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 98, in test_image_projection_strips_all_measured_labels_and_checks_hash
+    result=image_inputs([c],root)[0]
+           ~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 12, in image_inputs
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (row='1,0,100,4,20,8')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 36, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(row=row),self.assertRaises(ValueError):parse_nv_csv(HEADER+row+'\n')
+                                                             ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (row='1,100,0,4,20,8')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 36, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(row=row),self.assertRaises(ValueError):parse_nv_csv(HEADER+row+'\n')
+                                                             ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (row='1,NaN,100,4,20,8')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 36, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(row=row),self.assertRaises(ValueError):parse_nv_csv(HEADER+row+'\n')
+                                                             ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (row='1,100,inf,4,20,8')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 36, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(row=row),self.assertRaises(ValueError):parse_nv_csv(HEADER+row+'\n')
+                                                             ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (row='1,100,100,-1,20,8')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 36, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(row=row),self.assertRaises(ValueError):parse_nv_csv(HEADER+row+'\n')
+                                                             ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (row='1,100,100,4,true,8')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 36, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(row=row),self.assertRaises(ValueError):parse_nv_csv(HEADER+row+'\n')
+                                                             ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (text='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 39, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(text=text),self.assertRaises(ValueError):parse_nv_csv(text)
+                                                               ~~~~~~~~~~~~^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (text='dish_id,total_calories,total_food_weight,total_fats,total_carbohydrates,total_protein\n')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 39, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(text=text),self.assertRaises(ValueError):parse_nv_csv(text)
+                                                               ~~~~~~~~~~~~^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (text='dish_id,total_calories,unknown_weight,total_fats,total_carbohydrates,total_protein\n1,100,100,1,2,3\n')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 39, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(text=text),self.assertRaises(ValueError):parse_nv_csv(text)
+                                                               ~~~~~~~~~~~~^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (text='dish_id,total_calories,total_food_weight,total_fats,total_carbohydrates,total_protein\n1,100,100,1,2,3\n01,100,100,1,2,3\n')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 39, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(text=text),self.assertRaises(ValueError):parse_nv_csv(text)
+                                                               ~~~~~~~~~~~~^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_invalid_numbers_missing_columns_and_duplicate_identity_fail (test_transfer_dataset.TransferDatasetTest.test_invalid_numbers_missing_columns_and_duplicate_identity_fail) (text='dish_id,total_calories,total_food_weight,total_fats,total_carbohydrates,total_protein\n-1,100,100,1,2,3\n')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 39, in test_invalid_numbers_missing_columns_and_duplicate_identity_fail
+    with self.subTest(text=text),self.assertRaises(ValueError):parse_nv_csv(text)
+                                                               ~~~~~~~~~~~~^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_missing_reference_unpublished_view_and_duplicate_split_rejected (test_transfer_dataset.TransferDatasetTest.test_missing_reference_unpublished_view_and_duplicate_split_rejected) (rows=[{'file_name': 'dish_0_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_0_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_0_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}, {'file_name': 'dish_1_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_1_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_1_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}, {'file_name': 'dish_2_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_2_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_2_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}, {'file_name': 'dish_0_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 53, in test_missing_reference_unpublished_view_and_duplicate_split_rejected
+    with self.subTest(rows=rows),self.assertRaises(ValueError):associate_images(meta(),rows,files)
+                                                                                ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_missing_reference_unpublished_view_and_duplicate_split_rejected (test_transfer_dataset.TransferDatasetTest.test_missing_reference_unpublished_view_and_duplicate_split_rejected) (rows=[{'file_name': 'dish_0_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_0_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_0_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}, {'file_name': 'dish_1_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_1_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_1_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}, {'file_name': 'dish_2_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_2_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_2_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 53, in test_missing_reference_unpublished_view_and_duplicate_split_rejected
+    with self.subTest(rows=rows),self.assertRaises(ValueError):associate_images(meta(),rows,files)
+                                                                                ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_missing_reference_unpublished_view_and_duplicate_split_rejected (test_transfer_dataset.TransferDatasetTest.test_missing_reference_unpublished_view_and_duplicate_split_rejected) (rows=[{'file_name': 'dish_0_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train', 'dish_id': '99'}, {'file_name': 'dish_0_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_0_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}, {'file_name': 'dish_1_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_1_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_1_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}, {'file_name': 'dish_2_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_2_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_2_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 53, in test_missing_reference_unpublished_view_and_duplicate_split_rejected
+    with self.subTest(rows=rows),self.assertRaises(ValueError):associate_images(meta(),rows,files)
+                                                                                ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_missing_reference_unpublished_view_and_duplicate_split_rejected (test_transfer_dataset.TransferDatasetTest.test_missing_reference_unpublished_view_and_duplicate_split_rejected) (rows=[{'file_name': 'dish_99_IMG_1.jpg', 'category': 'Train'}, {'file_name': 'dish_0_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_0_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}, {'file_name': 'dish_1_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_1_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_1_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}, {'file_name': 'dish_2_IMG_0_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_2_IMG_1_jpeg.rf.abc.jpg', 'category': 'Train'}, {'file_name': 'dish_2_IMG_2_jpeg.rf.abc.jpg', 'category': 'Val'}])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 53, in test_missing_reference_unpublished_view_and_duplicate_split_rejected
+    with self.subTest(rows=rows),self.assertRaises(ValueError):associate_images(meta(),rows,files)
+                                                                                ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_no_views_not_counted_as_available_dish (test_transfer_dataset.TransferDatasetTest.test_no_views_not_counted_as_available_dish)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 64, in test_no_views_not_counted_as_available_dish
+    s,f=views(2);r=associate_images(meta(3),s,f)
+                                    ~~~~^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_selection_ignores_reference_values_and_keeps_source_unchanged (test_transfer_dataset.TransferDatasetTest.test_selection_ignores_reference_values_and_keeps_source_unchanged)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 79, in test_selection_ignores_reference_values_and_keeps_source_unchanged
+    s,f=views(25);rows=associate_images(meta(25),s,f);before=copy.deepcopy(rows)
+                                        ~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_selection_rejects_bad_count_identity_or_foreign_view (test_transfer_dataset.TransferDatasetTest.test_selection_rejects_bad_count_identity_or_foreign_view)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 86, in test_selection_rejects_bad_count_identity_or_foreign_view
+    s,f=views();rs=associate_images(meta(),s,f)
+                                    ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_source_columns_units_and_zero_macros (test_transfer_dataset.TransferDatasetTest.test_source_columns_units_and_zero_macros)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 28, in test_source_columns_units_and_zero_macros
+    r=parse_nv_csv(HEADER+'12,125.5,87.2,0,20.1,0\n')[0]
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_twenty_dishes_one_view_each_stable_under_input_permutation (test_transfer_dataset.TransferDatasetTest.test_twenty_dishes_one_view_each_stable_under_input_permutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 69, in test_twenty_dishes_one_view_each_stable_under_input_permutation
+    s,f=views(25);rows=associate_images(meta(25),s,f)
+                                        ~~~~^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_view_join_cross_checks_all_sources_and_groups_physical_dishes (test_transfer_dataset.TransferDatasetTest.test_view_join_cross_checks_all_sources_and_groups_physical_dishes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 42, in test_view_join_cross_checks_all_sources_and_groups_physical_dishes
+    s,f=views();out=associate_images(meta(),s,f)
+                                     ~~~~^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 13, in meta
+    return parse_nv_csv(HEADER+''.join(f'{i},200,100,4,20,8\n' for i in range(count)))
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 3, in parse_nv_csv
+    raise NotImplementedError
+NotImplementedError
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.036s
+
+FAILED (errors=28)

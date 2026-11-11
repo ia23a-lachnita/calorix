@@ -1,0 +1,46 @@
+.E..........E..E....F
+======================================================================
+ERROR: test_freeze_precedes_pixels_and_only_one_view_per_dish_is_fetched (test_prepare_transfer.PreparationTest.test_freeze_precedes_pixels_and_only_one_view_per_dish_is_fetched)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_prepare_transfer.py", line 44, in test_freeze_precedes_pixels_and_only_one_view_per_dish_is_fetched
+    self.assertEqual(manifest['selectionSha256'],hashlib.sha256((output/'selection.json').read_bytes()).hexdigest())
+                     ~~~~~~~~^^^^^^^^^^^^^^^^^^^
+KeyError: 'selectionSha256'
+
+======================================================================
+ERROR: test_uppercase_extension_keeps_exact_published_name_identity (test_transfer_dataset.TransferDatasetTest.test_uppercase_extension_keeps_exact_published_name_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_dataset.py", line 71, in test_uppercase_extension_keeps_exact_published_name_identity
+    result=associate_images(meta(1),split,files)
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 88, in associate_images
+    seen.add(filename);dish=_view_dish(filename)
+                            ~~~~~~~~~~^^^^^^^^^^
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/transfer_dataset.py", line 46, in _view_dish
+    if not match:raise ValueError('Unexpected published view name')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Unexpected published view name
+
+======================================================================
+ERROR: test_failed_specialist_mass_arm_falls_back_without_hiding_failure (test_transfer_metrics.TransferMetricsTest.test_failed_specialist_mass_arm_falls_back_without_hiding_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_metrics.py", line 40, in test_failed_specialist_mass_arm_falls_back_without_hiding_failure
+    self.assertEqual(r['routes']['LensMassCounterfactual']['scored'],0)
+                     ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'LensMassCounterfactual'
+
+======================================================================
+FAIL: test_worker_failure_never_prints_raw_trace_or_private_path (test_transfer_runner.TransferRunnerTest.test_worker_failure_never_prints_raw_trace_or_private_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tests/test_transfer_runner.py", line 30, in test_worker_failure_never_prints_raw_trace_or_private_path
+    self.assertNotIn('DO_NOT_LOG_PRIVATE_INPUT',result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'DO_NOT_LOG_PRIVATE_INPUT' unexpectedly found in 'Traceback (most recent call last):\n  File "<frozen runpy>", line 198, in _run_module_as_main\n  File "<frozen runpy>", line 88, in _run_code\n  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/run_transfer_lens.py", line 121, in <module>\n    if a.worker:worker(json.loads(a.worker.read_text()))\n                ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/run_transfer_lens.py", line 39, in worker\n    graph=Path(spec[\'graphFile\']);verify_file(graph,spec[\'graphSha256\'])\n                                  ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/run_calorie_lens_eval.py", line 10, in verify_file\n    if sha(path)!=expected_sha or (expected_bytes is not None and path.stat().st_size!=expected_bytes):raise ValueError(\'Published file pin mismatch\')\n       ~~~^^^^^^\n  File "/home/agent-runner/.local/share/calorix-food-agreement-20261111/worktree/tool/run_calorie_lens_eval.py", line 8, in sha\n    with path.open(\'rb\') as f:return hashlib.file_digest(f,\'sha256\').hexdigest()\n         ~~~~~~~~~^^^^^^\n  File "/usr/lib/python3.13/pathlib/_local.py", line 539, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: \'/home/agent-runner/.local/share/calorix-cross-dataset-20261111/tmp/tmpar74bn91/DO_NOT_LOG_PRIVATE_INPUT\'\n'
+
+----------------------------------------------------------------------
+Ran 21 tests in 0.705s
+
+FAILED (failures=1, errors=3)

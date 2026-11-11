@@ -1,3 +1,25 @@
+# Current task: transfer tooling verified; real benchmark awaits dataset-purpose answer
+
+Branch `feat/cross-dataset-calorie-eval`, base dcc0ba44ddff99382c4421507f56400b2b6b02d9. [Implementation/readiness report](tier1-transfer-framework-2026-11-11/report.md). Four new modules/five suites provide strict source joins/physical grouping, one-view SHA selection, purpose-gated private preparation, unchanged-A1 generic runner, qualified local-image-only runner and six-route metrics. Final202/202pinnedPython and51/51NodePASS, no skips; all88oldexperimentartifactpinsunchanged. ActualNVreferenceCSV/photosNOTsaved/processed,0newfoodSDK/localforwards,0newAndroidreferences. Currenttrackedfoodcounts207SDK/222localrepeatsunchanged. No app/provider/default/deploychange.
+
+Both private finalmanifest AND pre-image selectionreceipt are bound to committedprofileSHA beforecalls; directHEADblobchecks coverprofile/source includinghiddenassume-unchanged changes. PureLensMassCounterfactual hasNoneonfailure+same-validpairbaseline; A1LensMassworkflow hasexplicitcountedA1fallback. SparseA0notrankedasfullcohort. RED->GREEN source/metadata/path/profile/receipt/privacy/failurecoverage cases retained. Primary preplan+correctedsource and separatefresh-contextclean reviews explicitlyagree/MUST_FIXnone, suppliedsourceonly, noexternalexecution/photoreview/legalclearance/actualschemaqualification. Initialreview inventedunreadsplitcountandA0/legacycontractfacts; rejected/corrected. WorkerClItraceprivacy andpuremassarm/receiptclarificationsfixedwithactualRED/GREEN. Freshreviewlinks/guaranteesnoise rejected; cleanamendmentobtained.
+
+Exact remaininggate: oneasynchronous project-purpose clarification pending (personal/noncommercial vscommercialR&D) because publisherNVv2licenceCCBY-NC-SA4.0. ActualrightsJSONevaluationAllowedfalse/purposepending; realconfigsmoketestrefusesBEFOREoutput/datafetch/modelcall. No elapsedtimeapprovalinferred. User's continue authorizesindependentcodework, notanunknownlicence-useclassification. Afteranswer, recordcompatiblepurpose orseparatepermission; then actualCSV/header/unit/ingredient/referencequalityqualification, freeze20distinctdishes+onevieweach/privatehashprofile, sourcecommitpush, <=20originalA1calls+20localforwardsonce, independentaudit+resultreview. No actualcrossdatasetaccuracyclaimyet.
+
+Source-onlystage nextverification: gitdiffcheck, commit/pushsource+proofs, independentfreshcheckout202Python/51Node/old88pins/newartifactGitclosure, finaltrackingcommitpush. No currentmodelprocess. Editingroutes refreshed: Grokunknownmodel, Qwen403freequota, OpenCodeinvalidsharedpluginsconfig/catalog, paidlastempty180sbound; nativefallbackusedunderstandinguserinstruction. No permanentquota/accountfailureinferred. Alloldworktrees/user-owneduntrackedfilepreserved; reusedexistingcleanisolatedcheckout. Large/cache/tmp onverifiedext4task storage.
+
+---
+
+# Current task: independent-domain comparison preparation
+
+User explicitly redirected next work from nutrient resolution to an independent-dataset comparison after clarifying the Nutrition5k training-domain advantage. Newbranch `feat/cross-dataset-calorie-eval`, cleanbase dcc0ba44ddff99382c4421507f56400b2b6b02d9, reuses the isolated worktree. No production/model/default changes. Intended checks: dataset adapter and generic-runner RED/GREEN, fullPython/Node, old sourcepins, source+resultreviews, sourcecommit/push before any bounded20+20foodcalls.
+
+NutritionVerse-Real officialKaggleAPIversion2:892listedfiles=889photos+metadataCSV204751B+splitCSV61424B+COCO3095055B; wholebundle1.126GBwillNOTbedownloaded. Authorpaper251distinctdishes45foodtypes withweighedingredient/recipe-derivednutrition. NotlistedLensdocumentedtrainingN5/Flavoria/USDA; base/Gemini pretrainingunknown. Currentlicence CCBY-NC-SA4.0; askedoneasynchronous project-purposeclarification (private/noncommercial vscommercial), pending. No protectedlabelCSV/photos downloaded/processed yet; onlypublichostmetadata andpaper/sourcecode read. Licence-dependent ingestion/inference gated pending compatiblepurpose/separatepermission; codefixtures and runner preparation continue independently. Antigravity preimplementationreview pending in `calorix-nutritionverse-transfer-implementation-20261111`.
+
+Large taskartifacts/tmp use verifiedext4 siblingtask storage. Preservealloldexperiments/failedselectorresults andoldsourcepins; no addedNNtraining/referenceobjects/depth/newinfra. Newmethods comparefullLensend-to-end AND a matched A1-identity/nutrient mass-only arm; no Lens-vocab filtering or repeated views counted as independent dishes.
+
+---
+
 # Current task: fresh public accuracy screen complete; next nutrient-resolution implementation
 
 Published29df834 and pushed. Fresh clean checkout verified84Git-visiblefilepins,181/181pinned-runtimePython (0skips),40/40Node, exactportableauditfacts; remainedclean. All40actualmodelpredictions/rawnumericproducts/metrics retained and replayable; 0newmodelcallsduringaudit. Finaltracking-onlycommit recordsfreshreceipts/report/checksums; verifyfinalHEADagainstoriginbeforehandoff. No modelprocessactive. No app/default/deployment change.
@@ -5444,3 +5466,20 @@ Food agreement editing route unavailable: {"at": "2026-11-11T19:54:28.012914+00:
 
 Food agreement editing route failure: {"at": "2026-11-11T19:59:29.090559+00:00", "model": "claude-sonnet-5", "category": "BOUNDED_NONDELIVERY", "exit": 143, "seconds": 300.84719133307226, "message": ""}
 All applicable editing routes are unavailable or bounded nondelivery in this attempt. Native editing exception under the standing 2026-10-28 instruction now applies to this bounded experiment; no permanent quota/account exhaustion inferred. Tests-first, independent reviews, clean commits/pushes retained. No paid spend-cap message occurred.
+
+Transfer adapter editing route failure: {"at": "2026-11-11T21:17:32.552415+00:00", "model": "grok-4.6", "exit": 1, "seconds": 3.038857382023707, "message": "Couldn't set model 'grok-4.6': Invalid params: \"unknown model id\". Run 'grok models' to see available models.\nError: Couldn't set model 'grok-4.6': Invalid params: \"unknown model id\". Run 'grok models' to see available models.\n"}
+
+Transfer adapter editing route failure: {"at": "2026-11-11T21:18:28.698031+00:00", "model": "qwen3.7-max", "exit": 1, "seconds": 10.79597438685596, "message": "[API Error: 403 The free quota has been exhausted. To continue accessing the model on a paid basis, please complete your payment information \uff08or disable the \"use free tier only\" mode in the management console if already completed).]\n"}
+
+Transfer adapter route unavailable: {"at": "2026-11-11T21:19:22.485321+00:00", "model": "opencode/nemotron-3-ultra-free", "category": "SHARED_CLI_CONFIGURATION_INVALID", "message": "Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc: Unrecognized key: plugins", "evidence": "Current catalog refresh exit1; shared loader prevents refreshed route selection; user config preserved"}
+
+Transfer adapter route unavailable: {"at": "2026-11-11T21:19:22.493723+00:00", "model": "opencode/muse-spark-1.3-contributor-free", "category": "SHARED_CLI_CONFIGURATION_INVALID", "message": "Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc: Unrecognized key: plugins", "evidence": "Current catalog refresh exit1; shared loader prevents refreshed route selection; user config preserved"}
+
+Transfer adapter route unavailable: {"at": "2026-11-11T21:19:22.502045+00:00", "model": "opencode/nemotron-3.5-lightning-free", "category": "SHARED_CLI_CONFIGURATION_INVALID", "message": "Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc: Unrecognized key: plugins", "evidence": "Current catalog refresh exit1; shared loader prevents refreshed route selection; user config preserved"}
+
+Transfer adapter route unavailable: {"at": "2026-11-11T21:19:22.510073+00:00", "model": "opencode/ling-3.0-flash-fin-free", "category": "SHARED_CLI_CONFIGURATION_INVALID", "message": "Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc: Unrecognized key: plugins", "evidence": "Current catalog refresh exit1; shared loader prevents refreshed route selection; user config preserved"}
+
+Transfer adapter route unavailable: {"at": "2026-11-11T21:19:22.520914+00:00", "model": "opencode/big-pickle", "category": "SHARED_CLI_CONFIGURATION_INVALID", "message": "Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc: Unrecognized key: plugins", "evidence": "Current catalog refresh exit1; shared loader prevents refreshed route selection; user config preserved"}
+
+Transfer adapter editing route failure: {"at": "2026-11-11T21:22:23.538061+00:00", "model": "claude-sonnet-5", "category": "BOUNDED_NONDELIVERY", "exit": 143, "seconds": 180.80232840008102, "message": "", "bound": "180s for synthetic fixture tests+stubs only"}
+All current permitted routes are unavailable or bounded nondelivery. Standing 2026-10-28 native editing exception applies for this bounded cross-dataset task. No permanent account/subscription exhaustion inferred; no spend-cap message occurred. Preserve failing-tests-first, external reviews, clean stage commits/pushes. Actual licensed-data ingestion remains gated independently.
