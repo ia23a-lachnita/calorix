@@ -1,0 +1,47 @@
+[
+  {
+    "receipt": "marker_review.json",
+    "sha256": "8996c76dcbd1ff529cce89529f5de032878b557a9f08d44d515904f8ea49f0b9",
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "approvalMode": "yolo",
+    "status": "agree / MUST_FIX none",
+    "scope": "Supplied methods/source/scope only; no independent execution or production/legal approval. Initial invented rows/None/fullbundle bugs rejected and explicitly retracted in corrected source review; unsupported volume/camera guarantees not adopted."
+  },
+  {
+    "receipt": "prior_corrected_source_review.json",
+    "sha256": "1563b68642b664c8d6346a9f65347879c7e109fb09708c3a0006806cc366ebd4",
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "approvalMode": "yolo",
+    "status": "agree / MUST_FIX none",
+    "scope": "Supplied methods/source/scope only; no independent execution or production/legal approval. Initial invented rows/None/fullbundle bugs rejected and explicitly retracted in corrected source review; unsupported volume/camera guarantees not adopted."
+  },
+  {
+    "receipt": "prior_pre_amendment.json",
+    "sha256": "446e12a23e70cb18b74b853a0f77f015671d081461459c31eb8f33a482d14445",
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "approvalMode": "yolo",
+    "status": "agree / MUST_FIX none",
+    "scope": "Supplied methods/source/scope only; no independent execution or production/legal approval. Initial invented rows/None/fullbundle bugs rejected and explicitly retracted in corrected source review; unsupported volume/camera guarantees not adopted."
+  },
+  {
+    "receipt": "prior_pre_review.json",
+    "sha256": "f55c6137ce13cf1b826cc7fdd2f8969a030fe81210c7d472cd7ac922f04121a8",
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "approvalMode": "yolo",
+    "status": "agree / MUST_FIX none",
+    "scope": "Supplied methods/source/scope only; no independent execution or production/legal approval. Initial invented rows/None/fullbundle bugs rejected and explicitly retracted in corrected source review; unsupported volume/camera guarantees not adopted."
+  },
+  {
+    "receipt": "prior_source_review.json",
+    "sha256": "524f1ccca30f99d38daa4b90e48f9e89b4a8ecf74025e22784db55f1b58fd1a1",
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "approvalMode": "yolo",
+    "status": "retracted source misreading; NOT green",
+    "scope": "Supplied methods/source/scope only; no independent execution or production/legal approval. Initial invented rows/None/fullbundle bugs rejected and explicitly retracted in corrected source review; unsupported volume/camera guarantees not adopted."
+  }
+]

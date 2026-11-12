@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "predicted-portion-prior-v1",
+  "classes": {
+    "bread": [
+      "bread",
+      "white bread",
+      "toast",
+      "toasted bread",
+      "bread slice",
+      "slice of bread",
+      "slice of white bread",
+      "toasted bread slice",
+      "white bread slice",
+      "slice of toast"
+    ],
+    "bun": [
+      "bun",
+      "steamed bun",
+      "plain steamed bun",
+      "chinese steamed bun",
+      "mantou",
+      "plain bun"
+    ],
+    "doughnut": [
+      "doughnut",
+      "donut",
+      "plain doughnut",
+      "plain donut",
+      "ring doughnut",
+      "ring donut"
+    ],
+    "fired_dough_twist": [
+      "fried dough twist",
+      "fired dough twist",
+      "mahua",
+      "chinese fried dough twist"
+    ],
+    "mooncake": [
+      "mooncake",
+      "moon cake",
+      "chinese mooncake"
+    ],
+    "sachima": [
+      "sachima",
+      "sachima pastry"
+    ]
+  },
+  "assumption": "Typical generic serving prior from other sourceportionIDs, not observed piece count or measured food mass",
+  "unsupported": "Exactunmapped/plural/compound/multiple-component or answered-preparation estimate retains original A1; no after-output aliases"
+}

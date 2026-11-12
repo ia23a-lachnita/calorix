@@ -1,4 +1,16 @@
-# Current task: two bounded A1 component diagnostics completed
+# Current task: predicted-label portion-prior size stress
+
+Source stage complete before food calls:250Python/60Node pass, zero skips. New12Python/9Node methods: module/interface and substantive guard RED/GREEN recorded; missing-preparation assertion verifies an already-existing validator contract, not a newly failing bug. Fresh read-only source peer identified controller/helper checkout binding and exact engine-drift categorization; both reproduced/fixed. Added private-output parent realpath guard and strict classes-only prior input. Fresh amendment independently verifies19sourcepins/private-scorer hash and no Important blocker; it inspected tests, did not execute them. Primary corrected source review agree/MUST_FIXnone after explicitly retracting fabricated rows-vs-rs/preparationNone/fullbundle criticisms; do not count initial noisy must-fix as green. ADC refreshed successfully with token suppressed; original A1 frozen bundle verified. Profile/priors/selection/input/policy/private-scorer SHA fixed, no new SDK calls yet. Next commit/push clean then one canonical at-most20SDK run; all older registries remain closed/unchanged.
+
+Branch `feat/predicted-portion-priors`, isolated clean base `a2d2bd3`. Plan: `docs/superpowers/plans/2026-11-12-predicted-portion-priors.md`. User explicitly approved continuing and asked for the coin/ArUco explanation after work. Method and corrections in `calorix-predicted-prior-stress-20261112` primary3.8/yolo agree/MUST_FIXnone; reject invented unsafe aliases/hash syntax/deployed/bomb-calorimetry/guaranteed100percentcoverage wording. This reuses the42knownECUSTdevelopmentportion IDs; not a fresh dataset or pre-first-image freeze. SimpleFood45 official access blocked by expired TLS cert even after cryptographically verified intermediate CA completion; TLS validation was never disabled.
+
+New split/inputs frozen before new outputs:20eval/22fit,6min/8middle/6maxstress; fitting groups4/4/4/3/4/3. Cached originals verified and JPEG85/RGB/EXIFtranspose/metadata-stripped with no crop/resize/insertion. SelectionSHAf5d2264108d851e6e1e18291cecd38ae666d2c54b498f46b5a1d68975f448fa3; manifestSHA81c75450de1d76b87f4d1843f3402529f7ca004e1910cc587a44bdaa5cc9a945. Priors and31exactaliases fixed before outputs. No newSDK calls yet; next TDD/source review/clean commit-push then single canonical20call run. Runtime originalA1 engine commitb0ba28a (NOT modelB0), Gemini3.8/prompt7131/schema4306/LOW8192/30s/attempt1 unchanged.
+
+Editing routes exhausted for this bounded task; exact ISO receipts append below. Last claude-sonnet-5 nondelivery180s/zero output/source at2026-11-12T07:42:05.750653+00:00, group terminated; no quota/subscription conclusion. Standing native fallback now active for this task, preserving tests-first/reviews/verification/commits/pushes. Marker-scope primary3.8review green: saved ECUSTimages contain real coins; oldcoin-boxmassdiagnostic did not test ArUco/ChArUco or volume and cannot rule out the planned coded-marker route. Exact ArUco2asset not found; saved V7mentionsArUco/ChArUcointrinsics, referenceoptional. Full answer deferred to requested final report.
+
+---
+
+# Prior task: two bounded A1 component diagnostics completed
 
 Oracle-box/known-scale run `oracle-box-scale-v1` completed from clean pushed source `c386d43`. All36 fitting groups and6 previously observed comparison groups valid, zero source failures/new SDK calls/local food forwards. Every geometry candidate fails the class-prior comparator; retain current application default, no coin requirement/printed reference/localizer integration justified by this result. Correct author classes/boxes are oracle inputs, not automatic recognition; no calorie reference, product accuracy gain or physical independence claim. [Public evidence](tier1-oracle-box-scale-2026-11-12/execution-evidence.json). Numerical report/source assets remain private.
 
@@ -5595,3 +5607,19 @@ Oracle-box editing route: {"time": "2026-11-12T06:44:16.511162+00:00", "route": 
 Oracle-box editing route: {"time": "2026-11-12T06:44:22.123972+00:00", "route": "opencode/big-pickle", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
 
 Oracle-box editing route: {"time": "2026-11-12T06:47:22.220873+00:00", "route": "claude-sonnet-5", "exit": "nondelivery180s", "message": ""}
+
+Predicted-prior editing route: {"time": "2026-11-12T07:38:27.592895+00:00", "route": "grok-4.6", "exit": 1, "message": "Couldn't set model 'grok-4.6': Invalid params: \"unknown model id\". Run 'grok models' to see available models.\nError: Couldn't set model 'grok-4.6': Invalid params: \"unknown model id\". Run 'grok models' to see available models.\n"}
+
+Predicted-prior editing route: {"time": "2026-11-12T07:38:37.673487+00:00", "route": "qwen3.7-max", "exit": 1, "message": "[API Error: 403 The free quota has been exhausted. To continue accessing the model on a paid basis, please complete your payment information （or disable the \"use free tier only\" mode in the management console if already completed).]\n"}
+
+Predicted-prior editing route: {"time": "2026-11-12T07:38:43.769179+00:00", "route": "opencode/nemotron-3-ultra-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Predicted-prior editing route: {"time": "2026-11-12T07:38:49.169378+00:00", "route": "opencode/muse-spark-1.3-contributor-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Predicted-prior editing route: {"time": "2026-11-12T07:38:55.315445+00:00", "route": "opencode/nemotron-3.5-lightning-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Predicted-prior editing route: {"time": "2026-11-12T07:39:00.484737+00:00", "route": "opencode/ling-3.0-flash-fin-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Predicted-prior editing route: {"time": "2026-11-12T07:39:05.742799+00:00", "route": "opencode/big-pickle", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Predicted-prior editing route: {"time": "2026-11-12T07:42:05.750653+00:00", "route": "claude-sonnet-5", "exit": "nondelivery180s", "message": ""}
