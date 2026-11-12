@@ -1,0 +1,11 @@
+# Structured food routing: engineering qualification
+
+Source `1082d15` adds evaluator-only per-component categories, item count, form, variant and abstention metadata to the same photo request. The original production model, prompt, schema, parser and callable remain unchanged. The adapter validates and removes the extra fields before existing reconciliation, retaining the raw estimate separately from the approximate prior counterfactual.
+
+The frozen three-image known-source run completed3SDKcalls,3validresponses,0failures/retries. Two prior branches executed; the modified-food branch retained the raw estimate. This establishes live wire compatibility and execution on these examples, not general classification, abstention or calorie accuracy. No fresh physical portions, calibrated intervals, promotion or deployment resulted.
+
+Final output inspection identified inconsistent uncertainty: routing metadata can indicate a standard item while narrative ambiguities still mention a possible modification. Version1 must therefore remain an engineering artifact. Before fresh validation, the next revision will retain raw estimates whenever any ambiguity or preparation question remains. This broad rule is a new development decision; it will not retroactively change this frozen run or patch observed food-name aliases.
+
+Four prior classes had enough visibly comparable TRAIN units after independent inspection: bread4, doughnut3, mooncake4 and sachima3. Buns had0 accepted groups and twists2, below the minimum3. Visible unit qualification does not establish hidden recipes, filling, preparation or batch independence. All20previous evaluation IDs were excluded from the14fitting groups.
+
+Verification:87Node and250Python tests passed, zero skips; backend TypeScript build passed. Full legacy backend Vitest execution is tracked separately in the status file; no pass is implied here. Source review found and fixed a genuine subnormal-number scaling bug through failing tests, including receipt-level failure handling. Independent reviews and the host's42-field Decimal audit cover the documented arithmetic/source scope; they do not constitute exhaustive visual or provider verification. Numerical reports/source images/labels remain private.

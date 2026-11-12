@@ -26,8 +26,8 @@
 
 - [x] Implement `tool/structured_food_routing.cjs` and `tool/structured_food_routing.test.cjs`: tests/stubs RED14/GREEN14, additional prototype/negated preparation RED2/GREEN16, fresh-peer numerical scaling regression RED2/27 then GREEN27includingrunner. Covers malformed/missing metadata, arbitrary names, intrinsic frying/filling, multiple/partial/uncertain units, incompatible preparation, unqualified/NaN prior, sources/originals, single dispatch/model drift/HTTP504. Final87Node/250Pythonpass; functionsbuildpass.
 - [x] Independently qualify22fitting images; record hashes and image-only limits privately; enable only classes with >=3qualified groups. Bread4/doughnut3/mooncake4/sachima3 =>14fit groups; buns0/twists2 unavailable. Bun/twist007uncertain, not proven cut/broken. No hidden-recipe claim. All20old evaluation IDs excluded from fitting.
-- [ ] Review actual source, run appropriate full Node/Python checks, commit/push source. Build/test a bounded qualification runner only after its specific plan review. Any live cases are known-source engineering checks with raw/counterfactual receipts; no reported calorie or fresh-data accuracy gain.
-- [ ] Independent final branch review, actual-result review, public opaque evidence/private report, status updates, clean commit/push. Report actual limits and next experiment; no merge/deployment/default change.
+- [x] Review actual source, full87Node/250Python andbackendbuild pass, source1082d15pushed. Reviewedbounded3callqualifierruncompleted3valid/2applied/1modifiedfallback, no freshaccuracyclaim. Fulllegacybackend suite bounded1200s/terminated1240.61s/exit143,15passedfilereports2121tests, nofinalsuitepass.
+- [x] Independent source/numeric/resultreviews and main42Decimalfieldaudit, publicopaqueevidence/private report/status. Resultpeer uncovered narrativeambiguitycontradictingstandardrouting; reportonlyexecution, not reliableabstention. V1evidencecommit/push follows. Continue genericv2ambiguityguard and separatelyfrozenfresh20NVpairedcomparison under newreviewedprotocol; no merge/deployment/default change.
 
 ## Review record
 
