@@ -1,0 +1,20 @@
+{
+  "runId": "a1-component-development-replay-v2",
+  "sourceCommit": "4ca195b612746477a6a35a3def97956a07cf541c",
+  "protocolSha256": "f0b3bf1f01b2bd43cc7f6da3900df3f1f1a0527ae275278738a8ed64efa081d4",
+  "bindingSha256": "606bf71482bd39f1ebd583da138526c84385f508bfec9f52c1b9c87cca34701a",
+  "privateEvidencePinsSha256": "7227b4beeabdbf8b93fe719f6b6971c6c0e4606c5ca59b66c353a8333c978699",
+  "cohorts": 2,
+  "cases": 40,
+  "newSdkInvocations": 0,
+  "newLocalForwards": 0,
+  "pythonTestsPassed": 223,
+  "nodeTestsPassed": 51,
+  "skipped": 0,
+  "sourcePinsVerified": 11,
+  "independentDecimalFields": 976,
+  "componentInvariants": 116,
+  "productionChanged": false,
+  "decision": "Current candidates not promoted; licensed numerical results private; next reviewed oracle-box/known-scale diagnostic remains separate",
+  "review": "Primary Antigravity method/source/result/status-fix green; fresh read-only whole-feature pre-fix no critical/important; minor status issue fixed with regression. Fresh post-fix amendment unavailable due child usage limit; not represented as complete. No visual audit/legal/deployment approval."
+}
