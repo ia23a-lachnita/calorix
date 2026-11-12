@@ -1,3 +1,17 @@
+# Current task: structured food-category routing candidate
+
+Source stage verified before any new SDKcalls:87Node/250Pythonpass, zero skips; functionsTypeScriptbuildpass. Full backend Vitest suite running separately, not yet a pass claim. Source/bundle23pins verified, ADC refreshed/token suppressed. Actual tests-first moduleRED14->GREEN14, prototype/negatedprepRED2->GREEN16, runnerRED9->GREEN9; fresh-peer subnormalnumericfinding reproduced RED2/27includingrunnerthenGREEN27. Applied finitepositivefactor/output guards, preventing ok receipts with NaN serializednull. ActualsourceMCPgreen initiallymissedthisbug; corrected numericamendment agree/MUST_FIXnone. Fresh final read-only amendment verifies23pins/privateinputs/callbackfix, no remainingCritical/Important; no independent tests/SDK/livecompatibility claim.
+
+Four priors qualified from visible source shape:bread4/doughnut3/mooncake4/sachima3=14TRAINgroups. Buns ambiguous0,twists2 belowminimum3; no priors. All22fittingpanels inspectedhost+peer,peer individually enlarged4buns/3twists. Hiddenrecipe/preparation/underside/batchindependence unverified; twist007completeness uncertain, not assertedbroken. Private unitreceiptSHA d2b64bf24ef82014a762515ef22f7b4318a872dafe5d04d877e14dbf1e4bce6a. Newprofilepins23sources/qualifiedpriors/3known-inputs/prompt/schema; no alias widening or oldbudget mutation. Next commit/push clean then atmost3one-attempt engineeringcalls. This does not complete a fresh accuracy comparison. Historical235SDK/242localforwards unchanged atsourcefreeze; Androidweighed0.
+
+Branch `feat/structured-food-routing`, clean isolated base `9c23edf`. User approved continuing the next experiment. Plan: `docs/superpowers/plans/2026-11-12-structured-food-routing.md`. Pre-design primary3.8/yolo corrected review agree/MUST_FIXnone; initial inapplicable Dart/retry/fruit/blanketfried/ratio suggestions rejected, not green. Existing engine/model/prompt/schema/catalog and old closed budgets remain unchanged. New evaluator-only adapter will request explicit per-component categories/count/form/variant/abstention in the same photo call, strip validated fields before original reconciliation, and retain raw and approximate-prior estimates separately. No natural-language alias additions.
+
+Source qualification underway: main viewed all22fitting images in a contact sheet; cut/broken/decorated/ambiguous units cannot automatically become single-item priors. Independent read-only source inspection requested. All42six-class ECUST physical portions are already exposed; no fresh-data or calorie-accuracy claim. SimpleFood45 official page still times out; prior expiredTLS blocker remains, no verification disabled. No new SDK/local food calls this stage yet. Intended verification: focused Node RED/GREEN, full Node/Python suites, source/unit/hash checks, independent final/source/result reviews, clean commit/push before any newly reviewed bounded qualification. No Android/UI/default/deployment change.
+
+All current editing routes exhausted/unavailable; exact receipts append below. Final claude-sonnet-5 returned zero bytes/no source within180s at2026-11-12T10:57:00.461842+00:00 and was terminated; no quota/account exhaustion inferred. Standing native fallback now applies to this bounded feature. Module tests+throwing stubs actualRED14/14fail (Not implemented), node exit1. Preserve TDD/reviews/verification/commits/pushes. Prior source/budget `predicted-portion-prior-stress-v1` remains halted8calls with12unattempted; do not reopen or relabel it.
+
+---
+
 # Current task: record halted predicted-label stress experiment
 
 Evidence/outcome commit `6fe1e3e` pushed successfully to `origin/feat/predicted-portion-priors`; source freeze `5b6d168` remains unchanged. Receipt/private/source/registry pins and canonical-result absence rechecked successfully before commit. Final tracking records this push; retain the isolated worktree and branch for future work, with no merge/deployment under the standing autonomous bounded-experiment workflow.
@@ -5639,3 +5653,19 @@ Predicted-prior editing route: {"time": "2026-11-12T07:39:00.484737+00:00", "rou
 Predicted-prior editing route: {"time": "2026-11-12T07:39:05.742799+00:00", "route": "opencode/big-pickle", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
 
 Predicted-prior editing route: {"time": "2026-11-12T07:42:05.750653+00:00", "route": "claude-sonnet-5", "exit": "nondelivery180s", "message": ""}
+
+Structured-routing editing route: {"time": "2026-11-12T10:53:23.565426+00:00", "route": "grok-4.6", "exit": 1, "message": "Couldn't set model 'grok-4.6': Invalid params: \"unknown model id\". Run 'grok models' to see available models.\nError: Couldn't set model 'grok-4.6': Invalid params: \"unknown model id\". Run 'grok models' to see available models.\n"}
+
+Structured-routing editing route: {"time": "2026-11-12T10:53:33.732499+00:00", "route": "qwen3.7-max", "exit": 1, "message": "[API Error: 403 The free quota has been exhausted. To continue accessing the model on a paid basis, please complete your payment information （or disable the \"use free tier only\" mode in the management console if already completed).]\n"}
+
+Structured-routing editing route: {"time": "2026-11-12T10:53:39.142641+00:00", "route": "opencode/nemotron-3-ultra-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Structured-routing editing route: {"time": "2026-11-12T10:53:44.461113+00:00", "route": "opencode/muse-spark-1.3-contributor-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Structured-routing editing route: {"time": "2026-11-12T10:53:49.607754+00:00", "route": "opencode/nemotron-3.5-lightning-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Structured-routing editing route: {"time": "2026-11-12T10:53:55.185987+00:00", "route": "opencode/ling-3.0-flash-fin-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Structured-routing editing route: {"time": "2026-11-12T10:54:00.340262+00:00", "route": "opencode/big-pickle", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Structured-routing editing route: {"time": "2026-11-12T10:57:00.461842+00:00", "route": "claude-sonnet-5", "exit": "nondelivery180s", "message": ""}

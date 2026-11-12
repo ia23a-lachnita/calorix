@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "id": "structured-routing-qualification-v1",
+  "purpose": "known-source engineering qualification only",
+  "maxSdkInvocations": 3,
+  "retryAttempts": 0,
+  "newLocalForwards": 0,
+  "nodeVersion": "22.23.3",
+  "sdkVersion": "2.19.0",
+  "engineCommit": "b0ba28ab84852e9968c3e7ab67c1d5bf25434193",
+  "model": "gemini-3.8-flash",
+  "originalPromptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "originalSchemaSha256": "4306216d1b1b075e3994265d84527e1fc32fa29f80591201b1aab63d47288185",
+  "promptSha256": "5c7bcdf220f0c10a089922129b7a915ff726b387e06da092ab893bda1eea169c",
+  "schemaSha256": "27a8288a1d59f6a3ca8652c7bdf366b9129e68de092f613b4331ee70ea6fbc78",
+  "manifestSha256": "36e7d3065aabcddc92e6004a518b9dc8ea9afc48f07b2c2f40069661fca6bf51",
+  "priorsSha256": "d029be514243665423f3aaf90766ecd65cef3a97676a68c426212054313488ac",
+  "trainingUnitsSha256": "d2b64bf24ef82014a762515ef22f7b4318a872dafe5d04d877e14dbf1e4bce6a",
+  "caseIds": [
+    "bread004",
+    "doughnut003",
+    "mooncake001"
+  ],
+  "sourceFiles": [
+    {
+      "path": "tool/predicted_portion_prior.py",
+      "bytes": 9546,
+      "sha256": "3965cb0861a93772146ba214614d86b0c8aaba19ac111f54fed0356f45686579"
+    },
+    {
+      "path": "tests/test_predicted_portion_prior.py",
+      "bytes": 6602,
+      "sha256": "f0ebf45590d0f5546510d620009c23a19c31b5bd0a79cc5afead6f479d2e9b6b"
+    },
+    {
+      "path": "tool/run_portion_prior_a1.cjs",
+      "bytes": 10234,
+      "sha256": "f118f068e2ed6a975d3d9e18e5f8602f2b8f1dc5581b416561e8150da652f55e"
+    },
+    {
+      "path": "tool/run_portion_prior_a1.test.cjs",
+      "bytes": 5932,
+      "sha256": "72ea24ee0efaba30f469857e6b0fe84fbda90f568b73b6db458ff62c32cd39da"
+    },
+    {
+      "path": "functions/eval/tier1-public/predicted-portion-alias-policy-v1.json",
+      "bytes": 1181,
+      "sha256": "8f76329942ea33cccc3a055d0b2e93ba5f7454932de787f24fac6661ba3d1d60"
+    },
+    {
+      "path": "tool/run_frozen_public_eval.cjs",
+      "bytes": 9562,
+      "sha256": "06a06d85575941e5092a3add8e3bd0951d5af3ff38ca3bd7251aaea1cb0d8a86"
+    },
+    {
+      "path": "tool/open_model_adapters.py",
+      "bytes": 7941,
+      "sha256": "19f96a82b4c453291986d4f4576dd9f35e6f62e83012c4d538d1ccbcec4d4673"
+    },
+    {
+      "path": "tool/reference_scale.py",
+      "bytes": 3122,
+      "sha256": "dfad83dab265433d909312912d79f6c529df1027fc63a92ef706645ce6fde72d"
+    },
+    {
+      "path": "tool/tier1_nutrient_resolver.py",
+      "bytes": 7996,
+      "sha256": "4b577780af59597ca3375e10ecffb2c49a5c05231c7c719d4d62777f3f9702a4"
+    },
+    {
+      "path": "tool/paired_view_metrics.py",
+      "bytes": 3069,
+      "sha256": "62f65844ed07bf04767033271fbc4f1fbbb3a37a253f82cdb7a8b093972d47ef"
+    },
+    {
+      "path": "tool/portion_calibration.py",
+      "bytes": 4968,
+      "sha256": "095c1553a947e93bfe83d779bb088bc3664efb7a872f6939384d5ce67fbd8853"
+    },
+    {
+      "path": "evaluate_meals.py",
+      "bytes": 16782,
+      "sha256": "4cd84e751b2cd4b30ff7040b58184d55f42670ca7f8377e653e245233d5d7801"
+    },
+    {
+      "path": "functions/package-lock.json",
+      "bytes": 263912,
+      "sha256": "98e0617641059a0ae1029df6f5a22a90c0885dbe61235808d9a322a8f340cc51"
+    },
+    {
+      "path": "functions/tsconfig.json",
+      "bytes": 516,
+      "sha256": "64cbeb5af8f3ea4132f1100fddc1b5e7facf2d09c116e27e41f6b7bed4fc5d54"
+    },
+    {
+      "path": "functions/src/tier1-analysis.ts",
+      "bytes": 12366,
+      "sha256": "7ad164e73a934c8822a711d678c1f572247403cb9de51aaffb96e6a4f4a5a453"
+    },
+    {
+      "path": "functions/src/tier1-catalog.ts",
+      "bytes": 3384,
+      "sha256": "a8f9753328f71e689747e21e5000672f94f33fa519e9ac97f33c8622184dcb71"
+    },
+    {
+      "path": "functions/src/tier1-callable.ts",
+      "bytes": 2065,
+      "sha256": "55c9a057c1913b885a05e4471b4c050a58c078c3581d6bc2d20d5c8ff40c7f92"
+    },
+    {
+      "path": "functions/src/tier1-cli.ts",
+      "bytes": 4907,
+      "sha256": "e0061ec1b2097cc99e431c8e703fce34c2fb24418097b2eb26707741f889b09e"
+    },
+    {
+      "path": "functions/src/tier1-public-eval.ts",
+      "bytes": 14262,
+      "sha256": "ce887a731ac7fd09c776ffba9fed4fce4d7191ea1d86982a96940c6064c71f6b"
+    },
+    {
+      "path": "tool/structured_food_routing.cjs",
+      "bytes": 9135,
+      "sha256": "de63ee6fea402b5dc109c3f5c27ad1f5eed30a7a1713f2ec6b1b3174805dec21"
+    },
+    {
+      "path": "tool/structured_food_routing.test.cjs",
+      "bytes": 9219,
+      "sha256": "ec1e712a02ee0820e6224fef802db84d5be7b60eb3c66cc49c2d328bb49c360f"
+    },
+    {
+      "path": "tool/run_structured_food_eval.cjs",
+      "bytes": 9741,
+      "sha256": "c628de0b362c3b8a1329b314f42a5a684bafa20a033dc347d5aac4a9b793d7c6"
+    },
+    {
+      "path": "tool/run_structured_food_eval.test.cjs",
+      "bytes": 6440,
+      "sha256": "ffd18b82238d1ac4574147f780b4296ae7df21482e6f6d2a47bfcc3a71f83e52"
+    }
+  ],
+  "calorieReference": null,
+  "accuracyScreen": null,
+  "productionPromotable": false,
+  "selectionScope": "Previously exposed ECUST portions; new schema outputs do not create new physical meals or fresh holdout",
+  "sourceQualificationScope": "14TRAINunits visuallyqualified across4classes; hiddenrecipes/batchindependence unverified; sourceauthorfired_dough_twist maps explicitly to canonicalfried_dough_twist",
+  "sdkAssumptions": {
+    "vertexProject": "calorix-xurschnell",
+    "location": "us",
+    "endpoint": "https://aiplatform.us.rep.googleapis.com/",
+    "timeoutMs": 30000,
+    "attempts": 1,
+    "thinkingLevel": "LOW",
+    "maxOutputTokens": 8192
+  },
+  "budgetScope": "Canonical Git-common-dir structured-routing-qualification-v1; old studies closed/unchanged; no retry/resume"
+}
