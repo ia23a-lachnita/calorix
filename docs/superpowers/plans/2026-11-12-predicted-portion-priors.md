@@ -28,6 +28,8 @@
 - [x] Source review, full appropriate Python/Node tests, clean commit/push5b6d168; ADC/bundle readiness, then one bounded run. Run halted on request8 HTTP504:7valid/1failed/12notattempted; preserve closed budget and frozen scorer refusal. Post-halt descriptive audit and independent source/input/Decimal/result review completed; canonical20-case screen NOT_EVALUABLE. Final evidence/tracking commit and push required. See execution receipt.
 - [x] Resolve coin/ArUco question from actual saved photos/spec/official OpenCV documentation. Real source coin, no insertion; authorboxes are oracle localization. Previous mass-only study did not test ArUco/ChArUco, volume reconstruction or proposed coded-marker design. Explain in outcome.md and user report.
 
+Evidence/outcome commit `6fe1e3e` pushed to `origin/feat/predicted-portion-priors`; final tracking records successful push. Source freeze and closed canonical budget unchanged. No merge/deployment or worktree cleanup; preserve active evidence and branch.
+
 ## Halt ruling
 
 Ruling: preserve original single-use run and completed-study scorer, without retrying the HTTP504 or inventing outcomes for the12unattempted cases. A separate post-halt descriptive analysis covers only7valid outputs and retains planned denominator20. It cannot pass the frozen screen. All7names miss31frozenaliases, so no operational changes or measured gain. Primary handling/result reviews agree/MUST_FIXnone; fresh peer reports no Critical/Important finding. Full20comparison remains incomplete, not marked achieved. No new dataset/Android/calorie accuracy claim. Next work needs a separately frozen protocol/new held-out cases, not alias widening fitted to observed outputs.
