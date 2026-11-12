@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "oracle-box-scale-v1",
+  "sourceRepo": "Liang-yc/ECUSTFD-resized-",
+  "sourceCommit": "59603e70c99807af46df9af3c2c507995fdd0029",
+  "manifestSha256": "a6dc54ecac47dab4c9f77553518a0d1a6d0ce60531c9fc81ba5b633d8559d060",
+  "selectionSha256": "eadc461c051c25bef076253cb261826ef7d27ed81f614236c6310a913a1d1bb5",
+  "trainCount": 36,
+  "comparisonCount": 6,
+  "coinDiameterMm": 25,
+  "pythonVersion": "3.11.15",
+  "pillowVersion": "11.1.0",
+  "minimumGroupsPerClass": 3,
+  "arms": [
+    "A1",
+    "classPrior",
+    "pixelArea",
+    "coinArea",
+    "coinSimilarity"
+  ],
+  "coordinateConvention": "xmax-xmin and ymax-ymin, strict positive in-frame published spans; no clamp/no inclusive pixel adjustment",
+  "sourceFiles": [
+    {
+      "path": "tool/oracle_box_scale.py",
+      "bytes": 9636,
+      "sha256": "660eca3b041cef1b50372ee19f4aa2ddd82913b82c425a9e4510f4883de81f1c"
+    },
+    {
+      "path": "tool/run_oracle_box_scale.py",
+      "bytes": 5937,
+      "sha256": "dd239282c73e826fad2b894de6709751ca9598470f6bd1751ef0a5ea289ff668"
+    },
+    {
+      "path": "tool/reference_scale.py",
+      "bytes": 3122,
+      "sha256": "dfad83dab265433d909312912d79f6c529df1027fc63a92ef706645ce6fde72d"
+    },
+    {
+      "path": "tests/test_oracle_box_scale.py",
+      "bytes": 6699,
+      "sha256": "33d5bfa6fe9944bc46a75ba6baf03f5a805eac635d212c318e5cf91a58154ae4"
+    },
+    {
+      "path": "tests/test_run_oracle_box_scale.py",
+      "bytes": 1300,
+      "sha256": "fbb1331da9d0ffa549c7b7cfa090bbd9c6488e6ec5ad91da974caa49c7ba232d"
+    },
+    {
+      "path": "functions/eval/tier1-public/manifest-reference-scale-v1.json",
+      "bytes": 6888,
+      "sha256": "53b53169b606ff5c40dc9c3e575dd3651a3ecc340554b9455a9048bfc7bf7aca"
+    }
+  ],
+  "fit": "Class medians and median ratios fit on TRAIN only, fixed exponents1/1.5; comparison groups disjoint",
+  "screen": "At least10percentMAEgainvsBOTH A1andclassprior;median/P90/absolute bias/coverage nonworse",
+  "calorieReference": null,
+  "oracleInputs": true,
+  "newModelCalls": 0,
+  "productionPromotable": false,
+  "scope": "Six already-observed development portions; author class/boxes are oracle input, no true area/volume/automatic recognition/Android accuracy/independent physical-instance claim",
+  "assetsPolicy": "Raw third-party assets and numerical detail private; no new rights inferred"
+}

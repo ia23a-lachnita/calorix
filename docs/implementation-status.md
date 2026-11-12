@@ -1,4 +1,16 @@
-# Current task: component replay complete; oracle box/known-scale diagnostic next
+# Current task: oracle box/known-scale diagnostic source qualification
+
+Source implementation stage passed238Python/51Node, zero skips (15newPython methods actualRED/GREEN). Independent public-selector replay reproduces all36 fitting groups and excludes6comparison IDs from XLS/tree. Added strict source asset guards, fixed class-prior/area/coin-area/area^1.5 estimators and group-disjoint evaluation; runner persists TRAIN priors before comparison features. No fit/results yet. Actual numeric regression reproduced positive-span coin-area underflow -> ZeroDivisionError; explicit finite-positive products fix raisesValueError. Primary supplied-source and numeric-addendum reviews agree/MUST_FIXnone; reject initial reviewer physical-independence/division-impossibility/readiness claims. Frozen6sourcepins and selection/manifest hashes before fitting. Next: commit/push clean source, run once with pinnedPython/Pillow, independently audit and review actual results. Zero SDK/local forward changes.
+
+Branch `feat/oracle-box-scale`, isolated clean base `a2137f5`; component replay stage committed/pushed. Plan: `docs/superpowers/plans/2026-11-12-oracle-box-scale.md`. Intended checks: strict source Git-blob/hash/XML/JPEG and portion-group joins, primitive RED/GREEN, full pinned Python/Node, source/protocol freeze before fitting, independent mass-metric replay and required source/result reviews. All task data/cache/tmp in verified ext4 storage.
+
+Selection frozen before new XML/JPEG fetch: SHAeadc461c051c25bef076253cb261826ef7d27ed81f614236c6310a913a1d1bb5,36 fitting portion IDs and6 previously observed comparison IDs; fitting groups per class6/7/8/6/5/4. Source XLS uses one sheet per food class; initial scratch read of first apple sheet was corrected before selection, not interpreted as missing food data. All comparison IDs excluded from every fitting view. No predictor fitted and no comparison generated yet. New editing-worker route receipts append below; final paid route is bounded180s before standing fallback, no shared configuration repair or new model choice.
+
+Qualification complete: all42 JPEG/XML pairs ready; Git-blob and SHA256/dimension/filename checks pass; images1899736bytes/XML36478bytes total. Six fixed first-ID fitting exemplars visually inspected (one/class), not all42; no predictor outputs used for selection. Clean source baseline223Python/51Node pass, zero skips. All8editing routes exhausted again for this stage; exact receipts below. Final claude-sonnet-5 nondelivery180s/zero bytes at2026-11-12T06:47:22.220873+00:00, group terminated; no subscription/quota exhaustion claim. Standing native fallback applies to this bounded oracle diagnostic, preserving tests-first/source/resultreviews/commits/pushes. No fitting or new model calls yet.
+
+---
+
+# Prior task: component replay complete; oracle box/known-scale diagnostic next
 
 Source v2 `4ca195b` pushed before replay; both40-case cohort result objects match v1 exactly. Independent v2 Decimal audit passed976 fields,116 component invariants and11 source pins. Current candidates not promoted; numerical/derived NutritionVerse results remain private. [Public execution receipt](tier1-component-resolution-2026-11-12/execution-evidence.json). Pinned Python223/223 and Node51/51 pass, zero skips; no new model calls or Android references. Primary Antigravity method/source/result/status-fix reviews green on supplied facts. Fresh whole-feature reviewer found no critical/important issue, minor status issue reproduced/fixed; fresh post-fix amendment unavailable due exact child usage-limit message (next availability2:29AM), not represented as completed. Original v1 source/protocol/results preserved atd10aedf; current hardened runner uses v2. Old promotion failures remain failed.
 
@@ -5557,3 +5569,19 @@ Editing route failure: {"time": "2026-11-11T23:07:43.526988+00:00", "route": "op
 Editing route failure: {"time": "2026-11-11T23:07:49.093126+00:00", "route": "opencode/ling-3.0-flash-fin-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
 
 Editing route failure: {"time": "2026-11-11T23:07:54.545255+00:00", "route": "opencode/big-pickle", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Oracle-box editing route: {"time": "2026-11-12T06:43:41.851029+00:00", "route": "grok-4.6", "exit": 1, "message": "Couldn't set model 'grok-4.6': Invalid params: \"unknown model id\". Run 'grok models' to see available models.\nError: Couldn't set model 'grok-4.6': Invalid params: \"unknown model id\". Run 'grok models' to see available models.\n"}
+
+Oracle-box editing route: {"time": "2026-11-12T06:43:53.364212+00:00", "route": "qwen3.7-max", "exit": 1, "message": "[API Error: 403 The free quota has been exhausted. To continue accessing the model on a paid basis, please complete your payment information （or disable the \"use free tier only\" mode in the management console if already completed).]\n"}
+
+Oracle-box editing route: {"time": "2026-11-12T06:43:59.910693+00:00", "route": "opencode/nemotron-3-ultra-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Oracle-box editing route: {"time": "2026-11-12T06:44:05.629341+00:00", "route": "opencode/muse-spark-1.3-contributor-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Oracle-box editing route: {"time": "2026-11-12T06:44:11.141646+00:00", "route": "opencode/nemotron-3.5-lightning-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Oracle-box editing route: {"time": "2026-11-12T06:44:16.511162+00:00", "route": "opencode/ling-3.0-flash-fin-free", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Oracle-box editing route: {"time": "2026-11-12T06:44:22.123972+00:00", "route": "opencode/big-pickle", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
+
+Oracle-box editing route: {"time": "2026-11-12T06:47:22.220873+00:00", "route": "claude-sonnet-5", "exit": "nondelivery180s", "message": ""}

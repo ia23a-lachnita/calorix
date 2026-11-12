@@ -1,0 +1,22 @@
+[
+  {
+    "receipt": "oracle_numeric_review.json",
+    "sha256": "fc8d1869149291b1782240559a369865e27bc7f5e7043616ae2e7440556c5ef2",
+    "model": "gemini-3.8-flash",
+    "provider": "Antigravity MCP",
+    "approvalMode": "yolo",
+    "agreementStatus": "agree",
+    "mustFix": "none",
+    "scope": "Supplied source only; no actual fit/results/visual audit/legal/readiness approval. Prior physical-independence and division-zero impossibility wording rejected and corrected."
+  },
+  {
+    "receipt": "oracle_source_review.json",
+    "sha256": "e5815185041a00e59c617f34e8ca0a3552795534c9c34dd2e36067f3d408f746",
+    "model": "gemini-3.8-flash",
+    "provider": "Antigravity MCP",
+    "approvalMode": "yolo",
+    "agreementStatus": "agree",
+    "mustFix": "none",
+    "scope": "Supplied source only; no actual fit/results/visual audit/legal/readiness approval. Prior physical-independence and division-zero impossibility wording rejected and corrected."
+  }
+]
