@@ -69,6 +69,16 @@ test('missing, generic and insufficient priors retain raw estimate',()=>{
   const out=decode();assert.equal(routeStructuredEstimate(out,table).status,'fallback');
  }
 });
+test('narrative ambiguity always retains the raw estimate despite standard routing metadata',()=>{
+ for(const ambiguities of [['Unresolved recipe detail'],[' '],['']]){
+  const out=decode(inventory({ambiguities})),r=routeStructuredEstimate(out,priors());
+  assert.equal(r.status,'fallback');assert.equal(r.reason,'unresolved_ambiguity_or_preparation');assert.deepEqual(r.estimate,out.estimate);
+ }
+});
+test('pending preparation question retains raw estimate without forcing another interaction',()=>{
+ const out=decode(inventory({askAddedFat:true})),r=routeStructuredEstimate(out,priors());
+ assert.equal(r.status,'fallback');assert.deepEqual(r.estimate,out.estimate);assert.equal(r.estimate.question.answered,false);
+});
 test('invalid prior maps fail before routing rather than accepting reference metadata',()=>{
  for(const table of [{classes:priors(),fitIds:['a']},{bread:prior({medianMassG:NaN})},{bread:prior({medianMassG:true})},{bread:prior({medianMassG:0})},{bread:prior({fitGroups:3.5})},{bread:prior({sourceReceiptSha256:'bad'})}])assert.throws(()=>routeStructuredEstimate(decode(),table),/prior/i);
 });

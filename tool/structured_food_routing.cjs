@@ -1,6 +1,6 @@
 /* Evaluator-only; production schema and callable remain unchanged. */
 const crypto=require('node:crypto');
-const VERSION='structured-food-routing-v1';
+const VERSION='structured-food-routing-v2';
 const CATEGORIES=Object.freeze(['bread','bun','doughnut','fried_dough_twist','mooncake','sachima','other','uncertain']);
 const METHODS={bread:['baked','toasted'],bun:['steamed'],doughnut:['fried'],fried_dough_twist:['fried'],mooncake:['baked'],sachima:['fried']};
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -43,6 +43,7 @@ function routeStructuredEstimate(decoded,priors){
  decoded.routing.forEach(validateRouting);
  if(original.portionPrior||original.question?.answered)throw Error('Original uncorrected estimate required');
  const estimate=clone(original),fallback=reason=>({status:'fallback',reason,predictedCategory:null,estimate});
+ if(estimate.ambiguities.length>0||estimate.question!==null)return fallback('unresolved_ambiguity_or_preparation');
  if(estimate.components.length!==1)return fallback('multiple_components');
  const r=decoded.routing[0],category=r.category;
  if(!Object.hasOwn(METHODS,category))return fallback('unsupported_or_uncertain_category');
