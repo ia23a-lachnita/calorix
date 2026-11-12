@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "runId": "predicted-portion-prior-stress-v1",
+  "rawRunId": "a1-v1",
+  "sourceCommit": "5b6d1680e45c716eb6d14a792b181f14113b1ee0",
+  "profileSha256": "38f9b5f59cff8741eb8fb71d2504b6f48f3deb34dc3419875f5dfc89d92402e8",
+  "manifestSha256": "81c75450de1d76b87f4d1843f3402529f7ca004e1910cc587a44bdaa5cc9a945",
+  "selectionSha256": "f5d2264108d851e6e1e18291cecd38ae666d2c54b498f46b5a1d68975f448fa3",
+  "status": "HALTED_INCOMPLETE",
+  "accounting": {
+    "selected": 20,
+    "sdkInvocations": 8,
+    "valid": 7,
+    "failed": 1,
+    "notAttempted": 12,
+    "pending": 0,
+    "halted": true,
+    "unknownInFlight": false,
+    "costUsd": null
+  },
+  "failure": {
+    "category": "http_504",
+    "runnerWallMs": 33483,
+    "infrastructureRootCause": "unknown",
+    "processingAndTimeoutUsage": "unknown",
+    "retries": 0,
+    "fallbackModels": 0,
+    "canonicalBudgetReset": false
+  },
+  "canonicalScorer": {
+    "exitCode": 1,
+    "reason": "completed-status assertion",
+    "resultArtifactEmitted": false,
+    "promotionScreen": "NOT_EVALUABLE"
+  },
+  "routing": {
+    "valid": 7,
+    "applied": 0,
+    "fallback": 7,
+    "policyAliases": 31,
+    "postOutputPolicyChanges": false
+  },
+  "newSdkInvocations": 8,
+  "newLocalFoodForwards": 0,
+  "historicalCounters": {
+    "sdk": 235,
+    "localFoodForwards": 242
+  },
+  "newlyWeighedAndroidReferences": 0,
+  "calorieReference": null,
+  "productionPromoted": false,
+  "productionChanged": false,
+  "model": "gemini-3.8-flash",
+  "promptSha256": "7131abc1a34804893a785c500091401d7619708acd4994105a1a7d509d5e9566",
+  "verification": {
+    "python": {
+      "command": "python -m unittest discover -s tests",
+      "runtime": "pinned Python3.11.15/numpy2.2.4/Pillow11.1.0",
+      "passed": 250,
+      "skipped": 0,
+      "exitCode": 0
+    },
+    "node": {
+      "command": "node --test tool/*.test.cjs",
+      "passed": 60,
+      "skipped": 0,
+      "exitCode": 0
+    },
+    "sourcePins": 19,
+    "originalAssetPairs": 42,
+    "xlsWeightJoins": 42,
+    "preparedJpegsReproducedExactly": 20,
+    "componentArithmeticFields": 84,
+    "independentDecimalMetricCountFields": 162,
+    "visualInspection": "No new exhaustive visual review; earlier sampled source inspection only",
+    "androidBuildAndDeviceChecks": "Not run: offline diagnostic stage"
+  },
+  "review": {
+    "conversationId": "calorix-predicted-prior-stress-20261112",
+    "provider": "Antigravity MCP",
+    "model": "gemini-3.8-flash",
+    "approvalMode": "yolo",
+    "handlingAgreement": "agree",
+    "resultAgreement": "agree",
+    "mustFix": "none",
+    "scope": "Supplied facts/source only, not independent execution or visual inspection",
+    "fallbackErrors": [],
+    "noise": "Reject general integrity guarantees and phrasing of registry count as per-request registry entries; registry records invocation count, raw receipts per request",
+    "freshPeer": {
+      "reviewer": "fresh read-only source reviewer, final evidence amendment",
+      "findings": "No Critical or Important finding",
+      "verified": [
+        "8recordedSDKinvocations/7valid/1http504/12notattempted",
+        "unchanged31aliases/all7fallbacks",
+        "independent Decimal metrics overall/available strata",
+        "20preparedinputhashes/42sourcepairhashes+Gitblobs/19sourcepins/auditscripthash",
+        "canonicalresultabsent/NOT_EVALUABLE/35percentplannedcoverage"
+      ],
+      "limits": [
+        "No JPEGconversion or XLS extraction rerun",
+        "No tests or visualinspection",
+        "No providertelemetry/inference/network verification",
+        "unknownInFlightfalse is receivedfailure bookkeeping, not nocharge evidence"
+      ]
+    }
+  },
+  "privateEvidencePins": {
+    "audit_partial.py": "e62e32aeefe5def30ea58401e5fbb310c7f88b130f61a56418bd21227bf90102",
+    "partial-audit-v1.json": "d51ec94e7358430c6f207181afc22d1a5c4395827a8928db38ab0b1e190a1201",
+    "evaluate_run.py": "dca63c03bc95065c2430d663dcee624dc31d99103b3d179f0e5b4b989563f261",
+    "report.md": "fe83bf21c6f9f28020c839687e63240ef66446ede55e9a2c612f11aa940b5119",
+    "a1-v1/status.json": "12e5b66a0a7011b50818b3592d84d7dfd830ab654ee04cdcf6f4cf3151242bfb",
+    "research/a1-host.txt": "eabed948dc6c6dfb819bbf62232b880c90861c2ed24e0bec1521c7e1004ded62",
+    "research/postrun-python.txt": "a4f4bd371fa74c366884eb9d7cf00d9cd16515a1da651d6ab4d647d4a80b47b5",
+    "research/postrun-node.txt": "ebf07927eb52dc39425f281f56827485d6f333b5c5913d173ca68c088ebad40a",
+    "review/partial-result-reviews.json": "881709ae59dc740e3435c58fba1f894ac42b83ec36ce973bde620a467fa25ed6",
+    "review/independent-result-review.json": "3779158c1566aa4f7cc3ff5224a0b06607236f89ebf5e819d793a1666ec41363"
+  },
+  "canonicalRegistrySha256": "de267e983b53323906334abdaba972d8b3feb3e1d686647e63f24a0376978836",
+  "rawReceiptSetSha256": "40a7b2a74ee91510209d66b894fa82c38c0b812c10efa3002366238a50a98d8a",
+  "next": "Separately freeze structured category routing and new held-out comparison, qualify reliability; no observed-name tuning presented as validation."
+}

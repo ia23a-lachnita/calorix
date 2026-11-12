@@ -25,8 +25,12 @@
 - [x] Freeze split/policy/priors/input receipts and exact cached JPEGs; qualify source and preserve blocked-source evidence.
 - [x] Tests-first `tool/predicted_portion_prior.py` / Python tests: split disjointness/min-max roles, policy collision/unknown abstention, no label/reference dependence, component/density/receipt invariants, incomplete-status refusal, failure/routing denominators and correct screens.
 - [x] Tests-first bounded Node runner `tool/run_portion_prior_a1.cjs` / Node tests: image-only projection, canonical single-use20budget, pending receipts, no retries/systemic halt, source/model/hash/runtime and consent guards. Reuse frozen bundle and photo validation; keep all old source files/profiles unchanged.
-- [ ] Source review, full appropriate Python/Node tests, commit/push clean; read-only ADC/model readiness, then exactly one bounded run. Reconcile candidates offline; independent source/input/Decimal audit and result review. Commit/push evidence and a truthful decision.
-- [ ] Answer coin/ArUco question from actual saved photos/spec/official OpenCV documentation. Correct prior over-broad reference-object conclusion: previous study did not test ArUco/ChArUco, volume reconstruction or the proposed coded-marker design.
+- [x] Source review, full appropriate Python/Node tests, clean commit/push5b6d168; ADC/bundle readiness, then one bounded run. Run halted on request8 HTTP504:7valid/1failed/12notattempted; preserve closed budget and frozen scorer refusal. Post-halt descriptive audit and independent source/input/Decimal/result review completed; canonical20-case screen NOT_EVALUABLE. Final evidence/tracking commit and push required. See execution receipt.
+- [x] Resolve coin/ArUco question from actual saved photos/spec/official OpenCV documentation. Real source coin, no insertion; authorboxes are oracle localization. Previous mass-only study did not test ArUco/ChArUco, volume reconstruction or proposed coded-marker design. Explain in outcome.md and user report.
+
+## Halt ruling
+
+Ruling: preserve original single-use run and completed-study scorer, without retrying the HTTP504 or inventing outcomes for the12unattempted cases. A separate post-halt descriptive analysis covers only7valid outputs and retains planned denominator20. It cannot pass the frozen screen. All7names miss31frozenaliases, so no operational changes or measured gain. Primary handling/result reviews agree/MUST_FIXnone; fresh peer reports no Critical/Important finding. Full20comparison remains incomplete, not marked achieved. No new dataset/Android/calorie accuracy claim. Next work needs a separately frozen protocol/new held-out cases, not alias widening fitted to observed outputs.
 
 ## Reviews
 
