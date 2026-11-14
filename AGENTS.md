@@ -15,6 +15,10 @@ Source-of-truth order (read the relevant one before changing behavior, UI, data,
 3. `.claude/design.md`
 4. `.claude/tools.md`
 
+**First, read `docs/UI_REVIEW_AND_HANDOVER_2026-11-14.md`.** Active work lives in git worktrees under
+`~/.local/share/calorix-*` (listed there), not in this checkout, and the AGENTS.md §3 worker routes were
+verified broken on 2026-11-14. Shared habits and UI rubric: `/home/agent-runner/projects/_ui-review/`.
+
 At the start of every session, read `docs/implementation-status.md` before
 acting, then verify the recorded branch/HEAD with `git status` and
 `git log -1 --oneline`. Read `.claude/tools.md` before any build, device,
