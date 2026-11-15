@@ -303,10 +303,15 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
             Semantics(
                 label: 'Take meal photo',
                 button: true,
-                child: FilledButton.icon(
-                    onPressed: _busy ? null : _capture,
-                    icon: const Icon(Icons.camera_alt_outlined),
-                    label: Text(_busy ? 'Saving photo…' : 'Take photo'))),
+                // The one primary action of the screen: full width, thumb-sized.
+                child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(56)),
+                        onPressed: _busy ? null : _capture,
+                        icon: const Icon(Icons.camera_alt_outlined),
+                        label: Text(_busy ? 'Saving photo…' : 'Take photo')))),
           ])),
     ]);
   }
@@ -369,7 +374,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                 padding: const EdgeInsets.all(12),
                 child: Row(children: [
                   Expanded(
-                      child: OutlinedButton.icon(
+                      child: TextButton.icon(
                           onPressed: _store == null || _error != null
                               ? null
                               : () => _open(Tier1Meal(
@@ -1076,14 +1081,17 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     final canCorrect = _meal.canCorrectPortions;
     return Scaffold(
         appBar: AppBar(title: const Text('Meal estimate'), actions: [
-          IconButton(
-              tooltip: 'Export measurements',
-              onPressed: _busy || !_hasSaved ? null : _export,
-              icon: const Icon(Icons.download_outlined)),
-          IconButton(
-              tooltip: 'Delete meal',
-              onPressed: _busy ? null : _delete,
-              icon: const Icon(Icons.delete_outline))
+          // Nothing to export or delete until the meal has been saved once.
+          if (_hasSaved) ...[
+            IconButton(
+                tooltip: 'Export measurements',
+                onPressed: _busy ? null : _export,
+                icon: const Icon(Icons.download_outlined)),
+            IconButton(
+                tooltip: 'Delete meal',
+                onPressed: _busy ? null : _delete,
+                icon: const Icon(Icons.delete_outline))
+          ]
         ]),
         body: Form(
             key: _form,
@@ -1102,6 +1110,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
               Text(_meal.consumedKcal == null
                   ? 'Consumption not confirmed'
                   : 'Confirmed consumed · ${_meal.consumedKcal!.round()} kcal'),
+              const SizedBox(height: 16),
               if (_message != null)
                 Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1132,10 +1141,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
               FilledButton(
                   onPressed: _busy ? null : _save,
                   child: const Text('Save meal')),
+              const SizedBox(height: 8),
               const Text(
                   'Saving corrections resets consumption to unconfirmed. Missing macros stay unknown.'),
               if (analysis != null) ...[
-                const Divider(),
+                const Divider(height: 32),
                 const Text('Recognized foods and nutrient sources'),
                 for (var index = 0;
                     index < (analysis['components'] as List? ?? []).length;
@@ -1218,7 +1228,10 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 if (_dirty)
                   const Text(
                       'Save changes before confirming consumption or repeating this meal.'),
-                const Divider(),
+                const Divider(height: 32),
+                Text('How much did you eat?',
+                    style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
                 Wrap(spacing: 8, children: [
                   OutlinedButton(
                       onPressed: _busy || _dirty ? null : () => _consume(1),

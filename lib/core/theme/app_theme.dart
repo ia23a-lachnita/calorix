@@ -14,6 +14,9 @@ abstract final class AppTheme {
         surface: AppColors.backgroundLight,
         surfaceContainerHighest: AppColors.surfaceLight,
         primary: AppColors.blue,
+        // Stated, not seeded: the seed gives pure white here, which the
+        // product rules forbid.
+        onPrimary: const Color(0xFFF2F1EE),
         secondary: AppColors.cyan,
         tertiary: AppColors.green,
         error: const Color(0xFFDC2626),
@@ -128,6 +131,9 @@ abstract final class AppTheme {
         surface: AppColors.backgroundDark,
         surfaceContainerHighest: AppColors.surfaceDark,
         primary: AppColors.blue,
+        // Stated, not seeded: a dark seed gives a dark onPrimary, so every
+        // FilledButton label was dark navy on blue (about 2.5:1).
+        onPrimary: AppColors.textPrimaryDark,
         secondary: AppColors.cyan,
         tertiary: AppColors.green,
         error: const Color(0xFFFF6B6B),
