@@ -128,4 +128,4 @@ class CxSemantic {
 
 // ── Branding placeholders ───────────────────────────────────────
 // Final name + logo TBD. Keep swappable.
-const cxAppName = 'AppName';
+const cxAppName = 'Ravlo';

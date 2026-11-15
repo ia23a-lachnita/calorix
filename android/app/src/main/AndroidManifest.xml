@@ -8,7 +8,7 @@
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/local_data_extraction_rules"
-        android:label="AppName"
+        android:label="Ravlo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- Explicit Dart initialization occurs only after consent (or legacy opt-in). -->

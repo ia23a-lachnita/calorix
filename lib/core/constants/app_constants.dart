@@ -1,6 +1,6 @@
 abstract final class AppConstants {
-  // Branding is intentionally placeholder-only until the final name/logo lands.
-  static const String appDisplayName = 'AppName';
+  // Name chosen by the owner on 2026-11-15; the logo is still a placeholder.
+  static const String appDisplayName = 'Ravlo';
 
   // Sample data
   static const int defaultKcalTarget = 2400;
