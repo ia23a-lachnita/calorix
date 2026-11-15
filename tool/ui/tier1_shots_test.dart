@@ -37,6 +37,93 @@ class _MemoryStore extends Tier1MealStore {
   }
 }
 
+// Synthetic arithmetic fixture, not a measured meal. Totals equal the exact
+// component sums so the record passes Tier1Meal validation.
+Map<String, dynamic> _analysis({bool question = true}) {
+  Map<String, dynamic> component(String name, double mass, String preparation,
+          Map<String, dynamic> nutrients,
+          {List<String> assumptions = const [],
+          String kind = 'unverified_vlm_estimate',
+          String? recordId}) =>
+      {
+        'name': name,
+        'massG': mass,
+        'preparation': preparation,
+        'assumptions': assumptions,
+        'nutrients': nutrients,
+        'source': {'kind': kind, 'recordId': recordId},
+      };
+  return {
+    'schemaVersion': 1,
+    'mealName': 'Chicken rice bowl',
+    'totals': {'kcal': 459.0, 'proteinG': 44.4, 'carbsG': 56.1, 'fatG': 5.1},
+    'components': [
+      component('Chicken breast', 120, 'grilled',
+          {'kcal': 198.0, 'proteinG': 37.2, 'carbsG': 0.0, 'fatG': 4.3},
+          assumptions: ['Skinless; no visible sauce']),
+      component('White rice', 180, 'boiled',
+          {'kcal': 234.0, 'proteinG': 4.9, 'carbsG': 50.8, 'fatG': 0.5},
+          kind: 'database_match', recordId: 'usda:169756'),
+      component('Broccoli', 80, 'steamed',
+          {'kcal': 27.0, 'proteinG': 2.3, 'carbsG': 5.3, 'fatG': 0.3}),
+    ],
+    'ambiguities': <String>['Rice variety uncertain (white or jasmine)'],
+    'question': question
+        ? {
+            'id': 'added-fat',
+            'text': 'Was oil added while cooking?',
+            'answered': false,
+            'answer': null,
+            'options': [
+              {
+                'id': 'oil_10g',
+                'label': 'About 2 tsp oil (10 g)',
+                'add': {
+                  'kcal': 88.4,
+                  'proteinG': 0.0,
+                  'carbsG': 0.0,
+                  'fatG': 10.0
+                },
+                'component': {
+                  'name': 'Additional oil',
+                  'massG': 10.0,
+                  'preparation': 'oil',
+                  'assumptions': <String>[],
+                  'nutrients': {
+                    'kcal': 88.4,
+                    'proteinG': 0.0,
+                    'carbsG': 0.0,
+                    'fatG': 10.0
+                  },
+                  'source': {
+                    'kind': 'database_match',
+                    'recordId': 'usda:171413'
+                  }
+                }
+              },
+              {
+                'id': 'none',
+                'label': 'No added oil',
+                'add': {
+                  'kcal': 0.0,
+                  'proteinG': 0.0,
+                  'carbsG': 0.0,
+                  'fatG': 0.0
+                },
+                'component': null
+              },
+            ]
+          }
+        : null,
+    'provenance': {
+      'model': 'fixture-only',
+      'promptSha256': 'fixture-original',
+      'catalogVersion': 'fixture'
+    },
+    'rawInventory': {'fixture': true, 'original': true},
+  };
+}
+
 Future<void> _loadFonts() async {
   Future<void> family(String name, List<String> paths) async {
     final loader = FontLoader(name);
@@ -125,6 +212,32 @@ void main() {
       await tester.tap(find.text('Manual entry'));
       await tester.pumpAndSettle();
       await shot(tester, '02-manual-entry');
+    });
+
+    testWidgets('photo estimate with recognized foods and a question ($mode)',
+        (tester) async {
+      final store = _MemoryStore();
+      await store.save(Tier1Meal(
+          id: 'p',
+          capturedAt: DateTime(2026, 11, 14, 12, 30),
+          name: 'Chicken rice bowl',
+          source: 'photo',
+          cloudConsent: true,
+          analysis: _analysis(),
+          served: Tier1Nutrients(
+              kcal: 459, proteinG: 44.4, carbsG: 56.1, fatG: 5.1)));
+      await boot(tester, store);
+      await tester.tap(find.text('History'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Chicken rice bowl'));
+      await tester.pumpAndSettle();
+      await shot(tester, '06-estimate-top');
+      await tester.drag(find.byType(ListView).first, const Offset(0, -700));
+      await tester.pumpAndSettle();
+      await shot(tester, '07-estimate-foods');
+      await tester.drag(find.byType(ListView).first, const Offset(0, -700));
+      await tester.pumpAndSettle();
+      await shot(tester, '08-estimate-more');
     });
 
     testWidgets('home with meals, then a meal opened ($mode)', (tester) async {

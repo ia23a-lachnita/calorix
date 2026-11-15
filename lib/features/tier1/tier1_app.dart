@@ -1204,7 +1204,9 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                   'Saving corrections resets consumption to unconfirmed. Missing macros stay unknown.'),
               if (analysis != null) ...[
                 const Divider(height: 32),
-                const Text('Recognized foods and nutrient sources'),
+                Text('Recognized foods and nutrient sources',
+                    style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 4),
                 for (var index = 0;
                     index < (analysis['components'] as List? ?? []).length;
                     index++)
@@ -1223,13 +1225,36 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                     final foodName = canCorrect
                         ? _meal.componentName(index)
                         : c['name'] as String;
-                    return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                    final scheme = Theme.of(context).colorScheme;
+                    // One card per food: what it is in the ink colour, where
+                    // its numbers come from in the secondary colour, and both
+                    // corrections side by side under it. The plain text is
+                    // unchanged, so it reads the same to tests and readers.
+                    return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+                        decoration: BoxDecoration(
+                            color: scheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: scheme.outline)),
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                  '$foodName · ${current == null ? c['massG'] : _displayNutrient(current)} g · ${record?.preparation ?? c['preparation']}\n${record != null ? 'User-selected nutrient record: ${record.id} (food match and portion approximate)' : source['kind'] == 'database_match' ? 'Database nutrient record (food match estimated): ${source['recordId']}' : 'Unverified model nutrient estimate'}'),
+                              Text.rich(TextSpan(children: [
+                                TextSpan(
+                                    text:
+                                        '$foodName · ${current == null ? c['massG'] : _displayNutrient(current)} g · ${record?.preparation ?? c['preparation']}',
+                                    style:
+                                        Theme.of(context).textTheme.titleSmall),
+                                TextSpan(
+                                    text:
+                                        '\n${record != null ? 'User-selected nutrient record: ${record.id} (food match and portion approximate)' : source['kind'] == 'database_match' ? 'Database nutrient record (food match estimated): ${source['recordId']}' : 'Unverified model nutrient estimate'}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                            color: scheme.onSurfaceVariant)),
+                              ])),
                               if (record != null) ...[
                                 Text(
                                     'Original prediction: ${c['name']} · ${c['preparation']}'),
@@ -1245,36 +1270,63 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                 Text(
                                     'Original estimate: ${_displayNutrient(original)} g${current == 0 ? ' · Excluded from served totals' : ''}'),
                               if (canCorrect)
-                                Tooltip(
-                                    message: 'Edit portion for $foodName',
-                                    child: TextButton(
-                                        onPressed: _busy || _dirty
-                                            ? null
-                                            : () => _portion(index),
-                                        child: const Text('Edit portion'))),
-                              if (canCorrect)
-                                Tooltip(
-                                    message: 'Change food for $foodName',
-                                    child: TextButton(
-                                        onPressed: _busy || _dirty
-                                            ? null
-                                            : () => _food(index),
-                                        child: const Text('Change food'))),
+                                Wrap(children: [
+                                  Tooltip(
+                                      message: 'Edit portion for $foodName',
+                                      child: TextButton(
+                                          onPressed: _busy || _dirty
+                                              ? null
+                                              : () => _portion(index),
+                                          child: const Text('Edit portion'))),
+                                  Tooltip(
+                                      message: 'Change food for $foodName',
+                                      child: TextButton(
+                                          onPressed: _busy || _dirty
+                                              ? null
+                                              : () => _food(index),
+                                          child: const Text('Change food'))),
+                                ])
+                              else
+                                const SizedBox(height: 8),
                             ]));
                   }),
-                for (final ambiguity
-                    in (analysis['ambiguities'] as List? ?? []))
-                  Text('Unresolved: $ambiguity'),
-                if (question != null &&
-                    _meal.hasPendingPreparationQuestion) ...[
-                  Text(question['text'] as String),
-                  for (final raw in question['options'] as List)
-                    TextButton(
-                        onPressed: _busy || _dirty
-                            ? null
-                            : () => _answer((raw as Map)['id'] as String),
-                        child: Text((raw as Map)['label'] as String)),
-                ],
+                // What still needs the user: amber, the product's colour for
+                // "needs review", and the answers as buttons in a row.
+                if ((analysis['ambiguities'] as List? ?? []).isNotEmpty ||
+                    (question != null && _meal.hasPendingPreparationQuestion))
+                  Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                      decoration: BoxDecoration(
+                          color: AppColors.needsReview.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color: AppColors.needsReview
+                                  .withValues(alpha: 0.5))),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final ambiguity
+                                in (analysis['ambiguities'] as List? ?? []))
+                              Text('Unresolved: $ambiguity'),
+                            if (question != null &&
+                                _meal.hasPendingPreparationQuestion) ...[
+                              const SizedBox(height: 4),
+                              Text(question['text'] as String,
+                                  style:
+                                      Theme.of(context).textTheme.titleSmall),
+                              Wrap(spacing: 4, children: [
+                                for (final raw in question['options'] as List)
+                                  TextButton(
+                                      onPressed: _busy || _dirty
+                                          ? null
+                                          : () => _answer(
+                                              (raw as Map)['id'] as String),
+                                      child: Text(
+                                          (raw as Map)['label'] as String)),
+                              ]),
+                            ],
+                          ])),
                 if (question?['answered'] == true)
                   Text(
                       'Preparation: ${analysis['userPreparationAnswer'] ?? question!['answer']}'),
