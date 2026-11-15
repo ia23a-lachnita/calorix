@@ -59,6 +59,37 @@ void main() {
     expect(saved.served!.kcal, 420);
     expect(saved.consumedKcal, isNull);
   });
+  testWidgets('home counts today and history groups meals under day totals',
+      (tester) async {
+    final store = _MemoryStore();
+    final now = DateTime.now();
+    await store.save(Tier1Meal(
+        id: 'today-a',
+        capturedAt: now,
+        name: 'Lunch',
+        served: Tier1Nutrients(kcal: 459, proteinG: 44, carbsG: 56, fatG: 5)));
+    await store.save(Tier1Meal(
+        id: 'today-b',
+        capturedAt: now,
+        name: 'Breakfast',
+        served: Tier1Nutrients(kcal: 380)));
+    await store.save(Tier1Meal(
+        id: 'old',
+        capturedAt: now.subtract(const Duration(days: 3)),
+        name: 'Older dinner',
+        served: Tier1Nutrients(kcal: 720)));
+    await tester
+        .pumpWidget(Tier1App(store: store, camera: FakeCameraService()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Today · 839 kcal served · 2 meals'));
+    await tester.pumpAndSettle();
+    expect(find.text('Today'), findsOneWidget);
+    expect(find.text('839 kcal served'), findsOneWidget);
+    expect(find.text('720 kcal served'), findsOneWidget);
+    expect(find.text('44 g'), findsOneWidget);
+    expect(find.text('Older dinner'), findsOneWidget);
+  });
+
   testWidgets('camera initialization failure leaves manual entry available',
       (tester) async {
     await tester

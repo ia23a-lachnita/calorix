@@ -7,14 +7,23 @@
 // Output: tool/ui/shots/<state>-<light|dark>.png at 390x844 logical, 2x.
 import 'dart:io';
 
+import 'package:calorix/core/time/clock.dart';
 import 'package:calorix/features/tier1/local_meal.dart';
 import 'package:calorix/features/tier1/local_meal_store.dart';
 import 'package:calorix/features/tier1/tier1_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../../test/scan/support/fake_camera_service.dart';
+
+class _FixedClock implements Clock {
+  @override
+  DateTime now() => DateTime(2026, 11, 14, 20);
+  @override
+  tz.TZDateTime nowTZ() => tz.TZDateTime.from(now(), tz.UTC);
+}
 
 class _MemoryStore extends Tier1MealStore {
   _MemoryStore() : super(Directory('.'));
@@ -65,19 +74,19 @@ Future<_MemoryStore> _storeWithMeals() async {
   final store = _MemoryStore();
   await store.save(Tier1Meal(
           id: 'a',
-          capturedAt: DateTime.utc(2026, 11, 14, 12, 30),
+          capturedAt: DateTime(2026, 11, 14, 12, 30),
           name: 'Chicken rice bowl',
           served: Tier1Nutrients(
               kcal: 459, proteinG: 44.4, carbsG: 56.1, fatG: 5.1))
       .confirmConsumption(1));
   await store.save(Tier1Meal(
       id: 'b',
-      capturedAt: DateTime.utc(2026, 11, 14, 8, 5),
+      capturedAt: DateTime(2026, 11, 14, 8, 5),
       name: 'Oat porridge with banana',
       served: Tier1Nutrients(kcal: 380, proteinG: 12, carbsG: 68, fatG: 7.5)));
   await store.save(Tier1Meal(
       id: 'c',
-      capturedAt: DateTime.utc(2026, 11, 13, 19, 10),
+      capturedAt: DateTime(2026, 11, 13, 19, 10),
       name: 'Spaghetti bolognese',
       served: Tier1Nutrients(kcal: 720)));
   return store;
@@ -95,8 +104,11 @@ void main() {
       tester.platformDispatcher.platformBrightnessTestValue = brightness;
       addTearDown(tester.view.reset);
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
-      await tester
-          .pumpWidget(Tier1App(store: store, camera: FakeCameraService()));
+      await tester.pumpWidget(Tier1App(
+          store: store,
+          camera: FakeCameraService(),
+          // fixed, so the Today and Yesterday headers do not depend on the run date
+          clock: _FixedClock()));
       await tester.pumpAndSettle();
     }
 

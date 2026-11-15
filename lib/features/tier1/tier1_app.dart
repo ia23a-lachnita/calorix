@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/time/clock.dart';
 import '../../shared/services/camera_service.dart';
@@ -296,6 +297,13 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
           right: 20,
           bottom: 24,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
+            if (_todayMeals.isNotEmpty) ...[
+              TextButton(
+                  onPressed: () => setState(() => _history = true),
+                  child: Text(
+                      'Today · ${_servedKcal(_todayMeals)} kcal served · ${_todayMeals.length} ${_todayMeals.length == 1 ? 'meal' : 'meals'}')),
+              const SizedBox(height: 8),
+            ],
             const Text(
                 'Photos stay on this phone until you choose cloud analysis.',
                 textAlign: TextAlign.center),
@@ -314,6 +322,28 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                         label: Text(_busy ? 'Saving photo…' : 'Take photo')))),
           ])),
     ]);
+  }
+
+  /// Device-local wall time. Through the epoch, not `toLocal()`: a clock may
+  /// hand out a `TZDateTime`, whose `toLocal()` needs the timezone database.
+  static DateTime _localTime(DateTime t) =>
+      DateTime.fromMillisecondsSinceEpoch(t.millisecondsSinceEpoch);
+
+  static DateTime _dayOf(DateTime t) {
+    final local = _localTime(t);
+    return DateTime(local.year, local.month, local.day);
+  }
+
+  List<Tier1Meal> get _todayMeals {
+    final today = _dayOf(widget.clock.now());
+    return _meals.where((m) => _dayOf(m.capturedAt) == today).toList();
+  }
+
+  String _dayLabel(DateTime day) {
+    final days = _dayOf(widget.clock.now()).difference(day).inDays;
+    if (days == 0) return 'Today';
+    if (days == 1) return 'Yesterday';
+    return MaterialLocalizations.of(context).formatMediumDate(day);
   }
 
   @override
@@ -349,7 +379,10 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                             itemCount: _meals.length,
                             itemBuilder: (context, index) {
                               final meal = _meals[index];
-                              return ListTile(
+                              final day = _dayOf(meal.capturedAt);
+                              final startsDay = index == 0 ||
+                                  _dayOf(_meals[index - 1].capturedAt) != day;
+                              final tile = ListTile(
                                   leading: meal.photoPath == null
                                       ? const Icon(Icons.restaurant)
                                       : Image.file(File(meal.photoPath!),
@@ -360,12 +393,37 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                                               const Icon(Icons
                                                   .image_not_supported_outlined)),
                                   title: Text(meal.name),
-                                  subtitle: Text(
-                                      '${meal.served == null ? 'No estimate yet' : 'Approximate served · ${meal.served!.kcal.round()} kcal'}\n${meal.consumedKcal == null ? 'Consumption not confirmed' : 'Confirmed consumed · ${meal.consumedKcal!.round()} kcal'}'),
+                                  trailing: Text(
+                                      MaterialLocalizations.of(context)
+                                          .formatTimeOfDay(TimeOfDay.fromDateTime(
+                                              _localTime(meal.capturedAt))),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall),
+                                  subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                            '${meal.served == null ? 'No estimate yet' : 'Approximate served · ${meal.served!.kcal.round()} kcal'}\n${meal.consumedKcal == null ? 'Consumption not confirmed' : 'Confirmed consumed · ${meal.consumedKcal!.round()} kcal'}'),
+                                        if (meal.served != null)
+                                          _MacroLine(meal.served!),
+                                      ]),
                                   isThreeLine: true,
-                                  onTap: _error != null
-                                      ? null
-                                      : () => _open(meal));
+                                  onTap: _error != null ? null : () => _open(meal));
+                              if (!startsDay) return tile;
+                              return Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    _DayHeader(
+                                        label: _dayLabel(day),
+                                        meals: _meals
+                                            .where((m) =>
+                                                _dayOf(m.capturedAt) == day)
+                                            .toList()),
+                                    tile
+                                  ]);
                             }))
                     : _cameraView()),
         SafeArea(
@@ -1250,5 +1308,58 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                     child: const Text('Repeat meal')),
               ],
             ])));
+  }
+}
+
+/// Served energy of a set of meals. "Served", not "eaten": consumption is
+/// only known where the user confirmed it, and a total must not mix the two.
+int _servedKcal(List<Tier1Meal> meals) =>
+    meals.fold<double>(0, (sum, m) => sum + (m.served?.kcal ?? 0)).round();
+
+class _DayHeader extends StatelessWidget {
+  const _DayHeader({required this.label, required this.meals});
+  final String label;
+  final List<Tier1Meal> meals;
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+        child: Row(children: [
+          Expanded(child: Text(label, style: text.titleSmall)),
+          Text('${_servedKcal(meals)} kcal served', style: text.bodySmall),
+        ]));
+  }
+}
+
+/// Protein, carbs and fat of one meal. The macro colour is a dot beside the
+/// number, never the text colour: cyan and green text fail contrast on the
+/// light background.
+class _MacroLine extends StatelessWidget {
+  const _MacroLine(this.nutrients);
+  final Tier1Nutrients nutrients;
+  @override
+  Widget build(BuildContext context) {
+    final parts = <(String, double?, Color)>[
+      ('Protein', nutrients.proteinG, AppColors.protein),
+      ('Carbs', nutrients.carbsG, AppColors.carbs),
+      ('Fat', nutrients.fatG, AppColors.fat),
+    ].where((p) => p.$2 != null).toList();
+    if (parts.isEmpty) return const SizedBox.shrink();
+    return Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Wrap(spacing: 12, children: [
+          for (final (name, grams, color) in parts)
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              Container(
+                  width: 8,
+                  height: 8,
+                  decoration:
+                      BoxDecoration(color: color, shape: BoxShape.circle)),
+              const SizedBox(width: 4),
+              Text('${grams!.round()} g',
+                  semanticsLabel: '$name ${grams.round()} grams'),
+            ])
+        ]));
   }
 }
