@@ -28,7 +28,7 @@ In the newest worktree:
 
 ```
 export PATH=$HOME/.local/share/flutter-3.41.9/bin:$PATH
-flutter test --update-goldens tool/ui/tier1_shots_test.dart   # writes tool/ui/shots/*.png (390x844, light+dark)
+flutter test --update-goldens tool/ui/tier1_shots_test.dart   # writes tool/ui/shots/*.png (360x800, light+dark)
 flutter test test/tier1                                        # 105 tests, about 2 minutes
 dart format lib/features/tier1 test/tier1                      # pinned Dart 3.11.5; do not use another Dart
 flutter analyze lib/features/tier1 test/tier1                  # CI gate: must print "No issues found!" (infos fail it)
@@ -85,8 +85,15 @@ an Edit button. (d) is DONE in `bff13cb` (owner said yes): a summary card (name,
 **Still open with the owner:** does Tier1 take the design handoff's components (ring, nav), or only its tokens?
 Items 1–8 need no answer to that; they use tokens that already exist in `lib/core/theme/`.
 
-**Device check** still needs the unlocked Samsung (locked on 2026-11-14 and 2026-11-15). The renderer replaces it
-for layout and copy, not for camera, performance, or system insets.
+**Device check DONE 2026-11-15** on the Samsung (APK from workflow run 43756437794, commit `ae0cccb`, installed
+with `phone-adb install -r`). The phone has no lock: `phone-adb shell input keyevent KEYCODE_WAKEUP` then
+`phone-adb shell wm dismiss-keyguard` opens it. Checked: name "Ravlo", camera screen, manual entry with the
+keyboard, save, history, meal summary card, today line; insets top and bottom are fine
+(`device-SM-G780G-meal-and-home.png`). Found and fixed in `e4b7f12`: the phone is 360dp wide, so the history status
+line wrapped; it is now "380 kcal · not eaten yet", and the renderer draws at 360x800 for that reason.
+Not checked on the device: a real photo estimate (it sends a photo to the cloud; the owner should trigger that).
+Open observation, not changed: on a saved, unchanged meal `Save meal` is still the biggest button although there
+is nothing to save; `_save` writes an edit and a `manual_saved` trace even then, so changing it needs care.
 
 **Worktree commits this session:** `3b551cc` (AGENTS.md §3 routes corrected), `1b2e122` + `503496d` (Tier1
 formatted, renderer added). An unfinished emulator screenshot test from a cut-off agent was removed; the
