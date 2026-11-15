@@ -405,7 +405,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                            '${meal.served == null ? 'No estimate yet' : 'Approximate served · ${meal.served!.kcal.round()} kcal'}\n${meal.consumedKcal == null ? 'Consumption not confirmed' : 'Confirmed consumed · ${meal.consumedKcal!.round()} kcal'}'),
+                                            '${meal.served == null ? 'No estimate yet' : 'Estimated · ${meal.served!.kcal.round()} kcal'}\n${meal.consumedKcal == null ? 'Not marked as eaten' : 'Eaten · ${meal.consumedKcal!.round()} kcal'}'),
                                         if (meal.served != null)
                                           _MacroLine(meal.served!),
                                       ]),
@@ -912,7 +912,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       setState(() {
         _dirty = false;
         _message =
-            'Portion saved. Check the approximate totals; consumption is unconfirmed.';
+            'Portion saved. Check the totals; the eaten mark was cleared.';
       });
     } catch (_) {
       if (!committed)
@@ -1000,7 +1000,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       setState(() {
         _dirty = false;
         _message =
-            'Food saved. Check the approximate totals and portion; consumption is unconfirmed.';
+            'Food saved. Check the totals and portion; the eaten mark was cleared.';
       });
     } catch (_) {
       if (!committed)
@@ -1124,7 +1124,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
           decoration: InputDecoration(labelText: label),
           validator: (text) {
             if (text == null || text.trim().isEmpty)
-              return isRequired ? 'Enter served calories' : null;
+              return isRequired ? 'Enter the calories' : null;
             final n = double.tryParse(text);
             return n == null || !n.isFinite || n < 0 || n > 1000000
                 ? 'Enter a finite value from 0 to 1000000'
@@ -1160,7 +1160,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 TextSpan(text: ' kcal', style: theme.textTheme.titleMedium),
               ]),
               semanticsLabel: '${served.kcal.round()} kilocalories'),
-          Text('Approximate served calories',
+          Text('Estimated calories',
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: scheme.onSurfaceVariant)),
           const SizedBox(height: 4),
@@ -1183,8 +1183,8 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     // straight away when there is nothing to show yet (manual entry).
     final summary = served != null && !_editTotals;
     final status = _meal.consumedKcal == null
-        ? 'Consumption not confirmed'
-        : 'Confirmed consumed · ${_meal.consumedKcal!.round()} kcal';
+        ? 'Not marked as eaten'
+        : 'Eaten · ${_meal.consumedKcal!.round()} kcal';
     return Scaffold(
         appBar: AppBar(title: const Text('Meal estimate'), actions: [
           // Nothing to export until the meal has been saved once. Delete stays:
@@ -1214,7 +1214,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
               if (summary)
                 _summary(context, served, status)
               else ...[
-                Text('Approximate served calories',
+                Text('Estimated calories',
                     style: Theme.of(context).textTheme.headlineSmall),
                 Text(status),
               ],
@@ -1239,7 +1239,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                             ? 'Enter a meal name (up to 160 characters)'
                             : null),
                 const SizedBox(height: 12),
-                _number('Served kcal', _kcal, isRequired: true),
+                _number('Calories (kcal)', _kcal, isRequired: true),
                 const SizedBox(height: 12),
                 _number('Protein g (optional)', _protein),
                 const SizedBox(height: 12),
@@ -1253,7 +1253,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                   child: const Text('Save meal')),
               const SizedBox(height: 8),
               const Text(
-                  'Saving corrections resets consumption to unconfirmed. Missing macros stay unknown.'),
+                  'Editing clears the eaten mark. Empty macros stay empty.'),
               if (analysis != null) ...[
                 const Divider(height: 32),
                 Text('Recognized foods and nutrient sources',
@@ -1306,7 +1306,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                               .titleSmall),
                                       TextSpan(
                                           text:
-                                              '\n${record != null ? 'User-selected nutrient record: ${record.id} (food match and portion approximate)' : source['kind'] == 'database_match' ? 'Database nutrient record (food match estimated): ${source['recordId']}' : 'Unverified model nutrient estimate'}',
+                                              '\n${record != null ? 'Your choice from the food database' : source['kind'] == 'database_match' ? 'From the food database' : 'Estimated from the photo'}',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodySmall
@@ -1336,7 +1336,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                 Text((c['assumptions'] as List).join('; ')),
                               if (_meal.portionOverrides.containsKey(index))
                                 Text(
-                                    'Original estimate: ${_displayNutrient(original)} g${current == 0 ? ' · Excluded from served totals' : ''}'),
+                                    'Original estimate: ${_displayNutrient(original)} g${current == 0 ? ' · Not counted in the totals' : ''}'),
                               if (canCorrect)
                                 Wrap(children: [
                                   Tooltip(
@@ -1419,7 +1419,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                       child: const Text('Ate half')),
                   TextButton(
                       onPressed: _busy || _dirty ? null : () => _consume(null),
-                      child: const Text('Leave unconfirmed')),
+                      child: const Text('Clear eaten mark')),
                 ]),
                 const Text(
                     'A fraction is an approximate shortcut; selective leftovers can have different calories.'),

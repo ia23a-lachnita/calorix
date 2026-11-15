@@ -126,7 +126,8 @@ void main() {
     expect(saved.componentMassG(1), 55);
     expect(saved.consumedFraction, isNull);
     expect(saved.revision, old.revision + 1);
-    expect(find.textContaining('User-selected nutrient record'), findsWidgets);
+    expect(find.textContaining('Your choice from the food database'),
+        findsWidgets);
     expect(sink.events.where((e) => e['kind'] == 'food_saved').length, 1);
     expect(t.takeException(), isNull);
   });

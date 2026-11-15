@@ -107,8 +107,8 @@ void main() {
         await visible(tester, field('Meal name'), delta: -180);
         await tester.enterText(field('Meal name'), 'Renamed meal');
       } else if (action == 'change kcal') {
-        await visible(tester, field('Served kcal'), delta: -180);
-        await tester.enterText(field('Served kcal'), '300');
+        await visible(tester, field('Calories (kcal)'), delta: -180);
+        await tester.enterText(field('Calories (kcal)'), '300');
       } else if (action == 'clear fat') {
         await tester.enterText(field('Fat g (optional)'), '');
       }

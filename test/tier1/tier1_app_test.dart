@@ -48,12 +48,12 @@ void main() {
     await tester.enterText(
         find.widgetWithText(TextFormField, 'Meal name'), 'Weighed test');
     await tester.enterText(
-        find.widgetWithText(TextFormField, 'Served kcal'), '420');
+        find.widgetWithText(TextFormField, 'Calories (kcal)'), '420');
     await tester.ensureVisible(find.text('Save meal'));
     await tester.tap(find.text('Save meal'));
     await tester.pumpAndSettle();
     expect(find.text('Weighed test'), findsWidgets);
-    expect(find.textContaining('Approximate served'), findsWidgets);
+    expect(find.textContaining('Estimated'), findsWidgets);
     expect(cloudStarts, 0);
     final saved = (await store.load()).single;
     expect(saved.served!.kcal, 420);

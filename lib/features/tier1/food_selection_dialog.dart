@@ -92,7 +92,7 @@ class _FoodSelectionDialogState extends State<FoodSelectionDialog> {
                     Text('USDA SR Legacy · ${selected.id}'),
                     SelectableText(selected.sourceUrl),
                     const Text(
-                        'User-selected nutrient record; food match and portion remain approximate.'),
+                        'Your choice from the food database. The portion is still an estimate.'),
                   ],
                 ])),
         actions: [
