@@ -15,32 +15,9 @@
         "@google-cloud/gcloud-mcp"
       ]
     },
-    "dart": {
-      "type": "stdio",
-      "command": "C:\\Users\\xursc\\projects\\calorix\\.fvm\\versions\\3.41.9\\bin\\cache\\dart-sdk\\bin\\dart.exe",
-      "args": [
-        "mcp-server",
-        "--force-roots-fallback"
-      ],
-      "env": {}
-    },
-    "flutter-mcp-toolkit": {
-      "type": "stdio",
-      "command": "C:\\Users\\xursc\\tools\\mcp_flutter\\mcp_server_dart\\build\\flutter-mcp-toolkit-server.exe",
-      "args": [
-        "--dart-vm-host",
-        "localhost",
-        "--dart-vm-port",
-        "8181",
-        "--environment",
-        "development",
-        "--save-images"
-      ],
-      "env": {}
-    },
-	"ui-diff": {
+    "ui-diff": {
       "command": "node",
-      "args": ["C:\\Users\\xursc\\projects\\ui-diff-mcp\\dist\\src\\index.js"]
+      "args": ["/home/agent-runner/projects/ui-diff-mcp/dist/src/index.js"]
     }
   }
 }

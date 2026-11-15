@@ -40,7 +40,7 @@ other pixel is the real widget tree with the real fonts. Shots from 2026-11-15 (
 **Verdict:** a working pilot with default Material forms. None of the product's identity is on screen: no macro
 colors, no daily total, no ring, and the app bar says "AppName".
 
-**Status of the list below (update after every fix):** 2, 3, 4, 7 DONE in worktree `356aa55` (plus the cause of 7:
+**Status of the list below (update after every fix):** 2, 3, 4, 7 DONE in worktree `356aa55` + `80afa21` (Gemini review asked for delete to stay visible at every revision; applied. Export alone waits for the first save.) (plus the cause of 7:
 the dark theme's seeded `onPrimary` was dark navy; both schemes now state it in `lib/core/theme/app_theme.dart`).
 1 is WITHDRAWN: `AppName` is an intentional placeholder (comment in `app_constants.dart`); the owner must name the
 app. 5, 6, 8 are NOT DONE; 5 and 8 are the ones that would make it look like the product. Grok's free limit ran
