@@ -50,6 +50,8 @@ the open question is an amber block. Still weak there, in order: (a) DONE in `c8
 (d) the totals at the top are five form fields, not a summary (kcal large, macros with their colour dots) with
 an Edit button. (d) is DONE in `bff13cb` (owner said yes): a summary card (name, large kcal, labelled macro dots, status) with `Edit totals` revealing the form; manual entry with no estimate still opens on the form. Tests that type into the totals tap `Edit totals` first.
 
+**Dialogs (rendered as `10`, `11`; the totals form as `09`):** DONE in `35ca117`. Both correction dialogs use the app's colours (`dialogTheme` in `app_theme.dart`, was Material's lavender tint), short text, labels "Portion (g)" and "Search foods", and two actions in a row; "Use original" / "Use predicted food" moved into the dialog body because three actions stacked vertically. Run `dart format` on `lib/features/tier1 test/tier1 tool/ui` only: formatting all of `lib` rewrites nine unrelated files.
+
 **Defects, most visible first** (`lib/features/tier1/tier1_app.dart` unless noted):
 1. [App bar title] shows the literal `AppName` (`lib/core/constants/app_constants.dart:3`). Set it to `Calorix`.
 2. [Meal editor header] the status line ("Confirmed consumed · 459 kcal") touches and overlaps the floating
