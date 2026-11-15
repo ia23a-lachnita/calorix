@@ -46,7 +46,7 @@ the dark theme's seeded `onPrimary` was dark navy; both schemes now state it in 
 out on its first task on 2026-11-15, so the main host made these edits directly, as the owner allowed.
 
 **Photo estimate screen (the core result, rendered as `06`–`08`):** DONE in `f7ecd0c`: recognized foods are cards,
-the open question is an amber block. Still weak there, in order: (a) no kcal per food on its card; (b) the raw
+the open question is an amber block. Still weak there, in order: (a) DONE in `c8a60f4` (`Tier1Meal.componentKcal`, tested to add up to the served total); (b) the raw
 record id (`usda:169756`) is shown to the user; (c) "Unverified model nutrient estimate" is internal wording;
 (d) the totals at the top are five form fields, not a summary (kcal large, macros with their colour dots) with
 an Edit button. (d) is DONE in `bff13cb` (owner said yes): a summary card (name, large kcal, labelled macro dots, status) with `Edit totals` revealing the form; manual entry with no estimate still opens on the form. Tests that type into the totals tap `Edit totals` first.
