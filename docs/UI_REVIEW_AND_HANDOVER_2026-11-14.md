@@ -34,11 +34,17 @@ dart format lib/features/tier1 test/tier1                      # pinned Dart 3.1
 ```
 Open the PNGs with your image reader, or send them to Gemini (`ask-ai`, `@/abs/path.png`). To add a state, add a
 `testWidgets` block to `tool/ui/tier1_shots_test.dart`. The camera area renders empty there (fake camera); every
-other pixel is the real widget tree with the real fonts. Shots from 2026-11-15 (worktree `503496d`) are in
+other pixel is the real widget tree with the real fonts. Shots from 2026-11-15 (worktree `356aa55`, after the fixes) are in
 `docs/live-app-screenshots/tier1-2026-11-15/`.
 
 **Verdict:** a working pilot with default Material forms. None of the product's identity is on screen: no macro
 colors, no daily total, no ring, and the app bar says "AppName".
+
+**Status of the list below (update after every fix):** 2, 3, 4, 7 DONE in worktree `356aa55` (plus the cause of 7:
+the dark theme's seeded `onPrimary` was dark navy; both schemes now state it in `lib/core/theme/app_theme.dart`).
+1 is WITHDRAWN: `AppName` is an intentional placeholder (comment in `app_constants.dart`); the owner must name the
+app. 5, 6, 8 are NOT DONE; 5 and 8 are the ones that would make it look like the product. Grok's free limit ran
+out on its first task on 2026-11-15, so the main host made these edits directly, as the owner allowed.
 
 **Defects, most visible first** (`lib/features/tier1/tier1_app.dart` unless noted):
 1. [App bar title] shows the literal `AppName` (`lib/core/constants/app_constants.dart:3`). Set it to `Calorix`.
