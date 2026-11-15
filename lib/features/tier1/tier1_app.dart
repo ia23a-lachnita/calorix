@@ -1277,6 +1277,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                     final foodName = canCorrect
                         ? _meal.componentName(index)
                         : c['name'] as String;
+                    final kcal = canCorrect ? _meal.componentKcal(index) : null;
                     final scheme = Theme.of(context).colorScheme;
                     // One card per food: what it is in the ink colour, where
                     // its numbers come from in the secondary colour, and both
@@ -1292,21 +1293,36 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text.rich(TextSpan(children: [
-                                TextSpan(
-                                    text:
-                                        '$foodName · ${current == null ? c['massG'] : _displayNutrient(current)} g · ${record?.preparation ?? c['preparation']}',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                TextSpan(
-                                    text:
-                                        '\n${record != null ? 'User-selected nutrient record: ${record.id} (food match and portion approximate)' : source['kind'] == 'database_match' ? 'Database nutrient record (food match estimated): ${source['recordId']}' : 'Unverified model nutrient estimate'}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                            color: scheme.onSurfaceVariant)),
-                              ])),
+                              Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                        child: Text.rich(TextSpan(children: [
+                                      TextSpan(
+                                          text:
+                                              '$foodName · ${current == null ? c['massG'] : _displayNutrient(current)} g · ${record?.preparation ?? c['preparation']}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleSmall),
+                                      TextSpan(
+                                          text:
+                                              '\n${record != null ? 'User-selected nutrient record: ${record.id} (food match and portion approximate)' : source['kind'] == 'database_match' ? 'Database nutrient record (food match estimated): ${source['recordId']}' : 'Unverified model nutrient estimate'}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                  color:
+                                                      scheme.onSurfaceVariant)),
+                                    ]))),
+                                    if (kcal != null)
+                                      Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 12, right: 8),
+                                          child: Text('${kcal.round()} kcal',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleSmall)),
+                                  ]),
                               if (record != null) ...[
                                 Text(
                                     'Original prediction: ${c['name']} · ${c['preparation']}'),

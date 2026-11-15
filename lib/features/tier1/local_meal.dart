@@ -322,6 +322,20 @@ class Tier1Meal {
         }));
   }
 
+  /// Calories of one food at its current portion and record, by the same
+  /// arithmetic as [_sumComponents]; null when its calories are unknown.
+  double? componentKcal(int index) {
+    final (components, _) = _portionBasis();
+    RangeError.checkValidIndex(index, components);
+    final original = (components[index]['massG'] as num).toDouble();
+    final record =
+        foodOverrides[index] == null ? null : manualFood(foodOverrides[index]!);
+    final kcal = record?.per100['kcal'] ??
+        ((components[index]['nutrients'] as Map)['kcal'] as num?)?.toDouble();
+    if (kcal == null) return null;
+    return kcal * componentMassG(index) / (record == null ? original : 100);
+  }
+
   String componentName(int index) {
     final (components, _) = _portionBasis();
     RangeError.checkValidIndex(index, components);

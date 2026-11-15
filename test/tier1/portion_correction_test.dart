@@ -15,6 +15,20 @@ List<Map<String, dynamic>> events(Tier1Meal meal) =>
         .toList();
 
 void main() {
+  test('per-food calories add up to the served total and follow the portion',
+      () {
+    final meal = portionMeal();
+    final count = (meal.analysis!['components'] as List).length;
+    double sum(Tier1Meal m) => [
+          for (var i = 0; i < count; i++) m.componentKcal(i)!
+        ].reduce((a, b) => a + b);
+    expect(sum(meal), closeTo(meal.served!.kcal, 1e-6));
+    final halved = meal.correctPortion(0, meal.componentMassG(0) / 2,
+        at: DateTime.utc(2026, 11, 15));
+    expect(halved.componentKcal(0), closeTo(meal.componentKcal(0)! / 2, 1e-6));
+    expect(sum(halved), closeTo(halved.served!.kcal, 1e-6));
+  });
+
   test(
       'changes one component from original nutrient basis and preserves original analysis',
       () {
