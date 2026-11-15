@@ -238,6 +238,39 @@ void main() {
       await tester.drag(find.byType(ListView).first, const Offset(0, -700));
       await tester.pumpAndSettle();
       await shot(tester, '08-estimate-more');
+      await tester.drag(find.byType(ListView).first, const Offset(0, 2000));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit totals'));
+      await tester.pumpAndSettle();
+      await shot(tester, '09-edit-totals');
+    });
+
+    testWidgets('portion and food dialogs ($mode)', (tester) async {
+      final store = _MemoryStore();
+      await store.save(Tier1Meal(
+          id: 'p',
+          capturedAt: DateTime(2026, 11, 14, 12, 30),
+          name: 'Chicken rice bowl',
+          source: 'photo',
+          cloudConsent: true,
+          analysis: _analysis(),
+          served: Tier1Nutrients(
+              kcal: 459, proteinG: 44.4, carbsG: 56.1, fatG: 5.1)));
+      await boot(tester, store);
+      await tester.tap(find.text('History'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Chicken rice bowl'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Edit portion').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit portion').first);
+      await tester.pumpAndSettle();
+      await shot(tester, '10-portion-dialog');
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Change food').first);
+      await tester.pumpAndSettle();
+      await shot(tester, '11-food-dialog');
     });
 
     testWidgets('home with meals, then a meal opened ($mode)', (tester) async {

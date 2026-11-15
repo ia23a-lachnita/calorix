@@ -52,22 +52,21 @@ class _FoodSelectionDialogState extends State<FoodSelectionDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      'Current food: ${widget.name}. Current estimated portion: ${widget.grams} g. Changing the food keeps these grams; check the portion afterwards.'),
+                      'Now: ${widget.name}, ${widget.grams} g. The grams stay the same when you change the food.'),
                   if (widget.manualTotals)
                     const Text(
                         'Applying a different food replaces manual totals with a calculation from the listed foods.'),
                   if (widget.extraOil)
                     const Text(
                         'Your separate extra-oil component is retained. If oil is already included in your chosen food, check that component; use 0 g to exclude it.'),
+                  const SizedBox(height: 16),
                   TextField(
                       controller: _search,
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                          labelText: 'Search nutrient records')),
-                  const Text(
-                      'Choose a preparation that fits. This is a limited local list; use manual totals if your recipe is missing.'),
+                      decoration:
+                          const InputDecoration(labelText: 'Search foods')),
                   SizedBox(
-                      height: 220,
+                      height: 260,
                       child: records.isEmpty
                           ? const Center(child: Text('No matching records'))
                           : ListView.builder(
@@ -75,16 +74,26 @@ class _FoodSelectionDialogState extends State<FoodSelectionDialog> {
                               itemBuilder: (_, index) {
                                 final record = records[index];
                                 return ListTile(
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
                                     selected: _selected == record.id,
                                     leading: Icon(_selected == record.id
                                         ? Icons.check_circle
                                         : Icons.circle_outlined),
                                     title: Text(record.description),
                                     subtitle: Text(
-                                        '${record.preparation} · ${record.per100['kcal']} kcal / 100 g'),
+                                        '${record.preparation} · ${record.per100['kcal']!.round()} kcal / 100 g'),
                                     onTap: () =>
                                         setState(() => _selected = record.id));
                               })),
+                  const SizedBox(height: 8),
+                  Text(
+                      'A short built-in list. If your food is missing, use Edit totals instead.',
+                      style: Theme.of(context).textTheme.bodySmall),
+                  TextButton.icon(
+                      onPressed: () => _finish(const ManualFoodSelection(null)),
+                      icon: const Icon(Icons.restore, size: 18),
+                      label: const Text('Use predicted food')),
                   if (selected != null) ...[
                     Text('Selected: ${selected.description}'),
                     Text(
@@ -98,9 +107,6 @@ class _FoodSelectionDialogState extends State<FoodSelectionDialog> {
         actions: [
           TextButton(
               onPressed: () => _finish(null), child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => _finish(const ManualFoodSelection(null)),
-              child: const Text('Use predicted food')),
           FilledButton(
               onPressed: selected == null
                   ? null

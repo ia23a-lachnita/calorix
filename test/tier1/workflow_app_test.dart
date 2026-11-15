@@ -106,7 +106,7 @@ void main() {
     await t.tap(find.byTooltip('Edit portion for Almonds'));
     await t.pumpAndSettle();
     tick = 1100;
-    await t.enterText(find.widgetWithText(TextFormField, 'Served grams'), '86');
+    await t.enterText(find.widgetWithText(TextFormField, 'Portion (g)'), '86');
     await t.tap(find.text('Apply portion'));
     await t.pumpAndSettle();
     final saved = sink.events.where((e) => e['kind'] == 'portion_saved').single;
@@ -145,7 +145,7 @@ void main() {
     await visible(t, find.byTooltip('Edit portion for Almonds'));
     await t.tap(find.byTooltip('Edit portion for Almonds'));
     await t.pumpAndSettle();
-    await t.enterText(find.widgetWithText(TextFormField, 'Served grams'), '86');
+    await t.enterText(find.widgetWithText(TextFormField, 'Portion (g)'), '86');
     await t.tap(find.text('Apply portion'));
     await t.pumpAndSettle();
     expect(store.records.single.portionOverrides, {1: 86.0});
@@ -159,7 +159,7 @@ void main() {
     await visible(t, find.byTooltip('Edit portion for Almonds'));
     await t.tap(find.byTooltip('Edit portion for Almonds'));
     await t.pumpAndSettle();
-    await t.enterText(find.widgetWithText(TextFormField, 'Served grams'), '86');
+    await t.enterText(find.widgetWithText(TextFormField, 'Portion (g)'), '86');
     await t.tap(find.text('Apply portion'));
     await t.pumpAndSettle();
     expect(sink.events.where((e) => e['kind'] == 'portion_saved'), isEmpty);
@@ -214,7 +214,7 @@ void main() {
       t.binding.handleAppLifecycleStateChanged(state);
     }
     tick = 5300;
-    await t.enterText(find.widgetWithText(TextFormField, 'Served grams'), '86');
+    await t.enterText(find.widgetWithText(TextFormField, 'Portion (g)'), '86');
     await t.tap(find.text('Apply portion'));
     await t.pumpAndSettle();
     expect(
@@ -293,7 +293,7 @@ void main() {
     await visible(t, find.byTooltip('Edit portion for Almonds'));
     await t.tap(find.byTooltip('Edit portion for Almonds'));
     await t.pumpAndSettle();
-    await t.enterText(find.widgetWithText(TextFormField, 'Served grams'), '86');
+    await t.enterText(find.widgetWithText(TextFormField, 'Portion (g)'), '86');
     await t.tap(find.text('Apply portion'));
     await t.pumpAndSettle();
     await t.tap(find.byTooltip('Back'));
@@ -321,7 +321,7 @@ void main() {
     await t.tap(find.byTooltip('Edit portion for Almonds'));
     await t.pumpAndSettle();
     tick = 1100;
-    await t.enterText(find.widgetWithText(TextFormField, 'Served grams'), '86');
+    await t.enterText(find.widgetWithText(TextFormField, 'Portion (g)'), '86');
     await t.tap(find.text('Apply portion'));
     await t.pumpAndSettle();
     tick = 11100;

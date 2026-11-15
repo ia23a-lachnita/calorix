@@ -791,7 +791,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                                'Original portion estimate: ${_displayNutrient(original)} g. Calories remain approximate and use the current food nutrient estimate. Enter 0 to exclude this food; its original estimate is retained.'),
+                                'The photo estimate was ${_displayNutrient(original)} g. Enter 0 to leave this food out.'),
                             if (opening.foodOverrides.containsKey(index))
                               Text(
                                   'Original prediction: ${component['name']}. Current food uses your selected nutrient record.'),
@@ -800,6 +800,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                   padding: EdgeInsets.symmetric(vertical: 8),
                                   child: Text(
                                       'Changing this portion replaces manual totals with a calculation from the listed foods.')),
+                            const SizedBox(height: 16),
                             TextFormField(
                                 initialValue: gramsText,
                                 onChanged: (text) => gramsText = text,
@@ -807,8 +808,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                     const TextInputType.numberWithOptions(
                                         decimal: true),
                                 decoration: const InputDecoration(
-                                    labelText: 'Served grams',
-                                    errorMaxLines: 3),
+                                    labelText: 'Portion (g)', errorMaxLines: 3),
                                 validator: (text) {
                                   final n = double.tryParse(text?.trim() ?? '');
                                   return n == null ||
@@ -818,6 +818,16 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                       ? 'Enter a finite weight from 0 to 100000 g'
                                       : null;
                                 }),
+                            // In the content, not the action row: three
+                            // buttons do not fit there and stack vertically.
+                            TextButton.icon(
+                                onPressed: () {
+                                  if (closed) return;
+                                  closed = true;
+                                  Navigator.pop(dialogContext, original);
+                                },
+                                icon: const Icon(Icons.restore, size: 18),
+                                label: const Text('Use original')),
                           ])),
                   actions: [
                     TextButton(
@@ -827,13 +837,6 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                           Navigator.pop(dialogContext);
                         },
                         child: const Text('Cancel')),
-                    TextButton(
-                        onPressed: () {
-                          if (closed) return;
-                          closed = true;
-                          Navigator.pop(dialogContext, original);
-                        },
-                        child: const Text('Use original')),
                     FilledButton(
                         onPressed: () {
                           if (closed) return;

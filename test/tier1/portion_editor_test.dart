@@ -74,7 +74,7 @@ class _Cloud extends Tier1Cloud {
 }
 
 Finder editAlmond() => find.byTooltip('Edit portion for Almonds');
-Finder grams() => find.widgetWithText(TextFormField, 'Served grams');
+Finder grams() => find.widgetWithText(TextFormField, 'Portion (g)');
 Future<void> visible(WidgetTester tester, Finder target,
     {double delta = 160}) async {
   await tester.scrollUntilVisible(target, delta,

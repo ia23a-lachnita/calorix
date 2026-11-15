@@ -100,7 +100,7 @@ Future<void> dialog(WidgetTester t) async {
 
 Future<void> selectRice(WidgetTester t) async {
   await t.enterText(
-      find.widgetWithText(TextField, 'Search nutrient records'), 'rice white');
+      find.widgetWithText(TextField, 'Search foods'), 'rice white');
   await t.pumpAndSettle();
   final choice =
       find.text('Rice, white, long-grain, regular, enriched, cooked');
@@ -150,6 +150,8 @@ void main() {
     final (store, sink) = await open(t);
     final before = store.rows.single.toJson();
     await dialog(t);
+    await t.ensureVisible(find.text('Use predicted food'));
+    await t.pumpAndSettle();
     await t.tap(find.text('Use predicted food'));
     await t.pumpAndSettle();
     expect(store.rows.single.toJson(), before);
@@ -164,6 +166,8 @@ void main() {
         'Change food for Rice, white, long-grain, regular, enriched, cooked');
     await visible(t, f);
     await t.tap(f);
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.text('Use predicted food'));
     await t.pumpAndSettle();
     await t.tap(find.text('Use predicted food'));
     await t.pumpAndSettle();
@@ -240,7 +244,7 @@ void main() {
             'Portion: Rice, white, long-grain, regular, enriched, cooked'),
         findsOneWidget);
     expect(find.textContaining('Original prediction: Almonds'), findsWidgets);
-    await t.enterText(find.widgetWithText(TextFormField, 'Served grams'), '86');
+    await t.enterText(find.widgetWithText(TextFormField, 'Portion (g)'), '86');
     await t.tap(find.text('Apply portion'));
     await t.pumpAndSettle();
     final event = sink.events.singleWhere((e) => e['kind'] == 'portion_saved');

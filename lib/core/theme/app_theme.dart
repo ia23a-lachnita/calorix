@@ -113,6 +113,12 @@ abstract final class AppTheme {
         thickness: 1,
         space: 0,
       ),
+      // Dialogs sit on the app's own colours; the Material default tints
+      // them with the seed colour, which read as a foreign lavender sheet.
+      dialogTheme: const DialogThemeData(
+        backgroundColor: AppColors.backgroundLight,
+        surfaceTintColor: Colors.transparent,
+      ),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: AppColors.backgroundLight,
         shape: RoundedRectangleBorder(
@@ -229,6 +235,12 @@ abstract final class AppTheme {
         color: AppColors.borderDark,
         thickness: 1,
         space: 0,
+      ),
+      // Dialogs sit on the app's own colours; the Material default tints
+      // them with the seed colour, which read as a foreign lavender sheet.
+      dialogTheme: const DialogThemeData(
+        backgroundColor: AppColors.surfaceDark,
+        surfaceTintColor: Colors.transparent,
       ),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: AppColors.surfaceDark,
