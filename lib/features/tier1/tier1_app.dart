@@ -1184,11 +1184,14 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     // An estimate reads as a result first; the form appears on request, and
     // straight away when there is nothing to show yet (manual entry).
     final summary = served != null && !_editTotals;
+    // A manual entry that holds nothing yet is not an estimate of anything.
+    final blank = served == null && _meal.photoPath == null && !_hasSaved;
     final status = _meal.consumedKcal == null
         ? 'Not marked as eaten'
         : 'Eaten · ${_meal.consumedKcal!.round()} kcal';
     return Scaffold(
-        appBar: AppBar(title: const Text('Meal estimate'), actions: [
+        appBar:
+            AppBar(title: Text(blank ? 'New meal' : 'Meal estimate'), actions: [
           // Nothing to export until the meal has been saved once. Delete stays:
           // a stored record must always be removable, whatever its revision.
           if (_hasSaved)
@@ -1216,9 +1219,14 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
               if (summary)
                 _summary(context, served, status)
               else ...[
-                Text('Estimated calories',
-                    style: Theme.of(context).textTheme.headlineSmall),
-                Text(status),
+                if (blank)
+                  Text('What did you eat?',
+                      style: Theme.of(context).textTheme.headlineSmall)
+                else ...[
+                  Text('Estimated calories',
+                      style: Theme.of(context).textTheme.headlineSmall),
+                  Text(status),
+                ],
               ],
               const SizedBox(height: 16),
               if (_message != null)
@@ -1254,8 +1262,9 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                   onPressed: _busy ? null : _save,
                   child: const Text('Save meal')),
               const SizedBox(height: 8),
-              const Text(
-                  'Editing clears the eaten mark. Empty macros stay empty.'),
+              Text(blank
+                  ? 'Protein, carbs and fat are optional.'
+                  : 'Editing clears the eaten mark. Empty macros stay empty.'),
               if (analysis != null) ...[
                 const Divider(height: 32),
                 Text('Recognized foods and nutrient sources',
