@@ -82,8 +82,16 @@ an Edit button. (d) is DONE in `bff13cb` (owner said yes): a summary card (name,
 8. [Home] saved meals appear nowhere on the first screen and there is no "today" total. One line above the
    buttons ("Today · 839 kcal · 2 meals", tappable to History) costs little and shows the product's point.
 
-**Still open with the owner:** does Tier1 take the design handoff's components (ring, nav), or only its tokens?
-Items 1–8 need no answer to that; they use tokens that already exist in `lib/core/theme/`.
+**Owner decisions of 2026-11-16, all DONE in the worktree (`c9fdb21` and the three commits before it):**
+- Tier1 takes the design's ring and navigation. Three tabs: Today (ring from `lib/shared/widgets/macro_ring.dart`
+  against `AppConstants.default*Target`, macro bars, today's meals), Scan in the middle (still the landing
+  screen; a second tap on it takes the photo), History. `Manual entry` moved to the app bar. Renders: `12-today`.
+  NEXT: a Goals screen so the targets are the user's, then the design's Goals and AI tabs.
+- A logged meal counts as eaten; "Ate half" is the exception ("190 of 380 kcal eaten"). The word "served" is gone
+  from the UI. Stored data is unchanged (`consumedFraction == null` now reads as "all").
+- A saved, unchanged meal closes with an outlined `Done`; `Save meal` shows only with the form.
+- Motion follows `docs/tier1-motion.md` (in the worktree); all durations are in `lib/features/tier1/motion.dart`.
+  Antigravity was asked to implement it and timed out after 5 minutes without an edit, so the host did it.
 
 **Device check DONE 2026-11-15** on the Samsung (APK from workflow run 43756437794, commit `ae0cccb`, installed
 with `phone-adb install -r`). The phone has no lock: `phone-adb shell input keyevent KEYCODE_WAKEUP` then
