@@ -1081,17 +1081,17 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     final canCorrect = _meal.canCorrectPortions;
     return Scaffold(
         appBar: AppBar(title: const Text('Meal estimate'), actions: [
-          // Nothing to export or delete until the meal has been saved once.
-          if (_hasSaved) ...[
+          // Nothing to export until the meal has been saved once. Delete stays:
+          // a stored record must always be removable, whatever its revision.
+          if (_hasSaved)
             IconButton(
                 tooltip: 'Export measurements',
                 onPressed: _busy ? null : _export,
                 icon: const Icon(Icons.download_outlined)),
-            IconButton(
-                tooltip: 'Delete meal',
-                onPressed: _busy ? null : _delete,
-                icon: const Icon(Icons.delete_outline))
-          ]
+          IconButton(
+              tooltip: 'Delete meal',
+              onPressed: _busy ? null : _delete,
+              icon: const Icon(Icons.delete_outline))
         ]),
         body: Form(
             key: _form,
