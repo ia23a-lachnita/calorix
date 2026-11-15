@@ -79,12 +79,13 @@ jobs:
       - name: Test meal evaluation and public data preparation
         run: python3 -m unittest discover -s tests -p 'test_*.py'
 
-      - name: Test frozen public evaluation guards
-        run: node --test tool/*.test.cjs
-
+      # The guard tests load functions/lib/*.js, so the build must come first.
       - name: Build
         working-directory: functions
         run: npm run build
+
+      - name: Test frozen public evaluation guards
+        run: node --test tool/*.test.cjs
 
       - name: Lint
         working-directory: functions
