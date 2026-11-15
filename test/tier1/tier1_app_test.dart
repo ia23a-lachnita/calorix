@@ -88,6 +88,17 @@ void main() {
     expect(find.text('839'), findsOneWidget);
     expect(find.text('1561 kcal left'), findsOneWidget);
     expect(find.text('44 / 170 g'), findsOneWidget);
+    // targets are the user's: change the calorie target and the ring follows
+    await tester.ensureVisible(find.text('Change targets'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Change targets'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Calories (kcal)'), '2000');
+    await tester.tap(find.text('Save targets'));
+    await tester.pumpAndSettle();
+    expect(find.text('1161 kcal left'), findsOneWidget);
+    expect(find.text('of 2000'), findsOneWidget);
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
     // the day header and the tab label

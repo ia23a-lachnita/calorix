@@ -17,6 +17,7 @@ import 'manual_nutrient_catalog.dart';
 import 'motion.dart';
 import 'food_selection_dialog.dart';
 import 'local_meal_store.dart';
+import 'targets.dart';
 import 'tier1_cloud.dart';
 import 'workflow_measurements.dart';
 import 'workflow_export.dart';
@@ -106,6 +107,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   bool _busy = false;
   bool get _history => _tab == 2;
   set _history(bool value) => _tab = value ? 2 : 1;
+  Tier1TargetStore _targetStore = Tier1TargetStore();
+  Tier1Targets _targets = Tier1Targets.defaults;
   int _lifecycleEpoch = 0;
   @override
   void initState() {
@@ -116,9 +119,14 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
 
   Future<void> _initialize() async {
     try {
-      _store = widget.store ??
-          Tier1MealStore(Directory(
-              '${(await getApplicationDocumentsDirectory()).path}/tier1'));
+      if (widget.store == null) {
+        final root = '${(await getApplicationDocumentsDirectory()).path}/tier1';
+        _store = Tier1MealStore(Directory(root));
+        _targetStore = Tier1TargetStore(File('$root/targets.json'));
+      } else {
+        _store = widget.store;
+      }
+      _targets = await _targetStore.load();
       // Injected stores opt into a sink; do not write into a fake test root.
       _workflow = widget.workflow ??
           (widget.store == null
@@ -378,22 +386,12 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
           return total + (pick(served) ?? 0) * (m.consumedFraction ?? 1);
         });
     final kcal = _eatenKcal(meals);
-    const target = AppConstants.defaultKcalTarget;
+    final target = _targets.kcal;
     final left = target - kcal;
     final macros = <(String, double, int, Color)>[
-      (
-        'Protein',
-        sum((n) => n.proteinG),
-        AppConstants.defaultProteinTarget,
-        AppColors.protein
-      ),
-      (
-        'Carbs',
-        sum((n) => n.carbsG),
-        AppConstants.defaultCarbsTarget,
-        AppColors.carbs
-      ),
-      ('Fat', sum((n) => n.fatG), AppConstants.defaultFatTarget, AppColors.fat),
+      ('Protein', sum((n) => n.proteinG), _targets.proteinG, AppColors.protein),
+      ('Carbs', sum((n) => n.carbsG), _targets.carbsG, AppColors.carbs),
+      ('Fat', sum((n) => n.fatG), _targets.fatG, AppColors.fat),
     ];
     return ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
@@ -477,7 +475,12 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                                     backgroundColor: scheme.outline))),
                       ])),
               ])),
-          const SizedBox(height: 16),
+          Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                  onPressed: _editTargets,
+                  icon: const Icon(Icons.tune, size: 18),
+                  label: const Text('Change targets'))),
           if (meals.isEmpty)
             Text('Nothing logged today. Take a photo of your next meal.',
                 textAlign: TextAlign.center,
@@ -495,6 +498,83 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                       style: theme.textTheme.bodySmall),
                   onTap: _error != null ? null : () => _open(meal)),
         ]);
+  }
+
+  Future<void> _editTargets() async {
+    final form = GlobalKey<FormState>();
+    final fields = <String, TextEditingController>{
+      'Calories (kcal)': TextEditingController(text: '${_targets.kcal}'),
+      'Protein (g)': TextEditingController(text: '${_targets.proteinG}'),
+      'Carbs (g)': TextEditingController(text: '${_targets.carbsG}'),
+      'Fat (g)': TextEditingController(text: '${_targets.fatG}'),
+    };
+    final result = await showModalBottomSheet<Tier1Targets>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (sheet) => Padding(
+            // the sheet rides above the keyboard
+            padding: EdgeInsets.fromLTRB(
+                20, 0, 20, 20 + MediaQuery.viewInsetsOf(sheet).bottom),
+            child: Form(
+                key: form,
+                child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Daily targets',
+                          style: Theme.of(sheet).textTheme.titleLarge),
+                      const SizedBox(height: 16),
+                      for (final entry in fields.entries) ...[
+                        TextFormField(
+                            controller: entry.value,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(labelText: entry.key),
+                            validator: (text) {
+                              final n = int.tryParse(text?.trim() ?? '');
+                              final kcal = entry.key.startsWith('Calories');
+                              final ok = n != null &&
+                                  (kcal
+                                      ? n >= 500 && n <= 10000
+                                      : n >= 1 && n <= 2000);
+                              return ok
+                                  ? null
+                                  : kcal
+                                      ? 'Enter 500 to 10000'
+                                      : 'Enter 1 to 2000';
+                            }),
+                        const SizedBox(height: 12),
+                      ],
+                      Pressable(
+                          child: FilledButton(
+                              onPressed: () {
+                                if (!form.currentState!.validate()) {
+                                  return;
+                                }
+                                final v = [
+                                  for (final c in fields.values)
+                                    int.parse(c.text.trim())
+                                ];
+                                Navigator.pop(
+                                    sheet,
+                                    Tier1Targets(
+                                        kcal: v[0],
+                                        proteinG: v[1],
+                                        carbsG: v[2],
+                                        fatG: v[3]));
+                              },
+                              child: const Text('Save targets'))),
+                    ]))));
+    if (result == null || !mounted) return;
+    try {
+      await _targetStore.save(result);
+      if (mounted) setState(() => _targets = result);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Could not save the targets. Nothing changed.')));
+      }
+    }
   }
 
   /// Bottom navigation from the design: two plain tabs around the scan

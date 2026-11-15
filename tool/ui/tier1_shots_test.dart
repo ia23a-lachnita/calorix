@@ -280,6 +280,11 @@ void main() {
       await tester.tap(find.text('Today'));
       await tester.pumpAndSettle();
       await shot(tester, '12-today');
+      await tester.tap(find.text('Change targets'));
+      await tester.pumpAndSettle();
+      await shot(tester, '13-targets');
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('History'));
       await tester.pumpAndSettle();
       await shot(tester, '04-history');
