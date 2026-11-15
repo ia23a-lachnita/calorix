@@ -86,7 +86,8 @@ an Edit button. (d) is DONE in `bff13cb` (owner said yes): a summary card (name,
 - Tier1 takes the design's ring and navigation. Three tabs: Today (ring from `lib/shared/widgets/macro_ring.dart`
   against `AppConstants.default*Target`, macro bars, today's meals), Scan in the middle (still the landing
   screen; a second tap on it takes the photo), History. `Manual entry` moved to the app bar. Renders: `12-today`.
-  NEXT: a Goals screen so the targets are the user's, then the design's Goals and AI tabs.
+  `Change targets` on Today opens a sheet (`lib/features/tier1/targets.dart`, saved to `tier1/targets.json`; render `13-targets`).
+  NEXT: the design's Goals and AI tabs, if the owner wants them in Tier1.
 - A logged meal counts as eaten; "Ate half" is the exception ("190 of 380 kcal eaten"). The word "served" is gone
   from the UI. Stored data is unchanged (`consumedFraction == null` now reads as "all").
 - A saved, unchanged meal closes with an outlined `Done`; `Save meal` shows only with the form.
