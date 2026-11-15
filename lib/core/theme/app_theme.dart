@@ -115,6 +115,11 @@ abstract final class AppTheme {
       ),
       // Dialogs sit on the app's own colours; the Material default tints
       // them with the seed colour, which read as a foreign lavender sheet.
+      // Screens slide in from the right and can be swiped back, on Android too.
+      pageTransitionsTheme: const PageTransitionsTheme(builders: {
+        TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      }),
       dialogTheme: const DialogThemeData(
         backgroundColor: AppColors.backgroundLight,
         surfaceTintColor: Colors.transparent,
@@ -238,6 +243,11 @@ abstract final class AppTheme {
       ),
       // Dialogs sit on the app's own colours; the Material default tints
       // them with the seed colour, which read as a foreign lavender sheet.
+      // Screens slide in from the right and can be swiped back, on Android too.
+      pageTransitionsTheme: const PageTransitionsTheme(builders: {
+        TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      }),
       dialogTheme: const DialogThemeData(
         backgroundColor: AppColors.surfaceDark,
         surfaceTintColor: Colors.transparent,

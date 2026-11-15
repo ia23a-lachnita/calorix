@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/app_constants.dart';
@@ -12,6 +13,7 @@ import '../../core/time/clock.dart';
 import '../../shared/services/camera_service.dart';
 import 'local_meal.dart';
 import 'manual_nutrient_catalog.dart';
+import 'motion.dart';
 import 'food_selection_dialog.dart';
 import 'local_meal_store.dart';
 import 'tier1_cloud.dart';
@@ -324,12 +326,14 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                 // The one primary action of the screen: full width, thumb-sized.
                 child: SizedBox(
                     width: double.infinity,
-                    child: FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(56)),
-                        onPressed: _busy ? null : _capture,
-                        icon: const Icon(Icons.camera_alt_outlined),
-                        label: Text(_busy ? 'Saving photo…' : 'Take photo')))),
+                    child: Pressable(
+                        child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                                minimumSize: const Size.fromHeight(56)),
+                            onPressed: _busy ? null : _capture,
+                            icon: const Icon(Icons.camera_alt_outlined),
+                            label: Text(
+                                _busy ? 'Saving photo…' : 'Take photo'))))),
           ])),
     ]);
   }
@@ -380,61 +384,69 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         Expanded(
             child: _store == null
                 ? const Center(child: CircularProgressIndicator())
-                : _history
-                    ? (_meals.isEmpty
-                        ? const Center(
-                            child: Text(
-                                'No saved meals yet. Take a photo or enter a meal.'))
-                        : ListView.builder(
-                            itemCount: _meals.length,
-                            itemBuilder: (context, index) {
-                              final meal = _meals[index];
-                              final day = _dayOf(meal.capturedAt);
-                              final startsDay = index == 0 ||
-                                  _dayOf(_meals[index - 1].capturedAt) != day;
-                              final tile = ListTile(
-                                  leading: meal.photoPath == null
-                                      ? const Icon(Icons.restaurant)
-                                      : ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          child: Image.file(
-                                              File(meal.photoPath!),
-                                              width: 56,
-                                              height: 56,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) =>
-                                                  const Icon(Icons
-                                                      .image_not_supported_outlined))),
-                                  title: Text(meal.name),
-                                  trailing: Text(
-                                      MaterialLocalizations.of(context)
-                                          .formatTimeOfDay(
-                                              TimeOfDay.fromDateTime(
-                                                  _localTime(meal.capturedAt))),
-                                      style: Theme.of(context).textTheme.bodySmall),
-                                  subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                    Text(_mealLine(meal)),
-                                    if (meal.served != null)
-                                      _MacroLine(meal.served!),
-                                  ]),
-                                  isThreeLine: true,
-                                  onTap: _error != null ? null : () => _open(meal));
-                              if (!startsDay) return tile;
-                              return Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    _DayHeader(
-                                        label: _dayLabel(day),
-                                        meals: _meals
-                                            .where((m) =>
-                                                _dayOf(m.capturedAt) == day)
-                                            .toList()),
-                                    tile
-                                  ]);
-                            }))
-                    : _cameraView()),
+                : AnimatedSwitcher(
+                    duration: Motion.of(context, Motion.medium),
+                    switchInCurve: Motion.curve,
+                    child: KeyedSubtree(
+                        key: ValueKey(_history),
+                        child: _history
+                            ? (_meals.isEmpty
+                                ? const Center(
+                                    child: Text(
+                                        'No saved meals yet. Take a photo or enter a meal.'))
+                                : ListView.builder(
+                                    itemCount: _meals.length,
+                                    itemBuilder: (context, index) {
+                                      final meal = _meals[index];
+                                      final day = _dayOf(meal.capturedAt);
+                                      final startsDay = index == 0 ||
+                                          _dayOf(_meals[index - 1]
+                                                  .capturedAt) !=
+                                              day;
+                                      final tile = ListTile(
+                                          leading: meal.photoPath == null
+                                              ? const Icon(Icons.restaurant)
+                                              : ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  child: Image.file(
+                                                      File(meal.photoPath!),
+                                                      width: 56,
+                                                      height: 56,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder: (_, __,
+                                                              ___) =>
+                                                          const Icon(Icons
+                                                              .image_not_supported_outlined))),
+                                          title: Text(meal.name),
+                                          trailing: Text(
+                                              MaterialLocalizations.of(context)
+                                                  .formatTimeOfDay(
+                                                      TimeOfDay.fromDateTime(_localTime(meal.capturedAt))),
+                                              style: Theme.of(context).textTheme.bodySmall),
+                                          subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                            Text(_mealLine(meal)),
+                                            if (meal.served != null)
+                                              _MacroLine(meal.served!),
+                                          ]),
+                                          isThreeLine: true,
+                                          onTap: _error != null ? null : () => _open(meal));
+                                      if (!startsDay) return tile;
+                                      return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            _DayHeader(
+                                                label: _dayLabel(day),
+                                                meals: _meals
+                                                    .where((m) =>
+                                                        _dayOf(m.capturedAt) ==
+                                                        day)
+                                                    .toList()),
+                                            tile
+                                          ]);
+                                    }))
+                            : _cameraView()))),
         SafeArea(
             top: false,
             child: Padding(
@@ -751,6 +763,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
   }
 
   Future<void> _consume(double? fraction) async {
+    HapticFeedback.selectionClick();
     try {
       await _persist(fraction == null
           ? _meal.clearConsumption()
@@ -1154,9 +1167,10 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
           });
   Widget _amount(String label, double fraction, {required bool selected}) {
     final onPressed = _busy || _dirty ? null : () => _consume(fraction);
-    return selected
-        ? FilledButton.tonal(onPressed: onPressed, child: Text(label))
-        : OutlinedButton(onPressed: onPressed, child: Text(label));
+    return Pressable(
+        child: selected
+            ? FilledButton.tonal(onPressed: onPressed, child: Text(label))
+            : OutlinedButton(onPressed: onPressed, child: Text(label)));
   }
 
   Widget _summary(BuildContext context, Tier1Nutrients served, String status) {
@@ -1180,15 +1194,20 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 icon: const Icon(Icons.edit_outlined, size: 18),
                 label: const Text('Edit totals')),
           ]),
-          Text.rich(
-              TextSpan(children: [
-                TextSpan(
-                    text: '${served.kcal.round()}',
-                    style: theme.textTheme.displayMedium
-                        ?.copyWith(fontWeight: FontWeight.w700)),
-                TextSpan(text: ' kcal', style: theme.textTheme.titleMedium),
-              ]),
-              semanticsLabel: '${served.kcal.round()} kilocalories'),
+          Semantics(
+              label: '${served.kcal.round()} kilocalories',
+              excludeSemantics: true,
+              child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    CountText(
+                        value: served.kcal.round(),
+                        style: theme.textTheme.displayMedium
+                            ?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(' kcal', style: theme.textTheme.titleMedium),
+                  ])),
           Text('Estimated calories',
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: scheme.onSurfaceVariant)),
@@ -1248,7 +1267,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                             const Text('Saved photo is unavailable'))),
               const SizedBox(height: 16),
               if (summary)
-                _summary(context, served, status)
+                AnimatedSize(
+                    duration: Motion.of(context, Motion.medium),
+                    curve: Motion.curve,
+                    alignment: Alignment.topCenter,
+                    child: _summary(context, served, status))
               else ...[
                 if (blank)
                   Text('What did you eat?',
@@ -1292,13 +1315,15 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
               // Nothing to save while the summary is showing: the way out is a
               // quiet Done, and Save appears with the form.
               if (summary && !_dirty)
-                OutlinedButton(
-                    onPressed: _busy ? null : () => Navigator.pop(context),
-                    child: const Text('Done'))
+                Pressable(
+                    child: OutlinedButton(
+                        onPressed: _busy ? null : () => Navigator.pop(context),
+                        child: const Text('Done')))
               else ...[
-                FilledButton(
-                    onPressed: _busy ? null : _save,
-                    child: const Text('Save meal')),
+                Pressable(
+                    child: FilledButton(
+                        onPressed: _busy ? null : _save,
+                        child: const Text('Save meal'))),
                 const SizedBox(height: 8),
                 Text(blank
                     ? 'Protein, carbs and fat are optional.'
