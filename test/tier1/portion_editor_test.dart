@@ -224,8 +224,8 @@ void main() {
     expect(store.records.single.served!.toJson(), original.served!.toJson());
     expect(
         store.records.single.toJson().containsKey('portionOverrides'), isFalse);
-    await visible(tester, find.text('Save meal'), delta: -160);
-    await tester.tap(find.text('Save meal'));
+    await visible(tester, find.text('Done'), delta: -160);
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(find.text('Meal estimate'), findsNothing);
     await tester.tap(find.text('Portion meal'));

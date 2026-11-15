@@ -311,7 +311,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
               TextButton(
                   onPressed: () => setState(() => _history = true),
                   child: Text(
-                      'Today · ${_servedKcal(_todayMeals)} kcal served · ${_todayMeals.length} ${_todayMeals.length == 1 ? 'meal' : 'meals'}')),
+                      'Today · ${_eatenKcal(_todayMeals)} kcal · ${_todayMeals.length} ${_todayMeals.length == 1 ? 'meal' : 'meals'}')),
               const SizedBox(height: 8),
             ],
             const Text(
@@ -1152,6 +1152,13 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 ? 'Enter a finite value from 0 to 1000000'
                 : null;
           });
+  Widget _amount(String label, double fraction, {required bool selected}) {
+    final onPressed = _busy || _dirty ? null : () => _consume(fraction);
+    return selected
+        ? FilledButton.tonal(onPressed: onPressed, child: Text(label))
+        : OutlinedButton(onPressed: onPressed, child: Text(label));
+  }
+
   Widget _summary(BuildContext context, Tier1Nutrients served, String status) {
     final theme = Theme.of(context), scheme = theme.colorScheme;
     return Container(
@@ -1187,9 +1194,10 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                   ?.copyWith(color: scheme.onSurfaceVariant)),
           const SizedBox(height: 4),
           _MacroLine(served, labelled: true),
-          const SizedBox(height: 8),
-          Padding(
-              padding: const EdgeInsets.only(right: 12), child: Text(status)),
+          if (status.isNotEmpty)
+            Padding(
+                padding: const EdgeInsets.only(top: 8, right: 12),
+                child: Text(status)),
         ]));
   }
 
@@ -1206,9 +1214,12 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     final summary = served != null && !_editTotals;
     // A manual entry that holds nothing yet is not an estimate of anything.
     final blank = served == null && _meal.photoPath == null && !_hasSaved;
-    final status = _meal.consumedKcal == null
-        ? 'Not marked as eaten'
-        : 'Eaten · ${_meal.consumedKcal!.round()} kcal';
+    final partly = served != null &&
+        _meal.consumedKcal != null &&
+        _meal.consumedKcal!.round() != served.kcal.round();
+    final status = partly
+        ? '${_meal.consumedKcal!.round()} kcal counted · you ate part of it'
+        : '';
     return Scaffold(
         appBar:
             AppBar(title: Text(blank ? 'New meal' : 'Meal estimate'), actions: [
@@ -1245,7 +1256,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 else ...[
                   Text('Estimated calories',
                       style: Theme.of(context).textTheme.headlineSmall),
-                  Text(status),
+                  if (status.isNotEmpty) Text(status),
                 ],
               ],
               const SizedBox(height: 16),
@@ -1278,13 +1289,21 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 _number('Fat g (optional)', _fat),
               ],
               const SizedBox(height: 16),
-              FilledButton(
-                  onPressed: _busy ? null : _save,
-                  child: const Text('Save meal')),
-              const SizedBox(height: 8),
-              Text(blank
-                  ? 'Protein, carbs and fat are optional.'
-                  : 'Editing clears the eaten mark. Empty macros stay empty.'),
+              // Nothing to save while the summary is showing: the way out is a
+              // quiet Done, and Save appears with the form.
+              if (summary && !_dirty)
+                OutlinedButton(
+                    onPressed: _busy ? null : () => Navigator.pop(context),
+                    child: const Text('Done'))
+              else ...[
+                FilledButton(
+                    onPressed: _busy ? null : _save,
+                    child: const Text('Save meal')),
+                const SizedBox(height: 8),
+                Text(blank
+                    ? 'Protein, carbs and fat are optional.'
+                    : 'Saving counts the meal as fully eaten again. Empty macros stay empty.'),
+              ],
               if (analysis != null) ...[
                 const Divider(height: 32),
                 Text('Recognized foods and nutrient sources',
@@ -1436,24 +1455,19 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
               if (_meal.served != null) ...[
                 if (_dirty)
                   const Text(
-                      'Save changes before confirming consumption or repeating this meal.'),
+                      'Save changes before changing how much you ate or repeating this meal.'),
                 const Divider(height: 32),
                 Text('How much did you eat?',
                     style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Wrap(spacing: 8, children: [
-                  OutlinedButton(
-                      onPressed: _busy || _dirty ? null : () => _consume(1),
-                      child: const Text('Ate all')),
-                  OutlinedButton(
-                      onPressed: _busy || _dirty ? null : () => _consume(.5),
-                      child: const Text('Ate half')),
-                  TextButton(
-                      onPressed: _busy || _dirty ? null : () => _consume(null),
-                      child: const Text('Clear eaten mark')),
+                  _amount('Ate all', 1, selected: !partly),
+                  _amount('Ate half', .5, selected: partly),
                 ]),
-                const Text(
-                    'A fraction is an approximate shortcut; selective leftovers can have different calories.'),
+                const SizedBox(height: 8),
+                Text('Meals count in full unless you say otherwise.',
+                    style: Theme.of(context).textTheme.bodySmall),
+                const SizedBox(height: 8),
                 OutlinedButton(
                     onPressed: _busy || _dirty ? null : _repeat,
                     child: const Text('Repeat meal')),
@@ -1462,18 +1476,21 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
   }
 }
 
-/// Served energy of a set of meals. "Served", not "eaten": consumption is
-/// only known where the user confirmed it, and a total must not mix the two.
-int _servedKcal(List<Tier1Meal> meals) =>
-    meals.fold<double>(0, (sum, m) => sum + (m.served?.kcal ?? 0)).round();
+/// What a meal counts for: all of it, unless the user said they ate less.
+/// A logged meal is an eaten meal; "half" is the exception, not a second step.
+double _countedKcal(Tier1Meal meal) =>
+    meal.consumedKcal ?? meal.served?.kcal ?? 0;
 
-/// One line per meal in history: the estimate, then what was eaten of it.
-/// Kept short: on a 360dp phone a longer line wraps beside the time.
+int _eatenKcal(List<Tier1Meal> meals) =>
+    meals.fold<double>(0, (sum, m) => sum + _countedKcal(m)).round();
+
+/// One line per meal in history. Kept short: on a 360dp phone a longer line
+/// wraps beside the time.
 String _mealLine(Tier1Meal meal) {
-  final served = meal.served, eaten = meal.consumedKcal;
+  final served = meal.served;
   if (served == null) return 'No estimate yet';
-  final kcal = served.kcal.round();
-  return '$kcal kcal · ${eaten == null ? 'not eaten yet' : eaten.round() == kcal ? 'eaten' : 'eaten ${eaten.round()} kcal'}';
+  final kcal = served.kcal.round(), counted = _countedKcal(meal).round();
+  return counted == kcal ? '$kcal kcal' : '$counted of $kcal kcal eaten';
 }
 
 class _DayHeader extends StatelessWidget {
@@ -1487,7 +1504,7 @@ class _DayHeader extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
         child: Row(children: [
           Expanded(child: Text(label, style: text.titleSmall)),
-          Text('${_servedKcal(meals)} kcal served', style: text.bodySmall),
+          Text('${_eatenKcal(meals)} kcal', style: text.bodySmall),
         ]));
   }
 }

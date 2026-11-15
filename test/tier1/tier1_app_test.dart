@@ -53,7 +53,7 @@ void main() {
     await tester.tap(find.text('Save meal'));
     await tester.pumpAndSettle();
     expect(find.text('Weighed test'), findsWidgets);
-    expect(find.textContaining('420 kcal · not eaten yet'), findsWidgets);
+    expect(find.textContaining('420 kcal'), findsWidgets);
     expect(cloudStarts, 0);
     final saved = (await store.load()).single;
     expect(saved.served!.kcal, 420);
@@ -81,11 +81,12 @@ void main() {
     await tester
         .pumpWidget(Tier1App(store: store, camera: FakeCameraService()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Today · 839 kcal served · 2 meals'));
+    await tester.tap(find.text('Today · 839 kcal · 2 meals'));
     await tester.pumpAndSettle();
     expect(find.text('Today'), findsOneWidget);
-    expect(find.text('839 kcal served'), findsOneWidget);
-    expect(find.text('720 kcal served'), findsOneWidget);
+    expect(find.text('839 kcal'), findsOneWidget);
+    // the day total and that day's only meal
+    expect(find.text('720 kcal'), findsNWidgets(2));
     expect(find.text('44 g'), findsOneWidget);
     expect(find.text('Older dinner'), findsOneWidget);
   });
