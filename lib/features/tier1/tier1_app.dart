@@ -385,30 +385,29 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                               final tile = ListTile(
                                   leading: meal.photoPath == null
                                       ? const Icon(Icons.restaurant)
-                                      : Image.file(File(meal.photoPath!),
-                                          width: 56,
-                                          height: 56,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              const Icon(Icons
-                                                  .image_not_supported_outlined)),
+                                      : ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          child: Image.file(
+                                              File(meal.photoPath!),
+                                              width: 56,
+                                              height: 56,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) =>
+                                                  const Icon(Icons
+                                                      .image_not_supported_outlined))),
                                   title: Text(meal.name),
                                   trailing: Text(
                                       MaterialLocalizations.of(context)
-                                          .formatTimeOfDay(TimeOfDay.fromDateTime(
-                                              _localTime(meal.capturedAt))),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall),
-                                  subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                            '${meal.served == null ? 'No estimate yet' : 'Estimated · ${meal.served!.kcal.round()} kcal'}\n${meal.consumedKcal == null ? 'Not marked as eaten' : 'Eaten · ${meal.consumedKcal!.round()} kcal'}'),
-                                        if (meal.served != null)
-                                          _MacroLine(meal.served!),
-                                      ]),
+                                          .formatTimeOfDay(
+                                              TimeOfDay.fromDateTime(
+                                                  _localTime(meal.capturedAt))),
+                                      style: Theme.of(context).textTheme.bodySmall),
+                                  subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                    Text(_mealLine(meal)),
+                                    if (meal.served != null)
+                                      _MacroLine(meal.served!),
+                                  ]),
                                   isThreeLine: true,
                                   onTap: _error != null ? null : () => _open(meal));
                               if (!startsDay) return tile;
@@ -1435,6 +1434,14 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
 /// only known where the user confirmed it, and a total must not mix the two.
 int _servedKcal(List<Tier1Meal> meals) =>
     meals.fold<double>(0, (sum, m) => sum + (m.served?.kcal ?? 0)).round();
+
+/// One line per meal in history: the estimate, then what was eaten of it.
+String _mealLine(Tier1Meal meal) {
+  final served = meal.served, eaten = meal.consumedKcal;
+  if (served == null) return 'No estimate yet';
+  final kcal = served.kcal.round();
+  return 'Estimated $kcal kcal · ${eaten == null ? 'not eaten yet' : eaten.round() == kcal ? 'eaten' : 'eaten ${eaten.round()} kcal'}';
+}
 
 class _DayHeader extends StatelessWidget {
   const _DayHeader({required this.label, required this.meals});
