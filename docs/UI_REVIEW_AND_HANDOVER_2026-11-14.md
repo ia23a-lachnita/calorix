@@ -31,7 +31,16 @@ export PATH=$HOME/.local/share/flutter-3.41.9/bin:$PATH
 flutter test --update-goldens tool/ui/tier1_shots_test.dart   # writes tool/ui/shots/*.png (390x844, light+dark)
 flutter test test/tier1                                        # 105 tests, about 2 minutes
 dart format lib/features/tier1 test/tier1                      # pinned Dart 3.11.5; do not use another Dart
+flutter analyze lib/features/tier1 test/tier1                  # CI gate: must print "No issues found!" (infos fail it)
+python3 -m unittest discover -s tests -p 'test_*.py'           # CI gate: 259 tests, under a second
 ```
+**Two CI gates the local Tier1 tests do not cover (both broke on 2026-11-15, fixed in `fb268a8`):**
+`lib/features/tier1/manual_nutrient_catalog_data.dart` must stay byte-identical to
+`tool/generate_manual_food_catalog.py` output, so after any `dart format` restore it with
+`git checkout lib/features/tier1/manual_nutrient_catalog_data.dart`. And the analyzer step fails on info-level
+lints, so an `if` whose statement sits on its own line needs braces (`dart fix --apply
+--code=curly_braces_in_flow_control_structures` from the repo root). The `Test Android APK` workflow runs both
+before it builds: `gh workflow run android-test-apk.yml --ref <branch>`.
 Open the PNGs with your image reader, or send them to Gemini (`ask-ai`, `@/abs/path.png`). To add a state, add a
 `testWidgets` block to `tool/ui/tier1_shots_test.dart`. The camera area renders empty there (fake camera); every
 other pixel is the real widget tree with the real fonts. Shots from 2026-11-15 (worktree `bff13cb`, after the fixes) are in
