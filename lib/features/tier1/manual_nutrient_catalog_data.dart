@@ -1,7 +1,6 @@
 // Generated from the pinned public catalog; run tool/generate_manual_food_catalog.py.
-const manualFoodCatalogDataSha256 =
-    'bad3d924253513d093728351436cdcc6e099caba25eead2cae24778ea35ff178';
-const manualFoodCatalogRawJson = r'''{
+const manualFoodCatalogDataSha256='bad3d924253513d093728351436cdcc6e099caba25eead2cae24778ea35ff178';
+const manualFoodCatalogRawJson=r'''{
   "version": "usda-sr-2018-tier1-20261108-v2",
   "records": [
     {
