@@ -88,6 +88,8 @@ an Edit button. (d) is DONE in `bff13cb` (owner said yes): a summary card (name,
   screen; a second tap on it takes the photo), History. `Manual entry` moved to the app bar. Renders: `12-today`.
   `Change targets` on Today opens a sheet (`lib/features/tier1/targets.dart`, saved to `tier1/targets.json`; render `13-targets`).
   NEXT: the design's Goals and AI tabs, if the owner wants them in Tier1.
+  Checked on the Samsung on 2026-11-16 with the APK from run 43776290244 (`7aff81a`): all three tabs render
+  (`device-SM-G780G-tabs-2026-11-16.png`). Motion itself was not judged; that needs eyes on the phone.
 - A logged meal counts as eaten; "Ate half" is the exception ("190 of 380 kcal eaten"). The word "served" is gone
   from the UI. Stored data is unchanged (`consumedFraction == null` now reads as "all").
 - A saved, unchanged meal closes with an outlined `Done`; `Save meal` shows only with the form.
