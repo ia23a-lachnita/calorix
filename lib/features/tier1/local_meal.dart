@@ -203,8 +203,9 @@ class Tier1Meal {
     if (components.isEmpty) throw StateError('No original food portions');
     for (final component in components) {
       final mass = (component['massG'] as num).toDouble();
-      if (!mass.isFinite || mass <= 0 || mass > 100000)
+      if (!mass.isFinite || mass <= 0 || mass > 100000) {
         throw StateError('Invalid original portion');
+      }
     }
     final baseline = Tier1Nutrients.fromJson(
         Map<String, dynamic>.from(value['totals'] as Map));
@@ -212,8 +213,9 @@ class Tier1Meal {
         declared = baseline.toJson();
     for (final key in _nutrientKeys) {
       final n = declared[key] as double?, s = sum[key] as double?;
-      if (n != null && (s == null || (n - s).abs() > .000001))
+      if (n != null && (s == null || (n - s).abs() > .000001)) {
         throw StateError('Original food totals disagree');
+      }
     }
     return (components, baseline);
   }
@@ -292,10 +294,12 @@ class Tier1Meal {
         },
       ];
   Tier1Meal correctPortion(int index, double grams, {required DateTime at}) {
-    if (!grams.isFinite || grams < 0 || grams > 100000)
+    if (!grams.isFinite || grams < 0 || grams > 100000) {
       throw ArgumentError('Invalid served grams');
-    if (!canCorrectPortions)
+    }
+    if (!canCorrectPortions) {
       throw StateError('Original estimate cannot be recalculated');
+    }
     final (components, baseline) = _portionBasis();
     RangeError.checkValidIndex(index, components);
     final current = componentMassG(index);
@@ -347,11 +351,13 @@ class Tier1Meal {
   Tier1Meal correctFood(int index, String? recordId, {required DateTime at}) {
     final (components, baseline) = _portionBasis();
     RangeError.checkValidIndex(index, components);
-    if (recordId != null && manualFood(recordId) == null)
+    if (recordId != null && manualFood(recordId) == null) {
       throw ArgumentError('Unsupported food record');
+    }
     final source = components[index]['source'] as Map;
-    if (source['kind'] == 'database_match' && source['recordId'] == recordId)
+    if (source['kind'] == 'database_match' && source['recordId'] == recordId) {
       recordId = null;
+    }
     if (foodOverrides[index] == recordId) return this;
     final foods = Map<int, String>.from(foodOverrides);
     if (recordId == null) {
@@ -393,12 +399,14 @@ class Tier1Meal {
   }
 
   Tier1Meal answerPreparation(String answer, {DateTime? at}) {
-    if (!hasPendingPreparationQuestion)
+    if (!hasPendingPreparationQuestion) {
       throw StateError('No active preparation question');
+    }
     final value = Map<String, dynamic>.from(analysis!);
     final rawQuestion = value['question'];
-    if (rawQuestion is! Map || rawQuestion['answered'] == true)
+    if (rawQuestion is! Map || rawQuestion['answered'] == true) {
       throw StateError('No unanswered question');
+    }
     final question = Map<String, dynamic>.from(rawQuestion);
     final options = (question['options'] as List)
         .map((o) => Map<String, dynamic>.from(o as Map));
@@ -407,8 +415,9 @@ class Tier1Meal {
     final components = (value['components'] as List)
         .map((c) => Map<String, dynamic>.from(c as Map))
         .toList();
-    if (option['component'] != null)
+    if (option['component'] != null) {
       components.add(Map<String, dynamic>.from(option['component'] as Map));
+    }
     final oldBaseline = Tier1Nutrients.fromJson(
         Map<String, dynamic>.from(value['totals'] as Map));
     final totals = option['component'] == null
@@ -453,7 +462,9 @@ class Tier1Meal {
     if (!multiplier.isFinite ||
         multiplier <= 0 ||
         multiplier > 10 ||
-        served == null) throw ArgumentError('Invalid repeat portion');
+        served == null) {
+      throw ArgumentError('Invalid repeat portion');
+    }
     return Tier1Meal(
         id: newId,
         capturedAt: at,
@@ -497,8 +508,9 @@ class Tier1Meal {
       };
   factory Tier1Meal.fromJson(Map<String, dynamic> value) {
     final version = value['schemaVersion'];
-    if (version != 1 && version != 2)
+    if (version != 1 && version != 2) {
       throw const FormatException('Unsupported local meal version');
+    }
     if (version == 1 &&
         (value.containsKey('foodOverrides') ||
             value.containsKey('foodOverridesCatalogVersion'))) {
@@ -545,16 +557,18 @@ class Tier1Meal {
             .toList());
   }
   static String _foodId(dynamic value) {
-    if (value is! String || manualFood(value) == null)
+    if (value is! String || manualFood(value) == null) {
       throw const FormatException('Invalid saved food record; data retained');
+    }
     return value;
   }
 
   static int _portionIndex(dynamic key) {
     if (key is! String) throw const FormatException('Invalid portion index');
     final index = int.tryParse(key);
-    if (index == null || index.toString() != key)
+    if (index == null || index.toString() != key) {
       throw const FormatException('Invalid portion index');
+    }
     return index;
   }
 }

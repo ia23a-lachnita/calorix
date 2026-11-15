@@ -73,15 +73,17 @@ final _extra = {
 void _shape(
     Map<String, dynamic> value, Set<String> allowed, Set<String> required) {
   if (!value.keys.toSet().containsAll(required) ||
-      value.keys.any((k) => !allowed.contains(k)))
+      value.keys.any((k) => !allowed.contains(k))) {
     throw const FormatException('Unsupported workflow fields');
+  }
 }
 
 bool workflowIdIsValid(String id) =>
     RegExp(r'^[A-Za-z0-9_-]{1,80}$').hasMatch(id);
 void _integer(dynamic value, {int maximum = _maximumMs}) {
-  if (value is! int || value < 0 || value > maximum)
+  if (value is! int || value < 0 || value > maximum) {
     throw const FormatException('Invalid workflow integer');
+  }
 }
 
 void _utc(dynamic value) {
@@ -89,24 +91,28 @@ void _utc(dynamic value) {
       !(value.endsWith('Z') ||
           value.endsWith('+00:00') ||
           value.endsWith('-00:00')) ||
-      DateTime.tryParse(value) == null)
+      DateTime.tryParse(value) == null) {
     throw const FormatException('UTC workflow timestamp required');
+  }
 }
 
 Map<String, dynamic> validateWorkflowEvent(Map<String, dynamic> value,
     {int version = 2}) {
-  if (version != 1 && version != 2)
+  if (version != 1 && version != 2) {
     throw const FormatException('Unsupported workflow version');
+  }
   _shape(value, {..._base, ..._extra}, _base);
   if (!(version == 1 ? _legacyWorkflowKinds : workflowKinds)
           .contains(value['kind']) ||
       value['sessionId'] is! String ||
-      !workflowIdIsValid(value['sessionId'] as String))
+      !workflowIdIsValid(value['sessionId'] as String)) {
     throw const FormatException('Invalid workflow event identity');
+  }
   _integer(value['sequence'], maximum: 9007199254740991);
   _utc(value['atUtc']);
-  if (value['timingValid'] is! bool)
+  if (value['timingValid'] is! bool) {
     throw const FormatException('Unknown timing validity');
+  }
   for (final key in ['elapsedMs', 'foregroundMs', 'waitingMs']) {
     if (value['timingValid'] == true) {
       _integer(value[key]);
@@ -116,20 +122,23 @@ Map<String, dynamic> validateWorkflowEvent(Map<String, dynamic> value,
   }
   if (value['timingValid'] == true &&
       ((value['waitingMs'] as int) > (value['foregroundMs'] as int) ||
-          (value['foregroundMs'] as int) > (value['elapsedMs'] as int)))
+          (value['foregroundMs'] as int) > (value['elapsedMs'] as int))) {
     throw const FormatException('Inconsistent workflow timing');
+  }
   for (final key in _times.where(value.containsKey)) {
     if (value[key] != null) {
-      if (value['timingValid'] != true)
+      if (value['timingValid'] != true) {
         throw const FormatException('Invalid timing must stay unknown');
+      }
       _integer(value[key]);
     }
   }
   for (final key in _numbers.where(value.containsKey)) {
     final n = value[key],
         limit = key == 'fromG' || key == 'toG' ? 100000 : 1000000;
-    if (n != null && (n is! num || !n.isFinite || n < 0 || n > limit))
+    if (n != null && (n is! num || !n.isFinite || n < 0 || n > limit)) {
       throw const FormatException('Invalid workflow measurement');
+    }
   }
   for (final key in _counts.where(value.containsKey)) {
     _integer(value[key],
@@ -138,28 +147,34 @@ Map<String, dynamic> validateWorkflowEvent(Map<String, dynamic> value,
             : 9007199254740991);
   }
   for (final key in _booleans.where(value.containsKey)) {
-    if (value[key] is! bool)
+    if (value[key] is! bool) {
       throw const FormatException('Invalid workflow flag');
+    }
   }
   if (value.containsKey('model') &&
       (value['model'] is! String ||
           !RegExp(r'^gemini-[a-z0-9][a-z0-9.-]{0,79}$')
-              .hasMatch(value['model'] as String)))
+              .hasMatch(value['model'] as String))) {
     throw const FormatException('Invalid workflow model ID');
+  }
   if (value.containsKey('promptSha256') &&
       (value['promptSha256'] is! String ||
-          !RegExp(r'^[0-9a-f]{64}$').hasMatch(value['promptSha256'] as String)))
+          !RegExp(r'^[0-9a-f]{64}$')
+              .hasMatch(value['promptSha256'] as String))) {
     throw const FormatException('Invalid workflow prompt hash');
+  }
   if (value.containsKey('answerCode') &&
-      !{'none', 'oil_5g', 'oil_10g', 'oil_15g'}.contains(value['answerCode']))
+      !{'none', 'oil_5g', 'oil_10g', 'oil_15g'}.contains(value['answerCode'])) {
     throw const FormatException('Invalid workflow answer code');
+  }
   return Map<String, dynamic>.from(value);
 }
 
 List<Map<String, dynamic>> validateWorkflowEvents(List<dynamic> values,
     {int version = 2}) {
-  if (values.length > workflowEventLimit)
+  if (values.length > workflowEventLimit) {
     throw const FormatException('Workflow journal exceeds event bound');
+  }
   final last = <String, int>{}, events = <Map<String, dynamic>>[];
   for (final raw in values) {
     if (raw is! Map) throw const FormatException('Invalid workflow event');
@@ -167,8 +182,9 @@ List<Map<String, dynamic>> validateWorkflowEvents(List<dynamic> values,
             version: version),
         session = event['sessionId'] as String,
         sequence = event['sequence'] as int;
-    if (sequence <= (last[session] ?? -1))
+    if (sequence <= (last[session] ?? -1)) {
       throw const FormatException('Workflow sequence is not increasing');
+    }
     last[session] = sequence;
     events.add(event);
   }
@@ -180,8 +196,9 @@ class WorkflowMeter {
   WorkflowMeter(
       {required this.sessionId, required int Function() elapsedMilliseconds})
       : _ticks = elapsedMilliseconds {
-    if (!workflowIdIsValid(sessionId))
+    if (!workflowIdIsValid(sessionId)) {
       throw ArgumentError('Invalid workflow session');
+    }
     _last = _ticks();
     if (_last < 0) _valid = false;
   }
@@ -227,8 +244,9 @@ class WorkflowMeter {
 
   Map<String, dynamic> event(String kind,
       {required DateTime at, Map<String, dynamic> fields = const {}}) {
-    if (fields.keys.any(_base.contains))
+    if (fields.keys.any(_base.contains)) {
       throw ArgumentError('Cannot replace workflow identity/timing');
+    }
     _advance();
     return validateWorkflowEvent({
       'kind': kind,
@@ -279,8 +297,9 @@ Map<String, dynamic> validateWorkflowExport(Map<String, dynamic> value) {
       value['measurementEnabled'] is! bool ||
       value['timingDefinition'] !=
           'editor_foreground_minus_analysis_wait_proxy_v1' ||
-      value['meals'] is! List)
+      value['meals'] is! List) {
     throw const FormatException('Unsupported workflow export');
+  }
   _utc(value['exportedAtUtc']);
   _integer(value['currentProcessWriteFailures'], maximum: 9007199254740991);
   final ids = <String>{};
@@ -310,25 +329,31 @@ Map<String, dynamic> validateWorkflowExport(Map<String, dynamic> value) {
           'confirmed_repeat',
           'unknown',
           if (value['schemaVersion'] == 2) 'food_correction'
-        }.contains(row['source']))
+        }.contains(row['source'])) {
       throw const FormatException('Invalid workflow meal identity/source');
+    }
     final kcal = row['currentServedKcal'];
     if (kcal != null &&
-        (kcal is! num || !kcal.isFinite || kcal < 0 || kcal > 1000000))
+        (kcal is! num || !kcal.isFinite || kcal < 0 || kcal > 1000000)) {
       throw const FormatException('Invalid workflow kcal');
+    }
     if (row['missingMeasurements'] is! bool ||
         row['readFailure'] is! bool ||
-        row['events'] is! List)
+        row['events'] is! List) {
       throw const FormatException('Invalid workflow log status');
-    if (row['droppedEvents'] != null)
+    }
+    if (row['droppedEvents'] != null) {
       _integer(row['droppedEvents'], maximum: 9007199254740991);
-    if (row['truncated'] != null && row['truncated'] is! bool)
+    }
+    if (row['truncated'] != null && row['truncated'] is! bool) {
       throw const FormatException('Invalid workflow truncation flag');
+    }
     if (row['missingMeasurements'] == false &&
         row['readFailure'] == false &&
         (row['droppedEvents'] == null ||
-            row['truncated'] != ((row['droppedEvents'] as int) > 0)))
+            row['truncated'] != ((row['droppedEvents'] as int) > 0))) {
       throw const FormatException('Inconsistent workflow truncation');
+    }
     validateWorkflowEvents(row['events'] as List,
         version: value['schemaVersion'] as int);
   }
@@ -339,8 +364,9 @@ class WorkflowExportTooLarge implements Exception {}
 
 String encodeWorkflowExport(Map<String, dynamic> value) {
   final text = jsonEncode(validateWorkflowExport(value));
-  if (utf8.encode(text).length > workflowExportByteLimit)
+  if (utf8.encode(text).length > workflowExportByteLimit) {
     throw WorkflowExportTooLarge();
+  }
   return text;
 }
 

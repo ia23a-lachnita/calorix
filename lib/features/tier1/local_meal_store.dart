@@ -25,14 +25,16 @@ class Tier1MealStore {
   Future<List<Tier1Meal>> _read() async {
     if (!await _file.exists()) return [];
     final value = jsonDecode(await _file.readAsString());
-    if (value is! List)
+    if (value is! List) {
       throw const FormatException('Invalid local meal history');
+    }
     try {
       final meals = value
           .map((v) => Tier1Meal.fromJson(Map<String, dynamic>.from(v as Map)))
           .toList();
-      if (meals.map((m) => m.id).toSet().length != meals.length)
+      if (meals.map((m) => m.id).toSet().length != meals.length) {
         throw const FormatException('Duplicate local meal IDs');
+      }
       return meals;
     } on FormatException {
       rethrow;
@@ -48,8 +50,9 @@ class Tier1MealStore {
     await temporary.writeAsString(
         jsonEncode(meals.map((m) => m.toJson()).toList()),
         flush: true);
-    if (await _file.exists())
+    if (await _file.exists()) {
       await _file.copy('${root.path}/meals.previous.json');
+    }
     await temporary.rename(_file.path);
   }
 
@@ -79,8 +82,9 @@ class Tier1MealStore {
         all.removeWhere((m) => m.id == id);
         await _write(all);
         final owned = File('${root.path}/photos/$id.jpg');
-        if (found?.photoPath == owned.path && await owned.exists())
+        if (found?.photoPath == owned.path && await owned.exists()) {
           await owned.delete();
+        }
         // A backup retaining a deleted photo/recipe is not a deletion control.
         final backup = File('${root.path}/meals.previous.json');
         if (await backup.exists()) await backup.delete();
@@ -96,12 +100,14 @@ class Tier1MealStore {
   File _workflowPending(String id) =>
       File('${root.path}/workflows/$id.pending.json');
   Future<Map<String, dynamic>?> _readWorkflow(String id) async {
-    if (await _workflowPending(id).exists())
+    if (await _workflowPending(id).exists()) {
       throw const FormatException('Incomplete workflow write retained');
+    }
     final file = _workflowFile(id);
     if (!await file.exists()) return null;
-    if (await file.length() > workflowExportByteLimit)
+    if (await file.length() > workflowExportByteLimit) {
       throw const FormatException('Workflow journal too large');
+    }
     final raw = jsonDecode(await file.readAsString());
     if (raw is! Map) throw const FormatException('Invalid workflow journal');
     final value = Map<String, dynamic>.from(raw);
@@ -111,8 +117,9 @@ class Tier1MealStore {
         value['mealId'] != id ||
         value['events'] is! List ||
         value['droppedEvents'] is! int ||
-        (value['droppedEvents'] as int) < 0)
+        (value['droppedEvents'] as int) < 0) {
       throw const FormatException('Invalid workflow journal');
+    }
     final events = validateWorkflowEvents(value['events'] as List,
         version: value['schemaVersion'] as int);
     return {'events': events, 'droppedEvents': value['droppedEvents']};
@@ -195,8 +202,9 @@ class Tier1MealStore {
   }
 
   Future<String> retainPhoto(String id, String source) async {
-    if (!RegExp(r'^[a-zA-Z0-9_-]{1,80}$').hasMatch(id))
+    if (!RegExp(r'^[a-zA-Z0-9_-]{1,80}$').hasMatch(id)) {
       throw ArgumentError('Invalid photo ID');
+    }
     final photos = Directory('${root.path}/photos');
     await photos.create(recursive: true);
     final target = File('${photos.path}/$id.jpg');

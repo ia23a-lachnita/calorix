@@ -119,19 +119,22 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
               : const NoopWorkflowSink());
       await _refresh();
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error =
             'Could not open local history. Existing files were preserved.');
+      }
       return;
     }
     try {
-      if (_camera is CameraLifecycleService)
+      if (_camera is CameraLifecycleService) {
         await (_camera as CameraLifecycleService).resume();
+      }
       if (mounted) setState(() => _cameraWarning = null);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() =>
             _cameraWarning = 'Camera unavailable. Manual entry still works.');
+      }
     }
   }
 
@@ -150,9 +153,10 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       unawaited(lifecycle.resume().then((_) {
         if (mounted) setState(() => _cameraWarning = null);
       }).catchError((_) {
-        if (mounted)
+        if (mounted) {
           setState(() =>
               _cameraWarning = 'Camera unavailable. Manual entry still works.');
+        }
       }));
     } else {
       unawaited(lifecycle.pause());
@@ -162,8 +166,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    if (_camera is CameraLifecycleService)
+    if (_camera is CameraLifecycleService) {
       unawaited((_camera as CameraLifecycleService).dispose());
+    }
     super.dispose();
   }
 
@@ -188,9 +193,10 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       await _refresh();
       if (mounted) setState(() => _history = true);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error =
             'Could not refresh local history. Reopen the app to check saved values.');
+      }
     }
   }
 
@@ -201,8 +207,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     try {
       if (!await _camera.hasPermission()) {
         final permission = await _camera.requestPermission();
-        if (permission != CameraPermissionRequestResult.granted)
+        if (permission != CameraPermissionRequestResult.granted) {
           throw StateError('Camera permission needed');
+        }
       }
       final shutter = widget.clock.now();
       final shutterTick = _ticks();
@@ -217,7 +224,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       if (bytes.length > 30 * 1024 * 1024 ||
           bytes.length < 8 ||
           bytes[0] != 255 ||
-          bytes[1] != 216) throw const FormatException('JPEG capture required');
+          bytes[1] != 216) {
+        throw const FormatException('JPEG capture required');
+      }
       final codec = await ui.instantiateImageCodec(bytes);
       final frame = await codec.getNextFrame();
       final width = frame.image.width, height = frame.image.height;
@@ -267,10 +276,11 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                 mounted && startedForeground && _lifecycleEpoch == offerEpoch);
       }
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content:
                 Text('Photo could not be saved. Retake or use manual entry.')));
+      }
     } finally {
       if (ownedCapture != null) {
         try {
@@ -652,9 +662,10 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
           {'beforeKcal': before, 'afterKcal': _meal.served?.kcal});
       if (mounted) Navigator.pop(context);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(
             () => _message = 'Could not save. Existing history was preserved.');
+      }
     }
   }
 
@@ -713,20 +724,23 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       }
       if (applied) {
         _frameWanted = true;
-        if (_meal.hasPendingPreparationQuestion)
+        if (_meal.hasPendingPreparationQuestion) {
           _trace('preparation_available');
+        }
       }
-      if (mounted)
+      if (mounted) {
         setState(() => _message = applied
             ? 'Approximate estimate saved. Check the foods and portions.'
             : 'Your newer changes were kept; this result was discarded.');
+      }
     } catch (_) {
       _trace(committed ? 'analysis_refresh_failed' : 'analysis_failed',
           {'clientAnalysisMs': _duration(started)});
-      if (mounted)
+      if (mounted) {
         setState(() => _message = committed
             ? 'Estimate saved, but could not refresh. Reopen the meal to check saved values.'
             : 'Photo analysis is unavailable. Your photo is saved on this phone. Enter or correct the meal below.');
+      }
     } finally {
       _meter.setWaiting(false);
       if (mounted) {
@@ -760,8 +774,9 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       _fill();
       if (mounted) setState(() {});
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() => _message = 'Could not save the preparation answer.');
+      }
     }
   }
 
@@ -917,9 +932,10 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
             'Portion saved. Check the totals; the eaten mark was cleared.';
       });
     } catch (_) {
-      if (!committed)
+      if (!committed) {
         _trace('portion_failed',
             {'portionIndex': index, 'dialogForegroundMs': measuredDialog()});
+      }
       if (!mounted) return;
       if (committed) {
         final messenger = ScaffoldMessenger.of(context);
@@ -1005,9 +1021,10 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
             'Food saved. Check the totals and portion; the eaten mark was cleared.';
       });
     } catch (_) {
-      if (!committed)
+      if (!committed) {
         _trace('food_failed',
             {'portionIndex': index, 'dialogForegroundMs': measuredDialog()});
+      }
       if (!mounted) return;
       if (committed) {
         final messenger = ScaffoldMessenger.of(context);
@@ -1079,9 +1096,10 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       _trace('repeat_saved');
       if (mounted) Navigator.pop(context);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(
             () => _message = 'Could not save the repeated meal. Try again.');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -1110,9 +1128,10 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       if (mounted) Navigator.pop(context);
     } catch (_) {
       _deleted = false;
-      if (mounted)
+      if (mounted) {
         setState(() => _message =
             'Deletion could not finish. Check local storage and try again.');
+      }
     }
   }
 
@@ -1125,8 +1144,9 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(labelText: label),
           validator: (text) {
-            if (text == null || text.trim().isEmpty)
+            if (text == null || text.trim().isEmpty) {
               return isRequired ? 'Enter the calories' : null;
+            }
             final n = double.tryParse(text);
             return n == null || !n.isFinite || n < 0 || n > 1000000
                 ? 'Enter a finite value from 0 to 1000000'

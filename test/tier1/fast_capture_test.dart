@@ -29,8 +29,9 @@ class _PhotoStore extends Tier1MealStore {
   @override
   Future<void> save(Tier1Meal value) async {
     if (!saveAttempt.isCompleted) saveAttempt.complete();
-    if (rejectSave)
+    if (rejectSave) {
       throw const FileSystemException('synthetic parent save failure');
+    }
     final index = records.indexWhere((m) => m.id == value.id);
     final saved =
         value.withRevision(index < 0 ? 1 : records[index].revision + 1);
@@ -95,8 +96,9 @@ Future<void> _until(WidgetTester t, bool Function() completed) async {
   // Readiness is the observed completion condition, never a guessed delay.
   final elapsed = Stopwatch()..start();
   while (!completed()) {
-    if (elapsed.elapsed > const Duration(seconds: 10))
+    if (elapsed.elapsed > const Duration(seconds: 10)) {
       throw TimeoutException('Capture pipeline did not complete');
+    }
     await t.pump(const Duration(milliseconds: 16));
     await t
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 1)));
