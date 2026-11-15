@@ -34,7 +34,7 @@ dart format lib/features/tier1 test/tier1                      # pinned Dart 3.1
 ```
 Open the PNGs with your image reader, or send them to Gemini (`ask-ai`, `@/abs/path.png`). To add a state, add a
 `testWidgets` block to `tool/ui/tier1_shots_test.dart`. The camera area renders empty there (fake camera); every
-other pixel is the real widget tree with the real fonts. Shots from 2026-11-15 (worktree `48d9424`, after the fixes) are in
+other pixel is the real widget tree with the real fonts. Shots from 2026-11-15 (worktree `f7ecd0c`, after the fixes) are in
 `docs/live-app-screenshots/tier1-2026-11-15/`.
 
 **Verdict:** a working pilot with default Material forms. None of the product's identity is on screen: no macro
@@ -45,6 +45,12 @@ the dark theme's seeded `onPrimary` was dark navy; both schemes now state it in 
 1 is WITHDRAWN: `AppName` is an intentional placeholder (comment in `app_constants.dart`); the owner must name the
 app. 5 and 8 DONE in `48d9424` (day headers with served totals, time and macro dots per row, a today line on home; test added). 6 (plain wording) is NOT DONE: tests assert the current strings, and the served/consumed vocabulary looks deliberate, so ask the owner before rewording. Lesson from 5: never call `toLocal()` on a clock value in Tier1; test clocks hand out `TZDateTime` and it throws without the timezone database (use `_localTime`). Grok's free limit ran
 out on its first task on 2026-11-15, so the main host made these edits directly, as the owner allowed.
+
+**Photo estimate screen (the core result, rendered as `06`–`08`):** DONE in `f7ecd0c`: recognized foods are cards,
+the open question is an amber block. Still weak there, in order: (a) no kcal per food on its card; (b) the raw
+record id (`usda:169756`) is shown to the user; (c) "Unverified model nutrient estimate" is internal wording;
+(d) the totals at the top are five form fields, not a summary (kcal large, macros with their colour dots) with
+an Edit button. (d) is the next big step and wants the owner's answer on design direction first.
 
 **Defects, most visible first** (`lib/features/tier1/tier1_app.dart` unless noted):
 1. [App bar title] shows the literal `AppName` (`lib/core/constants/app_constants.dart:3`). Set it to `Calorix`.
