@@ -20,25 +20,56 @@ add it to this table.
 **Ratio check:** since 2026-10-01, the newest worktree has 504 commits; 260 touch only .md/.json (212 start with
 "Record"). The last week is healthier (111 of 137 touch code). Keep it that way (REASONING_HABITS rules 24–27).
 
-## 2. The UI that ships is Tier1, and nobody has looked at it
+## 2. Tier1 has now been looked at (2026-11-15) and it has no design yet
 
-In the newest worktree, `lib/main.dart` boots `Tier1App` (`lib/features/tier1/`, about 2,600 lines, "local-first
-workflow, legacy Firebase services never mounted"). The designed Today/Scan/History UI from
-`docs/design-handoff/` is **not mounted** on that branch. So the polished mockups are not what the owner sees.
+**How to see it (no phone, no emulator, 15 seconds).** Flutter 3.41.9 is installed on this Pi at
+`~/.local/share/flutter-3.41.9` (there is no FVM here; put its `bin` on PATH instead of `fvm flutter`).
+In the newest worktree:
 
-**Next step 1 (blocking all UI judgement):** get eyes on Tier1.
-1. Owner unlocks the Samsung (it was locked at 2026-11-14, `mDreamingLockscreen=true`). ARTEMIS also refuses to run while it is locked.
-2. Install the CI test APK for the worktree's pushed HEAD (AGENTS.md CI cadence; there is no Flutter SDK on this Pi).
-3. `phone-adb exec-out screencap -p > tier1-<screen>.png` for every Tier1 screen: capture, food selection, the meal
-   editor, the list, and export.
-4. Judge each with RUBRIC.md, then with Gemini (`ask-ai`, `@png`; it can see images, verified 2026-11-14). Write 3
-   `[element] [defect] [fix]` per screen into this file.
-5. Decide with the owner: does Tier1 adopt the design tokens and components of the handoff, or does the handoff
-   UI come back once the pilot ends? Without that decision, UI polish has no target.
+```
+export PATH=$HOME/.local/share/flutter-3.41.9/bin:$PATH
+flutter test --update-goldens tool/ui/tier1_shots_test.dart   # writes tool/ui/shots/*.png (390x844, light+dark)
+flutter test test/tier1                                        # 105 tests, about 2 minutes
+dart format lib/features/tier1 test/tier1                      # pinned Dart 3.11.5; do not use another Dart
+```
+Open the PNGs with your image reader, or send them to Gemini (`ask-ai`, `@/abs/path.png`). To add a state, add a
+`testWidgets` block to `tool/ui/tier1_shots_test.dart`. The camera area renders empty there (fake camera); every
+other pixel is the real widget tree with the real fonts. Shots from 2026-11-15 (worktree `503496d`) are in
+`docs/live-app-screenshots/tier1-2026-11-15/`.
 
-**Code hygiene:** Tier1 Dart is unformatted (`if(value==null)return '';`, many statements per line). Run
-`fvm dart format lib/features/tier1 test/tier1` in CI or on a machine with the SDK, as its own commit
-(no behavior change).
+**Verdict:** a working pilot with default Material forms. None of the product's identity is on screen: no macro
+colors, no daily total, no ring, and the app bar says "AppName".
+
+**Defects, most visible first** (`lib/features/tier1/tier1_app.dart` unless noted):
+1. [App bar title] shows the literal `AppName` (`lib/core/constants/app_constants.dart:3`). Set it to `Calorix`.
+2. [Meal editor header] the status line ("Confirmed consumed · 459 kcal") touches and overlaps the floating
+   "Meal name" label. Put 16px between the header block and the first field.
+3. [Meal editor, below Save] a divider sits directly under the helper text, then `Ate all` / `Ate half` /
+   `Leave unconfirmed` with no label. Add 16px above and below the divider and a label: "How much did you eat?"
+4. [Home] the primary action `Take photo` is a small pill; the secondary `Manual entry` is full width. Swap the
+   weights: `Take photo` full width and 56px high, `Manual entry` as a text button under it.
+5. [History rows] three identical grey fork icons, no time, no macros. Show `12:30 · 459 kcal`, then
+   `P 44 · C 56 · F 5` in the macro colors (protein `#3A5BFF`, carbs `#19D3D9`, fat `#1FCC74`), grouped under a
+   day header with that day's total.
+6. [Copy] "Approximate served calories", "Consumption not confirmed", "Saving corrections resets consumption to
+   unconfirmed. Missing macros stay unknown." are internal vocabulary. Suggested: "Estimated calories",
+   "Not marked as eaten", "Editing clears the eaten mark. Empty macros stay empty." Tests in `test/tier1`
+   assert on the old strings; change them in the same commit.
+7. [Manual entry] `Save meal` with nothing filled in is a full blue pill with dark text (looks broken, about
+   2.5:1). Give it the theme's disabled style. The export and delete icons show on an entry that does not exist
+   yet; hide them until the meal is saved.
+8. [Home] saved meals appear nowhere on the first screen and there is no "today" total. One line above the
+   buttons ("Today · 839 kcal · 2 meals", tappable to History) costs little and shows the product's point.
+
+**Still open with the owner:** does Tier1 take the design handoff's components (ring, nav), or only its tokens?
+Items 1–8 need no answer to that; they use tokens that already exist in `lib/core/theme/`.
+
+**Device check** still needs the unlocked Samsung (locked on 2026-11-14 and 2026-11-15). The renderer replaces it
+for layout and copy, not for camera, performance, or system insets.
+
+**Worktree commits this session:** `3b551cc` (AGENTS.md §3 routes corrected), `1b2e122` + `503496d` (Tier1
+formatted, renderer added). An unfinished emulator screenshot test from a cut-off agent was removed; the
+renderer above made it unnecessary.
 
 ## 3. Designed UI vs mockup (for when it returns)
 
@@ -65,7 +96,10 @@ Compared `docs/live-app-screenshots/round5/02_today.png` (2026-08, the last live
   `Model unavailable`. `opencode models --standalone` lists no `opencode/` free models, only `google/*`, and
   sometimes crashes with `ServiceUnavailableError: Location plugins did not finish activating`.
 - Status file: `qwen3.7-max` hit its free-tier quota.
-- **Result:** the mandatory strongest-first editing chain has no working free route. The owner must decide:
+- **Update 2026-11-15:** the owner logged Grok in (`grok-4.7` works) and said: when a worker route is down, the
+  main host edits code itself without asking; pushes and deploys are allowed at any time. Worktree AGENTS.md §3
+  is corrected (`3b551cc`). OpenCode's free quota can run out for the day.
+- **Result on 2026-11-14 (superseded by the update):** the mandatory strongest-first editing chain had no working free route. The owner must decide:
   fix auth and routes, or allow the main host to edit while routes are down. Do not burn sessions retrying dead routes.
 
 ## 5. Reminders
