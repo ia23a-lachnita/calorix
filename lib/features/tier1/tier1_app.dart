@@ -1468,11 +1468,12 @@ int _servedKcal(List<Tier1Meal> meals) =>
     meals.fold<double>(0, (sum, m) => sum + (m.served?.kcal ?? 0)).round();
 
 /// One line per meal in history: the estimate, then what was eaten of it.
+/// Kept short: on a 360dp phone a longer line wraps beside the time.
 String _mealLine(Tier1Meal meal) {
   final served = meal.served, eaten = meal.consumedKcal;
   if (served == null) return 'No estimate yet';
   final kcal = served.kcal.round();
-  return 'Estimated $kcal kcal · ${eaten == null ? 'not eaten yet' : eaten.round() == kcal ? 'eaten' : 'eaten ${eaten.round()} kcal'}';
+  return '$kcal kcal · ${eaten == null ? 'not eaten yet' : eaten.round() == kcal ? 'eaten' : 'eaten ${eaten.round()} kcal'}';
 }
 
 class _DayHeader extends StatelessWidget {

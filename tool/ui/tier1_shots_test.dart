@@ -4,7 +4,8 @@
 //
 //   flutter test --update-goldens tool/ui/tier1_shots_test.dart
 //
-// Output: tool/ui/shots/<state>-<light|dark>.png at 390x844 logical, 2x.
+// Output: tool/ui/shots/<state>-<light|dark>.png at 360x800 logical, 2x.
+// 360x800 is the owner's Samsung (SM-G780G); at 390 wide, lines that wrap on the phone did not.
 import 'dart:io';
 
 import 'package:calorix/core/time/clock.dart';
@@ -186,7 +187,7 @@ void main() {
     final mode = brightness.name;
 
     Future<void> boot(WidgetTester tester, Tier1MealStore store) async {
-      tester.view.physicalSize = const Size(780, 1688);
+      tester.view.physicalSize = const Size(720, 1600);
       tester.view.devicePixelRatio = 2;
       tester.platformDispatcher.platformBrightnessTestValue = brightness;
       addTearDown(tester.view.reset);

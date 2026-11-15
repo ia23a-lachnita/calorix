@@ -53,7 +53,7 @@ void main() {
     await tester.tap(find.text('Save meal'));
     await tester.pumpAndSettle();
     expect(find.text('Weighed test'), findsWidgets);
-    expect(find.textContaining('Estimated'), findsWidgets);
+    expect(find.textContaining('420 kcal · not eaten yet'), findsWidgets);
     expect(cloudStarts, 0);
     final saved = (await store.load()).single;
     expect(saved.served!.kcal, 420);
