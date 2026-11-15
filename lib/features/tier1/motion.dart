@@ -5,6 +5,7 @@ abstract final class Motion {
   static const fast = Duration(milliseconds: 150);
   static const medium = Duration(milliseconds: 220);
   static const count = Duration(milliseconds: 500);
+  static const ring = Duration(milliseconds: 700);
   static const curve = Curves.easeOutCubic;
 
   /// Zero when the phone is set to remove animations.

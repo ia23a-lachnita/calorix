@@ -115,7 +115,7 @@ void main() {
       await visible(tester, find.text('Save meal'));
       await tester.tap(find.text('Save meal'));
       await tester.pumpAndSettle();
-      expect(find.text('Camera'), findsOneWidget);
+      expect(find.text('SCAN'), findsOneWidget);
       expect(find.text('Meal estimate'), findsNothing);
       expect(tester.takeException(), isNull);
       final saved = (await data.load()).single;
@@ -155,7 +155,7 @@ void main() {
       await visible(tester, find.text('Save meal'));
       await tester.tap(find.text('Save meal'));
       await tester.pumpAndSettle();
-      expect(find.text('Camera'), findsOneWidget);
+      expect(find.text('SCAN'), findsOneWidget);
       expect(find.text('Meal estimate'), findsNothing);
       final saved = (await data.load()).single;
       expect(saved.served!.fatG, entry.key);
@@ -193,7 +193,7 @@ void main() {
     await visible(tester, find.text('Save meal'));
     await tester.tap(find.text('Save meal'));
     await tester.pumpAndSettle();
-    expect(find.text('Camera'), findsOneWidget);
+    expect(find.text('SCAN'), findsOneWidget);
     expect(find.text('Meal estimate'), findsNothing);
     final saved = (await data.load()).single;
     expect(saved.served!.fatG, artifact);

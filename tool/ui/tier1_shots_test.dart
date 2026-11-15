@@ -277,6 +277,9 @@ void main() {
     testWidgets('home with meals, then a meal opened ($mode)', (tester) async {
       await boot(tester, await _storeWithMeals());
       await shot(tester, '03-home-meals');
+      await tester.tap(find.text('Today'));
+      await tester.pumpAndSettle();
+      await shot(tester, '12-today');
       await tester.tap(find.text('History'));
       await tester.pumpAndSettle();
       await shot(tester, '04-history');

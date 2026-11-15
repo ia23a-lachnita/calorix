@@ -11,6 +11,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/time/clock.dart';
 import '../../shared/services/camera_service.dart';
+import '../../shared/widgets/macro_ring.dart';
 import 'local_meal.dart';
 import 'manual_nutrient_catalog.dart';
 import 'motion.dart';
@@ -100,7 +101,11 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       widget.elapsedMilliseconds?.call() ?? _elapsed.elapsedMilliseconds;
   List<Tier1Meal> _meals = [];
   String? _error, _cameraWarning;
-  bool _history = false, _busy = false;
+  // 0 Today, 1 Scan (the landing screen), 2 History.
+  int _tab = 1;
+  bool _busy = false;
+  bool get _history => _tab == 2;
+  set _history(bool value) => _tab = value ? 2 : 1;
   int _lifecycleEpoch = 0;
   @override
   void initState() {
@@ -311,7 +316,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             if (_todayMeals.isNotEmpty) ...[
               TextButton(
-                  onPressed: () => setState(() => _history = true),
+                  onPressed: () => setState(() => _tab = 0),
                   child: Text(
                       'Today · ${_eatenKcal(_todayMeals)} kcal · ${_todayMeals.length} ${_todayMeals.length == 1 ? 'meal' : 'meals'}')),
               const SizedBox(height: 8),
@@ -360,6 +365,228 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     return MaterialLocalizations.of(context).formatMediumDate(day);
   }
 
+  /// The day against its targets: the ring from the design, fed by what was
+  /// logged today. Targets are the app defaults until Tier1 has a goals screen.
+  Widget _todayView() {
+    final theme = Theme.of(context), scheme = theme.colorScheme;
+    final meals = _todayMeals;
+    double sum(double? Function(Tier1Nutrients n) pick) =>
+        meals.fold<double>(0, (total, m) {
+          final served = m.served;
+          if (served == null) return total;
+          // The eaten share of each macro follows the eaten share of the meal.
+          return total + (pick(served) ?? 0) * (m.consumedFraction ?? 1);
+        });
+    final kcal = _eatenKcal(meals);
+    const target = AppConstants.defaultKcalTarget;
+    final left = target - kcal;
+    final macros = <(String, double, int, Color)>[
+      (
+        'Protein',
+        sum((n) => n.proteinG),
+        AppConstants.defaultProteinTarget,
+        AppColors.protein
+      ),
+      (
+        'Carbs',
+        sum((n) => n.carbsG),
+        AppConstants.defaultCarbsTarget,
+        AppColors.carbs
+      ),
+      ('Fat', sum((n) => n.fatG), AppConstants.defaultFatTarget, AppColors.fat),
+    ];
+    return ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        children: [
+          Text('Today', style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 16),
+          Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: scheme.outline)),
+              child: Column(children: [
+                TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: Motion.of(context, Motion.ring),
+                    curve: Motion.curve,
+                    builder: (_, t, child) => MacroRing(
+                        size: 208,
+                        strokeWidth: 12,
+                        showGlow: false,
+                        proteinFraction: t * macros[0].$2 / macros[0].$3,
+                        carbsFraction: t * macros[1].$2 / macros[1].$3,
+                        fatFraction: t * macros[2].$2 / macros[2].$3,
+                        center: child),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      Text('KCAL EATEN',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                              letterSpacing: 1.6,
+                              color: scheme.onSurfaceVariant)),
+                      CountText(
+                          value: kcal,
+                          style: theme.textTheme.displaySmall
+                              ?.copyWith(fontWeight: FontWeight.w700)),
+                      Text('of $target',
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(color: scheme.onSurfaceVariant)),
+                      const SizedBox(height: 4),
+                      Text(left >= 0 ? '$left kcal left' : '${-left} kcal over',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  left >= 0 ? AppColors.fat : AppColors.amber)),
+                    ])),
+                const SizedBox(height: 20),
+                for (final (name, grams, goal, color) in macros)
+                  Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Column(children: [
+                        Row(children: [
+                          Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                  color: color, shape: BoxShape.circle)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                              child: Text(name,
+                                  style: theme.textTheme.titleSmall)),
+                          Text('${grams.round()} / $goal g',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontFeatures: const [
+                                    ui.FontFeature.tabularFigures()
+                                  ])),
+                        ]),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                            borderRadius: BorderRadius.circular(3),
+                            child: TweenAnimationBuilder<double>(
+                                tween: Tween(
+                                    begin: 0,
+                                    end: (grams / goal)
+                                        .clamp(0.0, 1.0)
+                                        .toDouble()),
+                                duration: Motion.of(context, Motion.ring),
+                                curve: Motion.curve,
+                                builder: (_, v, __) => LinearProgressIndicator(
+                                    value: v,
+                                    minHeight: 6,
+                                    color: color,
+                                    backgroundColor: scheme.outline))),
+                      ])),
+              ])),
+          const SizedBox(height: 16),
+          if (meals.isEmpty)
+            Text('Nothing logged today. Take a photo of your next meal.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: scheme.onSurfaceVariant))
+          else
+            for (final meal in meals)
+              ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(meal.name),
+                  subtitle: Text(_mealLine(meal)),
+                  trailing: Text(
+                      MaterialLocalizations.of(context).formatTimeOfDay(
+                          TimeOfDay.fromDateTime(_localTime(meal.capturedAt))),
+                      style: theme.textTheme.bodySmall),
+                  onTap: _error != null ? null : () => _open(meal)),
+        ]);
+  }
+
+  /// Bottom navigation from the design: two plain tabs around the scan
+  /// button with the brand gradient ring.
+  Widget _nav() {
+    final scheme = Theme.of(context).colorScheme;
+    Widget tab(int index, IconData icon, String label) {
+      final active = _tab == index;
+      final color = active ? scheme.onSurface : scheme.onSurfaceVariant;
+      return Expanded(
+          child: InkWell(
+              onTap: () => setState(() => _tab = index),
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(icon, color: color, size: 22),
+                    const SizedBox(height: 4),
+                    Text(label,
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight:
+                                active ? FontWeight.w700 : FontWeight.w500,
+                            color: color)),
+                    const SizedBox(height: 4),
+                    AnimatedContainer(
+                        duration: Motion.of(context, Motion.fast),
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                            color:
+                                active ? AppColors.carbs : Colors.transparent,
+                            shape: BoxShape.circle)),
+                  ]))));
+    }
+
+    return DecoratedBox(
+        decoration: BoxDecoration(
+            color: scheme.surface,
+            border: Border(top: BorderSide(color: scheme.outline))),
+        child: SafeArea(
+            top: false,
+            child: Row(children: [
+              tab(0, Icons.wb_twilight_outlined, 'Today'),
+              Pressable(
+                  child: Semantics(
+                      button: true,
+                      label: 'Scan',
+                      selected: _tab == 1,
+                      child: GestureDetector(
+                          // Anticipation: the first tap brings the camera, the
+                          // next one on the same spot takes the photo.
+                          onTap: () {
+                            if (_tab != 1) {
+                              setState(() => _tab = 1);
+                            } else if (!_busy) {
+                              _capture();
+                            }
+                          },
+                          child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                        width: 56,
+                                        height: 56,
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: SweepGradient(
+                                                colors:
+                                                    AppColors.sweepGradient)),
+                                        child: DecoratedBox(
+                                            decoration: BoxDecoration(
+                                                color: scheme.surface,
+                                                shape: BoxShape.circle),
+                                            child: Icon(
+                                                Icons.camera_alt_outlined,
+                                                color: scheme.onSurface))),
+                                    const SizedBox(height: 2),
+                                    const ExcludeSemantics(
+                                        child: Text('SCAN',
+                                            style: TextStyle(
+                                                fontSize: 9.5,
+                                                letterSpacing: 1.6,
+                                                fontWeight: FontWeight.w600))),
+                                  ]))))),
+              tab(2, Icons.history, 'History'),
+            ])));
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(title: const Text(AppConstants.appDisplayName), actions: [
@@ -371,9 +598,15 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                   : () => showWorkflowExport(context,
                       load: () => _workflow!.export(at: widget.clock.now())),
               icon: const Icon(Icons.download_outlined)),
-        TextButton(
-            onPressed: () => setState(() => _history = !_history),
-            child: Text(_history ? 'Camera' : 'History'))
+        TextButton.icon(
+            onPressed: _store == null || _error != null
+                ? null
+                : () => _open(Tier1Meal(
+                    id: const Uuid().v4(),
+                    capturedAt: widget.clock.now(),
+                    name: 'New meal')),
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: const Text('Manual entry'))
       ]),
       body: Column(children: [
         if (_error != null)
@@ -388,81 +621,69 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                     duration: Motion.of(context, Motion.medium),
                     switchInCurve: Motion.curve,
                     child: KeyedSubtree(
-                        key: ValueKey(_history),
-                        child: _history
-                            ? (_meals.isEmpty
-                                ? const Center(
-                                    child: Text(
-                                        'No saved meals yet. Take a photo or enter a meal.'))
-                                : ListView.builder(
-                                    itemCount: _meals.length,
-                                    itemBuilder: (context, index) {
-                                      final meal = _meals[index];
-                                      final day = _dayOf(meal.capturedAt);
-                                      final startsDay = index == 0 ||
-                                          _dayOf(_meals[index - 1]
-                                                  .capturedAt) !=
-                                              day;
-                                      final tile = ListTile(
-                                          leading: meal.photoPath == null
-                                              ? const Icon(Icons.restaurant)
-                                              : ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  child: Image.file(
-                                                      File(meal.photoPath!),
-                                                      width: 56,
-                                                      height: 56,
-                                                      fit: BoxFit.cover,
-                                                      errorBuilder: (_, __,
-                                                              ___) =>
-                                                          const Icon(Icons
-                                                              .image_not_supported_outlined))),
-                                          title: Text(meal.name),
-                                          trailing: Text(
-                                              MaterialLocalizations.of(context)
-                                                  .formatTimeOfDay(
-                                                      TimeOfDay.fromDateTime(_localTime(meal.capturedAt))),
-                                              style: Theme.of(context).textTheme.bodySmall),
-                                          subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                            Text(_mealLine(meal)),
-                                            if (meal.served != null)
-                                              _MacroLine(meal.served!),
-                                          ]),
-                                          isThreeLine: true,
-                                          onTap: _error != null ? null : () => _open(meal));
-                                      if (!startsDay) return tile;
-                                      return Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.stretch,
-                                          children: [
-                                            _DayHeader(
-                                                label: _dayLabel(day),
-                                                meals: _meals
-                                                    .where((m) =>
-                                                        _dayOf(m.capturedAt) ==
-                                                        day)
-                                                    .toList()),
-                                            tile
-                                          ]);
-                                    }))
-                            : _cameraView()))),
-        SafeArea(
-            top: false,
-            child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(children: [
-                  Expanded(
-                      child: TextButton.icon(
-                          onPressed: _store == null || _error != null
-                              ? null
-                              : () => _open(Tier1Meal(
-                                  id: const Uuid().v4(),
-                                  capturedAt: widget.clock.now(),
-                                  name: 'New meal')),
-                          icon: const Icon(Icons.edit_outlined),
-                          label: const Text('Manual entry'))),
-                ]))),
+                        key: ValueKey(_tab),
+                        child: _tab == 0
+                            ? _todayView()
+                            : _history
+                                ? (_meals.isEmpty
+                                    ? const Center(
+                                        child: Text(
+                                            'No saved meals yet. Take a photo or enter a meal.'))
+                                    : ListView.builder(
+                                        itemCount: _meals.length,
+                                        itemBuilder: (context, index) {
+                                          final meal = _meals[index];
+                                          final day = _dayOf(meal.capturedAt);
+                                          final startsDay = index == 0 ||
+                                              _dayOf(_meals[index - 1]
+                                                      .capturedAt) !=
+                                                  day;
+                                          final tile = ListTile(
+                                              leading: meal.photoPath == null
+                                                  ? const Icon(Icons.restaurant)
+                                                  : ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                      child: Image.file(
+                                                          File(meal.photoPath!),
+                                                          width: 56,
+                                                          height: 56,
+                                                          fit: BoxFit.cover,
+                                                          errorBuilder: (_, __,
+                                                                  ___) =>
+                                                              const Icon(Icons
+                                                                  .image_not_supported_outlined))),
+                                              title: Text(meal.name),
+                                              trailing: Text(
+                                                  MaterialLocalizations.of(context)
+                                                      .formatTimeOfDay(TimeOfDay.fromDateTime(_localTime(meal.capturedAt))),
+                                                  style: Theme.of(context).textTheme.bodySmall),
+                                              subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                                Text(_mealLine(meal)),
+                                                if (meal.served != null)
+                                                  _MacroLine(meal.served!),
+                                              ]),
+                                              isThreeLine: true,
+                                              onTap: _error != null ? null : () => _open(meal));
+                                          if (!startsDay) return tile;
+                                          return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.stretch,
+                                              children: [
+                                                _DayHeader(
+                                                    label: _dayLabel(day),
+                                                    meals: _meals
+                                                        .where((m) =>
+                                                            _dayOf(
+                                                                m.capturedAt) ==
+                                                            day)
+                                                        .toList()),
+                                                tile
+                                              ]);
+                                        }))
+                                : _cameraView()))),
+        _nav(),
       ]));
 }
 

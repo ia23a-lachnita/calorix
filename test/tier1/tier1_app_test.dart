@@ -83,7 +83,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Today · 839 kcal · 2 meals'));
     await tester.pumpAndSettle();
-    expect(find.text('Today'), findsOneWidget);
+    // the Today tab: the ring's figure against the default target
+    expect(find.text('KCAL EATEN'), findsOneWidget);
+    expect(find.text('839'), findsOneWidget);
+    expect(find.text('1561 kcal left'), findsOneWidget);
+    expect(find.text('44 / 170 g'), findsOneWidget);
+    await tester.tap(find.text('History'));
+    await tester.pumpAndSettle();
+    // the day header and the tab label
+    expect(find.text('Today'), findsNWidgets(2));
     expect(find.text('839 kcal'), findsOneWidget);
     // the day total and that day's only meal
     expect(find.text('720 kcal'), findsNWidgets(2));
@@ -130,7 +138,7 @@ void main() {
         (await store.load()).where((m) => m.repeatOf == 'repeat-source').single;
     expect(repeated.served!.kcal, 630);
     expect(repeated.consumedKcal, isNull);
-    expect(find.text('Camera'), findsOneWidget);
+    expect(find.text('SCAN'), findsOneWidget);
   });
 
   testWidgets('cancel repeat preserves the source and stays in the editor',
