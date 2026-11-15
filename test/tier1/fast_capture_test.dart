@@ -230,6 +230,8 @@ void main() {
     expect(store.records.single.cloudConsent, true);
     expect(store.records.single.consumedFraction, isNull);
     expect(store.records.single.photoPath, isNotNull);
+    await t.tap(find.text('Edit totals'));
+    await t.pumpAndSettle();
     expect(
         t
             .widget<TextFormField>(

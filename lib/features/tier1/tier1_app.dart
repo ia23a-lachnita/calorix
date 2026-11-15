@@ -482,7 +482,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       TextEditingController(text: _displayNutrient(_meal.served?.carbsG));
   late final _fat =
       TextEditingController(text: _displayNutrient(_meal.served?.fatG));
-  bool _busy = false, _dirty = false;
+  bool _busy = false, _dirty = false, _editTotals = false;
   String? _message;
   late final _meter = WorkflowMeter(
       sessionId: const Uuid().v4(),
@@ -1130,6 +1130,47 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 ? 'Enter a finite value from 0 to 1000000'
                 : null;
           });
+  Widget _summary(BuildContext context, Tier1Nutrients served, String status) {
+    final theme = Theme.of(context), scheme = theme.colorScheme;
+    return Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 8, 16),
+        decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: scheme.outline)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Expanded(
+                child: Text(_meal.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium)),
+            TextButton.icon(
+                onPressed:
+                    _busy ? null : () => setState(() => _editTotals = true),
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: const Text('Edit totals')),
+          ]),
+          Text.rich(
+              TextSpan(children: [
+                TextSpan(
+                    text: '${served.kcal.round()}',
+                    style: theme.textTheme.displayMedium
+                        ?.copyWith(fontWeight: FontWeight.w700)),
+                TextSpan(text: ' kcal', style: theme.textTheme.titleMedium),
+              ]),
+              semanticsLabel: '${served.kcal.round()} kilocalories'),
+          Text('Approximate served calories',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 4),
+          _MacroLine(served, labelled: true),
+          const SizedBox(height: 8),
+          Padding(
+              padding: const EdgeInsets.only(right: 12), child: Text(status)),
+        ]));
+  }
+
   @override
   Widget build(BuildContext context) {
     final analysis = _meal.analysis;
@@ -1137,6 +1178,13 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
         ? Map<String, dynamic>.from(analysis!['question'] as Map)
         : null;
     final canCorrect = _meal.canCorrectPortions;
+    final served = _meal.served;
+    // An estimate reads as a result first; the form appears on request, and
+    // straight away when there is nothing to show yet (manual entry).
+    final summary = served != null && !_editTotals;
+    final status = _meal.consumedKcal == null
+        ? 'Consumption not confirmed'
+        : 'Confirmed consumed · ${_meal.consumedKcal!.round()} kcal';
     return Scaffold(
         appBar: AppBar(title: const Text('Meal estimate'), actions: [
           // Nothing to export until the meal has been saved once. Delete stays:
@@ -1163,11 +1211,13 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                         errorBuilder: (_, __, ___) =>
                             const Text('Saved photo is unavailable'))),
               const SizedBox(height: 16),
-              Text('Approximate served calories',
-                  style: Theme.of(context).textTheme.headlineSmall),
-              Text(_meal.consumedKcal == null
-                  ? 'Consumption not confirmed'
-                  : 'Confirmed consumed · ${_meal.consumedKcal!.round()} kcal'),
+              if (summary)
+                _summary(context, served, status)
+              else ...[
+                Text('Approximate served calories',
+                    style: Theme.of(context).textTheme.headlineSmall),
+                Text(status),
+              ],
               const SizedBox(height: 16),
               if (_message != null)
                 Padding(
@@ -1178,23 +1228,25 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                     onPressed: _busy || _dirty ? null : _estimate,
                     icon: const Icon(Icons.auto_awesome_outlined),
                     label: Text(_busy ? 'Estimating…' : 'Estimate photo')),
-              TextFormField(
-                  controller: _name,
-                  enabled: !_busy,
-                  onChanged: (_) => setState(() => _dirty = true),
-                  decoration: const InputDecoration(labelText: 'Meal name'),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty || v.trim().length > 160
-                          ? 'Enter a meal name (up to 160 characters)'
-                          : null),
-              const SizedBox(height: 12),
-              _number('Served kcal', _kcal, isRequired: true),
-              const SizedBox(height: 12),
-              _number('Protein g (optional)', _protein),
-              const SizedBox(height: 12),
-              _number('Carbs g (optional)', _carbs),
-              const SizedBox(height: 12),
-              _number('Fat g (optional)', _fat),
+              if (!summary) ...[
+                TextFormField(
+                    controller: _name,
+                    enabled: !_busy,
+                    onChanged: (_) => setState(() => _dirty = true),
+                    decoration: const InputDecoration(labelText: 'Meal name'),
+                    validator: (v) =>
+                        v == null || v.trim().isEmpty || v.trim().length > 160
+                            ? 'Enter a meal name (up to 160 characters)'
+                            : null),
+                const SizedBox(height: 12),
+                _number('Served kcal', _kcal, isRequired: true),
+                const SizedBox(height: 12),
+                _number('Protein g (optional)', _protein),
+                const SizedBox(height: 12),
+                _number('Carbs g (optional)', _carbs),
+                const SizedBox(height: 12),
+                _number('Fat g (optional)', _fat),
+              ],
               const SizedBox(height: 16),
               FilledButton(
                   onPressed: _busy ? null : _save,
@@ -1388,8 +1440,9 @@ class _DayHeader extends StatelessWidget {
 /// number, never the text colour: cyan and green text fail contrast on the
 /// light background.
 class _MacroLine extends StatelessWidget {
-  const _MacroLine(this.nutrients);
+  const _MacroLine(this.nutrients, {this.labelled = false});
   final Tier1Nutrients nutrients;
+  final bool labelled;
   @override
   Widget build(BuildContext context) {
     final parts = <(String, double?, Color)>[
@@ -1409,6 +1462,10 @@ class _MacroLine extends StatelessWidget {
                   decoration:
                       BoxDecoration(color: color, shape: BoxShape.circle)),
               const SizedBox(width: 4),
+              if (labelled)
+                Text('$name ',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant)),
               Text('${grams!.round()} g',
                   semanticsLabel: '$name ${grams.round()} grams'),
             ])

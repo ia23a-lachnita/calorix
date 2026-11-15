@@ -238,6 +238,8 @@ void main() {
       'dirty totals disable portion editing and committed manual totals require disclosure',
       (tester) async {
     final store = await _openMeal(tester);
+    await tester.tap(find.text('Edit totals'));
+    await tester.pumpAndSettle();
     final kcal = find.widgetWithText(TextFormField, 'Served kcal');
     await tester.enterText(kcal, '999');
     await visible(tester, editAlmond());

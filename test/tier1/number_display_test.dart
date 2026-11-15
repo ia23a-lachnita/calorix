@@ -55,13 +55,16 @@ Map<String, dynamic> analysis({double fat = artifact}) => {
       'provenance': {'model': 'pinned-test'}
     };
 Future<void> open(WidgetTester tester, Tier1MealStore data,
-    {Tier1Cloud? cloud}) async {
+    {Tier1Cloud? cloud, bool editTotals = true}) async {
   await tester.pumpWidget(
       Tier1App(store: data, camera: FakeCameraService(), cloud: cloud));
   await tester.pumpAndSettle();
   await tester.tap(find.text('History'));
   await tester.pumpAndSettle();
   await tester.tap(find.text('Floating meal'));
+  await tester.pumpAndSettle();
+  if (!editTotals) return;
+  await tester.tap(find.text('Edit totals'));
   await tester.pumpAndSettle();
 }
 
@@ -171,13 +174,15 @@ void main() {
         photoPath: '/tier1-widget-only-missing-photo.jpg',
         source: 'photo'));
     final cloud = _Cloud();
-    await open(tester, data, cloud: cloud);
+    await open(tester, data, cloud: cloud, editTotals: false);
     await visible(tester, find.text('Estimate photo'));
     await tester.tap(find.text('Estimate photo'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Send photo'));
     await tester.pumpAndSettle();
     expect(cloud.calls, 1);
+    await tester.tap(find.text('Edit totals'));
+    await tester.pumpAndSettle();
     await visible(tester, field('Fat g (optional)'));
     expect(
         tester

@@ -210,6 +210,8 @@ void main() {
   });
   testWidgets('dirty whole-meal edit disables food correction', (t) async {
     await open(t);
+    await t.tap(find.text('Edit totals'));
+    await t.pumpAndSettle();
     await t.enterText(
         find.widgetWithText(TextFormField, 'Meal name'), 'Changed');
     final f = find.byTooltip('Change food for Almonds');
