@@ -444,6 +444,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                               color: scheme.onSurfaceVariant)),
                       CountText(
                           value: kcal,
+                          from: 0,
                           style: theme.textTheme.displaySmall
                               ?.copyWith(fontWeight: FontWeight.w700)),
                       Text('of $target',

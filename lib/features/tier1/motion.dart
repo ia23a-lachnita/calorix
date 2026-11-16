@@ -42,14 +42,17 @@ class _PressableState extends State<Pressable> {
           child: widget.child));
 }
 
-/// A whole number that counts from its previous value to the new one.
+/// A whole number that counts from its previous value to the new one. With
+/// [from] it also counts on first appearance; without, it appears settled
+/// (a tween with no begin starts at its end).
 class CountText extends StatelessWidget {
-  const CountText({super.key, required this.value, this.style});
+  const CountText({super.key, required this.value, this.style, this.from});
   final int value;
+  final int? from;
   final TextStyle? style;
   @override
   Widget build(BuildContext context) => TweenAnimationBuilder<double>(
-      tween: Tween(end: value.toDouble()),
+      tween: Tween(begin: from?.toDouble(), end: value.toDouble()),
       duration: Motion.of(context, Motion.count),
       curve: Motion.curve,
       builder: (_, v, __) => Text('${v.round()}', style: style));
