@@ -1449,12 +1449,18 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     }
   }
 
+  // The keyboard's action key walks the form: Next from field to field, and
+  // Done on the last one saves, so Save never has to be dug out from under
+  // the keyboard. scrollPadding keeps the Save button in view while typing.
   Widget _number(String label, TextEditingController controller,
-          {bool isRequired = false}) =>
+          {bool isRequired = false, bool last = false}) =>
       TextFormField(
           controller: controller,
           enabled: !_busy,
           onChanged: (_) => setState(() => _dirty = true),
+          textInputAction: last ? TextInputAction.done : TextInputAction.next,
+          onFieldSubmitted: last ? (_) => _save() : null,
+          scrollPadding: const EdgeInsets.only(bottom: 140),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(labelText: label),
           validator: (text) {
@@ -1597,6 +1603,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 TextFormField(
                     controller: _name,
                     enabled: !_busy,
+                    // a blank manual entry starts with the keyboard up
+                    autofocus: blank,
+                    textInputAction: TextInputAction.next,
+                    textCapitalization: TextCapitalization.sentences,
+                    scrollPadding: const EdgeInsets.only(bottom: 140),
                     onChanged: (_) => setState(() => _dirty = true),
                     decoration: const InputDecoration(labelText: 'Meal name'),
                     validator: (v) =>
@@ -1610,7 +1621,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 const SizedBox(height: 12),
                 _number('Carbs g (optional)', _carbs),
                 const SizedBox(height: 12),
-                _number('Fat g (optional)', _fat),
+                _number('Fat g (optional)', _fat, last: true),
               ],
               const SizedBox(height: 16),
               // Nothing to save while the summary is showing: the way out is a
