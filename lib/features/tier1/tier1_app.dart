@@ -327,11 +327,13 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
           right: 20,
           bottom: 24,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            if (_todayMeals.isNotEmpty) ...[
+            // Only meals that have calories: a photo still waiting for its
+            // estimate would otherwise show as "0 kcal · 1 meal".
+            if (_countedToday.isNotEmpty) ...[
               TextButton(
                   onPressed: () => setState(() => _tab = 0),
                   child: Text(
-                      'Today · ${_eatenKcal(_todayMeals)} kcal · ${_todayMeals.length} ${_todayMeals.length == 1 ? 'meal' : 'meals'}')),
+                      'Today · ${_eatenKcal(_countedToday)} kcal · ${_countedToday.length} ${_countedToday.length == 1 ? 'meal' : 'meals'}')),
               const SizedBox(height: 8),
             ],
             const Text(
@@ -370,6 +372,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     final today = _dayOf(widget.clock.now());
     return _meals.where((m) => _dayOf(m.capturedAt) == today).toList();
   }
+
+  List<Tier1Meal> get _countedToday =>
+      _todayMeals.where((m) => m.served != null).toList();
 
   String _dayLabel(DateTime day) {
     final days = _dayOf(widget.clock.now()).difference(day).inDays;
