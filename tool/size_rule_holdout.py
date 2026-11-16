@@ -57,8 +57,14 @@ def used_ids():
             if file.name.startswith(('nutritionverse_dish_metadata', 'updated-manual-dataset-splits', 'dish_metadata')):
                 continue
             text = file.read_text(errors='ignore')
-            n5k.update(re.findall(r'dish_1[0-9]{9}', text))
-            nv.update(re.findall(r'nv-dish-[0-9]+', text))
+            # A file naming hundreds of meals is a copy of the source
+            # listing, not a record of meals the model was run on.
+            found = set(re.findall(r'dish_1[0-9]{9}', text))
+            if len(found) <= 200:
+                n5k.update(found)
+            found = set(re.findall(r'nv-dish-[0-9]+', text))
+            if len(found) <= 60:
+                nv.update(found)
     return n5k, nv
 
 
