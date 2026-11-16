@@ -98,8 +98,8 @@ an Edit button. (d) is DONE in `bff13cb` (owner said yes): a summary card (name,
   Motion was then judged from a screen recording cut into frame strips
   (`/home/agent-runner/projects/_ui-review/phone-motion.sh`): slide and cross-fade are there; it showed that the
   Today figure did not count up on first appearance and that a photo without an estimate read "0 kcal · 1 meal"
-  (both fixed, `7adde99`). Known and left: after closing the editor the camera screen shows for a moment before
-  the fade to Today, because the tab changes only after the history is re-read.
+  (both fixed, `7adde99`). The camera flash after closing the editor is fixed too (`6754871`, seen on the
+  phone: the editor slides off Today and the figure counts 640 to 790). Accuracy numbers: `tool/pooled_a1_size_check.py`.
 - A logged meal counts as eaten; "Ate half" is the exception ("190 of 380 kcal eaten"). The word "served" is gone
   from the UI. Stored data is unchanged (`consumedFraction == null` now reads as "all").
 - A saved, unchanged meal closes with an outlined `Done`; `Save meal` shows only with the form.
