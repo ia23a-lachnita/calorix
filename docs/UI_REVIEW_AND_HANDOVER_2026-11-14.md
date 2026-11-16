@@ -94,7 +94,12 @@ an Edit button. (d) is DONE in `bff13cb` (owner said yes): a summary card (name,
   only filled button (render `14-photo-kept-local`). Camera capture and the consent dialog were checked on the
   Samsung with "Keep local"; no photo was sent.
   Checked on the Samsung on 2026-11-16 with the APK from run 43776290244 (`7aff81a`): all three tabs render
-  (`device-SM-G780G-tabs-2026-11-16.png`). Motion itself was not judged; that needs eyes on the phone.
+  (`device-SM-G780G-tabs-2026-11-16.png`).
+  Motion was then judged from a screen recording cut into frame strips
+  (`/home/agent-runner/projects/_ui-review/phone-motion.sh`): slide and cross-fade are there; it showed that the
+  Today figure did not count up on first appearance and that a photo without an estimate read "0 kcal · 1 meal"
+  (both fixed, `7adde99`). Known and left: after closing the editor the camera screen shows for a moment before
+  the fade to Today, because the tab changes only after the history is re-read.
 - A logged meal counts as eaten; "Ate half" is the exception ("190 of 380 kcal eaten"). The word "served" is gone
   from the UI. Stored data is unchanged (`consumedFraction == null` now reads as "all").
 - A saved, unchanged meal closes with an outlined `Done`; `Save meal` shows only with the form.
