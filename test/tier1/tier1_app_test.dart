@@ -94,7 +94,8 @@ void main() {
     expect(find.text('1561 kcal left'), findsOneWidget);
     expect(find.text('44 / 170 g'), findsOneWidget);
     // targets are the user's: change the calorie target and the ring follows
-    await tester.ensureVisible(find.text('Change targets'));
+    await tester.scrollUntilVisible(find.text('Change targets'), 200,
+        scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Change targets'));
     await tester.pumpAndSettle();

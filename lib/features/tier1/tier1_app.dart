@@ -401,6 +401,16 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     return ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
+          Text(
+              // "Saturday, November 14, 2026" -> "SATURDAY · NOVEMBER 14"
+              MaterialLocalizations.of(context)
+                  .formatFullDate(_dayOf(widget.clock.now()))
+                  .split(', ')
+                  .take(2)
+                  .join(' · ')
+                  .toUpperCase(),
+              style: theme.textTheme.labelSmall?.copyWith(
+                  letterSpacing: 1.4, color: scheme.onSurfaceVariant)),
           Text('Today', style: theme.textTheme.headlineMedium),
           const SizedBox(height: 16),
           Container(
@@ -492,18 +502,35 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                 style: theme.textTheme.bodyMedium
                     ?.copyWith(color: scheme.onSurfaceVariant))
           else
-            for (final meal in meals)
-              ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(meal.name),
-                  subtitle: Text(_mealLine(meal)),
-                  trailing: Text(
-                      MaterialLocalizations.of(context).formatTimeOfDay(
-                          TimeOfDay.fromDateTime(_localTime(meal.capturedAt))),
-                      style: theme.textTheme.bodySmall),
-                  onTap: _error != null ? null : () => _open(meal)),
+            for (final meal in meals) _mealTile(meal, padding: EdgeInsets.zero),
         ]);
   }
+
+  /// One meal as a row: photo or icon, name, what it counts for, its macros,
+  /// and the time. Shared by Today and History.
+  Widget _mealTile(Tier1Meal meal, {EdgeInsetsGeometry? padding}) => ListTile(
+      contentPadding: padding,
+      leading: meal.photoPath == null
+          ? const Icon(Icons.restaurant)
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.file(File(meal.photoPath!),
+                  width: 56,
+                  height: 56,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.image_not_supported_outlined))),
+      title: Text(meal.name),
+      trailing: Text(
+          MaterialLocalizations.of(context).formatTimeOfDay(
+              TimeOfDay.fromDateTime(_localTime(meal.capturedAt))),
+          style: Theme.of(context).textTheme.bodySmall),
+      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(_mealLine(meal)),
+        if (meal.served != null) _MacroLine(meal.served!),
+      ]),
+      isThreeLine: true,
+      onTap: _error != null ? null : () => _open(meal));
 
   Future<void> _editTargets() async {
     final form = GlobalKey<FormState>();
@@ -723,34 +750,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                                               _dayOf(_meals[index - 1]
                                                       .capturedAt) !=
                                                   day;
-                                          final tile = ListTile(
-                                              leading: meal.photoPath == null
-                                                  ? const Icon(Icons.restaurant)
-                                                  : ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                      child: Image.file(
-                                                          File(meal.photoPath!),
-                                                          width: 56,
-                                                          height: 56,
-                                                          fit: BoxFit.cover,
-                                                          errorBuilder: (_, __,
-                                                                  ___) =>
-                                                              const Icon(Icons
-                                                                  .image_not_supported_outlined))),
-                                              title: Text(meal.name),
-                                              trailing: Text(
-                                                  MaterialLocalizations.of(context)
-                                                      .formatTimeOfDay(TimeOfDay.fromDateTime(_localTime(meal.capturedAt))),
-                                                  style: Theme.of(context).textTheme.bodySmall),
-                                              subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                                Text(_mealLine(meal)),
-                                                if (meal.served != null)
-                                                  _MacroLine(meal.served!),
-                                              ]),
-                                              isThreeLine: true,
-                                              onTap: _error != null ? null : () => _open(meal));
+                                          final tile = _mealTile(meal);
                                           if (!startsDay) return tile;
                                           return Column(
                                               crossAxisAlignment:
