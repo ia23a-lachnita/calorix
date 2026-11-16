@@ -88,6 +88,11 @@ an Edit button. (d) is DONE in `bff13cb` (owner said yes): a summary card (name,
   screen; a second tap on it takes the photo), History. `Manual entry` moved to the app bar. Renders: `12-today`.
   `Change targets` on Today opens a sheet (`lib/features/tier1/targets.dart`, saved to `tier1/targets.json`; render `13-targets`).
   NEXT: the design's Goals and AI tabs, if the owner wants them in Tier1.
+- Anticipation fixes after using the phone (`abdf5d4` and three commits before): the keyboard's Next/Done
+  walks the manual form and Done saves; a blank manual entry opens with the keyboard up; after logging a meal
+  of today the app returns to Today; a photo kept on the phone reads "Your photo" with `Estimate photo` as the
+  only filled button (render `14-photo-kept-local`). Camera capture and the consent dialog were checked on the
+  Samsung with "Keep local"; no photo was sent.
   Checked on the Samsung on 2026-11-16 with the APK from run 43776290244 (`7aff81a`): all three tabs render
   (`device-SM-G780G-tabs-2026-11-16.png`). Motion itself was not judged; that needs eyes on the phone.
 - A logged meal counts as eaten; "Ate half" is the exception ("190 of 380 kcal eaten"). The word "served" is gone
