@@ -191,7 +191,10 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       bool startEstimate = false,
       bool Function()? allowInitialEstimate}) async {
     if (_store == null || _error != null) return;
-    await Navigator.of(context).push(MaterialPageRoute<void>(
+    // Coming from the camera, move to Today while the editor covers the
+    // screen, so closing it reveals the result instead of the camera.
+    final fromScan = _tab == 1;
+    final route = MaterialPageRoute<void>(
         builder: (_) => _MealEditor(
             meal: meal,
             store: _store!,
@@ -201,16 +204,29 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
             elapsedMilliseconds: _ticks,
             captureTick: captureTick,
             startEstimate: startEstimate,
-            allowInitialEstimate: allowInitialEstimate)));
+            allowInitialEstimate: allowInitialEstimate));
+    final closed = Navigator.of(context).push(route);
+    if (fromScan) {
+      void covered(AnimationStatus status) {
+        if (status != AnimationStatus.completed) return;
+        route.animation?.removeStatusListener(covered);
+        if (mounted && _tab == 1) setState(() => _tab = 0);
+      }
+
+      route.animation?.addStatusListener(covered);
+    }
+    await closed;
     if (!mounted) return;
     try {
       await _refresh();
       if (mounted) {
         // Back to where the result shows: a meal of today lands on Today,
-        // where the ring takes it in; anything else on History. A meal
-        // opened from a list returns to that list.
+        // where the ring takes it in; anything else on History. A discarded
+        // capture returns to the camera. A meal opened from a list returns
+        // to that list.
+        final kept = _meals.any((m) => m.id == meal.id);
         final today = _todayMeals.any((m) => m.id == meal.id);
-        setState(() => _tab = _tab == 1 ? (today ? 0 : 2) : _tab);
+        if (fromScan) setState(() => _tab = !kept ? 1 : (today ? 0 : 2));
       }
     } catch (_) {
       if (mounted) {
