@@ -106,7 +106,6 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   int _tab = 1;
   bool _busy = false;
   bool get _history => _tab == 2;
-  set _history(bool value) => _tab = value ? 2 : 1;
   Tier1TargetStore _targetStore = Tier1TargetStore();
   Tier1Targets _targets = Tier1Targets.defaults;
   int _lifecycleEpoch = 0;
