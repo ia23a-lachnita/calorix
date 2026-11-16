@@ -246,6 +246,22 @@ void main() {
       await shot(tester, '09-edit-totals');
     });
 
+    testWidgets('photo kept on the phone, no estimate ($mode)', (tester) async {
+      final store = _MemoryStore();
+      await store.save(Tier1Meal(
+          id: 'k',
+          capturedAt: DateTime(2026, 11, 14, 12, 30),
+          name: 'New meal',
+          photoPath: '/tier1-shot-missing.jpg',
+          source: 'photo'));
+      await boot(tester, store);
+      await tester.tap(find.text('History'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New meal'));
+      await tester.pumpAndSettle();
+      await shot(tester, '14-photo-kept-local');
+    });
+
     testWidgets('portion and food dialogs ($mode)', (tester) async {
       final store = _MemoryStore();
       await store.save(Tier1Meal(

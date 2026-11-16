@@ -1589,8 +1589,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                   Text('What did you eat?',
                       style: Theme.of(context).textTheme.headlineSmall)
                 else ...[
-                  Text('Estimated calories',
+                  // a photo kept on the phone has no estimate to speak of yet
+                  Text(served == null ? 'Your photo' : 'Estimated calories',
                       style: Theme.of(context).textTheme.headlineSmall),
+                  if (served == null)
+                    const Text('Estimate it, or fill in the meal yourself.'),
                   if (status.isNotEmpty) Text(status),
                 ],
               ],
@@ -1599,11 +1602,23 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(_message!, semanticsLabel: _message)),
-              if (_meal.photoPath != null)
-                FilledButton.icon(
-                    onPressed: _busy || _dirty ? null : _estimate,
-                    icon: const Icon(Icons.auto_awesome_outlined),
-                    label: Text(_busy ? 'Estimating…' : 'Estimate photo')),
+              // One filled button per screen: estimating leads until there is
+              // an estimate, then it steps back to a tonal "again".
+              if (_meal.photoPath != null) ...[
+                Pressable(
+                    child: served == null
+                        ? FilledButton.icon(
+                            onPressed: _busy || _dirty ? null : _estimate,
+                            icon: const Icon(Icons.auto_awesome_outlined),
+                            label:
+                                Text(_busy ? 'Estimating…' : 'Estimate photo'))
+                        : FilledButton.tonalIcon(
+                            onPressed: _busy || _dirty ? null : _estimate,
+                            icon: const Icon(Icons.auto_awesome_outlined),
+                            label: Text(
+                                _busy ? 'Estimating…' : 'Estimate photo'))),
+                const SizedBox(height: 12),
+              ],
               if (!summary) ...[
                 TextFormField(
                     controller: _name,
@@ -1638,9 +1653,13 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                         child: const Text('Done')))
               else ...[
                 Pressable(
-                    child: FilledButton(
-                        onPressed: _busy ? null : _save,
-                        child: const Text('Save meal'))),
+                    child: served == null && _meal.photoPath != null
+                        ? FilledButton.tonal(
+                            onPressed: _busy ? null : _save,
+                            child: const Text('Save meal'))
+                        : FilledButton(
+                            onPressed: _busy ? null : _save,
+                            child: const Text('Save meal'))),
                 const SizedBox(height: 8),
                 Text(blank
                     ? 'Protein, carbs and fat are optional.'
