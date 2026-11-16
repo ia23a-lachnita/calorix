@@ -154,3 +154,19 @@ Compared `docs/live-app-screenshots/round5/02_today.png` (2026-08, the last live
 ## 5. Reminders
 - The commit-msg hook rejects `AI`, `Claude`, `Gemini`, `Generated`, `Co-Authored-By` and similar. Write plain messages.
 - `phone-adb` only. Never plain `adb`.
+
+## Estimate accuracy: where it stands (read 2026-11-16, no code changed)
+
+- Live route: one `gemini-3.8-flash` call per photo (`functions/src/tier1-analysis.ts`), six USDA records, everything
+  else is the model's own per-100 g guess. The app sends only the JPEG, no user text.
+- All evidence is Nutrition5k cafeteria photos. Weighed phone meals: 0. Reports: `pilot_report.md` in the worktree.
+- Pooling the per-meal tables already in `docs/tier1-mass-power-2026-11-10/cases.csv` and
+  `docs/tier1-food-agreement-2026-11-11/per-case.csv` (79 meals, A1 rows): mean error 132 kcal, bias -96.
+  Under 200 kcal the model reads 37% high (median); over 500 kcal it reads low on 21 of 21 meals, median 36% low.
+- A single factor (x1.31 when the estimate is 150 kcal or more) cuts mean error to 106 kcal leave-one-out (19%).
+  Earlier runs rejected the same idea because each 10-meal cohort alone missed a 10% bar. Not shipped: owner decides.
+- Tried and rejected by earlier agents, do not repeat: second photo, coin for scale, high thinking, portion-audit
+  prompt, Argon model, 73-record catalog, name-based priors. The specialist model wins on Nutrition5k only, needs
+  32 s on a Pi, and fails on other photo sets.
+- Untested and likely worth more than any of the above: a typed note sent with the photo ("250 g pasta, 2 tbsp oil"),
+  and a barcode route for packaged food.
