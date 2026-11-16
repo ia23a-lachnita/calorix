@@ -52,6 +52,11 @@ void main() {
     await tester.ensureVisible(find.text('Save meal'));
     await tester.tap(find.text('Save meal'));
     await tester.pumpAndSettle();
+    // a meal of today lands on the Today tab, counted by the ring
+    expect(find.text('KCAL EATEN'), findsOneWidget);
+    expect(find.text('420'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Weighed test'), 200,
+        scrollable: find.byType(Scrollable).first);
     expect(find.text('Weighed test'), findsWidgets);
     expect(find.textContaining('420 kcal'), findsWidgets);
     expect(cloudStarts, 0);

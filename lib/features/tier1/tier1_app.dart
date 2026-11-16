@@ -206,7 +206,13 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     if (!mounted) return;
     try {
       await _refresh();
-      if (mounted) setState(() => _history = true);
+      if (mounted) {
+        // Back to where the result shows: a meal of today lands on Today,
+        // where the ring takes it in; anything else on History. A meal
+        // opened from a list returns to that list.
+        final today = _todayMeals.any((m) => m.id == meal.id);
+        setState(() => _tab = _tab == 1 ? (today ? 0 : 2) : _tab);
+      }
     } catch (_) {
       if (mounted) {
         setState(() => _error =
