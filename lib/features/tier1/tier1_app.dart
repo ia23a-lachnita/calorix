@@ -357,19 +357,44 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                 textAlign: TextAlign.center),
             const SizedBox(height: 16),
             Semantics(
-                label: 'Take meal photo',
+                label: _busy ? 'Saving photo' : 'Take meal photo',
                 button: true,
-                // The one primary action of the screen: full width, thumb-sized.
-                child: SizedBox(
-                    width: double.infinity,
-                    child: Pressable(
-                        child: FilledButton.icon(
-                            style: FilledButton.styleFrom(
-                                minimumSize: const Size.fromHeight(56)),
-                            onPressed: _busy ? null : _capture,
-                            icon: const Icon(Icons.camera_alt_outlined),
-                            label: Text(
-                                _busy ? 'Saving photo…' : 'Take photo'))))),
+                enabled: !_busy,
+                onTap: _busy ? null : _capture,
+                excludeSemantics: true,
+                child: Pressable(
+                    child: GestureDetector(
+                        excludeFromSemantics: true,
+                        onTap: _busy ? null : _capture,
+                        behavior: HitTestBehavior.opaque,
+                        child:
+                            Column(mainAxisSize: MainAxisSize.min, children: [
+                          Container(
+                              key: const ValueKey('tier1-capture-ring'),
+                              width: 80,
+                              height: 80,
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: const SweepGradient(
+                                      colors: AppColors.sweepGradient),
+                                  color: _busy
+                                      ? Theme.of(context).disabledColor
+                                      : null),
+                              child: Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .surface),
+                                  child: const DecoratedBox(
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: AppColors.textPrimaryDark)))),
+                          const SizedBox(height: 8),
+                          Text(_busy ? 'Saving photo…' : 'Take photo'),
+                        ])))),
           ])),
     ]);
   }
@@ -639,29 +664,34 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       final active = _tab == index;
       final color = active ? scheme.onSurface : scheme.onSurfaceVariant;
       return Expanded(
-          child: InkWell(
-              onTap: () => setState(() => _tab = index),
-              child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(icon, color: color, size: 22),
-                    const SizedBox(height: 4),
-                    Text(label,
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight:
-                                active ? FontWeight.w700 : FontWeight.w500,
-                            color: color)),
-                    const SizedBox(height: 4),
-                    AnimatedContainer(
-                        duration: Motion.of(context, Motion.fast),
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
-                            color:
-                                active ? AppColors.carbs : Colors.transparent,
-                            shape: BoxShape.circle)),
-                  ]))));
+          child: Semantics(
+              selected: active,
+              button: true,
+              child: InkWell(
+                  onTap: () => setState(() => _tab = index),
+                  child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(icon, color: color, size: 22),
+                        const SizedBox(height: 4),
+                        Text(label,
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight:
+                                    active ? FontWeight.w700 : FontWeight.w500,
+                                color: color)),
+                        const SizedBox(height: 4),
+                        AnimatedContainer(
+                            key: ValueKey('tab-dot-$index'),
+                            duration: Motion.of(context, Motion.fast),
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                                color: active
+                                    ? AppColors.carbs
+                                    : Colors.transparent,
+                                shape: BoxShape.circle)),
+                      ])))));
     }
 
     return DecoratedBox(
@@ -670,53 +700,10 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
             border: Border(top: BorderSide(color: scheme.outline))),
         child: SafeArea(
             top: false,
+            minimum: const EdgeInsets.only(bottom: 12),
             child: Row(children: [
               tab(0, Icons.wb_twilight_outlined, 'Today'),
-              Pressable(
-                  child: Semantics(
-                      button: true,
-                      label: 'Scan',
-                      selected: _tab == 1,
-                      child: GestureDetector(
-                          // Anticipation: the first tap brings the camera, the
-                          // next one on the same spot takes the photo.
-                          onTap: () {
-                            if (_tab != 1) {
-                              setState(() => _tab = 1);
-                            } else if (!_busy) {
-                              _capture();
-                            }
-                          },
-                          child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                        width: 56,
-                                        height: 56,
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            gradient: SweepGradient(
-                                                colors:
-                                                    AppColors.sweepGradient)),
-                                        child: DecoratedBox(
-                                            decoration: BoxDecoration(
-                                                color: scheme.surface,
-                                                shape: BoxShape.circle),
-                                            child: Icon(
-                                                Icons.camera_alt_outlined,
-                                                color: scheme.onSurface))),
-                                    const SizedBox(height: 2),
-                                    const ExcludeSemantics(
-                                        child: Text('SCAN',
-                                            style: TextStyle(
-                                                fontSize: 9.5,
-                                                letterSpacing: 1.6,
-                                                fontWeight: FontWeight.w600))),
-                                  ]))))),
+              tab(1, Icons.camera_alt_outlined, 'SCAN'),
               tab(2, Icons.history, 'History'),
             ])));
   }
@@ -742,6 +729,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
             icon: const Icon(Icons.edit_outlined, size: 18),
             label: const Text('Manual entry'))
       ]),
+      bottomNavigationBar: _nav(),
       body: Column(children: [
         if (_error != null)
           Padding(padding: const EdgeInsets.all(16), child: Text(_error!)),
@@ -790,7 +778,6 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                                               ]);
                                         }))
                                 : _cameraView()))),
-        _nav(),
       ]));
 }
 

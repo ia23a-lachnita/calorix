@@ -5,7 +5,11 @@ Rules for any UI work: `/home/agent-runner/projects/_ui-review/RUBRIC.md`. Habit
 
 ## Status — owner Android fixes (2026-11-17)
 
-Active checkout `/home/agent-runner/projects/calorix`, branch `main` (all feature work merged; owner instruction). Base `b608414`. Camera grant reproduced on Samsung: Android grants CAMERA, app shows Camera unavailable. Fix 1 serializes camera initialization/capture/cleanup; regression RED4 -> GREEN13, Tier1 baseline107pass, changed-file analysis clean, independent and Antigravity review green. Push accompanies this stage; fresh Samsung confirmation awaits its CI APK. Fixes 2–4 next; no cloud deployment.
+Active checkout `/home/agent-runner/projects/calorix`, `main`; historical feature worktrees below are superseded.
+1. Camera grant: `b0b3fc0` pushed. CI APK run `44159267355` passed; source/checksum/signer matched. Samsung cleared → Take photo → grant → saved-photo editor, screenshot opened; no Camera unavailable warning, no cloud dispatch. RED4/GREEN13, Tier1 baseline107 pass.
+2. Single content shutter + plain Scan nav + safe active dots ships with this commit. RED6/GREEN6 (idle/busy accessibility included); 22 existing capture/UI tests pass, Tier1 analysis clean. Host inspected light/dark360/402 renders; both source and visual Antigravity reviews green. Its phone APK confirmation pending.
+3–4. Next: finger-driven tabs/header with spring, then release arm64 test APK. Full local Flutter suite running; Python259 OK (4 optional ONNX/Torch skips); full analyze has missing ignored Firebase options and pre-existing infos. No Firebase/cloud changes or deploys.
+
 
 ## 1. Historical worktree locations (superseded 2026-11-17)
 
