@@ -3,7 +3,11 @@
 Rules for any UI work: `/home/agent-runner/projects/_ui-review/RUBRIC.md`. Habits:
 `/home/agent-runner/projects/_ui-review/REASONING_HABITS.md`. Both apply on top of AGENTS.md. They do not replace its gates.
 
-## 1. Where the work actually is (verified 2026-11-14)
+## Status — owner Android fixes (2026-11-17)
+
+Active checkout `/home/agent-runner/projects/calorix`, branch `main` (all feature work merged; owner instruction). Base `b608414`. Camera grant reproduced on Samsung: Android grants CAMERA, app shows Camera unavailable. Fix 1 serializes camera initialization/capture/cleanup; regression RED4 -> GREEN13, Tier1 baseline107pass, changed-file analysis clean, independent and Antigravity review green. Push accompanies this stage; fresh Samsung confirmation awaits its CI APK. Fixes 2–4 next; no cloud deployment.
+
+## 1. Historical worktree locations (superseded 2026-11-17)
 
 This checkout (`fix/scan-photo-flow-viewer`, `fe792e5`, 2026-10-19) is **not** where work happens. `git worktree list`:
 

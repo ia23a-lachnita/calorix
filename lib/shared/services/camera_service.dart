@@ -30,12 +30,28 @@ abstract class CameraLifecycleService {
 class DeviceCameraService implements CameraService, CameraLifecycleService {
   CameraController? _controller;
   final ImagePicker _picker = ImagePicker();
+  Future<void> _operations = Future<void>.value();
+
+  // Permission dialogs resume the app while the shutter is still awaiting
+  // the grant. Both paths must use the same controller, including its cleanup.
+  Future<T> _serialize<T>(Future<T> Function() operation) {
+    final result = _operations.then((_) => operation());
+    _operations =
+        result.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+    return result;
+  }
+
+  Future<void> _releaseController() async {
+    final controller = _controller;
+    _controller = null;
+    await controller?.dispose();
+  }
 
   CameraController? get previewController => _controller;
 
   Future<bool> _ensureController() async {
     if (_controller != null && _controller!.value.isInitialized) return true;
-    await pause();
+    await _releaseController();
     final cameras = await availableCameras();
     if (cameras.isEmpty) return false;
     final controller = CameraController(
@@ -68,34 +84,31 @@ class DeviceCameraService implements CameraService, CameraLifecycleService {
   }
 
   @override
-  Future<XFile?> captureStill() async {
-    if (!await _ensureController()) return null;
-    final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) return null;
-    return controller.takePicture();
-  }
+  Future<XFile?> captureStill() => _serialize(() async {
+        if (!await _ensureController()) return null;
+        final controller = _controller;
+        if (controller == null || !controller.value.isInitialized) return null;
+        return controller.takePicture();
+      });
 
   @override
   Future<XFile?> pickFromLibrary() =>
       _picker.pickImage(source: ImageSource.gallery, imageQuality: 90);
 
-  Future<void> setFlashMode(FlashMode mode) async {
-    await _controller?.setFlashMode(mode);
-  }
+  Future<void> setFlashMode(FlashMode mode) => _serialize(() async {
+        await _controller?.setFlashMode(mode);
+      });
 
   @override
-  Future<void> pause() async {
-    final controller = _controller;
-    _controller = null;
-    await controller?.dispose();
-  }
+  Future<void> pause() => _serialize(_releaseController);
 
   @override
-  Future<void> resume() async {
-    if (!await hasPermission()) return;
-    await _ensureController();
-  }
+  Future<void> resume() => _serialize(() async {
+        if (!await hasPermission()) return;
+        await _ensureController();
+      });
 
   @override
-  Future<void> dispose() => pause();
+  // Legacy scan routes share a provider-owned service and may resume it later.
+  Future<void> dispose() => _serialize(_releaseController);
 }
