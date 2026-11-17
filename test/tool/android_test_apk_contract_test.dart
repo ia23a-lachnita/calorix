@@ -8,7 +8,7 @@ import 'package:yaml/yaml.dart';
 
 /// Future contract test for `.github/workflows/android-test-apk.yml`.
 ///
-/// The contract describes a manual-only intermediate Android test APK workflow
+/// The contract describes a intermediate Android test APK workflow
 /// that must:
 ///
 ///  1. Run on `workflow_dispatch` and on pushes to `main` only (owner,
@@ -53,11 +53,11 @@ import 'package:yaml/yaml.dart';
 ///     `KEYTOOL_BIN` fake-executable seam (accept / reject / mismatched-cert
 ///     fixtures) rather than depending on a real Java keystore or a real
 ///     `keytool` binary being present.
-/// 14. After `Build debug APK` and before `Verify test signing certificate`,
+/// 14. After `Build release test APK` and before `Verify test signing certificate`,
 ///     the workflow must `apksigner sign` the APK with the prepared debug
 ///     keystore at `$HOME/.android/debug.keystore`, alias `androiddebugkey`,
 ///     standard debug passwords, a temporary `--out` path, and replace
-///     `app-debug.apk` only after signing succeeds. Release secrets are
+///     `app-release.apk` only after signing succeeds. Release secrets are
 ///     forbidden.
 /// 15. The verify step must call `prepare_android_test_apk.sh
 ///     verify-apk-certificate`, which uses `apksigner verify --print-certs-pem`
@@ -988,19 +988,91 @@ void main() {
     });
   });
 
+  group('release-mode test APK execution', () {
+    test('build compiles release arm64 using the existing test signer',
+        () async {
+      final root = _tmp('release-build');
+      final fixtureHome = Directory('${root.path}/fixture-home');
+      final bin = Directory('${root.path}/bin')..createSync();
+      Directory('${root.path}/android').createSync();
+      final key = File('${fixtureHome.path}/.android/debug.keystore');
+      key.parent.createSync(recursive: true);
+      key.writeAsStringSync('fixture test keystore');
+      final stub = File('${bin.path}/fvm')
+        ..writeAsStringSync(r'''#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-} ${2:-} ${3:-}" == "flutter build apk" ]]; then
+  printf '%s\n' "$@" > "$BUILD_ARGUMENTS"
+  cp android/key.properties "$BUILD_PROPERTIES"
+fi
+''');
+      Process.runSync('chmod', ['+x', stub.path]);
+      final arguments = File('${root.path}/arguments');
+      final properties = File('${root.path}/signing-properties');
+      final steps = _buildJobSteps(_loadWorkflowFile(_workflow));
+      final build = steps.singleWhere(
+          (step) => _stepRun(step).contains('fvm flutter build apk'));
+      final result = await Process.run('bash', ['-e', '-c', _stepRun(build)],
+          workingDirectory: root.path,
+          environment: {
+            'HOME': fixtureHome.path,
+            'PATH': '${bin.path}:${Platform.environment['PATH']}',
+            'BUILD_ARGUMENTS': arguments.path,
+            'BUILD_PROPERTIES': properties.path,
+          });
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(arguments.readAsLinesSync(), [
+        'flutter',
+        'build',
+        'apk',
+        '--release',
+        '--target-platform',
+        'android-arm64'
+      ]);
+      expect(properties.readAsStringSync(),
+          'storeFile=${fixtureHome.path}/.android/debug.keystore\nstorePassword=android\nkeyAlias=androiddebugkey\nkeyPassword=android\n');
+      expect(
+          File('${root.path}/android/key.properties').statSync().mode & 0x3f, 0,
+          reason: 'temporary signer properties must be private');
+    });
+
+    test('always-cleanup removes temporary test signing properties', () async {
+      final root = _tmp('release-cleanup');
+      final fixtureHome = Directory('${root.path}/fixture-home')..createSync();
+      final properties = File('${root.path}/android/key.properties');
+      properties.parent.createSync();
+      properties.writeAsStringSync('fixture signing properties');
+      final helper = File('${root.path}/tool/ci/prepare_android_test_apk.sh');
+      helper.parent.createSync(recursive: true);
+      helper.writeAsStringSync(File(_prepareScript).readAsStringSync());
+      Process.runSync('chmod', ['+x', helper.path]);
+      final cleanup = _buildJobSteps(_loadWorkflowFile(_workflow))
+          .singleWhere((step) => _stepName(step) == 'Clean up test inputs');
+      expect(cleanup['if'], 'always()');
+      final result = await Process.run('bash', ['-e', '-c', _stepRun(cleanup)],
+          workingDirectory: root.path,
+          environment: {
+            'HOME': fixtureHome.path,
+            'GITHUB_WORKSPACE': root.path
+          });
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(properties.existsSync(), isFalse);
+    });
+  });
+
   group('android-test-apk.yml deterministic signing and diagnostics', () {
     YamlMap loadWorkflow() => _loadWorkflowFile(_workflow);
 
     test(
-      'signs the debug APK with apksigner after Build debug APK and before '
+      'signs the release-mode test APK with apksigner after Build release test APK and before '
       'Verify test signing certificate, using the prepared debug keystore',
       () {
         final steps = _buildJobSteps(loadWorkflow());
 
         final buildIndex = steps.indexWhere(
           (step) =>
-              _stepName(step) == 'Build debug APK' ||
-              _stepRun(step).contains('fvm flutter build apk --debug'),
+              _stepName(step) == 'Build release test APK' ||
+              _stepRun(step).contains('fvm flutter build apk --release'),
         );
         final signIndex = steps.indexWhere(
           (step) => _stepRun(step).contains('apksigner sign'),
@@ -1014,14 +1086,14 @@ void main() {
         expect(
           buildIndex,
           greaterThanOrEqualTo(0),
-          reason: 'a Build debug APK step is required',
+          reason: 'a Build release test APK step is required',
         );
         expect(
           signIndex,
           greaterThanOrEqualTo(0),
           reason:
               'an explicit apksigner sign step is required after the '
-              'debug APK build',
+              'release-mode test APK build',
         );
         expect(
           verifyIndex,
@@ -1031,7 +1103,7 @@ void main() {
         expect(
           buildIndex,
           lessThan(signIndex),
-          reason: 'apksigner sign must run after Build debug APK',
+          reason: 'apksigner sign must run after Build release test APK',
         );
         expect(
           signIndex,
@@ -1088,15 +1160,15 @@ void main() {
         );
         expect(
           signRun,
-          contains('app-debug.apk'),
-          reason: 'signing must target the debug APK',
+          contains('app-release.apk'),
+          reason: 'signing must target the release-mode test APK',
         );
         expect(
           RegExp(r'\bmv\b').hasMatch(signRun) ||
               RegExp(r'\bcp\b').hasMatch(signRun),
           isTrue,
           reason:
-              'app-debug.apk must be replaced with the signed --out file '
+              'app-release.apk must be replaced with the signed --out file '
               'only after signing succeeds',
         );
 
