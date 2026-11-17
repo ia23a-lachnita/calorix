@@ -1,0 +1,75 @@
+{
+ "failedCalls": 5,
+ "all": {
+  "meals": 314,
+  "maeRaw": 187.6,
+  "maeRule": 184.1,
+  "maeChangePct": -1.8,
+  "maeChange95": [
+   -18.1,
+   10.7
+  ],
+  "p90Raw": 331.4,
+  "p90Rule": 344.6,
+  "biasRaw": -138.3,
+  "biasRule": -42.3,
+  "touched": 125,
+  "touchedBetter": 65,
+  "touchedWorse": 60,
+  "worstNewMiss": 343.4
+ },
+ "n5k": {
+  "meals": 146,
+  "maeRaw": 74.5,
+  "maeRule": 92.4,
+  "maeChangePct": 24.1,
+  "maeChange95": [
+   6.3,
+   30.7
+  ],
+  "p90Raw": 182.8,
+  "p90Rule": 288.9,
+  "biasRaw": -6.6,
+  "biasRule": 27.9,
+  "touched": 24,
+  "touchedBetter": 6,
+  "touchedWorse": 18,
+  "worstNewMiss": 297.4
+ },
+ "nv": {
+  "meals": 168,
+  "maeRaw": 285.9,
+  "maeRule": 263.8,
+  "maeChangePct": -7.7,
+  "maeChange95": [
+   -47.4,
+   3.3
+  ],
+  "p90Raw": 418.1,
+  "p90Rule": 431.0,
+  "biasRaw": -252.7,
+  "biasRule": -103.3,
+  "touched": 101,
+  "touchedBetter": 59,
+  "touchedWorse": 42,
+  "worstNewMiss": 343.4
+ },
+ "nvIncludingSuspectReferences": {
+  "meals": 184,
+  "maeRaw": 454.1,
+  "maeRule": 413.6,
+  "maeChangePct": -8.9,
+  "maeChange95": [
+   -64.6,
+   -16.0
+  ],
+  "p90Raw": 2107.0,
+  "p90Rule": 1876.8,
+  "biasRaw": -423.8,
+  "biasRule": -267.0,
+  "touched": 115,
+  "touchedBetter": 73,
+  "touchedWorse": 42,
+  "worstNewMiss": 343.4
+ }
+}
