@@ -7,8 +7,9 @@ Rules for any UI work: `/home/agent-runner/projects/_ui-review/RUBRIC.md`. Habit
 
 Active checkout `/home/agent-runner/projects/calorix`, `main`; historical feature worktrees below are superseded.
 1. Camera grant: `b0b3fc0` pushed. CI APK run `44159267355` passed; source/checksum/signer matched. Samsung cleared → Take photo → grant → saved-photo editor, screenshot opened; no Camera unavailable warning, no cloud dispatch. RED4/GREEN13, Tier1 baseline107 pass.
-2. Single content shutter + plain Scan nav + safe active dots ships with this commit. RED6/GREEN6 (idle/busy accessibility included); 22 existing capture/UI tests pass, Tier1 analysis clean. Host inspected light/dark360/402 renders; both source and visual Antigravity reviews green. Its phone APK confirmation pending.
-3–4. Next: finger-driven tabs/header with spring, then release arm64 test APK. Full local Flutter suite running; Python259 OK (4 optional ONNX/Torch skips); full analyze has missing ignored Firebase options and pre-existing infos. No Firebase/cloud changes or deploys.
+2. Single content shutter + plain Scan nav + safe active dots ships with this commit. RED6/GREEN6 (idle/busy accessibility included); 22 existing capture/UI tests pass, Tier1 analysis clean. Host inspected light/dark360/402 renders; both source and visual Antigravity reviews green. CI APK44163076469 passed; source/checksum/signer matched, Samsung screenshot opened: ring clears nav/dot; repeated Scan-nav taps stayed on camera.
+3. Native swipe/header track +380/38 spring ships with this commit; RED5/GREEN13 focused, fullTier1 120pass and analyzer clean. Runtime remove-animations RED/GREEN and separate shutter semantics fixed; all four held-swipe renders opened, independent/MCP review green. No current in-tab horizontal gesture conflicts; forms stay outside pager. Source3 phone proof pending its APK.
+4. Next: release arm64 test APK with existing test signer. Full local Flutter suite running; Python259 OK (4 optional ONNX/Torch skips); full analyze has missing ignored Firebase options and pre-existing infos. No Firebase/cloud changes or deploys.
 
 
 ## 1. Historical worktree locations (superseded 2026-11-17)

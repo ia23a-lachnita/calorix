@@ -15,6 +15,7 @@ import '../../shared/widgets/macro_ring.dart';
 import 'local_meal.dart';
 import 'manual_nutrient_catalog.dart';
 import 'motion.dart';
+import 'tab_motion.dart';
 import 'food_selection_dialog.dart';
 import 'local_meal_store.dart';
 import 'targets.dart';
@@ -105,7 +106,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   // 0 Today, 1 Scan (the landing screen), 2 History.
   int _tab = 1;
   bool _busy = false;
-  bool get _history => _tab == 2;
+  final _pages = PageController(initialPage: 1);
   Tier1TargetStore _targetStore = Tier1TargetStore();
   Tier1Targets _targets = Tier1Targets.defaults;
   int _lifecycleEpoch = 0;
@@ -114,6 +115,18 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     unawaited(_initialize());
+  }
+
+  void _selectTab(int index, {bool immediate = false}) {
+    if (!mounted) return;
+    setState(() => _tab = index);
+    if (!_pages.hasClients) return;
+    if (immediate || MediaQuery.disableAnimationsOf(context)) {
+      _pages.jumpToPage(index);
+    } else {
+      unawaited(_pages.animateToPage(index,
+          duration: Motion.medium, curve: Motion.curve));
+    }
   }
 
   Future<void> _initialize() async {
@@ -180,6 +193,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _pages.dispose();
     if (_camera is CameraLifecycleService) {
       unawaited((_camera as CameraLifecycleService).dispose());
     }
@@ -210,7 +224,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       void covered(AnimationStatus status) {
         if (status != AnimationStatus.completed) return;
         route.animation?.removeStatusListener(covered);
-        if (mounted && _tab == 1) setState(() => _tab = 0);
+        if (mounted && _tab == 1) _selectTab(0, immediate: true);
       }
 
       route.animation?.addStatusListener(covered);
@@ -226,7 +240,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         // to that list.
         final kept = _meals.any((m) => m.id == meal.id);
         final today = _todayMeals.any((m) => m.id == meal.id);
-        if (fromScan) setState(() => _tab = !kept ? 1 : (today ? 0 : 2));
+        if (fromScan) _selectTab(!kept ? 1 : (today ? 0 : 2), immediate: true);
       }
     } catch (_) {
       if (mounted) {
@@ -347,7 +361,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
             // estimate would otherwise show as "0 kcal · 1 meal".
             if (_countedToday.isNotEmpty) ...[
               TextButton(
-                  onPressed: () => setState(() => _tab = 0),
+                  onPressed: () => _selectTab(0),
                   child: Text(
                       'Today · ${_eatenKcal(_countedToday)} kcal · ${_countedToday.length} ${_countedToday.length == 1 ? 'meal' : 'meals'}')),
               const SizedBox(height: 8),
@@ -357,6 +371,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                 textAlign: TextAlign.center),
             const SizedBox(height: 16),
             Semantics(
+                container: true,
                 label: _busy ? 'Saving photo' : 'Take meal photo',
                 button: true,
                 enabled: !_busy,
@@ -445,6 +460,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       ('Fat', sum((n) => n.fatG), _targets.fatG, AppColors.fat),
     ];
     return ListView(
+        key: const PageStorageKey('tier1-today'),
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
           Text(
@@ -668,7 +684,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
               selected: active,
               button: true,
               child: InkWell(
-                  onTap: () => setState(() => _tab = index),
+                  onTap: () => _selectTab(index),
                   child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -708,10 +724,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
             ])));
   }
 
-  @override
-  Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(title: const Text(AppConstants.appDisplayName), actions: [
-        if (_history)
+  Widget _header(int tab) =>
+      AppBar(title: const Text(AppConstants.appDisplayName), actions: [
+        if (tab == 2)
           IconButton(
               tooltip: 'Export measurements',
               onPressed: _store == null || _error != null
@@ -728,57 +743,69 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                     name: 'New meal')),
             icon: const Icon(Icons.edit_outlined, size: 18),
             label: const Text('Manual entry'))
-      ]),
+      ]);
+
+  Widget _tabContent(int tab) {
+    if (_store == null) return const Center(child: CircularProgressIndicator());
+    if (tab == 0) return _todayView();
+    if (tab == 1) return _cameraView();
+    if (_meals.isEmpty) {
+      return const Center(
+          child: Text('No saved meals yet. Take a photo or enter a meal.'));
+    }
+    return ListView.builder(
+        key: const PageStorageKey('tier1-history'),
+        itemCount: _meals.length,
+        itemBuilder: (context, index) {
+          final meal = _meals[index];
+          final day = _dayOf(meal.capturedAt);
+          final startsDay =
+              index == 0 || _dayOf(_meals[index - 1].capturedAt) != day;
+          final tile = _mealTile(meal);
+          if (!startsDay) return tile;
+          return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _DayHeader(
+                    label: _dayLabel(day),
+                    meals: _meals
+                        .where((m) => _dayOf(m.capturedAt) == day)
+                        .toList()),
+                tile,
+              ]);
+        });
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
       bottomNavigationBar: _nav(),
-      body: Column(children: [
-        if (_error != null)
-          Padding(padding: const EdgeInsets.all(16), child: Text(_error!)),
-        if (_cameraWarning != null)
-          Padding(
-              padding: const EdgeInsets.all(16), child: Text(_cameraWarning!)),
-        Expanded(
-            child: _store == null
-                ? const Center(child: CircularProgressIndicator())
-                : AnimatedSwitcher(
-                    duration: Motion.of(context, Motion.medium),
-                    switchInCurve: Motion.curve,
-                    child: KeyedSubtree(
-                        key: ValueKey(_tab),
-                        child: _tab == 0
-                            ? _todayView()
-                            : _history
-                                ? (_meals.isEmpty
-                                    ? const Center(
-                                        child: Text(
-                                            'No saved meals yet. Take a photo or enter a meal.'))
-                                    : ListView.builder(
-                                        itemCount: _meals.length,
-                                        itemBuilder: (context, index) {
-                                          final meal = _meals[index];
-                                          final day = _dayOf(meal.capturedAt);
-                                          final startsDay = index == 0 ||
-                                              _dayOf(_meals[index - 1]
-                                                      .capturedAt) !=
-                                                  day;
-                                          final tile = _mealTile(meal);
-                                          if (!startsDay) return tile;
-                                          return Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.stretch,
-                                              children: [
-                                                _DayHeader(
-                                                    label: _dayLabel(day),
-                                                    meals: _meals
-                                                        .where((m) =>
-                                                            _dayOf(
-                                                                m.capturedAt) ==
-                                                            day)
-                                                        .toList()),
-                                                tile
-                                              ]);
-                                        }))
-                                : _cameraView()))),
-      ]));
+      body: PageView(
+          controller: _pages,
+          pageSnapping: false,
+          physics: MediaQuery.disableAnimationsOf(context)
+              ? const ReducedMotionTabPhysics()
+              : const TabPagePhysics(),
+          onPageChanged: (tab) => setState(() => _tab = tab),
+          children: [
+            for (var tab = 0; tab < 3; tab++)
+              Column(children: [
+                // A header belongs to its page: both travel on the same native
+                // scroll track instead of changing only when a swipe commits.
+                SizedBox(
+                    key: ValueKey('tab-header-$tab'),
+                    height: kToolbarHeight + MediaQuery.paddingOf(context).top,
+                    child: _header(tab)),
+                if (_error != null)
+                  Padding(
+                      padding: const EdgeInsets.all(16), child: Text(_error!)),
+                if (_cameraWarning != null)
+                  Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(_cameraWarning!)),
+                Expanded(
+                    key: ValueKey('tab-content-$tab'), child: _tabContent(tab)),
+              ]),
+          ]));
 }
 
 class _MealEditor extends StatefulWidget {

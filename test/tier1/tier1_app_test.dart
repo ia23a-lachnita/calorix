@@ -56,7 +56,11 @@ void main() {
     expect(find.text('KCAL EATEN'), findsOneWidget);
     expect(find.text('420'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Weighed test'), 200,
-        scrollable: find.byType(Scrollable).first);
+        scrollable: find
+            .byWidgetPredicate((widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down)
+            .first);
     expect(find.text('Weighed test'), findsWidgets);
     expect(find.textContaining('420 kcal'), findsWidgets);
     expect(cloudStarts, 0);
@@ -95,7 +99,11 @@ void main() {
     expect(find.text('44 / 170 g'), findsOneWidget);
     // targets are the user's: change the calorie target and the ring follows
     await tester.scrollUntilVisible(find.text('Change targets'), 200,
-        scrollable: find.byType(Scrollable).first);
+        scrollable: find
+            .byWidgetPredicate((widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down)
+            .first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Change targets'));
     await tester.pumpAndSettle();
@@ -143,7 +151,11 @@ void main() {
     await tester.tap(find.text('Repeat source'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Repeat meal'), 200,
-        scrollable: find.byType(Scrollable).first);
+        scrollable: find
+            .byWidgetPredicate((widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down)
+            .first);
     await tester.tap(find.text('Repeat meal'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, '1.5');
@@ -175,7 +187,11 @@ void main() {
     await tester.tap(find.text('Cancel source'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Repeat meal'), 200,
-        scrollable: find.byType(Scrollable).first);
+        scrollable: find
+            .byWidgetPredicate((widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down)
+            .first);
     await tester.tap(find.text('Repeat meal'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, '1.5');
