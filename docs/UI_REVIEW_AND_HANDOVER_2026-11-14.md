@@ -165,6 +165,12 @@ Compared `docs/live-app-screenshots/round5/02_today.png` (2026-08, the last live
   Under 200 kcal the model reads 37% high (median); over 500 kcal it reads low on 21 of 21 meals, median 36% low.
 - A single factor (x1.31 when the estimate is 150 kcal or more) cuts mean error to 106 kcal leave-one-out (19%).
   Earlier runs rejected the same idea because each 10-meal cohort alone missed a 10% bar. Not shipped: owner decides.
+- 2026-11-16, REJECTED on held-out meals (owner asked for a broad test): rule fixed in advance (x1.4 at 400 kcal or
+  more), run once on 150 random Nutrition5k + 185 unused NutritionVerse-Real dishes. Nutrition5k: error 74.5 -> 92.4
+  kcal (24% worse). NutritionVerse: 285.9 -> 263.8 (8% better, interval crosses zero). On random meals the bias is only
+  -7 kcal; the low reading is real only on big multi-food plates. Do not ship a flat factor. Result and script:
+  branch `feat/structured-food-routing`, `docs/tier1-size-rule-holdout-2026-11-16/`, `tool/size_rule_holdout.py`
+  (worktree `~/.local/share/calorix-food-agreement-20261111/worktree`). Per-meal table stays local (NV licence).
 - Tried and rejected by earlier agents, do not repeat: second photo, coin for scale, high thinking, portion-audit
   prompt, Argon model, 73-record catalog, name-based priors. The specialist model wins on Nutrition5k only, needs
   32 s on a Pi, and fails on other photo sets.
