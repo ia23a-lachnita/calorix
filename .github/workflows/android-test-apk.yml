@@ -1,7 +1,16 @@
 name: Test Android APK
 
+# Every push to main leaves an installable APK (owner, 2026-11-17). The
+# release build needs a signing key that does not exist yet and is
+# switched off in GitHub until the app is published.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: test-apk-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
