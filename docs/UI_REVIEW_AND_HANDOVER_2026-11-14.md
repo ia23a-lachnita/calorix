@@ -19,7 +19,7 @@ Visual scope: selected Scan/editor/Today/History/held frames, plus prior both-th
 ## Roadmap continuation — 2026-11-18
 
 V7.1 stored335-meal audit `7c869da` pushed; original multiplier remains rejected, selected source-weight concern unverified. [Audit](tier1-multifood-audit-2026-11-18/report.md).
-Release-compatible meal-copy source ships in this stage: saved photo → Export meal → Save meal copy, OS location choice, exact JPEG + portable record/hash. Existing measurements flow retained; no cloud changes. Local14focused/7native/Tier1134 + final layout14 pass, analyzer clean, Python281run/4optional skips; independent truncation finding RED/GREEN and MCPsourcegreen. Exact releaseAPK/Samsung save/cancel/hash checks pending before completion.
+Release meal copy `7ece316` pushed; [Test Android APK44281178207](https://github.com/ia23a-lachnita/calorix/actions/runs/44281178207) succeeded:23,334,677bytes, arm64only/AOT, source/checksum/existing signer matched. Samsung local picker cancel/retry/two saves checked; both ZIPs contain exact matching JPEG/hash and unchanged saved record; measurements dialog retained. Selected physical screenshots and six360/402lightdark renders opened. FullFlutter1091pass/1intentional skip; scoped analyzer clean; Python281run/4optional skips including7native cases. No cloud upload/change/deployment. Same agent continues V7.1 offline comparator/provenance investigation; owner-weighed references remain0. These are persistent working notes, not a transfer to another agent.
 
 ## 1. Historical worktree locations (superseded 2026-11-17)
 
