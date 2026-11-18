@@ -62,12 +62,12 @@ jobs:
           fvm flutter pub get
           umask 077
           printf 'storeFile=%s\nstorePassword=android\nkeyAlias=androiddebugkey\nkeyPassword=android\n' "$HOME/.android/debug.keystore" > android/key.properties
-          fvm flutter build apk --release --target-platform android-arm64
+          fvm flutter build apk --release --split-per-abi --target-platform android-arm64
 
       - name: Sign test APK with test certificate
         run: |
           export PATH="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n1):$PATH"
-          APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+          APK_PATH="build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
           SIGNED_APK="$(mktemp --suffix=.apk)"
           trap 'rm -f "$SIGNED_APK"' EXIT
           apksigner sign \
@@ -84,11 +84,16 @@ jobs:
           TEST_DEBUG_CERT_SHA256: ${{ secrets.TEST_DEBUG_CERT_SHA256 }}
         run: |
           export PATH="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n1):$PATH"
-          APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+          APK_PATH="build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
           tool/ci/prepare_android_test_apk.sh verify-apk-certificate \
             --apk "$APK_PATH" \
             --expected "$TEST_DEBUG_CERT_SHA256" \
             --output-env "$GITHUB_ENV"
+
+      - name: Verify release APK contents
+        run: |
+          python3 tool/ci/verify_android_test_apk_contents.py \
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
 
       - name: Prepare distributable files
         run: |
@@ -96,7 +101,7 @@ jobs:
           APP_VERSION="$(awk '/^version:/{print $2}' pubspec.yaml)"
           APK_NAME="calorix-${APP_VERSION}-android-test.apk"
           SOURCE_SHA="${{ github.sha }}"
-          cp build/app/outputs/flutter-apk/app-release.apk "dist/${APK_NAME}"
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "dist/${APK_NAME}"
           sha256sum "dist/${APK_NAME}" > "dist/${APK_NAME}.sha256"
           APK_SHA256="$(sha256sum "dist/${APK_NAME}" | cut -d' ' -f1)"
           printf '{\n  "source_sha": "%s",\n  "source_ref": "%s",\n  "workflow_run_id": "%s",\n  "build_mode": "release",\n  "target_platform": "android-arm64",\n  "app_version": "%s",\n  "apk_filename": "%s",\n  "apk_sha256": "%s",\n  "signing_cert_sha256": "%s"\n}\n' \

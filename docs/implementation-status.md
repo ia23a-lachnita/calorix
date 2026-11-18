@@ -1,3 +1,14 @@
+# Current Task: enforce ARM64-only release test artifacts
+
+Branch `main`, source base `2e4fc6b`; earlier camera/shutter/swipe fixes `b0b3fc0` / `7203dde` / `f3b886c` are pushed and Samsung-checked. No Firebase/cloud mutations or deployments.
+First optimized APK CI `44170364790` passed build/signing; 23,630,257 bytes, arm64 AOT/no JIT/no validation layer, but rejected by host ZIP inspection because native plugins retained ARMv7/x86 libraries. Do not count that artifact as ARM64-only proof.
+Correction: `--split-per-abi`, consistent `app-arm64-v8a-release.apk` paths, and committed ZIP guard before distribution/upload. Python guard RED6 methods (9 failed subcases) -> GREEN6; actual prior APK rejected `Unexpected native ABI: armeabi-v7a, x86_64`. Workflow contract RED3 -> GREEN76; Python265 OK/skipped4 optional ONNX/Torch.
+Independent source review no Critical/Important; Antigravity `ravlo-release-test-apk-20261117` primary3.8 pre/post correction agree/MUST_FIX none. App/production signing/cloud source unchanged by this correction.
+Full application verification before correction:1076 Flutter pass/1 intentional OFF-live skip, explicit subprocess exit0 (782s); earlier outer-shell143 after same passing summary is superseded. Scoped CI analyzer clean; whole analyzer29baseline diagnostics (missing ignored Firebase options3errors,26existing infos).
+Next: commit/push correction; run latest full Flutter verification with scoped PowerShell/TMPDIR; await new Test Android APK, verify source/run/checksum/test signer plus ZIP guard, install via phone-adb, clear/grant/capture/swipe and open screenshots. Update handover with final artifact and commit hashes.
+
+## Earlier session receipts (historical; current task above supersedes pending notes)
+
 # Current task: release-mode arm64 test APK with existing signer
 
 Clean `main` base `b608414`; owner explicitly selected this checkout after merges. Fix sequentially: camera grant, single content capture ring/insets, swipe/header motion, release arm64 test APK. Each stage includes regression checks, handover update, review, commit and push. No Firebase/cloud mutation or deployment authorized.
@@ -20,7 +31,7 @@ Stage3 final: fullTier1 `120: All tests passed!`, focused13pass, scoped analyzer
 
 Stage3 f3b886c pushed;120Tier1 pass/clean analyzer, source3 APK pending. Stage4 clean basef3b886c; contract-first RED72pass/3fail (missing prepared release signer, cleanup leaves properties, release build step absent). Workflow now release arm64 with temporary existing test-key properties and same explicit signer/source/hash checks; always cleanup. Production workflow/Gradle unchanged. Intended checks: contract GREEN, whole Flutter suite with scoped pwsh, scoped analyzer, existing full-analysis diagnostics recorded, Python259/4optional skips, optimized CI APK ZIP/signer/size and Samsung screenshot/swipe.
 
-Stage4 pre-push proof: `PATH=<scoped pwsh>:$PATH TMPDIR=<disk task tmp> fvm flutter test --no-pub --concurrency=2 --reporter compact` exit0:1076pass/1intentional OFF-live skip; final contract75pass; `fvm flutter analyze lib/features/tier1 test/tier1` exit0/no issues; `python3 -m unittest discover -s tests -p 'test_*.py'` exit0/259run/4optional skips. Whole analyzer29baseline diagnostics recorded. Source4 MCP agree/MUST_FIX none; fresh whole-task peer no Critical/Important. Source3 CI44166551378 APK hash/cert matched, Samsung held-swipe, History/Today screenshots opened with bidirectional gestures. Next commit/push source4, wait its Test APK, run scoped verify_apk.py release checks, install on Samsung/clear/grant/swipe/screenshots, then final evidence/status update. No app/backend/cloud edits in this stage.
+Stage4 pre-push proof: `PATH=<scoped pwsh>:$PATH TMPDIR=<disk task tmp> fvm flutter test --no-pub --concurrency=2 --reporter compact` summary1076pass/1intentional OFF-live skip; collecting original shell later returned143 (not a clean exit), detached clean-exit rerun active with4workers and explicit exit JSON; final contract75pass; `fvm flutter analyze lib/features/tier1 test/tier1` exit0/no issues; `python3 -m unittest discover -s tests -p 'test_*.py'` exit0/259run/4optional skips. Whole analyzer29baseline diagnostics recorded. Source4 MCP agree/MUST_FIX none; fresh whole-task peer no Critical/Important. Source3 CI44166551378 APK hash/cert matched, Samsung held-swipe, History/Today screenshots opened with bidirectional gestures. Next commit/push source4, wait its Test APK, run scoped verify_apk.py release checks, install on Samsung/clear/grant/swipe/screenshots, then final evidence/status update. No app/backend/cloud edits in this stage.
 
 
 ---

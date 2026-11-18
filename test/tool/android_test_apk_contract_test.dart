@@ -57,7 +57,7 @@ import 'package:yaml/yaml.dart';
 ///     the workflow must `apksigner sign` the APK with the prepared debug
 ///     keystore at `$HOME/.android/debug.keystore`, alias `androiddebugkey`,
 ///     standard debug passwords, a temporary `--out` path, and replace
-///     `app-release.apk` only after signing succeeds. Release secrets are
+///     `app-arm64-v8a-release.apk` only after signing succeeds. Release secrets are
 ///     forbidden.
 /// 15. The verify step must call `prepare_android_test_apk.sh
 ///     verify-apk-certificate`, which uses `apksigner verify --print-certs-pem`
@@ -989,6 +989,16 @@ void main() {
   });
 
   group('release-mode test APK execution', () {
+    test('checks native APK contents before preparing distributable files', () {
+      final steps = _buildJobSteps(_loadWorkflowFile(_workflow));
+      final guard = steps.indexWhere((step) => _stepRun(step).contains('verify_android_test_apk_contents.py'));
+      final certificate = steps.indexWhere((step) => _stepName(step) == 'Verify test signing certificate');
+      final distribution = steps.indexWhere((step) => _stepName(step) == 'Prepare distributable files');
+      expect(guard, greaterThan(certificate));
+      expect(guard, lessThan(distribution));
+      expect(_stepRun(steps[guard]), contains('app-arm64-v8a-release.apk'));
+    });
+
     test('build compiles release arm64 using the existing test signer',
         () async {
       final root = _tmp('release-build');
@@ -1026,6 +1036,7 @@ fi
         'build',
         'apk',
         '--release',
+        '--split-per-abi',
         '--target-platform',
         'android-arm64'
       ]);
@@ -1160,7 +1171,7 @@ fi
         );
         expect(
           signRun,
-          contains('app-release.apk'),
+          contains('app-arm64-v8a-release.apk'),
           reason: 'signing must target the release-mode test APK',
         );
         expect(
@@ -1168,7 +1179,7 @@ fi
               RegExp(r'\bcp\b').hasMatch(signRun),
           isTrue,
           reason:
-              'app-release.apk must be replaced with the signed --out file '
+              'app-arm64-v8a-release.apk must be replaced with the signed --out file '
               'only after signing succeeds',
         );
 
