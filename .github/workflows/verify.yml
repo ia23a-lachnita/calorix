@@ -54,6 +54,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Offline replay verifies an immutable historical engine from Git.
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

@@ -35,8 +35,20 @@ Copy only that selected ZIP by USB/MTP or the pinned wrapper (replace the exampl
 python3 -m zipfile -e /disk/path/meal.zip /disk/path/meal
 ```
 
-Keep the original ZIP, `meal.json` and JPEG private and uncommitted. Compare the JPEG's SHA256 with `photoSha256` in `meal.json` before using it. Use one CLI inference for the paired comparator below; a separate in-app inference is a separate attempt and must not replace that pair. Record the CLI path explicitly; model latency does not establish in-app shutter-to-estimate latency.
+Keep the original ZIP, `meal.json` and JPEG private and uncommitted. Compare the JPEG's SHA256 with `photoSha256` in `meal.json` before using it.
 
+If the meal already has an in-app analysis, reconstruct an **unassisted** A0/A1 comparison offline from its stored raw inventory:
+
+```bash
+# From the repository root, with dependencies installed in functions/:
+TMPDIR=/disk/path/task-tmp node tool/compare_saved_meal.cjs --meal /disk/path/meal/meal.json --output /disk/path/new-comparison.json
+```
+
+Create the disk-backed temporary folder first. This command makes no inference request and refuses existing output files. It verifies the export hash and supported model/prompt/catalog, then compiles/verifies the pinned `7ece3163e19b79b7c059ff31e03f123c8ad138ce` engine from Git. That commit must be available locally; obtain full history before going offline. Installed dependencies must match its lockfile. The private output records source/compiled/runtime hashes, input hashes, original server latency when available, and both route results. It excludes later preparation answers, portion/food/manual corrections and consumption. An unknown catalog identity retains the A0 coverage failure alongside A1. Missing analysis yields two unavailable/failed comparison rows; it does **not** establish that an original inference was attempted or failed. Invalid raw data or profile drift refuses the comparison without silently requesting a new estimate.
+
+This is a compatible-engine reconstruction, not proof of exact historical server behavior. The saved capture JPEG differs from Android's metadata-stripped/recompressed upload, whose hash was not retained; `inferenceInputSha256` stays unknown. Original server latency is not replay time or Android shutter-to-estimate time. App estimates/edits are not weighed reference labels.
+
+The fresh CLI route below is a **separate consented inference**, not a replay of Android's request. Its A0/A1 rows share that one CLI inventory. Record which route produced a pair; never replace or silently combine pairs from separate attempts.
 For the comparator on that authorized local JPEG:
 
 ```bash
