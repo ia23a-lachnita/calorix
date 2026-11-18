@@ -1,3 +1,14 @@
+# Current Task: Scan top summary and hollow ring source verified
+
+Main base dc709c5, owner-requested presentationonly: Todaycalories at top16 underheader inbalancedreadablerow; exact _countedToday/_eatenKcal/tapToday unchanged. Footer/privacy/navinsets unchanged;80px6dpgradientstroke withtransparentcenter replacesopaquewhitedisc, same captureantics/debounce. No backend/model/storage/cloud/deployment change. Plan docs/superpowers/plans/2026-11-18-scan-summary-ring.md.
+Proof: baselinecapture6pass/native0; oldcenterRGBARED4; finalfocused13pass(native0) includeslarge2xtext, idle/busyalphazero/strokevisible/topgeometry/count/navigation/singletap. AlignmentRED62px→GREENrightedge. DetachedfullTier1+CIcontract153pass/native0/413.511sec/sourcepinsunchanged. Peerfullsource+4renders noCritical/Important; Minorunestimatedcoveragegapfixedafterfullrun(testonly); latest14focusedpass/native0 includesnewnullservedfixture, do notclaimfull154local. Scopedanalyzerclean beforetest-onlyamendment/finalrerunpending. Mainopened4finalrealGeist/MaterialIcons360/402lightdarkrenders. MCP pre/source/source-results ravlo-scan-summary-hollow-ring-20261118 primary3.8 agree/MUST_FIXnone, supplied-code/facts review notindependentexecution, no universalcontrast/overflow/memory/retentionguarantees.
+Owner screenshot nowseen/copyprivate; serving-intent ambiguityretained. Skyrnotvisibleincrop, no quantity/identity/accuracyjudgmentfromcrop. Appcallable validates/infers/returns without appStorage/Firestorephotoarchive; clientrecordslocal, providerretentionseparate; no livecloudconfigurationinspection. No newweighedmealrequested. Uploadedimage/rawfooddetails remainprivate and uncommitted.
+DeviceinitiallyswitchedtootherappdespiteARTEMISactivetasks empty; incorrectbeforePNG rejected. Ownerconfirmed work-cusingSamsung; stoppedinputs andwaited. Work-cnowreportsphone sweepdone/cleanedstate andfinalnotification, ownerauthorizesusgoafterdone. Nextsourcecommitpush/CI andSamsungbaselineoldUIwithownmanualmetricfixture, newexactsourceAPK/hash/signer/ABI/screenshots, deleteonlyownfixture/preservecurrentrecords; finalnotes/APKlinkcommitpush. No reset/uninstall.
+Currentnativefallback applies fromrecorded exhausted editingroutesinthiscontinuation. Tasklogs/renders/owneruploadcopy underverifiedext4 ~/.local/share/calorix-scan-polish-20261118/; original /tmp userupload untouched. Same agent continues, no handoff. Installedappsource6e06f88 untilnewbuildvalidated.
+
+
+## Previous checkpoint
+
 # Current Task: full-photo viewer shipped; owner image needed for case review
 
 App source `6e06f881c0eb26b4a9f19dbdc01a096899b269c2` pushedmain. Verify44351574144 and TestAndroidAPK44351574174 succeeded; artifact14453910401,23400213bytes, SHA256 b720894cf7af503df55a9640d07efcf7aeb9308cb5b499c6f2dfcec0dee2410b; source/run/checksum/existingtestsigner matched, arm64only/AOT/noJIT/noVk. Installed update SamsungSM-G780G/Android13/R58R61161NA nondebuggable; no clear/uninstall/datareset.

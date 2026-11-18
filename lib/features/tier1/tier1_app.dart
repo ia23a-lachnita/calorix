@@ -354,20 +354,59 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         Center(
             child: Text('One photo of your meal',
                 style: Theme.of(context).textTheme.titleLarge)),
+      // Unestimated captures do not invent a zero-calorie meal count.
+      if (_countedToday.isNotEmpty)
+        Positioned(
+            top: 16,
+            left: 20,
+            right: 20,
+            child: TextButton(
+                key: const ValueKey('scan-today-summary'),
+                onPressed: () => _selectTab(0),
+                style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20))),
+                child: Row(children: [
+                  Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Text('Today’s calories',
+                            style: Theme.of(context).textTheme.labelLarge),
+                        const SizedBox(height: 2),
+                        Text(
+                            '${_countedToday.length} ${_countedToday.length == 1 ? 'meal' : 'meals'}',
+                            style: Theme.of(context).textTheme.bodySmall)
+                      ])),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text('${_eatenKcal(_countedToday)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall),
+                                const SizedBox(width: 5),
+                                Text('kcal',
+                                    style:
+                                        Theme.of(context).textTheme.labelMedium)
+                              ])))
+                ]))),
       Positioned(
           left: 20,
           right: 20,
           bottom: 24,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            // Only meals that have calories: a photo still waiting for its
-            // estimate would otherwise show as "0 kcal · 1 meal".
-            if (_countedToday.isNotEmpty) ...[
-              TextButton(
-                  onPressed: () => _selectTab(0),
-                  child: Text(
-                      'Today · ${_eatenKcal(_countedToday)} kcal · ${_countedToday.length} ${_countedToday.length == 1 ? 'meal' : 'meals'}')),
-              const SizedBox(height: 8),
-            ],
             const Text(
                 'Photos stay on this phone until you choose cloud analysis.',
                 textAlign: TextAlign.center),
@@ -386,29 +425,14 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                         behavior: HitTestBehavior.opaque,
                         child:
                             Column(mainAxisSize: MainAxisSize.min, children: [
-                          Container(
+                          RepaintBoundary(
                               key: const ValueKey('tier1-capture-ring'),
-                              width: 80,
-                              height: 80,
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: const SweepGradient(
-                                      colors: AppColors.sweepGradient),
-                                  color: _busy
-                                      ? Theme.of(context).disabledColor
-                                      : null),
-                              child: Container(
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .surface),
-                                  child: const DecoratedBox(
-                                      decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: AppColors.textPrimaryDark)))),
+                              child: CustomPaint(
+                                  size: const Size(80, 80),
+                                  painter: _CaptureRingPainter(
+                                      disabledColor: _busy
+                                          ? Theme.of(context).disabledColor
+                                          : null))),
                           const SizedBox(height: 8),
                           Text(_busy ? 'Saving photo…' : 'Take photo'),
                         ])))),
@@ -808,6 +832,30 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                     key: ValueKey('tab-content-$tab'), child: _tabContent(tab)),
               ]),
           ]));
+}
+
+class _CaptureRingPainter extends CustomPainter {
+  const _CaptureRingPainter({this.disabledColor});
+  final Color? disabledColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6;
+    if (disabledColor != null) {
+      paint.color = disabledColor!;
+    } else {
+      paint.shader = const SweepGradient(colors: AppColors.sweepGradient)
+          .createShader(Offset.zero & size);
+    }
+    canvas.drawCircle(
+        size.center(Offset.zero), size.shortestSide / 2 - 3, paint);
+  }
+
+  @override
+  bool shouldRepaint(_CaptureRingPainter oldDelegate) =>
+      oldDelegate.disabledColor != disabledColor;
 }
 
 class _MealEditor extends StatefulWidget {

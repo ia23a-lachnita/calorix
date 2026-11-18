@@ -90,7 +90,12 @@ void main() {
     await tester
         .pumpWidget(Tier1App(store: store, camera: FakeCameraService()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Today · 839 kcal · 2 meals'));
+    final summary = find.byKey(const ValueKey('scan-today-summary'));
+    expect(find.descendant(of: summary, matching: find.text('839')),
+        findsOneWidget);
+    expect(find.descendant(of: summary, matching: find.text('2 meals')),
+        findsOneWidget);
+    await tester.tap(summary);
     await tester.pumpAndSettle();
     // the Today tab: the ring's figure against the default target
     expect(find.text('KCAL EATEN'), findsOneWidget);
