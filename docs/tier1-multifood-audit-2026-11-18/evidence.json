@@ -1,0 +1,40 @@
+{
+  "scope": "Offline exposed-data diagnostic; no promotion or causal attribution",
+  "baseCommit": "336f35a8f9ddc1e8b076febbd23d58d148ef4822",
+  "newModelCalls": 0,
+  "selected": 335,
+  "visuallyInspected": 12,
+  "visualReview": "All12 contact-sheet panels, first3 original-resolution images; host plus independent reviewer sheet inspection. Not exhaustive or representative.",
+  "inputPinsChecked": 672,
+  "privateArtifacts": {
+    "input-freeze.json": "75e957e038b394d0eeda7fb474572955e3f40c4cf82d307598069a290f97ce36",
+    "selection-before-images.json": "e691c49571624b7ab88dba4e577758745be739dc0069b564d5024ebf6ab2ea5a",
+    "manual-inspection.json": "b62a76febe190a80357ca11688c1a111cacc88c63c206f12427a8e7f26153268",
+    "result-final.json": "257b57678e5e20159c19509aab71e6b42421122c30aa6160a7af70aa24c35aa7"
+  },
+  "sourceFiles": {
+    "tool/audit_holdout_components.py": "e04a3a08877dce1b692fe4435438b098073cbb4a656fa53f8b981b1b9cf6aac4",
+    "tests/test_holdout_component_audit.py": "57f78e762d39d3fd5787ab23d16b6d2b2c695b128abd177f50db2e96d9be3b2d"
+  },
+  "verification": {
+    "focusedTestsPassed": 9,
+    "pythonTestsRun": 274,
+    "pythonOptionalSkips": 4,
+    "nodeGuardTestsPassed": 98,
+    "backendBuild": "pass; local generated files only",
+    "freshFlutterRun": "not repeated; Flutter app unchanged"
+  },
+  "review": {
+    "independent": "Three Important issues fixed via RED/GREEN: receipt meal_id coupling, unavailable reference macros, missing frozen NV suspect flag. Independently checked all672 hashes,335IDs,raw metrics/denominators/selection; no independent reference weight measurement.",
+    "antigravityConversation": "ravlo-multifood-error-audit-20261118",
+    "model": "gemini-3.8-flash",
+    "verdict": "AGREEMENT_STATUS: agree; MUST_FIX: none",
+    "scope": "Supplied source/results plus amendments; not independent test execution."
+  },
+  "limits": [
+    "Original references, flags, failed multiplier result and all cases retained.",
+    "Post-hoc source-weight concern is not a proven decimal/batch error.",
+    "Trusted local inputs; internal parent-directory and explicit CSV symlink aliases may be followed. No general filesystem-security claim.",
+    "Numerical report/photos/source labels remain private; no app/cloud changes."
+  ]
+}

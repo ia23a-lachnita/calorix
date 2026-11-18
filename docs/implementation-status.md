@@ -1,4 +1,14 @@
-# Current Task: owner Android fixes completed
+# Current Task: V7.1 stored multi-food audit completed
+
+Same agent continues the roadmap; Fable/UI review was advisory, not a transfer of project ownership. Main base336f35a, current source/report stage ready to commit/push; no app/cloud changes or deployments.
+Executed fda6287 next action offline on335 stored receipts; all672 source/input hashes preserved, original failures/flags/multiplier rejection unchanged. Eight tail + four fixed-hash controls selected before image review; host opened all12 sheet panels + first3 originals, independent reviewer all12 sheet panels.
+All8 selected tail cases share repeated unusually large source meatloaf slice weights: post-hoc reference concern, not proven wrong weights/batch units. Broad categories represented; one apparent identity error, controls ambiguous/grouped/edible-mass issues. No definite visible omission established; no population/causal/calorie-accuracy claim or new exclusions. Original paper describes weighing but does not resolve these rows.
+Focused missing-module RED→GREEN6; independent findings RED2/8→GREEN8 (receipt meal_id, unknown macros), then missing NV flag RED1/9→GREEN9. Final Python274run/4optional skips, Node98pass after local TypeScript build; first Node run failed solely absent generated functions/lib, superseded. Flutter unchanged, no repeat run.
+Independent replay672pins/335IDs/raw metrics/selection; main Decimal raw/oracle MAE/bias/P90 checks passed. Antigravity ravlo-multifood-error-audit-20261118 primary3.8 source/result/amendments agree/MUST_FIX none; supplied-facts review, not independent execution. Reject initial reviewer causal/general-rate/legal/atomic-publication overclaims; corrected framing green. Trusted-local symlink-alias limitation retained, no general security claim.
+Report/evidence: docs/tier1-multifood-audit-2026-11-18/. Private numerical report/manual annotations/pins under ~/.local/share/calorix-multifood-audit-20261118/. Next roadmap need: reconcile published portion-unit semantics and obtain actual owner-weighed Android meal references; do not retune the rejected scalar or rerun completed paired-v2. Weighed Android references remain0.
+All editing routes exhausted for this audit with exact timestamp/error receipts appended below; native fallback used. Plan docs/superpowers/plans/2026-11-18-multifood-error-audit.md completed. No new SDK/local model calls.
+
+## Completed owner Android fixes (2026-11-18)
 
 `main`: camera `b0b3fc0`, single shutter/nav `7203dde`, swipe/header `f3b886c`, release test signing `2e4fc6b`, strict arm64 split/guard `0909bb8`; all pushed. No Firebase/cloud mutations, deployments, or photo-analysis upload.
 Final CI [44251000772](https://github.com/ia23a-lachnita/calorix/actions/runs/44251000772) succeeded for source `0909bb8e7dfa74fa18d8ab9b49639ab368db055d`. Downloaded APK23,269,141bytes; metadata/source/run/SHA256/existing test certificate matched; only arm64-v8a, AOT, no JIT kernel/Vulkan validation layer. Committed ZIP guard also passed. Prior unsplit23.6MB artifact rejected for ARMv7/x86 plugin libraries, superseded.
@@ -5725,3 +5735,11 @@ Structured-routing editing route: {"time": "2026-11-12T10:53:55.185987+00:00", "
 Structured-routing editing route: {"time": "2026-11-12T10:54:00.340262+00:00", "route": "opencode/big-pickle", "exit": 1, "message": "\u001b[91m\u001b[1mError: \u001b[0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc\n↳ Unrecognized key: plugins \n"}
 
 Structured-routing editing route: {"time": "2026-11-12T10:57:00.461842+00:00", "route": "claude-sonnet-5", "exit": "nondelivery180s", "message": ""}
+
+Audit editing route 2026-11-18T06:51:24.106999+00:00 grok-4.7: BOUNDED_NONDELIVERY, exact Host timeout180seconds; no edits,180s, log only intended reads.
+Audit editing route 2026-11-18T06:54:44.987266+00:00 qwen3.7-max: 1; exact [API Error: 400 Access denied, please make sure your account is in good standing. For details, see: https://www.alibabacloud.com/help/en/model-studio/error-code#overdue-payment]
+
+Audit editing route 2026-11-18T06:54:54.970427+00:00 opencode catalog: 1; exact [91m[1mError: [0mConfiguration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc
+↳ Unrecognized key: plugins
+
+Audit editing route 2026-11-18T06:55:15.319696+00:00 claude-sonnet-5: BOUNDED_NONDELIVERY, exact Host timeout180seconds;180s no edits; sign-in-expiry warning only, no quota/spend-cap claim. All applicable routes exhausted; native fallback applies to this bounded audit.
