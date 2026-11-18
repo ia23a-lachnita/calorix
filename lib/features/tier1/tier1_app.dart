@@ -23,6 +23,7 @@ import 'tier1_cloud.dart';
 import 'workflow_measurements.dart';
 import 'workflow_export.dart';
 import 'meal_export.dart';
+import 'meal_photo.dart';
 
 // Presentation only: the original model doubles remain the saved values.
 String _displayNutrient(double? value) {
@@ -1619,13 +1620,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
             key: _form,
             child: ListView(padding: const EdgeInsets.all(20), children: [
               if (_meal.photoPath != null)
-                ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.file(File(_meal.photoPath!),
-                        height: 220,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            const Text('Saved photo is unavailable'))),
+                MealPhotoPreview(photoPath: _meal.photoPath!),
               const SizedBox(height: 16),
               if (summary)
                 AnimatedSize(
