@@ -3,14 +3,18 @@
 Rules for any UI work: `/home/agent-runner/projects/_ui-review/RUBRIC.md`. Habits:
 `/home/agent-runner/projects/_ui-review/REASONING_HABITS.md`. Both apply on top of AGENTS.md. They do not replace its gates.
 
-## Status — owner Android fixes (2026-11-17)
+## Status — owner Android fixes (completed 2026-11-18)
 
-Active checkout `/home/agent-runner/projects/calorix`, `main`; historical feature worktrees below are superseded.
-1. Camera grant: `b0b3fc0` pushed. CI APK run `44159267355` passed; source/checksum/signer matched. Samsung cleared → Take photo → grant → saved-photo editor, screenshot opened; no Camera unavailable warning, no cloud dispatch. RED4/GREEN13, Tier1 baseline107 pass.
-2. Single content shutter + plain Scan nav + safe active dots ships with this commit. RED6/GREEN6 (idle/busy accessibility included); 22 existing capture/UI tests pass, Tier1 analysis clean. Host inspected light/dark360/402 renders; both source and visual Antigravity reviews green. CI APK44163076469 passed; source/checksum/signer matched, Samsung screenshot opened: ring clears nav/dot; repeated Scan-nav taps stayed on camera.
-3. Native swipe/header track +380/38 spring: `f3b886c` pushed; RED5/GREEN13 focused, fullTier1 120pass and analyzer clean. Runtime remove-animations RED/GREEN and separate shutter semantics fixed; all four held-swipe renders opened, independent/MCP review green. No current in-tab horizontal gesture conflicts; forms stay outside pager. CI44166551378 passed; source/checksum/signer matched, Samsung held-swipe/History/Today screenshots opened, both swipe directions checked.
-4. Release-mode build `2e4fc6b` produced a 23.6 MB AOT APK with the existing test signer, but actual ZIP inspection found leftover ARMv7/x86 plugin libraries. This follow-up uses an arm64 ABI split and adds a fail-closed contents check before upload. Contract76pass; Python265 OK/4optional skips; prior full local Flutter1076pass/1intentional skip exit0 and scoped analyzer clean. Corrected CI artifact/device check pending. No cloud changes or deployments.
+Active checkout `/home/agent-runner/projects/calorix`, `main`; all fixes committed and pushed in order.
 
+1. Camera grant: `b0b3fc0`. Reproduced after Samsung `pm clear`: permission granted but Camera unavailable. Serialized controller capture/lifecycle operations; RED4/GREEN13. CI44159267355 source/checksum/signer matched; fresh clear → grant → saved-photo editor, screenshot opened.
+2. Single content shutter and safe nav: `7203dde`. Scan nav only selects; content ring clears nav and active dot. RED6/GREEN6, 22 existing tests pass; light/dark360/402 renders and Samsung CI44163076469 screenshot inspected; repeated nav taps do not capture.
+3. Swipe/header motion: `f3b886c`. Finger-following native pager, moving headers, spring380/38, reduced-motion snapping; fullTier1 120pass. Both directions/held swipe inspected on Samsung CI44166551378. No current horizontal in-tab conflicts; vertical lists retain scrolling and editors stay outside pager. No FPS/parity benchmark claimed.
+4. Release APK: `2e4fc6b` plus strict ABI correction `0909bb8`. Final [Test Android APK44251000772](https://github.com/ia23a-lachnita/calorix/actions/runs/44251000772) succeeded: 23,269,141 bytes (23.3 MB), arm64-v8a only, AOT, no JIT kernel/Vulkan validation layer; source/checksum/existing test signer matched. Installed on Samsung SM-G780G/Android13, non-debuggable; revoke → grant → saved-photo editor, nav reselect and bidirectional/held swipes checked; all selected screenshots opened. Prior unsplit APK rejected for extra plugin ABIs.
+
+Local final proof: `fvm flutter test --no-pub --concurrency=4 --reporter compact` exit0,1077pass/1intentional OFF-live skip; `fvm flutter analyze lib/features/tier1 test/tier1` no issues; Python unittest discover265run/4optional ONNX/Torch skips; APK contract76pass. Whole-project analyzer remains29baseline diagnostics (3missing ignored Firebase options errors,26existing infos). Source reviews: independent no Critical/Important; Antigravity primary3.8 agree/MUST_FIX none.
+
+Visual scope: selected Scan/editor/Today/History/held frames, plus prior both-theme/two-size renders; not exhaustive visual parity. No photo sent for cloud analysis; no Firebase/cloud changes or deployments. Evidence retained under `~/.local/share/calorix-owner-fixes-20261117/`.
 
 ## 1. Historical worktree locations (superseded 2026-11-17)
 
