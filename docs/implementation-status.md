@@ -1,3 +1,17 @@
+# Current Task: release-compatible photo/meal export
+
+Owner explicitly requests continuous roadmap execution; stop only for genuine owner input/approval. Clean main7c869da; previous audit committed/pushed. No Firebase/cloud changes/deployments authorized.
+Actual Samsung/ARTEMIS exploration: saved-photo download opens timing-only clipboard dialog; release `run-as` returns `package not debuggable`. Existing pilot photo retrieval no longer works. Add explicit owner-selected SAF ZIP copy (exact photo+portable meal JSON/hash), keep measurements path. Original data/consent unchanged; no storage permission/network/new Dart dependency.
+Plan docs/superpowers/plans/2026-11-18-release-meal-export.md; preimplementation/MCP amendment ravlo-release-meal-export-20261118 primary3.8 agree/MUST_FIX none. Byte snapshot <=20MiB + JSON<=1MiB, background native ZIP/write, single request, cancel/error/close semantics. Do not delete returned document on failure (ownership across providers unproven); warn partial copy may remain.
+Rulings: bounded byte snapshots instead of native paths cost transient copies but avoid arbitrary path reads; no heap/performance/security guarantee. Primary Save meal copy only for saved photo records with no dirty edits; manual/no-photo export unchanged. Copy outside app deletion control only after explicit OS save choice.
+Current continuation editing routes already exhausted with exact recent receipts below (grok180s, qwen400, OpenCode config invalid, paid180s no edits); retain authorized native fallback, TDD/source/result review and final independent review. Portable official JDK17 task-scoped checksum verified; Adoptium API403, official GitHub asset used; no global install.
+Publisher metadata currentv2/emptydescription/no correction identified; prior meatloaf unit concern remains unresolved, original labels/results preserved. Next implement/test export, source review then commit/push; await exact release CI APK, validate source/hash/signer/ABI, Samsung picker cancel/save/ZIP/screenshots, update runbook and continue available roadmap work.
+
+Source proof: missing-module/class RED, Dart14GREEN, nativeJava5initialGREEN; trailing-JPEG regression RED/GREEN. FullTier1134pass; scoped analyzer clean before footer amendment; latest font-aware14/layout checks pass and analyzer is clean. Host opened all6final real-font idle/error renders360/402boththemes, secondary measurements in body/Cancel+Save footer. No physical new-APK proof yet.
+Independent source review found one Important `w` stream truncation bug: actual old-tail replacement RED1/7 after seam extraction, fixed `wt` with no mode fallback; Python281run/4optional skips includes7native executable tests. NewJDKsetup added to Verify for required native tests. Source/results MCPpost review agree/MUST_FIX none; sourcecommit/push next, then exactCIAPK+Samsungproof. No broad provider/lifecycle/security guarantee.
+
+## Previous checkpoint
+
 # Current Task: V7.1 stored multi-food audit completed
 
 Same agent continues the roadmap; Fable/UI review was advisory, not a transfer of project ownership. Main base336f35a, current source/report stage ready to commit/push; no app/cloud changes or deployments.

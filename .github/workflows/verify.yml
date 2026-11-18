@@ -66,6 +66,12 @@ jobs:
         working-directory: functions
         run: npm ci
 
+      - name: Set up Java for native export tests
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

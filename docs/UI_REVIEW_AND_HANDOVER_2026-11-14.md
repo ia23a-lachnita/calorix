@@ -16,6 +16,11 @@ Local final proof: `fvm flutter test --no-pub --concurrency=4 --reporter compact
 
 Visual scope: selected Scan/editor/Today/History/held frames, plus prior both-theme/two-size renders; not exhaustive visual parity. No photo sent for cloud analysis; no Firebase/cloud changes or deployments. Evidence retained under `~/.local/share/calorix-owner-fixes-20261117/`.
 
+## Roadmap continuation — 2026-11-18
+
+V7.1 stored335-meal audit `7c869da` pushed; original multiplier remains rejected, selected source-weight concern unverified. [Audit](tier1-multifood-audit-2026-11-18/report.md).
+Release-compatible meal-copy source ships in this stage: saved photo → Export meal → Save meal copy, OS location choice, exact JPEG + portable record/hash. Existing measurements flow retained; no cloud changes. Local14focused/7native/Tier1134 + final layout14 pass, analyzer clean, Python281run/4optional skips; independent truncation finding RED/GREEN and MCPsourcegreen. Exact releaseAPK/Samsung save/cancel/hash checks pending before completion.
+
 ## 1. Historical worktree locations (superseded 2026-11-17)
 
 This checkout (`fix/scan-photo-flow-viewer`, `fe792e5`, 2026-10-19) is **not** where work happens. `git worktree list`:

@@ -1,5 +1,6 @@
 package com.calorix.calorix
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -12,11 +13,15 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
 
+    private var mealExport: MealExportHandler? = null
+
     private val channelName = "com.calorix.calorix/system_ui"
     private var insetsController: WindowInsetsControllerCompat? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        mealExport?.close()
+        mealExport = MealExportHandler(this, flutterEngine.dartExecutor.binaryMessenger)
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -30,6 +35,23 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        mealExport?.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        mealExport?.close()
+        mealExport = null
+        super.cleanUpFlutterEngine(flutterEngine)
+    }
+
+    override fun onDestroy() {
+        mealExport?.close()
+        mealExport = null
+        super.onDestroy()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

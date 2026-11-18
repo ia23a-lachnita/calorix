@@ -24,14 +24,18 @@ After an estimate, scroll to **Recognized foods and nutrient sources**, then tap
 
 **Estimate photo** separately asks whether to send this JPEG to Google Cloud in the US. Declining keeps it local. Before sending, image metadata is stripped; anonymous Firebase authentication happens lazily if needed. There is no app-owned server photo/meal persistence on this route; Google provider caching/abuse retention may apply. No API key belongs in the APK. The reviewed callable was explicitly approved and deployed to `calorix-xurschnell/us-central1` on2026-11-08, runtimeNode22. See [the deployment receipt](tier1-deployment-2026-11-08.md). The phone authenticated non-food error-path check passed; real-food calorie accuracy remains unmeasured. App Check enforcement remains off for this personal prototype. Missing callable, disabled anonymous auth, offline/quota/schema errors leave manual entry and the saved photo available.
 
-For the CLI comparator, first take the single JPEG on the phone and keep it local. The debug test APK permits an owner-controlled USB export. Copy the local meal JSON, find that meal's UUID, then copy only its JPEG (replace the example paths/UUID):
+For the CLI comparator, first capture a meal on the phone and keep it local. Release test APKs cannot use `adb run-as`; Android correctly reports `package not debuggable`. On the saved photo meal, tap the download icon → **Export meal** → **Save meal copy**, choose a local folder such as **Downloads**, then save. **Measurements only** retains the separate timing-JSON export. Save any pending meal edits first. Cancel returns without exporting; a failed destination write may leave a partial copy, while the original meal stays in Ravlo.
+
+The ZIP contains the exact saved `photo.jpg` and a portable `meal.json`: capture metadata, original analysis when present, saved corrections/revision, export time and the photo's SHA256. It omits the app-private photo path. `referenceMeasurementsIncluded: false` means app estimates/edits are not independent weighed references. Exported copies are outside Ravlo's deletion controls; delete them separately when appropriate. No storage permission or network operation is added by this export. The chosen document provider controls the destination; select a phone-local folder to keep it local.
+
+Copy only that selected ZIP by USB/MTP or the pinned wrapper (replace the example filename/path), then extract into private disk-backed storage:
 
 ```bash
-/home/agent-runner/.local/bin/phone-adb exec-out run-as com.calorix.calorix cat app_flutter/tier1/meals.json > /disk/path/phone-meals.json
-/home/agent-runner/.local/bin/phone-adb exec-out run-as com.calorix.calorix cat app_flutter/tier1/photos/MEAL_UUID.jpg > /disk/path/meal.jpg
+/home/agent-runner/.local/bin/phone-adb pull /sdcard/Download/ravlo-MEAL_UUID.zip /disk/path/meal.zip
+python3 -m zipfile -e /disk/path/meal.zip /disk/path/meal
 ```
 
-Keep exports private and uncommitted. This USB route is for the dedicated debug pilot, not a public release export feature. Use one CLI inference for the paired comparator below; a separate in-app inference is a separate attempt and must not be substituted into that pair. Record the CLI path explicitly; model latency does not establish in-app shutter-to-estimate latency.
+Keep the original ZIP, `meal.json` and JPEG private and uncommitted. Compare the JPEG's SHA256 with `photoSha256` in `meal.json` before using it. Use one CLI inference for the paired comparator below; a separate in-app inference is a separate attempt and must not replace that pair. Record the CLI path explicitly; model latency does not establish in-app shutter-to-estimate latency.
 
 For the comparator on that authorized local JPEG:
 

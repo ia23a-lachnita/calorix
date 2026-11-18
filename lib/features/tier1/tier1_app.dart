@@ -22,6 +22,7 @@ import 'targets.dart';
 import 'tier1_cloud.dart';
 import 'workflow_measurements.dart';
 import 'workflow_export.dart';
+import 'meal_export.dart';
 
 // Presentation only: the original model doubles remain the saved values.
 String _displayNutrient(double? value) {
@@ -954,13 +955,23 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
   }
 
   Future<void> _export() async {
+    if (_exporting) return;
     _trace('export_opened');
     _exporting = true;
     _meter.setForeground(false);
     try {
-      await showWorkflowExport(context,
+      Future<void> measurements() => showWorkflowExport(context,
           load: () =>
               widget.workflow.export(at: widget.clock.now(), mealId: _meal.id));
+      if (_meal.photoPath != null) {
+        final snapshot = _meal;
+        await showMealCopyExport(context,
+            canSave: !_dirty,
+            save: () => saveMealCopy(snapshot, exportedAt: widget.clock.now()),
+            measurements: measurements);
+      } else {
+        await measurements();
+      }
     } finally {
       _exporting = false;
       _meter.setForeground(_foreground);
@@ -1594,8 +1605,10 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
           // a stored record must always be removable, whatever its revision.
           if (_hasSaved)
             IconButton(
-                tooltip: 'Export measurements',
-                onPressed: _busy ? null : _export,
+                tooltip: _meal.photoPath == null
+                    ? 'Export measurements'
+                    : 'Export meal',
+                onPressed: _busy || _exporting ? null : _export,
                 icon: const Icon(Icons.download_outlined)),
           IconButton(
               tooltip: 'Delete meal',
