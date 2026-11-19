@@ -1,3 +1,11 @@
+# Current Task: Source weight audit complete
+
+The [source audit follow-up](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19) checked the two archived v2 CSV copies against the original hash. Across 251 dishes, all 45 food types repeat one recorded weight and nutrition combination. The 185 audited NutritionVerse rows matched the CSV component fields, and component sums matched the source dish totals. Separate raw SQLite and Decimal checks agreed. All 20 focused audit and evaluator tests passed. The source documents leave actual weights of the photographed servings unresolved. Antigravity review agreed with no must-fix findings.
+
+V7.1 prototype and Samsung capture/export checks are complete. The verified APK remains from `f007f93`. The rejected portion rule and completed paired run stay frozen. Next is one independently measured Android meal to exercise capture, export and scoring, then an exploratory comparison over 30 distinct meals if practical. The Android reference count is still zero. No new inference, labels, app code or cloud changes. Reproducible aggregate check under `~/.local/share/calorix-source-semantics-20261119/`.
+
+## Previous checkpoint
+
 # Current Task: Startup camera permission shipped
 
 Source `f007f93b49235c862361cd4bd91a4737bf9c1521` is on main. Verify 44576419470 and Test Android APK 44576423398 passed. [APK ZIP](https://github.com/ia23a-lachnita/calorix/actions/runs/44576423398/artifacts/14558487898) contains the 23,400,213-byte arm64 release. SHA256 `25b53a4074b98be5dd86f4c8d9f5df46cfb329bfc1dc20ecd1ecc09988dec2ac` matched the installed Samsung base APK. The existing test signer and release contents matched.
