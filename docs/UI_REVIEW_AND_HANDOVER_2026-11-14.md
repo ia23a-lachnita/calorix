@@ -18,6 +18,8 @@ Visual scope: selected Scan/editor/Today/History/held frames, plus prior both-th
 
 Scan follow-up, checked 2026-11-19. `b94401e` moved today's calories beneath the header and replaced the white shutter centre with a hollow gradient ring. [Current APK ZIP](https://github.com/ia23a-lachnita/calorix/actions/runs/44391991407/artifacts/14470000119) passed CI and was installed on Samsung without resetting app data. The before/after screenshots show the same 100 kcal test entry, and tapping the summary opened Today. The test entry was removed and both existing photo records remain. Source, checksum, signer and arm64 release contents matched. The owner's meal screenshot was reviewed, and the serving-intent warning remains.
 
+Startup camera permission asks on launch and prepares the preview after a grant. If permission is granted from a shutter tap, that tap continues to capture. A denied grant leaves manual entry available. Focused regression tests and Tier1 analyzer passed. Samsung verification follows the signed release build.
+
 ## Roadmap continuation — 2026-11-18
 
 V7.1 stored335-meal audit `7c869da` pushed; original multiplier remains rejected, selected source-weight concern unverified. [Audit](tier1-multifood-audit-2026-11-18/report.md).

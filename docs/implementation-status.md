@@ -1,3 +1,19 @@
+# Current Task: Ask for camera permission on startup
+
+Main starts at `5c7369e`. On Samsung, the prior APK opened Scan without prompting after camera access was revoked. Tapping the shutter opened the Android permission dialog. Captured and opened both screenshots. Restored camera permission and preserved existing meals.
+The startup grant should ready the preview. A shutter tap that needs a permission grant should take one photo after the grant. The startup and shutter flows share a pending request. Denying access leaves manual entry available.
+Baseline passed 11 tests. The first five regressions reproduced the missing startup prompt. Independent review found that losing focus during the asynchronous permission check could prompt in the background. Added a sixth regression and confirmed the foreground recheck fixes it without consuming the next startup attempt. Final focused tests passed 17, Tier1 analyzer clean, Python 281 run with four optional skips. Antigravity `ravlo-startup-camera-permission-20261119` and follow-up peer review cleared the amended source. Broader local tests are running. Next verify the source-matched APK on Samsung.
+
+Editing route `grok-4.7` started 2026-11-19T17:10:53Z and reached the 150-second limit with exit 124. It made no file edits. Last output: “The existing capture tests stay green. Next I’ll map how Scan requests permission and warms the preview so the new cases fail only on the missing startup behavior.”
+
+Editing route `qwen3.7-max` at 2026-11-19T17:13:37Z returned exit 1 and “[API Error: 403 Access to model denied. Please make sure you are eligible for using the model.]”
+
+OpenCode catalog at 2026-11-19T17:14:05Z returned exit 1: “Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc ↳ Unrecognized key: plugins”. No permitted model could be selected.
+
+Last editing route `claude-sonnet-5` started 2026-11-19T17:14:23Z and timed out after 120 seconds with exit 124. No repository edits. Output: “Warning: this sign-in ends between 2026-11-20 and 2026-11-23 (in 1 day at the earliest). Renewing it does not move those dates. Run claude auth login before then, or use claude setup-token for unattended jobs.” Native editing fallback applies.
+
+## Previous checkpoint
+
 # Current Task: Scan summary and hollow shutter shipped
 
 Source `b94401e16482e1b42d0b1a3723f0d6ca3d03b872` is on main. Verify 44391991372 and Test Android APK 44391991407 passed. [APK ZIP](https://github.com/ia23a-lachnita/calorix/actions/runs/44391991407/artifacts/14470000119) contains the 23,400,213-byte arm64 release APK. SHA256 `cd4f0774fa11b3af605d1937c58328f8d7bac600ae6247e8bad51fdae4680d0c` matches metadata, the checksum file and the installed Samsung base APK. The existing test signer and AOT/ABI contents check passed.

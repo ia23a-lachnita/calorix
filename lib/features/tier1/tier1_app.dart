@@ -97,6 +97,8 @@ class _Tier1Home extends StatefulWidget {
 }
 
 class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
+  static const _cameraAccessOff =
+      'Camera access is off. Manual entry still works.';
   late final CameraService _camera = widget.camera ?? DeviceCameraService();
   Tier1MealStore? _store;
   WorkflowSink? _workflow;
@@ -108,6 +110,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   // 0 Today, 1 Scan (the landing screen), 2 History.
   int _tab = 1;
   bool _busy = false;
+  bool _startupPermissionChecked = false;
+  Future<bool>? _cameraPermission;
   final _pages = PageController(initialPage: 1);
   Tier1TargetStore _targetStore = Tier1TargetStore();
   Tier1Targets _targets = Tier1Targets.defaults;
@@ -154,11 +158,51 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       }
       return;
     }
+    await _prepareCamera();
+  }
+
+  bool get _isForeground {
+    final state = WidgetsBinding.instance.lifecycleState;
+    return state == null || state == AppLifecycleState.resumed;
+  }
+
+  Future<bool> _requestCameraAccess() async {
+    final granted = await _camera.hasPermission();
+    // The app can lose focus while Android is checking permission. In that
+    // case the first foreground resume still needs to handle startup.
+    if (!mounted || !_isForeground) return false;
+    _startupPermissionChecked = true;
+    if (granted) return true;
+    final result = await _camera.requestPermission();
+    return result == CameraPermissionRequestResult.granted;
+  }
+
+  Future<bool> _ensureCameraAccess() =>
+      _cameraPermission ??= _requestCameraAccess().whenComplete(() {
+        _cameraPermission = null;
+      });
+
+  Future<void> _prepareCamera() async {
+    // The permission dialog can resume the app before the grant callback.
+    // Let the pending startup request or shutter finish on its own.
+    if (!mounted ||
+        !_isForeground ||
+        _workflow == null ||
+        _error != null ||
+        _cameraPermission != null) {
+      return;
+    }
     try {
-      if (_camera is CameraLifecycleService) {
+      final granted = _startupPermissionChecked
+          ? await _camera.hasPermission()
+          : await _ensureCameraAccess();
+      if (!mounted || !_isForeground) return;
+      if (granted && _camera is CameraLifecycleService) {
         await (_camera as CameraLifecycleService).resume();
       }
-      if (mounted) setState(() => _cameraWarning = null);
+      if (mounted) {
+        setState(() => _cameraWarning = granted ? null : _cameraAccessOff);
+      }
     } catch (_) {
       if (mounted) {
         setState(() =>
@@ -176,19 +220,10 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) _lifecycleEpoch++;
-    if (_camera is! CameraLifecycleService) return;
-    final lifecycle = _camera as CameraLifecycleService;
     if (state == AppLifecycleState.resumed) {
-      unawaited(lifecycle.resume().then((_) {
-        if (mounted) setState(() => _cameraWarning = null);
-      }).catchError((_) {
-        if (mounted) {
-          setState(() =>
-              _cameraWarning = 'Camera unavailable. Manual entry still works.');
-        }
-      }));
-    } else {
-      unawaited(lifecycle.pause());
+      unawaited(_prepareCamera());
+    } else if (_camera is CameraLifecycleService) {
+      unawaited((_camera as CameraLifecycleService).pause());
     }
   }
 
@@ -257,18 +292,22 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     setState(() => _busy = true);
     String? ownedCapture;
     try {
-      if (!await _camera.hasPermission()) {
-        final permission = await _camera.requestPermission();
-        if (permission != CameraPermissionRequestResult.granted) {
-          throw StateError('Camera permission needed');
-        }
+      if (!await _ensureCameraAccess()) {
+        if (mounted) setState(() => _cameraWarning = _cameraAccessOff);
+        return;
       }
+      if (!mounted || _tab != 1 || ModalRoute.isCurrentOf(context) != true) {
+        return;
+      }
+      final state = WidgetsBinding.instance.lifecycleState;
+      final startedForeground = _isForeground;
+      // Android may return the grant before dismissing the permission window.
+      // Inactive is safe here, but a backgrounded app should not take a photo.
+      if (!startedForeground && state != AppLifecycleState.inactive) return;
+      if (_cameraWarning != null) setState(() => _cameraWarning = null);
       final shutter = widget.clock.now();
       final shutterTick = _ticks();
       final offerEpoch = _lifecycleEpoch;
-      final state = WidgetsBinding.instance.lifecycleState;
-      final startedForeground =
-          state == null || state == AppLifecycleState.resumed;
       final file = await _camera.captureStill();
       if (file == null) return;
       ownedCapture = file.path;
@@ -824,7 +863,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                 if (_error != null)
                   Padding(
                       padding: const EdgeInsets.all(16), child: Text(_error!)),
-                if (_cameraWarning != null)
+                if (tab == 1 && _cameraWarning != null)
                   Padding(
                       padding: const EdgeInsets.all(16),
                       child: Text(_cameraWarning!)),

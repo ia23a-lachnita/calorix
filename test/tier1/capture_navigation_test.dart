@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:calorix/features/tier1/local_meal.dart';
 import 'package:calorix/features/tier1/local_meal_store.dart';
 import 'package:calorix/features/tier1/tier1_app.dart';
+import 'package:calorix/shared/services/camera_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,7 +27,169 @@ class _HeldCamera extends FakeCameraService {
   }
 }
 
+class _PermissionCamera extends FakeCameraService
+    implements CameraLifecycleService {
+  _PermissionCamera() {
+    granted = false;
+    returnNullFile = true;
+  }
+
+  late Completer<CameraPermissionRequestResult> _permission;
+  Completer<bool>? permissionCheck;
+  bool previewReady = false;
+
+  @override
+  Future<bool> hasPermission() =>
+      permissionCheck?.future ?? super.hasPermission();
+
+  @override
+  Future<CameraPermissionRequestResult> requestPermission() async {
+    requestPermissionCount++;
+    _permission = Completer<CameraPermissionRequestResult>();
+    final result = await _permission.future;
+    granted = result == CameraPermissionRequestResult.granted;
+    return result;
+  }
+
+  void answer(CameraPermissionRequestResult result) =>
+      _permission.complete(result);
+
+  @override
+  Future<void> resume() async => previewReady = granted;
+  @override
+  Future<void> pause() async => previewReady = false;
+  @override
+  Future<void> dispose() async => previewReady = false;
+}
+
 void main() {
+  testWidgets('startup grant readies the camera for the first shutter tap',
+      (tester) async {
+    final camera = _PermissionCamera();
+    await tester.pumpWidget(Tier1App(store: _Store(), camera: camera));
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 1);
+    expect(camera.previewReady, isFalse);
+    expect(camera.captureCount, 0);
+
+    camera.answer(CameraPermissionRequestResult.granted);
+    await tester.pumpAndSettle();
+    expect(camera.previewReady, isTrue);
+    expect(camera.captureCount, 0);
+    await tester.tap(find.text('Take photo'));
+    await tester.pumpAndSettle();
+    expect(camera.captureCount, 1);
+    expect(camera.requestPermissionCount, 1);
+  });
+
+  testWidgets('startup denial keeps manual entry and one shutter retry works',
+      (tester) async {
+    final camera = _PermissionCamera();
+    await tester.pumpWidget(Tier1App(store: _Store(), camera: camera));
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 1);
+    camera.answer(CameraPermissionRequestResult.denied);
+    await tester.pumpAndSettle();
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 1);
+    expect(camera.captureCount, 0);
+    await tester.tap(find.text('Manual entry'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextFormField, 'Meal name'), findsOneWidget);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Take photo'));
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 2);
+    expect(camera.captureCount, 0);
+    camera.answer(CameraPermissionRequestResult.granted);
+    await tester.pumpAndSettle();
+    expect(camera.captureCount, 1);
+  });
+
+  testWidgets('a shutter tap joins the startup request through dialog resume',
+      (tester) async {
+    final camera = _PermissionCamera();
+    await tester.pumpWidget(Tier1App(store: _Store(), camera: camera));
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 1);
+    await tester.tap(find.text('Take photo'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('tier1-capture-ring')));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 1);
+    expect(camera.captureCount, 0);
+    camera.answer(CameraPermissionRequestResult.granted);
+    await tester.pumpAndSettle();
+    expect(camera.captureCount, 1);
+    expect(camera.requestPermissionCount, 1);
+  });
+
+  testWidgets('grant does not take a queued photo after leaving Scan',
+      (tester) async {
+    final camera = _PermissionCamera();
+    await tester.pumpWidget(Tier1App(store: _Store(), camera: camera));
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 1);
+    await tester.tap(find.text('Take photo'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('History'));
+    await tester.pumpAndSettle();
+    camera.answer(CameraPermissionRequestResult.granted);
+    await tester.pumpAndSettle();
+    expect(camera.previewReady, isTrue);
+    expect(camera.captureCount, 0);
+  });
+
+  testWidgets('launch while inactive defers prompt to the first resume',
+      (tester) async {
+    final camera = _PermissionCamera();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    addTearDown(() => tester.binding
+        .handleAppLifecycleStateChanged(AppLifecycleState.resumed));
+    await tester.pumpWidget(Tier1App(store: _Store(), camera: camera));
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 0);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 1);
+    camera.answer(CameraPermissionRequestResult.granted);
+    await tester.pumpAndSettle();
+    expect(camera.previewReady, isTrue);
+    expect(camera.captureCount, 0);
+  });
+
+  testWidgets('losing focus during the permission check defers the prompt',
+      (tester) async {
+    final pendingCheck = Completer<bool>();
+    final camera = _PermissionCamera()..permissionCheck = pendingCheck;
+    addTearDown(() => tester.binding
+        .handleAppLifecycleStateChanged(AppLifecycleState.resumed));
+    await tester.pumpWidget(Tier1App(store: _Store(), camera: camera));
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 0);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    pendingCheck.complete(false);
+    camera.permissionCheck = null;
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 0);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(camera.requestPermissionCount, 1);
+    camera.answer(CameraPermissionRequestResult.granted);
+    await tester.pumpAndSettle();
+    expect(camera.previewReady, isTrue);
+    expect(camera.captureCount, 0);
+  });
+
   testWidgets('Scan navigation and reselection never take a photo',
       (tester) async {
     final camera = FakeCameraService()..returnNullFile = true;
