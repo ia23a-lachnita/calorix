@@ -1,3 +1,18 @@
+## Current work — photo diagnostics, meal input and mockup screens (2026-11-21)
+
+On main at b0ead9e. First verify the photo callable with functions/test/tier1-callable.test.ts and the deployed troubleshooting reference. Gallery, non-gram portions and the mockup rebuild follow; natural-language corrections are future work.
+Editing route grok-4.7 started 2026-11-21T14:27:08+01:00, timeout 150s (exit 124), no edits. Last output: “I’ll match the approved diagnostic shape from the nearby callable pattern before writing tests.”
+Editing route qwen3.7-max at 2026-11-21T14:30:14+01:00 exited 1: “[API Error: 403 Access to model denied. Please make sure you are eligible for using the model.]”
+OpenCode catalog at 2026-11-21T14:31:31+01:00 exited 1: “Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc ↳ Unrecognized key: plugins”.
+Last editing route claude-sonnet-5 at 2026-11-21T14:32:02+01:00 timed out at 120s (exit 124), no edits. Output: “Warning: this sign-in can end at any time from now until 2026-11-23. Renewing it does not move that date. Run claude auth login now, or use claude setup-token for unattended jobs.” Host fallback for callable.
+Client diagnostic path: grok-4.7 at 2026-11-21T14:33:34+01:00 timed out after 150s, no edits (“I’ll read those plus the focused tests so the regression matches the current messages and event shape”). qwen3.7-max at 2026-11-21T18:33:20+01:00 exited 1: “[API Error: 403 Access to model denied. Please make sure you are eligible for using the model.]”
+Client OpenCode catalog at 2026-11-21T18:34:15+01:00 timed out at 20s, exit 124, empty output.
+Callable post-review gemini-3.8-flash at 2026-11-21T18:38+01:00 returned “timed out awaiting tools/call after 300s”; using next permitted reviewer.
+Callable gemini-3.7-flash at 2026-11-21T18:39+01:00: agy exited with code 1, “--effort is not supported for model "gemini-3.7-flash"”.
+Callable gemini-3.6-flash also returned invalid model selection, “--effort is not supported for model "gemini-3.6-flash"”; retry primary with a bounded source excerpt.
+
+Final client route claude-sonnet-5 at 2026-11-21T18:34:56+01:00 timed out after 120s, exit 124 with only the sign-in warning above. No source edits.
+
 # Current Task: Source weight audit complete
 
 The [source audit follow-up](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19) checked the two archived v2 CSV copies against the original hash. Across 251 dishes, all 45 food types repeat one recorded weight and nutrition combination. The 185 audited NutritionVerse rows matched the CSV component fields, and component sums matched the source dish totals. Separate raw SQLite and Decimal checks agreed. All 20 focused audit and evaluator tests passed. The source documents leave actual weights of the photographed servings unresolved. Antigravity review agreed with no must-fix findings.

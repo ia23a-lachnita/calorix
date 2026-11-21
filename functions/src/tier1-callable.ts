@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+import * as logger from 'firebase-functions/logger';
 import { HttpsError } from 'firebase-functions/v2/https';
 import { inferTier1, Tier1InferenceFailure, type Tier1Estimate } from './tier1-analysis';
 
@@ -11,15 +13,41 @@ export function validateTier1Photo(data:unknown):string {
   return encoded;
 }
 export function createTier1Handler(infer:(image:string)=>Promise<Tier1Estimate>=inferTier1) {
-  return async(request:{auth?:{uid:string}|null;data:unknown}):Promise<Tier1Estimate>=>{
-    if(!request.auth?.uid)throw new HttpsError('unauthenticated','Sign in for optional cloud analysis.');
-    const photo=validateTier1Photo(request.data);
-    try{return await infer(photo);}catch(error){
-      if(error instanceof Tier1InferenceFailure)throw new HttpsError('failed-precondition','No food could be estimated. Retake the photo or enter the meal manually.',{failureCategory:error.category});
-      const status=error && typeof error==='object' && 'status' in error ? error.status : null;
-      const category=typeof status==='number'?`http_${status}`:'inference_failure';
-      // Never log an SDK error object: it can include request photos or credentials.
-      throw new HttpsError('unavailable','Photo analysis failed. Your photo stays on this phone; edit the meal manually or try again.',{failureCategory:category});
+  return async (request: {auth?: {uid: string} | null; data: unknown}): Promise<Tier1Estimate> => {
+    const started = Date.now();
+    function reject(stage: 'auth' | 'consent' | 'input' | 'inference', category: string,
+                    code: HttpsError['code'], message: string): never {
+      const reference = randomUUID();
+      const fields = {stage, failureCategory: category, reference, elapsedMs: Math.max(0, Date.now() - started)};
+      // Exceptions from the provider can contain the entire request. Log only these fields.
+      if (code === 'unavailable') logger.error('tier1_analysis_failed', fields);
+      else logger.info('tier1_analysis_failed', fields);
+      throw new HttpsError(code, message, {failureCategory: category, reference});
+    }
+    if (!request.auth?.uid) {
+      reject('auth', 'unauthenticated', 'unauthenticated', 'Sign in for optional cloud analysis.');
+    }
+    let photo: string;
+    try {
+      photo = validateTier1Photo(request.data);
+    } catch (error) {
+      if (error instanceof HttpsError && error.code === 'permission-denied') {
+        return reject('consent', 'consent_required', error.code, error.message);
+      }
+      return reject('input', 'invalid_photo', 'invalid-argument', 'Invalid JPEG photo.');
+    }
+    try {
+      return await infer(photo);
+    } catch (error) {
+      if (error instanceof Tier1InferenceFailure) {
+        return reject('inference', 'no_food', 'failed-precondition',
+          'No food could be estimated. Retake the photo or enter the meal manually.');
+      }
+      const status = error && typeof error === 'object' && 'status' in error ? error.status : null;
+      const category = typeof status === 'number' && Number.isInteger(status) && status >= 400 && status <= 599
+        ? `http_${status}` : 'inference_failure';
+      return reject('inference', category, 'unavailable',
+        'Photo analysis failed. Your photo stays on this phone; edit the meal manually or try again.');
     }
   };
 }
