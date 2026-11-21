@@ -20,7 +20,7 @@ Scan follow-up, checked 2026-11-19. `b94401e` moved today's calories beneath the
 
 Startup camera permission `f007f93` was installed and verified on the Samsung. Launch prompts for missing access. Granting prepares the preview, and the first shutter tap opens the saved-photo editor. Denying leaves manual entry available. When the shutter opens a retry prompt, granting takes the photo without a second tap. Both CI runs passed. [Current APK ZIP](https://github.com/ia23a-lachnita/calorix/actions/runs/44576423398/artifacts/14558487898)
 
-Photo-estimate diagnostics (Nov 21): the callable now returns the same random support reference it writes to its structured failure log. Redaction, failures and successful estimates passed 9 callable tests; 22 tests passed against the isolated deployment source. Live lookup and app display are checked separately.
+Photo-estimate diagnostics (Nov 21): the callable now returns the same random support reference it writes to its structured failure log. Redaction, failures and successful estimates passed 9 callable tests; 22 tests passed against the isolated deployment source. Server change f85a727 deployed only analyzeTier1Meal. The app now distinguishes an unrecognized serving, invalid photo and service failure, and shows the support reference when one is available. All 29 focused client tests passed and scoped analysis found no issues.
 
 ## Roadmap continuation — 2026-11-18
 

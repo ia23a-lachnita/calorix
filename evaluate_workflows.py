@@ -35,7 +35,12 @@ def utc(value):
 
 
 def event_valid(event,version=2):
-    shape(event,BASE|EXTRA,BASE)
+    diagnostics = {'failureCategory','reference'} if isinstance(event,dict) and version == 2 and event.get('kind') in ('analysis_failed','analysis_refresh_failed') else set()
+    shape(event,BASE|EXTRA|diagnostics,BASE)
+    if 'failureCategory' in event and event['failureCategory'] not in ('no_food','invalid_photo','unauthenticated','consent_required','network','timeout','service','invalid_response','local_save','local_refresh'):
+        raise ValueError('Invalid estimate failure category')
+    if 'reference' in event and ('failureCategory' not in event or not isinstance(event['reference'],str) or not re.fullmatch(r'[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}',event['reference'])):
+        raise ValueError('Invalid estimate reference')
     if not isinstance(event['kind'],str) or event['kind'] not in (KINDS|FOOD_KINDS if version==2 else KINDS) or not isinstance(event['sessionId'],str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',event['sessionId']):raise ValueError('Invalid event identity')
     integer(event['sequence'],'sequence',2**53-1);utc(event['atUtc'])
     if type(event['timingValid']) is not bool:raise ValueError('Timing-valid flag required')

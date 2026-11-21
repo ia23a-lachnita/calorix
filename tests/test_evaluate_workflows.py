@@ -28,6 +28,14 @@ def references(*rows):return {'schema_version':'1.0','meals':list(rows)}
 
 
 class WorkflowEvaluatorTest(unittest.TestCase):
+    def test_failure_reference_is_bounded_and_limited_to_failed_events(self):
+        event={**correction(),'kind':'analysis_failed','failureCategory':'no_food','reference':'268ba27c-b44a-41c5-aa8f-8c8f7ffaa7be'}
+        data=export([event]);data['schemaVersion']=2
+        evaluate_workflows(data,references(meal()))
+        for patch in [{'kind':'editor_opened'}, {'failureCategory':'raw private text'}, {'reference':'private text'}]:
+            invalid=copy.deepcopy(data);invalid['meals'][0]['events'][0].update(patch)
+            with self.assertRaises(ValueError):evaluate_workflows(invalid,references(meal()))
+
     def test_v2_accepts_appended_oil_index20_but_v1_and_index21_reject(self):
         for kind in ['portion_saved','food_saved']:
             data=export([{**correction(),'kind':kind,'portionIndex':20}]);data['schemaVersion']=2

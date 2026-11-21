@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -94,6 +95,32 @@ Future<void> _open(
 }
 
 void main() {
+  testWidgets(
+      'an unestimated serving shows the server reference and preserves the meal',
+      (t) async {
+    final store = _Store(), sink = _Sink(), cloud = _Cloud();
+    await _open(t, store, sink, () => 0, cloud: cloud);
+    final before = store.records.single.served?.kcal;
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    const ref = '268ba27c-b44a-41c5-aa8f-8c8f7ffaa7be';
+    cloud.response.completeError(FirebaseFunctionsException(
+      code: 'failed-precondition',
+      message: 'private provider payload',
+      details: const {'failureCategory': 'no_food', 'reference': ref},
+    ));
+    await t.pumpAndSettle();
+    expect(find.textContaining('identify a serving'), findsOneWidget);
+    expect(find.textContaining(ref), findsOneWidget);
+    final failed =
+        sink.events.singleWhere((e) => e['kind'] == 'analysis_failed');
+    expect(failed['failureCategory'], 'no_food');
+    expect(failed['reference'], ref);
+    expect(failed.toString(), isNot(contains('private provider payload')));
+    expect(store.records.single.served?.kcal, before);
+  });
   testWidgets(
       'portion save logs before/after and a foreground proxy without changing original analysis',
       (t) async {

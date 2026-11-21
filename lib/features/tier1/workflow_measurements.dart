@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'analysis_failure.dart';
 
 const workflowEventLimit = 256;
 const workflowExportByteLimit = 500000;
@@ -101,7 +102,26 @@ Map<String, dynamic> validateWorkflowEvent(Map<String, dynamic> value,
   if (version != 1 && version != 2) {
     throw const FormatException('Unsupported workflow version');
   }
-  _shape(value, {..._base, ..._extra}, _base);
+  final failureEvent = version == 2 &&
+      const {'analysis_failed', 'analysis_refresh_failed'}
+          .contains(value['kind']);
+  _shape(
+      value,
+      {
+        ..._base,
+        ..._extra,
+        if (failureEvent) ...{'failureCategory', 'reference'}
+      },
+      _base);
+  if (value.containsKey('failureCategory') &&
+      !EstimateFailure.values.any((e) => e.code == value['failureCategory'])) {
+    throw const FormatException('Invalid estimate failure category');
+  }
+  if (value.containsKey('reference') &&
+      (!value.containsKey('failureCategory') ||
+          !validEstimateReference(value['reference']))) {
+    throw const FormatException('Invalid estimate reference');
+  }
   if (!(version == 1 ? _legacyWorkflowKinds : workflowKinds)
           .contains(value['kind']) ||
       value['sessionId'] is! String ||

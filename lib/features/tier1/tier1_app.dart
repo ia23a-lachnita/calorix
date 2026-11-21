@@ -13,6 +13,7 @@ import '../../core/time/clock.dart';
 import '../../shared/services/camera_service.dart';
 import '../../shared/widgets/macro_ring.dart';
 import 'local_meal.dart';
+import 'analysis_failure.dart';
 import 'manual_nutrient_catalog.dart';
 import 'motion.dart';
 import 'tab_motion.dart';
@@ -1147,9 +1148,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       _message = null;
     });
     var committed = false;
+    var localWrite = true;
     try {
       await _persist(_meal.withConsent());
       final revision = _meal.revision;
+      localWrite = false;
       final cloud = widget.cloud;
       if (cloud == null) throw StateError('Cloud unavailable');
       final result = await cloud.analyze(_meal.photoPath!, consent: true);
@@ -1157,6 +1160,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
         'clientAnalysisMs': _duration(started),
         'shutterToResponseMs': _duration(widget.captureTick)
       });
+      localWrite = true;
       final applied = await widget.store.replaceIfRevision(
           _meal.withAnalysis(result, at: widget.clock.now()), revision);
       committed = applied;
@@ -1186,14 +1190,15 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
             ? 'Approximate estimate saved. Check the foods and portions.'
             : 'Your newer changes were kept; this result was discarded.');
       }
-    } catch (_) {
+    } catch (error) {
+      final failure = committed
+          ? const AnalysisFailure(EstimateFailure.refresh)
+          : localWrite
+              ? const AnalysisFailure(EstimateFailure.save)
+              : AnalysisFailure.from(error);
       _trace(committed ? 'analysis_refresh_failed' : 'analysis_failed',
-          {'clientAnalysisMs': _duration(started)});
-      if (mounted) {
-        setState(() => _message = committed
-            ? 'Estimate saved, but could not refresh. Reopen the meal to check saved values.'
-            : 'Photo analysis is unavailable. Your photo is saved on this phone. Enter or correct the meal below.');
-      }
+          {'clientAnalysisMs': _duration(started), ...failure.fields});
+      if (mounted) setState(() => _message = failure.message);
     } finally {
       _meter.setWaiting(false);
       if (mounted) {
