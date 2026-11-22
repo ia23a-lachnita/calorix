@@ -1,6 +1,8 @@
 ## Current work — photo diagnostics, meal input and mockup screens (2026-11-21)
 
-On main at b0ead9e. First verify the photo callable with functions/test/tier1-callable.test.ts and the deployed troubleshooting reference. Gallery, non-gram portions and the mockup rebuild follow; natural-language corrections are future work.
+Main includes callable failure references (f85a727), client diagnostics (15e2adb), gallery import (c65e3b2) and household portions (8a1b7fa). Only analyzeTier1Meal was deployed. On the Samsung, the verified gallery APK imported a test PNG through Android DocumentsUI and opened the full image. The original checksum matched. Android accuracy still needs an independently weighed serving.
+
+The quantities APK run stopped at a Flutter test that tapped the centre of a partly scrolled photo under the toolbar. The focused reproduction failed the same way locally. The current test fix targets the visible expand control. The five-tab shell and screen groups are being rebuilt from the handoff on the local-first workflow. Natural-language correction and barcode nutrition lookup remain future work.
 Editing route grok-4.7 started 2026-11-21T14:27:08+01:00, timeout 150s (exit 124), no edits. Last output: “I’ll match the approved diagnostic shape from the nearby callable pattern before writing tests.”
 Editing route qwen3.7-max at 2026-11-21T14:30:14+01:00 exited 1: “[API Error: 403 Access to model denied. Please make sure you are eligible for using the model.]”
 OpenCode catalog at 2026-11-21T14:31:31+01:00 exited 1: “Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc ↳ Unrecognized key: plugins”.

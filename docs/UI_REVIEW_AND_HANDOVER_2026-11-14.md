@@ -28,6 +28,10 @@ The deployed diagnostic revision analyzetier1meal-00002-niw returned a support r
 
 Portion corrections now accept pieces, millilitres and a share of a batch. One third of four large hard-boiled eggs uses a food-specific reference and changes only the eggs. User-entered weights and shares survive export and reopening. Whole-meal shares are separate. The original photo estimate remains available for comparison. Eighteen focused tests and the eleven offline comparator tests passed.
 
+Samsung check for gallery commit `c65e3b2` used the source- and signer-verified [Test Android APK 45015094447](https://github.com/ia23a-lachnita/calorix/actions/runs/45015094447). Android’s file picker imported a test PNG into the meal editor. The full-screen viewer showed the whole image, and analysis required a separate tap. Inspected the Scan, editor and full-screen screenshots, verified the external PNG checksum and removed the temporary test meal and files.
+
+The first quantities build stopped at a photo-viewer regression test. Reproduced the missed tap under the toolbar and targeted the visible expand icon. The test still checks that closing the viewer preserves the unsaved meal name and causes no save.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)
