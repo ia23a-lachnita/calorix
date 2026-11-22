@@ -228,7 +228,8 @@ void main() {
         expect(bounds.size, const Size(80, 80));
         final nav = tester.getRect(find.text('SCAN'));
         expect(bounds.bottom, lessThan(nav.top));
-        final dot = tester.getRect(find.byKey(const ValueKey('tab-dot-1')));
+        final dot =
+            tester.getRect(find.byKey(const ValueKey('scan-active-pip')));
         expect(dot.bottom, lessThanOrEqualTo(size.height - 24));
         expect(tester.takeException(), isNull);
       });

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -93,7 +94,8 @@ class CalorixBottomNav extends StatelessWidget {
             : const Color(0xFF0B0D10).withValues(alpha: 0.52))
         : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight);
 
-    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    final bottomInset = math.max(MediaQuery.viewPaddingOf(context).bottom,
+        MediaQuery.paddingOf(context).bottom);
     final safeAreaExtension =
         bottomInset > 0 ? bottomInset + 36.0 - _navBottomPadding : 0.0;
     final totalHeight = _navHeight + safeAreaExtension;
@@ -322,48 +324,49 @@ class _ScanNavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final labelColor = isActive ? activeColor : inactiveColor;
-    return SizedBox(
-      width: hitTargetSize,
-      height: outerSize + 32,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.topCenter,
-        children: [
-          Positioned(
-            key: const Key('scan-glow'),
-            top: -glowOffset,
-            width: glowSize,
-            height: glowSize,
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.cyan.withValues(alpha: 0.35),
-                      AppColors.blue.withValues(alpha: 0.05),
-                      Colors.transparent,
-                    ],
-                    stops: const [0, 0.6, 0.75],
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x3319D3D9),
-                      blurRadius: 2,
+    return Semantics(
+      label: 'Scan',
+      button: true,
+      selected: isActive,
+      child: GestureDetector(
+        key: const Key('nav-item-scan'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: hitTargetSize,
+          height: outerSize + 32,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: [
+              Positioned(
+                key: const Key('scan-glow'),
+                top: -glowOffset,
+                width: glowSize,
+                height: glowSize,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppColors.cyan.withValues(alpha: 0.35),
+                          AppColors.blue.withValues(alpha: 0.05),
+                          Colors.transparent,
+                        ],
+                        stops: const [0, 0.6, 0.75],
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x3319D3D9),
+                          blurRadius: 2,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-          Semantics(
-            label: 'Scan',
-            button: true,
-            child: GestureDetector(
-              key: const Key('nav-item-scan'),
-              onTap: onTap,
-              behavior: HitTestBehavior.opaque,
-              child: SizedBox(
+              SizedBox(
                 key: const Key('scan-hit-target'),
                 width: hitTargetSize,
                 height: hitTargetSize,
@@ -418,42 +421,43 @@ class _ScanNavButton extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            key: const Key('scan-label-block'),
-            top: outerSize + 20,
-            left: -20,
-            right: -20,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'SCAN',
-                  key: const Key('scan-label'),
-                  style: AppTextStyles.labelMono.copyWith(
-                    color: labelColor,
-                    fontSize: labelSize,
-                    letterSpacing: labelLetterSpacing,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                    height: 1,
-                  ),
-                ),
-                if (isActive)
-                  Container(
-                    key: const Key('scan-active-pip'),
-                    width: 4.0,
-                    height: 4.0,
-                    margin: const EdgeInsets.only(top: 4.0),
-                    decoration: const BoxDecoration(
-                      color: AppColors.green,
-                      shape: BoxShape.circle,
+              Positioned(
+                key: const Key('scan-label-block'),
+                top: outerSize + 20,
+                left: -20,
+                right: -20,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'SCAN',
+                      key: const Key('scan-label'),
+                      style: AppTextStyles.labelMono.copyWith(
+                        color: labelColor,
+                        fontSize: labelSize,
+                        letterSpacing: labelLetterSpacing,
+                        fontWeight:
+                            isActive ? FontWeight.w600 : FontWeight.w500,
+                        height: 1,
+                      ),
                     ),
-                  ),
-              ],
-            ),
+                    if (isActive)
+                      Container(
+                        key: const Key('scan-active-pip'),
+                        width: 4.0,
+                        height: 4.0,
+                        margin: const EdgeInsets.only(top: 4.0),
+                        decoration: const BoxDecoration(
+                          color: AppColors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

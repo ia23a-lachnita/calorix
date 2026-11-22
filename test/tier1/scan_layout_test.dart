@@ -98,7 +98,7 @@ void main() {
         expect(picture.bytes.getUint8(offset + 1), (expected.g * 255).round());
         expect(picture.bytes.getUint8(offset + 2), (expected.b * 255).round());
         expect(summary, findsOneWidget);
-        final header = t.getRect(find.byKey(const ValueKey('tab-header-1')));
+        final header = t.getRect(find.byKey(const ValueKey('tab-header-2')));
         expect(t.getRect(summary).top, greaterThanOrEqualTo(header.bottom));
         expect(t.getRect(summary).bottom, lessThan(size.height * .4));
         expect(find.text('420'), findsOneWidget);
@@ -152,6 +152,22 @@ void main() {
       expect(find.byKey(const ValueKey('tier1-capture-ring')), findsOneWidget);
     });
   }
+  testWidgets('gallery, frame and shutter share the camera viewfinder',
+      (t) async {
+    t.view.physicalSize = const Size(360, 800);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    await t.pumpWidget(Tier1App(store: _Store(), camera: FakeCameraService()));
+    await t.pumpAndSettle();
+    final frame = t.getRect(find.byKey(const ValueKey('meal-framing-guide')));
+    expect(frame.width, 280);
+    expect(frame.height, frame.width);
+    final shutter = t.getRect(find.byKey(const ValueKey('tier1-capture-ring')));
+    final library = t.getRect(find.byTooltip('Choose from gallery'));
+    expect(frame.bottom, lessThan(shutter.top));
+    expect(library.right, lessThan(shutter.left));
+    expect(library.center.dy, closeTo(shutter.center.dy, 2));
+  });
   testWidgets('top summary and shutter remain separate with large text',
       (t) async {
     t.view.physicalSize = const Size(360, 800);

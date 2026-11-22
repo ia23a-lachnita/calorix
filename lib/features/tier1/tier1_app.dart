@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
-import 'package:camera/camera.dart';
+import '../scan/widgets/meal_camera_preview.dart';
+import 'viewfinder_guide.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,6 +13,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/time/clock.dart';
 import '../../shared/services/camera_service.dart';
 import '../../shared/widgets/macro_ring.dart';
+import '../../shell/app_shell.dart';
 import 'local_meal.dart';
 import 'analysis_failure.dart';
 import 'manual_nutrient_catalog.dart';
@@ -111,12 +113,12 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       widget.elapsedMilliseconds?.call() ?? _elapsed.elapsedMilliseconds;
   List<Tier1Meal> _meals = [];
   String? _error, _cameraWarning;
-  // 0 Today, 1 Scan (the landing screen), 2 History.
-  int _tab = 1;
+  // 0 Today, 1 History, 2 Scan (the landing screen), 3 Goals, 4 AI.
+  int _tab = 2;
   bool _busy = false;
   bool _startupPermissionChecked = false;
   Future<bool>? _cameraPermission;
-  final _pages = PageController(initialPage: 1);
+  final _pages = PageController(initialPage: 2);
   Tier1TargetStore _targetStore = Tier1TargetStore();
   Tier1Targets _targets = Tier1Targets.defaults;
   int _lifecycleEpoch = 0;
@@ -251,7 +253,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     if (_store == null || _error != null) return;
     // Coming from the camera, move to Today while the editor covers the
     // screen, so closing it reveals the result instead of the camera.
-    final fromScan = _tab == 1;
+    final fromScan = _tab == 2;
     final route = MaterialPageRoute<void>(
         builder: (_) => _MealEditor(
             meal: meal,
@@ -268,7 +270,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       void covered(AnimationStatus status) {
         if (status != AnimationStatus.completed) return;
         route.animation?.removeStatusListener(covered);
-        if (mounted && _tab == 1) _selectTab(0, immediate: true);
+        if (mounted && _tab == 2) _selectTab(0, immediate: true);
       }
 
       route.animation?.addStatusListener(covered);
@@ -284,7 +286,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         // to that list.
         final kept = _meals.any((m) => m.id == meal.id);
         final today = _todayMeals.any((m) => m.id == meal.id);
-        if (fromScan) _selectTab(!kept ? 1 : (today ? 0 : 2), immediate: true);
+        if (fromScan) _selectTab(!kept ? 2 : (today ? 0 : 1), immediate: true);
       }
     } catch (_) {
       if (mounted) {
@@ -329,7 +331,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       await _refresh();
       if (mounted &&
           _isForeground &&
-          _tab == 1 &&
+          _tab == 2 &&
           ModalRoute.isCurrentOf(context) == true) {
         await _open(_meals.firstWhere((m) => m.id == id));
       }
@@ -353,7 +355,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         if (mounted) setState(() => _cameraWarning = _cameraAccessOff);
         return;
       }
-      if (!mounted || _tab != 1 || ModalRoute.isCurrentOf(context) != true) {
+      if (!mounted || _tab != 2 || ModalRoute.isCurrentOf(context) != true) {
         return;
       }
       final state = WidgetsBinding.instance.lifecycleState;
@@ -441,15 +443,35 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   }
 
   Widget _cameraView() {
-    final controller =
-        _camera is DeviceCameraService ? _camera.previewController : null;
+    final hasPreview = _camera is DeviceCameraService &&
+        _camera.previewController?.value.isInitialized == true;
+    final scheme = Theme.of(context).colorScheme;
+    final chip = IconButton.styleFrom(
+        minimumSize: const Size(48, 48),
+        foregroundColor: scheme.onSurface,
+        backgroundColor: scheme.surface.withValues(alpha: .85),
+        side: BorderSide(color: scheme.outlineVariant));
     return Stack(fit: StackFit.expand, children: [
-      if (controller != null && controller.value.isInitialized)
-        CameraPreview(controller)
-      else
-        Center(
-            child: Text('One photo of your meal',
-                style: Theme.of(context).textTheme.titleLarge)),
+      Positioned.fill(
+          top: _countedToday.isEmpty ? 12 : 92,
+          bottom: 160,
+          child: Center(
+              child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: CustomPaint(
+                      key: const ValueKey('meal-framing-guide'),
+                      painter: ViewfinderGuide(active: _busy),
+                      child: SizedBox(
+                          width: 280,
+                          height: 280,
+                          child: hasPreview
+                              ? null
+                              : Center(
+                                  child: Text('One photo of your meal',
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge))))))),
       // Unestimated captures do not invent a zero-calorie meal count.
       if (_countedToday.isNotEmpty)
         Positioned(
@@ -507,31 +529,57 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                 'Photos stay on this phone until you choose cloud analysis.',
                 textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            Semantics(
-                container: true,
-                label: _busy ? 'Saving photo' : 'Take meal photo',
-                button: true,
-                enabled: !_busy,
-                onTap: _busy ? null : _capture,
-                excludeSemantics: true,
-                child: Pressable(
-                    child: GestureDetector(
-                        excludeFromSemantics: true,
-                        onTap: _busy ? null : _capture,
-                        behavior: HitTestBehavior.opaque,
-                        child:
-                            Column(mainAxisSize: MainAxisSize.min, children: [
-                          RepaintBoundary(
-                              key: const ValueKey('tier1-capture-ring'),
-                              child: CustomPaint(
-                                  size: const Size(80, 80),
-                                  painter: _CaptureRingPainter(
-                                      disabledColor: _busy
-                                          ? Theme.of(context).disabledColor
-                                          : null))),
-                          const SizedBox(height: 8),
-                          Text(_busy ? 'Saving photo…' : 'Take photo'),
-                        ])))),
+            Stack(alignment: Alignment.topCenter, children: [
+              Positioned(
+                  left: 0,
+                  top: 16,
+                  child: IconButton(
+                      tooltip: 'Choose from gallery',
+                      style: chip,
+                      onPressed: _busy || _error != null
+                          ? null
+                          : () => _importGallery(),
+                      icon: const Icon(Icons.photo_library_outlined))),
+              if (_meals.isNotEmpty)
+                Positioned(
+                    right: 0,
+                    top: 16,
+                    child: IconButton(
+                        tooltip: 'Recent meals',
+                        style: chip,
+                        onPressed: _busy ? null : () => _selectTab(1),
+                        icon: const Icon(Icons.history))),
+              Align(
+                alignment: Alignment.topCenter,
+                child: Semantics(
+                    container: true,
+                    label: _busy ? 'Saving photo' : 'Take meal photo',
+                    button: true,
+                    enabled: !_busy,
+                    onTap: _busy ? null : _capture,
+                    excludeSemantics: true,
+                    child: Pressable(
+                        child: GestureDetector(
+                            excludeFromSemantics: true,
+                            onTap: _busy ? null : _capture,
+                            behavior: HitTestBehavior.opaque,
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  RepaintBoundary(
+                                      key: const ValueKey('tier1-capture-ring'),
+                                      child: CustomPaint(
+                                          size: const Size(80, 80),
+                                          painter: _CaptureRingPainter(
+                                              disabledColor: _busy
+                                                  ? Theme.of(context)
+                                                      .disabledColor
+                                                  : null))),
+                                  const SizedBox(height: 8),
+                                  Text(_busy ? 'Saving photo…' : 'Take photo'),
+                                ])))),
+              )
+            ]),
           ])),
     ]);
   }
@@ -794,91 +842,42 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     }
   }
 
-  /// Bottom navigation from the design: two plain tabs around the scan
-  /// button with the brand gradient ring.
-  Widget _nav() {
-    final scheme = Theme.of(context).colorScheme;
-    Widget tab(int index, IconData icon, String label) {
-      final active = _tab == index;
-      final color = active ? scheme.onSurface : scheme.onSurfaceVariant;
-      return Expanded(
-          child: Semantics(
-              selected: active,
-              button: true,
-              child: InkWell(
-                  onTap: () => _selectTab(index),
-                  child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        Icon(icon, color: color, size: 22),
-                        const SizedBox(height: 4),
-                        Text(label,
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight:
-                                    active ? FontWeight.w700 : FontWeight.w500,
-                                color: color)),
-                        const SizedBox(height: 4),
-                        AnimatedContainer(
-                            key: ValueKey('tab-dot-$index'),
-                            duration: Motion.of(context, Motion.fast),
-                            width: 4,
-                            height: 4,
-                            decoration: BoxDecoration(
-                                color: active
-                                    ? AppColors.carbs
-                                    : Colors.transparent,
-                                shape: BoxShape.circle)),
-                      ])))));
-    }
-
-    return DecoratedBox(
-        decoration: BoxDecoration(
-            color: scheme.surface,
-            border: Border(top: BorderSide(color: scheme.outline))),
-        child: SafeArea(
-            top: false,
-            minimum: const EdgeInsets.only(bottom: 12),
-            child: Row(children: [
-              tab(0, Icons.wb_twilight_outlined, 'Today'),
-              tab(1, Icons.camera_alt_outlined, 'SCAN'),
-              tab(2, Icons.history, 'History'),
-            ])));
-  }
-
-  Widget _header(int tab) =>
-      AppBar(title: const Text(AppConstants.appDisplayName), actions: [
-        if (tab == 1)
-          IconButton(
-            tooltip: 'Choose from gallery',
-            onPressed: _busy || _store == null || _error != null
-                ? null
-                : () => _importGallery(),
-            icon: const Icon(Icons.photo_library_outlined),
-          ),
-        if (tab == 2)
-          IconButton(
-              tooltip: 'Export measurements',
-              onPressed: _store == null || _error != null
-                  ? null
-                  : () => showWorkflowExport(context,
-                      load: () => _workflow!.export(at: widget.clock.now())),
-              icon: const Icon(Icons.download_outlined)),
-        TextButton.icon(
-            onPressed: _store == null || _error != null
-                ? null
-                : () => _open(Tier1Meal(
-                    id: const Uuid().v4(),
-                    capturedAt: widget.clock.now(),
-                    name: 'New meal')),
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('Manual entry'))
-      ]);
+  Widget _header(int tab) => AppBar(
+          backgroundColor: tab == 2
+              ? Theme.of(context).colorScheme.surface.withValues(alpha: .77)
+              : null,
+          title: const Text(AppConstants.appDisplayName),
+          actions: [
+            if (tab == 1)
+              IconButton(
+                  tooltip: 'Export measurements',
+                  onPressed: _store == null || _error != null
+                      ? null
+                      : () => showWorkflowExport(context,
+                          load: () =>
+                              _workflow!.export(at: widget.clock.now())),
+                  icon: const Icon(Icons.download_outlined)),
+            TextButton.icon(
+                onPressed: _store == null || _error != null
+                    ? null
+                    : () => _open(Tier1Meal(
+                        id: const Uuid().v4(),
+                        capturedAt: widget.clock.now(),
+                        name: 'New meal')),
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: const Text('Manual entry'))
+          ]);
 
   Widget _tabContent(int tab) {
     if (_store == null) return const Center(child: CircularProgressIndicator());
     if (tab == 0) return _todayView();
-    if (tab == 1) return _cameraView();
+    if (tab == 1) return _historyView();
+    if (tab == 2) return _cameraView();
+    if (tab == 3) return _goalsView();
+    return _aiView();
+  }
+
+  Widget _historyView() {
     if (_meals.isEmpty) {
       return const Center(
           child: Text('No saved meals yet. Take a photo or enter a meal.'));
@@ -906,9 +905,97 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         });
   }
 
+  /// Local-only targets summary. The full Goals flow (body-goal modes, AI
+  /// adjustment) is Firebase/Riverpod-coupled and out of scope here.
+  Widget _goalsView() {
+    final theme = Theme.of(context), scheme = theme.colorScheme;
+    final rows = <(String, int, String, Color)>[
+      ('Calories', _targets.kcal, 'kcal', scheme.onSurface),
+      ('Protein', _targets.proteinG, 'g', AppColors.protein),
+      ('Carbs', _targets.carbsG, 'g', AppColors.carbs),
+      ('Fat', _targets.fatG, 'g', AppColors.fat),
+    ];
+    return ListView(
+        key: const PageStorageKey('tier1-goals'),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        children: [
+          Text('GOALS',
+              style: theme.textTheme.labelSmall?.copyWith(
+                  letterSpacing: 1.4, color: scheme.onSurfaceVariant)),
+          Text('Daily targets', style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 16),
+          Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: scheme.outline)),
+              child: Column(children: [
+                for (final (name, value, unit, color) in rows)
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(children: [
+                        Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                                color: color, shape: BoxShape.circle)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                            child:
+                                Text(name, style: theme.textTheme.titleSmall)),
+                        Text('$value $unit',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                                fontFeatures: const [
+                                  ui.FontFeature.tabularFigures()
+                                ])),
+                      ])),
+              ])),
+          Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                  onPressed: _editTargets,
+                  icon: const Icon(Icons.tune, size: 18),
+                  label: const Text('Change targets'))),
+        ]);
+  }
+
+  Widget _aiView() {
+    final theme = Theme.of(context), scheme = theme.colorScheme;
+    return Center(
+        child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                    color: scheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: scheme.outline)),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.auto_awesome_outlined,
+                      size: 28, color: scheme.onSurfaceVariant),
+                  const SizedBox(height: 12),
+                  Text('Meal corrections',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  Text('Open a saved meal to change a food or its portion.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: scheme.onSurfaceVariant)),
+                  TextButton(
+                      onPressed: () => _selectTab(1),
+                      child: const Text('Open History')),
+                ]))));
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
-      bottomNavigationBar: _nav(),
+      bottomNavigationBar: CalorixBottomNav(
+          currentIndex: _tab,
+          onTap: _selectTab,
+          isDark: Theme.of(context).brightness == Brightness.dark,
+          floating: _tab == 2),
       body: PageView(
           controller: _pages,
           pageSnapping: false,
@@ -917,23 +1004,32 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
               : const TabPagePhysics(),
           onPageChanged: (tab) => setState(() => _tab = tab),
           children: [
-            for (var tab = 0; tab < 3; tab++)
-              Column(children: [
-                // A header belongs to its page: both travel on the same native
-                // scroll track instead of changing only when a swipe commits.
-                SizedBox(
-                    key: ValueKey('tab-header-$tab'),
-                    height: kToolbarHeight + MediaQuery.paddingOf(context).top,
-                    child: _header(tab)),
-                if (_error != null)
-                  Padding(
-                      padding: const EdgeInsets.all(16), child: Text(_error!)),
-                if (tab == 1 && _cameraWarning != null)
-                  Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(_cameraWarning!)),
-                Expanded(
-                    key: ValueKey('tab-content-$tab'), child: _tabContent(tab)),
+            for (var tab = 0; tab < 5; tab++)
+              Stack(fit: StackFit.expand, children: [
+                if (tab == 2 &&
+                    _camera is DeviceCameraService &&
+                    _camera.previewController?.value.isInitialized == true)
+                  MealCameraPreview(controller: _camera.previewController!),
+                Column(children: [
+                  // A header belongs to its page: both travel on the same native
+                  // scroll track instead of changing only when a swipe commits.
+                  SizedBox(
+                      key: ValueKey('tab-header-$tab'),
+                      height:
+                          kToolbarHeight + MediaQuery.paddingOf(context).top,
+                      child: _header(tab)),
+                  if (_error != null)
+                    Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(_error!)),
+                  if (tab == 2 && _cameraWarning != null)
+                    Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(_cameraWarning!)),
+                  Expanded(
+                      key: ValueKey('tab-content-$tab'),
+                      child: _tabContent(tab)),
+                ]),
               ]),
           ]));
 }

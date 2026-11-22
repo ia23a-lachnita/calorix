@@ -2,7 +2,9 @@
 
 Main includes callable failure references (f85a727), client diagnostics (15e2adb), gallery import (c65e3b2) and household portions (8a1b7fa). Only analyzeTier1Meal was deployed. On the Samsung, the verified gallery APK imported a test PNG through Android DocumentsUI and opened the full image. The original checksum matched. Android accuracy still needs an independently weighed serving.
 
-The quantities APK run stopped at a Flutter test that tapped the centre of a partly scrolled photo under the toolbar. The focused reproduction failed the same way locally. The current test fix targets the visible expand control. The five-tab shell and screen groups are being rebuilt from the handoff on the local-first workflow. Natural-language correction and barcode nutrition lookup remain future work.
+The quantities APK run stopped at a Flutter test that tapped the centre of a partly scrolled photo under the toolbar. The focused reproduction failed the same way locally. Fix bc98375 targets the visible expand control. Verify and the release APK passed, and the Samsung showed 100 kcal counted for one third of a 300 kcal test meal. The five-tab shell and screen groups are being rebuilt from the handoff on the local-first workflow. Natural-language correction and barcode nutrition lookup remain future work.
+Five-tab navigation and viewfinder source review of supplied behavior passed on gemini-3.8-flash. The first primary call timed out after 300 seconds. At 2026-11-22T20:59:46Z and 20:59:50Z the 3.7 and 3.6 fallbacks each rejected High effort as unsupported. The bounded primary review returned agreement with no must-fix findings.
+
 Editing route grok-4.7 started 2026-11-21T14:27:08+01:00, timeout 150s (exit 124), no edits. Last output: “I’ll match the approved diagnostic shape from the nearby callable pattern before writing tests.”
 Editing route qwen3.7-max at 2026-11-21T14:30:14+01:00 exited 1: “[API Error: 403 Access to model denied. Please make sure you are eligible for using the model.]”
 OpenCode catalog at 2026-11-21T14:31:31+01:00 exited 1: “Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc ↳ Unrecognized key: plugins”.

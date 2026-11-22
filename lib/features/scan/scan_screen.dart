@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show DeviceOrientation;
+import 'widgets/meal_camera_preview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'providers/scan_providers.dart';
@@ -257,7 +257,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         children: [
           if (previewController != null &&
               previewController.value.isInitialized)
-            _CoverCameraPreview(controller: previewController)
+            MealCameraPreview(controller: previewController)
           else if (widget.fixturePreviewAsset != null)
             Image.asset(
               widget.fixturePreviewAsset!,
@@ -370,34 +370,6 @@ class _CameraPlaceholder extends StatelessWidget {
 /// `BoxFit.cover` instead of the device's native letterboxed aspect ratio.
 /// `previewSize` is reported in the sensor's landscape frame, so portrait
 /// device orientations need width/height swapped before fitting.
-class _CoverCameraPreview extends StatelessWidget {
-  const _CoverCameraPreview({required this.controller});
-
-  final CameraController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final previewSize = controller.value.previewSize ?? Size.zero;
-    final isPortrait = controller.value.deviceOrientation ==
-            DeviceOrientation.portraitUp ||
-        controller.value.deviceOrientation == DeviceOrientation.portraitDown;
-    final width = isPortrait ? previewSize.height : previewSize.width;
-    final height = isPortrait ? previewSize.width : previewSize.height;
-
-    return ClipRect(
-      child: FittedBox(
-        fit: BoxFit.cover,
-        alignment: Alignment.center,
-        child: SizedBox(
-          width: width,
-          height: height,
-          child: CameraPreview(controller),
-        ),
-      ),
-    );
-  }
-}
-
 // ─── Glass chrome ─────────────────────────────────────────────────────────────
 
 class _GlassChip extends StatelessWidget {

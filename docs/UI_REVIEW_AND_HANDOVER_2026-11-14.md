@@ -32,6 +32,10 @@ Samsung check for gallery commit `c65e3b2` used the source- and signer-verified 
 
 The first quantities build stopped at a photo-viewer regression test. Reproduced the missed tap under the toolbar and targeted the visible expand icon. The test still checks that closing the viewer preserves the unsaved meal name and causes no save.
 
+Quantities and the viewer regression passed [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45042298898) and [Test Android APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45042299043) at `bc98375`. Checked source, checksum, signer and arm64 release contents, then installed on the Samsung. Entering 1/3 for a temporary 300 kcal meal displayed 100 kcal counted. Inspected the editor screenshot and removed the test entry.
+
+The local shell now opens on Scan in the middle of five swipeable tabs. The gallery, hollow shutter and recent meals sit around the viewfinder. The camera preview uses the shared cover layout. Thirty focused navigation checks passed, along with the safe-inset checks and scoped analysis. Inspected 360 and 402 px renders in both themes. Dashboard, editor and account screens have separate implementation and verification work.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)
