@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'local_meal.dart';
 import 'workflow_measurements.dart';
 
@@ -198,6 +199,21 @@ class Tier1MealStore {
     } finally {
       final captured = File(source);
       if (await captured.exists()) await captured.delete();
+    }
+  }
+
+  Future<String> retainGalleryPhoto(String id, Uint8List bytes) async {
+    _workflowId(id);
+    final photos = Directory('${root.path}/photos');
+    await photos.create(recursive: true);
+    final destination = File('${photos.path}/$id.jpg');
+    await destination.create(exclusive: true);
+    try {
+      await destination.writeAsBytes(bytes, flush: true);
+      return destination.path;
+    } catch (_) {
+      await destination.delete();
+      rethrow;
     }
   }
 

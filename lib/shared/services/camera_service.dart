@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -10,6 +11,10 @@ abstract class CameraService {
   Future<CameraPermissionRequestResult> requestPermission();
   Future<XFile?> captureStill();
   Future<XFile?> pickFromLibrary();
+}
+
+abstract interface class GalleryRecovery {
+  Future<XFile?> recoverGalleryImage();
 }
 
 enum CameraPermissionRequestResult { granted, denied, settingsRequired }
@@ -27,7 +32,8 @@ abstract class CameraLifecycleService {
 /// are a minimal typed seam for [ScanScreen]'s live preview and flash
 /// chrome. They live outside the abstract contract so widget tests (and
 /// their fakes) never need to reference [CameraController].
-class DeviceCameraService implements CameraService, CameraLifecycleService {
+class DeviceCameraService
+    implements CameraService, CameraLifecycleService, GalleryRecovery {
   CameraController? _controller;
   final ImagePicker _picker = ImagePicker();
   Future<void> _operations = Future<void>.value();
@@ -92,8 +98,20 @@ class DeviceCameraService implements CameraService, CameraLifecycleService {
       });
 
   @override
-  Future<XFile?> pickFromLibrary() =>
-      _picker.pickImage(source: ImageSource.gallery, imageQuality: 90);
+  Future<XFile?> pickFromLibrary() => _picker.pickImage(
+      source: ImageSource.gallery, requestFullMetadata: false);
+
+  @override
+  Future<XFile?> recoverGalleryImage() async {
+    if (!Platform.isAndroid) return null;
+    final response = await _picker.retrieveLostData();
+    if (response.isEmpty) return null;
+    if (response.exception != null) throw response.exception!;
+    if (response.type == RetrieveType.video) {
+      throw const FormatException('Select a still photo');
+    }
+    return response.files?.firstOrNull ?? response.file;
+  }
 
   Future<void> setFlashMode(FlashMode mode) => _serialize(() async {
         await _controller?.setFlashMode(mode);

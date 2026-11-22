@@ -22,6 +22,10 @@ Startup camera permission `f007f93` was installed and verified on the Samsung. L
 
 Photo-estimate diagnostics (Nov 21): the callable now returns the same random support reference it writes to its structured failure log. Redaction, failures and successful estimates passed 9 callable tests; 22 tests passed against the isolated deployment source. Server change f85a727 deployed only analyzeTier1Meal. The app now distinguishes an unrecognized serving, invalid photo and service failure, and shows the support reference when one is available. All 29 focused client tests passed and scoped analysis found no issues.
 
+Scan now opens the system gallery with camera permission denied, copies JPEG/PNG photos into the private meal store, and recovers an interrupted Android selection. Seventeen gallery and camera tests passed; scoped analyzer clean. Selecting a photo keeps analysis opt-in.
+
+The deployed diagnostic revision analyzetier1meal-00002-niw returned a support reference for a no-photo request. Cloud Logging matched the reference and the auth rejection. Client 15e2adb passed Verify and Test Android APK.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

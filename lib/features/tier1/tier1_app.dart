@@ -25,6 +25,7 @@ import 'workflow_measurements.dart';
 import 'workflow_export.dart';
 import 'meal_export.dart';
 import 'meal_photo.dart';
+import 'gallery_photo.dart';
 
 // Presentation only: the original model doubles remain the saved values.
 String _displayNutrient(double? value) {
@@ -159,6 +160,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       }
       return;
     }
+    if (_camera is GalleryRecovery) {
+      await _importGallery(recover: true);
+    }
     await _prepareCamera();
   }
 
@@ -285,6 +289,56 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         setState(() => _error =
             'Could not refresh local history. Reopen the app to check saved values.');
       }
+    }
+  }
+
+  Future<void> _importGallery({bool recover = false}) async {
+    if (!mounted || _busy || _store == null || _error != null) return;
+    setState(() => _busy = true);
+    try {
+      final file = recover
+          ? await (_camera as GalleryRecovery).recoverGalleryImage()
+          : await _camera.pickFromLibrary();
+      if (file == null) return;
+      final photo = await prepareGalleryPhoto(file);
+      final id = const Uuid().v4();
+      final path = await _store!.retainGalleryPhoto(id, photo.bytes);
+      final now = widget.clock.now();
+      final meal = Tier1Meal(
+          id: id,
+          capturedAt: now,
+          name: 'New meal',
+          photoPath: path,
+          source: 'photo',
+          metadata: {
+            'photoSource': 'gallery',
+            'importedAt': now.toUtc().toIso8601String(),
+            'width': photo.width,
+            'height': photo.height,
+            'jpegBytes': photo.bytes.length,
+            'gpsRequested': false,
+          });
+      try {
+        await _store!.save(meal);
+      } catch (_) {
+        await File(path).delete();
+        rethrow;
+      }
+      await _refresh();
+      if (mounted &&
+          _isForeground &&
+          _tab == 1 &&
+          ModalRoute.isCurrentOf(context) == true) {
+        await _open(_meals.firstWhere((m) => m.id == id));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(
+                'Could not import this photo. Choose a JPEG or PNG up to 20 MB and try again.')));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -792,6 +846,14 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
 
   Widget _header(int tab) =>
       AppBar(title: const Text(AppConstants.appDisplayName), actions: [
+        if (tab == 1)
+          IconButton(
+            tooltip: 'Choose from gallery',
+            onPressed: _busy || _store == null || _error != null
+                ? null
+                : () => _importGallery(),
+            icon: const Icon(Icons.photo_library_outlined),
+          ),
         if (tab == 2)
           IconButton(
               tooltip: 'Export measurements',
