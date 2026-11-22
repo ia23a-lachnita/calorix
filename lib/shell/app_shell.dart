@@ -328,8 +328,11 @@ class _ScanNavButton extends StatelessWidget {
       label: 'Scan',
       button: true,
       selected: isActive,
+      excludeSemantics: true,
+      onTap: onTap,
       child: GestureDetector(
         key: const Key('nav-item-scan'),
+        excludeFromSemantics: true,
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: SizedBox(

@@ -36,6 +36,8 @@ Quantities and the viewer regression passed [Verify](https://github.com/ia23a-la
 
 The local shell now opens on Scan in the middle of five swipeable tabs. The gallery, hollow shutter and recent meals sit around the viewfinder. The camera preview uses the shared cover layout. Thirty focused navigation checks passed, along with the safe-inset checks and scoped analysis. Inspected 360 and 402 px renders in both themes. Dashboard, editor and account screens have separate implementation and verification work.
 
+Five-tab source `90c8a10` exposed a duplicate screen-reader label on Scan. The corrected navigation item has one “Scan” label and one accessibility action. All four shared navigation tests passed, including the original accessibility check. Python ran 282 tests with 11 optional skips, and all 109 Node checks passed.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)
