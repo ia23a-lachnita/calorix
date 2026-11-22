@@ -38,7 +38,8 @@ function validateExport(record,photo){
     record.photoFile!=='photo.jpg'||!/^\d{4}-\d\d-\d\dT/.test(record.exportedAtUtc??'')||
     !/^[a-f0-9]{64}$/.test(record.photoSha256??'')||record.photoSha256!==hash(photo)||
     photo.length<4||photo[0]!==255||photo[1]!==216||!object(meal)||
-    ![1,2].includes(meal.schemaVersion)||!Number.isSafeInteger(meal.revision)||meal.revision<1||
+    ![1,2,3].includes(meal.schemaVersion)||
+    (meal.schemaVersion===3 && (!object(meal.portionInputs)||!Object.keys(meal.portionInputs).length))||!Number.isSafeInteger(meal.revision)||meal.revision<1||
     typeof meal.id!=='string'||!/^[a-zA-Z0-9_-]{1,80}$/.test(meal.id)||Object.hasOwn(meal,'photoPath')){
     throw new Error('Invalid saved meal export, JPEG or photo hash');
   }

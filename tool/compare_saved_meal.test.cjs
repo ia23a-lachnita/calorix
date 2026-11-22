@@ -63,6 +63,14 @@ test('answered preparation and all saved corrections never enter unassisted reco
   assert.equal(r.initial_estimate.question.answered,false);
   assert.match(r.warnings.join(' '),/answers.*corrections.*consumption/);
 });
+test('typed component shares never enter the original inventory comparison',t=>{
+  const f=fixture(t);
+  Object.assign(f.record.meal,{schemaVersion:3,portionInputs:{0:{unit:'batch',amount:1,
+    numerator:1,denominator:3,referenceAmount:1,referenceGrams:100,referenceSource:'photo'}},
+    portionOverrides:{0:100/3},consumedFraction:1/3,revision:3});
+  f.save();
+  assert.deepEqual(f.run().predictions,cli.createPilotPredictions(f.estimate,'synthetic-001').predictions);
+});
 test('no saved analysis yields two explicit failures, not fabricated calorie values',t=>{
   const r=fixture(t,{analysis:false}).run();
   assert.deepEqual(r.predictions.map(p=>p.status),['failed','failed']);

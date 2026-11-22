@@ -113,6 +113,41 @@ Future<void> apply(WidgetTester tester, String value) async {
 }
 
 void main() {
+  testWidgets(
+      'a third of one photographed food adjusts that food in the saved meal',
+      (tester) async {
+    final store = await _openMeal(tester);
+    final otherFood = store.records.single.componentMassG(0);
+    await dialog(tester);
+    await tester.tap(find.text('Use pieces, volume or a batch share'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Share to log (e.g. 1/3)'), '1/3');
+    await tester.tap(find.text('Use quantity'));
+    await tester.pumpAndSettle();
+    expect(store.records.single.portionInputs[1]!.denominator, 3);
+    expect(store.records.single.componentMassG(1), closeTo(55 / 3, 1e-8));
+    expect(store.records.single.componentMassG(0), otherFood);
+    expect(store.records.single.consumedFraction, isNull);
+    expect(find.text('1/3 of the photographed food'), findsOneWidget);
+  });
+
+  testWidgets('a custom whole-meal share counts each food once',
+      (tester) async {
+    final store = await _openMeal(tester);
+    await visible(tester, find.text('Other share'));
+    await tester.tap(find.text('Other share'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Fraction eaten (e.g. 1/3)'), '1/3');
+    await tester.tap(find.text('Apply'));
+    await tester.pumpAndSettle();
+    expect(store.records.single.consumedFraction, 1 / 3);
+    expect(store.records.single.consumedKcal, closeTo(427.5 / 3, 1e-8));
+    expect(store.records.single.portionInputs, isEmpty);
+    expect(store.records.single.componentMassG(1), 55);
+  });
+
   testWidgets('invalid portion explains the full range on a narrow screen',
       (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);

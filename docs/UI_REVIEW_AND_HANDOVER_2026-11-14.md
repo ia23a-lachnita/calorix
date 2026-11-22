@@ -26,6 +26,8 @@ Scan now opens the system gallery with camera permission denied, copies JPEG/PNG
 
 The deployed diagnostic revision analyzetier1meal-00002-niw returned a support reference for a no-photo request. Cloud Logging matched the reference and the auth rejection. Client 15e2adb passed Verify and Test Android APK.
 
+Portion corrections now accept pieces, millilitres and a share of a batch. One third of four large hard-boiled eggs uses a food-specific reference and changes only the eggs. User-entered weights and shares survive export and reopening. Whole-meal shares are separate. The original photo estimate remains available for comparison. Eighteen focused tests and the eleven offline comparator tests passed.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

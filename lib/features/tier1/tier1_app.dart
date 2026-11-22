@@ -15,6 +15,8 @@ import '../../shared/widgets/macro_ring.dart';
 import 'local_meal.dart';
 import 'analysis_failure.dart';
 import 'manual_nutrient_catalog.dart';
+import 'portion_input.dart';
+import 'portion_input_dialog.dart';
 import 'motion.dart';
 import 'tab_motion.dart';
 import 'food_selection_dialog.dart';
@@ -1309,6 +1311,8 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     final dialogStarted = _meter.foregroundExcludingWaitMs;
     _trace('portion_opened', {'portionIndex': index, 'fromG': current});
     var gramsText = _displayNutrient(current), closed = false;
+    PortionInput? input;
+    var restore = false;
     var committed = false;
     int? dialogElapsed;
     int? measuredDialog() => _meter.timingValid ? dialogElapsed : null;
@@ -1354,12 +1358,34 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                       ? 'Enter a finite weight from 0 to 100000 g'
                                       : null;
                                 }),
+                            TextButton(
+                                onPressed: () async {
+                                  final choice = await showDialog<PortionInput>(
+                                      context: dialogContext,
+                                      builder: (_) => PortionInputDialog(
+                                          originalGrams: original,
+                                          recordId:
+                                              opening.componentRecordId(index),
+                                          previous:
+                                              opening.portionInputs[index]));
+                                  if (choice == null ||
+                                      closed ||
+                                      !dialogContext.mounted) {
+                                    return;
+                                  }
+                                  input = choice;
+                                  closed = true;
+                                  Navigator.pop(dialogContext, choice.grams);
+                                },
+                                child: const Text(
+                                    'Use pieces, volume or a batch share')),
                             // In the content, not the action row: three
                             // buttons do not fit there and stack vertically.
                             TextButton.icon(
                                 onPressed: () {
                                   if (closed) return;
                                   closed = true;
+                                  restore = true;
                                   Navigator.pop(dialogContext, original);
                                 },
                                 icon: const Icon(Icons.restore, size: 18),
@@ -1400,8 +1426,12 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
         return;
       }
       if (!mounted) return;
-      final updated =
-          opening.correctPortion(index, grams, at: widget.clock.now());
+      final updated = opening.correctPortion(index, grams,
+          at: widget.clock.now(),
+          input: input ??
+              (!restore && grams == current
+                  ? opening.portionInputs[index]
+                  : null));
       if (identical(updated, opening)) {
         _trace('portion_unchanged', {
           'portionIndex': index,
@@ -1747,9 +1777,8 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     final summary = served != null && !_editTotals;
     // A manual entry that holds nothing yet is not an estimate of anything.
     final blank = served == null && _meal.photoPath == null && !_hasSaved;
-    final partly = served != null &&
-        _meal.consumedKcal != null &&
-        _meal.consumedKcal!.round() != served.kcal.round();
+    final fraction = _meal.consumedFraction ?? 1;
+    final partly = served != null && fraction != 1;
     final status = partly
         ? '${_meal.consumedKcal!.round()} kcal counted · you ate part of it'
         : '';
@@ -1943,6 +1972,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                               ] else if ((c['assumptions'] as List? ?? [])
                                   .isNotEmpty)
                                 Text((c['assumptions'] as List).join('; ')),
+                              if (_meal.portionInputs[index]
+                                  case final portion?)
+                                Text(portion.unit == 'batch'
+                                    ? '${portion.numerator}/${portion.denominator} of the photographed food'
+                                    : '${portion.numerator}/${portion.denominator} of ${_displayNutrient(portion.amount)} ${portion.unit}'),
                               if (_meal.portionOverrides.containsKey(index))
                                 Text(
                                     'Original estimate: ${_displayNutrient(original)} g${current == 0 ? ' · Not counted in the totals' : ''}'),
@@ -2021,7 +2055,54 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 const SizedBox(height: 8),
                 Wrap(spacing: 8, children: [
                   _amount('Ate all', 1, selected: !partly),
-                  _amount('Ate half', .5, selected: partly),
+                  _amount('Ate half', .5, selected: fraction == .5),
+                  OutlinedButton(
+                      onPressed: _busy || _dirty
+                          ? null
+                          : () async {
+                              var text = '', invalid = false;
+                              final share = await showDialog<double>(
+                                  context: context,
+                                  builder: (context) => StatefulBuilder(
+                                      builder: (context, setDialogState) =>
+                                          AlertDialog(
+                                              title: const Text(
+                                                  'Share of the whole meal'),
+                                              content: TextField(
+                                                  autofocus: true,
+                                                  onChanged: (v) => text = v,
+                                                  decoration: InputDecoration(
+                                                      labelText:
+                                                          'Fraction eaten (e.g. 1/3)',
+                                                      errorText: invalid
+                                                          ? 'Enter a share between 0 and 1.'
+                                                          : null)),
+                                              actions: [
+                                                TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(context),
+                                                    child:
+                                                        const Text('Cancel')),
+                                                FilledButton(
+                                                    onPressed: () {
+                                                      final part =
+                                                          parsePortionShare(
+                                                              text);
+                                                      if (part == null) {
+                                                        setDialogState(() =>
+                                                            invalid = true);
+                                                        return;
+                                                      }
+                                                      Navigator.pop(context,
+                                                          part.$1 / part.$2);
+                                                    },
+                                                    child: const Text('Apply'))
+                                              ])));
+                              if (mounted && share != null) {
+                                await _consume(share);
+                              }
+                            },
+                      child: const Text('Other share')),
                 ]),
                 const SizedBox(height: 8),
                 Text('Meals count in full unless you say otherwise.',

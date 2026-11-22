@@ -1,4 +1,5 @@
 import 'manual_nutrient_catalog.dart';
+import 'portion_input.dart';
 
 /// Local Tier1 records separate approximate served food from confirmed intake.
 class Tier1Nutrients {
@@ -41,10 +42,12 @@ class Tier1Meal {
       this.revision = 0,
       this.repeatOf,
       Map<int, double> portionOverrides = const {},
+      Map<int, PortionInput> portionInputs = const {},
       Map<int, String> foodOverrides = const {},
       String? foodOverridesCatalogVersion,
       List<Map<String, dynamic>> adjustmentHistory = const []})
       : portionOverrides = Map.unmodifiable(portionOverrides),
+        portionInputs = Map.unmodifiable(portionInputs),
         foodOverrides = Map.unmodifiable(foodOverrides),
         foodOverridesCatalogVersion = foodOverrides.isEmpty
             ? null
@@ -79,7 +82,22 @@ class Tier1Meal {
         }
       }
     }
-    if (portionOverrides.isNotEmpty) {
+    for (final entry in portionInputs.entries) {
+      final index = entry.key, input = entry.value;
+      final (components, _) = _portionBasis();
+      if (index < 0 ||
+          index >= components.length ||
+          (componentMassG(index) - input.grams).abs() > .000001 ||
+          (input.referenceSource == 'photo' &&
+              input.referenceGrams !=
+                  (components[index]['massG'] as num).toDouble()) ||
+          (householdReferences.containsKey(input.referenceSource) &&
+              input.referenceSource != componentRecordId(index))) {
+        throw const FormatException(
+            'Stored food quantity disagrees with its reference');
+      }
+    }
+    if (portionOverrides.isNotEmpty || portionInputs.isNotEmpty) {
       final (components, baseline) = _portionBasis();
       for (final entry in portionOverrides.entries) {
         if (entry.key < 0 ||
@@ -109,6 +127,7 @@ class Tier1Meal {
   final bool cloudConsent;
   final int revision;
   final Map<int, double> portionOverrides;
+  final Map<int, PortionInput> portionInputs;
   final Map<int, String> foodOverrides;
   final String? foodOverridesCatalogVersion;
   final List<Map<String, dynamic>> adjustmentHistory;
@@ -127,6 +146,7 @@ class Tier1Meal {
           double? fraction,
           bool resetConsumption = false,
           Map<int, double>? portionOverrides,
+          Map<int, PortionInput>? portionInputs,
           Map<int, String>? foodOverrides,
           List<Map<String, dynamic>>? adjustmentHistory}) =>
       Tier1Meal(
@@ -142,6 +162,7 @@ class Tier1Meal {
           revision: revision ?? this.revision,
           repeatOf: repeatOf,
           portionOverrides: portionOverrides ?? this.portionOverrides,
+          portionInputs: portionInputs ?? this.portionInputs,
           foodOverrides: foodOverrides ?? this.foodOverrides,
           adjustmentHistory: adjustmentHistory ?? this.adjustmentHistory,
           consumedFraction:
@@ -283,6 +304,11 @@ class Tier1Meal {
               for (final e in portionOverrides.entries)
                 e.key.toString(): e.value
             },
+            if (portionInputs.isNotEmpty)
+              'portionInputs': {
+                for (final e in portionInputs.entries)
+                  e.key.toString(): e.value.toJson()
+              },
             if (foodOverrides.isNotEmpty)
               'foodOverrides': {
                 for (final e in foodOverrides.entries) e.key.toString(): e.value
@@ -293,7 +319,8 @@ class Tier1Meal {
           'change': change
         },
       ];
-  Tier1Meal correctPortion(int index, double grams, {required DateTime at}) {
+  Tier1Meal correctPortion(int index, double grams,
+      {required DateTime at, PortionInput? input}) {
     if (!grams.isFinite || grams < 0 || grams > 100000) {
       throw ArgumentError('Invalid served grams');
     }
@@ -303,7 +330,18 @@ class Tier1Meal {
     final (components, baseline) = _portionBasis();
     RangeError.checkValidIndex(index, components);
     final current = componentMassG(index);
-    if (grams == current) return this;
+    if (grams == current &&
+        (input == null
+            ? !portionInputs.containsKey(index)
+            : input.sameAs(portionInputs[index]))) {
+      return this;
+    }
+    final inputs = Map<int, PortionInput>.of(portionInputs);
+    if (input == null) {
+      inputs.remove(index);
+    } else {
+      inputs[index] = input;
+    }
     final original = (components[index]['massG'] as num).toDouble();
     final overrides = Map<int, double>.from(portionOverrides);
     if (grams == original) {
@@ -315,6 +353,7 @@ class Tier1Meal {
         served: _sumComponents(components, overrides,
             baseline: baseline, foods: foodOverrides),
         portionOverrides: overrides,
+        portionInputs: inputs,
         source:
             foodOverrides.isEmpty ? 'portion_correction' : 'food_correction',
         resetConsumption: true,
@@ -322,6 +361,7 @@ class Tier1Meal {
           'componentIndex': index,
           'fromG': current,
           'toG': grams,
+          if (input != null) 'input': input.toJson(),
           'originalG': original
         }));
   }
@@ -348,6 +388,15 @@ class Tier1Meal {
         : manualFood(foodOverrides[index]!)!.description;
   }
 
+  String? componentRecordId(int index) {
+    final (components, _) = _portionBasis();
+    final source = components[index]['source'] as Map;
+    return foodOverrides[index] ??
+        (source['kind'] == 'database_match'
+            ? source['recordId'] as String?
+            : null);
+  }
+
   Tier1Meal correctFood(int index, String? recordId, {required DateTime at}) {
     final (components, baseline) = _portionBasis();
     RangeError.checkValidIndex(index, components);
@@ -367,6 +416,7 @@ class Tier1Meal {
     }
     return _copy(
         foodOverrides: foods,
+        portionInputs: {...portionInputs}..remove(index),
         served: _sumComponents(components, portionOverrides,
             baseline: baseline, foods: foods),
         source: foods.isNotEmpty
@@ -392,6 +442,7 @@ class Tier1Meal {
         source: 'manual_correction',
         resetConsumption: !sameNutrition,
         portionOverrides: sameNutrition ? portionOverrides : const {},
+        portionInputs: sameNutrition ? portionInputs : const {},
         adjustmentHistory: served == null && analysis == null
             ? adjustmentHistory
             : _record(sameNutrition ? 'rename' : 'manual_totals', at,
@@ -454,6 +505,7 @@ class Tier1Meal {
       source: 'A1',
       resetConsumption: true,
       portionOverrides: const {},
+      portionInputs: const {},
       foodOverrides: const {},
       adjustmentHistory: analysis == null && served == null
           ? adjustmentHistory
@@ -479,7 +531,13 @@ class Tier1Meal {
   }
 
   Map<String, dynamic> toJson() => {
-        'schemaVersion': foodOverrides.isEmpty ? 1 : 2,
+        'schemaVersion':
+            portionInputs.isNotEmpty ? 3 : (foodOverrides.isEmpty ? 1 : 2),
+        if (portionInputs.isNotEmpty)
+          'portionInputs': {
+            for (final e in portionInputs.entries)
+              e.key.toString(): e.value.toJson()
+          },
         'id': id,
         'capturedAt': capturedAt.toIso8601String(),
         'name': name,
@@ -508,8 +566,14 @@ class Tier1Meal {
       };
   factory Tier1Meal.fromJson(Map<String, dynamic> value) {
     final version = value['schemaVersion'];
-    if (version != 1 && version != 2) {
+    if (version != 1 && version != 2 && version != 3) {
       throw const FormatException('Unsupported local meal version');
+    }
+    if ((version == 3 &&
+            (value['portionInputs'] is! Map ||
+                (value['portionInputs'] as Map).isEmpty)) ||
+        (version != 3 && value.containsKey('portionInputs'))) {
+      throw const FormatException('Invalid saved food quantities');
     }
     if (version == 1 &&
         (value.containsKey('foodOverrides') ||
@@ -517,7 +581,10 @@ class Tier1Meal {
       throw const FormatException(
           'Food selections require local meal version 2');
     }
-    if (version == 2 &&
+    if ((version == 2 ||
+            (version == 3 &&
+                (value.containsKey('foodOverrides') ||
+                    value.containsKey('foodOverridesCatalogVersion')))) &&
         (value['foodOverrides'] is! Map ||
             (value['foodOverrides'] as Map).isEmpty ||
             value['foodOverridesCatalogVersion'] != manualFoodCatalogVersion)) {
@@ -542,6 +609,11 @@ class Tier1Meal {
         source: value['source'] as String,
         revision: value['revision'] as int,
         repeatOf: value['repeatOf'] as String?,
+        portionInputs: {
+          for (final e in (value['portionInputs'] as Map? ?? {}).entries)
+            _portionIndex(e.key):
+                PortionInput.fromJson(Map<String, dynamic>.from(e.value as Map))
+        },
         portionOverrides: {
           for (final e in (value['portionOverrides'] as Map? ?? {}).entries)
             _portionIndex(e.key): (e.value as num).toDouble()
