@@ -1,3 +1,4 @@
+import 'support/dashboard_navigation.dart';
 import 'dart:async';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'dart:io';
@@ -90,7 +91,7 @@ Future<void> _open(
   await t.pumpAndSettle();
   await t.tap(find.text('History'));
   await t.pumpAndSettle();
-  await t.tap(find.text('Portion meal'));
+  await openSavedMeal(t, 'Portion meal');
   await t.pumpAndSettle();
 }
 

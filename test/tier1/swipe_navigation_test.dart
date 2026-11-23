@@ -77,7 +77,7 @@ void main() {
     await tester.dragFrom(const Offset(300, 400), const Offset(-270, 0));
     await tester.pumpAndSettle();
     expect(_selected(tester, 3), isTrue);
-    expect(find.text('Daily targets'), findsOneWidget);
+    expect(find.byTooltip('Target period'), findsOneWidget);
     // Goals(3) forward to AI(4), the last tab.
     await tester.dragFrom(const Offset(300, 400), const Offset(-270, 0));
     await tester.pumpAndSettle();
@@ -98,11 +98,7 @@ void main() {
     await tester.dragFrom(const Offset(60, 400), const Offset(270, 0));
     await tester.pumpAndSettle();
     expect(_selected(tester, 1), isTrue);
-    expect(
-        find
-            .text('No saved meals yet. Take a photo or enter a meal.')
-            .hitTestable(),
-        findsOneWidget);
+    expect(find.byTooltip('Previous period').hitTestable(), findsOneWidget);
     // History(1) backward to Today(0).
     await tester.dragFrom(const Offset(60, 400), const Offset(270, 0));
     await tester.pumpAndSettle();
@@ -134,7 +130,8 @@ void main() {
     await _start(tester, populated: true);
     await tester.tap(find.text('Today').last);
     await tester.pumpAndSettle();
-    await tester.drag(find.byType(ListView).first, const Offset(0, -440));
+    await tester.drag(
+        find.byKey(const PageStorageKey('tier1-today')), const Offset(0, -440));
     await tester.pumpAndSettle();
     expect(_selected(tester, 0), isTrue);
     expect(tester.takeException(), isNull);

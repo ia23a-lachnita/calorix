@@ -44,6 +44,8 @@ Installed `ff1a248` from the [verified Samsung APK](https://github.com/ia23a-lac
 
 Manual entry now searches the offline food catalog and labels its editable values per 100 g. The meal editor shows stored calories and individual macros, the real pending analysis state and outstanding preparation questions. The editor, workflow and numeric tests exposed a focus bug that assigned entered calories to protein. Keeping the search field in place fixed the original offline save test, including no cloud initialization. Photo detail and edit layout refinements follow.
 
+Today, History and Goals now share the local meal and target data. History supports week/month views, older meals, and a trend with gaps for missing observations. Goals shows consumed portions for the selected period and opens the saved targets editor. Tested stale-history recovery, clock rollover, large text, navigation and a calendar with no meals. The combined run exposed stale meal rows remaining enabled after a read failure; the fix passed the original recovery test.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

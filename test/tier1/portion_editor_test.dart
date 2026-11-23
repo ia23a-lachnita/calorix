@@ -1,3 +1,4 @@
+import 'support/dashboard_navigation.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -93,7 +94,7 @@ Future<_Store> _openMeal(WidgetTester tester, {_Cloud? cloud}) async {
   await tester.pumpAndSettle();
   await tester.tap(find.text('History'));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('Portion meal'));
+  await openSavedMeal(tester, 'Portion meal');
   await tester.pumpAndSettle();
   return store;
 }
@@ -263,7 +264,7 @@ void main() {
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(find.text('Meal estimate'), findsNothing);
-    await tester.tap(find.text('Portion meal'));
+    await openSavedMeal(tester, 'Portion meal');
     await tester.pumpAndSettle();
     expect(find.text('Meal estimate'), findsOneWidget);
     expect(store.records.single.served!.toJson(), original.served!.toJson());
@@ -285,7 +286,7 @@ void main() {
     await tester.tap(find.text('Save meal'));
     await tester.pumpAndSettle();
     expect(store.records.single.served!.kcal, 999);
-    await tester.tap(find.text('Portion meal'));
+    await openSavedMeal(tester, 'Portion meal');
     await tester.pumpAndSettle();
     await dialog(tester);
     expect(find.textContaining('manual totals'), findsOneWidget);
@@ -328,7 +329,7 @@ void main() {
     expect(store.records.single.toJson()['portionOverrides'], {'1': 86.0});
     // Closing the stale editor prevents Save/Ate all overwriting the committed CAS.
     expect(find.text('Meal estimate'), findsNothing);
-    await tester.tap(find.text('Portion meal'));
+    await openSavedMeal(tester, 'Portion meal');
     await tester.pumpAndSettle();
     await visible(tester, find.text('Ate all'));
     await tester.tap(find.text('Ate all'));
@@ -368,7 +369,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Portion meal'));
+    await openSavedMeal(tester, 'Portion meal');
     await tester.pumpAndSettle();
     await visible(tester, find.text('Ate all'));
     await tester.tap(find.text('Ate all'));

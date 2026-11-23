@@ -1,3 +1,4 @@
+import 'support/dashboard_navigation.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -61,7 +62,7 @@ Future<void> open(WidgetTester tester, Tier1MealStore data,
   await tester.pumpAndSettle();
   await tester.tap(find.text('History'));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('Floating meal'));
+  await openSavedMeal(tester, 'Floating meal');
   await tester.pumpAndSettle();
   if (!editTotals) return;
   await tester.tap(find.text('Edit totals'));

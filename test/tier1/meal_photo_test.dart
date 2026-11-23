@@ -1,3 +1,4 @@
+import 'support/dashboard_navigation.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -255,7 +256,7 @@ void main() {
     await t.pumpAndSettle();
     await t.tap(find.text('History'));
     await t.pumpAndSettle();
-    await t.tap(find.text('Saved photo').first);
+    await openSavedMeal(t, 'Saved photo');
     await t.pumpAndSettle();
     await _loadPhoto(t);
     await t.tap(find.text('Edit totals'));

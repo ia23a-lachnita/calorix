@@ -1,3 +1,4 @@
+import 'support/dashboard_navigation.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -257,7 +258,7 @@ void main() {
       await t.pumpAndSettle();
       await t.tap(find.text('History'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Saved meal').first);
+      await openSavedMeal(t, 'Saved meal');
       await t.pumpAndSettle();
       await t.tap(
           find.byTooltip(hasPhoto ? 'Export meal' : 'Export measurements'));

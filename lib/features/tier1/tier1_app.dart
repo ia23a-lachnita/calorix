@@ -12,7 +12,9 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/time/clock.dart';
 import '../../shared/services/camera_service.dart';
-import '../../shared/widgets/macro_ring.dart';
+import 'dashboard_today.dart';
+import 'dashboard_history.dart';
+import 'dashboard_goals.dart';
 import '../../shell/app_shell.dart';
 import 'local_meal.dart';
 import 'analysis_failure.dart';
@@ -602,169 +604,6 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   List<Tier1Meal> get _countedToday =>
       _todayMeals.where((m) => m.served != null).toList();
 
-  String _dayLabel(DateTime day) {
-    final days = _dayOf(widget.clock.now()).difference(day).inDays;
-    if (days == 0) return 'Today';
-    if (days == 1) return 'Yesterday';
-    return MaterialLocalizations.of(context).formatMediumDate(day);
-  }
-
-  /// The day against its targets: the ring from the design, fed by what was
-  /// logged today. Targets are the app defaults until Tier1 has a goals screen.
-  Widget _todayView() {
-    final theme = Theme.of(context), scheme = theme.colorScheme;
-    final meals = _todayMeals;
-    double sum(double? Function(Tier1Nutrients n) pick) =>
-        meals.fold<double>(0, (total, m) {
-          final served = m.served;
-          if (served == null) return total;
-          // The eaten share of each macro follows the eaten share of the meal.
-          return total + (pick(served) ?? 0) * (m.consumedFraction ?? 1);
-        });
-    final kcal = _eatenKcal(meals);
-    final target = _targets.kcal;
-    final left = target - kcal;
-    final macros = <(String, double, int, Color)>[
-      ('Protein', sum((n) => n.proteinG), _targets.proteinG, AppColors.protein),
-      ('Carbs', sum((n) => n.carbsG), _targets.carbsG, AppColors.carbs),
-      ('Fat', sum((n) => n.fatG), _targets.fatG, AppColors.fat),
-    ];
-    return ListView(
-        key: const PageStorageKey('tier1-today'),
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        children: [
-          Text(
-              // "Saturday, November 14, 2026" -> "SATURDAY · NOVEMBER 14"
-              MaterialLocalizations.of(context)
-                  .formatFullDate(_dayOf(widget.clock.now()))
-                  .split(', ')
-                  .take(2)
-                  .join(' · ')
-                  .toUpperCase(),
-              style: theme.textTheme.labelSmall?.copyWith(
-                  letterSpacing: 1.4, color: scheme.onSurfaceVariant)),
-          Text('Today', style: theme.textTheme.headlineMedium),
-          const SizedBox(height: 16),
-          Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: scheme.outline)),
-              child: Column(children: [
-                TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: 1),
-                    duration: Motion.of(context, Motion.ring),
-                    curve: Motion.curve,
-                    builder: (_, t, child) => MacroRing(
-                        size: 208,
-                        strokeWidth: 12,
-                        showGlow: false,
-                        proteinFraction: t * macros[0].$2 / macros[0].$3,
-                        carbsFraction: t * macros[1].$2 / macros[1].$3,
-                        fatFraction: t * macros[2].$2 / macros[2].$3,
-                        center: child),
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      Text('KCAL EATEN',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                              letterSpacing: 1.6,
-                              color: scheme.onSurfaceVariant)),
-                      CountText(
-                          value: kcal,
-                          from: 0,
-                          style: theme.textTheme.displaySmall
-                              ?.copyWith(fontWeight: FontWeight.w700)),
-                      Text('of $target',
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: scheme.onSurfaceVariant)),
-                      const SizedBox(height: 4),
-                      Text(left >= 0 ? '$left kcal left' : '${-left} kcal over',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  left >= 0 ? AppColors.fat : AppColors.amber)),
-                    ])),
-                const SizedBox(height: 20),
-                for (final (name, grams, goal, color) in macros)
-                  Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Column(children: [
-                        Row(children: [
-                          Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                  color: color, shape: BoxShape.circle)),
-                          const SizedBox(width: 8),
-                          Expanded(
-                              child: Text(name,
-                                  style: theme.textTheme.titleSmall)),
-                          Text('${grams.round()} / $goal g',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontFeatures: const [
-                                    ui.FontFeature.tabularFigures()
-                                  ])),
-                        ]),
-                        const SizedBox(height: 6),
-                        ClipRRect(
-                            borderRadius: BorderRadius.circular(3),
-                            child: TweenAnimationBuilder<double>(
-                                tween: Tween(
-                                    begin: 0,
-                                    end: (grams / goal)
-                                        .clamp(0.0, 1.0)
-                                        .toDouble()),
-                                duration: Motion.of(context, Motion.ring),
-                                curve: Motion.curve,
-                                builder: (_, v, __) => LinearProgressIndicator(
-                                    value: v,
-                                    minHeight: 6,
-                                    color: color,
-                                    backgroundColor: scheme.outline))),
-                      ])),
-              ])),
-          Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                  onPressed: _editTargets,
-                  icon: const Icon(Icons.tune, size: 18),
-                  label: const Text('Change targets'))),
-          if (meals.isEmpty)
-            Text('Nothing logged today. Take a photo of your next meal.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: scheme.onSurfaceVariant))
-          else
-            for (final meal in meals) _mealTile(meal, padding: EdgeInsets.zero),
-        ]);
-  }
-
-  /// One meal as a row: photo or icon, name, what it counts for, its macros,
-  /// and the time. Shared by Today and History.
-  Widget _mealTile(Tier1Meal meal, {EdgeInsetsGeometry? padding}) => ListTile(
-      contentPadding: padding,
-      leading: meal.photoPath == null
-          ? const Icon(Icons.restaurant)
-          : ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.file(File(meal.photoPath!),
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.image_not_supported_outlined))),
-      title: Text(meal.name),
-      trailing: Text(
-          MaterialLocalizations.of(context).formatTimeOfDay(
-              TimeOfDay.fromDateTime(_localTime(meal.capturedAt))),
-          style: Theme.of(context).textTheme.bodySmall),
-      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(_mealLine(meal)),
-        if (meal.served != null) _MacroLine(meal.served!),
-      ]),
-      isThreeLine: true,
-      onTap: _error != null ? null : () => _open(meal));
-
   Future<void> _editTargets() async {
     final form = GlobalKey<FormState>();
     final fields = <String, TextEditingController>{
@@ -870,94 +709,30 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
 
   Widget _tabContent(int tab) {
     if (_store == null) return const Center(child: CircularProgressIndicator());
-    if (tab == 0) return _todayView();
-    if (tab == 1) return _historyView();
-    if (tab == 2) return _cameraView();
-    if (tab == 3) return _goalsView();
-    return _aiView();
-  }
-
-  Widget _historyView() {
-    if (_meals.isEmpty) {
-      return const Center(
-          child: Text('No saved meals yet. Take a photo or enter a meal.'));
+    if (tab == 0) {
+      return DashboardToday(
+          meals: _meals,
+          now: widget.clock.now(),
+          targets: _targets,
+          onOpenMeal: _error == null ? _open : null,
+          onEditTargets: _editTargets);
     }
-    return ListView.builder(
-        key: const PageStorageKey('tier1-history'),
-        itemCount: _meals.length,
-        itemBuilder: (context, index) {
-          final meal = _meals[index];
-          final day = _dayOf(meal.capturedAt);
-          final startsDay =
-              index == 0 || _dayOf(_meals[index - 1].capturedAt) != day;
-          final tile = _mealTile(meal);
-          if (!startsDay) return tile;
-          return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _DayHeader(
-                    label: _dayLabel(day),
-                    meals: _meals
-                        .where((m) => _dayOf(m.capturedAt) == day)
-                        .toList()),
-                tile,
-              ]);
-        });
-  }
-
-  /// Local-only targets summary. The full Goals flow (body-goal modes, AI
-  /// adjustment) is Firebase/Riverpod-coupled and out of scope here.
-  Widget _goalsView() {
-    final theme = Theme.of(context), scheme = theme.colorScheme;
-    final rows = <(String, int, String, Color)>[
-      ('Calories', _targets.kcal, 'kcal', scheme.onSurface),
-      ('Protein', _targets.proteinG, 'g', AppColors.protein),
-      ('Carbs', _targets.carbsG, 'g', AppColors.carbs),
-      ('Fat', _targets.fatG, 'g', AppColors.fat),
-    ];
-    return ListView(
-        key: const PageStorageKey('tier1-goals'),
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        children: [
-          Text('GOALS',
-              style: theme.textTheme.labelSmall?.copyWith(
-                  letterSpacing: 1.4, color: scheme.onSurfaceVariant)),
-          Text('Daily targets', style: theme.textTheme.headlineMedium),
-          const SizedBox(height: 16),
-          Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: scheme.outline)),
-              child: Column(children: [
-                for (final (name, value, unit, color) in rows)
-                  Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Row(children: [
-                        Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                                color: color, shape: BoxShape.circle)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                            child:
-                                Text(name, style: theme.textTheme.titleSmall)),
-                        Text('$value $unit',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                                fontFeatures: const [
-                                  ui.FontFeature.tabularFigures()
-                                ])),
-                      ])),
-              ])),
-          Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                  onPressed: _editTargets,
-                  icon: const Icon(Icons.tune, size: 18),
-                  label: const Text('Change targets'))),
-        ]);
+    if (tab == 1) {
+      return DashboardHistory(
+          meals: _meals,
+          now: widget.clock.now(),
+          targets: _targets,
+          onOpenMeal: _error == null ? _open : null);
+    }
+    if (tab == 2) return _cameraView();
+    if (tab == 3) {
+      return DashboardGoals(
+          targets: _targets,
+          onEdit: _editTargets,
+          meals: _meals,
+          now: widget.clock.now());
+    }
+    return _aiView();
   }
 
   Widget _aiView() {
@@ -2326,60 +2101,3 @@ double _countedKcal(Tier1Meal meal) =>
 
 int _eatenKcal(List<Tier1Meal> meals) =>
     meals.fold<double>(0, (sum, m) => sum + _countedKcal(m)).round();
-
-/// One line per meal in history. Kept short: on a 360dp phone a longer line
-/// wraps beside the time.
-String _mealLine(Tier1Meal meal) {
-  final served = meal.served;
-  if (served == null) return 'No estimate yet';
-  final kcal = served.kcal.round(), counted = _countedKcal(meal).round();
-  return counted == kcal ? '$kcal kcal' : '$counted of $kcal kcal eaten';
-}
-
-class _DayHeader extends StatelessWidget {
-  const _DayHeader({required this.label, required this.meals});
-  final String label;
-  final List<Tier1Meal> meals;
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-        child: Row(children: [
-          Expanded(child: Text(label, style: text.titleSmall)),
-          Text('${_eatenKcal(meals)} kcal', style: text.bodySmall),
-        ]));
-  }
-}
-
-/// Protein, carbs and fat of one meal. The macro colour is a dot beside the
-/// number, never the text colour: cyan and green text fail contrast on the
-/// light background.
-class _MacroLine extends StatelessWidget {
-  const _MacroLine(this.nutrients);
-  final Tier1Nutrients nutrients;
-  @override
-  Widget build(BuildContext context) {
-    final parts = <(String, double?, Color)>[
-      ('Protein', nutrients.proteinG, AppColors.protein),
-      ('Carbs', nutrients.carbsG, AppColors.carbs),
-      ('Fat', nutrients.fatG, AppColors.fat),
-    ].where((p) => p.$2 != null).toList();
-    if (parts.isEmpty) return const SizedBox.shrink();
-    return Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Wrap(spacing: 12, children: [
-          for (final (name, grams, color) in parts)
-            Row(mainAxisSize: MainAxisSize.min, children: [
-              Container(
-                  width: 8,
-                  height: 8,
-                  decoration:
-                      BoxDecoration(color: color, shape: BoxShape.circle)),
-              const SizedBox(width: 4),
-              Text('${grams!.round()} g',
-                  semanticsLabel: '$name ${grams.round()} grams'),
-            ])
-        ]));
-  }
-}

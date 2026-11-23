@@ -1,3 +1,4 @@
+import 'support/dashboard_navigation.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -152,11 +153,10 @@ void main() {
     expect(find.text('of 2000'), findsOneWidget);
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
-    // the day header and the tab label
-    expect(find.text('Today'), findsNWidgets(2));
+    // The current week's day total and the older meal remain available.
+    expect(find.text('Day log'), findsOneWidget);
     expect(find.text('839 kcal'), findsOneWidget);
-    // the day total and that day's only meal
-    expect(find.text('720 kcal'), findsNWidgets(2));
+    expect(find.textContaining('720 kcal'), findsWidgets);
     expect(find.text('44 g'), findsOneWidget);
     expect(find.text('Older dinner'), findsOneWidget);
   });
@@ -185,7 +185,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Repeat source'));
+    await openSavedMeal(tester, 'Repeat source');
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Repeat meal'), 200,
         scrollable: find
@@ -221,7 +221,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Cancel source'));
+    await openSavedMeal(tester, 'Cancel source');
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Repeat meal'), 200,
         scrollable: find

@@ -1,3 +1,4 @@
+import 'support/dashboard_navigation.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -80,7 +81,7 @@ Future<(_Store, _Sink)> open(WidgetTester t,
   await t.pumpAndSettle();
   await t.tap(find.text('History'));
   await t.pumpAndSettle();
-  await t.tap(find.text('Portion meal'));
+  await openSavedMeal(t, 'Portion meal');
   await t.pumpAndSettle();
   return (store, sink);
 }

@@ -1,3 +1,4 @@
+import 'support/dashboard_navigation.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -256,7 +257,7 @@ void main() {
     await _start(t, store, camera, cloud: cloud);
     await t.tap(find.text('History'));
     await t.pumpAndSettle();
-    await t.tap(find.text('Existing photo'));
+    await openSavedMeal(t, 'Existing photo');
     await t.pumpAndSettle();
     expect(find.text('Send this photo for analysis?'), findsNothing);
     expect(find.text('Estimate photo'), findsOneWidget);
