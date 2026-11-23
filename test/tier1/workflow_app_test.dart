@@ -105,6 +105,7 @@ void main() {
     await t.pumpAndSettle();
     await t.tap(find.text('Send photo'));
     await t.pump();
+    expect(find.text('Analyzing your photo'), findsOneWidget);
     const ref = '268ba27c-b44a-41c5-aa8f-8c8f7ffaa7be';
     cloud.response.completeError(FirebaseFunctionsException(
       code: 'failed-precondition',

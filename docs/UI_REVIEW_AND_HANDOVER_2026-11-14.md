@@ -40,6 +40,10 @@ Five-tab source `90c8a10` exposed a duplicate screen-reader label on Scan. The c
 
 Samsung verification used `ed1e762` from [Test Android APK 45070589702](https://github.com/ia23a-lachnita/calorix/actions/runs/45070589702). Source, checksum, existing test signer and arm64 AOT contents matched. Tapping Scan stayed in the viewfinder, and swiping to Goals and back worked. Screenshots showed a second prominent ring around the navigation icon. The active Ravlo shell now uses a regular Scan tab icon and reserves the hollow ring for capture. Thirty navigation, accessibility and layout tests passed. Device verification of this follow-up uses the next release APK.
 
+Installed `ff1a248` from the [verified Samsung APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45126898592/artifacts/14797051151). The screenshot shows one hollow shutter above five equal navigation items. Android reported each tab label once and the active dot was visible.
+
+Manual entry now searches the offline food catalog and labels its editable values per 100 g. The meal editor shows stored calories and individual macros, the real pending analysis state and outstanding preparation questions. The editor, workflow and numeric tests exposed a focus bug that assigned entered calories to protein. Keeping the search field in place fixed the original offline save test, including no cloud initialization. Photo detail and edit layout refinements follow.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

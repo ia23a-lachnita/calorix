@@ -80,6 +80,27 @@ class _Cloud extends Tier1Cloud {
 }
 
 void main() {
+  testWidgets('meal detail shows stored calories and macro rows',
+      (tester) async {
+    final data = await store();
+    await data.save(Tier1Meal(
+        id: 'detail',
+        capturedAt: DateTime.utc(2026, 11, 8),
+        name: 'Floating meal',
+        served: nutrients(),
+        analysis: analysis(),
+        source: 'A1',
+        cloudConsent: true,
+        metadata: {}));
+    await open(tester, data, editTotals: false);
+    expect(find.text('Calories'), findsOneWidget);
+    expect(find.text('Protein'), findsOneWidget);
+    expect(find.text('Carbs'), findsOneWidget);
+    expect(find.text('Fat'), findsOneWidget);
+    expect(find.text('9.28 g'), findsOneWidget);
+    expect(find.text('33.6 g'), findsOneWidget);
+    expect(find.text('6.72 g'), findsOneWidget);
+  });
   for (final action in ['untouched', 'rename', 'change kcal', 'clear fat']) {
     testWidgets(
         'readable floating nutrients preserve exact originals on $action',

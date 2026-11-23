@@ -30,6 +30,38 @@ class _ThrowingCamera extends FakeCameraService
 }
 
 void main() {
+  testWidgets('manual food search fills editable values for 100 grams',
+      (tester) async {
+    final store = _MemoryStore();
+    await tester
+        .pumpWidget(Tier1App(store: store, camera: FakeCameraService()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Manual entry'));
+    await tester.pumpAndSettle();
+    expect(find.text('Camera-free logging'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Search foods'), findsOneWidget);
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Search foods'), 'white rice');
+    await tester.pumpAndSettle();
+    await tester
+        .tap(find.text('Rice, white, long-grain, regular, enriched, cooked'));
+    await tester.pumpAndSettle();
+    expect(
+        tester
+            .widget<TextFormField>(
+                find.widgetWithText(TextFormField, 'Calories (kcal)'))
+            .controller!
+            .text,
+        '130');
+    expect(
+        tester
+            .widget<TextFormField>(
+                find.widgetWithText(TextFormField, 'Protein g (optional)'))
+            .controller!
+            .text,
+        '2.69');
+    expect(find.textContaining('100 g'), findsWidgets);
+  });
   testWidgets(
       'offline manual save and history work without cloud initialization',
       (tester) async {

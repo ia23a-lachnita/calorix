@@ -112,6 +112,16 @@ Future<void> selectRice(WidgetTester t) async {
 }
 
 void main() {
+  testWidgets('review shows the real preparation question and saves an answer',
+      (t) async {
+    final (store, _) = await open(t, question: true);
+    await visible(t, find.text('Was there extra oil?'));
+    expect(find.text('Needs a look'), findsOneWidget);
+    await visible(t, find.text('About 2 tsp oil (10 g)'));
+    await t.tap(find.text('About 2 tsp oil (10 g)'));
+    await t.pumpAndSettle();
+    expect(store.rows.single.hasPendingPreparationQuestion, isFalse);
+  });
   testWidgets(
       'optional local selection preserves estimated grams and original recognition',
       (t) async {
