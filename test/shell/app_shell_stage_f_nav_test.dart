@@ -193,6 +193,26 @@ void main() {
       expect(find.text('SCAN'), findsOneWidget);
     });
 
+    testWidgets('each tab exposes its name once with a tap action',
+        (tester) async {
+      final semantics = tester.ensureSemantics();
+      try {
+        await _pumpNav(tester, currentIndex: 3, dark: true);
+        for (final name in ['Today', 'History', 'Scan', 'Goals', 'AI']) {
+          final tab = find.bySemanticsLabel(name);
+          expect(tab, findsOneWidget);
+          expect(
+              tester
+                  .getSemantics(tab)
+                  .getSemanticsData()
+                  .hasAction(SemanticsAction.tap),
+              isTrue);
+        }
+      } finally {
+        semantics.dispose();
+      }
+    });
+
     testWidgets('Scan has a labeled callback target and no clipping ancestor',
         (tester) async {
       int? selectedIndex;

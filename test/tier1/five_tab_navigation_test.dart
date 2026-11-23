@@ -45,7 +45,8 @@ void main() {
       expect(find.byKey(ValueKey(key)), findsOneWidget);
     }
     final xs = [
-      for (final key in _tabKeys) tester.getTopLeft(find.byKey(ValueKey(key))).dx
+      for (final key in _tabKeys)
+        tester.getTopLeft(find.byKey(ValueKey(key))).dx
     ];
     for (var i = 1; i < xs.length; i++) {
       expect(xs[i], greaterThan(xs[i - 1]));
@@ -77,12 +78,16 @@ void main() {
     expect(camera.captureCount, 0);
   });
 
-  testWidgets('Scan nav button keeps its gradient FAB regardless of active tab',
-      (tester) async {
-    await _start(tester);
-    expect(find.byKey(const ValueKey('scan-fab-outer')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('nav-item-today')));
+  testWidgets('only the content shutter has a capture ring', (tester) async {
+    final camera = await _start(tester);
+    expect(find.byKey(const ValueKey('tier1-capture-ring')), findsOneWidget);
+    expect(find.byKey(const ValueKey('scan-fab-outer')), findsNothing);
+    final scan = find.byKey(const ValueKey('nav-item-scan'));
+    final size = tester.getSize(scan);
+    expect(size.width, greaterThanOrEqualTo(48));
+    expect(size.height, greaterThanOrEqualTo(48));
+    await tester.tap(scan);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('scan-fab-outer')), findsOneWidget);
+    expect(camera.captureCount, 0);
   });
 }

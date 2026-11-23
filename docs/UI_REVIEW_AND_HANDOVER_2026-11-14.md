@@ -38,6 +38,8 @@ The local shell now opens on Scan in the middle of five swipeable tabs. The gall
 
 Five-tab source `90c8a10` exposed a duplicate screen-reader label on Scan. The corrected navigation item has one “Scan” label and one accessibility action. All four shared navigation tests passed, including the original accessibility check. Python ran 282 tests with 11 optional skips, and all 109 Node checks passed.
 
+Samsung verification used `ed1e762` from [Test Android APK 45070589702](https://github.com/ia23a-lachnita/calorix/actions/runs/45070589702). Source, checksum, existing test signer and arm64 AOT contents matched. Tapping Scan stayed in the viewfinder, and swiping to Goals and back worked. Screenshots showed a second prominent ring around the navigation icon. The active Ravlo shell now uses a regular Scan tab icon and reserves the hollow ring for capture. Thirty navigation, accessibility and layout tests passed. Device verification of this follow-up uses the next release APK.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

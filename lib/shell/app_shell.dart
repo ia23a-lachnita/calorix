@@ -52,12 +52,14 @@ class CalorixBottomNav extends StatelessWidget {
     required this.onTap,
     required this.isDark,
     this.floating = false,
+    this.raisedScan = true,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
   final bool isDark;
   final bool floating;
+  final bool raisedScan;
 
   static const _navTopPadding = 14.0;
   static const _navRowHeight = 51.0;
@@ -165,7 +167,7 @@ class CalorixBottomNav extends StatelessWidget {
                 key: const Key('nav-items-row'),
                 children: List.generate(_items.length, (index) {
                   final item = _items[index];
-                  if (item.icon == _NavIconType.scan) {
+                  if (raisedScan && item.icon == _NavIconType.scan) {
                     return const Expanded(
                       child: SizedBox(key: Key('nav-item-scan-placeholder')),
                     );
@@ -185,30 +187,31 @@ class CalorixBottomNav extends StatelessWidget {
                 }),
               ),
             ),
-            Positioned(
-              key: const Key('scan-branch'),
-              top: _navTopPadding - _scanMarginTop,
-              left: 0,
-              right: 0,
-              height: _scanOuterSize + 32,
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: _ScanNavButton(
-                  isActive: currentIndex == 2,
-                  isDark: isDark,
-                  activeColor: activeColor,
-                  inactiveColor: inactiveColor,
-                  onTap: () => onTap(2),
-                  outerSize: _scanOuterSize,
-                  innerSize: _scanInnerSize,
-                  glowSize: _scanGlowSize,
-                  glowOffset: _scanGlowOffset,
-                  labelSize: _scanLabelSize,
-                  labelLetterSpacing: _scanLabelLetterSpacing,
-                  hitTargetSize: _scanHitTargetSize,
+            if (raisedScan)
+              Positioned(
+                key: const Key('scan-branch'),
+                top: _navTopPadding - _scanMarginTop,
+                left: 0,
+                right: 0,
+                height: _scanOuterSize + 32,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: _ScanNavButton(
+                    isActive: currentIndex == 2,
+                    isDark: isDark,
+                    activeColor: activeColor,
+                    inactiveColor: inactiveColor,
+                    onTap: () => onTap(2),
+                    outerSize: _scanOuterSize,
+                    innerSize: _scanInnerSize,
+                    glowSize: _scanGlowSize,
+                    glowOffset: _scanGlowOffset,
+                    labelSize: _scanLabelSize,
+                    labelLetterSpacing: _scanLabelLetterSpacing,
+                    hitTargetSize: _scanHitTargetSize,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -247,9 +250,13 @@ class _NavButton extends StatelessWidget {
     return Semantics(
       container: true,
       button: true,
+      selected: isActive,
       label: label,
+      excludeSemantics: true,
+      onTap: onTap,
       child: SizedBox.expand(
         child: GestureDetector(
+          excludeFromSemantics: true,
           onTap: onTap,
           behavior: HitTestBehavior.opaque,
           child: Column(
@@ -263,7 +270,7 @@ class _NavButton extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                label,
+                icon == _NavIconType.scan ? 'SCAN' : label,
                 style: AppTextStyles.labelSmall.copyWith(
                   fontSize: CalorixBottomNav._navLabelSize,
                   letterSpacing: CalorixBottomNav._navLabelLetterSpacing,
@@ -276,6 +283,9 @@ class _NavButton extends StatelessWidget {
               Opacity(
                 opacity: isActive ? 1.0 : 0.0,
                 child: Container(
+                  key: icon == _NavIconType.scan && isActive
+                      ? const Key('scan-active-pip')
+                      : null,
                   width: 4.0,
                   height: 4.0,
                   decoration: const BoxDecoration(

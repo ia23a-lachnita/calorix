@@ -993,6 +993,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   Widget build(BuildContext context) => Scaffold(
       bottomNavigationBar: CalorixBottomNav(
           currentIndex: _tab,
+          raisedScan: false,
           onTap: _selectTab,
           isDark: Theme.of(context).brightness == Brightness.dark,
           floating: _tab == 2),
