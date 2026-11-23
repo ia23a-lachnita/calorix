@@ -46,6 +46,8 @@ Manual entry now searches the offline food catalog and labels its editable value
 
 Today, History and Goals now share the local meal and target data. History supports week/month views, older meals, and a trend with gaps for missing observations. Goals shows consumed portions for the selected period and opens the saved targets editor. Tested stale-history recovery, clock rollover, large text, navigation and a calendar with no meals. The combined run exposed stale meal rows remaining enabled after a read failure; the fix passed the original recovery test.
 
+The dashboard, calendar and goal periods shipped in `c76ace9`. The Profile header now opens local account information, persisted appearance, Goals and signed-out welcome. The companion tab opens Scan or correction history using actual saved adjustments. Camera-denial help preserves the original permission and capture flow. Reviewed 14 light/dark renders, including empty and fixture-populated history. Natural-language corrections and account sign-in remain future work.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

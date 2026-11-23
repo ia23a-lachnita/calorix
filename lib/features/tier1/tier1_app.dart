@@ -32,6 +32,8 @@ import 'workflow_export.dart';
 import 'meal_export.dart';
 import 'meal_photo.dart';
 import 'gallery_photo.dart';
+import 'pilot_support_screens.dart';
+import 'pilot_theme.dart';
 
 // Presentation only: the original model doubles remain the saved values.
 String _displayNutrient(double? value) {
@@ -69,21 +71,23 @@ class Tier1App extends StatelessWidget {
   final WorkflowSink? workflow;
   final int Function()? elapsedMilliseconds;
   @override
-  Widget build(BuildContext context) => MaterialApp(
-      title: AppConstants.appDisplayName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      home: _Tier1Home(
-          store: store,
-          camera: camera,
-          clock: clock ?? RealClock(),
-          workflow: workflow,
-          elapsedMilliseconds: elapsedMilliseconds,
-          cloud: cloud ??
-              (initializeCloud == null
-                  ? null
-                  : FirebaseTier1Cloud(initializeCloud!))));
+  Widget build(BuildContext context) => PilotTheme(
+      builder: (context, mode, setMode) => MaterialApp(
+          themeMode: mode,
+          title: AppConstants.appDisplayName,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          home: _Tier1Home(
+              store: store,
+              camera: camera,
+              clock: clock ?? RealClock(),
+              workflow: workflow,
+              elapsedMilliseconds: elapsedMilliseconds,
+              cloud: cloud ??
+                  (initializeCloud == null
+                      ? null
+                      : FirebaseTier1Cloud(initializeCloud!)))));
 }
 
 class _Tier1Home extends StatefulWidget {
@@ -118,6 +122,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   // 0 Today, 1 History, 2 Scan (the landing screen), 3 Goals, 4 AI.
   int _tab = 2;
   bool _busy = false;
+  bool _initializing = true;
   bool _startupPermissionChecked = false;
   Future<bool>? _cameraPermission;
   final _pages = PageController(initialPage: 2);
@@ -159,10 +164,16 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
               ? StoreWorkflowSink(_store!)
               : const NoopWorkflowSink());
       await _refresh();
+      if (mounted) {
+        setState(() => _initializing = false);
+      }
     } catch (_) {
       if (mounted) {
-        setState(() => _error =
-            'Could not open local history. Existing files were preserved.');
+        setState(() {
+          _initializing = false;
+          _error =
+              'Could not open local history. Existing files were preserved.';
+        });
       }
       return;
     }
@@ -681,12 +692,37 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     }
   }
 
+  void _openProfile() {
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (routeContext) {
+      final appearance = PilotTheme.of(routeContext);
+      return PilotProfileScreen(
+        themeMode: appearance.mode,
+        onThemeChanged: appearance.setMode,
+        meals: _meals,
+        onGoals: () {
+          Navigator.of(routeContext).pop();
+          _selectTab(3);
+        },
+      );
+    }));
+  }
+
+  void _explainCamera() {
+    Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (routeContext) => PilotPermissionExplanation(
+            onContinue: () => Navigator.of(routeContext).pop())));
+  }
+
   Widget _header(int tab) => AppBar(
           backgroundColor: tab == 2
               ? Theme.of(context).colorScheme.surface.withValues(alpha: .77)
               : null,
           title: const Text(AppConstants.appDisplayName),
           actions: [
+            IconButton(
+                tooltip: 'Profile',
+                icon: const Icon(Icons.person_outline),
+                onPressed: _openProfile),
             if (tab == 1)
               IconButton(
                   tooltip: 'Export measurements',
@@ -732,82 +768,62 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
           meals: _meals,
           now: widget.clock.now());
     }
-    return _aiView();
-  }
-
-  Widget _aiView() {
-    final theme = Theme.of(context), scheme = theme.colorScheme;
-    return Center(
-        child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: scheme.outline)),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.auto_awesome_outlined,
-                      size: 28, color: scheme.onSurfaceVariant),
-                  const SizedBox(height: 12),
-                  Text('Meal corrections',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Text('Open a saved meal to change a food or its portion.',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: scheme.onSurfaceVariant)),
-                  TextButton(
-                      onPressed: () => _selectTab(1),
-                      child: const Text('Open History')),
-                ]))));
+    return PilotAiScreen(
+        meals: _meals, onScan: () => _selectTab(2), onOpenMeal: _open);
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-      bottomNavigationBar: CalorixBottomNav(
-          currentIndex: _tab,
-          raisedScan: false,
-          onTap: _selectTab,
-          isDark: Theme.of(context).brightness == Brightness.dark,
-          floating: _tab == 2),
-      body: PageView(
-          controller: _pages,
-          pageSnapping: false,
-          physics: MediaQuery.disableAnimationsOf(context)
-              ? const ReducedMotionTabPhysics()
-              : const TabPagePhysics(),
-          onPageChanged: (tab) => setState(() => _tab = tab),
-          children: [
-            for (var tab = 0; tab < 5; tab++)
-              Stack(fit: StackFit.expand, children: [
-                if (tab == 2 &&
-                    _camera is DeviceCameraService &&
-                    _camera.previewController?.value.isInitialized == true)
-                  MealCameraPreview(controller: _camera.previewController!),
-                Column(children: [
-                  // A header belongs to its page: both travel on the same native
-                  // scroll track instead of changing only when a swipe commits.
-                  SizedBox(
-                      key: ValueKey('tab-header-$tab'),
-                      height:
-                          kToolbarHeight + MediaQuery.paddingOf(context).top,
-                      child: _header(tab)),
-                  if (_error != null)
-                    Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(_error!)),
-                  if (tab == 2 && _cameraWarning != null)
-                    Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(_cameraWarning!)),
-                  Expanded(
-                      key: ValueKey('tab-content-$tab'),
-                      child: _tabContent(tab)),
-                ]),
-              ]),
-          ]));
+  Widget build(BuildContext context) => _initializing
+      ? const PilotLoadingScreen()
+      : Scaffold(
+          bottomNavigationBar: CalorixBottomNav(
+              currentIndex: _tab,
+              raisedScan: false,
+              onTap: _selectTab,
+              isDark: Theme.of(context).brightness == Brightness.dark,
+              floating: _tab == 2),
+          body: PageView(
+              controller: _pages,
+              pageSnapping: false,
+              physics: MediaQuery.disableAnimationsOf(context)
+                  ? const ReducedMotionTabPhysics()
+                  : const TabPagePhysics(),
+              onPageChanged: (tab) => setState(() => _tab = tab),
+              children: [
+                for (var tab = 0; tab < 5; tab++)
+                  Stack(fit: StackFit.expand, children: [
+                    if (tab == 2 &&
+                        _camera is DeviceCameraService &&
+                        _camera.previewController?.value.isInitialized == true)
+                      MealCameraPreview(controller: _camera.previewController!),
+                    Column(children: [
+                      // A header belongs to its page: both travel on the same native
+                      // scroll track instead of changing only when a swipe commits.
+                      SizedBox(
+                          key: ValueKey('tab-header-$tab'),
+                          height: kToolbarHeight +
+                              MediaQuery.paddingOf(context).top,
+                          child: _header(tab)),
+                      if (_error != null)
+                        Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(_error!)),
+                      if (tab == 2 && _cameraWarning != null)
+                        Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(children: [
+                              Expanded(child: Text(_cameraWarning!)),
+                              if (_cameraWarning == _cameraAccessOff)
+                                TextButton(
+                                    onPressed: _explainCamera,
+                                    child: const Text('Why camera?')),
+                            ])),
+                      Expanded(
+                          key: ValueKey('tab-content-$tab'),
+                          child: _tabContent(tab)),
+                    ]),
+                  ]),
+              ]));
 }
 
 class _CaptureRingPainter extends CustomPainter {
