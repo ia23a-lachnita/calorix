@@ -17,6 +17,7 @@ import 'dashboard_history.dart';
 import 'dashboard_goals.dart';
 import '../../shell/app_shell.dart';
 import 'local_meal.dart';
+import 'packaged_drink.dart';
 import 'analysis_failure.dart';
 import 'manual_nutrient_catalog.dart';
 import 'portion_input.dart';
@@ -892,6 +893,12 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       TextEditingController(text: _displayNutrient(_meal.served?.fatG));
   bool _busy = false, _dirty = false, _editTotals = false;
   bool _catalogServing = false, _estimating = false;
+  bool _drinkMode = false;
+  final _drinkVolume = TextEditingController();
+  final _drinkKcal = TextEditingController();
+  final _drinkProtein = TextEditingController();
+  final _drinkCarbs = TextEditingController();
+  final _drinkFat = TextEditingController();
   String _foodQuery = '';
   String? _message;
   late final _meter = WorkflowMeter(
@@ -1032,7 +1039,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     _closed = true;
     _trace('editor_closed');
     _pendingEvents.clear();
-    for (final c in [_name, _kcal, _protein, _carbs, _fat]) {
+    for (final c in [_name, _kcal, _protein, _carbs, _fat, _drinkVolume, _drinkKcal, _drinkProtein, _drinkCarbs, _drinkFat]) {
       c.dispose();
     }
     super.dispose();
@@ -1061,14 +1068,23 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     if (!_form.currentState!.validate() || _busy) return;
     try {
       final before = _meal.served?.kcal;
-      await _persist(_meal.edit(
-          _name.text,
-          Tier1Nutrients(
-              kcal: _numberFromField(_kcal, _meal.served?.kcal)!,
-              proteinG: _numberFromField(_protein, _meal.served?.proteinG),
-              carbsG: _numberFromField(_carbs, _meal.served?.carbsG),
-              fatG: _numberFromField(_fat, _meal.served?.fatG)),
-          at: widget.clock.now()));
+      if (_drinkMode) {
+        final drink = _drinkValue();
+        if (drink == null || _name.text.trim().isEmpty || _name.text.trim().length > 160) {
+          setState(() => _message = 'Check the drink name, label values and serving total.');
+          return;
+        }
+        await _persist(_meal.withPackagedDrink(_name.text, drink));
+      } else {
+        await _persist(_meal.edit(
+            _name.text,
+            Tier1Nutrients(
+                kcal: _numberFromField(_kcal, _meal.served?.kcal)!,
+                proteinG: _numberFromField(_protein, _meal.served?.proteinG),
+                carbsG: _numberFromField(_carbs, _meal.served?.carbsG),
+                fatG: _numberFromField(_fat, _meal.served?.fatG)),
+            at: widget.clock.now()));
+      }
       _trace('manual_saved',
           {'beforeKcal': before, 'afterKcal': _meal.served?.kcal});
       if (mounted) Navigator.pop(context);
@@ -1607,6 +1623,41 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 ? 'Enter a finite value from 0 to 1000000'
                 : null;
           });
+  PackagedDrink? _drinkValue() {
+    double? parse(TextEditingController c) => double.tryParse(c.text.trim());
+    final volume = parse(_drinkVolume), kcal = parse(_drinkKcal);
+    if (volume == null || kcal == null) return null;
+    for (final field in [_drinkProtein, _drinkCarbs, _drinkFat]) {
+      if (field.text.trim().isNotEmpty && parse(field) == null) return null;
+    }
+    try {
+      return PackagedDrink(volumeMl: volume, per100Ml: Tier1Nutrients(
+          kcal: kcal, proteinG: parse(_drinkProtein),
+          carbsG: parse(_drinkCarbs), fatG: parse(_drinkFat)));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Widget _drinkNumber(String label, TextEditingController controller,
+      {bool requiredValue = false, bool positive = false, bool last = false}) => TextFormField(
+      controller: controller,
+      enabled: !_busy,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      textInputAction: last ? TextInputAction.done : TextInputAction.next,
+      onFieldSubmitted: last ? (_) => FocusScope.of(context).unfocus() : null,
+      scrollPadding: const EdgeInsets.only(bottom: 140),
+      decoration: InputDecoration(labelText: label),
+      onChanged: (_) => setState(() { _dirty = true; _message = null; }),
+      validator: (text) {
+        if (text == null || text.trim().isEmpty) return requiredValue ? 'Enter a value' : null;
+        final value = double.tryParse(text);
+        if (value == null || !value.isFinite || value < 0 || value > 1000000 || (positive && value == 0)) {
+          return 'Enter a valid ${positive ? 'positive ' : ''}number';
+        }
+        return null;
+      });
+
   void _selectManualFood(ManualFoodRecord selected) {
     FocusScope.of(context).unfocus();
     setState(() {
@@ -1849,6 +1900,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                         const SizedBox(height: 16),
                         if (!summary) ...[
                           if (blank) ...[
+                            Align(alignment: Alignment.centerLeft, child: TextButton(
+                                onPressed: _busy ? null : () => setState(() { _drinkMode = !_drinkMode; _message = null; }),
+                                child: Text(_drinkMode ? 'Enter food' : 'Packaged drink'))),
+                          ],
+                          if (blank && !_drinkMode) ...[
                             TextField(
                                 enabled: !_busy,
                                 onChanged: (value) =>
@@ -1875,7 +1931,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                           : () => _selectManualFood(food)),
                             const SizedBox(height: 12),
                           ],
-                          if (_catalogServing)
+                          if (_catalogServing && !_drinkMode)
                             const Text(
                                 'Values are for 100 g. Adjust them for your serving.'),
                           TextFormField(
@@ -1896,6 +1952,26 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                   ? 'Enter a meal name (up to 160 characters)'
                                   : null),
                           const SizedBox(height: 12),
+                          if (_drinkMode) ...[
+                            _drinkNumber('Volume (mL)', _drinkVolume, requiredValue: true, positive: true),
+                            const SizedBox(height: 12),
+                            _drinkNumber('Calories per 100 mL', _drinkKcal, requiredValue: true),
+                            const SizedBox(height: 12),
+                            _drinkNumber('Protein per 100 mL (g, optional)', _drinkProtein),
+                            const SizedBox(height: 12),
+                            _drinkNumber('Carbs per 100 mL (g, optional)', _drinkCarbs),
+                            const SizedBox(height: 12),
+                            _drinkNumber('Fat per 100 mL (g, optional)', _drinkFat, last: true),
+                            const SizedBox(height: 16),
+                            Builder(builder: (context) {
+                              final total = _drinkValue()?.total;
+                              if (total == null) return const Text('Enter volume and label values to see the total.');
+                              return Semantics(liveRegion: true, child: Text('Serving: ${_displayNutrient(total.kcal)} kcal'
+                                  '${total.proteinG == null ? '' : ' · ${_displayNutrient(total.proteinG)} g protein'}'
+                                  '${total.carbsG == null ? '' : ' · ${_displayNutrient(total.carbsG)} g carbs'}'
+                                  '${total.fatG == null ? '' : ' · ${_displayNutrient(total.fatG)} g fat'}'));
+                            }),
+                          ] else ...[
                           Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -1930,10 +2006,23 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                 const SizedBox(height: 12),
                                 _number('Fat g (optional)', _fat, last: true),
                               ])),
+                          ],
                         ],
                         const SizedBox(height: 16),
                         // Nothing to save while the summary is showing: the way out is a
                         // quiet Done, and Save appears with the form.
+                        if (summary && _meal.packagedDrink != null) ...[
+                          Text('Serving: ${_displayNutrient(_meal.packagedDrink!.volumeMl)} mL · '
+                              '${_displayNutrient(_meal.packagedDrink!.per100Ml.kcal)} kcal per 100 mL'),
+                          if (_meal.packagedDrink!.per100Ml.proteinG != null ||
+                              _meal.packagedDrink!.per100Ml.carbsG != null ||
+                              _meal.packagedDrink!.per100Ml.fatG != null)
+                            Text('Per 100 mL:'
+                                '${_meal.packagedDrink!.per100Ml.proteinG == null ? '' : ' ${_displayNutrient(_meal.packagedDrink!.per100Ml.proteinG)} g protein'}'
+                                '${_meal.packagedDrink!.per100Ml.carbsG == null ? '' : ' ${_displayNutrient(_meal.packagedDrink!.per100Ml.carbsG)} g carbs'}'
+                                '${_meal.packagedDrink!.per100Ml.fatG == null ? '' : ' ${_displayNutrient(_meal.packagedDrink!.per100Ml.fatG)} g fat'}'),
+                          const SizedBox(height: 12),
+                        ],
                         if (summary && !_dirty)
                           Pressable(
                               child: OutlinedButton(

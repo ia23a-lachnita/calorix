@@ -1,5 +1,6 @@
 import 'manual_nutrient_catalog.dart';
 import 'portion_input.dart';
+import 'packaged_drink.dart';
 
 /// Local Tier1 records separate approximate served food from confirmed intake.
 class Tier1Nutrients {
@@ -148,14 +149,15 @@ class Tier1Meal {
           Map<int, double>? portionOverrides,
           Map<int, PortionInput>? portionInputs,
           Map<int, String>? foodOverrides,
-          List<Map<String, dynamic>>? adjustmentHistory}) =>
+          List<Map<String, dynamic>>? adjustmentHistory,
+          Map<String, dynamic>? metadata}) =>
       Tier1Meal(
           id: id,
           capturedAt: capturedAt,
           name: name ?? this.name,
           served: served ?? this.served,
           photoPath: photoPath,
-          metadata: metadata,
+          metadata: metadata ?? this.metadata,
           analysis: analysis ?? this.analysis,
           cloudConsent: cloudConsent ?? this.cloudConsent,
           source: source ?? this.source,
@@ -167,6 +169,24 @@ class Tier1Meal {
           adjustmentHistory: adjustmentHistory ?? this.adjustmentHistory,
           consumedFraction:
               resetConsumption ? null : fraction ?? consumedFraction);
+  PackagedDrink? get packagedDrink => metadata.containsKey('packagedDrink')
+      ? PackagedDrink.fromJson(metadata['packagedDrink'])
+      : null;
+
+  Tier1Meal withPackagedDrink(String name, PackagedDrink drink) {
+    if (revision != 0 ||
+        served != null ||
+        analysis != null ||
+        photoPath != null) {
+      throw StateError('Packaged drinks require a new manual meal');
+    }
+    return _copy(
+        name: name.trim(),
+        served: drink.total,
+        source: 'manual',
+        metadata: {...metadata, 'packagedDrink': drink.toJson()});
+  }
+
   Tier1Meal withRevision(int value) => _copy(revision: value);
   Tier1Meal withConsent() => _copy(cloudConsent: true);
   Tier1Meal confirmConsumption(double fraction) => _copy(fraction: fraction);
@@ -440,6 +460,9 @@ class Tier1Meal {
         name: name.trim(),
         served: nutrients,
         source: 'manual_correction',
+        metadata: sameNutrition
+            ? metadata
+            : (Map<String, dynamic>.from(metadata)..remove('packagedDrink')),
         resetConsumption: !sameNutrition,
         portionOverrides: sameNutrition ? portionOverrides : const {},
         portionInputs: sameNutrition ? portionInputs : const {},
@@ -590,7 +613,7 @@ class Tier1Meal {
             value['foodOverridesCatalogVersion'] != manualFoodCatalogVersion)) {
       throw const FormatException('Invalid saved food catalog; data retained');
     }
-    return Tier1Meal(
+    final result = Tier1Meal(
         id: value['id'] as String,
         capturedAt: DateTime.parse(value['capturedAt'] as String),
         name: value['name'] as String,
@@ -627,6 +650,16 @@ class Tier1Meal {
         adjustmentHistory: (value['adjustmentHistory'] as List? ?? [])
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList());
+    if (result.metadata.containsKey('packagedDrink')) {
+      final drink = result.packagedDrink!;
+      if (result.photoPath != null ||
+          result.analysis != null ||
+          !_sameNutrients(result.served, drink.total, approximate: true)) {
+        throw const FormatException(
+            'Invalid packaged drink totals; data retained');
+      }
+    }
+    return result;
   }
   static String _foodId(dynamic value) {
     if (value is! String || manualFood(value) == null) {

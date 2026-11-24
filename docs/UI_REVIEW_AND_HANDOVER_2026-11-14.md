@@ -54,6 +54,10 @@ Photo layout `99f2220` passed all 18 integrated photo, manual entry and history 
 
 The signed build for `33ded66` stopped at the clock contract. Goals now requires the date supplied by the app clock for its daily, weekly and monthly views. All eight clock contract checks and twelve dashboard/app tests passed. Initial review calls timed out or rejected the configured effort; the final source review agreed with no required fixes.
 
+Both workflows passed for `f9c0945`. Installed the [signed 23,858,965-byte arm64 APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45342578802/artifacts/14897163096) over the existing Samsung app. Source, checksum and signer matched. Flash cycled Auto → On → Off → Auto. Opened Profile → Goals, Today and Scan; inspected all four screenshots.
+
+Manual entry can now use a drink label per 100 mL. Entering 250 mL at 40 kcal per 100 mL previews 100 kcal. The user can dismiss the keyboard, check the preview and save. The local record retains the label and volume; editing the totals clears the old label basis. Missing macros stay unknown.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)
