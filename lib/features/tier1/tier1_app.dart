@@ -32,6 +32,7 @@ import 'workflow_export.dart';
 import 'meal_export.dart';
 import 'meal_photo.dart';
 import 'gallery_photo.dart';
+import 'pilot_flash_control.dart';
 import 'pilot_support_screens.dart';
 import 'pilot_theme.dart';
 
@@ -717,7 +718,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
           backgroundColor: tab == 2
               ? Theme.of(context).colorScheme.surface.withValues(alpha: .77)
               : null,
-          title: const Text(AppConstants.appDisplayName),
+          title: tab == 2 && _camera is CameraFlashService
+              ? PilotFlashControl(camera: _camera)
+              : const Text(AppConstants.appDisplayName),
           actions: [
             IconButton(
                 tooltip: 'Profile',

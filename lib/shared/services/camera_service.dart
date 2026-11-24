@@ -13,6 +13,12 @@ abstract class CameraService {
   Future<XFile?> pickFromLibrary();
 }
 
+/// Optional flash capability. A null mode means no initialized controller.
+abstract interface class CameraFlashService {
+  FlashMode? get currentFlashMode;
+  Future<void> setFlashMode(FlashMode mode);
+}
+
 abstract interface class GalleryRecovery {
   Future<XFile?> recoverGalleryImage();
 }
@@ -33,7 +39,7 @@ abstract class CameraLifecycleService {
 /// chrome. They live outside the abstract contract so widget tests (and
 /// their fakes) never need to reference [CameraController].
 class DeviceCameraService
-    implements CameraService, CameraLifecycleService, GalleryRecovery {
+    implements CameraService, CameraLifecycleService, GalleryRecovery, CameraFlashService {
   CameraController? _controller;
   final ImagePicker _picker = ImagePicker();
   Future<void> _operations = Future<void>.value();
@@ -113,6 +119,12 @@ class DeviceCameraService
     return response.files?.firstOrNull ?? response.file;
   }
 
+  @override
+  FlashMode? get currentFlashMode => _controller?.value.isInitialized == true
+      ? _controller!.value.flashMode
+      : null;
+
+  @override
   Future<void> setFlashMode(FlashMode mode) => _serialize(() async {
         await _controller?.setFlashMode(mode);
       });

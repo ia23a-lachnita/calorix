@@ -50,6 +50,8 @@ The dashboard, calendar and goal periods shipped in `c76ace9`. The Profile heade
 
 Profile and local appearance shipped in `2d87bb0`. Photo details now show the whole image above the nutrition sheet, with full-screen zoom available. Manual meals retain offline search and editable nutrients. The save and full-photo tests reproduced missed taps after scrolling and now reach both controls, including with an unsaved meal name. On the Samsung, the signed `1305261` APK returned “Bananas, raw” for an offline search and filled 89 kcal with an explicit 100 g basis. The form was closed without saving the test entry.
 
+Photo layout `99f2220` passed all 18 integrated photo, manual entry and history tests. Scan now reads the camera controller’s flash mode and lets the user cycle off, auto and on. Tests cover an unavailable flash and a rejected mode change. Physical flash verification is pending the signed build.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)
