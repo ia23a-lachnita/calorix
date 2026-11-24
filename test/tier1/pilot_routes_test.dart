@@ -22,11 +22,36 @@ class _Store extends Tier1MealStore {
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
   testWidgets('loading ends on Scan after local records load', (tester) async {
+    tester.view.physicalSize = const Size(720, 1600);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
     final gate = Completer<void>();
     await tester.pumpWidget(
         Tier1App(store: _Store(gate: gate), camera: FakeCameraService()));
     await tester.pump();
+    expect(find.byKey(const ValueKey('pilot-loading-ring')), findsOneWidget);
     expect(find.text('GETTING READY'), findsOneWidget);
+    expect(find.text('SNAP · TRACK · STAY ON TARGET'), findsOneWidget);
+    expect(find.textContaining('%'), findsNothing);
+    expect(find.textContaining('CLOUD'), findsNothing);
+    expect(find.textContaining('SYNC'), findsNothing);
+    expect(find.textContaining('v1.0'), findsNothing);
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('Take photo'), findsOneWidget);
+  });
+
+  testWidgets('loading artwork settles when reduced motion is enabled',
+      (tester) async {
+    final gate = Completer<void>();
+    await tester.pumpWidget(MediaQuery(
+      data: const MediaQueryData(disableAnimations: true),
+      child: Tier1App(store: _Store(gate: gate), camera: FakeCameraService()),
+    ));
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(find.text('GETTING READY'), findsOneWidget);
+    expect(tester.binding.hasScheduledFrame, isFalse);
     gate.complete();
     await tester.pumpAndSettle();
     expect(find.text('Take photo'), findsOneWidget);

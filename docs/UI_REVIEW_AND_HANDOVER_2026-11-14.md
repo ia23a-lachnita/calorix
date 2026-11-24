@@ -64,6 +64,8 @@ On the Samsung, the [signed drink-entry APK](https://github.com/ia23a-lachnita/c
 
 Saved photo details now lead with the date, meal name and nutrition. The whole photo opens full-screen. Macro bars show the portion eaten against current daily targets; pending analysis and errors are visible beside the photo action. Keyboard, consent, manual and drink-entry regressions passed in 31 focused tests; independent and external source review agreed.
 
+The real local startup screen now uses the mockup’s artwork in light and dark. Its indicator runs only while the store is getting ready and respects reduced motion. Twelve support and route tests passed, both themes were rendered and inspected, and scoped analysis passed. The first editor CI run for `1164a60` failed at Flutter tests; device confirmation for that build is pending the regression fix.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)
