@@ -62,6 +62,23 @@ void main() {
             .text,
         '2.69');
     expect(find.textContaining('100 g'), findsWidgets);
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Meal name'), 'My meal');
+    final search = find.widgetWithText(TextField, 'Search foods');
+    expect(search, findsOneWidget);
+    await tester.ensureVisible(search);
+    await tester.enterText(search, 'olive oil');
+    await tester.pumpAndSettle();
+    expect(find.text('My meal'), findsOneWidget);
+    await tester.tap(find.text('Oil, olive, salad or cooking'));
+    await tester.pumpAndSettle();
+    expect(
+        tester
+            .widget<TextFormField>(
+                find.widgetWithText(TextFormField, 'Calories (kcal)'))
+            .controller!
+            .text,
+        '884');
   });
   testWidgets(
       'offline manual save and history work without cloud initialization',
@@ -82,8 +99,10 @@ void main() {
         find.widgetWithText(TextFormField, 'Meal name'), 'Weighed test');
     await tester.enterText(
         find.widgetWithText(TextFormField, 'Calories (kcal)'), '420');
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Save meal'));
-    await tester.tap(find.text('Save meal'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save meal').hitTestable());
     await tester.pumpAndSettle();
     // a meal of today lands on the Today tab, counted by the ring
     expect(find.text('KCAL EATEN'), findsOneWidget);

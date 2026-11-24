@@ -1714,6 +1714,9 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     final summary = served != null && !_editTotals;
     // A manual entry that holds nothing yet is not an estimate of anything.
     final blank = served == null && _meal.photoPath == null && !_hasSaved;
+    final foodResults = blank && _foodQuery.trim().isNotEmpty
+        ? searchManualFoods(_foodQuery).take(5).toList()
+        : <ManualFoodRecord>[];
     final fraction = _meal.consumedFraction ?? 1;
     final partly = served != null && fraction != 1;
     final status = partly
@@ -1738,374 +1741,490 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
         ]),
         body: Form(
             key: _form,
-            child: ListView(padding: const EdgeInsets.all(20), children: [
-              if (_estimating)
-                Semantics(
-                    liveRegion: true,
-                    child: Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(20)),
-                        child: Row(children: [
-                          const Icon(Icons.cloud_outlined,
-                              color: AppColors.cyan),
-                          const SizedBox(width: 12),
-                          Expanded(
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                Text('Analyzing your photo',
-                                    style:
-                                        Theme.of(context).textTheme.titleSmall),
-                                const Text(
-                                    'Your estimate will appear when it is ready.'),
-                              ])),
-                        ]))),
-              if (_message != null)
+            child: ListView(padding: EdgeInsets.zero, children: [
+              if (_estimating || _message != null)
                 Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(_message!, semanticsLabel: _message)),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(children: [
+                      if (_estimating)
+                        Semantics(
+                            liveRegion: true,
+                            child: Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest,
+                                    borderRadius: BorderRadius.circular(20)),
+                                child: Row(children: [
+                                  const Icon(Icons.cloud_outlined,
+                                      color: AppColors.cyan),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                        Text('Analyzing your photo',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall),
+                                        const Text(
+                                            'Your estimate will appear when it is ready.'),
+                                      ])),
+                                ]))),
+                      if (_message != null)
+                        Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Text(_message!, semanticsLabel: _message)),
+                    ])),
               if (_meal.photoPath != null)
                 MealPhotoPreview(photoPath: _meal.photoPath!),
-              const SizedBox(height: 16),
-              // One filled button per screen: estimating leads until there is
-              // an estimate, then it steps back to a tonal "again".
-              if (_meal.photoPath != null) ...[
-                Pressable(
-                    child: served == null
-                        ? FilledButton.icon(
-                            onPressed: _busy || _dirty ? null : _estimate,
-                            icon: const Icon(Icons.auto_awesome_outlined),
-                            label:
-                                Text(_busy ? 'Estimating…' : 'Estimate photo'))
-                        : FilledButton.tonalIcon(
-                            onPressed: _busy || _dirty ? null : _estimate,
-                            icon: const Icon(Icons.auto_awesome_outlined),
-                            label: Text(
-                                _busy ? 'Estimating…' : 'Estimate photo'))),
-                const SizedBox(height: 12),
-              ],
-              if (summary)
-                AnimatedSize(
-                    duration: Motion.of(context, Motion.medium),
-                    curve: Motion.curve,
-                    alignment: Alignment.topCenter,
-                    child: _summary(context, served, status))
-              else ...[
-                if (blank) ...[
-                  Text('Camera-free logging',
-                      style: Theme.of(context).textTheme.labelMedium),
-                  Text('Add food',
-                      style: Theme.of(context).textTheme.headlineSmall),
-                ] else ...[
-                  // a photo kept on the phone has no estimate to speak of yet
-                  Text(served == null ? 'Your photo' : 'Estimated calories',
-                      style: Theme.of(context).textTheme.headlineSmall),
-                  if (served == null)
-                    const Text('Estimate it, or fill in the meal yourself.'),
-                  if (status.isNotEmpty) Text(status),
-                ],
-              ],
-              const SizedBox(height: 16),
-              if (!summary) ...[
-                if (blank) ...[
-                  TextField(
-                      onChanged: (value) => setState(() => _foodQuery = value),
-                      decoration: const InputDecoration(
-                          labelText: 'Search foods',
-                          prefixIcon: Icon(Icons.search))),
-                  if (_foodQuery.trim().isNotEmpty)
-                    if (searchManualFoods(_foodQuery).isEmpty)
-                      const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          child: Text('No matching foods'))
-                    else
-                      for (final food in searchManualFoods(_foodQuery).take(5))
-                        ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(food.description),
-                            subtitle: Text(
-                                '${_displayNutrient(food.per100['kcal'])} kcal per 100 g'),
-                            trailing: const Icon(Icons.add_circle_outline),
-                            onTap: () => _selectManualFood(food)),
-                  const SizedBox(height: 12),
-                ],
-                if (_catalogServing)
-                  const Text(
-                      'Values are for 100 g. Adjust them for your serving.'),
-                TextFormField(
-                    key: const ValueKey('meal-name-input'),
-                    controller: _name,
-                    enabled: !_busy,
-                    // a blank manual entry starts with the keyboard up
-                    autofocus: blank,
-                    textInputAction: TextInputAction.next,
-                    textCapitalization: TextCapitalization.sentences,
-                    scrollPadding: const EdgeInsets.only(bottom: 140),
-                    onChanged: (_) => setState(() => _dirty = true),
-                    decoration: const InputDecoration(labelText: 'Meal name'),
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty || v.trim().length > 160
-                            ? 'Enter a meal name (up to 160 characters)'
-                            : null),
-                const SizedBox(height: 12),
-                _number('Calories (kcal)', _kcal, isRequired: true),
-                const SizedBox(height: 12),
-                _number('Protein g (optional)', _protein),
-                const SizedBox(height: 12),
-                _number('Carbs g (optional)', _carbs),
-                const SizedBox(height: 12),
-                _number('Fat g (optional)', _fat, last: true),
-              ],
-              const SizedBox(height: 16),
-              // Nothing to save while the summary is showing: the way out is a
-              // quiet Done, and Save appears with the form.
-              if (summary && !_dirty)
-                Pressable(
-                    child: OutlinedButton(
-                        onPressed: _busy ? null : () => Navigator.pop(context),
-                        child: const Text('Done')))
-              else ...[
-                Pressable(
-                    child: served == null && _meal.photoPath != null
-                        ? FilledButton.tonal(
-                            onPressed: _busy ? null : _save,
-                            child: const Text('Save meal'))
-                        : FilledButton(
-                            onPressed: _busy ? null : _save,
-                            child: const Text('Save meal'))),
-                const SizedBox(height: 8),
-                Text(blank
-                    ? 'Protein, carbs and fat are optional.'
-                    : 'Saving counts the meal as fully eaten again. Empty macros stay empty.'),
-              ],
-              if (analysis != null) ...[
-                const Divider(height: 32),
-                Text('Recognized foods and nutrient sources',
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 4),
-                for (var index = 0;
-                    index < (analysis['components'] as List? ?? []).length;
-                    index++)
-                  Builder(builder: (_) {
-                    final c = Map<String, dynamic>.from(
-                        (analysis['components'] as List)[index] as Map);
-                    final source =
-                        Map<String, dynamic>.from(c['source'] as Map);
-                    final current =
-                        canCorrect ? _meal.componentMassG(index) : null;
-                    final original = c['massG'] is num
-                        ? (c['massG'] as num).toDouble()
-                        : null;
-                    final foodId = _meal.foodOverrides[index],
-                        record = foodId == null ? null : manualFood(foodId);
-                    final foodName = canCorrect
-                        ? _meal.componentName(index)
-                        : c['name'] as String;
-                    final kcal = canCorrect ? _meal.componentKcal(index) : null;
-                    final scheme = Theme.of(context).colorScheme;
-                    // One card per food: what it is in the ink colour, where
-                    // its numbers come from in the secondary colour, and both
-                    // corrections side by side under it. The plain text is
-                    // unchanged, so it reads the same to tests and readers.
-                    return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-                        decoration: BoxDecoration(
-                            color: scheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: scheme.outline)),
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                        child: Text.rich(TextSpan(children: [
-                                      TextSpan(
-                                          text:
-                                              '$foodName · ${current == null ? c['massG'] : _displayNutrient(current)} g · ${record?.preparation ?? c['preparation']}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall),
-                                      TextSpan(
-                                          text:
-                                              '\n${record != null ? 'Your choice from the food database' : source['kind'] == 'database_match' ? 'From the food database' : 'Estimated from the photo'}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                  color:
-                                                      scheme.onSurfaceVariant)),
-                                    ]))),
-                                    if (kcal != null)
-                                      Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 12, right: 8),
-                                          child: Text('${kcal.round()} kcal',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleSmall)),
-                                  ]),
-                              if (record != null) ...[
-                                Text(
-                                    'Original prediction: ${c['name']} · ${c['preparation']}'),
-                                if ((c['assumptions'] as List? ?? [])
-                                    .isNotEmpty)
-                                  Text(
-                                      'Original assumptions: ${(c['assumptions'] as List).join('; ')}'),
-                                SelectableText(record.sourceUrl),
-                              ] else if ((c['assumptions'] as List? ?? [])
-                                  .isNotEmpty)
-                                Text((c['assumptions'] as List).join('; ')),
-                              if (_meal.portionInputs[index]
-                                  case final portion?)
-                                Text(portion.unit == 'batch'
-                                    ? '${portion.numerator}/${portion.denominator} of the photographed food'
-                                    : '${portion.numerator}/${portion.denominator} of ${_displayNutrient(portion.amount)} ${portion.unit}'),
-                              if (_meal.portionOverrides.containsKey(index))
-                                Text(
-                                    'Original estimate: ${_displayNutrient(original)} g${current == 0 ? ' · Not counted in the totals' : ''}'),
-                              if (canCorrect)
-                                Wrap(children: [
-                                  Tooltip(
-                                      message: 'Edit portion for $foodName',
-                                      child: TextButton(
-                                          onPressed: _busy || _dirty
-                                              ? null
-                                              : () => _portion(index),
-                                          child: const Text('Edit portion'))),
-                                  Tooltip(
-                                      message: 'Change food for $foodName',
-                                      child: TextButton(
-                                          onPressed: _busy || _dirty
-                                              ? null
-                                              : () => _food(index),
-                                          child: const Text('Change food'))),
-                                ])
-                              else
-                                const SizedBox(height: 8),
-                            ]));
-                  }),
-                // What still needs the user: amber, the product's colour for
-                // "needs review", and the answers as buttons in a row.
-                if ((analysis['ambiguities'] as List? ?? []).isNotEmpty ||
-                    (question != null && _meal.hasPendingPreparationQuestion))
-                  Container(
-                      margin: const EdgeInsets.symmetric(vertical: 6),
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                      decoration: BoxDecoration(
-                          color: AppColors.needsReview.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                              color: AppColors.needsReview
-                                  .withValues(alpha: 0.5))),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Needs a look',
-                                style: Theme.of(context).textTheme.labelLarge),
-                            const SizedBox(height: 8),
-                            for (final ambiguity
-                                in (analysis['ambiguities'] as List? ?? []))
-                              Text('Unresolved: $ambiguity'),
-                            if (question != null &&
-                                _meal.hasPendingPreparationQuestion) ...[
-                              const SizedBox(height: 4),
-                              Text(question['text'] as String,
-                                  style:
-                                      Theme.of(context).textTheme.titleSmall),
-                              Wrap(spacing: 4, children: [
-                                for (final raw in question['options'] as List)
-                                  TextButton(
-                                      onPressed: _busy || _dirty
-                                          ? null
-                                          : () => _answer(
-                                              (raw as Map)['id'] as String),
-                                      child: Text(
-                                          (raw as Map)['label'] as String)),
-                              ]),
-                            ],
-                          ])),
-                if (question?['answered'] == true)
-                  Text(
-                      'Preparation: ${analysis['userPreparationAnswer'] ?? question!['answer']}'),
-                if (_meal.hasManualNutritionOverride)
-                  const Text(
-                      'Totals were manually corrected. Original recognition is retained for comparison.'),
-              ],
-              if (_meal.served != null) ...[
-                if (_dirty)
-                  const Text(
-                      'Save changes before changing how much you ate or repeating this meal.'),
-                const Divider(height: 32),
-                Text('How much did you eat?',
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Wrap(spacing: 8, children: [
-                  _amount('Ate all', 1, selected: !partly),
-                  _amount('Ate half', .5, selected: fraction == .5),
-                  OutlinedButton(
-                      onPressed: _busy || _dirty
+              Container(
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      borderRadius: _meal.photoPath == null
                           ? null
-                          : () async {
-                              var text = '', invalid = false;
-                              final share = await showDialog<double>(
-                                  context: context,
-                                  builder: (context) => StatefulBuilder(
-                                      builder: (context, setDialogState) =>
-                                          AlertDialog(
-                                              title: const Text(
-                                                  'Share of the whole meal'),
-                                              content: TextField(
-                                                  autofocus: true,
-                                                  onChanged: (v) => text = v,
-                                                  decoration: InputDecoration(
-                                                      labelText:
-                                                          'Fraction eaten (e.g. 1/3)',
-                                                      errorText: invalid
-                                                          ? 'Enter a share between 0 and 1.'
-                                                          : null)),
-                                              actions: [
-                                                TextButton(
-                                                    onPressed: () =>
-                                                        Navigator.pop(context),
-                                                    child:
-                                                        const Text('Cancel')),
-                                                FilledButton(
-                                                    onPressed: () {
-                                                      final part =
-                                                          parsePortionShare(
-                                                              text);
-                                                      if (part == null) {
-                                                        setDialogState(() =>
-                                                            invalid = true);
-                                                        return;
-                                                      }
-                                                      Navigator.pop(context,
-                                                          part.$1 / part.$2);
-                                                    },
-                                                    child: const Text('Apply'))
-                                              ])));
-                              if (mounted && share != null) {
-                                await _consume(share);
-                              }
-                            },
-                      child: const Text('Other share')),
-                ]),
-                const SizedBox(height: 8),
-                Text('Meals count in full unless you say otherwise.',
-                    style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: 8),
-                OutlinedButton(
-                    onPressed: _busy || _dirty ? null : _repeat,
-                    child: const Text('Repeat meal')),
-              ],
+                          : const BorderRadius.vertical(
+                              top: Radius.circular(28))),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 16),
+                        // One filled button per screen: estimating leads until there is
+                        // an estimate, then it steps back to a tonal "again".
+                        if (_meal.photoPath != null) ...[
+                          Pressable(
+                              child: served == null
+                                  ? FilledButton.icon(
+                                      onPressed:
+                                          _busy || _dirty ? null : _estimate,
+                                      icon: const Icon(
+                                          Icons.auto_awesome_outlined),
+                                      label: Text(_busy
+                                          ? 'Estimating…'
+                                          : 'Estimate photo'))
+                                  : FilledButton.tonalIcon(
+                                      onPressed:
+                                          _busy || _dirty ? null : _estimate,
+                                      icon: const Icon(
+                                          Icons.auto_awesome_outlined),
+                                      label: Text(_busy
+                                          ? 'Estimating…'
+                                          : 'Estimate photo'))),
+                          const SizedBox(height: 12),
+                        ],
+                        if (summary)
+                          AnimatedSize(
+                              duration: Motion.of(context, Motion.medium),
+                              curve: Motion.curve,
+                              alignment: Alignment.topCenter,
+                              child: _summary(context, served, status))
+                        else ...[
+                          if (blank) ...[
+                            Text('Camera-free logging',
+                                style: Theme.of(context).textTheme.labelMedium),
+                            Text('Add food',
+                                style:
+                                    Theme.of(context).textTheme.headlineSmall),
+                          ] else ...[
+                            // a photo kept on the phone has no estimate to speak of yet
+                            Text(
+                                served == null
+                                    ? 'Your photo'
+                                    : 'Estimated calories',
+                                style:
+                                    Theme.of(context).textTheme.headlineSmall),
+                            if (served == null)
+                              const Text(
+                                  'Estimate it, or fill in the meal yourself.'),
+                            if (status.isNotEmpty) Text(status),
+                          ],
+                        ],
+                        const SizedBox(height: 16),
+                        if (!summary) ...[
+                          if (blank) ...[
+                            TextField(
+                                enabled: !_busy,
+                                onChanged: (value) =>
+                                    setState(() => _foodQuery = value),
+                                decoration: const InputDecoration(
+                                    labelText: 'Search foods',
+                                    prefixIcon: Icon(Icons.search))),
+                            if (_foodQuery.trim().isNotEmpty)
+                              if (foodResults.isEmpty)
+                                const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 12),
+                                    child: Text('No matching foods'))
+                              else
+                                for (final food in foodResults)
+                                  ListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      title: Text(food.description),
+                                      subtitle: Text(
+                                          '${_displayNutrient(food.per100['kcal'])} kcal per 100 g'),
+                                      trailing:
+                                          const Icon(Icons.add_circle_outline),
+                                      onTap: _busy
+                                          ? null
+                                          : () => _selectManualFood(food)),
+                            const SizedBox(height: 12),
+                          ],
+                          if (_catalogServing)
+                            const Text(
+                                'Values are for 100 g. Adjust them for your serving.'),
+                          TextFormField(
+                              key: const ValueKey('meal-name-input'),
+                              controller: _name,
+                              enabled: !_busy,
+                              // a blank manual entry starts with the keyboard up
+                              autofocus: blank,
+                              textInputAction: TextInputAction.next,
+                              textCapitalization: TextCapitalization.sentences,
+                              scrollPadding: const EdgeInsets.only(bottom: 140),
+                              onChanged: (_) => setState(() => _dirty = true),
+                              decoration:
+                                  const InputDecoration(labelText: 'Meal name'),
+                              validator: (v) => v == null ||
+                                      v.trim().isEmpty ||
+                                      v.trim().length > 160
+                                  ? 'Enter a meal name (up to 160 characters)'
+                                  : null),
+                          const SizedBox(height: 12),
+                          Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                      width: .5,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outline)),
+                              child: _number('Calories (kcal)', _kcal,
+                                  isRequired: true)),
+                          const SizedBox(height: 10),
+                          Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                      width: .5,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outline)),
+                              child: Column(children: [
+                                _number('Protein g (optional)', _protein),
+                                const SizedBox(height: 12),
+                                _number('Carbs g (optional)', _carbs),
+                                const SizedBox(height: 12),
+                                _number('Fat g (optional)', _fat, last: true),
+                              ])),
+                        ],
+                        const SizedBox(height: 16),
+                        // Nothing to save while the summary is showing: the way out is a
+                        // quiet Done, and Save appears with the form.
+                        if (summary && !_dirty)
+                          Pressable(
+                              child: OutlinedButton(
+                                  onPressed: _busy
+                                      ? null
+                                      : () => Navigator.pop(context),
+                                  child: const Text('Done')))
+                        else ...[
+                          Pressable(
+                              child: served == null && _meal.photoPath != null
+                                  ? FilledButton.tonal(
+                                      onPressed: _busy ? null : _save,
+                                      child: const Text('Save meal'))
+                                  : FilledButton(
+                                      onPressed: _busy ? null : _save,
+                                      child: const Text('Save meal'))),
+                          const SizedBox(height: 8),
+                          Text(blank
+                              ? 'Protein, carbs and fat are optional.'
+                              : 'Saving counts the meal as fully eaten again. Empty macros stay empty.'),
+                        ],
+                        if (analysis != null) ...[
+                          const Divider(height: 32),
+                          Text('Recognized foods and nutrient sources',
+                              style: Theme.of(context).textTheme.titleMedium),
+                          const SizedBox(height: 4),
+                          for (var index = 0;
+                              index <
+                                  (analysis['components'] as List? ?? [])
+                                      .length;
+                              index++)
+                            Builder(builder: (_) {
+                              final c = Map<String, dynamic>.from(
+                                  (analysis['components'] as List)[index]
+                                      as Map);
+                              final source =
+                                  Map<String, dynamic>.from(c['source'] as Map);
+                              final current = canCorrect
+                                  ? _meal.componentMassG(index)
+                                  : null;
+                              final original = c['massG'] is num
+                                  ? (c['massG'] as num).toDouble()
+                                  : null;
+                              final foodId = _meal.foodOverrides[index],
+                                  record = foodId == null
+                                      ? null
+                                      : manualFood(foodId);
+                              final foodName = canCorrect
+                                  ? _meal.componentName(index)
+                                  : c['name'] as String;
+                              final kcal = canCorrect
+                                  ? _meal.componentKcal(index)
+                                  : null;
+                              final scheme = Theme.of(context).colorScheme;
+                              // One card per food: what it is in the ink colour, where
+                              // its numbers come from in the secondary colour, and both
+                              // corrections side by side under it. The plain text is
+                              // unchanged, so it reads the same to tests and readers.
+                              return Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 6),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(16, 12, 8, 4),
+                                  decoration: BoxDecoration(
+                                      color: scheme.surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border:
+                                          Border.all(color: scheme.outline)),
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                  child: Text.rich(
+                                                      TextSpan(children: [
+                                                TextSpan(
+                                                    text:
+                                                        '$foodName · ${current == null ? c['massG'] : _displayNutrient(current)} g · ${record?.preparation ?? c['preparation']}',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleSmall),
+                                                TextSpan(
+                                                    text:
+                                                        '\n${record != null ? 'Your choice from the food database' : source['kind'] == 'database_match' ? 'From the food database' : 'Estimated from the photo'}',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                            color: scheme
+                                                                .onSurfaceVariant)),
+                                              ]))),
+                                              if (kcal != null)
+                                                Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 12, right: 8),
+                                                    child: Text(
+                                                        '${kcal.round()} kcal',
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .titleSmall)),
+                                            ]),
+                                        if (record != null) ...[
+                                          Text(
+                                              'Original prediction: ${c['name']} · ${c['preparation']}'),
+                                          if ((c['assumptions'] as List? ?? [])
+                                              .isNotEmpty)
+                                            Text(
+                                                'Original assumptions: ${(c['assumptions'] as List).join('; ')}'),
+                                          SelectableText(record.sourceUrl),
+                                        ] else if ((c['assumptions'] as List? ??
+                                                [])
+                                            .isNotEmpty)
+                                          Text((c['assumptions'] as List)
+                                              .join('; ')),
+                                        if (_meal.portionInputs[index]
+                                            case final portion?)
+                                          Text(portion.unit == 'batch'
+                                              ? '${portion.numerator}/${portion.denominator} of the photographed food'
+                                              : '${portion.numerator}/${portion.denominator} of ${_displayNutrient(portion.amount)} ${portion.unit}'),
+                                        if (_meal.portionOverrides
+                                            .containsKey(index))
+                                          Text(
+                                              'Original estimate: ${_displayNutrient(original)} g${current == 0 ? ' · Not counted in the totals' : ''}'),
+                                        if (canCorrect)
+                                          Wrap(children: [
+                                            Tooltip(
+                                                message:
+                                                    'Edit portion for $foodName',
+                                                child: TextButton(
+                                                    onPressed: _busy || _dirty
+                                                        ? null
+                                                        : () => _portion(index),
+                                                    child: const Text(
+                                                        'Edit portion'))),
+                                            Tooltip(
+                                                message:
+                                                    'Change food for $foodName',
+                                                child: TextButton(
+                                                    onPressed: _busy || _dirty
+                                                        ? null
+                                                        : () => _food(index),
+                                                    child: const Text(
+                                                        'Change food'))),
+                                          ])
+                                        else
+                                          const SizedBox(height: 8),
+                                      ]));
+                            }),
+                          // What still needs the user: amber, the product's colour for
+                          // "needs review", and the answers as buttons in a row.
+                          if ((analysis['ambiguities'] as List? ?? [])
+                                  .isNotEmpty ||
+                              (question != null &&
+                                  _meal.hasPendingPreparationQuestion))
+                            Container(
+                                margin: const EdgeInsets.symmetric(vertical: 6),
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                                decoration: BoxDecoration(
+                                    color: AppColors.needsReview
+                                        .withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                        color: AppColors.needsReview
+                                            .withValues(alpha: 0.5))),
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Needs a look',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelLarge),
+                                      const SizedBox(height: 8),
+                                      for (final ambiguity
+                                          in (analysis['ambiguities']
+                                                  as List? ??
+                                              []))
+                                        Text('Unresolved: $ambiguity'),
+                                      if (question != null &&
+                                          _meal
+                                              .hasPendingPreparationQuestion) ...[
+                                        const SizedBox(height: 4),
+                                        Text(question['text'] as String,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall),
+                                        Wrap(spacing: 4, children: [
+                                          for (final raw
+                                              in question['options'] as List)
+                                            TextButton(
+                                                onPressed: _busy || _dirty
+                                                    ? null
+                                                    : () => _answer(
+                                                        (raw as Map)['id']
+                                                            as String),
+                                                child: Text(
+                                                    (raw as Map)['label']
+                                                        as String)),
+                                        ]),
+                                      ],
+                                    ])),
+                          if (question?['answered'] == true)
+                            Text(
+                                'Preparation: ${analysis['userPreparationAnswer'] ?? question!['answer']}'),
+                          if (_meal.hasManualNutritionOverride)
+                            const Text(
+                                'Totals were manually corrected. Original recognition is retained for comparison.'),
+                        ],
+                        if (_meal.served != null) ...[
+                          if (_dirty)
+                            const Text(
+                                'Save changes before changing how much you ate or repeating this meal.'),
+                          const Divider(height: 32),
+                          Text('How much did you eat?',
+                              style: Theme.of(context).textTheme.titleMedium),
+                          const SizedBox(height: 8),
+                          Wrap(spacing: 8, children: [
+                            _amount('Ate all', 1, selected: !partly),
+                            _amount('Ate half', .5, selected: fraction == .5),
+                            OutlinedButton(
+                                onPressed: _busy || _dirty
+                                    ? null
+                                    : () async {
+                                        var text = '', invalid = false;
+                                        final share = await showDialog<double>(
+                                            context: context,
+                                            builder: (context) =>
+                                                StatefulBuilder(
+                                                    builder: (context,
+                                                            setDialogState) =>
+                                                        AlertDialog(
+                                                            title: const Text(
+                                                                'Share of the whole meal'),
+                                                            content: TextField(
+                                                                autofocus: true,
+                                                                onChanged:
+                                                                    (v) =>
+                                                                        text =
+                                                                            v,
+                                                                decoration: InputDecoration(
+                                                                    labelText:
+                                                                        'Fraction eaten (e.g. 1/3)',
+                                                                    errorText: invalid
+                                                                        ? 'Enter a share between 0 and 1.'
+                                                                        : null)),
+                                                            actions: [
+                                                              TextButton(
+                                                                  onPressed: () =>
+                                                                      Navigator.pop(
+                                                                          context),
+                                                                  child: const Text(
+                                                                      'Cancel')),
+                                                              FilledButton(
+                                                                  onPressed:
+                                                                      () {
+                                                                    final part =
+                                                                        parsePortionShare(
+                                                                            text);
+                                                                    if (part ==
+                                                                        null) {
+                                                                      setDialogState(() =>
+                                                                          invalid =
+                                                                              true);
+                                                                      return;
+                                                                    }
+                                                                    Navigator.pop(
+                                                                        context,
+                                                                        part.$1 /
+                                                                            part.$2);
+                                                                  },
+                                                                  child: const Text(
+                                                                      'Apply'))
+                                                            ])));
+                                        if (mounted && share != null) {
+                                          await _consume(share);
+                                        }
+                                      },
+                                child: const Text('Other share')),
+                          ]),
+                          const SizedBox(height: 8),
+                          Text('Meals count in full unless you say otherwise.',
+                              style: Theme.of(context).textTheme.bodySmall),
+                          const SizedBox(height: 8),
+                          OutlinedButton(
+                              onPressed: _busy || _dirty ? null : _repeat,
+                              child: const Text('Repeat meal')),
+                        ],
+                      ])),
             ])));
   }
 }

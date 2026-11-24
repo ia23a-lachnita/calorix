@@ -271,7 +271,8 @@ void main() {
     t.testTextInput.hide();
     await t.pumpAndSettle();
     final expand = find.byIcon(Icons.fullscreen);
-    await t.scrollUntilVisible(expand, -160, scrollable: editorScroll);
+    await t.scrollUntilVisible(expand.hitTestable(), -160, scrollable: editorScroll);
+    await t.pumpAndSettle();
     await t.tap(expand.hitTestable());
     await t.pumpAndSettle();
     await _loadPhoto(t);

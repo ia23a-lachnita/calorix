@@ -220,6 +220,8 @@ void main() {
       final store = _MemoryStore();
       await store.save(Tier1Meal(
           id: 'p',
+          photoPath:
+              'docs/design-handoff/placeholder-app/assets/food/chicken_rice_bowl_square.jpg',
           capturedAt: DateTime(2026, 11, 14, 12, 30),
           name: 'Chicken rice bowl',
           source: 'photo',
@@ -231,6 +233,27 @@ void main() {
       await tester.tap(find.text('History'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Chicken rice bowl'));
+      await tester.pumpAndSettle();
+      final imageWidget = tester.widget<Image>(find.byType(Image).first);
+      final imageStream = imageWidget.image.resolve(
+          createLocalImageConfiguration(
+              tester.element(find.byType(Image).first)));
+      var loaded = false;
+      final imageListener = ImageStreamListener((info, _) {
+        loaded = true;
+        info.dispose();
+      }, onError: (_, __) {
+        loaded = true;
+      });
+      imageStream.addListener(imageListener);
+      final deadline = Stopwatch()..start();
+      while (!loaded && deadline.elapsed < const Duration(seconds: 10)) {
+        await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 1)));
+        await tester.pump();
+      }
+      imageStream.removeListener(imageListener);
+      expect(loaded, isTrue);
       await tester.pumpAndSettle();
       await shot(tester, '06-estimate-top');
       await tester.drag(find.byType(ListView).first, const Offset(0, -700));
