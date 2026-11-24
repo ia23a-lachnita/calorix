@@ -270,10 +270,10 @@ void main() {
     await t.enterText(field, 'Unsaved edit');
     t.testTextInput.hide();
     await t.pumpAndSettle();
-    final expand = find.byIcon(Icons.fullscreen);
-    await t.scrollUntilVisible(expand.hitTestable(), -160, scrollable: editorScroll);
+    final expand = find.byTooltip('View full photo');
+    await t.scrollUntilVisible(expand, -160, scrollable: editorScroll);
     await t.pumpAndSettle();
-    await t.tap(expand.hitTestable());
+    await t.tap(expand);
     await t.pumpAndSettle();
     await _loadPhoto(t);
     await t.tap(find.byTooltip('Close'));

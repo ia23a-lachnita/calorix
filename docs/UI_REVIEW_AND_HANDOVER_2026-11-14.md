@@ -66,6 +66,8 @@ Saved photo details now lead with the date, meal name and nutrition. The whole p
 
 The real local startup screen now uses the mockup’s artwork in light and dark. Its indicator runs only while the store is getting ready and respects reduced motion. Twelve support and route tests passed, both themes were rendered and inspected, and scoped analysis passed. The first editor CI run for `1164a60` failed at Flutter tests; device confirmation for that build is pending the regression fix.
 
+The sole failure in the editor’s first Verify run was a test tapping the decorative expand icon after a scroll. It now taps the actual “View full photo” control. The unsaved edit, record revision and consent assertions remain, and all eleven photo tests passed locally. The loading artwork shipped in `42f8f41`.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)
