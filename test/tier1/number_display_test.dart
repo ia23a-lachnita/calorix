@@ -94,13 +94,16 @@ void main() {
         cloudConsent: true,
         metadata: {}));
     await open(tester, data, editTotals: false);
-    expect(find.text('Calories'), findsOneWidget);
+    expect(find.text('Calories in serving'), findsOneWidget);
     expect(find.text('Protein'), findsOneWidget);
     expect(find.text('Carbs'), findsOneWidget);
     expect(find.text('Fat'), findsOneWidget);
-    expect(find.text('9.28 g'), findsOneWidget);
-    expect(find.text('33.6 g'), findsOneWidget);
-    expect(find.text('6.72 g'), findsOneWidget);
+    expect(find.text('9.28 g served'), findsOneWidget);
+    expect(find.text('9.28 g eaten · 5% of protein target'), findsOneWidget);
+    expect(find.text('33.6 g served'), findsOneWidget);
+    expect(find.text('33.6 g eaten · 13% of carbs target'), findsOneWidget);
+    expect(find.text('6.72 g served'), findsOneWidget);
+    expect(find.text('6.72 g eaten · 10% of fat target'), findsOneWidget);
   });
   for (final action in ['untouched', 'rename', 'change kcal', 'clear fat']) {
     testWidgets(

@@ -52,7 +52,10 @@ void main() {
           reason: '$label should overlay the photo');
     }
     final proteinPercent = (20 / Tier1Targets.defaults.proteinG * 100).round();
-    expect(find.text('$proteinPercent% of protein target'), findsOneWidget);
+    expect(find.text('Calories in serving'), findsOneWidget);
+    expect(find.text('40 g served'), findsOneWidget);
+    expect(find.text('20 g eaten · $proteinPercent% of protein target'),
+        findsOneWidget);
     expect(tester.getTopLeft(find.text('Meal').last).dy,
         lessThan(tester.getTopLeft(find.text('Estimate photo')).dy));
     expect(
@@ -116,7 +119,7 @@ void main() {
     await tester.pumpAndSettle();
     await openSavedMeal(tester, 'Target meal');
     await tester.pumpAndSettle();
-    expect(find.text('20% of protein target'), findsOneWidget);
+    expect(find.text('20 g eaten · 20% of protein target'), findsOneWidget);
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     await tester.pumpAndSettle();
     expect(find.byTooltip('Back').hitTestable(), findsOneWidget);

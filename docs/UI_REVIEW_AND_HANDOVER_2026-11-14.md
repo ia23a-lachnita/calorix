@@ -68,6 +68,8 @@ The real local startup screen now uses the mockup’s artwork in light and dark.
 
 The sole failure in the editor’s first Verify run was a test tapping the decorative expand icon after a scroll. It now taps the actual “View full photo” control. The unsaved edit, record revision and consent assertions remain, and all eleven photo tests passed locally. The loading artwork shipped in `42f8f41`.
 
+Partial meals now distinguish the full serving from what was eaten. Half of a serving with 40 g of protein shows 40 g served and 20 g eaten, and the bar uses 20 g. Editing still starts from the full serving. Ten focused tests passed, including the changed-target and partial-serving cases.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

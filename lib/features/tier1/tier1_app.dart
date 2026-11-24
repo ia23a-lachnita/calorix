@@ -1760,7 +1760,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
           decoration: card,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Calories', style: theme.textTheme.labelMedium),
+            Text('Calories in serving', style: theme.textTheme.labelMedium),
             Semantics(
                 label: '${served.kcal.round()} kilocalories',
                 excludeSemantics: true,
@@ -1798,9 +1798,9 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                       color: color, shape: BoxShape.circle)),
                               const SizedBox(width: 8),
                               Expanded(child: Text(name)),
-                              Text('${_displayNutrient(value)} g',
+                              Text('${_displayNutrient(value)} g served',
                                   semanticsLabel:
-                                      '$name ${_displayNutrient(value)} grams',
+                                      '$name ${_displayNutrient(value)} grams served',
                                   style: theme.textTheme.titleSmall),
                             ]),
                             const SizedBox(height: 8),
@@ -1827,7 +1827,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                                   scheme.outlineVariant)),
                                       const SizedBox(height: 4),
                                       Text(
-                                          '$percent% of ${name.toLowerCase()} target',
+                                          '${_displayNutrient(value * fraction)} g eaten · $percent% of ${name.toLowerCase()} target',
                                           style: theme.textTheme.bodySmall),
                                     ]);
                               }),
