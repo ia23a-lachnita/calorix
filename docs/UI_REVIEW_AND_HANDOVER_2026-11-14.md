@@ -58,6 +58,8 @@ Both workflows passed for `f9c0945`. Installed the [signed 23,858,965-byte arm64
 
 Manual entry can now use a drink label per 100 mL. Entering 250 mL at 40 kcal per 100 mL previews 100 kcal. The user can dismiss the keyboard, check the preview and save. The local record retains the label and volume; editing the totals clears the old label basis. Missing macros stay unknown.
 
+Drink label entry shipped in `45c4fc5`. An empty Today now offers a shortcut to Scan. Selecting it leaves the shutter under the user’s control. Earlier empty days retain their date-specific message. Ten dashboard and app tests passed, including 360 × 800 at double text size and unchanged camera and permission counters.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

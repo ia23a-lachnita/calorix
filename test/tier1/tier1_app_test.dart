@@ -180,6 +180,36 @@ void main() {
     expect(find.text('Older dinner'), findsOneWidget);
   });
 
+  testWidgets('empty Today action selects Scan without camera side effects',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final camera = FakeCameraService();
+    await tester.pumpWidget(Tier1App(store: _MemoryStore(), camera: camera));
+    await tester.pumpAndSettle();
+    final captures = camera.captureCount;
+    final libraryCalls = camera.libraryCount;
+    final permissionRequests = camera.requestPermissionCount;
+    final permissionChecks = camera.hasPermissionCallCount;
+
+    await tester.tap(find.byKey(const ValueKey('nav-item-today')));
+    await tester.pumpAndSettle();
+    expect(find.text('Scan your first meal'), findsOneWidget);
+    await tester.ensureVisible(find.text('Scan your first meal'));
+    await tester.tap(find.text('Scan your first meal'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Scan your first meal'), findsNothing);
+    expect(find.text('SCAN'), findsOneWidget);
+    expect(camera.captureCount, captures);
+    expect(camera.libraryCount, libraryCalls);
+    expect(camera.requestPermissionCount, permissionRequests);
+    expect(camera.hasPermissionCallCount, permissionChecks);
+  });
+
   testWidgets('camera initialization failure leaves manual entry available',
       (tester) async {
     await tester

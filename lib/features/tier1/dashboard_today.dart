@@ -1,5 +1,6 @@
 import '../../core/theme/app_colors.dart';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../shared/widgets/macro_ring.dart';
@@ -13,12 +14,14 @@ class DashboardToday extends StatefulWidget {
       required this.now,
       required this.targets,
       required this.onOpenMeal,
-      required this.onEditTargets});
+      required this.onEditTargets,
+      this.onScan});
   final List<Tier1Meal> meals;
   final DateTime now;
   final Tier1Targets targets;
   final ValueChanged<Tier1Meal>? onOpenMeal;
   final VoidCallback onEditTargets;
+  final VoidCallback? onScan;
   @override
   State<DashboardToday> createState() => _DashboardTodayState();
 }
@@ -42,6 +45,9 @@ class _DashboardTodayState extends State<DashboardToday> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context), scheme = theme.colorScheme;
     final meals = widget.meals.where((m) => _day(m.capturedAt) == day).toList();
+    final isToday = day == _day(widget.now);
+    final ringSize =
+        math.min(288.0, 208 * MediaQuery.textScalerOf(context).scale(1.0));
     double sum(double? Function(Tier1Nutrients) get) => meals.fold(
         0.0,
         (v, m) =>
@@ -77,10 +83,7 @@ class _DashboardTodayState extends State<DashboardToday> {
                       Text(
                           DateFormat('EEEE · MMMM d').format(day).toUpperCase(),
                           style: label),
-                      Text(
-                          day == _day(widget.now)
-                              ? 'Today'
-                              : DateFormat('MMM d').format(day),
+                      Text(isToday ? 'Today' : DateFormat('MMM d').format(day),
                           style: theme.textTheme.headlineMedium)
                     ])),
                 IconButton(
@@ -107,7 +110,7 @@ class _DashboardTodayState extends State<DashboardToday> {
                 Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: MacroRing(
-                        size: 208,
+                        size: ringSize,
                         strokeWidth: 10,
                         showGlow: false,
                         proteinFraction: macros[0].$2 / macros[0].$3,
@@ -167,9 +170,51 @@ class _DashboardTodayState extends State<DashboardToday> {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text('Recent meals', style: theme.textTheme.titleSmall)),
           if (meals.isEmpty)
-            const Padding(
-                padding: EdgeInsets.all(20),
-                child: Text('Nothing logged on this day.')),
+            if (isToday)
+              Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: scheme.outlineVariant)),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        DecoratedBox(
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(colors: [
+                                  scheme.primary.withValues(alpha: 0.18),
+                                  scheme.secondary.withValues(alpha: 0.12)
+                                ])),
+                            child: SizedBox(
+                                width: 64,
+                                height: 64,
+                                child: Icon(Icons.photo_camera_outlined,
+                                    color: scheme.primary, size: 28))),
+                        const SizedBox(height: 14),
+                        Text('Nothing logged yet',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleMedium),
+                        const SizedBox(height: 6),
+                        Text(
+                            "Point the camera at your first meal — one tap and it's tracked.",
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium
+                                ?.copyWith(color: scheme.onSurfaceVariant)),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                                onPressed: widget.onScan,
+                                icon: const Icon(Icons.camera_alt_outlined),
+                                label: const Text('Scan your first meal')))
+                      ]))
+            else
+              const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text('Nothing logged on this day.')),
           for (final m in meals)
             Card(
                 child: ListTile(

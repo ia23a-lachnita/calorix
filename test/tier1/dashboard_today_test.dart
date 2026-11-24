@@ -51,6 +51,13 @@ void main() {
         findsOneWidget);
     await tester.pumpWidget(page(DateTime(2026, 7, 16)));
     expect(find.text('Photo'), findsNothing);
+    expect(find.text('Nothing logged yet'), findsOneWidget);
+    expect(find.text('Scan your first meal'), findsOneWidget);
+    await tester.tap(find.byTooltip('Previous day'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Previous day'));
+    await tester.pumpAndSettle();
     expect(find.text('Nothing logged on this day.'), findsOneWidget);
+    expect(find.text('Scan your first meal'), findsNothing);
   });
 }

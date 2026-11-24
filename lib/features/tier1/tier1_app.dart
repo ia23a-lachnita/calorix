@@ -736,15 +736,26 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                           load: () =>
                               _workflow!.export(at: widget.clock.now())),
                   icon: const Icon(Icons.download_outlined)),
-            TextButton.icon(
-                onPressed: _store == null || _error != null
-                    ? null
-                    : () => _open(Tier1Meal(
-                        id: const Uuid().v4(),
-                        capturedAt: widget.clock.now(),
-                        name: 'New meal')),
-                icon: const Icon(Icons.edit_outlined, size: 18),
-                label: const Text('Manual entry'))
+            if (MediaQuery.textScalerOf(context).scale(1) > 1.2)
+              IconButton(
+                  tooltip: 'Manual entry',
+                  onPressed: _store == null || _error != null
+                      ? null
+                      : () => _open(Tier1Meal(
+                          id: const Uuid().v4(),
+                          capturedAt: widget.clock.now(),
+                          name: 'New meal')),
+                  icon: const Icon(Icons.edit_outlined))
+            else
+              TextButton.icon(
+                  onPressed: _store == null || _error != null
+                      ? null
+                      : () => _open(Tier1Meal(
+                          id: const Uuid().v4(),
+                          capturedAt: widget.clock.now(),
+                          name: 'New meal')),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('Manual entry'))
           ]);
 
   Widget _tabContent(int tab) {
@@ -755,7 +766,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
           now: widget.clock.now(),
           targets: _targets,
           onOpenMeal: _error == null ? _open : null,
-          onEditTargets: _editTargets);
+          onEditTargets: _editTargets,
+          onScan: () => _selectTab(2));
     }
     if (tab == 1) {
       return DashboardHistory(

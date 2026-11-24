@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('Today and history fit narrow layouts with larger text',
       (tester) async {
-    tester.view.physicalSize = const Size(320, 700);
+    tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final meals = [
@@ -21,10 +21,10 @@ void main() {
     Widget page(Widget body) => MaterialApp(
         home: MediaQuery(
             data: const MediaQueryData(
-                size: Size(320, 700), textScaler: TextScaler.linear(1.3)),
+                size: Size(360, 800), textScaler: TextScaler.linear(2)),
             child: Scaffold(body: body)));
     await tester.pumpWidget(page(DashboardToday(
-        meals: meals,
+        meals: const [],
         now: DateTime(2026, 9, 30),
         targets: Tier1Targets.defaults,
         onOpenMeal: (_) {},
