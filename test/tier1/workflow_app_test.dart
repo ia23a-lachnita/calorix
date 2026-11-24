@@ -102,6 +102,7 @@ void main() {
     final store = _Store(), sink = _Sink(), cloud = _Cloud();
     await _open(t, store, sink, () => 0, cloud: cloud);
     final before = store.records.single.served?.kcal;
+    await visible(t, find.text('Estimate photo'));
     await t.tap(find.text('Estimate photo'));
     await t.pumpAndSettle();
     await t.tap(find.text('Send photo'));
@@ -201,6 +202,7 @@ void main() {
     final store = _Store(), sink = _Sink(), cloud = _Cloud();
     await _open(t, store, sink, () => tick, cloud: cloud);
     tick = 1000;
+    await visible(t, find.text('Estimate photo'));
     await t.tap(find.text('Estimate photo'));
     await t.pumpAndSettle();
     tick = 2000;
@@ -271,6 +273,7 @@ void main() {
     final store = _Store(), sink = _Sink(), cloud = _Cloud();
     await _open(t, store, sink, () => 0, cloud: cloud);
     store.failLoadAfterReplace = true;
+    await visible(t, find.text('Estimate photo'));
     await t.tap(find.text('Estimate photo'));
     await t.pumpAndSettle();
     await t.tap(find.text('Send photo'));
@@ -290,6 +293,7 @@ void main() {
       (t) async {
     final store = _Store(), sink = _Sink(), cloud = _Cloud();
     await _open(t, store, sink, () => 0, cloud: cloud);
+    await visible(t, find.text('Estimate photo'));
     await t.tap(find.text('Estimate photo'));
     await t.pumpAndSettle();
     await t.tap(find.text('Send photo'));

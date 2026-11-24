@@ -7,6 +7,8 @@ Five-tab navigation and viewfinder source review of supplied behavior passed on 
 
 November 23. Manual editor source `1305261` passed both CI workflows. Terra workers implemented the new dashboard, meal editor and supporting screens in independent worktrees. The integrated dashboard uses local meals, the device date and persisted targets. The first combined Flutter run passed 1,163 tests, skipped one and found two regressions. Both failing scenarios now pass, including stale-history callbacks and entering calories after editing a meal name. Additional photo detail, profile, appearance and label-volume work continues.
 
+November 24. The recovered signed build `f9c0945` passed CI and Samsung checks for flash, Profile, Goals and Today. The next signed build `45c4fc5` passed an actual drink-entry save, reopen and cleanup. Empty Today shipped in `f165301`. The photo-editor update passed 31 integration tests including real target changes, partial servings, full image, analysis state and per-100 mL labels. Physical evidence for this latest editor is pending.
+
 Editing route grok-4.7 started 2026-11-21T14:27:08+01:00, timeout 150s (exit 124), no edits. Last output: “I’ll match the approved diagnostic shape from the nearby callable pattern before writing tests.”
 Editing route qwen3.7-max at 2026-11-21T14:30:14+01:00 exited 1: “[API Error: 403 Access to model denied. Please make sure you are eligible for using the model.]”
 OpenCode catalog at 2026-11-21T14:31:31+01:00 exited 1: “Configuration is invalid at /home/agent-runner/.config/opencode/opencode.jsonc ↳ Unrecognized key: plugins”.

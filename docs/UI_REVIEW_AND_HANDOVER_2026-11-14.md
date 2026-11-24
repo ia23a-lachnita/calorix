@@ -60,6 +60,10 @@ Manual entry can now use a drink label per 100 mL. Entering 250 mL at 40 kcal pe
 
 Drink label entry shipped in `45c4fc5`. An empty Today now offers a shortcut to Scan. Selecting it leaves the shutter under the user’s control. Earlier empty days retain their date-specific message. Ten dashboard and app tests passed, including 360 × 800 at double text size and unchanged camera and permission counters.
 
+On the Samsung, the [signed drink-entry APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45345522150/artifacts/14899345464) saved and reopened 250 mL at 40 kcal and 10 g carbs per 100 mL as 100 kcal and 25 g carbs. Only the test record was deleted. Local Flutter at `45c4fc5` passed 1,176 tests, with one skipped, and scoped analysis was clean. Both workflows also passed for the empty Today change `f165301`.
+
+Saved photo details now lead with the date, meal name and nutrition. The whole photo opens full-screen. Macro bars show the portion eaten against current daily targets; pending analysis and errors are visible beside the photo action. Keyboard, consent, manual and drink-entry regressions passed in 31 focused tests; independent and external source review agreed.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)
