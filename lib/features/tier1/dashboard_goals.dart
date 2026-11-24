@@ -12,11 +12,11 @@ class DashboardGoals extends StatefulWidget {
       required this.targets,
       required this.onEdit,
       this.meals = const [],
-      this.now});
+      required this.now});
   final Tier1Targets targets;
   final VoidCallback onEdit;
   final List<Tier1Meal> meals;
-  final DateTime? now;
+  final DateTime now;
   @override
   State<DashboardGoals> createState() => _DashboardGoalsState();
 }
@@ -54,7 +54,7 @@ class _DashboardGoalsState extends State<DashboardGoals> {
           month, DateTime(month.year, month.month + 1));
     }
 
-    final today = day(widget.now ?? DateTime.now());
+    final today = day(widget.now);
     addPeriod(today);
     for (final meal in widget.meals) {
       addPeriod(day(meal.capturedAt));

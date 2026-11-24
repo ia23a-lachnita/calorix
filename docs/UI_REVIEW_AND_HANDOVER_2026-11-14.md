@@ -52,6 +52,8 @@ Profile and local appearance shipped in `2d87bb0`. Photo details now show the wh
 
 Photo layout `99f2220` passed all 18 integrated photo, manual entry and history tests. Scan now reads the camera controller’s flash mode and lets the user cycle off, auto and on. Tests cover an unavailable flash and a rejected mode change. Physical flash verification is pending the signed build.
 
+The signed build for `33ded66` stopped at the clock contract. Goals now requires the date supplied by the app clock for its daily, weekly and monthly views. All eight clock contract checks and twelve dashboard/app tests passed. Initial review calls timed out or rejected the configured effort; the final source review agreed with no required fixes.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

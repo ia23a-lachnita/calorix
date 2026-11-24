@@ -10,7 +10,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
         home: Scaffold(
             body: DashboardGoals(
-                targets: Tier1Targets.defaults, onEdit: () => edits++))));
+                targets: Tier1Targets.defaults, now: DateTime(2026, 7, 15), onEdit: () => edits++))));
     expect(find.text('Goals'), findsOneWidget);
     expect(find.text('${Tier1Targets.defaults.kcal}'), findsOneWidget);
     await tester.tap(find.text('Adjust'));

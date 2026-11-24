@@ -38,7 +38,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
         home: Scaffold(
             body: DashboardGoals(
-                targets: Tier1Targets.defaults, onEdit: () => edits++))));
+                targets: Tier1Targets.defaults, now: DateTime(2026, 7, 15), onEdit: () => edits++))));
     await tester.scrollUntilVisible(find.text('MACRO TARGETS'), 150);
     expect(
         find.byWidgetPredicate((widget) =>

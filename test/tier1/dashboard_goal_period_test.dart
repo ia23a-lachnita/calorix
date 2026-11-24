@@ -48,6 +48,7 @@ void main() {
                 body: DashboardGoals(
                     targets: Tier1Targets.defaults,
                     onEdit: () {},
+                    now: DateTime(2026, 9, 30),
                     meals: meals)))));
     await tester.tap(find.text('Daily targets'));
     await tester.pumpAndSettle();
