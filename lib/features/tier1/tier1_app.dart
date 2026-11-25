@@ -910,6 +910,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
   bool _busy = false, _dirty = false, _editTotals = false;
   bool _catalogServing = false, _estimating = false;
   bool _drinkMode = false;
+  bool _showManualPicker = true;
   final _drinkVolume = TextEditingController();
   final _drinkKcal = TextEditingController();
   final _drinkProtein = TextEditingController();
@@ -1684,7 +1685,163 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       _fat.text = _displayNutrient(selected.per100['fatG']);
       _catalogServing = true;
       _dirty = true;
+      _drinkMode = false;
+      _showManualPicker = false;
     });
+  }
+
+  void _startManualForm({required bool drink}) {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _name.clear();
+      _kcal.clear();
+      _protein.clear();
+      _carbs.clear();
+      _fat.clear();
+      _drinkVolume.clear();
+      _drinkKcal.clear();
+      _drinkProtein.clear();
+      _drinkCarbs.clear();
+      _drinkFat.clear();
+      _foodQuery = '';
+      _message = null;
+      _dirty = false;
+      _catalogServing = false;
+      _drinkMode = drink;
+      _showManualPicker = false;
+    });
+  }
+
+  void _returnToManualPicker() {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _name.clear();
+      _kcal.clear();
+      _protein.clear();
+      _carbs.clear();
+      _fat.clear();
+      _drinkVolume.clear();
+      _drinkKcal.clear();
+      _drinkProtein.clear();
+      _drinkCarbs.clear();
+      _drinkFat.clear();
+      _message = null;
+      _dirty = false;
+      _catalogServing = false;
+      _drinkMode = false;
+      _showManualPicker = true;
+    });
+  }
+
+  Widget _manualFoodPicker() {
+    final records = searchManualFoods(_foodQuery);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return SafeArea(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 12, 0),
+            child: Row(children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('CAMERA-FREE LOGGING',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            letterSpacing: 1.2)),
+                    const SizedBox(height: 4),
+                    Text('Add food', style: theme.textTheme.headlineSmall),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'Close',
+                onPressed: _busy ? null : () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+              ),
+            ]),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            child: TextField(
+              key: const ValueKey('manual-food-search'),
+              onChanged: (value) => setState(() => _foodQuery = value),
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                hintText: 'Search foods…',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: scheme.surfaceContainerHighest,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    borderSide: BorderSide(color: scheme.outlineVariant)),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    borderSide: BorderSide(color: scheme.outlineVariant)),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+            child: Row(children: [
+              Text(_foodQuery.trim().isEmpty ? 'All foods' : 'Matching foods',
+                  style: theme.textTheme.labelLarge),
+              const Spacer(),
+              Text('${records.length}', style: theme.textTheme.bodySmall),
+            ]),
+          ),
+          Expanded(
+            child: records.isEmpty
+                ? const Center(child: Text('No matching foods'))
+                : ListView.separated(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    itemCount: records.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final food = records[index];
+                      final kcal = _displayNutrient(food.per100['kcal']);
+                      return Container(
+                        decoration: BoxDecoration(
+                            color: scheme.surface,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: scheme.outlineVariant)),
+                        child: ListTile(
+                          minVerticalPadding: 10,
+                          title: Text(food.description),
+                          subtitle: Text('$kcal kcal / 100 g'),
+                          trailing: const Icon(Icons.add_circle_outline),
+                          onTap: _busy ? null : () => _selectManualFood(food),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed:
+                        _busy ? null : () => _startManualForm(drink: false),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Create custom food'),
+                  ),
+                  TextButton.icon(
+                    onPressed:
+                        _busy ? null : () => _startManualForm(drink: true),
+                    icon: const Icon(Icons.local_drink_outlined),
+                    label: const Text('Packaged drink'),
+                  ),
+                ]),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _amount(String label, double fraction, {required bool selected}) {
@@ -1853,20 +2010,37 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     final summary = served != null && !_editTotals;
     // A manual entry that holds nothing yet is not an estimate of anything.
     final blank = served == null && _meal.photoPath == null && !_hasSaved;
-    final foodResults = blank && _foodQuery.trim().isNotEmpty
-        ? searchManualFoods(_foodQuery).take(5).toList()
-        : <ManualFoodRecord>[];
+    final showingPicker = blank && _showManualPicker;
     final fraction = _meal.consumedFraction ?? 1;
     final partly = served != null && fraction != 1;
     final status = partly
         ? '${_meal.consumedKcal!.round()} kcal counted · you ate part of it'
         : '';
-    return Scaffold(
-      appBar: _meal.photoPath != null
+    return PopScope<Object?>(
+      canPop: !blank || showingPicker,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && blank && !showingPicker) _returnToManualPicker();
+      },
+      child: Scaffold(
+      appBar: _meal.photoPath != null || showingPicker
           ? null
           : AppBar(
+              automaticallyImplyLeading: !blank,
+              leading: blank
+                  ? IconButton(
+                      tooltip: 'Back',
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: _busy ? null : _returnToManualPicker,
+                    )
+                  : null,
               title: Text(blank ? 'New meal' : 'Meal estimate'),
               actions: [
+                if (blank && !showingPicker)
+                  IconButton(
+                    tooltip: 'Close',
+                    onPressed: _busy ? null : () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
                 // Nothing to export until the meal has been saved once. Delete stays:
                 // a stored record must always be removable, whatever its revision.
                 if (_hasSaved)
@@ -1877,14 +2051,17 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                     onPressed: _busy || _exporting ? null : _export,
                     icon: const Icon(Icons.download_outlined),
                   ),
-                IconButton(
-                  tooltip: 'Delete meal',
-                  onPressed: _busy ? null : _delete,
-                  icon: const Icon(Icons.delete_outline),
-                ),
+                if (!blank && _meal.photoPath == null)
+                  IconButton(
+                    tooltip: 'Delete meal',
+                    onPressed: _busy ? null : _delete,
+                    icon: const Icon(Icons.delete_outline),
+                  ),
               ],
             ),
-      body: SafeArea(
+      body: showingPicker
+          ? _manualFoodPicker()
+          : SafeArea(
         top: _meal.photoPath != null,
         bottom: false,
         child: Stack(
@@ -2009,7 +2186,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                 style: Theme.of(context).textTheme.labelMedium,
                               ),
                               Text(
-                                'Add food',
+                                _drinkMode
+                                    ? 'Packaged drink'
+                                    : _catalogServing
+                                        ? 'Food details'
+                                        : 'Create custom food',
                                 style: Theme.of(
                                   context,
                                 ).textTheme.headlineSmall,
@@ -2052,10 +2233,9 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                 child: TextButton(
                                   onPressed: _busy
                                       ? null
-                                      : () => setState(() {
-                                          _drinkMode = !_drinkMode;
-                                          _message = null;
-                                        }),
+                                      : () => _startManualForm(
+                                          drink: !_drinkMode,
+                                        ),
                                   child: Text(
                                     _drinkMode
                                         ? 'Enter food'
@@ -2063,39 +2243,6 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                   ),
                                 ),
                               ),
-                            ],
-                            if (blank && !_drinkMode) ...[
-                              TextField(
-                                enabled: !_busy,
-                                onChanged: (value) =>
-                                    setState(() => _foodQuery = value),
-                                decoration: const InputDecoration(
-                                  labelText: 'Search foods',
-                                  prefixIcon: Icon(Icons.search),
-                                ),
-                              ),
-                              if (_foodQuery.trim().isNotEmpty)
-                                if (foodResults.isEmpty)
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12),
-                                    child: Text('No matching foods'),
-                                  )
-                                else
-                                  for (final food in foodResults)
-                                    ListTile(
-                                      contentPadding: EdgeInsets.zero,
-                                      title: Text(food.description),
-                                      subtitle: Text(
-                                        '${_displayNutrient(food.per100['kcal'])} kcal per 100 g',
-                                      ),
-                                      trailing: const Icon(
-                                        Icons.add_circle_outline,
-                                      ),
-                                      onTap: _busy
-                                          ? null
-                                          : () => _selectManualFood(food),
-                                    ),
-                              const SizedBox(height: 12),
                             ],
                             if (_catalogServing && !_drinkMode)
                               const Text(
@@ -2106,7 +2253,8 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                               controller: _name,
                               enabled: !_busy,
                               // a blank manual entry starts with the keyboard up
-                              autofocus: blank,
+                              autofocus:
+                                  blank && !_showManualPicker && !_catalogServing,
                               textInputAction: TextInputAction.next,
                               textCapitalization: TextCapitalization.sentences,
                               scrollPadding: const EdgeInsets.only(bottom: 140),
@@ -2658,6 +2806,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
               ),
           ],
         ),
+      ),
       ),
     );
   }

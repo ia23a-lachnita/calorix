@@ -98,8 +98,12 @@ void main() {
     expect(camera.captureCount, 0);
     await tester.tap(find.text('Manual entry'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Create custom food'));
+    await tester.pumpAndSettle();
     expect(find.widgetWithText(TextFormField, 'Meal name'), findsOneWidget);
     await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Close'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Take photo'));

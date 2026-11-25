@@ -31,7 +31,7 @@ class _ThrowingCamera extends FakeCameraService
 }
 
 void main() {
-  testWidgets('manual food search fills editable values for 100 grams',
+  testWidgets('manual picker searches real foods and opens the 100 gram form',
       (tester) async {
     final store = _MemoryStore();
     await tester
@@ -39,14 +39,21 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Manual entry'));
     await tester.pumpAndSettle();
-    expect(find.text('Camera-free logging'), findsOneWidget);
-    expect(find.widgetWithText(TextField, 'Search foods'), findsOneWidget);
-    await tester.enterText(
-        find.widgetWithText(TextField, 'Search foods'), 'white rice');
+    expect(find.text('Add food'), findsOneWidget);
+    expect(find.text('CAMERA-FREE LOGGING'), findsOneWidget);
+    expect(
+        find.text(
+            'Chicken, broilers or fryers, breast, meat only, cooked, roasted'),
+        findsOneWidget);
+    final search = find.byKey(const ValueKey('manual-food-search'));
+    expect(search, findsOneWidget);
+    await tester.enterText(search, 'white rice');
     await tester.pumpAndSettle();
     await tester
         .tap(find.text('Rice, white, long-grain, regular, enriched, cooked'));
     await tester.pumpAndSettle();
+    expect(find.text('Add food'), findsNothing);
+    expect(find.widgetWithText(TextFormField, 'Meal name'), findsOneWidget);
     expect(
         tester
             .widget<TextFormField>(
@@ -62,14 +69,10 @@ void main() {
             .text,
         '2.69');
     expect(find.textContaining('100 g'), findsWidgets);
-    await tester.enterText(
-        find.widgetWithText(TextFormField, 'Meal name'), 'My meal');
-    final search = find.widgetWithText(TextField, 'Search foods');
-    expect(search, findsOneWidget);
-    await tester.ensureVisible(search);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
     await tester.enterText(search, 'olive oil');
     await tester.pumpAndSettle();
-    expect(find.text('My meal'), findsOneWidget);
     await tester.tap(find.text('Oil, olive, salad or cooking'));
     await tester.pumpAndSettle();
     expect(
@@ -79,6 +82,95 @@ void main() {
             .controller!
             .text,
         '884');
+  });
+  testWidgets('custom food is one tap from picker and saves explicitly',
+      (tester) async {
+    final store = _MemoryStore();
+    await tester
+        .pumpWidget(Tier1App(store: store, camera: FakeCameraService()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Manual entry'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create custom food'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextFormField, 'Meal name'), findsOneWidget);
+    expect(
+        find.widgetWithText(TextFormField, 'Calories (kcal)'), findsOneWidget);
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Meal name'), 'Custom lunch');
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Calories (kcal)'), '320');
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Save meal'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save meal').hitTestable());
+    await tester.pumpAndSettle();
+    expect((await store.load()).single.served!.kcal, 320);
+    expect(find.text('KCAL EATEN'), findsOneWidget);
+  });
+  testWidgets('form back returns to picker and close discards the draft',
+      (tester) async {
+    final store = _MemoryStore();
+    await tester
+        .pumpWidget(Tier1App(store: store, camera: FakeCameraService()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Manual entry'));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const ValueKey('manual-food-search'));
+    await tester.enterText(search, 'white rice');
+    await tester.pumpAndSettle();
+    await tester
+        .tap(find.text('Rice, white, long-grain, regular, enriched, cooked'));
+    await tester.pumpAndSettle();
+    expect(
+        tester
+            .widget<TextFormField>(
+                find.widgetWithText(TextFormField, 'Calories (kcal)'))
+            .controller!
+            .text,
+        '130');
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create custom food'));
+    await tester.pumpAndSettle();
+    expect(
+        tester
+            .widget<TextFormField>(
+                find.widgetWithText(TextFormField, 'Calories (kcal)'))
+            .controller!
+            .text,
+        isEmpty);
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Meal name'), 'Discard me');
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Add food'), findsOneWidget);
+    expect(find.text('Create custom food'), findsOneWidget);
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add food'), findsNothing);
+    expect(store.records, isEmpty);
+  });
+  testWidgets('close from custom form exits without saving', (tester) async {
+    final store = _MemoryStore();
+    await tester
+        .pumpWidget(Tier1App(store: store, camera: FakeCameraService()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Manual entry'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create custom food'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Meal name'), 'Discarded food');
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add food'), findsNothing);
+    expect(store.records, isEmpty);
   });
   testWidgets(
       'offline manual save and history work without cloud initialization',
@@ -94,6 +186,8 @@ void main() {
         }));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Manual entry'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create custom food'));
     await tester.pumpAndSettle();
     await tester.enterText(
         find.widgetWithText(TextFormField, 'Meal name'), 'Weighed test');
@@ -216,6 +310,8 @@ void main() {
         .pumpWidget(Tier1App(store: _MemoryStore(), camera: _ThrowingCamera()));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Manual entry'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create custom food'));
     await tester.pumpAndSettle();
     expect(find.widgetWithText(TextFormField, 'Meal name'), findsOneWidget);
   });

@@ -143,6 +143,8 @@ void main() {
     await _start(tester);
     await tester.tap(find.text('Manual entry').last);
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Create custom food'));
+    await tester.pumpAndSettle();
     final field = find.widgetWithText(TextFormField, 'Meal name');
     await tester.enterText(field, 'Local meal');
     await tester.drag(field, const Offset(-120, 0));

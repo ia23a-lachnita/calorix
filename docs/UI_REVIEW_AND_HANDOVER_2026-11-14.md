@@ -72,6 +72,10 @@ Partial meals now distinguish the full serving from what was eaten. Half of a se
 
 The startup label wraps at 360 px and double text size. The test now holds the local store open during launch so it actually sees the loading artwork. Both failing CI scenarios and all thirteen route/support checks passed locally.
 
+The [signed Samsung-tested APK for `c2436c6`](https://github.com/ia23a-lachnita/calorix/actions/runs/45559924821/artifacts/14998302202) passed both CI workflows. A local gallery photo opened uncropped and full-screen. After saving 300 kcal and logging one third, the detail and dashboard showed 100 kcal counted, and protein showed 30 g served and 10 g eaten. The worker removed the test record and fixture. No cloud analysis was invoked.
+
+Manual entry now opens a searchable list of 73 local foods with separate custom-food and packaged-drink actions. Selecting a food opens its editable 100 g serving. Android Back returns to the picker, and Close exits. Focused and independent navigation, drink and offline save checks passed; both themes were inspected at 360 px.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

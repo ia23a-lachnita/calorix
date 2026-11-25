@@ -262,7 +262,9 @@ void main() {
     await t.pumpAndSettle();
     await t.tap(find.text('Manual entry'));
     await t.pumpAndSettle();
-    await t.tap(find.byTooltip('Back'));
+    await t.tap(find.text('Create custom food'));
+    await t.pumpAndSettle();
+    await t.tap(find.byTooltip('Close'));
     await t.pumpAndSettle();
     expect(store.records, isEmpty);
     expect(sink.events, isEmpty);
