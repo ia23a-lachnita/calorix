@@ -3,6 +3,12 @@
 Rules for any UI work: `/home/agent-runner/projects/_ui-review/RUBRIC.md`. Habits:
 `/home/agent-runner/projects/_ui-review/REASONING_HABITS.md`. Both apply on top of AGENTS.md. They do not replace its gates.
 
+## Final cumulative acceptance — 2026-11-25
+
+The signed arm64 APK for `0410138` matched the source, checksum and existing test signer. On the Samsung SM-G780G, manual food selection, Back navigation and saving a 230 kcal custom meal worked. With that meal logged, the framing guide cleared the summary and privacy text, and the hollow shutter and active tab dot stayed visible. Camera capture worked after permission was granted. The tester chose **Keep local**, removed both test records and restored Ravlo’s original camera permission state. [Signed APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45611430274/artifacts/15020389053) · [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45611430451)
+
+On the same source, 1,187 local Flutter tests passed with one live-service check skipped. The Tier1 analyzer reported no issues. Python ran 282 tests successfully with 11 optional skips. Samsung screenshots are under `~/.local/share/ravlo-20261121/phone-acceptance-04101388/screenshots/`.
+
 ## Status — owner Android fixes (completed 2026-11-18)
 
 Active checkout `/home/agent-runner/projects/calorix`, `main`; all fixes committed and pushed in order.

@@ -1,4 +1,8 @@
-## Current work — photo diagnostics, meal input and mockup screens (2026-11-21)
+## Current work — final signed Samsung acceptance (2026-11-25)
+
+The Samsung acceptance record covers signed build `04101388bed93740185f2da434502fce06f45e20`, the manual picker, in-place camera capture, and the populated Scan layout. Both CI workflows passed. Local Flutter passed 1,187 tests with one skip, scoped analysis was clean, and Python ran 282 tests with 11 optional skips. [Device evidence and APK](UI_REVIEW_AND_HANDOVER_2026-11-14.md#final-cumulative-acceptance--2026-11-25)
+
+### Previous implementation notes
 
 Main includes callable failure references (f85a727), client diagnostics (15e2adb), gallery import (c65e3b2) and household portions (8a1b7fa). Only analyzeTier1Meal was deployed. On the Samsung, the verified gallery APK imported a test PNG through Android DocumentsUI and opened the full image. The original checksum matched. Android accuracy still needs an independently weighed serving.
 
@@ -7,7 +11,7 @@ Five-tab navigation and viewfinder source review of supplied behavior passed on 
 
 November 23. Manual editor source `1305261` passed both CI workflows. Terra workers implemented the new dashboard, meal editor and supporting screens in independent worktrees. The integrated dashboard uses local meals, the device date and persisted targets. The first combined Flutter run passed 1,163 tests, skipped one and found two regressions. Both failing scenarios now pass, including stale-history callbacks and entering calories after editing a meal name. Additional photo detail, profile, appearance and label-volume work continues.
 
-November 24. The recovered signed build `f9c0945` passed CI and Samsung checks for flash, Profile, Goals and Today. The next signed build `45c4fc5` passed an actual drink-entry save, reopen and cleanup. Empty Today shipped in `f165301`. The photo-editor update passed 31 integration tests including real target changes, partial servings, full image, analysis state and per-100 mL labels. Physical evidence for this latest editor is pending.
+November 24. The recovered signed build `f9c0945` passed CI and Samsung checks for flash, Profile, Goals and Today. The next signed build `45c4fc5` passed an actual drink-entry save, reopen and cleanup. Empty Today shipped in `f165301`. The photo-editor update passed 31 integration tests including real target changes, partial servings, full image, analysis state and per-100 mL labels. The signed Samsung check was completed on `0410138`.
 
 Editing route grok-4.7 started 2026-11-21T14:27:08+01:00, timeout 150s (exit 124), no edits. Last output: “I’ll match the approved diagnostic shape from the nearby callable pattern before writing tests.”
 Editing route qwen3.7-max at 2026-11-21T14:30:14+01:00 exited 1: “[API Error: 403 Access to model denied. Please make sure you are eligible for using the model.]”
