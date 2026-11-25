@@ -33,6 +33,7 @@ import 'workflow_measurements.dart';
 import 'workflow_export.dart';
 import 'meal_export.dart';
 import 'meal_photo.dart';
+import 'meal_analysis_pending.dart';
 import 'gallery_photo.dart';
 import 'pilot_flash_control.dart';
 import 'pilot_support_screens.dart';
@@ -1876,6 +1877,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
               tooltip: label,
               onPressed: action,
               color: AppColors.cameraOverlayText,
+              disabledColor: AppColors.cameraOverlayText.withValues(alpha: .58),
               icon: Icon(icon)));
 
   Widget _summary(BuildContext context, Tier1Nutrients served, String status) {
@@ -2069,6 +2071,15 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
         bottom: false,
         child: Stack(
           children: [
+            if (_estimating && _meal.photoPath != null)
+              Positioned.fill(
+                child: Semantics(
+                  sortKey: const OrdinalSortKey(1.0),
+                  container: true,
+                  child: MealAnalysisPending(photoPath: _meal.photoPath!),
+                ),
+              )
+            else
             Semantics(
               sortKey: const OrdinalSortKey(1.0),
               container: true,
@@ -2092,65 +2103,20 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (_estimating || _message != null)
+                          if (_message != null)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 16),
                               child: Column(
                                 children: [
-                                  if (_estimating)
-                                    Semantics(
-                                      liveRegion: true,
-                                      child: Container(
-                                        margin: const EdgeInsets.only(
-                                          bottom: 16,
-                                        ),
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.surfaceContainerHighest,
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.cloud_outlined,
-                                              color: AppColors.cyan,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'Analyzing your photo',
-                                                    style: Theme.of(
-                                                      context,
-                                                    ).textTheme.titleSmall,
-                                                  ),
-                                                  const Text(
-                                                    'Your estimate will appear when it is ready.',
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
                                     ),
-                                  if (_message != null)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      child: Text(
-                                        _message!,
-                                        semanticsLabel: _message,
-                                      ),
+                                    child: Text(
+                                      _message!,
+                                      semanticsLabel: _message,
                                     ),
+                                  ),
                                 ],
                               ),
                             ),

@@ -78,6 +78,8 @@ Manual entry now opens a searchable list of 73 local foods with separate custom-
 
 The Samsung check found the privacy text touching the viewfinder corners when a daily total was present. Scan now reserves room for the summary and privacy text at ordinary and larger text sizes. Nine layout tests passed, and 360 and 402 px renders were captured in both themes. Manual food search shipped as `8c3dbd2`.
 
+The pending analysis screen now uses the saved photo and shows indeterminate progress while Ravlo waits for the actual response. Its status remains readable at double text size and with reduced motion. Six focused workflow tests passed, including retry after failure and returning before the response. Light and dark captures were inspected with a held local test service. Closing and reopening the same record during a request still does not reattach the pending screen. Both workflows passed for Scan layout revision `253ab58`.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

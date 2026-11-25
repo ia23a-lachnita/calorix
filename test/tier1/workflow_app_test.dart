@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:calorix/features/tier1/local_meal.dart';
@@ -67,10 +68,19 @@ class _Sink extends WorkflowSink {
 }
 
 class _Cloud extends Tier1Cloud {
-  final response = Completer<Map<String, dynamic>>();
+  final responses = <Completer<Map<String, dynamic>>>[
+    Completer<Map<String, dynamic>>()
+  ];
+  int calls = 0;
+  Completer<Map<String, dynamic>> get response => responses.first;
   @override
-  Future<Map<String, dynamic>> analyze(String path, {required bool consent}) =>
-      response.future;
+  Future<Map<String, dynamic>> analyze(String path, {required bool consent}) {
+    final index = calls++;
+    if (index == responses.length) {
+      responses.add(Completer<Map<String, dynamic>>());
+    }
+    return responses[index].future;
+  }
 }
 
 Future<void> visible(WidgetTester t, Finder f) async {
@@ -108,6 +118,18 @@ void main() {
     await t.tap(find.text('Send photo'));
     await t.pump();
     expect(find.text('Analyzing your photo'), findsOneWidget);
+    expect(find.textContaining('remains saved on this device'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(
+        t
+            .widget<LinearProgressIndicator>(
+                find.byType(LinearProgressIndicator))
+            .value,
+        isNull);
+    expect(find.textContaining('EST.'), findsNothing);
+    expect(find.textContaining('%'), findsNothing);
+    expect(find.byType(Image), findsWidgets);
+    expect(cloud.calls, 1);
     const ref = '268ba27c-b44a-41c5-aa8f-8c8f7ffaa7be';
     cloud.response.completeError(FirebaseFunctionsException(
       code: 'failed-precondition',
@@ -269,6 +291,105 @@ void main() {
     expect(store.records, isEmpty);
     expect(sink.events, isEmpty);
   });
+  testWidgets(
+      'pending analysis uses static accessible feedback when reduced motion is enabled',
+      (t) async {
+    final semantics = t.ensureSemantics();
+    t.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(t.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    final store = _Store(), sink = _Sink(), cloud = _Cloud();
+    await _open(t, store, sink, () => 0, cloud: cloud);
+    await visible(t, find.text('Estimate photo'));
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    expect(find.text('Analyzing your photo'), findsOneWidget);
+    expect(find.text('Waiting for the estimate'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    final status = find.byWidgetPredicate((widget) =>
+        widget is Semantics &&
+        (widget.properties.label?.startsWith('Analyzing your photo.') ??
+            false) &&
+        (widget.properties.label?.contains('remains saved on this device') ??
+            false) &&
+        (widget.properties.label?.contains('Waiting for the estimate.') ??
+            false));
+    expect(status, findsOneWidget);
+    expect(t.widget<Semantics>(status).properties.liveRegion, isTrue);
+    expect(t.widget<Semantics>(status).properties.header, isTrue);
+    final traversalOrders = find
+        .byType(Semantics)
+        .evaluate()
+        .map((element) => (element.widget as Semantics).properties.sortKey)
+        .whereType<OrdinalSortKey>()
+        .map((key) => key.order)
+        .toSet();
+    expect(traversalOrders, containsAll([0.0, 1.0]));
+    semantics.dispose();
+    cloud.response.completeError(FirebaseFunctionsException(
+        code: 'unavailable', message: 'synthetic service failure'));
+    await t.pumpAndSettle();
+    expect(find.textContaining('retry'), findsOneWidget);
+    expect(store.records.single.served, isNotNull);
+  });
+
+  testWidgets('failed estimate returns to a retryable saved meal', (t) async {
+    final store = _Store(), sink = _Sink(), cloud = _Cloud();
+    await _open(t, store, sink, () => 0, cloud: cloud);
+    await visible(t, find.text('Estimate photo'));
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    cloud.response.completeError(FirebaseFunctionsException(
+        code: 'unavailable', message: 'synthetic service failure'));
+    await t.pumpAndSettle();
+    expect(
+        find.textContaining('The estimate didn’t come back'), findsOneWidget);
+
+    await visible(t, find.text('Estimate photo'));
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    cloud.responses[1].complete(portionAnalysis());
+    await t.pumpAndSettle();
+    expect(cloud.calls, 2);
+    expect(store.records.single.analysis, isNotNull);
+    expect(t.takeException(), isNull);
+  });
+
+  for (final reduceMotion in [false, true]) {
+    testWidgets(
+        'pending analysis remains usable at large text (reduced motion: $reduceMotion)',
+        (t) async {
+      t.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
+      if (reduceMotion) {
+        t.platformDispatcher.accessibilityFeaturesTestValue =
+            const FakeAccessibilityFeatures(disableAnimations: true);
+        addTearDown(t.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      }
+      final store = _Store(), sink = _Sink(), cloud = _Cloud();
+      await _open(t, store, sink, () => 0, cloud: cloud);
+      await visible(t, find.text('Estimate photo'));
+      await t.tap(find.text('Estimate photo'));
+      await t.pumpAndSettle();
+      await t.tap(find.text('Send photo'));
+      await t.pump();
+      expect(find.text('Analyzing your photo'), findsOneWidget);
+      expect(find.byTooltip('Back').hitTestable(), findsOneWidget);
+      expect(find.byTooltip('Export meal'), findsOneWidget);
+      expect(find.byTooltip('Delete meal'), findsOneWidget);
+      expect(t.takeException(), isNull);
+      cloud.response.completeError(FirebaseFunctionsException(
+          code: 'unavailable', message: 'synthetic service failure'));
+      await t.pumpAndSettle();
+    });
+  }
+
   testWidgets(
       'committed analysis with failed refresh stays saved rather than failed',
       (t) async {
