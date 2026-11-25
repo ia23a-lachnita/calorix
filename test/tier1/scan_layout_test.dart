@@ -86,6 +86,12 @@ void main() {
         await t.pumpAndSettle();
         final ring = find.byKey(const ValueKey('tier1-capture-ring'));
         final summary = find.byKey(const ValueKey('scan-today-summary'));
+        final frame = find.byKey(const ValueKey('meal-framing-guide'));
+        final privacy = find
+            .text('Photos stay on this phone until you choose cloud analysis.');
+        expect(t.getRect(summary).bottom, lessThan(t.getRect(frame).top));
+        expect(t.getRect(frame).bottom, lessThan(t.getRect(privacy).top),
+            reason: 'The framing guide must stay above the privacy banner.');
         final picture = await _pixels(t, find.byKey(const Key('scan-screen')));
         final center = t.getCenter(ring);
         final offset =
@@ -182,7 +188,14 @@ void main() {
     await t.pumpAndSettle();
     final summary = find.byKey(const ValueKey('scan-today-summary'));
     final ring = find.byKey(const ValueKey('tier1-capture-ring'));
+    final frame = find.byKey(const ValueKey('meal-framing-guide'));
+    final privacy =
+        find.text('Photos stay on this phone until you choose cloud analysis.');
     expect(t.getRect(summary).bottom, lessThan(t.getRect(ring).top));
+    expect(t.getRect(summary).bottom, lessThan(t.getRect(frame).top),
+        reason: 'The framing guide must stay below the Today summary.');
+    expect(t.getRect(frame).bottom, lessThan(t.getRect(privacy).top),
+        reason: 'The framing guide must stay above the privacy banner.');
     expect(t.getRect(ring).bottom, lessThan(t.getRect(find.text('SCAN')).top));
     expect(t.takeException(), isNull);
   });

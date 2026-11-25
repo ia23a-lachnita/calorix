@@ -463,6 +463,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     final hasPreview = _camera is DeviceCameraService &&
         _camera.previewController?.value.isInitialized == true;
     final scheme = Theme.of(context).colorScheme;
+    final hasTodaySummary = _countedToday.isNotEmpty;
+    final textScale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+    final guideExtent = 280 / textScale;
     final chip = IconButton.styleFrom(
         minimumSize: const Size(48, 48),
         foregroundColor: scheme.onSurface,
@@ -470,8 +473,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         side: BorderSide(color: scheme.outlineVariant));
     return Stack(fit: StackFit.expand, children: [
       Positioned.fill(
-          top: _countedToday.isEmpty ? 12 : 92,
-          bottom: 160,
+          top: hasTodaySummary ? 92 + 20 * (textScale - 1) : 12,
+          bottom: hasTodaySummary ? 210 : 160,
           child: Center(
               child: FittedBox(
                   fit: BoxFit.scaleDown,
@@ -479,8 +482,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                       key: const ValueKey('meal-framing-guide'),
                       painter: ViewfinderGuide(active: _busy),
                       child: SizedBox(
-                          width: 280,
-                          height: 280,
+                          width: guideExtent,
+                          height: guideExtent,
                           child: hasPreview
                               ? null
                               : Center(
@@ -490,7 +493,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                                           .textTheme
                                           .titleLarge))))))),
       // Unestimated captures do not invent a zero-calorie meal count.
-      if (_countedToday.isNotEmpty)
+      if (hasTodaySummary)
         Positioned(
             top: 16,
             left: 20,
