@@ -56,6 +56,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Take photo'), findsOneWidget);
   });
+
+  testWidgets('loading artwork fits a phone with large text', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final gate = Completer<void>();
+    await tester.pumpWidget(
+        Tier1App(store: _Store(gate: gate), camera: FakeCameraService()));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('pilot-loading-ring')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+  });
   testWidgets('profile opens and applies persisted appearance', (tester) async {
     await tester
         .pumpWidget(Tier1App(store: _Store(), camera: FakeCameraService()));

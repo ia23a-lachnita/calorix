@@ -70,6 +70,8 @@ The sole failure in the editor’s first Verify run was a test tapping the decor
 
 Partial meals now distinguish the full serving from what was eaten. Half of a serving with 40 g of protein shows 40 g served and 20 g eaten, and the bar uses 20 g. Editing still starts from the full serving. Ten focused tests passed, including the changed-target and partial-serving cases.
 
+The startup label wraps at 360 px and double text size. The test now holds the local store open during launch so it actually sees the loading artwork. Both failing CI scenarios and all thirteen route/support checks passed locally.
+
 ## Roadmap continuation — 2026-11-18
 
 Source-weight follow-up checked all 251 published NutritionVerse dish records. Every food type repeats one recorded weight and nutrition combination. Portion correspondence remains unresolved. Android accuracy work continues with the first independently measured meal when available. [Source audit](tier1-multifood-audit-2026-11-18/report.md#follow-up-on-the-source-weights--2026-11-19)

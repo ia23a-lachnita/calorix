@@ -788,13 +788,16 @@ class _PilotLoadingScreenState extends State<PilotLoadingScreen>
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          'LOCAL · ON THIS DEVICE',
-                          style: TextStyle(
-                            fontFamily: 'GeistMono',
-                            fontSize: 10.5,
-                            letterSpacing: 1.4,
-                            color: muted,
+                        Flexible(
+                          child: Text(
+                            'LOCAL · ON THIS DEVICE',
+                            softWrap: true,
+                            style: TextStyle(
+                              fontFamily: 'GeistMono',
+                              fontSize: 10.5,
+                              letterSpacing: 1.4,
+                              color: muted,
+                            ),
                           ),
                         ),
                       ],
