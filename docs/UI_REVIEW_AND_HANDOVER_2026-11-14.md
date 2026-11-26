@@ -3,6 +3,10 @@
 Rules for any UI work: `/home/agent-runner/projects/_ui-review/RUBRIC.md`. Habits:
 `/home/agent-runner/projects/_ui-review/REASONING_HABITS.md`. Both apply on top of AGENTS.md. They do not replace its gates.
 
+## Status — meal reopening and motion (2026-11-26)
+
+Reopening a saved meal during analysis now shows the original request and its result. If the editor stays closed, the dashboard refreshes when the result arrives. A late result preserves a newer edit or deletion. If Android stops the process, the saved meal explains that the previous outcome is unknown and lets the user choose whether to send the photo again. Six route regressions passed with a held local service.
+
 ## Final cumulative acceptance — 2026-11-25
 
 The signed arm64 APK for `0410138` matched the source, checksum and existing test signer. On the Samsung SM-G780G, manual food selection, Back navigation and saving a 230 kcal custom meal worked. With that meal logged, the framing guide cleared the summary and privacy text, and the hollow shutter and active tab dot stayed visible. Camera capture worked after permission was granted. The tester chose **Keep local**, removed both test records and restored Ravlo’s original camera permission state. [Signed APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45611430274/artifacts/15020389053) · [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45611430451)

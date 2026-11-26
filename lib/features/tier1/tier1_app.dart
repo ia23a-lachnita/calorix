@@ -34,6 +34,7 @@ import 'workflow_export.dart';
 import 'meal_export.dart';
 import 'meal_photo.dart';
 import 'meal_analysis_pending.dart';
+import 'meal_analysis_operation.dart';
 import 'gallery_photo.dart';
 import 'pilot_flash_control.dart';
 import 'pilot_support_screens.dart';
@@ -126,6 +127,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   // 0 Today, 1 History, 2 Scan (the landing screen), 3 Goals, 4 AI.
   int _tab = 2;
   bool _busy = false;
+  bool _openingMeal = false;
   bool _initializing = true;
   bool _startupPermissionChecked = false;
   Future<bool>? _cameraPermission;
@@ -267,13 +269,50 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       {int? captureTick,
       bool startEstimate = false,
       bool Function()? allowInitialEstimate}) async {
+    if (_openingMeal || _store == null || _error != null) return;
+    _openingMeal = true;
+    try {
+      await _openRoute(meal,
+          captureTick: captureTick,
+          startEstimate: startEstimate,
+          allowInitialEstimate: allowInitialEstimate);
+    } finally {
+      _openingMeal = false;
+    }
+  }
+
+  Future<void> _openRoute(Tier1Meal meal,
+      {int? captureTick,
+      bool startEstimate = false,
+      bool Function()? allowInitialEstimate}) async {
     if (_store == null || _error != null) return;
+    var openedMeal = meal;
+    if (meal.revision > 0) {
+      try {
+        final latest = (await _store!.load())
+            .where((saved) => saved.id == meal.id)
+            .firstOrNull;
+        if (latest == null) {
+          MealAnalysisOperations.clear(_store!, meal.id);
+          await _refresh();
+          return;
+        }
+        openedMeal = latest;
+        if (!mounted || !context.mounted) return;
+      } catch (_) {
+        if (mounted) {
+          setState(() => _error =
+              'Could not refresh local history. Existing files were preserved.');
+        }
+        return;
+      }
+    }
     // Coming from the camera, move to Today while the editor covers the
     // screen, so closing it reveals the result instead of the camera.
     final fromScan = _tab == 2;
     final route = MaterialPageRoute<void>(
         builder: (_) => _MealEditor(
-            meal: meal,
+            meal: openedMeal,
             store: _store!,
             targets: _targets,
             cloud: widget.cloud,
@@ -296,6 +335,9 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     await closed;
     if (!mounted) return;
     try {
+      final store = _store!;
+      final active = MealAnalysisOperations.active(store, meal.id);
+      if (active != null) unawaited(_refreshAfterAnalysis(store, active));
       await _refresh();
       if (mounted) {
         // Back to where the result shows: a meal of today lands on Today,
@@ -308,6 +350,20 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       }
     } catch (_) {
       if (mounted) {
+        setState(() => _error =
+            'Could not refresh local history. Reopen the app to check saved values.');
+      }
+    }
+  }
+
+  Future<void> _refreshAfterAnalysis(
+      Tier1MealStore store, MealAnalysisOperation operation) async {
+    try {
+      await operation.result;
+      if (!mounted || !identical(_store, store)) return;
+      await _refresh();
+    } catch (_) {
+      if (mounted && identical(_store, store)) {
         setState(() => _error =
             'Could not refresh local history. Reopen the app to check saved values.');
       }
@@ -934,6 +990,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       _frameWanted = false,
       _frameRecorded = false;
   bool _initialOfferConsumed = false;
+  MealAnalysisOperation? _joinedAnalysis;
   @override
   void initState() {
     super.initState();
@@ -943,6 +1000,19 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     _meter.setForeground(_foreground);
     _trace('editor_opened');
     if (_meal.hasPendingPreparationQuestion) _trace('preparation_available');
+    final activeAnalysis =
+        MealAnalysisOperations.active(widget.store, _meal.id);
+    if (activeAnalysis != null) {
+      _initialOfferConsumed = true;
+      _joinAnalysis(activeAnalysis);
+    } else {
+      final previous = MealAnalysisOperations.recentOutcome(
+          widget.store, _meal.id, _meal.revision);
+      _message = previous?.message ??
+          (_meal.analysisPending
+              ? 'A previous estimate was interrupted. The request may have completed remotely; retrying sends this photo again.'
+              : null);
+    }
     if (widget.startEstimate) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_initialOfferConsumed) return;
@@ -1060,7 +1130,18 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     _closed = true;
     _trace('editor_closed');
     _pendingEvents.clear();
-    for (final c in [_name, _kcal, _protein, _carbs, _fat, _drinkVolume, _drinkKcal, _drinkProtein, _drinkCarbs, _drinkFat]) {
+    for (final c in [
+      _name,
+      _kcal,
+      _protein,
+      _carbs,
+      _fat,
+      _drinkVolume,
+      _drinkKcal,
+      _drinkProtein,
+      _drinkCarbs,
+      _drinkFat
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -1085,14 +1166,57 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     }
   }
 
+  void _joinAnalysis(MealAnalysisOperation operation) {
+    if (_joinedAnalysis == operation) return;
+    _joinedAnalysis = operation;
+    _busy = true;
+    _estimating = true;
+    unawaited(_observeAnalysis(operation));
+  }
+
+  Future<void> _observeAnalysis(MealAnalysisOperation operation) async {
+    final outcome = await operation.result;
+    if (!mounted) return;
+    Tier1Meal? latest;
+    try {
+      latest = (await widget.store.load())
+          .where((meal) => meal.id == _meal.id)
+          .firstOrNull;
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _estimating = false;
+        _message =
+            'Could not refresh local history. Reopen the app to check saved values.';
+      });
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      if (latest != null) {
+        _meal = latest!;
+        _hasSaved = true;
+        _fill();
+      }
+      _busy = false;
+      _estimating = false;
+      _joinedAnalysis = null;
+      _message = outcome.message;
+    });
+  }
+
   Future<void> _save() async {
     if (!_form.currentState!.validate() || _busy) return;
     try {
       final before = _meal.served?.kcal;
       if (_drinkMode) {
         final drink = _drinkValue();
-        if (drink == null || _name.text.trim().isEmpty || _name.text.trim().length > 160) {
-          setState(() => _message = 'Check the drink name, label values and serving total.');
+        if (drink == null ||
+            _name.text.trim().isEmpty ||
+            _name.text.trim().length > 160) {
+          setState(() => _message =
+              'Check the drink name, label values and serving total.');
           return;
         }
         await _persist(_meal.withPackagedDrink(_name.text, drink));
@@ -1119,6 +1243,13 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
 
   Future<void> _estimate() async {
     if (!mounted || _busy || _dirty || _meal.photoPath == null) return;
+    final alreadyRunning =
+        MealAnalysisOperations.active(widget.store, _meal.id);
+    if (alreadyRunning != null) {
+      _initialOfferConsumed = true;
+      _joinAnalysis(alreadyRunning);
+      return;
+    }
     final approved = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -1134,7 +1265,29 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                       child: const Text('Send photo'))
                 ]));
     if (approved != true || !mounted) return;
-    final started = widget.elapsedMilliseconds();
+    final claim = MealAnalysisOperations.claim(widget.store, _meal.id);
+    if (!claim.isOwner) {
+      _initialOfferConsumed = true;
+      _joinAnalysis(claim.operation);
+      return;
+    }
+    final operation = claim.operation;
+    final store = widget.store;
+    final cloud = widget.cloud;
+    final clock = widget.clock;
+    final elapsedMilliseconds = widget.elapsedMilliseconds;
+    final captureTick = widget.captureTick;
+    final mealId = _meal.id;
+    final openingMeal = _meal;
+    final photoPath = openingMeal.photoPath!;
+    int? duration(int? start) {
+      if (start == null || !_meter.timingValid) return null;
+      final value = elapsedMilliseconds() - start;
+      return value < 0 || value > 365 * 24 * 60 * 60 * 1000
+          ? null
+          : value;
+    }
+    final started = elapsedMilliseconds();
     _meter.setWaiting(true);
     _trace('analysis_started');
     setState(() {
@@ -1144,46 +1297,158 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     });
     var committed = false;
     var localWrite = true;
-    try {
-      await _persist(_meal.withConsent());
-      final revision = _meal.revision;
-      localWrite = false;
-      final cloud = widget.cloud;
-      if (cloud == null) throw StateError('Cloud unavailable');
-      final result = await cloud.analyze(_meal.photoPath!, consent: true);
-      _trace('analysis_returned', {
-        'clientAnalysisMs': _duration(started),
-        'shutterToResponseMs': _duration(widget.captureTick)
-      });
-      localWrite = true;
-      final applied = await widget.store.replaceIfRevision(
-          _meal.withAnalysis(result, at: widget.clock.now()), revision);
-      committed = applied;
-      _trace(applied ? 'analysis_saved' : 'analysis_discarded', {
-        'clientAnalysisMs': _duration(started),
-        'shutterToSavedMs': applied ? _duration(widget.captureTick) : null,
-        if (applied) 'afterKcal': (result['totals'] as Map)['kcal'],
-        if (applied)
-          'questionProposed': result['question'] is Map &&
-              (result['question'] as Map)['answered'] != true,
-        ..._modelFields(result)
-      });
-      if (!mounted) return;
-      if (applied) {
-        _meal = (await widget.store.load()).firstWhere((m) => m.id == _meal.id);
-        if (!mounted) return;
-        _fill();
+    var canAnalyze = true;
+    var attemptMarked = false;
+    var expectedRevision = openingMeal.revision;
+    int? retainedRevision =
+        openingMeal.revision == 0 ? null : openingMeal.revision;
+    var outcome = const MealAnalysisOutcome(MealAnalysisOutcomeKind.failed);
+    Future<void> clearPendingAttempt() async {
+      if (!attemptMarked) return;
+      try {
+        final pending = openingMeal
+            .withConsent()
+            .withAnalysisPending()
+            .withRevision(expectedRevision);
+        final cleared = pending.withAnalysisPending(false);
+        if (await store.replaceIfRevision(cleared, expectedRevision)) {
+          retainedRevision = expectedRevision + 1;
+          if (mounted) {
+            _meal = cleared.withRevision(retainedRevision!);
+            _fill();
+          }
+          return;
+        }
+        var latest =
+            (await store.load()).where((meal) => meal.id == mealId).firstOrNull;
+        if (latest?.analysisPending == true) {
+          final latestRevision = latest!.revision;
+          final latestCleared = latest.withAnalysisPending(false);
+          if (await store.replaceIfRevision(latestCleared, latestRevision)) {
+            latest = latestCleared.withRevision(latestRevision + 1);
+          } else {
+            latest = (await store.load())
+                .where((meal) => meal.id == mealId)
+                .firstOrNull;
+          }
+        }
+        retainedRevision = latest?.revision;
+        if (latest != null && mounted) {
+          _meal = latest;
+          _hasSaved = true;
+          _fill();
+        }
+      } catch (_) {
+        // Retaining the marker is safer than claiming a request is known to have ended.
       }
-      if (applied) {
-        _frameWanted = true;
-        if (_meal.hasPendingPreparationQuestion) {
-          _trace('preparation_available');
+    }
+    try {
+      final preflightMeal =
+          openingMeal.withConsent().withAnalysisPending();
+      if (openingMeal.revision == 0) {
+        await store.save(preflightMeal);
+        attemptMarked = true;
+        expectedRevision = 1;
+        retainedRevision = expectedRevision;
+        if (mounted) {
+          _meal = preflightMeal.withRevision(expectedRevision);
+          _hasSaved = true;
+        }
+        if (_pendingEvents.isNotEmpty) {
+          final events = List<Map<String, dynamic>>.of(_pendingEvents);
+          _pendingEvents.clear();
+          _send(events);
+        }
+      } else {
+        final consentSaved =
+            await store.replaceIfRevision(preflightMeal, openingMeal.revision);
+        if (!consentSaved) {
+          final latest = (await store.load())
+              .where((meal) => meal.id == mealId)
+              .firstOrNull;
+          retainedRevision = latest?.revision;
+          if (latest != null && mounted) {
+            _meal = latest;
+            _fill();
+          }
+          final message = latest == null
+              ? 'This meal was deleted before the estimate started.'
+              : 'This meal changed before the estimate started. Reopen it to continue.';
+          _trace('analysis_discarded', {'clientAnalysisMs': duration(started)});
+          outcome = MealAnalysisOutcome(MealAnalysisOutcomeKind.discarded,
+              message: message);
+          canAnalyze = false;
+        } else {
+          attemptMarked = true;
+          expectedRevision = openingMeal.revision + 1;
+          retainedRevision = expectedRevision;
+          if (mounted) {
+            _meal = preflightMeal.withRevision(expectedRevision);
+            _hasSaved = true;
+          }
         }
       }
-      if (mounted) {
-        setState(() => _message = applied
-            ? 'Approximate estimate saved. Check the foods and portions.'
-            : 'Your newer changes were kept; this result was discarded.');
+      if (canAnalyze) {
+        localWrite = false;
+        if (cloud == null) throw StateError('Cloud unavailable');
+        final result = await cloud.analyze(photoPath, consent: true);
+        _trace('analysis_returned', {
+          'clientAnalysisMs': duration(started),
+          'shutterToResponseMs': duration(captureTick)
+        });
+        localWrite = true;
+        final analysisMeal = openingMeal.withConsent().withRevision(expectedRevision);
+        final applied = await store.replaceIfRevision(
+            analysisMeal.withAnalysis(result, at: clock.now()), expectedRevision);
+        committed = applied;
+        if (!applied) retainedRevision = null;
+        _trace(applied ? 'analysis_saved' : 'analysis_discarded', {
+          'clientAnalysisMs': duration(started),
+          'shutterToSavedMs': applied ? duration(captureTick) : null,
+          if (applied) 'afterKcal': (result['totals'] as Map)['kcal'],
+          if (applied)
+            'questionProposed': result['question'] is Map &&
+                (result['question'] as Map)['answered'] != true,
+          ..._modelFields(result)
+        });
+        Tier1Meal? latest;
+        if (applied) {
+          latest = (await store.load())
+              .where((meal) => meal.id == mealId)
+              .firstOrNull;
+          if (latest != null && mounted) {
+            _meal = latest;
+            _hasSaved = true;
+            _fill();
+          }
+        }
+        if (applied && mounted) {
+          _frameWanted = true;
+          if (latest?.hasPendingPreparationQuestion == true) {
+            _trace('preparation_available');
+          }
+        }
+        if (!applied) {
+          await clearPendingAttempt();
+          latest = (await store.load())
+              .where((meal) => meal.id == mealId)
+              .firstOrNull;
+          retainedRevision = latest?.revision;
+          if (latest != null && mounted) {
+            _meal = latest;
+            _hasSaved = true;
+            _fill();
+          }
+        }
+        outcome = MealAnalysisOutcome(
+            applied
+                ? MealAnalysisOutcomeKind.saved
+                : MealAnalysisOutcomeKind.discarded,
+            message: applied
+                ? 'Approximate estimate saved. Check the foods and portions.'
+                : latest == null
+                    ? 'This meal was deleted while the estimate was running; no result was saved.'
+                    : 'Your newer changes were kept; this result was discarded.');
       }
     } catch (error) {
       final failure = committed
@@ -1191,15 +1456,22 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
           : localWrite
               ? const AnalysisFailure(EstimateFailure.save)
               : AnalysisFailure.from(error);
+      if (!committed) await clearPendingAttempt();
       _trace(committed ? 'analysis_refresh_failed' : 'analysis_failed',
-          {'clientAnalysisMs': _duration(started), ...failure.fields});
-      if (mounted) setState(() => _message = failure.message);
+          {'clientAnalysisMs': duration(started), ...failure.fields});
+      outcome = MealAnalysisOutcome(MealAnalysisOutcomeKind.failed,
+          message: failure.message);
     } finally {
       _meter.setWaiting(false);
+      MealAnalysisOperations.finish(store, mealId, operation, outcome,
+          retainAtRevision: outcome.kind == MealAnalysisOutcomeKind.saved
+              ? null
+              : retainedRevision);
       if (mounted) {
         setState(() {
           _busy = false;
           _estimating = false;
+          _message = outcome.message;
         });
         _scheduleResultFrame();
       }
@@ -1610,6 +1882,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       _deleted = true;
       _pendingEvents.clear();
       await widget.store.delete(_meal.id);
+      MealAnalysisOperations.clear(widget.store, _meal.id);
       if (mounted) Navigator.pop(context);
     } catch (_) {
       _deleted = false;

@@ -37,6 +37,51 @@ void main() {
     expect(copy.consumedKcal, 260);
     expect(copy.consumptionSource, 'confirmed_fraction');
   });
+  test('analysis attempt marker round-trips without changing meal schema', () {
+    final prior = meal('pending').edit(
+        'Prior estimate',
+        Tier1Nutrients(kcal: 300, proteinG: 10, carbsG: 20, fatG: 5));
+    final withPhoto = Tier1Meal(
+        id: prior.id,
+        capturedAt: prior.capturedAt,
+        name: prior.name,
+        served: prior.served,
+        photoPath: '/local/photo.jpg',
+        analysis: {'previous': 'estimate'},
+        cloudConsent: true,
+        source: prior.source);
+    final pending = withPhoto.withAnalysisPending();
+    final encoded = pending.toJson();
+    expect(encoded['schemaVersion'], 1);
+    expect(encoded['analysisPending'], true);
+    final reopened = Tier1Meal.fromJson(encoded);
+    expect(reopened.analysisPending, isTrue);
+    expect(reopened.analysis, withPhoto.analysis);
+    expect(reopened.edit(
+            'Manual correction',
+            Tier1Nutrients(kcal: 320, proteinG: 11, carbsG: 21, fatG: 6))
+        .analysisPending, isFalse);
+    expect(reopened.withAnalysisPending(false).toJson().containsKey('analysisPending'),
+        isFalse);
+  });
+  test('local store retains an in-flight marker across store instances', () async {
+    final root = await Directory.systemTemp.createTemp('calorix-tier1-test-');
+    addTearDown(() => root.delete(recursive: true));
+    final firstStore = Tier1MealStore(root);
+    final pending = Tier1Meal(
+        id: 'pending',
+        capturedAt: date,
+        name: 'Rice',
+        photoPath: '/local/photo.jpg',
+        analysis: {'previous': 'estimate'},
+        cloudConsent: true).withAnalysisPending();
+    await firstStore.save(pending);
+
+    final reopened = (await Tier1MealStore(root).load()).single;
+    expect(reopened.analysisPending, isTrue);
+    expect(reopened.analysis, pending.analysis);
+    expect(reopened.revision, 1);
+  });
   test(
       'store serializes concurrent writes and refuses to overwrite malformed history',
       () async {

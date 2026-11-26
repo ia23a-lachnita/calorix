@@ -37,6 +37,7 @@ class Tier1Meal {
       this.photoPath,
       this.metadata = const {},
       this.analysis,
+      this.analysisPending = false,
       this.consumedFraction,
       this.cloudConsent = false,
       this.source = 'manual',
@@ -58,7 +59,8 @@ class Tier1Meal {
     if (!RegExp(r'^[a-zA-Z0-9_-]{1,80}$').hasMatch(id) ||
         name.trim().isEmpty ||
         name.length > 160 ||
-        revision < 0) {
+        revision < 0 ||
+        (analysisPending && photoPath == null)) {
       throw ArgumentError('Invalid meal record');
     }
     if (consumedFraction != null &&
@@ -124,6 +126,7 @@ class Tier1Meal {
   final String? photoPath, repeatOf;
   final Map<String, dynamic> metadata;
   final Map<String, dynamic>? analysis;
+  final bool analysisPending;
   final double? consumedFraction;
   final bool cloudConsent;
   final int revision;
@@ -143,6 +146,7 @@ class Tier1Meal {
           bool? cloudConsent,
           int? revision,
           Map<String, dynamic>? analysis,
+          bool? analysisPending,
           String? source,
           double? fraction,
           bool resetConsumption = false,
@@ -159,6 +163,7 @@ class Tier1Meal {
           photoPath: photoPath,
           metadata: metadata ?? this.metadata,
           analysis: analysis ?? this.analysis,
+          analysisPending: analysisPending ?? this.analysisPending,
           cloudConsent: cloudConsent ?? this.cloudConsent,
           source: source ?? this.source,
           revision: revision ?? this.revision,
@@ -189,8 +194,12 @@ class Tier1Meal {
 
   Tier1Meal withRevision(int value) => _copy(revision: value);
   Tier1Meal withConsent() => _copy(cloudConsent: true);
-  Tier1Meal confirmConsumption(double fraction) => _copy(fraction: fraction);
-  Tier1Meal clearConsumption() => _copy(resetConsumption: true);
+  Tier1Meal withAnalysisPending([bool pending = true]) =>
+      _copy(analysisPending: pending);
+  Tier1Meal confirmConsumption(double fraction) =>
+      _copy(fraction: fraction, analysisPending: false);
+  Tier1Meal clearConsumption() =>
+      _copy(resetConsumption: true, analysisPending: false);
   static const _nutrientKeys = ['kcal', 'proteinG', 'carbsG', 'fatG'];
   static bool _sameNutrients(Tier1Nutrients? a, Tier1Nutrients? b,
       {bool approximate = false}) {
@@ -377,6 +386,7 @@ class Tier1Meal {
         source:
             foodOverrides.isEmpty ? 'portion_correction' : 'food_correction',
         resetConsumption: true,
+        analysisPending: false,
         adjustmentHistory: _record('portion', at, {
           'componentIndex': index,
           'fromG': current,
@@ -445,6 +455,7 @@ class Tier1Meal {
                 ? 'portion_correction'
                 : 'A1',
         resetConsumption: true,
+        analysisPending: false,
         adjustmentHistory: _record('food', at, {
           'componentIndex': index,
           'fromRecordId': foodOverrides[index],
@@ -464,6 +475,7 @@ class Tier1Meal {
             ? metadata
             : (Map<String, dynamic>.from(metadata)..remove('packagedDrink')),
         resetConsumption: !sameNutrition,
+        analysisPending: false,
         portionOverrides: sameNutrition ? portionOverrides : const {},
         portionInputs: sameNutrition ? portionInputs : const {},
         adjustmentHistory: served == null && analysis == null
@@ -516,6 +528,7 @@ class Tier1Meal {
                 ? 'A1'
                 : 'portion_correction',
         resetConsumption: true,
+        analysisPending: false,
         adjustmentHistory:
             _record('preparation_answer', at, {'answer': answer}));
   }
@@ -525,6 +538,7 @@ class Tier1Meal {
       served: Tier1Nutrients.fromJson(
           Map<String, dynamic>.from(value['totals'] as Map)),
       analysis: value,
+      analysisPending: false,
       source: 'A1',
       resetConsumption: true,
       portionOverrides: const {},
@@ -568,6 +582,7 @@ class Tier1Meal {
         'photoPath': photoPath,
         'metadata': metadata,
         'analysis': analysis,
+        if (analysisPending) 'analysisPending': true,
         'consumedFraction': consumedFraction,
         'consumptionSource': consumptionSource,
         'cloudConsent': cloudConsent,
@@ -591,6 +606,10 @@ class Tier1Meal {
     final version = value['schemaVersion'];
     if (version != 1 && version != 2 && version != 3) {
       throw const FormatException('Unsupported local meal version');
+    }
+    if (value.containsKey('analysisPending') &&
+        value['analysisPending'] is! bool) {
+      throw const FormatException('Invalid local analysis state');
     }
     if ((version == 3 &&
             (value['portionInputs'] is! Map ||
@@ -626,6 +645,7 @@ class Tier1Meal {
         analysis: value['analysis'] == null
             ? null
             : Map<String, dynamic>.from(value['analysis'] as Map),
+        analysisPending: value['analysisPending'] == true,
         consumedFraction: (value['consumedFraction'] as num?)?.toDouble(),
         cloudConsent: value['cloudConsent'] == true &&
             value['consentVersion'] == 'tier1-v1',

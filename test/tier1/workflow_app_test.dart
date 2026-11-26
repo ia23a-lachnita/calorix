@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:calorix/core/time/clock.dart';
 import 'package:calorix/features/tier1/local_meal.dart';
 import 'package:calorix/features/tier1/local_meal_store.dart';
 import 'package:calorix/features/tier1/tier1_app.dart';
@@ -21,6 +23,8 @@ class _Store extends Tier1MealStore {
   bool conflict = false;
   bool failLoadAfterReplace = false;
   Completer<bool>? pendingReplace;
+  Completer<void>? pendingConsent;
+  int consentWrites = 0;
   bool _failLoad = false;
   @override
   Future<List<Tier1Meal>> load() async {
@@ -31,6 +35,9 @@ class _Store extends Tier1MealStore {
   @override
   Future<void> save(Tier1Meal value) async {
     final index = records.indexWhere((m) => m.id == value.id);
+    if (index >= 0 && !records[index].cloudConsent && value.cloudConsent) {
+      consentWrites++;
+    }
     final saved =
         value.withRevision(index < 0 ? 1 : records[index].revision + 1);
     if (index < 0) {
@@ -42,7 +49,14 @@ class _Store extends Tier1MealStore {
 
   @override
   Future<bool> replaceIfRevision(Tier1Meal value, int expected) async {
-    if (pendingReplace != null) await pendingReplace!.future;
+    if (value.analysisPending && pendingConsent != null) {
+      final gate = pendingConsent!;
+      pendingConsent = null;
+      await gate.future;
+    }
+    if (pendingReplace != null) {
+      await pendingReplace!.future;
+    }
     if (conflict) return false;
     final old = records.where((m) => m.id == value.id).firstOrNull;
     if (old == null || old.revision != expected) return false;
@@ -50,6 +64,9 @@ class _Store extends Tier1MealStore {
     _failLoad = failLoadAfterReplace;
     return true;
   }
+
+  @override
+  Future<void> delete(String id) async => records.removeWhere((m) => m.id == id);
 }
 
 class _Sink extends WorkflowSink {
@@ -90,13 +107,14 @@ Future<void> visible(WidgetTester t, Finder f) async {
 
 Future<void> _open(
     WidgetTester t, _Store store, _Sink sink, int Function() tick,
-    {_Cloud? cloud}) async {
+    {_Cloud? cloud, Clock? clock}) async {
   await store.save(portionMeal(photo: cloud != null).confirmConsumption(.5));
   await t.pumpWidget(Tier1App(
       store: store,
       camera: FakeCameraService(),
       cloud: cloud,
       workflow: sink,
+      clock: clock,
       elapsedMilliseconds: tick));
   await t.pumpAndSettle();
   await t.tap(find.text('History'));
@@ -105,12 +123,31 @@ Future<void> _open(
   await t.pumpAndSettle();
 }
 
+Future<void> _reopenFromHistory(WidgetTester t, String name) async {
+  final day = find.byKey(const Key('history-day-row-2026-11-08'));
+  await t.ensureVisible(day);
+  await t.pumpAndSettle();
+  expect(day.hitTestable(), findsOneWidget);
+  await t.tap(day);
+  await t.pumpAndSettle();
+  final meal = find
+      .ancestor(of: find.text(name), matching: find.byType(ListTile))
+      .hitTestable()
+      .first;
+  await t.ensureVisible(meal);
+  await t.pumpAndSettle();
+  await t.tap(meal);
+  await t.pump();
+  await t.pump(const Duration(milliseconds: 500));
+}
+
 void main() {
   testWidgets(
       'an unestimated serving shows the server reference and preserves the meal',
       (t) async {
     final store = _Store(), sink = _Sink(), cloud = _Cloud();
     await _open(t, store, sink, () => 0, cloud: cloud);
+    expect(find.textContaining('previous estimate was interrupted'), findsNothing);
     final before = store.records.single.served?.kcal;
     await visible(t, find.text('Estimate photo'));
     await t.tap(find.text('Estimate photo'));
@@ -437,6 +474,207 @@ void main() {
             e['kind'] == 'analysis_refresh_failed' ||
             e['kind'] == 'result_frame'),
         isEmpty);
+    expect(t.takeException(), isNull);
+  });
+  testWidgets(
+      'reopening a meal joins its in-flight estimate and receives the one result',
+      (t) async {
+    final store = _Store(), sink = _Sink(), cloud = _Cloud();
+    await _open(t, store, sink, () => 0,
+        cloud: cloud, clock: FakeClock(tz.TZDateTime.utc(2026, 11, 8, 12)));
+    await visible(t, find.text('Estimate photo'));
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    expect(cloud.calls, 1);
+    final consentRevision = store.records.single.revision;
+
+    await t.tap(find.byTooltip('Back'));
+    await t.pumpAndSettle();
+    await _reopenFromHistory(t, 'Portion meal');
+
+    expect(find.text('Analyzing your photo'), findsOneWidget);
+    expect(cloud.calls, 1);
+    expect(store.records.single.revision, consentRevision);
+    cloud.response.complete(portionAnalysis());
+    await t.pumpAndSettle();
+
+    expect(find.textContaining('Approximate estimate saved'), findsOneWidget);
+    expect(cloud.calls, 1);
+    expect(store.records.single.revision, consentRevision + 1);
+    expect(store.records.single.analysis, isNotNull);
+    expect(
+        sink.events.where((e) => e['kind'] == 'analysis_saved'), hasLength(1));
+    expect(sink.events.where((e) => e['kind'] == 'analysis_started'),
+        hasLength(1));
+    expect(t.takeException(), isNull);
+  });
+  testWidgets(
+      'failure after closing keeps its reference on reopen and retry is explicit',
+      (t) async {
+    final store = _Store(), sink = _Sink(), cloud = _Cloud();
+    await _open(t, store, sink, () => 0,
+        cloud: cloud, clock: FakeClock(tz.TZDateTime.utc(2026, 11, 8, 12)));
+    await visible(t, find.text('Estimate photo'));
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    await t.tap(find.byTooltip('Back'));
+    await t.pumpAndSettle();
+
+    cloud.response.completeError(FirebaseFunctionsException(
+      code: 'failed-precondition',
+      message: 'private provider payload',
+      details: const {
+        'failureCategory': 'no_food',
+        'reference': '8ca4c95f-7b1d-4df4-9d24-435c8c7a677e'
+      },
+    ));
+    await t.pumpAndSettle();
+    expect(cloud.calls, 1);
+    expect(store.records.single.analysisPending, isFalse);
+    await _reopenFromHistory(t, 'Portion meal');
+
+    expect(find.textContaining('identify a serving'), findsOneWidget);
+    expect(find.textContaining('8ca4c95f-7b1d-4df4-9d24-435c8c7a677e'),
+        findsOneWidget);
+    expect(cloud.calls, 1);
+    expect(store.consentWrites, 1);
+    final revisionAfterFailure = store.records.single.revision;
+    await visible(t, find.text('Estimate photo'));
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    expect(cloud.calls, 2);
+    expect(store.records.single.revision, revisionAfterFailure + 1);
+    expect(store.consentWrites, 1);
+    cloud.responses[1].complete(portionAnalysis());
+    await t.pumpAndSettle();
+
+    expect(store.records.single.analysisPending, isFalse);
+    expect(store.records.single.analysis, isNotNull);
+    expect(sink.events.where((e) => e['kind'] == 'analysis_started'), hasLength(2));
+    expect(sink.events.where((e) => e['kind'] == 'analysis_failed'), hasLength(1));
+    expect(sink.events.where((e) => e['kind'] == 'analysis_saved'), hasLength(1));
+    expect(t.takeException(), isNull);
+  });
+  testWidgets('cold reopen explains only a persisted in-flight attempt', (t) async {
+    final store = _Store(), sink = _Sink(), cloud = _Cloud();
+    final prior = portionMeal(photo: true).withConsent().withAnalysisPending();
+    await store.save(prior);
+    await t.pumpWidget(Tier1App(
+        store: store,
+        camera: FakeCameraService(),
+        cloud: cloud,
+        workflow: sink,
+        clock: FakeClock(tz.TZDateTime.utc(2026, 11, 8, 12)),
+        elapsedMilliseconds: () => 0));
+    await t.pumpAndSettle();
+    await t.tap(find.text('History'));
+    await t.pumpAndSettle();
+    await openSavedMeal(t, 'Portion meal');
+    await t.pumpAndSettle();
+
+    expect(cloud.calls, 0);
+    expect(find.textContaining('previous estimate was interrupted'), findsOneWidget);
+    expect(store.records.single.analysis, prior.analysis);
+    expect(store.records.single.served?.kcal, prior.served?.kcal);
+
+    await visible(t, find.text('Estimate photo'));
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    expect(cloud.calls, 1);
+    expect(store.records.single.analysisPending, isTrue);
+    cloud.response.completeError(FirebaseFunctionsException(
+        code: 'failed-precondition',
+        message: 'provider text stays private',
+        details: const {'failureCategory': 'no_food'}));
+    await t.pumpAndSettle();
+
+    expect(store.records.single.analysisPending, isFalse);
+    expect(store.records.single.analysis, prior.analysis);
+    expect(find.textContaining('identify a serving'), findsOneWidget);
+    expect(t.takeException(), isNull);
+  });
+  testWidgets('closing during consent persistence completes without disposed UI writes',
+      (t) async {
+    final store = _Store(), sink = _Sink(), cloud = _Cloud();
+    final consentGate = Completer<void>();
+    store.pendingConsent = consentGate;
+    await _open(t, store, sink, () => 0,
+        cloud: cloud, clock: FakeClock(tz.TZDateTime.utc(2026, 11, 8, 12)));
+    await visible(t, find.text('Estimate photo'));
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    expect(cloud.calls, 0);
+
+    await t.tap(find.byTooltip('Back'));
+    await t.pumpAndSettle();
+    consentGate.complete();
+    await t.pump();
+    await t.pump();
+    expect(cloud.calls, 1);
+    cloud.response.complete(portionAnalysis());
+    await t.pumpAndSettle();
+
+    expect(store.records.single.analysis, isNotNull);
+    expect(store.records.single.analysisPending, isFalse);
+    expect(sink.events.where((e) => e['kind'] == 'analysis_saved'), hasLength(1));
+    expect(t.takeException(), isNull);
+  });
+  testWidgets('deleting a meal while its request runs never recreates it', (t) async {
+    final store = _Store(), sink = _Sink(), cloud = _Cloud();
+    await _open(t, store, sink, () => 0,
+        cloud: cloud, clock: FakeClock(tz.TZDateTime.utc(2026, 11, 8, 12)));
+    await visible(t, find.text('Estimate photo'));
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    await t.tap(find.byTooltip('Back'));
+    await t.pumpAndSettle();
+
+    await store.delete('portion');
+    cloud.response.complete(portionAnalysis());
+    await t.pumpAndSettle();
+
+    expect(store.records, isEmpty);
+    expect(sink.events.where((e) => e['kind'] == 'analysis_saved'), isEmpty);
+    expect(sink.events.where((e) => e['kind'] == 'analysis_discarded'), hasLength(1));
+    expect(t.takeException(), isNull);
+  });
+  testWidgets('concurrent meal edits win over a late estimate', (t) async {
+    final store = _Store(), sink = _Sink(), cloud = _Cloud();
+    await _open(t, store, sink, () => 0,
+        cloud: cloud, clock: FakeClock(tz.TZDateTime.utc(2026, 11, 8, 12)));
+    await visible(t, find.text('Estimate photo'));
+    await t.tap(find.text('Estimate photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await t.pump();
+    await t.tap(find.byTooltip('Back'));
+    await t.pumpAndSettle();
+
+    final current = store.records.single;
+    await store.save(current.edit(
+        'Manual edit during request',
+        Tier1Nutrients(kcal: 500, proteinG: 8, carbsG: 9, fatG: 10)));
+    cloud.response.complete(portionAnalysis());
+    await t.pumpAndSettle();
+
+    expect(store.records.single.name, 'Manual edit during request');
+    expect(store.records.single.served?.kcal, 500);
+    expect(store.records.single.source, 'manual_correction');
+    expect(store.records.single.analysisPending, isFalse);
+    expect(sink.events.where((e) => e['kind'] == 'analysis_saved'), isEmpty);
+    expect(sink.events.where((e) => e['kind'] == 'analysis_discarded'), hasLength(1));
     expect(t.takeException(), isNull);
   });
   testWidgets(
