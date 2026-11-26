@@ -1195,7 +1195,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     if (!mounted) return;
     setState(() {
       if (latest != null) {
-        _meal = latest!;
+        _meal = latest;
         _hasSaved = true;
         _fill();
       }
