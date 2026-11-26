@@ -11,6 +11,7 @@ class MacroRing extends StatelessWidget {
   final double strokeWidth;
   final Color? trackColor;
   final double radiusInset;
+  final double centerClearance;
   final bool showGlow;
 
   const MacroRing({
@@ -23,6 +24,7 @@ class MacroRing extends StatelessWidget {
     this.strokeWidth = 24,
     this.trackColor,
     this.radiusInset = 0,
+    this.centerClearance = 0,
     this.showGlow = true,
   });
 
@@ -49,7 +51,16 @@ class MacroRing extends StatelessWidget {
               showGlow: showGlow,
             ),
           ),
-          if (center != null) center!,
+          if (center != null)
+            centerClearance > 0
+                ? _RingCenter(
+                    size: size,
+                    strokeWidth: strokeWidth,
+                    radiusInset: radiusInset,
+                    clearance: centerClearance,
+                    child: center!,
+                  )
+                : center!,
         ],
       ),
     );
@@ -154,9 +165,43 @@ class _MacroRingPainter extends CustomPainter {
       old.proteinFraction != proteinFraction ||
       old.carbsFraction != carbsFraction ||
       old.fatFraction != fatFraction ||
+      old.strokeWidth != strokeWidth ||
       old.trackColor != trackColor ||
       old.radiusInset != radiusInset ||
       old.showGlow != showGlow;
+}
+
+class _RingCenter extends StatelessWidget {
+  const _RingCenter({
+    required this.size,
+    required this.strokeWidth,
+    required this.radiusInset,
+    required this.clearance,
+    required this.child,
+  });
+
+  final double size;
+  final double strokeWidth;
+  final double radiusInset;
+  final double clearance;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final innerRadius =
+        size / 2 - strokeWidth - radiusInset - 2 * (strokeWidth + 4.0);
+    final centerSide =
+        math.max(0.0, (innerRadius - clearance) * math.sqrt2).toDouble();
+    return Center(
+      child: SizedBox.square(
+        dimension: centerSide,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: child,
+        ),
+      ),
+    );
+  }
 }
 
 // Animated version driven by animation controller
@@ -170,6 +215,7 @@ class AnimatedMacroRing extends StatelessWidget {
   final double strokeWidth;
   final Color? trackColor;
   final double radiusInset;
+  final double centerClearance;
   final bool showGlow;
 
   const AnimatedMacroRing({
@@ -183,6 +229,7 @@ class AnimatedMacroRing extends StatelessWidget {
     this.strokeWidth = 24,
     this.trackColor,
     this.radiusInset = 0,
+    this.centerClearance = 0,
     this.showGlow = true,
   });
 
@@ -200,6 +247,7 @@ class AnimatedMacroRing extends StatelessWidget {
           trackColor: trackColor,
           center: center,
           radiusInset: radiusInset,
+          centerClearance: centerClearance,
           showGlow: showGlow,
         ),
       ),

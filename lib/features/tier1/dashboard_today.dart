@@ -46,8 +46,9 @@ class _DashboardTodayState extends State<DashboardToday> {
     final theme = Theme.of(context), scheme = theme.colorScheme;
     final meals = widget.meals.where((m) => _day(m.capturedAt) == day).toList();
     final isToday = day == _day(widget.now);
-    final ringSize =
-        math.min(288.0, 208 * MediaQuery.textScalerOf(context).scale(1.0));
+    final ringSize = math.min(
+        math.min(320.0, 240 * MediaQuery.textScalerOf(context).scale(1.0)),
+        MediaQuery.sizeOf(context).width - 60);
     double sum(double? Function(Tier1Nutrients) get) => meals.fold(
         0.0,
         (v, m) =>
@@ -111,20 +112,29 @@ class _DashboardTodayState extends State<DashboardToday> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: MacroRing(
                         size: ringSize,
-                        strokeWidth: 10,
+                        strokeWidth: 8,
+                        centerClearance: 12,
                         showGlow: false,
                         proteinFraction: macros[0].$2 / macros[0].$3,
                         carbsFraction: macros[1].$2 / macros[1].$3,
                         fatFraction: macros[2].$2 / macros[2].$3,
                         center:
                             Column(mainAxisSize: MainAxisSize.min, children: [
-                          Text('KCAL EATEN', style: label),
-                          Text('$kcal', style: theme.textTheme.displaySmall),
+                          Text('KCAL EATEN',
+                              style: label, textAlign: TextAlign.center),
+                          Text('$kcal',
+                              style: theme.textTheme.displaySmall,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.visible),
                           Text('of ${widget.targets.kcal}',
-                              style: theme.textTheme.bodySmall),
+                              style: theme.textTheme.bodySmall,
+                              textAlign: TextAlign.center),
                           Text(
                               '${(widget.targets.kcal - kcal).abs()} kcal ${kcal <= widget.targets.kcal ? 'left' : 'over'}',
-                              style: theme.textTheme.labelMedium)
+                              style: theme.textTheme.labelMedium,
+                              textAlign: TextAlign.center)
                         ]))),
                 for (final (name, value, target, color) in macros)
                   Container(
@@ -142,7 +152,9 @@ class _DashboardTodayState extends State<DashboardToday> {
                                   color: color, shape: BoxShape.circle)),
                           const SizedBox(width: 8),
                           Expanded(child: Text(name)),
-                          Text('${value.round()} / $target g')
+                          Expanded(
+                              child: Text('${value.round()} / $target g',
+                                  textAlign: TextAlign.end))
                         ]),
                         const SizedBox(height: 8),
                         LinearProgressIndicator(

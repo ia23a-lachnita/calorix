@@ -5,7 +5,9 @@ Rules for any UI work: `/home/agent-runner/projects/_ui-review/RUBRIC.md`. Habit
 
 ## Status — meal reopening and motion (2026-11-26)
 
-Reopening a saved meal during analysis now shows the original request and its result. If the editor stays closed, the dashboard refreshes when the result arrives. A late result preserves a newer edit or deletion. If Android stops the process, the saved meal explains that the previous outcome is unknown and lets the user choose whether to send the photo again. Six route regressions passed with a held local service.
+Reopening a saved meal during analysis now shows the original request and its result (`389a231`). If the editor stays closed, the dashboard refreshes when the result arrives. A late result preserves a newer edit or deletion. If Android stops the process, the saved meal explains that the previous outcome is unknown and lets the user choose whether to send the photo again. All 24 workflow tests and nine local-meal tests passed.
+
+Today’s macro ring grows from 208 to 240 logical pixels at normal text size, with at least 12 pixels between the center text and the innermost track in the tested layouts. The four-digit total stays on one line. The spacing check passed at widths of 360 and 402 and at double text size. The ordinary and large-text renders were inspected using the app fonts.
 
 ## Final cumulative acceptance — 2026-11-25
 
