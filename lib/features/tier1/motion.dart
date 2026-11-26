@@ -57,3 +57,69 @@ class CountText extends StatelessWidget {
       curve: Motion.curve,
       builder: (_, v, __) => Text('${v.round()}', style: style));
 }
+
+/// Replaces a short label without retaining stale semantics for the outgoing
+/// text. Its text children contain no actions; hit targets remain on parents.
+class MotionLabel extends StatefulWidget {
+  const MotionLabel({
+    super.key,
+    required this.valueKey,
+    required this.text,
+    required this.semanticLabel,
+    this.style,
+    this.maxLines,
+    this.overflow,
+    this.textAlign,
+    this.softWrap,
+  });
+
+  final Object valueKey;
+  final String text;
+  final String semanticLabel;
+  final TextStyle? style;
+  final int? maxLines;
+  final TextOverflow? overflow;
+  final TextAlign? textAlign;
+  final bool? softWrap;
+
+  @override
+  State<MotionLabel> createState() => _MotionLabelState();
+}
+
+class _MotionLabelState extends State<MotionLabel> {
+  bool _hasChanged = false;
+
+  @override
+  void didUpdateWidget(covariant MotionLabel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.valueKey != widget.valueKey) _hasChanged = true;
+  }
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        container: true,
+        label: widget.semanticLabel,
+        child: ExcludeSemantics(
+          child: AnimatedSwitcher(
+            duration:
+                Motion.of(context, _hasChanged ? Motion.medium : Duration.zero),
+            reverseDuration: Motion.of(context, Motion.medium),
+            switchInCurve: Motion.curve,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+            child: Text(
+              widget.text,
+              key: ValueKey(widget.valueKey),
+              style: widget.style,
+              maxLines: widget.maxLines,
+              overflow: widget.overflow,
+              textAlign: widget.textAlign,
+              softWrap: widget.softWrap,
+            ),
+          ),
+        ),
+      );
+}

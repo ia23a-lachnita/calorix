@@ -2,6 +2,7 @@ import '../../core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'targets.dart';
 import 'local_meal.dart';
+import 'motion.dart';
 import 'package:intl/intl.dart';
 
 /// Displays the persisted daily targets and delegates changes to the existing
@@ -87,6 +88,36 @@ class _DashboardGoalsState extends State<DashboardGoals> {
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: scheme.outlineVariant)),
         child: child);
+    final periodSummary = period == null
+        ? card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            MotionLabel(
+                key: const Key('tier1-goals-period-kcal'),
+                valueKey: 'daily-$kcal',
+                text: 'Today: $kcal kcal logged',
+                semanticLabel: 'Today: $kcal kcal logged',
+                style: theme.textTheme.titleMedium),
+            Text('Current daily target: ${targets.kcal} kcal',
+                style: theme.textTheme.bodySmall),
+            if (included.any((m) => m.served == null))
+              const Text(
+                  'Some meals have no nutrition yet; only known values are included.'),
+          ]))
+        : card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('LOGGED IN THIS PERIOD', style: label),
+            const SizedBox(height: 6),
+            MotionLabel(
+                key: const Key('tier1-goals-period-kcal'),
+                valueKey: '${period.key}-$kcal',
+                text: '$kcal kcal',
+                semanticLabel: '$kcal kcal logged in this period',
+                style: theme.textTheme.headlineSmall),
+            Text(
+                '${included.length} ${included.length == 1 ? 'meal' : 'meals'} · Current daily target: ${targets.kcal} kcal',
+                style: theme.textTheme.bodySmall),
+            if (included.any((m) => m.served == null))
+              const Text(
+                  'Some meals have no nutrition yet; only known values are included.'),
+          ]));
     return ListView(children: [
       Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -120,7 +151,13 @@ class _DashboardGoalsState extends State<DashboardGoals> {
                               borderRadius: BorderRadius.circular(20)),
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
                             Flexible(
-                                child: Text(period?.label ?? 'Daily targets',
+                                child: MotionLabel(
+                                    key: const Key('tier1-goals-period-label'),
+                                    valueKey: selected,
+                                    text: period?.label ?? 'Daily targets',
+                                    semanticLabel:
+                                        period?.label ?? 'Daily targets',
+                                    maxLines: 1,
                                     overflow: TextOverflow.ellipsis)),
                             const Icon(Icons.keyboard_arrow_down, size: 18)
                           ]))),
@@ -132,27 +169,15 @@ class _DashboardGoalsState extends State<DashboardGoals> {
                 icon: const Icon(Icons.tune, size: 16),
                 label: const Text('Adjust'))
           ])),
-      if (period == null)
-        card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Today: $kcal kcal logged', style: theme.textTheme.titleMedium),
-          Text('Current daily target: ${targets.kcal} kcal',
-              style: theme.textTheme.bodySmall),
-          if (included.any((m) => m.served == null))
-            const Text(
-                'Some meals have no nutrition yet; only known values are included.'),
-        ])),
-      if (period != null)
-        card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('LOGGED IN THIS PERIOD', style: label),
-          const SizedBox(height: 6),
-          Text('$kcal kcal', style: theme.textTheme.headlineSmall),
-          Text(
-              '${included.length} ${included.length == 1 ? 'meal' : 'meals'} · Current daily target: ${targets.kcal} kcal',
-              style: theme.textTheme.bodySmall),
-          if (included.any((m) => m.served == null))
-            const Text(
-                'Some meals have no nutrition yet; only known values are included.'),
-        ])),
+      if (MediaQuery.disableAnimationsOf(context))
+        periodSummary
+      else
+        AnimatedSize(
+            key: const Key('tier1-goals-period-summary'),
+            duration: Motion.of(context, Motion.medium),
+            curve: Motion.curve,
+            alignment: Alignment.topCenter,
+            child: periodSummary),
       card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('DAILY CALORIE TARGET', style: label),
         const SizedBox(height: 6),
@@ -160,7 +185,12 @@ class _DashboardGoalsState extends State<DashboardGoals> {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text('${targets.kcal}', style: theme.textTheme.headlineMedium),
+              MotionLabel(
+                  key: const Key('tier1-goals-kcal-target'),
+                  valueKey: targets.kcal,
+                  text: '${targets.kcal}',
+                  semanticLabel: '${targets.kcal} kilocalorie daily target',
+                  style: theme.textTheme.headlineMedium),
               const SizedBox(width: 5),
               const Text('kcal')
             ]),
@@ -219,7 +249,11 @@ class _DashboardGoalsState extends State<DashboardGoals> {
                                         style: label))
                               ]),
                               const SizedBox(height: 5),
-                              Text('$value g',
+                              MotionLabel(
+                                  key: Key('tier1-goals-target-$name'),
+                                  valueKey: value,
+                                  text: '$value g',
+                                  semanticLabel: '$name target: $value grams',
                                   style: theme.textTheme.titleMedium)
                             ]))))
         ])

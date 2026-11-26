@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'local_meal.dart';
+import 'motion.dart';
 import 'targets.dart';
 
 /// Calendar and summaries of actual local records; opening a meal is delegated
@@ -121,6 +122,72 @@ class _DashboardHistoryState extends State<DashboardHistory> {
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: scheme.outlineVariant)),
         child: child);
+    Widget dayDetails(DateTime date) => expanded == date
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final meal in on(date))
+                ListTile(
+                    title: Text(meal.name),
+                    subtitle: Text(meal.served == null
+                        ? 'Nutrition not available'
+                        : '${((meal.served!.kcal) * (meal.consumedFraction ?? 1)).round()} kcal'),
+                    onTap: widget.onOpenMeal == null
+                        ? null
+                        : () => widget.onOpenMeal?.call(meal)),
+            ],
+          )
+        : const SizedBox.shrink();
+    final calendar = GridView.count(
+        crossAxisCount: 7,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        childAspectRatio: (month ? 1.15 : .62) /
+            MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0),
+        children: [
+          if (month)
+            for (var i = 1; i < start.weekday; i++) const SizedBox.shrink(),
+          for (final d in days)
+            InkWell(
+                onTap: () =>
+                    setState(() => expanded = on(d).isEmpty ? null : d),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                    decoration: BoxDecoration(
+                        color: d == _day(widget.now)
+                            ? scheme.primary.withValues(alpha: .12)
+                            : null,
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (!month)
+                            FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                    DateFormat('E').format(d).toUpperCase(),
+                                    maxLines: 1,
+                                    style: label)),
+                          Text('${d.day}', style: theme.textTheme.titleSmall),
+                          const SizedBox(height: 5),
+                          if (month)
+                            Container(
+                                width: 4,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: on(d).isEmpty
+                                        ? Colors.transparent
+                                        : scheme.primary))
+                          else
+                            SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    value: targetFraction(_kcal(on(d)))))
+                        ]))),
+        ]);
     return SingleChildScrollView(
         key: const PageStorageKey('tier1-history'),
         child: Column(children: [
@@ -147,21 +214,27 @@ class _DashboardHistoryState extends State<DashboardHistory> {
                   ])),
           card(Column(children: [
             Row(children: [
-              Expanded(
-                  child: Text(
-                      month
-                          ? DateFormat('MMMM yyyy').format(anchor).toUpperCase()
-                          : (start ==
-                                  DateTime(
-                                      _day(widget.now).year,
-                                      _day(widget.now).month,
-                                      _day(widget.now).day -
-                                          _day(widget.now).weekday +
-                                          1)
-                              ? 'THIS WEEK'
-                              : '${DateFormat('MMM d').format(start)} – ${DateFormat('MMM d, yyyy').format(DateTime(end.year, end.month, end.day - 1))}'
-                                  .toUpperCase()),
-                      style: label)),
+              Expanded(child: Builder(builder: (context) {
+                final text = month
+                    ? DateFormat('MMMM yyyy').format(anchor).toUpperCase()
+                    : (start ==
+                            DateTime(
+                                _day(widget.now).year,
+                                _day(widget.now).month,
+                                _day(widget.now).day -
+                                    _day(widget.now).weekday +
+                                    1)
+                        ? 'THIS WEEK'
+                        : '${DateFormat('MMM d').format(start)} – ${DateFormat('MMM d, yyyy').format(DateTime(end.year, end.month, end.day - 1))}'
+                            .toUpperCase());
+                return MotionLabel(
+                    key: const Key('history-period-title'),
+                    valueKey:
+                        '${month ? 'month' : 'week'}-${start.toIso8601String()}',
+                    text: text,
+                    semanticLabel: text,
+                    style: label);
+              })),
               for (final mode in [false, true])
                 TextButton(
                     onPressed: () => setState(() {
@@ -179,61 +252,15 @@ class _DashboardHistoryState extends State<DashboardHistory> {
                 for (final d in ['M', 'T', 'W', 'T', 'F', 'S', 'S'])
                   Expanded(child: Center(child: Text(d, style: label)))
               ]),
-            GridView.count(
-                crossAxisCount: 7,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: (month ? 1.15 : .62) /
-                    MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0),
-                children: [
-                  if (month)
-                    for (var i = 1; i < start.weekday; i++)
-                      const SizedBox.shrink(),
-                  for (final d in days)
-                    InkWell(
-                        onTap: () =>
-                            setState(() => expanded = on(d).isEmpty ? null : d),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                            decoration: BoxDecoration(
-                                color: d == _day(widget.now)
-                                    ? scheme.primary.withValues(alpha: .12)
-                                    : null,
-                                borderRadius: BorderRadius.circular(12)),
-                            child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  if (!month)
-                                    FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                            DateFormat('E')
-                                                .format(d)
-                                                .toUpperCase(),
-                                            maxLines: 1,
-                                            style: label)),
-                                  Text('${d.day}',
-                                      style: theme.textTheme.titleSmall),
-                                  const SizedBox(height: 5),
-                                  if (month)
-                                    Container(
-                                        width: 4,
-                                        height: 4,
-                                        decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: on(d).isEmpty
-                                                ? Colors.transparent
-                                                : scheme.primary))
-                                  else
-                                    SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 3,
-                                            value:
-                                                targetFraction(_kcal(on(d))))),
-                                ]))),
-                ]),
+            if (MediaQuery.disableAnimationsOf(context))
+              calendar
+            else
+              AnimatedSize(
+                  key: const Key('history-calendar-grid'),
+                  duration: Motion.of(context, Motion.medium),
+                  curve: Motion.curve,
+                  alignment: Alignment.topCenter,
+                  child: calendar),
             const SizedBox(height: 10),
             Container(
                 width: 44,
@@ -249,7 +276,13 @@ class _DashboardHistoryState extends State<DashboardHistory> {
                 spacing: 5,
                 crossAxisAlignment: WrapCrossAlignment.end,
                 children: [
-                  Text(nutritionDays.isEmpty ? '—' : '$average',
+                  MotionLabel(
+                      key: const Key('history-average-value'),
+                      valueKey: '$month-${start.toIso8601String()}-$average',
+                      text: nutritionDays.isEmpty ? '—' : '$average',
+                      semanticLabel: nutritionDays.isEmpty
+                          ? 'No average available'
+                          : '$average kcal average per logged day',
                       style: theme.textTheme.headlineSmall),
                   Text('kcal / logged day', style: theme.textTheme.bodySmall),
                 ]),
@@ -333,16 +366,16 @@ class _DashboardHistoryState extends State<DashboardHistory> {
                   ]),
                   onTap: () =>
                       setState(() => expanded = expanded == d ? null : d)),
-              if (expanded == d)
-                for (final meal in on(d))
-                  ListTile(
-                      title: Text(meal.name),
-                      subtitle: Text(meal.served == null
-                          ? 'Nutrition not available'
-                          : '${((meal.served!.kcal) * (meal.consumedFraction ?? 1)).round()} kcal'),
-                      onTap: widget.onOpenMeal == null
-                          ? null
-                          : () => widget.onOpenMeal?.call(meal)),
+              if (MediaQuery.disableAnimationsOf(context))
+                dayDetails(d)
+              else
+                AnimatedSize(
+                    key: Key(
+                        'history-day-details-${DateFormat('yyyy-MM-dd').format(d)}'),
+                    duration: Motion.of(context, Motion.medium),
+                    curve: Motion.curve,
+                    alignment: Alignment.topCenter,
+                    child: dayDetails(d)),
             ])),
           if (expanded == null && recent.isNotEmpty) ...[
             Padding(

@@ -82,4 +82,98 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Old meal'), findsOneWidget);
   });
+
+  testWidgets('History day details expand with reduced-motion-aware sizing',
+      (tester) async {
+    final meal = Tier1Meal(
+        id: 'one',
+        name: 'Local porridge',
+        capturedAt: DateTime(2026, 7, 15, 10),
+        served: Tier1Nutrients(kcal: 500));
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+            body: DashboardHistory(
+                meals: [meal],
+                now: DateTime(2026, 7, 15),
+                targets: Tier1Targets.defaults,
+                onOpenMeal: (_) {}))));
+
+    final detail = find.byKey(const Key('history-day-details-2026-07-15'));
+    expect(detail, findsOneWidget);
+    expect(tester.getSize(detail).height, 0);
+    final row = find.byKey(const Key('history-day-row-2026-07-15'));
+    await tester.ensureVisible(row);
+    await tester.tap(row);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    final midHeight = tester.getSize(detail).height;
+    expect(midHeight, greaterThan(0));
+    expect(find.text('Local porridge'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(tester.getSize(detail).height, greaterThan(midHeight));
+
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+            body: MediaQuery(
+                data: const MediaQueryData(disableAnimations: true),
+                child: DashboardHistory(
+                    meals: [meal],
+                    now: DateTime(2026, 7, 15),
+                    targets: Tier1Targets.defaults,
+                    onOpenMeal: (_) {})))));
+    await tester.ensureVisible(row);
+    await tester.tap(row);
+    await tester.pump();
+    expect(find.text('Local porridge'), findsOneWidget);
+    expect(find.byType(AnimatedSize), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('History week and month calendar height transitions smoothly',
+      (tester) async {
+    final meal = Tier1Meal(
+        id: 'one', name: 'Local meal', capturedAt: DateTime(2026, 7, 15));
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+            body: DashboardHistory(
+                meals: [meal],
+                now: DateTime(2026, 7, 15),
+                targets: Tier1Targets.defaults,
+                onOpenMeal: (_) {}))));
+    final calendar = find.byKey(const Key('history-calendar-grid'));
+    expect(calendar, findsOneWidget);
+    final weekHeight = tester.getSize(calendar).height;
+    await tester.tap(find.text('M').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    final midHeight = tester.getSize(calendar).height;
+    await tester.pumpAndSettle();
+    final monthHeight = tester.getSize(calendar).height;
+    expect(monthHeight, greaterThan(weekHeight));
+    expect(midHeight, greaterThan(weekHeight));
+    expect(midHeight, lessThan(monthHeight));
+  });
+
+  testWidgets('History period label switches without stale semantics',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+            body: DashboardHistory(
+                meals: const [],
+                now: DateTime(2026, 7, 15),
+                targets: Tier1Targets.defaults,
+                onOpenMeal: (_) {}))));
+    final title = find.byKey(const Key('history-period-title'));
+    expect(tester.getSemantics(title).label, 'THIS WEEK');
+    final previous = tester.widget<IconButton>(find.byType(IconButton).first);
+    previous.onPressed!();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20));
+    expect(find.text('THIS WEEK'), findsOneWidget);
+    expect(find.text('JUL 6 – JUL 12, 2026'), findsOneWidget);
+    expect(tester.getSemantics(title).label, 'JUL 6 – JUL 12, 2026');
+    await tester.pumpAndSettle();
+    expect(find.text('THIS WEEK'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -9,6 +9,10 @@ Reopening a saved meal during analysis now shows the original request and its re
 
 Today’s macro ring (`35ec8bf`) grows from 208 to 240 logical pixels at normal text size, with at least 12 pixels between the center text and the innermost track in the tested layouts. The four-digit total stays on one line. The spacing check passed at widths of 360 and 402 and at double text size. The ordinary and large-text renders were inspected using the app fonts. The reopening follow-up removes a redundant null assertion flagged by the analyzer. Analysis of the five changed Dart files passed.
 
+Both workflows passed for `fb23e52`. The signed release APK matched the source revision, checksum and test certificate. It contains one arm64 ABI and is 23,924,501 bytes. The Samsung kept its existing data during installation. Its Today screen showed the enlarged ring, readable calorie text and visible tab bar. [Test APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45774715792/artifacts/15096586678) · [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45774715667)
+
+Today now animates the calorie total, macro rings and progress bars when the date or amounts change. History expands daily details and changes between week and month views. Goals animates period summaries. The dashboard tests cover intermediate frames, settled values, screen-reader labels and reduced motion. The four-digit total was inspected in both themes.
+
 ## Final cumulative acceptance — 2026-11-25
 
 The signed arm64 APK for `0410138` matched the source, checksum and existing test signer. On the Samsung SM-G780G, manual food selection, Back navigation and saving a 230 kcal custom meal worked. With that meal logged, the framing guide cleared the summary and privacy text, and the hollow shutter and active tab dot stayed visible. Camera capture worked after permission was granted. The tester chose **Keep local**, removed both test records and restored Ravlo’s original camera permission state. [Signed APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45611430274/artifacts/15020389053) · [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45611430451)

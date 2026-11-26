@@ -41,6 +41,7 @@ void main() {
                             fatG: 100),
                         onOpenMeal: (_) {},
                         onEditTargets: () {})))));
+        await tester.pumpAndSettle();
 
         final ring = tester.getRect(find.byType(MacroRing));
         final ringCenter = ring.center;

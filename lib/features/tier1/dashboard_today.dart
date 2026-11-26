@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../shared/widgets/macro_ring.dart';
 import 'local_meal.dart';
+import 'motion.dart';
 import 'targets.dart';
 
 class DashboardToday extends StatefulWidget {
@@ -67,6 +68,8 @@ class _DashboardTodayState extends State<DashboardToday> {
       ('Carbs', sum((n) => n.carbsG), widget.targets.carbsG, AppColors.carbs),
       ('Fat', sum((n) => n.fatG), widget.targets.fatG, AppColors.fat)
     ];
+    final fractions = _MacroFractions(macros[0].$2 / macros[0].$3,
+        macros[1].$2 / macros[1].$3, macros[2].$2 / macros[2].$3);
     final label = theme.textTheme.labelSmall
         ?.copyWith(letterSpacing: 1.1, color: scheme.onSurfaceVariant);
     return SingleChildScrollView(
@@ -81,10 +84,23 @@ class _DashboardTodayState extends State<DashboardToday> {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      Text(
-                          DateFormat('EEEE · MMMM d').format(day).toUpperCase(),
+                      MotionLabel(
+                          key: const Key('today-day-label'),
+                          valueKey: day.toIso8601String(),
+                          text: DateFormat('EEEE · MMMM d')
+                              .format(day)
+                              .toUpperCase(),
+                          semanticLabel: DateFormat('EEEE, MMMM d').format(day),
                           style: label),
-                      Text(isToday ? 'Today' : DateFormat('MMM d').format(day),
+                      MotionLabel(
+                          key: const Key('today-day-title'),
+                          valueKey: '${day.toIso8601String()}-$isToday',
+                          text: isToday
+                              ? 'Today'
+                              : DateFormat('MMM d').format(day),
+                          semanticLabel: isToday
+                              ? 'Today'
+                              : DateFormat('MMMM d').format(day),
                           style: theme.textTheme.headlineMedium)
                     ])),
                 IconButton(
@@ -110,32 +126,45 @@ class _DashboardTodayState extends State<DashboardToday> {
               child: Column(children: [
                 Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: MacroRing(
-                        size: ringSize,
-                        strokeWidth: 8,
-                        centerClearance: 12,
-                        showGlow: false,
-                        proteinFraction: macros[0].$2 / macros[0].$3,
-                        carbsFraction: macros[1].$2 / macros[1].$3,
-                        fatFraction: macros[2].$2 / macros[2].$3,
-                        center:
-                            Column(mainAxisSize: MainAxisSize.min, children: [
-                          Text('KCAL EATEN',
-                              style: label, textAlign: TextAlign.center),
-                          Text('$kcal',
-                              style: theme.textTheme.displaySmall,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              softWrap: false,
-                              overflow: TextOverflow.visible),
-                          Text('of ${widget.targets.kcal}',
-                              style: theme.textTheme.bodySmall,
-                              textAlign: TextAlign.center),
-                          Text(
-                              '${(widget.targets.kcal - kcal).abs()} kcal ${kcal <= widget.targets.kcal ? 'left' : 'over'}',
-                              style: theme.textTheme.labelMedium,
-                              textAlign: TextAlign.center)
-                        ]))),
+                    child: TweenAnimationBuilder<_MacroFractions>(
+                        key: const Key('today-ring-fill-animation'),
+                        tween: _MacroFractionsTween(end: fractions),
+                        duration: Motion.of(context, Motion.medium),
+                        curve: Motion.curve,
+                        builder: (context, animated, _) => MacroRing(
+                            key: const Key('today-calorie-ring'),
+                            size: ringSize,
+                            strokeWidth: 8,
+                            centerClearance: 12,
+                            showGlow: false,
+                            proteinFraction: animated.protein,
+                            carbsFraction: animated.carbs,
+                            fatFraction: animated.fat,
+                            center: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('KCAL EATEN',
+                                      style: label,
+                                      textAlign: TextAlign.center),
+                                  MotionLabel(
+                                      key: const Key('today-calorie-total'),
+                                      valueKey: '$kcal/${widget.targets.kcal}',
+                                      text: '$kcal',
+                                      semanticLabel:
+                                          '$kcal kilocalories eaten of ${widget.targets.kcal}',
+                                      style: theme.textTheme.displaySmall,
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      softWrap: false,
+                                      overflow: TextOverflow.visible),
+                                  Text('of ${widget.targets.kcal}',
+                                      style: theme.textTheme.bodySmall,
+                                      textAlign: TextAlign.center),
+                                  Text(
+                                      '${(widget.targets.kcal - kcal).abs()} kcal ${kcal <= widget.targets.kcal ? 'left' : 'over'}',
+                                      style: theme.textTheme.labelMedium,
+                                      textAlign: TextAlign.center)
+                                ])))),
                 for (final (name, value, target, color) in macros)
                   Container(
                       margin: const EdgeInsets.only(top: 10),
@@ -153,14 +182,29 @@ class _DashboardTodayState extends State<DashboardToday> {
                           const SizedBox(width: 8),
                           Expanded(child: Text(name)),
                           Expanded(
-                              child: Text('${value.round()} / $target g',
-                                  textAlign: TextAlign.end))
+                              child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: MotionLabel(
+                                      key: Key('today-macro-value-$name'),
+                                      valueKey: '${value.round()}/$target',
+                                      text: '${value.round()} / $target g',
+                                      semanticLabel:
+                                          '$name: ${value.round()} of $target grams',
+                                      textAlign: TextAlign.end))),
                         ]),
                         const SizedBox(height: 8),
-                        LinearProgressIndicator(
-                            value: (value / target).clamp(0.0, 1.0),
-                            minHeight: 5,
-                            color: color)
+                        ExcludeSemantics(
+                            child: TweenAnimationBuilder<double>(
+                                key: Key('today-macro-progress-$name'),
+                                tween: Tween<double>(
+                                    end: (value / target).clamp(0.0, 1.0)),
+                                duration: Motion.of(context, Motion.medium),
+                                curve: Motion.curve,
+                                builder: (_, fraction, __) =>
+                                    LinearProgressIndicator(
+                                        value: fraction,
+                                        minHeight: 5,
+                                        color: color)))
                       ])),
               ])),
           if (meals.any((m) =>
@@ -250,4 +294,37 @@ class _DashboardTodayState extends State<DashboardToday> {
                         : () => widget.onOpenMeal?.call(m))),
         ]));
   }
+}
+
+class _MacroFractions {
+  const _MacroFractions(this.protein, this.carbs, this.fat);
+
+  final double protein;
+  final double carbs;
+  final double fat;
+
+  static _MacroFractions lerp(_MacroFractions a, _MacroFractions b, double t) =>
+      _MacroFractions(
+        a.protein + (b.protein - a.protein) * t,
+        a.carbs + (b.carbs - a.carbs) * t,
+        a.fat + (b.fat - a.fat) * t,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is _MacroFractions &&
+      protein == other.protein &&
+      carbs == other.carbs &&
+      fat == other.fat;
+
+  @override
+  int get hashCode => Object.hash(protein, carbs, fat);
+}
+
+class _MacroFractionsTween extends Tween<_MacroFractions> {
+  _MacroFractionsTween({required super.end});
+
+  @override
+  _MacroFractions lerp(double t) =>
+      _MacroFractions.lerp(begin ?? end!, end!, t);
 }

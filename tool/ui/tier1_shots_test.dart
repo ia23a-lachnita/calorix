@@ -334,5 +334,20 @@ void main() {
         await shot(tester, '05-meal-open');
       }
     });
+
+    testWidgets('Today fits four calorie digits on one line ($mode)',
+        (tester) async {
+      final store = _MemoryStore();
+      await store.save(Tier1Meal(
+          id: 'large',
+          capturedAt: _FixedClock().now(),
+          name: 'Large total',
+          served: Tier1Nutrients(
+              kcal: 9999, proteinG: 999, carbsG: 1200, fatG: 700)));
+      await boot(tester, store);
+      await tester.tap(find.text('Today'));
+      await tester.pumpAndSettle();
+      await shot(tester, '15-today-large-total');
+    });
   }
 }
