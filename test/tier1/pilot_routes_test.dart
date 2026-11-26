@@ -19,6 +19,16 @@ class _Store extends Tier1MealStore {
   }
 }
 
+class _FailingStore extends Tier1MealStore {
+  _FailingStore(this.gate) : super(Directory('.'));
+  final Completer<void> gate;
+  @override
+  Future<List<Tier1Meal>> load() async {
+    await gate.future;
+    throw const FormatException('synthetic local history failure');
+  }
+}
+
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
   testWidgets('loading ends on Scan after local records load', (tester) async {
@@ -39,6 +49,44 @@ void main() {
     gate.complete();
     await tester.pumpAndSettle();
     expect(find.text('Take photo'), findsOneWidget);
+  });
+
+  testWidgets('startup readiness fades in without delaying the ready route',
+      (tester) async {
+    final gate = Completer<void>();
+    await tester.pumpWidget(
+        Tier1App(store: _Store(gate: gate), camera: FakeCameraService()));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('pilot-loading-ring')), findsOneWidget);
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(find.byKey(const ValueKey('pilot-loading-ring')), findsOneWidget);
+    expect(find.text('Take photo'), findsOneWidget);
+
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('pilot-loading-ring')), findsNothing);
+    expect(find.text('Take photo'), findsOneWidget);
+  });
+
+  testWidgets('startup failure fades into the local history error state',
+      (tester) async {
+    final gate = Completer<void>();
+    await tester.pumpWidget(
+        Tier1App(store: _FailingStore(gate), camera: FakeCameraService()));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('pilot-loading-ring')), findsOneWidget);
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(find.byKey(const ValueKey('pilot-loading-ring')), findsOneWidget);
+    expect(find.textContaining('Could not open local history'), findsOneWidget);
+
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('pilot-loading-ring')), findsNothing);
+    expect(find.textContaining('Could not open local history'), findsOneWidget);
   });
 
   testWidgets('loading artwork settles when reduced motion is enabled',
@@ -109,6 +157,42 @@ void main() {
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
     expect(find.text('Manual entry'), findsOneWidget);
+  });
+
+  testWidgets('camera permission warning expands and collapses smoothly',
+      (tester) async {
+    final camera = FakeCameraService();
+    await tester.pumpWidget(Tier1App(store: _Store(), camera: camera));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Camera access is off'), findsNothing);
+
+    camera.granted = false;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    final banner = find.byKey(const ValueKey('camera-warning-motion'));
+    expect(banner, findsOneWidget);
+    final partialHeight = tester.getSize(banner).height;
+    expect(partialHeight, greaterThan(0));
+    await tester.pumpAndSettle();
+    final fullHeight = tester.getSize(banner).height;
+    expect(fullHeight, greaterThan(partialHeight));
+    expect(find.textContaining('Camera access is off'), findsOneWidget);
+
+    camera.granted = true;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    final shrinkingHeight = tester.getSize(banner).height;
+    expect(shrinkingHeight, greaterThan(0));
+    expect(shrinkingHeight, lessThan(fullHeight));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(banner).height, 0);
+    expect(find.textContaining('Camera access is off'), findsNothing);
   });
   testWidgets('account welcome returns to profile without signing in',
       (tester) async {

@@ -850,10 +850,75 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
         meals: _meals, onScan: () => _selectTab(2), onOpenMeal: _open);
   }
 
+  Widget _cameraWarningBanner() {
+    final warning = _cameraWarning;
+    final content = warning == null
+        ? const SizedBox(key: ValueKey('warning-empty'), width: double.infinity)
+        : Padding(
+            key: ValueKey(warning),
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              Expanded(child: Text(warning)),
+              if (warning == _cameraAccessOff)
+                TextButton(
+                    onPressed: _explainCamera, child: const Text('Why camera?')),
+            ]));
+    if (MediaQuery.disableAnimationsOf(context)) {
+      return SizedBox(key: const ValueKey('camera-warning-motion'), child: content);
+    }
+    return AnimatedSize(
+        key: const ValueKey('camera-warning-motion'),
+        duration: Motion.medium,
+        curve: Motion.curve,
+        alignment: Alignment.topCenter,
+        clipBehavior: Clip.hardEdge,
+        child: AnimatedSwitcher(
+            duration: Motion.medium,
+            layoutBuilder: (current, previous) => Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  if (current != null) current,
+                  for (final child in previous)
+                    Positioned(left: 0, right: 0, top: 0, child: child),
+                ]),
+            transitionBuilder: (child, animation) => AnimatedBuilder(
+                animation: animation,
+                child: child,
+                builder: (context, child) {
+                  final outgoing = animation.status == AnimationStatus.reverse;
+                  return IgnorePointer(
+                      ignoring: outgoing,
+                      child: ExcludeSemantics(
+                          excluding: outgoing,
+                          child: FadeTransition(opacity: animation, child: child)));
+                }),
+            child: content));
+  }
+
   @override
-  Widget build(BuildContext context) => _initializing
-      ? const PilotLoadingScreen()
+  Widget build(BuildContext context) => AnimatedSwitcher(
+      duration: Motion.of(context, Motion.medium),
+      layoutBuilder: (current, previous) => Stack(
+          fit: StackFit.expand,
+          children: [if (current != null) current, ...previous]),
+      transitionBuilder: (child, animation) {
+        if (child.key != const ValueKey('startup-loading')) return child;
+        return AnimatedBuilder(
+            animation: animation,
+            child: child,
+            builder: (context, child) {
+              final outgoing = animation.status == AnimationStatus.reverse;
+              return IgnorePointer(
+                  ignoring: outgoing,
+                  child: ExcludeSemantics(
+                      excluding: outgoing,
+                      child: FadeTransition(opacity: animation, child: child)));
+            });
+      },
+      child: _initializing
+      ? const PilotLoadingScreen(key: ValueKey('startup-loading'))
       : Scaffold(
+          key: const ValueKey('startup-shell'),
           bottomNavigationBar: CalorixBottomNav(
               currentIndex: _tab,
               raisedScan: false,
@@ -886,22 +951,13 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                         Padding(
                             padding: const EdgeInsets.all(16),
                             child: Text(_error!)),
-                      if (tab == 2 && _cameraWarning != null)
-                        Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(children: [
-                              Expanded(child: Text(_cameraWarning!)),
-                              if (_cameraWarning == _cameraAccessOff)
-                                TextButton(
-                                    onPressed: _explainCamera,
-                                    child: const Text('Why camera?')),
-                            ])),
+                      if (tab == 2) _cameraWarningBanner(),
                       Expanded(
                           key: ValueKey('tab-content-$tab'),
                           child: _tabContent(tab)),
                     ]),
                   ]),
-              ]));
+              ])));
 }
 
 class _CaptureRingPainter extends CustomPainter {

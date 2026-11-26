@@ -11,7 +11,9 @@ Today’s macro ring (`35ec8bf`) grows from 208 to 240 logical pixels at normal 
 
 Both workflows passed for `fb23e52`. The signed release APK matched the source revision, checksum and test certificate. It contains one arm64 ABI and is 23,924,501 bytes. The Samsung kept its existing data during installation. Its Today screen showed the enlarged ring, readable calorie text and visible tab bar. [Test APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45774715792/artifacts/15096586678) · [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45774715667)
 
-Today now animates the calorie total, macro rings and progress bars when the date or amounts change. History expands daily details and changes between week and month views. Goals animates period summaries. The dashboard tests cover intermediate frames, settled values, screen-reader labels and reduced motion. The four-digit total was inspected in both themes.
+Today now animates the calorie total, macro rings and progress bars when the date or amounts change (`ed8de30`). History expands daily details and changes between week and month views. Goals animates period summaries. The dashboard tests cover intermediate frames, settled values, screen-reader labels and reduced motion. The four-digit total was inspected in both themes.
+
+The startup artwork now fades to the ready screen or the startup error. On Scan, a camera permission warning expands into place and collapses when access returns. Reduced motion shows the new state immediately. A widget test measured the warning at an intermediate height; the scoped analyzer reported no issues.
 
 ## Final cumulative acceptance — 2026-11-25
 
