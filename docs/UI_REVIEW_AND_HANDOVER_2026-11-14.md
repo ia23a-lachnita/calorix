@@ -5,6 +5,10 @@ Rules for any UI work: `/home/agent-runner/projects/_ui-review/RUBRIC.md`. Habit
 
 ## Status — meal reopening and motion (2026-11-27)
 
+The Samsung SM-G780G has the signed arm64 release from `a1f3fa8` (23,990,037 bytes). Its installed APK matched the release checksum and test signer. The recording shows History expanding from week to month, changing the average heading and returning to week. Both periods had empty averages on the phone. The nine History tests cover populated values, intermediate frames and reduced motion. [Test APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45988299459/artifacts/15193463787) · [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45988299337)
+
+On that revision CI passed 1,216 Flutter tests with one skipped, the Tier1 analyzer, and the backend checks. Local verification of the preceding editor revision passed 1,213 Flutter tests with one skipped. Python ran 282 tests with four optional skips. Samsung recordings are under `~/.local/share/ravlo-20261125/device/` in `morph-20261127-115725-3893227` and `history-a1f3fa8-20261127`.
+
 History now crossfades the calorie chart, period heading and macro averages on week/month changes. The progress bar moves to the new average. Missing observations stay visible as gaps, and screen readers receive the active values immediately.
 
 Editor warning and error messages animate their appearance, changes and removal (`366a37c`), with reduced motion supported. The focused portion-save failure test and scoped analysis pass.

@@ -1,4 +1,8 @@
-## Current work — final signed Samsung acceptance (2026-11-25)
+## Current work — signed Android release (2026-11-27)
+
+The current test APK is built from `a1f3fa8`. This release includes meal reopening during analysis, larger macro rings, the shutter-to-preview photo transition and week/month motion in History. Both CI workflows passed. The device checks and download are in the [November 27 status](UI_REVIEW_AND_HANDOVER_2026-11-14.md#status--meal-reopening-and-motion-2026-11-27).
+
+### Previous Samsung acceptance (2026-11-25)
 
 The Samsung acceptance record covers signed build `04101388bed93740185f2da434502fce06f45e20`, the manual picker, in-place camera capture, and the populated Scan layout. Both CI workflows passed. Local Flutter passed 1,187 tests with one skip, scoped analysis was clean, and Python ran 282 tests with 11 optional skips. [Device evidence and APK](UI_REVIEW_AND_HANDOVER_2026-11-14.md#final-cumulative-acceptance--2026-11-25)
 
