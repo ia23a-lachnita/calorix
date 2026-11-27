@@ -1330,6 +1330,49 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     unawaited(_estimate());
   }
 
+  Widget _messageBanner() {
+    final message = _message;
+    final content = message == null
+        ? const SizedBox(key: ValueKey('editor-message-empty'), width: double.infinity)
+        : Padding(
+            key: ValueKey(message),
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(message, semanticsLabel: message)));
+    if (MediaQuery.disableAnimationsOf(context)) {
+      return SizedBox(key: const ValueKey('editor-message-motion'), child: content);
+    }
+    return AnimatedSize(
+        key: const ValueKey('editor-message-motion'),
+        duration: Motion.medium,
+        curve: Motion.curve,
+        alignment: Alignment.topCenter,
+        clipBehavior: Clip.hardEdge,
+        child: AnimatedSwitcher(
+            duration: Motion.medium,
+            layoutBuilder: (current, previous) => Stack(
+                alignment: Alignment.topCenter,
+                clipBehavior: Clip.none,
+                children: [
+                  if (current != null) current,
+                  for (final child in previous)
+                    Positioned(left: 0, right: 0, top: 0, child: child),
+                ]),
+            transitionBuilder: (child, animation) => AnimatedBuilder(
+                animation: animation,
+                child: child,
+                builder: (context, child) {
+                  final outgoing = animation.status == AnimationStatus.reverse;
+                  return IgnorePointer(
+                      ignoring: outgoing,
+                      child: ExcludeSemantics(
+                          excluding: outgoing,
+                          child: FadeTransition(opacity: animation, child: child)));
+                }),
+            child: content));
+  }
+
   void _send(List<Map<String, dynamic>> events) {
     unawaited(widget.workflow
         .append(_meal.id, events)
@@ -2726,25 +2769,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
                         children: [
-                          if (_message != null)
-                            Padding(
-                                          padding:
-                                              const EdgeInsets.only(bottom: 16),
-                              child: Column(
-                                children: [
-                                  Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    child: Text(
-                                      _message!,
-                                      semanticsLabel: _message,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          _messageBanner(),
                                       if (_meal.photoPath != null &&
                                           served == null) ...[
                             _estimateButton(hasEstimate: false),

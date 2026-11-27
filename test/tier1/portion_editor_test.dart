@@ -356,6 +356,28 @@ void main() {
     expect(find.text('Meal estimate'), findsNothing);
     expect(tester.takeException(), isNull);
   });
+  testWidgets('a failed portion save eases in the editor message',
+      (tester) async {
+    final store = await _openMeal(tester);
+    await dialog(tester);
+    store.fail = true;
+    await tester.enterText(grams(), '86');
+    await tester.tap(find.text('Apply portion'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    final banner = find.byKey(const ValueKey('editor-message-motion'));
+    expect(banner, findsOneWidget);
+    final partialHeight = tester.getSize(banner).height;
+    expect(partialHeight, greaterThan(0));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(banner).height, greaterThan(partialHeight));
+    expect(find.textContaining('Reopen the meal'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
       'save error keeps editor usable and tells user to check saved values',
       (tester) async {
