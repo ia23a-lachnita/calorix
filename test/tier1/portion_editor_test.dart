@@ -305,11 +305,13 @@ void main() {
   });
   testWidgets('summary enters the editable form without duplicating it', (tester) async {
     await _openMeal(tester);
+    final offset = Scrollable.of(tester.element(find.text('Edit totals'))).position.pixels;
     await tester.tap(find.text('Edit totals'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 60));
     final input = find.widgetWithText(TextFormField, 'Meal name');
     expect(input, findsOneWidget);
+    expect(Scrollable.of(tester.element(input)).position.pixels, offset);
     expect(find.byType(Form, skipOffstage: false), findsOneWidget);
     final fades = find.ancestor(of: input, matching: find.byType(FadeTransition));
     expect(tester.widgetList<FadeTransition>(fades).any((f) => f.opacity.value > 0 && f.opacity.value < 1), isTrue);

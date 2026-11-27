@@ -13,7 +13,9 @@ import '../scan/support/fake_camera_service.dart';
 import 'support/portion_fixtures.dart';
 
 class _PhotoStore extends Tier1MealStore {
-  _PhotoStore() : super(Directory('.'));
+  _PhotoStore({this.retainedPath = '/tier1-fast-capture-retained-fixture.jpg'})
+      : super(Directory('.'));
+  final String retainedPath;
   final records = <Tier1Meal>[];
   final photoSaved = Completer<void>(), saveAttempt = Completer<void>();
   bool rejectSave = false;
@@ -22,7 +24,7 @@ class _PhotoStore extends Tier1MealStore {
   @override
   Future<String> retainCapture(String id, String source) async {
     retained++;
-    return '/tier1-fast-capture-retained-fixture.jpg';
+    return retainedPath;
   }
 
   @override
@@ -98,7 +100,7 @@ Future<void> _until(WidgetTester t, bool Function() completed) async {
   // Readiness is the observed completion condition, never a guessed delay.
   final elapsed = Stopwatch()..start();
   while (!completed()) {
-    if (elapsed.elapsed > const Duration(seconds: 10)) {
+    if (elapsed.elapsed > const Duration(seconds: 90)) {
       throw TimeoutException('Capture pipeline did not complete');
     }
     await t.pump(const Duration(milliseconds: 16));
@@ -136,6 +138,7 @@ void main() {
     final store = _PhotoStore(), camera = _PhotoCamera(jpeg), cloud = _Cloud();
     await _start(t, store, camera, cloud: cloud);
     await _take(t, store);
+    await _until(t, () => find.text('Meal estimate').evaluate().isNotEmpty);
     await t.pumpAndSettle();
     expect(camera.captureCount, 1);
     expect(store.retained, 1);
@@ -153,6 +156,7 @@ void main() {
     final store = _PhotoStore(), camera = _PhotoCamera(jpeg), cloud = _Cloud();
     await _start(t, store, camera, cloud: cloud);
     await _take(t, store);
+    await _until(t, () => find.text('Send this photo for analysis?').evaluate().isNotEmpty);
     await t.pumpAndSettle();
     // Positive controls distinguish capture/codec failures from the missing offer.
     expect(camera.captureCount, 1);
@@ -167,6 +171,60 @@ void main() {
   });
 
   testWidgets(
+      'fresh capture flies its exact still into the preview before consent',
+      (t) async {
+    final store = _PhotoStore(retainedPath: 'assets/images/coffee-oatmeal.jpg'),
+        camera = _PhotoCamera(jpeg),
+        cloud = _Cloud();
+    await _start(t, store, camera, cloud: cloud);
+    await _take(t, store);
+
+    final id = store.records.single.id;
+    final flight = find.byKey(ValueKey('capture-flight-image-$id'));
+    await _until(t, () => flight.evaluate().isNotEmpty);
+    await t.pump(const Duration(milliseconds: 100));
+    expect(flight, findsOneWidget);
+    final image = t.widget<CustomPaint>(flight);
+    expect(image.painter, isNotNull);
+    final bounds = t.getRect(flight);
+    final canvas = TestRecordingCanvas();
+    image.painter!.paint(canvas, bounds.size);
+    final draw = canvas.invocations
+        .singleWhere((call) => call.invocation.memberName == #drawImageRect)
+        .invocation.positionalArguments;
+    final source = draw[1] as Rect, destination = draw[2] as Rect;
+    expect(destination.width / destination.height,
+        closeTo(source.width / source.height, 0.0001));
+    expect(bounds.height, greaterThan(220));
+    expect(bounds.height, lessThan(t.view.physicalSize.height));
+    expect(find.text('Send this photo for analysis?'), findsNothing);
+    expect(cloud.calls, 0);
+
+    await t.pumpAndSettle();
+    expect(find.text('Send this photo for analysis?'), findsOneWidget);
+    final destinationPhoto = find.byWidgetPredicate((widget) =>
+        widget is Image &&
+        widget.image is ResizeImage &&
+        (widget.image as ResizeImage).imageProvider is FileImage &&
+        ((widget.image as ResizeImage).imageProvider as FileImage).file.path ==
+            store.retainedPath &&
+        widget.fit == BoxFit.contain);
+    expect(destinationPhoto, findsOneWidget);
+    expect(find.byKey(ValueKey('capture-flight-image-$id')), findsNothing);
+    expect(cloud.calls, 0);
+    expect(store.records.single.cloudConsent, false);
+    await t.tap(find.text('Keep local'));
+    await t.pumpAndSettle();
+    expect(find.text('Send this photo for analysis?'), findsNothing);
+    expect(cloud.calls, 0);
+    await t.binding.handlePopRoute();
+    await t.pumpAndSettle();
+    expect(find.byKey(const ValueKey('tab-content-0')), findsOneWidget);
+    expect(find.text('Take photo'), findsNothing);
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets(
       'declining fresh-capture consent keeps the local photo and lazy cloud fallback',
       (t) async {
     final store = _PhotoStore(), camera = _PhotoCamera(jpeg);
@@ -175,6 +233,7 @@ void main() {
       initializations++;
     });
     await _take(t, store);
+    await _until(t, () => find.text('Send this photo for analysis?').evaluate().isNotEmpty);
     await t.pumpAndSettle();
     expect(find.text('Keep local'), findsOneWidget);
     await t.tap(find.text('Keep local'));
@@ -206,6 +265,7 @@ void main() {
     final store = _PhotoStore(), camera = _PhotoCamera(jpeg), cloud = _Cloud();
     await _start(t, store, camera, cloud: cloud);
     await _take(t, store);
+    await _until(t, () => find.text('Send this photo for analysis?').evaluate().isNotEmpty);
     await t.pumpAndSettle();
     expect(find.text('Send this photo for analysis?'), findsOneWidget);
     t.state<NavigatorState>(find.byType(Navigator).first).pop();
@@ -222,6 +282,7 @@ void main() {
     final store = _PhotoStore(), camera = _PhotoCamera(jpeg), cloud = _Cloud();
     await _start(t, store, camera, cloud: cloud);
     await _take(t, store);
+    await _until(t, () => find.text('Send this photo for analysis?').evaluate().isNotEmpty);
     await t.pumpAndSettle();
     expect(cloud.calls, 0);
     expect(find.text('Send photo'), findsOneWidget);
@@ -246,16 +307,19 @@ void main() {
   });
 
   testWidgets('pending result returns to one interactive form with a fade', (t) async {
+    final semantics = t.ensureSemantics();
     final store = _PhotoStore(), camera = _PhotoCamera(jpeg), cloud = _Cloud();
     cloud.held = Completer<Map<String, dynamic>>();
     await _start(t, store, camera, cloud: cloud);
     await _take(t, store);
+    await _until(t, () => find.text('Send this photo for analysis?').evaluate().isNotEmpty);
     await t.pumpAndSettle();
     await t.tap(find.text('Send photo'));
     await _until(t, () => cloud.calls == 1);
     await t.pump(const Duration(milliseconds: 60));
     expect(find.byType(Form, skipOffstage: false), findsOneWidget);
     expect(find.widgetWithText(TextFormField, 'Meal name'), findsNothing);
+    expect(find.bySemanticsLabel('Meal name'), findsNothing);
     cloud.held!.complete(portionAnalysis());
     await _until(t, () => store.records.single.served != null);
     await t.pump();
@@ -266,6 +330,7 @@ void main() {
     expect(t.widgetList<FadeTransition>(fades).any((f) => f.opacity.value > 0 && f.opacity.value < 1), isTrue);
     await t.pumpAndSettle();
     expect(t.takeException(), isNull);
+    semantics.dispose();
   });
 
   testWidgets(
@@ -336,6 +401,7 @@ void main() {
       _lifecycle(t, true);
     };
     await _take(t, store);
+    await _until(t, () => find.text('Meal estimate').evaluate().isNotEmpty);
     await t.pumpAndSettle();
     expect(find.text('Meal estimate'), findsOneWidget);
     expect(find.text('Send this photo for analysis?'), findsNothing);

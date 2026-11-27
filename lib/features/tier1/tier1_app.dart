@@ -135,6 +135,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   Tier1TargetStore _targetStore = Tier1TargetStore();
   Tier1Targets _targets = Tier1Targets.defaults;
   int _lifecycleEpoch = 0;
+  _CaptureFlight? _captureFlight;
   @override
   void initState() {
     super.initState();
@@ -247,7 +248,11 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed) _lifecycleEpoch++;
+    if (state != AppLifecycleState.resumed) {
+      _lifecycleEpoch++;
+      final flight = _captureFlight;
+      if (flight != null) _finishCaptureFlight(flight);
+    }
     if (state == AppLifecycleState.resumed) {
       unawaited(_prepareCamera());
     } else if (_camera is CameraLifecycleService) {
@@ -258,6 +263,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _captureFlight?.clear();
+    _captureFlight = null;
     _pages.dispose();
     if (_camera is CameraLifecycleService) {
       unawaited((_camera as CameraLifecycleService).dispose());
@@ -268,14 +275,16 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   Future<void> _open(Tier1Meal meal,
       {int? captureTick,
       bool startEstimate = false,
-      bool Function()? allowInitialEstimate}) async {
+      bool Function()? allowInitialEstimate,
+      _CaptureFlight? captureFlight}) async {
     if (_openingMeal || _store == null || _error != null) return;
     _openingMeal = true;
     try {
       await _openRoute(meal,
           captureTick: captureTick,
           startEstimate: startEstimate,
-          allowInitialEstimate: allowInitialEstimate);
+          allowInitialEstimate: allowInitialEstimate,
+          captureFlight: captureFlight);
     } finally {
       _openingMeal = false;
     }
@@ -284,7 +293,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
   Future<void> _openRoute(Tier1Meal meal,
       {int? captureTick,
       bool startEstimate = false,
-      bool Function()? allowInitialEstimate}) async {
+      bool Function()? allowInitialEstimate,
+      _CaptureFlight? captureFlight}) async {
     if (_store == null || _error != null) return;
     var openedMeal = meal;
     if (meal.revision > 0) {
@@ -321,11 +331,38 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
             elapsedMilliseconds: _ticks,
             captureTick: captureTick,
             startEstimate: startEstimate,
-            allowInitialEstimate: allowInitialEstimate));
+            allowInitialEstimate: allowInitialEstimate,
+            captureFlight: captureFlight,
+            onCaptureFlightCancelled: captureFlight == null
+                ? null
+                : () => _finishCaptureFlight(captureFlight)));
     final closed = Navigator.of(context).push(route);
+    if (captureFlight != null) {
+      final animation = route.animation;
+      if (animation != null) {
+        void finishFlight(AnimationStatus status) {
+          // HeroController temporarily marks the destination offstage and
+          // forces its proxy animation to completed for its measurement pass.
+          if (route.offstage) return;
+          if (status != AnimationStatus.completed &&
+              status != AnimationStatus.dismissed) {
+            return;
+          }
+          animation.removeStatusListener(finishFlight);
+          _finishCaptureFlight(captureFlight);
+        }
+
+        animation.addStatusListener(finishFlight);
+        if (animation.status == AnimationStatus.completed) {
+          finishFlight(AnimationStatus.completed);
+        }
+      } else {
+        _finishCaptureFlight(captureFlight);
+      }
+    }
     if (fromScan) {
       void covered(AnimationStatus status) {
-        if (status != AnimationStatus.completed) return;
+        if (route.offstage || status != AnimationStatus.completed) return;
         route.animation?.removeStatusListener(covered);
         if (mounted && _tab == 2) _selectTab(0, immediate: true);
       }
@@ -424,6 +461,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
     if (_busy || _store == null || _error != null) return;
     setState(() => _busy = true);
     String? ownedCapture;
+    _CaptureFlight? captureFlight;
+    ui.Image? decodedCapture;
     try {
       if (!await _ensureCameraAccess()) {
         if (mounted) setState(() => _cameraWarning = _cameraAccessOff);
@@ -444,7 +483,7 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       final file = await _camera.captureStill();
       if (file == null) return;
       ownedCapture = file.path;
-      final bytes = await file.readAsBytes();
+      var bytes = await file.readAsBytes();
       if (bytes.length > 30 * 1024 * 1024 ||
           bytes.length < 8 ||
           bytes[0] != 255 ||
@@ -453,8 +492,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       }
       final codec = await ui.instantiateImageCodec(bytes);
       final frame = await codec.getNextFrame();
-      final width = frame.image.width, height = frame.image.height;
-      frame.image.dispose();
+      decodedCapture = frame.image;
+      final width = decodedCapture.width, height = decodedCapture.height;
       codec.dispose();
       final device =
           _camera is DeviceCameraService ? _camera.previewController : null;
@@ -493,11 +532,49 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
       }
       final saved = (await _store!.load()).firstWhere((m) => m.id == id);
       if (mounted) {
+        var canFly = !MediaQuery.disableAnimationsOf(context) &&
+            startedForeground &&
+            _lifecycleEpoch == offerEpoch &&
+            _tab == 2 &&
+            ModalRoute.isCurrentOf(context) == true;
+        if (canFly) {
+          // Match Image.file's resized cache key so the destination is ready
+          // when the in-memory flight image is released.
+          var decoded = true;
+          final cacheHeight = (220 * MediaQuery.devicePixelRatioOf(context)).ceil();
+          await precacheImage(
+              ResizeImage.resizeIfNeeded(null, cacheHeight, FileImage(File(path))),
+              context,
+              onError: (_, __) => decoded = false);
+          canFly = decoded && mounted && _lifecycleEpoch == offerEpoch &&
+              _tab == 2 && ModalRoute.isCurrentOf(context) == true;
+        }
+        if (canFly) {
+          captureFlight = _CaptureFlight(
+              mealId: id,
+              image: decodedCapture,
+              onClear: () => bytes = Uint8List(0));
+          decodedCapture = null;
+          setState(() => _captureFlight = captureFlight);
+          // Capture and local save already finished. Yield one frame so the
+          // scan source Hero exists before the destination route is pushed.
+          await WidgetsBinding.instance.endOfFrame;
+          if (!mounted || _lifecycleEpoch != offerEpoch) {
+            _finishCaptureFlight(captureFlight);
+            captureFlight = null;
+          }
+        } else {
+          decodedCapture.dispose();
+          decodedCapture = null;
+        }
+        if (captureFlight == null) bytes = Uint8List(0);
+        if (!mounted) return;
         await _open(saved,
             captureTick: shutterTick,
             startEstimate: true,
             allowInitialEstimate: () =>
-                mounted && startedForeground && _lifecycleEpoch == offerEpoch);
+                mounted && startedForeground && _lifecycleEpoch == offerEpoch,
+            captureFlight: captureFlight);
       }
     } catch (_) {
       if (mounted) {
@@ -506,6 +583,8 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                 Text('Photo could not be saved. Retake or use manual entry.')));
       }
     } finally {
+      if (captureFlight != null) _finishCaptureFlight(captureFlight);
+      decodedCapture?.dispose();
       if (ownedCapture != null) {
         try {
           final temporary = File(ownedCapture);
@@ -966,8 +1045,94 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                           key: ValueKey('tab-content-$tab'),
                           child: _tabContent(tab)),
                     ]),
+                    if (tab == 2 && _captureFlight != null)
+                      Positioned.fill(child: _captureFlight!.sourceHero()),
                   ]),
               ])));
+
+  void _finishCaptureFlight(_CaptureFlight flight) {
+    flight.clear();
+    if (mounted && identical(_captureFlight, flight)) {
+      setState(() => _captureFlight = null);
+    }
+  }
+}
+
+class _CaptureFlight {
+  _CaptureFlight(
+      {required this.mealId, required this.image, required this.onClear});
+
+  final String mealId;
+  ui.Image? image;
+  final VoidCallback onClear;
+  bool _cleared = false;
+
+  String get heroTag => 'tier1-capture-$mealId';
+
+  void clear() {
+    if (_cleared) return;
+    _cleared = true;
+    image?.dispose();
+    image = null;
+    onClear();
+  }
+
+  Widget shuttleBuilder(
+      BuildContext context,
+      Animation<double> animation,
+      HeroFlightDirection flightDirection,
+      BuildContext fromHeroContext,
+      BuildContext toHeroContext) {
+    return AnimatedBuilder(
+        animation: animation,
+        builder: (context, child) => ClipRRect(
+            borderRadius: BorderRadius.circular(24 * animation.value),
+            child: CustomPaint(
+                key: ValueKey('capture-flight-image-$mealId'),
+                painter: _CaptureFlightPainter(this, animation.value),
+                child: const SizedBox.expand())));
+  }
+
+  Widget sourceHero() => Hero(
+      tag: heroTag,
+      flightShuttleBuilder: shuttleBuilder,
+      child: Material(
+          color: Colors.transparent,
+          child: ClipRect(
+              child: CustomPaint(
+                  key: ValueKey('capture-source-image-$mealId'),
+                  painter: _CaptureFlightPainter(this, 0),
+                  child: const SizedBox.expand()))));
+}
+
+class _CaptureFlightPainter extends CustomPainter {
+  const _CaptureFlightPainter(this.flight, this.progress);
+
+  final _CaptureFlight flight;
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final image = flight.image;
+    if (image == null || size.isEmpty) return;
+    final imageSize = Size(image.width.toDouble(), image.height.toDouble());
+    final cover = applyBoxFit(BoxFit.cover, imageSize, size);
+    final contain = applyBoxFit(BoxFit.contain, imageSize, size);
+    final t = progress.clamp(0.0, 1.0);
+    final coverScale = cover.destination.width / cover.source.width;
+    final containScale = contain.destination.width / contain.source.width;
+    final scale = coverScale + (containScale - coverScale) * t;
+    final source = Offset.zero & imageSize;
+    final destination = Alignment.center.inscribe(
+        Size(imageSize.width * scale, imageSize.height * scale),
+        Offset.zero & size);
+    canvas.drawImageRect(image, source, destination,
+        Paint()..filterQuality = FilterQuality.high);
+  }
+
+  @override
+  bool shouldRepaint(_CaptureFlightPainter oldDelegate) =>
+      !identical(oldDelegate.flight, flight) || oldDelegate.progress != progress;
 }
 
 class _CaptureRingPainter extends CustomPainter {
@@ -1005,7 +1170,9 @@ class _MealEditor extends StatefulWidget {
       required this.elapsedMilliseconds,
       this.captureTick,
       this.startEstimate = false,
-      this.allowInitialEstimate});
+      this.allowInitialEstimate,
+      this.captureFlight,
+      this.onCaptureFlightCancelled});
   final Tier1Meal meal;
   final Clock clock;
   final Tier1MealStore store;
@@ -1016,6 +1183,8 @@ class _MealEditor extends StatefulWidget {
   final int? captureTick;
   final bool startEstimate;
   final bool Function()? allowInitialEstimate;
+  final _CaptureFlight? captureFlight;
+  final VoidCallback? onCaptureFlightCancelled;
   @override
   State<_MealEditor> createState() => _MealEditorState();
 }
@@ -1057,6 +1226,9 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
       _frameRecorded = false;
   bool _initialOfferConsumed = false;
   MealAnalysisOperation? _joinedAnalysis;
+  bool _captureHeroActive = false;
+  Animation<double>? _initialOfferAnimation;
+  AnimationStatusListener? _initialOfferStatusListener;
   @override
   void initState() {
     super.initState();
@@ -1064,6 +1236,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
     _foreground = WidgetsBinding.instance.lifecycleState == null ||
         WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
     _meter.setForeground(_foreground);
+    _captureHeroActive = widget.captureFlight != null;
     _trace('editor_opened');
     if (_meal.hasPendingPreparationQuestion) _trace('preparation_available');
     final activeAnalysis =
@@ -1079,23 +1252,82 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
               ? 'A previous estimate was interrupted. The request may have completed remotely; retrying sends this photo again.'
               : null);
     }
-    if (widget.startEstimate) {
+    if (widget.startEstimate || widget.captureFlight != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_initialOfferConsumed) return;
-        _initialOfferConsumed = true;
-        final state = WidgetsBinding.instance.lifecycleState;
-        if (!mounted ||
-            !_foreground ||
-            (state != null && state != AppLifecycleState.resumed) ||
-            ModalRoute.of(context)?.isCurrent != true ||
-            _busy ||
-            _dirty ||
-            widget.allowInitialEstimate?.call() != true) {
-          return;
+        if (widget.captureFlight == null) {
+          _offerInitialEstimate();
+        } else {
+          _watchCaptureTransition();
         }
-        unawaited(_estimate());
       });
     }
+  }
+
+  void _watchCaptureTransition() {
+    if (!mounted) return;
+    final route = ModalRoute.of(context);
+    final animation = route?.animation;
+    if (animation == null) {
+      _completeCaptureTransition();
+      return;
+    }
+    var transitionStarted = !route!.offstage &&
+        (animation.status == AnimationStatus.forward || animation.value > 0);
+    void onStatus(AnimationStatus status) {
+      if (route.offstage) return;
+      if (status == AnimationStatus.forward) transitionStarted = true;
+      if (status == AnimationStatus.completed) {
+        animation.removeStatusListener(onStatus);
+        _initialOfferAnimation = null;
+        _initialOfferStatusListener = null;
+        _completeCaptureTransition();
+      } else if (status == AnimationStatus.reverse ||
+          (status == AnimationStatus.dismissed && transitionStarted)) {
+        animation.removeStatusListener(onStatus);
+        _initialOfferAnimation = null;
+        _initialOfferStatusListener = null;
+        _initialOfferConsumed = true;
+        if (status == AnimationStatus.dismissed &&
+            mounted &&
+            _captureHeroActive) {
+          setState(() => _captureHeroActive = false);
+        }
+      }
+    }
+
+    _initialOfferAnimation = animation;
+    _initialOfferStatusListener = onStatus;
+    animation.addStatusListener(onStatus);
+    if (animation.status == AnimationStatus.completed) {
+      onStatus(AnimationStatus.completed);
+    }
+  }
+
+  void _completeCaptureTransition() {
+    if (_captureHeroActive && mounted) {
+      setState(() => _captureHeroActive = false);
+    }
+    if (widget.startEstimate) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _offerInitialEstimate();
+      });
+    }
+  }
+
+  void _offerInitialEstimate() {
+    if (_initialOfferConsumed) return;
+    _initialOfferConsumed = true;
+    final state = WidgetsBinding.instance.lifecycleState;
+    if (!mounted ||
+        !_foreground ||
+        (state != null && state != AppLifecycleState.resumed) ||
+        ModalRoute.of(context)?.isCurrent != true ||
+        _busy ||
+        _dirty ||
+        widget.allowInitialEstimate?.call() != true) {
+      return;
+    }
+    unawaited(_estimate());
   }
 
   void _send(List<Map<String, dynamic>> events) {
@@ -1161,7 +1393,12 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _foreground = state == AppLifecycleState.resumed;
     _meter.setForeground(_foreground && !_exporting);
-    if (_foreground) _scheduleResultFrame();
+    if (_foreground) {
+      _scheduleResultFrame();
+    } else if (_captureHeroActive) {
+      widget.onCaptureFlightCancelled?.call();
+      setState(() => _captureHeroActive = false);
+    }
   }
 
   Future<void> _export() async {
@@ -1192,6 +1429,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    final animation = _initialOfferAnimation;
+    final listener = _initialOfferStatusListener;
+    if (animation != null && listener != null) {
+      animation.removeStatusListener(listener);
+    }
     _meter.setForeground(false);
     _closed = true;
     _trace('editor_closed');
@@ -2461,7 +2703,14 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                   padding: EdgeInsets.zero,
                   children: [
                     if (_meal.photoPath != null)
-                      MealPhotoPreview(photoPath: _meal.photoPath!),
+                      MealPhotoPreview(
+                          photoPath: _meal.photoPath!,
+                          heroTag: _captureHeroActive
+                              ? widget.captureFlight?.heroTag
+                              : null,
+                          flightShuttleBuilder: _captureHeroActive
+                              ? widget.captureFlight?.shuttleBuilder
+                              : null),
                     Container(
                       decoration: BoxDecoration(
                                     color: Theme.of(context)

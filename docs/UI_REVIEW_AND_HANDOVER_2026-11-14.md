@@ -19,7 +19,9 @@ The startup and camera permission changes shipped in `e781f1d`. Both CI workflow
 
 The meal editor fades between the picker and form, the summary and editable totals, and analysis progress and the result (`d26d3f7`). The form stays mounted while analysis runs, with its controls hidden from touch and keyboard focus. Eight workflow regressions passed after restoring the progress panel’s full touch area. Both CI workflows passed.
 
-If refreshing a previously opened local meal fails, the error banner now expands within the current tab. A test triggered the read failure after startup and checked its intermediate and settled height. Scoped analysis reported no issues.
+If refreshing a previously opened local meal fails, the error banner now expands within the current tab (`50fb42b`). A test triggered the read failure after startup and checked its intermediate and settled height. Scoped analysis reported no issues.
+
+After a shutter tap, the saved still now moves from the camera’s cropped view to the uncropped meal preview. Its aspect ratio stays constant as its bounds and corner radius change. The consent dialog follows the transition; reduced motion skips the flight. Capture tests cover the intermediate image, Back to Today, explicit consent and interruption while the app is in the background.
 
 ## Final cumulative acceptance — 2026-11-25
 
