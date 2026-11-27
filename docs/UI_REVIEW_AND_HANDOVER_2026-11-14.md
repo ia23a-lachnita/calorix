@@ -3,9 +3,11 @@
 Rules for any UI work: `/home/agent-runner/projects/_ui-review/RUBRIC.md`. Habits:
 `/home/agent-runner/projects/_ui-review/REASONING_HABITS.md`. Both apply on top of AGENTS.md. They do not replace its gates.
 
-## Status — meal reopening and motion (2026-11-26)
+## Status — meal reopening and motion (2026-11-27)
 
-Editor warning and error messages animate their appearance, changes and removal, with reduced motion supported. The focused portion-save failure test and scoped analysis pass.
+History now crossfades the calorie chart, period heading and macro averages on week/month changes. The progress bar moves to the new average. Missing observations stay visible as gaps, and screen readers receive the active values immediately.
+
+Editor warning and error messages animate their appearance, changes and removal (`366a37c`), with reduced motion supported. The focused portion-save failure test and scoped analysis pass.
 
 Samsung capture morph at source `2208dde`: the signed release arm64 APK (23,990,037 bytes) matched source, signer and checksum. The captured still visibly shrank before the consent prompt; Keep local was selected and the test record removed. [Test APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45949725341/artifacts/15176648980) · [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45949725328)
 

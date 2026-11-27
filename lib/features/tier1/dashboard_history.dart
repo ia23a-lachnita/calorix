@@ -270,7 +270,12 @@ class _DashboardHistoryState extends State<DashboardHistory> {
                     borderRadius: BorderRadius.circular(10))),
           ])),
           card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(month ? 'MONTHLY AVERAGE' : 'WEEKLY AVERAGE', style: label),
+            MotionLabel(
+                key: const Key('history-average-heading'),
+                valueKey: month,
+                text: month ? 'MONTHLY AVERAGE' : 'WEEKLY AVERAGE',
+                semanticLabel: month ? 'MONTHLY AVERAGE' : 'WEEKLY AVERAGE',
+                style: label),
             const SizedBox(height: 4),
             Wrap(
                 spacing: 5,
@@ -293,12 +298,25 @@ class _DashboardHistoryState extends State<DashboardHistory> {
                 child: SizedBox(
                     height: 80,
                     width: double.infinity,
-                    child: CustomPaint(
-                        painter: _CalorieTrendPainter(
-                            chartValues,
-                            widget.targets.kcal.toDouble(),
-                            scheme.primary,
-                            scheme.outlineVariant)))),
+                    child: AnimatedSwitcher(
+                        key: const Key('history-trend-transition'),
+                        duration: Motion.of(context, Motion.medium),
+                        reverseDuration: Motion.of(context, Motion.medium),
+                        layoutBuilder: (current, previous) =>
+                            Stack(fit: StackFit.expand, children: [
+                              for (final child in previous)
+                                ExcludeSemantics(
+                                    child: IgnorePointer(child: child)),
+                              if (current != null) current,
+                            ]),
+                        child: CustomPaint(
+                            key: ValueKey(
+                                '$month:${start.toIso8601String()}:${chartValues.join(',')}:${widget.targets.kcal}'),
+                            painter: _CalorieTrendPainter(
+                                chartValues,
+                                widget.targets.kcal.toDouble(),
+                                scheme.primary,
+                                scheme.outlineVariant))))),
             const SizedBox(height: 14),
             Wrap(spacing: 8, runSpacing: 8, children: [
               for (final (name, value, color) in [
@@ -325,7 +343,13 @@ class _DashboardHistoryState extends State<DashboardHistory> {
                             Text(name, style: label)
                           ]),
                           const SizedBox(height: 4),
-                          Text(value, style: theme.textTheme.bodySmall)
+                          MotionLabel(
+                              key: Key('history-macro-value-$name'),
+                              valueKey:
+                                  '$month:${start.toIso8601String()}:$value',
+                              text: value,
+                              semanticLabel: '$name: $value',
+                              style: theme.textTheme.bodySmall)
                         ])),
             ]),
             Padding(
@@ -335,7 +359,16 @@ class _DashboardHistoryState extends State<DashboardHistory> {
             if (days.any((d) => on(d).any((m) => m.served == null)))
               const Text('Some meals have no nutrition yet.'),
             const SizedBox(height: 12),
-            LinearProgressIndicator(value: targetFraction(average))
+            Semantics(
+                key: const Key('history-average-progress'),
+                value: '${(targetFraction(average) * 100).round()}%',
+                child: ExcludeSemantics(
+                    child: TweenAnimationBuilder<double>(
+                        tween: Tween(end: targetFraction(average)),
+                        duration: Motion.of(context, Motion.medium),
+                        curve: Motion.curve,
+                        builder: (_, value, __) =>
+                            LinearProgressIndicator(value: value))))
           ])),
           Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
