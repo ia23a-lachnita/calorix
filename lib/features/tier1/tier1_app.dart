@@ -863,11 +863,15 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                 TextButton(
                     onPressed: _explainCamera, child: const Text('Why camera?')),
             ]));
+    return _animatedBanner(const ValueKey('camera-warning-motion'), content);
+  }
+
+  Widget _animatedBanner(Key key, Widget content) {
     if (MediaQuery.disableAnimationsOf(context)) {
-      return SizedBox(key: const ValueKey('camera-warning-motion'), child: content);
+      return SizedBox(key: key, child: content);
     }
     return AnimatedSize(
-        key: const ValueKey('camera-warning-motion'),
+        key: key,
         duration: Motion.medium,
         curve: Motion.curve,
         alignment: Alignment.topCenter,
@@ -947,10 +951,16 @@ class _Tier1HomeState extends State<_Tier1Home> with WidgetsBindingObserver {
                           height: kToolbarHeight +
                               MediaQuery.paddingOf(context).top,
                           child: _header(tab)),
-                      if (_error != null)
-                        Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Text(_error!)),
+                      _animatedBanner(
+                          ValueKey('history-error-motion-$tab'),
+                          _error == null
+                              ? const SizedBox(
+                                  key: ValueKey('error-empty'),
+                                  width: double.infinity)
+                              : Padding(
+                                  key: ValueKey(_error),
+                                  padding: const EdgeInsets.all(16),
+                                  child: Text(_error!))),
                       if (tab == 2) _cameraWarningBanner(),
                       Expanded(
                           key: ValueKey('tab-content-$tab'),

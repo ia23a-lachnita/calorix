@@ -17,7 +17,9 @@ The startup artwork now fades to the ready screen or the startup error. On Scan,
 
 The startup and camera permission changes shipped in `e781f1d`. Both CI workflows passed. The signed arm64 APK was installed over the existing app. A Samsung recording showed the History calendar expanding from the week into the full month, with the tab bar visible. [Test APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45875985962/artifacts/15146591619) · [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45875985900)
 
-The meal editor fades between the picker and form, the summary and editable totals, and analysis progress and the result. The form stays mounted while analysis runs, with its controls hidden from touch and keyboard focus. Tests exercise intermediate frames, edits and retry using a held local analysis request.
+The meal editor fades between the picker and form, the summary and editable totals, and analysis progress and the result (`d26d3f7`). The form stays mounted while analysis runs, with its controls hidden from touch and keyboard focus. Eight workflow regressions passed after restoring the progress panel’s full touch area. Both CI workflows passed.
+
+If refreshing a previously opened local meal fails, the error banner now expands within the current tab. A test triggered the read failure after startup and checked its intermediate and settled height. Scoped analysis reported no issues.
 
 ## Final cumulative acceptance — 2026-11-25
 

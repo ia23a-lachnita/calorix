@@ -29,6 +29,20 @@ class _FailingStore extends Tier1MealStore {
   }
 }
 
+class _RefreshFailingStore extends Tier1MealStore {
+  _RefreshFailingStore() : super(Directory('.'));
+  var fail = false;
+  final gate = Completer<void>();
+  @override
+  Future<List<Tier1Meal>> load() async {
+    if (fail) {
+      await gate.future;
+      throw const FormatException('synthetic refresh failure');
+    }
+    return [];
+  }
+}
+
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
   testWidgets('loading ends on Scan after local records load', (tester) async {
@@ -156,6 +170,30 @@ void main() {
     expect(camera.requestPermissionCount, requests);
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
+    expect(find.text('Manual entry'), findsOneWidget);
+  });
+
+  testWidgets('local history refresh error expands without replacing the shell',
+      (tester) async {
+    final store = _RefreshFailingStore();
+    await tester.pumpWidget(Tier1App(store: store, camera: FakeCameraService()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Manual entry'));
+    await tester.pumpAndSettle();
+    store.fail = true;
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    store.gate.complete();
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    final banner = find.byKey(const ValueKey('history-error-motion-0'));
+    expect(banner, findsOneWidget);
+    final partialHeight = tester.getSize(banner).height;
+    expect(partialHeight, greaterThan(0));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(banner).height, greaterThan(partialHeight));
+    expect(find.textContaining('Could not refresh local history'), findsOneWidget);
     expect(find.text('Manual entry'), findsOneWidget);
   });
 
