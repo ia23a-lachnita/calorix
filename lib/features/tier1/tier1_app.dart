@@ -1321,6 +1321,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                       child: const Text('Send photo'))
                 ]));
     if (approved != true || !mounted) return;
+    FocusScope.of(context).unfocus();
     final claim = MealAnalysisOperations.claim(widget.store, _meal.id);
     if (!claim.isOwner) {
       _initialOfferConsumed = true;
@@ -2266,7 +2267,18 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                               ?.copyWith(fontWeight: FontWeight.w600)),
                       Text(' kcal', style: theme.textTheme.bodyMedium),
                     ])),
-            if (status.isNotEmpty) Text(status),
+            AnimatedSize(
+                duration: Motion.of(context, Motion.medium),
+                alignment: Alignment.topLeft,
+                curve: Motion.curve,
+                child: status.isEmpty
+                    ? const SizedBox.shrink()
+                    : MotionLabel(
+                        key: const ValueKey('meal-summary-status'),
+                        valueKey: status,
+                        text: status,
+                        semanticLabel: status,
+                        style: theme.textTheme.bodyMedium)),
           ])),
       if (macros.any((macro) => macro.$2 != null)) ...[
         const SizedBox(height: 10),
@@ -2289,8 +2301,11 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                       color: color, shape: BoxShape.circle)),
                               const SizedBox(width: 8),
                               Expanded(child: Text(name)),
-                              Text('${_displayNutrient(value)} g served',
-                                  semanticsLabel:
+                              MotionLabel(
+                                  key: ValueKey('meal-summary-served-$name'),
+                                  valueKey: value.toStringAsFixed(1),
+                                  text: '${_displayNutrient(value)} g served',
+                                  semanticLabel:
                                       '$name ${_displayNutrient(value)} grams served',
                                   style: theme.textTheme.titleSmall),
                             ]),
@@ -2306,19 +2321,38 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                       ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(99),
-                                          child: LinearProgressIndicator(
-                                              minHeight: 4,
-                                              value: (percent / 100)
+                                          child: ExcludeSemantics(
+                                            child:
+                                                TweenAnimationBuilder<double>(
+                                              key: ValueKey(
+                                                  'meal-summary-progress-$name'),
+                                              tween: Tween(
+                                                end: (percent / 100)
                                                   .clamp(0.0, 1.0),
-                                              semanticsLabel:
-                                                  '$name contribution to daily target',
-                                              semanticsValue: '$percent',
+                                              ),
+                                              duration: Motion.of(
+                                                  context, Motion.medium),
+                                              curve: Motion.curve,
+                                              builder: (_, progress, __) =>
+                                                  LinearProgressIndicator(
+                                                minHeight: 4,
+                                                value: progress,
                                               color: color,
                                               backgroundColor:
-                                                  scheme.outlineVariant)),
+                                                    scheme.outlineVariant,
+                                              ),
+                                            ),
+                                          )),
                                       const SizedBox(height: 4),
-                                      Text(
+                                      MotionLabel(
+                                          key: ValueKey(
+                                              'meal-summary-eaten-$name'),
+                                          valueKey:
+                                              '${value * fraction}:$percent',
+                                          text:
                                           '${_displayNutrient(value * fraction)} g eaten · $percent% of ${name.toLowerCase()} target',
+                                          semanticLabel:
+                                              '${_displayNutrient(value * fraction)} grams eaten, $percent percent of ${name.toLowerCase()} target',
                                           style: theme.textTheme.bodySmall),
                                     ]);
                               }),
@@ -2393,23 +2427,22 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                   ),
               ],
             ),
-      body: showingPicker
+        body: StateFade(
+          state: (showingPicker, _estimating, summary),
+          child: showingPicker
           ? _manualFoodPicker()
           : SafeArea(
         top: _meal.photoPath != null,
         bottom: false,
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            if (_estimating && _meal.photoPath != null)
-              Positioned.fill(
+                      ExcludeFocus(
+                        excluding: _estimating && _meal.photoPath != null,
+                        child: Visibility(
+                        visible: !(_estimating && _meal.photoPath != null),
+                        maintainState: true,
                 child: Semantics(
-                  sortKey: const OrdinalSortKey(1.0),
-                  container: true,
-                  child: MealAnalysisPending(photoPath: _meal.photoPath!),
-                ),
-              )
-            else
-            Semantics(
               sortKey: const OrdinalSortKey(1.0),
               container: true,
               child: Form(
@@ -2421,7 +2454,8 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                       MealPhotoPreview(photoPath: _meal.photoPath!),
                     Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor,
                         borderRadius: _meal.photoPath == null
                             ? null
                             : const BorderRadius.vertical(
@@ -2430,15 +2464,18 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                       ),
                       padding: const EdgeInsets.all(20),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                         children: [
                           if (_message != null)
                             Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
+                                          padding:
+                                              const EdgeInsets.only(bottom: 16),
                               child: Column(
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
                                     child: Text(
@@ -2449,27 +2486,34 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                                 ],
                               ),
                             ),
-                          if (_meal.photoPath != null && served == null) ...[
+                                      if (_meal.photoPath != null &&
+                                          served == null) ...[
                             _estimateButton(hasEstimate: false),
                             const SizedBox(height: 12),
                           ],
                           if (summary) ...[
                             AnimatedSize(
-                              duration: Motion.of(context, Motion.medium),
+                                          duration:
+                                              Motion.of(context, Motion.medium),
                               curve: Motion.curve,
                               alignment: Alignment.topCenter,
-                              child: _summary(context, served, status),
+                                          child:
+                                              _summary(context, served, status),
                             ),
                             if (_meal.packagedDrink != null) ...[
                               Text(
                                 'Serving: ${_displayNutrient(_meal.packagedDrink!.volumeMl)} mL · '
                                 '${_displayNutrient(_meal.packagedDrink!.per100Ml.kcal)} kcal per 100 mL',
                               ),
-                              if (_meal.packagedDrink!.per100Ml.proteinG !=
+                                          if (_meal.packagedDrink!.per100Ml
+                                                      .proteinG !=
                                       null ||
-                                  _meal.packagedDrink!.per100Ml.carbsG !=
+                                              _meal.packagedDrink!.per100Ml
+                                                      .carbsG !=
                                       null ||
-                                  _meal.packagedDrink!.per100Ml.fatG != null)
+                                              _meal.packagedDrink!.per100Ml
+                                                      .fatG !=
+                                                  null)
                                 Text(
                                   'Per 100 mL:'
                                   '${_meal.packagedDrink!.per100Ml.proteinG == null ? '' : ' ${_displayNutrient(_meal.packagedDrink!.per100Ml.proteinG)} g protein'}'
@@ -2481,17 +2525,28 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                             if (blank) ...[
                               Text(
                                 'Camera-free logging',
-                                style: Theme.of(context).textTheme.labelMedium,
-                              ),
-                              Text(
-                                _drinkMode
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelMedium,
+                                          ),
+                                          MotionLabel(
+                                            key: const ValueKey(
+                                                'manual-entry-kind'),
+                                            valueKey:
+                                                '${_drinkMode ? 'drink' : 'food'}-${_catalogServing ? 'catalog' : 'custom'}',
+                                            text: _drinkMode
                                     ? 'Packaged drink'
                                     : _catalogServing
                                         ? 'Food details'
                                         : 'Create custom food',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.headlineSmall,
+                                            semanticLabel: _drinkMode
+                                                ? 'Packaged drink'
+                                                : _catalogServing
+                                                    ? 'Food details'
+                                                    : 'Create custom food',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .headlineSmall,
                               ),
                             ] else ...[
                               // a photo kept on the phone has no estimate to speak of yet
@@ -2515,7 +2570,9 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                               header: true,
                               child: Text(
                                 'Meal estimate',
-                                style: Theme.of(context).textTheme.labelMedium,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelMedium,
                               ),
                             ),
                             if (served != null) ...[
@@ -3069,6 +3126,17 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
                 ),
               ),
             ),
+                      ),
+                      ),
+                      if (_estimating && _meal.photoPath != null)
+                        Positioned.fill(
+                          child: Semantics(
+                            sortKey: const OrdinalSortKey(1.0),
+                            container: true,
+                            child: MealAnalysisPending(
+                                photoPath: _meal.photoPath!),
+                          ),
+                        ),
             if (_meal.photoPath != null)
               Positioned(
                 top: 8,
@@ -3104,6 +3172,7 @@ class _MealEditorState extends State<_MealEditor> with WidgetsBindingObserver {
               ),
           ],
         ),
+      ),
       ),
       ),
     );

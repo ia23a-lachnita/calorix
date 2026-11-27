@@ -215,6 +215,39 @@ void main() {
     await tester.pumpAndSettle();
     expect(store.records.single.consumedKcal, closeTo(306.75, 1e-9));
   });
+
+  testWidgets('saved meal summary animates consumption values, not semantics',
+      (tester) async {
+    final store = await _openMeal(tester);
+    await visible(tester, find.text('Ate all'));
+    final eaten = find.byKey(const Key('meal-summary-eaten-Protein'));
+    final initialLabel = tester.getSemantics(eaten).label;
+    final progress = find.byKey(const Key('meal-summary-progress-Protein'));
+    final initialProgress = tester
+        .widget<LinearProgressIndicator>(find.descendant(
+            of: progress, matching: find.byType(LinearProgressIndicator)))
+        .value!;
+    await tester.tap(find.text('Ate all'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    final text = tester.widgetList<Text>(
+        find.descendant(of: eaten, matching: find.byType(Text)));
+    expect(text, hasLength(2));
+    final currentLabel = tester.getSemantics(eaten).label;
+    expect(currentLabel, isNot(initialLabel));
+    final currentProgress = tester
+        .widget<LinearProgressIndicator>(find.descendant(
+            of: progress, matching: find.byType(LinearProgressIndicator)))
+        .value!;
+    expect(currentProgress, greaterThan(initialProgress));
+    await tester.pumpAndSettle();
+    expect(store.records.single.consumedFraction, 1);
+    expect(
+        tester.widgetList<Text>(
+            find.descendant(of: eaten, matching: find.byType(Text))),
+        hasLength(1));
+    expect(tester.takeException(), isNull);
+  });
   testWidgets(
       'cancel with focused keyboard and unchanged apply preserve intake and history',
       (tester) async {
@@ -270,6 +303,22 @@ void main() {
     expect(store.records.single.served!.toJson(), original.served!.toJson());
     expect(tester.takeException(), isNull);
   });
+  testWidgets('summary enters the editable form without duplicating it', (tester) async {
+    await _openMeal(tester);
+    await tester.tap(find.text('Edit totals'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    final input = find.widgetWithText(TextFormField, 'Meal name');
+    expect(input, findsOneWidget);
+    expect(find.byType(Form, skipOffstage: false), findsOneWidget);
+    final fades = find.ancestor(of: input, matching: find.byType(FadeTransition));
+    expect(tester.widgetList<FadeTransition>(fades).any((f) => f.opacity.value > 0 && f.opacity.value < 1), isTrue);
+    await tester.pumpAndSettle();
+    await tester.tap(input);
+    expect(tester.widget<EditableText>(find.descendant(of: input, matching: find.byType(EditableText))).focusNode.hasFocus, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
       'dirty totals disable portion editing and committed manual totals require disclosure',
       (tester) async {

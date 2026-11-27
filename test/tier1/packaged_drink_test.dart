@@ -140,6 +140,65 @@ void main() {
     await tester.pumpAndSettle();
     expect(store.records, isEmpty);
   });
+
+  testWidgets('manual picker transitions into an interactive entry form',
+      (tester) async {
+    await tester.pumpWidget(
+      Tier1App(store: _Store(), camera: FakeCameraService()),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Manual entry'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create custom food'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    final input = find.widgetWithText(TextFormField, 'Meal name');
+    expect(input, findsOneWidget);
+    final fades =
+        find.ancestor(of: input, matching: find.byType(FadeTransition));
+    expect(fades, findsWidgets);
+    expect(
+        tester.widgetList<FadeTransition>(fades).any(
+              (fade) => fade.opacity.value > 0 && fade.opacity.value < 1,
+            ),
+        isTrue);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Meal name'), 'Soup');
+    expect(find.text('Soup'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('drink and custom form titles crossfade with current semantics',
+      (tester) async {
+    final store = _Store();
+    await tester.pumpWidget(
+      Tier1App(store: store, camera: FakeCameraService()),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Manual entry'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Packaged drink'));
+    await tester.pumpAndSettle();
+
+    final title = find.byKey(const Key('manual-entry-kind'));
+    expect(tester.getSemantics(title).label, 'Packaged drink');
+    await tester.tap(find.text('Enter food'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    expect(find.descendant(of: title, matching: find.text('Packaged drink')),
+        findsOneWidget);
+    expect(
+        find.descendant(of: title, matching: find.text('Create custom food')),
+        findsOneWidget);
+    expect(tester.getSemantics(title).label, 'Create custom food');
+    expect(find.widgetWithText(TextFormField, 'Meal name'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: title, matching: find.text('Packaged drink')),
+        findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'manual drink previews scaled label totals and saves only on request',
     (tester) async {

@@ -71,12 +71,13 @@ class _PhotoCamera extends FakeCameraService {
 
 class _Cloud extends Tier1Cloud {
   int calls = 0;
+  Completer<Map<String, dynamic>>? held;
   @override
   Future<Map<String, dynamic>> analyze(String path,
       {required bool consent}) async {
     if (!consent) throw StateError('Explicit consent required');
     calls++;
-    return portionAnalysis();
+    return held == null ? portionAnalysis() : await held!.future;
   }
 }
 
@@ -241,6 +242,29 @@ void main() {
                 find.widgetWithText(TextFormField, 'Meal name'))
             .enabled,
         true);
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets('pending result returns to one interactive form with a fade', (t) async {
+    final store = _PhotoStore(), camera = _PhotoCamera(jpeg), cloud = _Cloud();
+    cloud.held = Completer<Map<String, dynamic>>();
+    await _start(t, store, camera, cloud: cloud);
+    await _take(t, store);
+    await t.pumpAndSettle();
+    await t.tap(find.text('Send photo'));
+    await _until(t, () => cloud.calls == 1);
+    await t.pump(const Duration(milliseconds: 60));
+    expect(find.byType(Form, skipOffstage: false), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Meal name'), findsNothing);
+    cloud.held!.complete(portionAnalysis());
+    await _until(t, () => store.records.single.served != null);
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 60));
+    expect(find.byType(Form, skipOffstage: false), findsOneWidget);
+    expect(find.text('Edit totals'), findsOneWidget);
+    final fades = find.ancestor(of: find.text('Edit totals'), matching: find.byType(FadeTransition));
+    expect(t.widgetList<FadeTransition>(fades).any((f) => f.opacity.value > 0 && f.opacity.value < 1), isTrue);
+    await t.pumpAndSettle();
     expect(t.takeException(), isNull);
   });
 

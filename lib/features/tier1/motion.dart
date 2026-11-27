@@ -123,3 +123,52 @@ class _MotionLabelState extends State<MotionLabel> {
         ),
       );
 }
+
+/// Fades the current state in without keeping an outgoing interactive tree.
+class StateFade extends StatefulWidget {
+  const StateFade({super.key, required this.state, required this.child});
+  final Object state;
+  final Widget child;
+
+  @override
+  State<StateFade> createState() => _StateFadeState();
+}
+
+class _StateFadeState extends State<StateFade>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: Motion.medium,
+    value: 1,
+  );
+
+  @override
+  void didUpdateWidget(covariant StateFade oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.state != widget.state) {
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _controller.value = 1;
+      } else {
+        _controller.forward(from: 0);
+      }
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) _controller.value = 1;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+        opacity: _controller.drive(CurveTween(curve: Motion.curve)),
+        child: widget.child,
+      );
+}

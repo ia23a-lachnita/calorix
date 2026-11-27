@@ -15,6 +15,10 @@ Today now animates the calorie total, macro rings and progress bars when the dat
 
 The startup artwork now fades to the ready screen or the startup error. On Scan, a camera permission warning expands into place and collapses when access returns. Reduced motion shows the new state immediately. A widget test measured the warning at an intermediate height; the scoped analyzer reported no issues.
 
+The startup and camera permission changes shipped in `e781f1d`. Both CI workflows passed. The signed arm64 APK was installed over the existing app. A Samsung recording showed the History calendar expanding from the week into the full month, with the tab bar visible. [Test APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45875985962/artifacts/15146591619) · [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45875985900)
+
+The meal editor fades between the picker and form, the summary and editable totals, and analysis progress and the result. The form stays mounted while analysis runs, with its controls hidden from touch and keyboard focus. Tests exercise intermediate frames, edits and retry using a held local analysis request.
+
 ## Final cumulative acceptance — 2026-11-25
 
 The signed arm64 APK for `0410138` matched the source, checksum and existing test signer. On the Samsung SM-G780G, manual food selection, Back navigation and saving a 230 kcal custom meal worked. With that meal logged, the framing guide cleared the summary and privacy text, and the hollow shutter and active tab dot stayed visible. Camera capture worked after permission was granted. The tester chose **Keep local**, removed both test records and restored Ravlo’s original camera permission state. [Signed APK](https://github.com/ia23a-lachnita/calorix/actions/runs/45611430274/artifacts/15020389053) · [Verify](https://github.com/ia23a-lachnita/calorix/actions/runs/45611430451)
